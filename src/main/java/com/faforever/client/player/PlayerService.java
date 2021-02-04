@@ -265,6 +265,7 @@ public class PlayerService implements InitializingBean {
     friendList.add(player.getId());
     foeList.remove((Integer) player.getId());
 
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
     fafService.addFriend(player);
   }
 
@@ -272,6 +273,7 @@ public class PlayerService implements InitializingBean {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     friendList.remove((Integer) player.getId());
 
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
     fafService.removeFriend(player);
   }
 
@@ -280,6 +282,7 @@ public class PlayerService implements InitializingBean {
     foeList.add(player.getId());
     friendList.remove((Integer) player.getId());
 
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
     fafService.addFoe(player);
   }
 
@@ -287,6 +290,7 @@ public class PlayerService implements InitializingBean {
     playersByName.get(player.getUsername()).setSocialStatus(OTHER);
     foeList.remove((Integer) player.getId());
 
+    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new PlayerSocialChangeEvent(chatUser)));
     fafService.removeFoe(player);
   }
 

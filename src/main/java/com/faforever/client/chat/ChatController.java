@@ -60,12 +60,12 @@ public class ChatController extends AbstractViewController<Node> {
     nameToChatTabController = new HashMap<>();
   }
 
-  private void onChannelLeft(Channel channel) {
-    Platform.runLater(() -> removeTab(channel.getName()));
+  private void onChannelLeft(ChatChannel chatChannel) {
+    Platform.runLater(() -> removeTab(chatChannel.getName()));
   }
 
-  private void onChannelJoined(Channel channel) {
-    String channelName = channel.getName();
+  private void onChannelJoined(ChatChannel chatChannel) {
+    String channelName = chatChannel.getName();
     chatService.addUsersListener(channelName, change -> {
       if (change.wasRemoved()) {
         onChatUserLeftChannel(change.getValueRemoved(), channelName);
@@ -112,7 +112,7 @@ public class ChatController extends AbstractViewController<Node> {
     JavaFxUtil.assertApplicationThread();
     if (!nameToChatTabController.containsKey(channelName)) {
       ChannelTabController tab = uiService.loadFxml("theme/chat/channel_tab.fxml");
-      tab.setChannel(chatService.getOrCreateChannel(channelName));
+      tab.setChatChannel(chatService.getOrCreateChannel(channelName));
       addTab(channelName, tab);
     }
     return nameToChatTabController.get(channelName);
@@ -179,10 +179,11 @@ public class ChatController extends AbstractViewController<Node> {
 
   @Subscribe
   public void onChatMessage(ChatMessageEvent event) {
+    ChatMessage message = event.getMessage();
+    if (isMatchmakerPartyMessage(message)) {
+      return;
+    }
     Platform.runLater(() -> {
-      ChatMessage message = event.getMessage();
-      if (isMatchmakerPartyMessage(message))
-        return;
       if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);
       } else {
@@ -260,7 +261,7 @@ public class ChatController extends AbstractViewController<Node> {
       Platform.runLater(() -> {
         AbstractChatTabController tabController = getOrCreateChannelTab(channelName);
         onConnected();
-        if (channelName.equals(chatService.getDefaultChannelName())) {
+        if (chatService.isDefaultChannel(channelName)) {
           Tab tab = tabController.getRoot();
           tabPane.getSelectionModel().select(tab);
           nameToChatTabController.get(tab.getId()).onDisplay();

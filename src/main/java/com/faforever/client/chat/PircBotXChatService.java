@@ -116,16 +116,16 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
-  /** Key is the result of {@link #mapKey(String, String)}. */
-  private final ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
-  @VisibleForTesting
-  ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-  private final Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners = new ConcurrentHashMap<>();
   /**
    * Maps channels by name.
    */
-  private final ObservableMap<String, Channel> channels = observableHashMap();
+  private final ObservableMap<String, ChatChannel> channels = observableHashMap();
+  /** Key is the result of {@link #mapKey(String, String)}. */
+  private final ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
   private final SimpleIntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  @VisibleForTesting
+  ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  private final Map<Class<? extends GenericEvent>, ArrayList<ChatEventListener>> eventListeners = new ConcurrentHashMap<>();
   private String defaultChannelName;
 
   private Configuration configuration;
@@ -208,11 +208,11 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
     }
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     synchronized (chatChannelUsersByChannelAndName) {
-      switch (chatColorMode) {
-        case RANDOM -> chatChannelUsersByChannelAndName.values()
+      if (chatColorMode == ChatColorMode.RANDOM) {
+        chatChannelUsersByChannelAndName.values()
             .forEach(chatUser -> chatUser.setColor(ColorGeneratorUtil.generateRandomColor(chatUser.getUsername().hashCode())));
-
-        default -> chatChannelUsersByChannelAndName.values()
+      } else {
+        chatChannelUsersByChannelAndName.values()
             .forEach(chatUser -> {
               if (chatPrefs.getUserToColor().containsKey(userToColorKey(chatUser.getUsername()))) {
                 chatUser.setColor(chatPrefs.getUserToColor().get(userToColorKey(chatUser.getUsername())));
@@ -330,7 +330,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   private void onDisconnected() {
     autoChannelsJoined = false;
     synchronized (channels) {
-      channels.values().forEach(Channel::clearUsers);
+      channels.values().forEach(ChatChannel::clearUsers);
     }
   }
 
@@ -361,8 +361,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       }
     }
     synchronized (chatChannelUsersByChannelAndName) {
-      ChatChannelUser chatChannelUser = chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
-      chatChannelUser.removeListeners();
+      chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
     }
     // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (defaultChannelName.equals(channelName)) {
@@ -531,10 +530,10 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   }
 
   @Override
-  public Channel getOrCreateChannel(String channelName) {
+  public ChatChannel getOrCreateChannel(String channelName) {
     synchronized (channels) {
       if (!channels.containsKey(channelName)) {
-        channels.put(channelName, new Channel(channelName));
+        channels.put(channelName, new ChatChannel(channelName));
       }
       return channels.get(channelName);
     }
@@ -547,9 +546,9 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       if (!chatChannelUsersByChannelAndName.containsKey(key)) {
         Optional<Player> optionalPlayer = playerService.getPlayerForUsername(username);
 
-        ChatChannelUser chatChannelUser = new ChatChannelUser(username, isModerator, optionalPlayer.orElse(null));
-        chatUserService.populateColor(chatChannelUser);
+        ChatChannelUser chatChannelUser = new ChatChannelUser(username, isModerator);
         chatChannelUsersByChannelAndName.put(key, chatChannelUser);
+        chatUserService.associatePlayerToChatUser(chatChannelUser, optionalPlayer.orElse(null));
       }
       return chatChannelUsersByChannelAndName.get(key);
     }
@@ -568,7 +567,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
   }
 
   @Override
-  public void addChannelsListener(MapChangeListener<String, Channel> listener) {
+  public void addChannelsListener(MapChangeListener<String, ChatChannel> listener) {
     JavaFxUtil.addListener(channels, listener);
   }
 

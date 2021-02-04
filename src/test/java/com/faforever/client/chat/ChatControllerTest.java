@@ -62,7 +62,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private EventBus eventBus;
   @Captor
-  private ArgumentCaptor<MapChangeListener<String, Channel>> channelsListener;
+  private ArgumentCaptor<MapChangeListener<String, ChatChannel>> channelsListener;
   @Captor
   private ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> onUsersListenerCaptor;
 
@@ -147,7 +147,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
   }
 
   private void channelJoined(String channel) {
-    MapChangeListener.Change<? extends String, ? extends Channel> testChannelChange = mock(MapChangeListener.Change.class);
+    MapChangeListener.Change<? extends String, ? extends ChatChannel> testChannelChange = mock(MapChangeListener.Change.class);
     channelsListener.getValue().onChanged(testChannelChange);
   }
 
@@ -161,9 +161,9 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     when(channelTabController.getRoot()).thenReturn(tab);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
     doAnswer(invocation -> {
-      MapChangeListener.Change<? extends String, ? extends Channel> change = mock(MapChangeListener.Change.class);
+      MapChangeListener.Change<? extends String, ? extends ChatChannel> change = mock(MapChangeListener.Change.class);
       when(change.wasAdded()).thenReturn(true);
-      doReturn(new Channel(invocation.getArgument(0))).when(change).getValueAdded();
+      doReturn(new ChatChannel(invocation.getArgument(0))).when(change).getValueAdded();
       channelsListener.getValue().onChanged(change);
       return null;
     }).when(chatService).joinChannel(anyString());
