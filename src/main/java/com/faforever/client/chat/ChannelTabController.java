@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
@@ -127,7 +126,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public TextFlow topicText;
   public ToggleButton toggleSidePaneButton;
   private ChatChannel chatChannel;
-  private final InvalidationListener channelTopicListener = observable -> Platform.runLater(this::updateChannelTopic);
+  private final InvalidationListener channelTopicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
   private Popup filterUserPopup;
   private UserFilterController userFilterController;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
@@ -268,7 +267,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void updateUserCount(int count) {
-    Platform.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", count)));
+    JavaFxUtil.runLater(() -> userSearchTextField.setPromptText(i18n.get("chat.userCount", count)));
   }
 
   private void addModerator(CategoryOrChatUserListItem item) {
@@ -406,7 +405,7 @@ public class ChannelTabController extends AbstractChatTabController {
       return;
     }
     //Workaround for issue #1080 https://github.com/FAForever/downlords-faf-client/issues/1080
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       try {
         engine.executeScript("removeUserMessageClass('" + String.format(USER_CSS_CLASS_FORMAT, chatUser.getUsername()) + "','" + cssClass + "');");
       } catch (Exception ignored) {
@@ -417,11 +416,11 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void addUserMessageClass(ChatChannelUser player, String cssClass) {
-    Platform.runLater(() -> getJsObject().call("addUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), cssClass));
+    JavaFxUtil.runLater(() -> getJsObject().call("addUserMessageClass", String.format(USER_CSS_CLASS_FORMAT, player.getUsername()), cssClass));
   }
 
   private void updateUserMessageDisplay(ChatChannelUser chatUser, String display) {
-    Platform.runLater(() -> getJsObject().call("updateUserMessageDisplay", chatUser.getUsername(), display));
+    JavaFxUtil.runLater(() -> getJsObject().call("updateUserMessageDisplay", chatUser.getUsername(), display));
   }
 
   private void associateChatUserWithPlayer(Player player, ChatChannelUser chatUser) {
@@ -503,7 +502,7 @@ public class ChannelTabController extends AbstractChatTabController {
     List<CategoryOrChatUserListItem> listItemsToBeRemoved = userNamesToListItems.remove(username);
 
     if (listItemsToBeRemoved != null) {
-      Platform.runLater(() -> chatUserListItems.removeAll(listItemsToBeRemoved));
+      JavaFxUtil.runLater(() -> chatUserListItems.removeAll(listItemsToBeRemoved));
       Arrays.stream(ChatUserCategory.values())
           .filter(categoriesToUserListItems::containsKey)
           .map(categoriesToUserListItems::get)
