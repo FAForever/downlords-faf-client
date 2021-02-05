@@ -415,6 +415,7 @@ public class PircBotXChatService implements ChatService, InitializingBean, Dispo
       autoChannels.remove(defaultChannelName);
       autoChannels.add(0, defaultChannelName);
       executorService.execute(this::joinAutoChannels);
+      executorService.execute(this::joinSavedAutoChannels);
     }
   }
 
