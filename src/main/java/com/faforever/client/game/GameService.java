@@ -821,6 +821,7 @@ public class GameService implements InitializingBean {
   }
 
   private Game createOrUpdateGame(GameInfoMessage gameInfoMessage) {
+    JavaFxUtil.assertApplicationThread();
     Integer gameId = gameInfoMessage.getUid();
     final Game game;
     synchronized (uidToGameInfoBean) {
