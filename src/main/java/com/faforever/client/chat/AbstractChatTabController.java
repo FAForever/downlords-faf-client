@@ -457,23 +457,27 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (!isChatReady) {
         waitingMessages.add(chatMessage);
       } else {
-        addMessage(chatMessage);
-        removeTopmostMessages();
-        scrollToBottomIfDesired();
+        JavaFxUtil.runLater(() -> {
+          addMessage(chatMessage);
+          removeTopmostMessages();
+          scrollToBottomIfDesired();
+        });
       }
     }
   }
 
   private void scrollToBottomIfDesired() {
-    JavaFxUtil.runLater(() -> engine.executeScript("scrollToBottomIfDesired()"));
+    JavaFxUtil.assertApplicationThread();
+    engine.executeScript("scrollToBottomIfDesired()");
   }
 
   private void removeTopmostMessages() {
+    JavaFxUtil.assertApplicationThread();
     int maxMessageItems = preferencesService.getPreferences().getChat().getMaxMessages();
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
     while (numberOfMessages > maxMessageItems) {
-      JavaFxUtil.runLater(() -> engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "')[0].remove()"));
+      engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "')[0].remove()");
       numberOfMessages--;
     }
   }
@@ -483,6 +487,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * entry.
    */
   private void addMessage(ChatMessage chatMessage) {
+    JavaFxUtil.assertApplicationThread();
     noCatch(() -> {
       if (requiresNewChatSection(chatMessage)) {
         appendChatMessageSection(chatMessage);
@@ -647,12 +652,13 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected String convertUrlsToHyperlinks(String text) {
+    JavaFxUtil.assertApplicationThread();
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 
   private void insertIntoContainer(String html, String containerId) {
-    JavaFxUtil.runLater(() -> ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')"))
-        .call("insertAdjacentHTML", "beforeend", html));
+    ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')"))
+        .call("insertAdjacentHTML", "beforeend", html);
     getMessagesWebView().requestLayout();
   }
 

@@ -173,8 +173,6 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   private void onShowReplayEvent(ShowReplayEvent event) {
     int replayId = event.getReplayId();
     if (state.get() == State.UNINITIALIZED) {
-      //We have to wait for the Show Room to load otherwise it will not be loaded and it looks strange
-      loadShowRoom();
       ChangeListener<State> stateChangeListener = new ChangeListener<>() {
         @Override
         public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
@@ -186,6 +184,8 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
         }
       };
       state.addListener(stateChangeListener);
+      //We have to wait for the Show Room to load otherwise it will not be loaded and it looks strange
+      loadShowRoom();
     } else {
       showReplayWithID(replayId);
     }
@@ -194,7 +194,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   private void showReplayWithID(int replayId) {
     replayService.findById(replayId).thenAccept(replay -> {
       if (replay.isPresent()) {
-        onDisplayDetails(replay.get());
+        JavaFxUtil.runLater(() -> onDisplayDetails(replay.get()));
       } else {
         notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
       }

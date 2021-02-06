@@ -148,8 +148,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testShowReplayEventWhenUninitialized() {
-    JavaFxUtil.runLater(() -> instance.display(new ShowReplayEvent(123)));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
     verify(replayDetailController).setReplay(testReplay);
   }
 
@@ -164,8 +163,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void showReplayButReplayNotPresent() {
     when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
-    JavaFxUtil.runLater(() -> instance.display(new ShowReplayEvent(123)));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 }

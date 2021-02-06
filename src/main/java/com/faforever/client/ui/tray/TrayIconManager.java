@@ -58,18 +58,20 @@ public class TrayIconManager implements InitializingBean {
       throw new IllegalStateException("No delta nor new value is available");
     }
 
-    List<Image> icons;
-    if (badgeCount < 1) {
-      icons = IntStream.range(4, 9)
-          .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
-          .collect(Collectors.toList());
-    } else {
-      icons = IntStream.range(4, 9)
-          .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
-          .map(image -> addBadge(image, badgeCount))
-          .collect(Collectors.toList());
-    }
-    JavaFxUtil.runLater(() -> StageHolder.getStage().getIcons().setAll(icons));
+    JavaFxUtil.runLater(() -> {
+      List<Image> icons;
+      if (badgeCount < 1) {
+        icons = IntStream.range(4, 9)
+            .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
+            .collect(Collectors.toList());
+      } else {
+        icons = IntStream.range(4, 9)
+            .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
+            .map(image -> addBadge(image, badgeCount))
+            .collect(Collectors.toList());
+      }
+      StageHolder.getStage().getIcons().setAll(icons);
+    });
   }
 
   private Image addBadge(Image icon, int badgeCount) {
