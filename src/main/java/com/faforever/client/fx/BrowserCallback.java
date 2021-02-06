@@ -15,7 +15,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Popup;
@@ -120,7 +119,7 @@ public class BrowserCallback {
       linkPreviewTooltip.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
       linkPreviewTooltip.setGraphic(preview.getNode());
       linkPreviewTooltip.setContentDisplay(ContentDisplay.TOP);
-      Platform.runLater(() -> linkPreviewTooltip.show(StageHolder.getStage(), lastMouseX + 20, lastMouseY));
+      JavaFxUtil.runLater(() -> linkPreviewTooltip.show(StageHolder.getStage(), lastMouseX + 20, lastMouseY));
     }));
   }
 
@@ -129,20 +128,23 @@ public class BrowserCallback {
    */
   @SuppressWarnings("unused")
   public void showClanInfo(String clanTag) {
-    clanService.getClanByTag(clanTag).thenAccept(clan -> Platform.runLater(() -> {
-      if (!clan.isPresent() || clanTag.isEmpty()) {
+    clanService.getClanByTag(clanTag).thenAccept(clan -> {
+      if (clan.isEmpty() || clanTag.isEmpty()) {
         return;
       }
-      ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
-      clanTooltipController.setClan(clan.get());
-      clanTooltipController.getRoot().getStyleClass().add("tooltip");
-
       clanInfoPopup = new Popup();
-      clanInfoPopup.getContent().setAll(clanTooltipController.getRoot());
       clanInfoPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_LEFT);
       clanInfoPopup.setAutoHide(true);
-      clanInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY + 10);
-    }));
+
+      JavaFxUtil.runLater(() -> {
+        ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
+        clanTooltipController.setClan(clan.get());
+        clanTooltipController.getRoot().getStyleClass().add("tooltip");
+
+        clanInfoPopup.getContent().setAll(clanTooltipController.getRoot());
+        clanInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY + 10);
+      });
+    });
   }
 
   /**
@@ -153,7 +155,7 @@ public class BrowserCallback {
     if (clanInfoPopup == null) {
       return;
     }
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       clanInfoPopup.hide();
       clanInfoPopup = null;
     });

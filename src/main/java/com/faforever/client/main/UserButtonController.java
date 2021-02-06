@@ -2,13 +2,13 @@ package com.faforever.client.main;
 
 import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
@@ -33,7 +33,7 @@ public class UserButtonController implements Controller<Node> {
 
   @Subscribe
   public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    Platform.runLater(() -> userMenuButtonRoot.setText(event.getUsername()));
+    JavaFxUtil.runLater(() -> userMenuButtonRoot.setText(event.getUsername()));
   }
 
   @Override

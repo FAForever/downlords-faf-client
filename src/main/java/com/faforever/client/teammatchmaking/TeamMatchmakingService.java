@@ -1,6 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fa.relay.LobbyMode;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.PlayerStatus;
@@ -34,7 +35,6 @@ import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -105,7 +105,7 @@ public class TeamMatchmakingService {
     fafService.addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchMessage);
     fafService.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
-        Platform.runLater(() -> initParty(playerService.getCurrentPlayer().get()));
+        initMyParty();
       }
     });
 
@@ -117,11 +117,11 @@ public class TeamMatchmakingService {
 
     playerService.currentPlayerProperty().addListener((obs, old, player) -> {
       if (party.getOwner() == null && party.getMembers().isEmpty() && player != null) {
-        Platform.runLater(() -> initParty(player));
+        initMyParty();
       }
     });
 
-    playerService.getCurrentPlayer().ifPresent(this::initParty);
+    playerService.getCurrentPlayer().ifPresent(player -> initMyParty());
   }
 
   @VisibleForTesting
@@ -162,7 +162,7 @@ public class TeamMatchmakingService {
     queue.setQueuePopTime(OffsetDateTime.parse(messageQueue.getQueuePopTime()).toInstant());
     queue.setTeamSize(messageQueue.getTeamSize());
     queue.setPartiesInQueue(messageQueue.getBoundary75s().size());
-    Platform.runLater(() -> queue.setPlayersInQueue(messageQueue.getNumPlayers()));
+    JavaFxUtil.runLater(() -> queue.setPlayersInQueue(messageQueue.getNumPlayers()));
   }
 
   @VisibleForTesting
@@ -170,7 +170,7 @@ public class TeamMatchmakingService {
     matchmakingQueues.stream()
         .filter(q -> Objects.equals(q.getQueueName(), message.getQueueName()))
         .forEach(q -> {
-          Platform.runLater(() -> {
+          JavaFxUtil.runLater(() -> {
             q.setJoined(message.getState() == MatchmakingState.START);
             leaveQueueTimeouts.forEach(f -> f.cancel(false));
           });
@@ -266,14 +266,13 @@ public class TeamMatchmakingService {
     fafServerAccessor.gameMatchmaking(queue, MatchmakingState.STOP);
 
     leaveQueueTimeouts.add(taskScheduler.schedule(
-        () -> Platform.runLater(() -> queue.setJoined(false)), Instant.now().plus(Duration.ofSeconds(5))));
+        () -> JavaFxUtil.runLater(() -> queue.setJoined(false)), Instant.now().plus(Duration.ofSeconds(5))));
   }
 
   public void onPartyInfo(PartyInfoMessage message) {
     Optional<Player> currentPlayer = playerService.getCurrentPlayer();
-    if (currentPlayer.isPresent() &&
-        message.getMembers().stream().noneMatch(m -> m.getPlayer() == currentPlayer.get().getId())) {
-      Platform.runLater(() -> initParty(currentPlayer.get()));
+    if (currentPlayer.isPresent() && message.getMembers().stream().noneMatch(m -> m.getPlayer() == currentPlayer.get().getId())) {
+      initMyParty();
       return;
     }
     setPartyFromInfoMessage(message);
@@ -328,7 +327,7 @@ public class TeamMatchmakingService {
   }
 
   public void onPartyKicked(PartyKickedMessage message) {
-    Platform.runLater(() -> initParty(playerService.getCurrentPlayer().get()));
+    initMyParty();
   }
 
   public void invitePlayer(String player) {
@@ -356,25 +355,29 @@ public class TeamMatchmakingService {
 
   public void leaveParty() {
     fafServerAccessor.leaveParty();
-    initParty(playerService.getCurrentPlayer().get());
+    initMyParty();
   }
 
-  private void initParty(Player owner) {
-    PartyMember newPartyMember = new PartyMember(owner);
+  private void initMyParty() {
+    Player currentPlayer = playerService.getCurrentPlayer().orElse(null);
+
+    PartyMember newPartyMember = new PartyMember(currentPlayer);
     party.getMembers().stream()
-        .filter(partyMember -> partyMember.getPlayer().equals(owner))
+        .filter(partyMember -> partyMember.getPlayer().equals(currentPlayer))
         .findFirst().
         ifPresent(partyMember -> {
           newPartyMember.setFactions(partyMember.getFactions());
           sendFactionSelection(partyMember.getFactions());
         });
 
-    party.setOwner(owner);
-    party.getMembers().setAll(newPartyMember);
-    playersInGame.clear();
-    if (!playerService.getCurrentPlayer().get().getStatus().equals(PlayerStatus.IDLE)) {
-      playersInGame.add(owner);
-    }
+    JavaFxUtil.runLater(() -> {
+      party.setOwner(currentPlayer);
+      party.getMembers().setAll(newPartyMember);
+      playersInGame.clear();
+      if (currentPlayer != null && !Objects.equals(currentPlayer.getStatus(), PlayerStatus.IDLE)) {
+        playersInGame.add(currentPlayer);
+      }
+    });
   }
 
   public void readyParty() {
@@ -421,7 +424,7 @@ public class TeamMatchmakingService {
   private void setOwnerFromInfoMessage(PartyInfoMessage message) {
     List<Player> players =  playerService.getOnlinePlayersByIds(List.of(message.getOwner()));
     if (!players.isEmpty()) {
-      Platform.runLater(() -> party.setOwner(players.get(0)));
+      JavaFxUtil.runLater(() -> party.setOwner(players.get(0)));
     }
   }
 
@@ -438,7 +441,7 @@ public class TeamMatchmakingService {
         .filter(Objects::nonNull)
         .collect(Collectors.toCollection(FXCollections::observableArrayList));
 
-    Platform.runLater(() -> party.setMembers(partyMembers));
+    JavaFxUtil.runLater(() -> party.setMembers(partyMembers));
   }
 
   private PartyMember pickRightPlayerToCreatePartyMember(List<Player> players, PartyInfoMessage.PartyMember member) {

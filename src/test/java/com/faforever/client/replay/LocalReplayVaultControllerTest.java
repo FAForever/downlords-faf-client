@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -10,7 +11,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
-import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class LocalReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowLocalReplayDetail() {
     Replay replay = ReplayBuilder.create().get();
-    Platform.runLater(() -> instance.onDisplayDetails(replay));
+    JavaFxUtil.runLater(() -> instance.onDisplayDetails(replay));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(replayDetailController).setReplay(replay);

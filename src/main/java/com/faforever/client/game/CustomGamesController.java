@@ -15,7 +15,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
@@ -214,7 +213,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public void onTableButtonClicked() {
     gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
     gamesTableController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       gamesTableController.initializeGameTable(filteredItems);
 
       Node root = gamesTableController.getRoot();
@@ -235,7 +234,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), new WeakChangeListener<>(gameChangeListener));
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       chooseSortingTypeChoiceBox.getItems().clear();
       Node root = gamesTilesContainerController.getRoot();
       populateContainer(root);

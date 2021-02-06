@@ -11,7 +11,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
@@ -181,7 +180,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         .collect(Collectors.toList());
 
     loadingEntitiesFutureReference.get()
-        .thenRun(() -> Platform.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           showRoomGroup.getChildren().addAll(childrenToAdd);
           enterShowRoomState();
         }))
@@ -249,7 +248,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected void displaySearchResult(List<T> results) {
     JavaFxUtil.assertBackgroundThread();
     populate(results, searchResultPane);
-    Platform.runLater(this::enterResultState);
+    JavaFxUtil.runLater(this::enterResultState);
   }
 
   protected void displayFromSupplier(Supplier<CompletableFuture<Tuple<List<T>, Integer>>> supplier, boolean firstLoad) {
@@ -258,7 +257,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           displaySearchResult(tuple.getFirst());
           if (firstLoad) {
             //when theres no search results the page count should be 1, 0 (which is returned) results in infinite pages
-            Platform.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getSecond())));
+            JavaFxUtil.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getSecond())));
           }
         })
         .exceptionally(throwable -> {
@@ -275,7 +274,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         .map(this::getEntityCard)
         .collect(Collectors.toList());
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       children.clear();
       children.addAll(childrenToAdd);
       Object userData = pane.getUserData();

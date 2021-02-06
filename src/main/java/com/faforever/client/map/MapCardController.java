@@ -9,7 +9,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ListChangeListener;
@@ -110,7 +109,7 @@ public class MapCardController implements Controller<Node> {
   }
 
   private void populateReviews() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       numberOfReviewsLabel.setText(i18n.number(map.getReviewsSummary().getReviews()));
       starsController.setValue(map.getReviewsSummary().getScore() / map.getReviewsSummary().getReviews());
     });

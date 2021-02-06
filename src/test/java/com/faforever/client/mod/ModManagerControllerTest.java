@@ -1,8 +1,8 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import org.hamcrest.Matchers;
@@ -46,7 +46,7 @@ public class ModManagerControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCorrectModsSelected() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.viewToggleGroup.selectToggle(instance.uiModsButton);
       instance.uiModsButton.fireEvent(new ActionEvent());
     });
@@ -54,7 +54,7 @@ public class ModManagerControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.modListView.getItems(), Matchers.contains(modUI));
     assertThat(instance.modListView.getSelectionModel().getSelectedItems(), Matchers.contains(modUI));
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.viewToggleGroup.selectToggle(instance.simModsButton);
       instance.simModsButton.fireEvent(new ActionEvent());
     });

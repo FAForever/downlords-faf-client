@@ -100,7 +100,7 @@ public class PlayerService implements InitializingBean {
   public void onGameRemoved(GameRemovedEvent event) {
     Game game = event.getGame();
     ObservableMap<String, List<String>> teams = game.getTeams();
-    synchronized (teams) {
+    synchronized (game.getTeams()) {
       List<String> playersInGame = teams.entrySet().stream()
           .flatMap(stringListEntry -> stringListEntry.getValue().stream())
           .collect(Collectors.toList());
@@ -110,7 +110,7 @@ public class PlayerService implements InitializingBean {
 
   private void updateGameForPlayersInGame(Game game) {
     ObservableMap<String, List<String>> teams = game.getTeams();
-    synchronized (teams) {
+    synchronized (game.getTeams()) {
       List<String> playersInGame = teams.entrySet().stream()
           .flatMap(stringListEntry -> stringListEntry.getValue().stream())
           .collect(Collectors.toList());

@@ -1,9 +1,9 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.ui.dialog.DialogLayout;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -60,7 +60,7 @@ public class ImmediateNotificationController implements Controller<Node> {
     }
 
     dialogLayout.setHeading(new Label(notification.getTitle()));
-    Platform.runLater(() -> errorMessageView.getEngine().loadContent(notification.getText()));
+    JavaFxUtil.runLater(() -> errorMessageView.getEngine().loadContent(notification.getText()));
 
     Optional.ofNullable(notification.getActions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))

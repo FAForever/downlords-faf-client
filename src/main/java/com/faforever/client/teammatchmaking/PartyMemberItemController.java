@@ -13,7 +13,6 @@ import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Strings;
-import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.WeakChangeListener;
 import javafx.css.PseudoClass;
@@ -94,13 +93,13 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private void markMemberBusy(PlayerStatus status) {
     if (status != PlayerStatus.IDLE) {
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         playerStatusImageView.setVisible(true);
         playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, true);
         teamMatchmakingService.getPlayersInGame().add(player);
       });
     } else {
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         playerStatusImageView.setVisible(false);
         playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, false);
         teamMatchmakingService.getPlayersInGame().remove(player);

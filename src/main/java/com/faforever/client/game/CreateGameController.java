@@ -26,7 +26,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
@@ -161,7 +160,7 @@ public class CreateGameController implements Controller<Pane> {
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH, true);
 
-    modService.getFeaturedMods().thenAccept(featuredModBeans -> Platform.runLater(() -> {
+    modService.getFeaturedMods().thenAccept(featuredModBeans -> JavaFxUtil.runLater(() -> {
       featuredModListView.setItems(FXCollections.observableList(featuredModBeans).filtered(FeaturedMod::isVisible));
       selectLastOrDefaultGameType();
     }));
@@ -171,7 +170,7 @@ public class CreateGameController implements Controller<Pane> {
         if (!initialized && preferencesService.getPreferences().getForgedAlliance().getInstallationPath() != null) {
           initialized = true;
 
-          Platform.runLater(this::init);
+          init();
         }
       };
       preferencesService.addUpdateListener(new WeakReference<>(preferenceUpdateListener));
@@ -253,14 +252,12 @@ public class CreateGameController implements Controller<Pane> {
 
     mapListView.setItems(filteredMapBeans);
     mapListView.setCellFactory(param -> new StringListCell<>(MapBean::getDisplayName));
-    mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(() -> setSelectedMap(newValue)));
+    mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> setSelectedMap(newValue));
   }
 
   protected void setSelectedMap(MapBean newValue) {
-    JavaFxUtil.assertApplicationThread();
-
     if (newValue == null) {
-      mapNameLabel.setText("");
+      JavaFxUtil.runLater(() -> mapNameLabel.setText(""));
       return;
     }
 
@@ -268,24 +265,28 @@ public class CreateGameController implements Controller<Pane> {
     preferencesService.storeInBackground();
 
     Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
-    mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
-        new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
-
     MapSize mapSize = newValue.getSize();
-    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
-    mapNameLabel.setText(newValue.getDisplayName());
-    mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
-    mapDescriptionLabel.setText(Optional.ofNullable(newValue.getDescription())
-        .map(Strings::emptyToNull)
-        .map(FaStrings::removeLocalizationTag)
-        .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
-
     ComparableVersion mapVersion = newValue.getVersion();
-    if (mapVersion == null) {
-      versionLabel.setVisible(false);
-    } else {
-      versionLabel.setText(i18n.get("map.versionFormat", mapVersion));
-    }
+
+    JavaFxUtil.runLater(() -> {
+      mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
+          new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
+
+      mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
+      mapNameLabel.setText(newValue.getDisplayName());
+      mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
+      mapDescriptionLabel.setText(Optional.ofNullable(newValue.getDescription())
+          .map(Strings::emptyToNull)
+          .map(FaStrings::removeLocalizationTag)
+          .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
+
+      if (mapVersion == null) {
+        versionLabel.setVisible(false);
+      } else {
+        versionLabel.setVisible(true);
+        versionLabel.setText(i18n.get("map.versionFormat", mapVersion));
+      }
+    });
   }
 
   private void initFeaturedModList() {
@@ -350,6 +351,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void selectLastOrDefaultGameType() {
+    JavaFxUtil.assertApplicationThread();
     String lastGameMod = preferencesService.getPreferences().getLastGame().getLastGameType();
     if (lastGameMod == null) {
       lastGameMod = KnownFeaturedMod.DEFAULT.getTechnicalName();

@@ -14,7 +14,6 @@ import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
@@ -171,7 +170,7 @@ public class ModDetailController implements Controller<Node> {
   @VisibleForTesting
   void onDeleteReview(Review review) {
     reviewService.deleteModVersionReview(review)
-        .thenRun(() -> Platform.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           modVersion.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))

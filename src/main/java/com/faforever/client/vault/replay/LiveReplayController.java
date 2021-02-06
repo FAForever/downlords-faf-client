@@ -1,6 +1,7 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.Game;
@@ -13,7 +14,6 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.base.Joiner;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -102,7 +102,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     watchColumn.setCellFactory(param -> new NodeTableCell<>(this::watchReplayButton));
 
     liveReplayControllerRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
-        -> Platform.runLater(() -> selectedGame.set(newValue)));
+        -> JavaFxUtil.runLater(() -> selectedGame.set(newValue)));
 
     liveReplayControllerRoot.setItems(sortedList);
   }

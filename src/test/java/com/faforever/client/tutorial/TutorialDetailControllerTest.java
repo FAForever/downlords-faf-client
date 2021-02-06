@@ -1,6 +1,5 @@
 package com.faforever.client.tutorial;
 
-import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -8,15 +7,16 @@ import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.application.Platform;
 import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class TutorialDetailControllerTest extends AbstractPlainJavaFxTest {
   private TutorialDetailController instance;
@@ -45,7 +45,7 @@ public class TutorialDetailControllerTest extends AbstractPlainJavaFxTest {
     tutorial.setMapVersion(mapVersion);
     Image image = new Image("http://examle.com");
     when(mapService.loadPreview(mapVersion, PreviewSize.LARGE)).thenReturn(image);
-    Platform.runLater(() ->     instance.setTutorial(tutorial));
+    JavaFxUtil.runLater(() -> instance.setTutorial(tutorial));
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).loadPreview(mapVersion, PreviewSize.LARGE);
     assertEquals(instance.mapImage.getImage(),image);

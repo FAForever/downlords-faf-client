@@ -40,7 +40,6 @@ import com.faforever.client.util.TimeUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -229,7 +228,7 @@ public class GameService implements InitializingBean {
 
     eventBus.register(this);
 
-    fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
+    fafService.addOnMessageListener(GameInfoMessage.class, message -> JavaFxUtil.runLater(() -> onGameInfo(message)));
     fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
 
     JavaFxUtil.addListener(
@@ -562,6 +561,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> startSearchMatchmaker());
     }
 
+    log.info("Matchmaking search has been started");
     inMatchmakerQueue.set(true);
 
     return modService.getFeaturedMod(FAF.getTechnicalName())
@@ -772,9 +772,7 @@ public class GameService implements InitializingBean {
   }
 
   private void onGameInfo(GameInfoMessage gameInfoMessage) {
-    // Since all game updates are usually reflected on the UI and to prevent deadlocks
     JavaFxUtil.assertApplicationThread();
-
     if (gameInfoMessage.getGames() != null) {
       gameInfoMessage.getGames().forEach(this::onGameInfo);
       return;
@@ -833,13 +831,6 @@ public class GameService implements InitializingBean {
         eventBus.post(new GameAddedEvent(game));
       } else {
         game = uidToGameInfoBean.get(gameId);
-
-        /* Since this method synchronizes on and updates members of "game", deadlocks can happen easily (updates can
-         fire events on the event bus, and each event subscriber is synchronized as well). By ensuring that we run all
-         updates in the application thread, we eliminate this risk. This is not required during construction of the
-         game however, since members are not yet accessible from outside. */
-        JavaFxUtil.assertApplicationThread();
-
         updateFromGameInfo(gameInfoMessage, game);
         eventBus.post(new GameUpdatedEvent(game));
       }

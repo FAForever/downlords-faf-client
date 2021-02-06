@@ -29,7 +29,6 @@ import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.util.ClipboardUtil;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -249,7 +248,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       items.add(0, new AvatarBean(null, i18n.get("chat.userContext.noAvatar")));
 
       String currentAvatarUrl = player.getAvatarUrl();
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         avatarComboBox.getItems().setAll(items);
         avatarComboBox.getSelectionModel().select(items.stream()
             .filter(avatarBean -> Objects.equals(Objects.toString(avatarBean.getUrl(), null), currentAvatarUrl))

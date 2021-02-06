@@ -24,7 +24,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
-import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
@@ -281,7 +280,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
-        Platform.runLater(messageTextField()::requestFocus);
+        JavaFxUtil.runLater(messageTextField()::requestFocus);
       }
     });
 
@@ -458,17 +457,15 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (!isChatReady) {
         waitingMessages.add(chatMessage);
       } else {
-        Platform.runLater(() -> {
-          addMessage(chatMessage);
-          removeTopmostMessages();
-          scrollToBottomIfDesired();
-        });
+        addMessage(chatMessage);
+        removeTopmostMessages();
+        scrollToBottomIfDesired();
       }
     }
   }
 
   private void scrollToBottomIfDesired() {
-    engine.executeScript("scrollToBottomIfDesired()");
+    JavaFxUtil.runLater(() -> engine.executeScript("scrollToBottomIfDesired()"));
   }
 
   private void removeTopmostMessages() {
@@ -476,7 +473,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
     while (numberOfMessages > maxMessageItems) {
-      engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "')[0].remove()");
+      JavaFxUtil.runLater(() -> engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "')[0].remove()"));
       numberOfMessages--;
     }
   }
@@ -654,8 +651,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void insertIntoContainer(String html, String containerId) {
-    ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')"))
-        .call("insertAdjacentHTML", "beforeend", html);
+    JavaFxUtil.runLater(() -> ((JSObject) engine.executeScript("document.getElementById('" + containerId + "')"))
+        .call("insertAdjacentHTML", "beforeend", html));
     getMessagesWebView().requestLayout();
   }
 
@@ -663,7 +660,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Subclasses may override in order to perform actions when the view is being displayed.
    */
   protected void onDisplay() {
-    messageTextField().requestFocus();
+    JavaFxUtil.runLater(() -> messageTextField().requestFocus());
   }
 
   /**

@@ -15,7 +15,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -129,11 +128,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   @VisibleForTesting
   void onPlayerDisconnected(String userName) {
-    Platform.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true)));
+    onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true));
   }
 
   @VisibleForTesting
   void onPlayerConnected(String userName) {
-    Platform.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true)));
+    onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true));
   }
 }

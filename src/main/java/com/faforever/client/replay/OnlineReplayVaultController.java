@@ -22,7 +22,6 @@ import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -128,7 +127,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
     searchController.addFilterNode(featuredModFilterController);
 
     modService.getFeaturedMods().thenAccept(featuredMods ->
-        Platform.runLater(() ->
+        JavaFxUtil.runLater(() ->
             featuredModFilterController.setItems(featuredMods.stream().map(FeaturedMod::getDisplayName)
                 .collect(Collectors.toList()))));
 
@@ -140,7 +139,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
     leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
       Map<String, String> leaderboardItems = new LinkedHashMap<>();
       leaderboards.forEach(leaderboard -> leaderboardItems.put(i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()), String.valueOf(leaderboard.getId())));
-      Platform.runLater(() ->
+      JavaFxUtil.runLater(() ->
           leaderboardFilterController.setItems(leaderboardItems));
     });
 
@@ -195,7 +194,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   private void showReplayWithID(int replayId) {
     replayService.findById(replayId).thenAccept(replay -> {
       if (replay.isPresent()) {
-        Platform.runLater(() -> onDisplayDetails(replay.get()));
+        onDisplayDetails(replay.get());
       } else {
         notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
       }

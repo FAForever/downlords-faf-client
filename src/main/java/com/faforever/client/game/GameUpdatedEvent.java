@@ -7,5 +7,5 @@ import lombok.Value;
  */
 @Value
 public class GameUpdatedEvent {
-  private Game game;
+  Game game;
 }

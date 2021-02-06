@@ -19,7 +19,6 @@ import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.control.Button;
@@ -176,13 +175,13 @@ public class LoginController implements Controller<Pane> {
             }
             if (minimumVersion != null && shouldUpdate) {
               loginAllowed = false;
-              Platform.runLater(() -> showClientOutdatedPane(minimumVersion));
+              JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
             } else {
               loginAllowed = true;
             }
             return clientConfiguration;
           })
-          .thenAccept(clientConfiguration -> Platform.runLater(() -> {
+          .thenAccept(clientConfiguration -> JavaFxUtil.runLater(() -> {
             Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
             environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
             environmentComboBox.getSelectionModel().select(defaultEndpoint);
@@ -198,7 +197,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private void showClientOutdatedPane(String minimumVersion) {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
       loginErrorLabel.setVisible(true);
       downloadUpdateButton.setVisible(true);
@@ -285,7 +284,7 @@ public class LoginController implements Controller<Pane> {
 
   private void onLoginFailed(Throwable e) {
     logger.warn("Login failed", e);
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (e instanceof CancellationException) {
         loginErrorLabel.setVisible(false);
       } else {

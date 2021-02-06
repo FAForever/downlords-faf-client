@@ -12,7 +12,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
-import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -149,9 +148,7 @@ public class GamesTableController implements Controller<Node> {
     }
 
     gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
-        -> Platform.runLater(() -> {
-      selectedGame.set(newValue);
-    }));
+        -> JavaFxUtil.runLater(() -> selectedGame.set(newValue)));
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences) {
@@ -199,7 +196,7 @@ public class GamesTableController implements Controller<Node> {
   private void selectFirstGame() {
     TableView.TableViewSelectionModel<Game> selectionModel = gamesTable.getSelectionModel();
     if (selectionModel.getSelectedItem() == null && !gamesTable.getItems().isEmpty()) {
-      Platform.runLater(() -> selectionModel.select(0));
+      JavaFxUtil.runLater(() -> selectionModel.select(0));
     }
   }
 

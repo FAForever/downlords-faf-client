@@ -19,7 +19,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
@@ -187,7 +186,7 @@ public class SearchController implements Controller<Pane> {
     logicalNodeController.specificationController.valueField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.valueField.getEditor().textProperty().addListener(observable -> {
       if (!logicalNodeController.specificationController.valueField.valueProperty().isBound()) {
-        Platform.runLater(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText()));
+        JavaFxUtil.runLater(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText()));
       }
     });
     logicalNodeController.specificationController.valueField.setOnKeyReleased(event -> {

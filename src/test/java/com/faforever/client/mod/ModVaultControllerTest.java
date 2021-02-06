@@ -1,5 +1,6 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -16,7 +17,6 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
@@ -118,7 +118,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowModDetail() throws MalformedURLException {
     ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
-    Platform.runLater(() -> instance.onDisplayDetails(modVersion));
+    JavaFxUtil.runLater(() -> instance.onDisplayDetails(modVersion));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(modDetailController).setModVersion(modVersion);

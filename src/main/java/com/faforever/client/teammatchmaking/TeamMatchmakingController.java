@@ -19,7 +19,6 @@ import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.collections.ObservableList;
@@ -140,11 +139,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     });
 
     player.statusProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue != PlayerStatus.IDLE) {
-        teamMatchmakingService.getPlayersInGame().add(player);
-      } else {
-        teamMatchmakingService.getPlayersInGame().remove(player);
-      }
+      JavaFxUtil.runLater(() -> {
+        if (newValue != PlayerStatus.IDLE) {
+          teamMatchmakingService.getPlayersInGame().add(player);
+        } else {
+          teamMatchmakingService.getPlayersInGame().remove(player);
+        }
+      });
     });
 
     teamMatchmakingService.getParty().getMembers().addListener((InvalidationListener) c -> {
@@ -300,7 +301,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private void createChannelTab(String channelName) {
     matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
     matchmakingChatController.setChannel(channelName);
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       chatTabPane.getTabs().clear();
       chatTabPane.getTabs().add(matchmakingChatController.getRoot());
     });
@@ -310,12 +311,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     ChatMessage message = event.getMessage();
     if (message.getSource().equals(matchmakingChatController.getReceiver())) {
-      Platform.runLater(() -> matchmakingChatController.onChatMessage(message));
+      matchmakingChatController.onChatMessage(message);
     }
   }
 
   private void renderQueues() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       List<MatchmakingQueue> queues = Collections.synchronizedList(teamMatchmakingService.getMatchmakingQueues());
       synchronized (queues) {
         queueBox.getChildren().clear();

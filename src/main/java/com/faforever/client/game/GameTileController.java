@@ -9,7 +9,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.google.common.base.Joiner;
-import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
@@ -76,7 +75,7 @@ public class GameTileController implements Controller<Node> {
     this.game = game;
 
     modService.getFeaturedMod(game.getFeaturedMod())
-        .thenAccept(featuredModBean -> Platform.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
+        .thenAccept(featuredModBean -> JavaFxUtil.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
 
     gameTitleLabel.textProperty().bind(game.titleProperty());
     hostLabel.setText(game.getHost());

@@ -6,7 +6,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableMap;
@@ -83,18 +82,18 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType) {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       synchronized (teamsList) {
-        teamsPane.getChildren().clear();
+        JavaFxUtil.runLater(() -> teamsPane.getChildren().clear());
         TeamCardController.createAndAdd(teamsList, ratingType, playerService, uiService, teamsPane);
-        teamsPane.setPrefColumns(Math.min(teamsList.size(), maxPrefColumns));
+        JavaFxUtil.runLater(() -> teamsPane.setPrefColumns(Math.min(teamsList.size(), maxPrefColumns)));
       }
     });
   }
 
   private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
     String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (simMods.isEmpty()) {
         modsPane.setVisible(false);
         return;

@@ -11,7 +11,6 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
@@ -127,7 +126,7 @@ public class ReplayCardController implements Controller<Node> {
 
   private void populateReviews() {
     ObservableList<Review> reviews = replay.getReviews();
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       numberOfReviewsLabel.setText(i18n.number(reviews.size()));
       starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
     });

@@ -1,10 +1,10 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -71,7 +71,7 @@ public class InvitePlayerController implements Controller<Pane> {
   }
 
   public void requestFocus() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (!playerTextField.isFocused()) {
         playerTextField.requestFocus();
         requestFocus(); // Yes, this is a loop, because it often fails on the first try
@@ -98,7 +98,7 @@ public class InvitePlayerController implements Controller<Pane> {
       invitedPlayersListView.getItems().add(player);
     });
     playerTextField.setText("");
-    Platform.runLater(() -> playersListView.getSelectionModel().selectFirst());
+    JavaFxUtil.runLater(() -> playersListView.getSelectionModel().selectFirst());
   }
 
   public void onKeyPressed(KeyEvent keyEvent) {

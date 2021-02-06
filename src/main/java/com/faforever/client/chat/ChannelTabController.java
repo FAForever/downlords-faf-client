@@ -30,6 +30,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -125,7 +126,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public TextFlow topicText;
   public ToggleButton toggleSidePaneButton;
   private ChatChannel chatChannel;
-  private final InvalidationListener channelTopicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
+  private final InvalidationListener channelTopicListener = observable -> updateChannelTopic();
   private Popup filterUserPopup;
   private UserFilterController userFilterController;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
@@ -223,21 +224,25 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void updateChannelTopic() {
     boolean hasTopic = !Strings.isNullOrEmpty(chatChannel.getTopic());
-    topicPane.setVisible(hasTopic);
-    topicText.getChildren().clear();
+    JavaFxUtil.runLater(() -> {
+      topicPane.setVisible(hasTopic);
+      topicText.getChildren().clear();
+    });
     if (!hasTopic) {
       return;
     }
     String topic = chatChannel.getTopic();
     Arrays.stream(topic.split("\\s"))
         .forEach(word -> {
+          Node content;
           if (URL_REGEX_PATTERN.matcher(word).matches()) {
             Hyperlink link = new Hyperlink(word);
             link.setOnAction(event -> platformService.showDocument(word));
-            topicText.getChildren().add(link);
+            content = link;
           } else {
-            topicText.getChildren().add(new Label(word + " "));
+            content = new Label(word + " ");
           }
+          JavaFxUtil.runLater(() -> topicText.getChildren().add(content));
         });
   }
 
@@ -354,10 +359,12 @@ public class ChannelTabController extends AbstractChatTabController {
     filterUserPopup.setAutoHide(true);
     filterUserPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
 
-    userFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
-    userFilterController.setChannelController(this);
-    userFilterController.filterAppliedProperty().addListener(((observable, oldValue, newValue) -> advancedUserFilter.setSelected(newValue)));
-    filterUserPopup.getContent().setAll(userFilterController.getRoot());
+    JavaFxUtil.runLater(() -> {
+      userFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
+      userFilterController.setChannelController(this);
+      userFilterController.filterAppliedProperty().addListener(((observable, oldValue, newValue) -> advancedUserFilter.setSelected(newValue)));
+      filterUserPopup.getContent().setAll(userFilterController.getRoot());
+    });
   }
 
   private void updateUserMessageColor(ChatChannelUser chatUser) {

@@ -1,6 +1,5 @@
 package com.faforever.client.fx;
 
-import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
@@ -11,9 +10,9 @@ import java.util.function.Function;
 public class StringListCell<T> extends ListCell<T> {
 
   private final Function<T, Node> graphicFunction;
-  private Function<T, String> function;
-  private Pos alignment;
-  private String[] cssClasses;
+  private final Function<T, String> function;
+  private final Pos alignment;
+  private final String[] cssClasses;
 
   public StringListCell(Function<T, String> function) {
     this(function, null);
@@ -34,7 +33,7 @@ public class StringListCell<T> extends ListCell<T> {
   protected void updateItem(T item, boolean empty) {
     super.updateItem(item, empty);
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (empty || item == null) {
         setText(null);
         setGraphic(null);

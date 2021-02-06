@@ -1,9 +1,9 @@
 package com.faforever.client.tutorial;
 
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.theme.UiService;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -29,7 +29,7 @@ public class TutorialController extends AbstractViewController<Node> {
   public HBox tutorialPane;
   public VBox loadingSpinner;
   public VBox nothingToShow;
-  private List<TutorialListItemController> tutorialListItemControllers = new ArrayList<>();
+  private final List<TutorialListItemController> tutorialListItemControllers = new ArrayList<>();
 
   @Inject
   public TutorialController(TutorialService tutorialService, UiService uiService) {
@@ -58,7 +58,7 @@ public class TutorialController extends AbstractViewController<Node> {
   }
 
   private void displayTutorials(List<TutorialCategory> categories) {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (categories.isEmpty()) {
         setLoading(false);
         setNothingToShow(true);

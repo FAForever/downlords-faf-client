@@ -2,8 +2,8 @@ package com.faforever.client.notification;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.theme.UiService;
-import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -54,7 +54,7 @@ public class PersistentNotificationsController implements Controller<Node> {
 
     notificationsToNode.put(notification, controller.getRoot());
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       ObservableList<Node> children = persistentNotificationsRoot.getChildren();
       children.remove(noNotificationsLabel);
       children.add(controller.getRoot());

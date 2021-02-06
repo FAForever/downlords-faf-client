@@ -1,11 +1,11 @@
 package com.faforever.client.ui.tray;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.VPos;
 import javafx.scene.SnapshotParameters;
@@ -50,28 +50,26 @@ public class TrayIconManager implements InitializingBean {
    */
   @Subscribe
   public void onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent event) {
-    Platform.runLater(() -> {
-      if (event.getDelta().isPresent()) {
-        badgeCount += event.getDelta().get();
-      } else if (event.getNewValue().isPresent()) {
-        badgeCount = event.getNewValue().get();
-      } else {
-        throw new IllegalStateException("No delta nor new value is available");
-      }
+    if (event.getDelta().isPresent()) {
+      badgeCount += event.getDelta().get();
+    } else if (event.getNewValue().isPresent()) {
+      badgeCount = event.getNewValue().get();
+    } else {
+      throw new IllegalStateException("No delta nor new value is available");
+    }
 
-      List<Image> icons;
-      if (badgeCount < 1) {
-        icons = IntStream.range(4, 9)
-            .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
-            .collect(Collectors.toList());
-      } else {
-        icons = IntStream.range(4, 9)
-            .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
-            .map(image -> addBadge(image, badgeCount))
-            .collect(Collectors.toList());
-      }
-      StageHolder.getStage().getIcons().setAll(icons);
-    });
+    List<Image> icons;
+    if (badgeCount < 1) {
+      icons = IntStream.range(4, 9)
+          .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
+          .collect(Collectors.toList());
+    } else {
+      icons = IntStream.range(4, 9)
+          .mapToObj(power -> generateTrayIcon((int) Math.pow(2, power)))
+          .map(image -> addBadge(image, badgeCount))
+          .collect(Collectors.toList());
+    }
+    JavaFxUtil.runLater(() -> StageHolder.getStage().getIcons().setAll(icons));
   }
 
   private Image addBadge(Image icon, int badgeCount) {
