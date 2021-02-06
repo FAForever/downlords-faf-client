@@ -60,7 +60,7 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void onChannelLeft(ChatChannel chatChannel) {
-    removeTab(chatChannel.getName());
+    JavaFxUtil.runLater(() -> removeTab(chatChannel.getName()));
   }
 
   private void onChannelJoined(ChatChannel chatChannel) {
