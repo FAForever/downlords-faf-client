@@ -21,7 +21,6 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -140,29 +139,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testOnChatMessageFocusedDoesntTriggersNotification() {
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyZeroInteractions(notificationService);
-  }
-
-  @Test
-  public void onChatMessageTestNotFoeShowFoe() {
-    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
-  }
-
-  @Ignore("Not yet implemented")
-  @Test
-  public void onChatMessageTestNotFoeHideFoe() {
-
-  }
-
-  @Ignore("Not yet implemented")
-  @Test
-  public void onChatMessageTestIsFoeShowFoe() {
-
-  }
-
-  @Ignore("Not yet implemented")
-  @Test
-  public void onChatMessageTestIsFoeHideFoe() {
-
   }
 
   @Test

@@ -215,9 +215,6 @@ dependencies {
     exclude module: 'guava'
   }
   compile("com.google.code.gson:gson:2.8.5")
-  compile("com.github.micheljung:pircbotx:18481dcbfd") {
-    exclude module: 'guava'
-  }
   compile("com.google.guava:guava:30.0-jre")
   compile("org.apache.commons:commons-compress:1.20")
   compile("net.java.dev.jna:jna:${jnaVersion}")
@@ -243,6 +240,7 @@ dependencies {
   compile("org.apache.httpcomponents:httpclient")
   compile("ch.micheljung.fxstage:fxstage:0.7.4")
   compile("ch.micheljung.waitomo:jfx-waitomo-theme:0.2.0")
+  compile("org.kitteh.irc:client-lib:7.3.0")
 
   compile("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
   compile("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")

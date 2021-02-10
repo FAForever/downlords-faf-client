@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -8,7 +9,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.PlayerSocialChangeEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
@@ -549,7 +549,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
 
     user1.setSocialStatus(FRIEND);
-    runOnFxThreadAndWait(() -> instance.onPlayerSocialChange(new PlayerSocialChangeEvent(user1)));
+    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(user1)));
 
     List<CategoryOrChatUserListItem> friends = instance.getChatUserItemsByCategory(ChatUserCategory.FRIEND);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -574,7 +574,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
 
     user1.setSocialStatus(FOE);
-    runOnFxThreadAndWait(() -> instance.onPlayerSocialChange(new PlayerSocialChangeEvent(user1)));
+    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(user1)));
 
     List<CategoryOrChatUserListItem> enemies = instance.getChatUserItemsByCategory(ChatUserCategory.FOE);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -599,7 +599,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
 
     user1.setSocialStatus(OTHER);
-    runOnFxThreadAndWait(() -> instance.onPlayerSocialChange(new PlayerSocialChangeEvent(user1)));
+    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(user1)));
 
     List<CategoryOrChatUserListItem> friends = instance.getChatUserItemsByCategory(ChatUserCategory.FRIEND);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
@@ -623,7 +623,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
 
     user1.setSocialStatus(OTHER);
-    runOnFxThreadAndWait(() -> instance.onPlayerSocialChange(new PlayerSocialChangeEvent(user1)));
+    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(user1)));
 
     List<CategoryOrChatUserListItem> enemies = instance.getChatUserItemsByCategory(ChatUserCategory.FOE);
     List<CategoryOrChatUserListItem> otherUsers = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);

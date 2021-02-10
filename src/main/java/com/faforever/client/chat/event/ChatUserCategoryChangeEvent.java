@@ -1,9 +1,9 @@
-package com.faforever.client.player;
+package com.faforever.client.chat.event;
 
 import com.faforever.client.chat.ChatChannelUser;
 import lombok.Value;
 
 @Value
-public class PlayerSocialChangeEvent {
+public class ChatUserCategoryChangeEvent {
   ChatChannelUser chatUser;
 }
