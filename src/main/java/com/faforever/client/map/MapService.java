@@ -575,7 +575,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Void> unrankMapVersion(MapBean map) {
     applicationContext.getBean(this.getClass()).evictCache();
-    return fafService.unrankeMapVersion(map);
+    return fafService.unRankMapVersion(map);
   }
 
   @Override

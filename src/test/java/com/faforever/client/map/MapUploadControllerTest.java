@@ -4,7 +4,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
@@ -28,8 +27,6 @@ public class MapUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReportingService reportingService;
-  @Mock
   private PlatformService platformService;
   @Mock
   private I18n i18n;
@@ -41,7 +38,7 @@ public class MapUploadControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new MapUploadController(mapService, executorService, notificationService, reportingService, platformService, i18n, eventBus, clientProperties);
+    instance = new MapUploadController(mapService, executorService, notificationService, platformService, i18n, eventBus, clientProperties);
     loadFxml("theme/vault/map/map_upload.fxml", param -> instance);
   }
 

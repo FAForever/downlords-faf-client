@@ -3,8 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
-import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -21,6 +19,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -56,13 +55,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
+public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   private static final String TEST_USER_NAME = "junit";
 
   @Mock
   private PreferencesService preferencesService;
-  @Mock
-  private ClientProperties clientProperties;
   @Mock
   private UiService uiService;
   @Mock
@@ -80,11 +77,11 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   @Mock
   private AvatarService avatarService;
   @Mock
-  private PlatformService platformService;
-  @Mock
   private ModeratorService moderatorService;
   @Mock
   private TeamMatchmakingService teamMatchmakingService;
+  @Mock
+  private ReportDialogController reportDialogController;
 
   private ChatUserContextMenuController instance;
   private Player player;
@@ -92,9 +89,9 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
 
   @Before
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController(preferencesService, clientProperties,playerService,
+    instance = new ChatUserContextMenuController(preferencesService, playerService,
         replayService, notificationService, i18n, eventBus, joinGameHelper,
-        avatarService, uiService, platformService, moderatorService, teamMatchmakingService);
+        avatarService, uiService, moderatorService, teamMatchmakingService);
 
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
 
@@ -106,6 +103,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
     )));
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
+    when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
 
 
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
@@ -355,6 +353,29 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   }
 
   @Test
+  public void testOnReportChatUser() {
+    instance.setChatUser(chatUser);
+
+    instance.onReport();
+
+    verify(reportDialogController).setOffender(player);
+    verify(reportDialogController).setOwnerWindow(instance.getRoot().getOwnerWindow());
+    verify(reportDialogController).show();
+  }
+
+  @Test
+  public void testOnReportPlayer() {
+    chatUser.setPlayer(null);
+    instance.setChatUser(chatUser);
+
+    instance.onReport();
+
+    verify(reportDialogController).setOffender(chatUser.getUsername());
+    verify(reportDialogController).setOwnerWindow(instance.getRoot().getOwnerWindow());
+    verify(reportDialogController).show();
+  }
+
+  @Test
   public void testOnJoinGame() {
     instance.setChatUser(chatUser);
 
@@ -373,7 +394,7 @@ public class ChatChannelUserContextMenuControllerTest extends AbstractPlainJavaF
   }
 
   @Test
-  public void onSelectAvatar() throws Exception {
+  public void testOnSelectAvatar() throws Exception {
     instance.setChatUser(chatUser);
     instance.avatarComboBox.show();
 

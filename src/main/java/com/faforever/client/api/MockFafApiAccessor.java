@@ -22,6 +22,7 @@ import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModReviewsSummary;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.ModerationReport;
 import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
@@ -167,12 +168,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
 
   @Override
   public void uploadMod(Path file, ByteCountListener listener) {
-
+    // do nothing
   }
 
   @Override
   public void uploadMap(Path file, boolean isRanked, ByteCountListener listener) {
-
+    // do nothing
   }
 
   @Override
@@ -218,6 +219,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds) {
     return List.of();
+  }
+
+  @Override
+  public Optional<Player> queryPlayerByName(String playerName) {
+    return Optional.empty();
   }
 
   @Override
@@ -308,6 +314,16 @@ public class MockFafApiAccessor implements FafApiAccessor {
   @Override
   public List<Tournament> getAllTournaments() {
     return List.of();
+  }
+
+  @Override
+  public List<ModerationReport> getPlayerModerationReports(int playerId) {
+    return null;
+  }
+
+  @Override
+  public void postModerationReport(com.faforever.client.reporting.ModerationReport report) {
+    // do nothing
   }
 
   @Override

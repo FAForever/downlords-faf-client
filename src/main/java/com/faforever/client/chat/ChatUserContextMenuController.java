@@ -3,10 +3,8 @@ package com.faforever.client.chat;
 import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
@@ -21,6 +19,7 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.alert.Alert;
@@ -64,7 +63,6 @@ import static java.util.Locale.US;
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private final PreferencesService preferencesService;
-  private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final ReplayService replayService;
   private final NotificationService notificationService;
@@ -73,7 +71,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final JoinGameHelper joinGameHelper;
   private final AvatarService avatarService;
   private final UiService uiService;
-  private final PlatformService platformService;
   private final ModeratorService moderatorService;
   private final TeamMatchmakingService teamMatchmakingService;
   public ComboBox<AvatarBean> avatarComboBox;
@@ -104,13 +101,12 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   @SuppressWarnings("FieldCanBeLocal")
   private ChangeListener<Player> playerChangeListener;
 
-  public ChatUserContextMenuController(PreferencesService preferencesService, ClientProperties clientProperties,
+  public ChatUserContextMenuController(PreferencesService preferencesService,
                                        PlayerService playerService, ReplayService replayService,
                                        NotificationService notificationService, I18n i18n, EventBus eventBus,
                                        JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService,
-                                       PlatformService platformService, ModeratorService moderatorService, TeamMatchmakingService teamMatchmakingService) {
+                                       ModeratorService moderatorService, TeamMatchmakingService teamMatchmakingService) {
     this.preferencesService = preferencesService;
-    this.clientProperties = clientProperties;
     this.playerService = playerService;
     this.replayService = replayService;
     this.notificationService = notificationService;
@@ -119,7 +115,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.joinGameHelper = joinGameHelper;
     this.avatarService = avatarService;
     this.uiService = uiService;
-    this.platformService = platformService;
     this.moderatorService = moderatorService;
     this.teamMatchmakingService = teamMatchmakingService;
   }
@@ -293,7 +288,11 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onReport() {
-    platformService.showDocument(clientProperties.getWebsite().getReportUrl());
+    ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
+    chatUser.getPlayer().ifPresentOrElse(reportDialogController::setOffender,
+        () -> reportDialogController.setOffender(chatUser.getUsername()));
+    reportDialogController.setOwnerWindow(chatUserContextMenuRoot.getOwnerWindow());
+    reportDialogController.show();
   }
 
   public void onAddFoeSelected() {

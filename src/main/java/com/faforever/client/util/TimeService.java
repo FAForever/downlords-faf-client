@@ -75,7 +75,16 @@ public class TimeService {
     return asDate(temporal);
   }
 
-  
+  public String asDateTime(TemporalAccessor temporalAccessor) {
+    if (temporalAccessor == null) {
+      return i18n.get("noDateAvailable");
+    }
+    return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+        .withLocale(getCurrentDateLocale())
+        .withZone(TimeZone.getDefault().toZoneId())
+        .format(temporalAccessor);
+  }
+
   public String asDate(TemporalAccessor temporalAccessor) {
     if (temporalAccessor == null) {
       return i18n.get("noDateAvailable");
