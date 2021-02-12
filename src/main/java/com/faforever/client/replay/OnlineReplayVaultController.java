@@ -126,20 +126,16 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
     searchController.addTextFilter("name", i18n.get("game.title"), false);
     searchController.addTextFilter("id", i18n.get("game.id"), true);
 
-    CategoryFilterController featuredModFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
-    featuredModFilterController.setTitle(i18n.get("featuredMod.displayName"));
-    featuredModFilterController.setPropertyName("featuredMod.displayName");
-    searchController.addFilterNode(featuredModFilterController);
+    CategoryFilterController featuredModFilterController = searchController.addCategoryFilter("featuredMod.displayName",
+        i18n.get("featuredMod.displayName"), List.of());
 
     modService.getFeaturedMods().thenAccept(featuredMods ->
         JavaFxUtil.runLater(() ->
             featuredModFilterController.setItems(featuredMods.stream().map(FeaturedMod::getDisplayName)
                 .collect(Collectors.toList()))));
 
-    CategoryFilterController leaderboardFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
-    leaderboardFilterController.setTitle(i18n.get("leaderboard.displayName"));
-    leaderboardFilterController.setPropertyName("playerStats.ratingChanges.leaderboard.id");
-    searchController.addFilterNode(leaderboardFilterController);
+    CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter("playerStats.ratingChanges.leaderboard.id",
+        i18n.get("leaderboard.displayName"), Map.of());
 
     leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
       Map<String, String> leaderboardItems = new LinkedHashMap<>();
@@ -148,11 +144,9 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
           leaderboardFilterController.setItems(leaderboardItems));
     });
 
-    //FIXME: Cannot search by rating without using depreciated rating relationships
-//    searchController.addRangeFilter("playerStats.player.ladder1v1Rating.rating", i18n.get("game.ladderRating"),
-//        0, 3000, 100);
-//    searchController.addRangeFilter("playerStats.player.globalRating.rating", i18n.get("game.globalRating"),
-//        0, 3000, 100);
+    //TODO: Use rating rather than estimated mean with an assumed deviation of 300 when that is available
+    searchController.addRangeFilter("playerStats.beforeMean", i18n.get("game.rating"),
+        0, 3000, 100, (value) -> value + 300);
 
     searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
     searchController.addToggleFilter("validity", i18n.get("game.onlyRanked"), "VALID");

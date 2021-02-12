@@ -42,11 +42,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -289,32 +289,35 @@ public class SearchController implements Controller<Pane> {
     queryInvalidationListener.invalidated(null);
   }
 
-  public void addTextFilter(String propertyName, String title, boolean exact) {
+  public TextFilterController addTextFilter(String propertyName, String title, boolean exact) {
     TextFilterController textFilterController = uiService.loadFxml("theme/vault/search/textFilter.fxml");
     textFilterController.setExact(exact);
     textFilterController.setPropertyName(propertyName);
     textFilterController.setTitle(title);
     textFilterController.setOnAction(this::onSearchButtonClicked);
     addFilterNode(textFilterController);
+    return textFilterController;
   }
 
-  public void addCategoryFilter(String propertyName, String title, List<String> items) {
+  public CategoryFilterController addCategoryFilter(String propertyName, String title, List<String> items) {
     CategoryFilterController categoryFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
     categoryFilterController.setPropertyName(propertyName);
     categoryFilterController.setTitle(title);
     categoryFilterController.setItems(items);
     addFilterNode(categoryFilterController);
+    return categoryFilterController;
   }
 
-  public void addCategoryFilter(String propertyName, String title, LinkedHashMap<String, String> items) {
+  public CategoryFilterController addCategoryFilter(String propertyName, String title, Map<String, String> items) {
     CategoryFilterController categoryFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
     categoryFilterController.setPropertyName(propertyName);
     categoryFilterController.setTitle(title);
     categoryFilterController.setItems(items);
     addFilterNode(categoryFilterController);
+    return categoryFilterController;
   }
 
-  public void addRangeFilter(String propertyName, String title, double min, double max, double tickUnit) {
+  public RangeFilterController addRangeFilter(String propertyName, String title, double min, double max, double tickUnit, Function<Double, Double> valueTransform) {
     RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
     rangeFilterController.setTitle(title);
     rangeFilterController.setPropertyName(propertyName);
@@ -323,10 +326,12 @@ public class SearchController implements Controller<Pane> {
     rangeFilterController.setIncrement(tickUnit);
     rangeFilterController.setTickUnit(tickUnit);
     rangeFilterController.setSnapToTicks(true);
+    rangeFilterController.setValueTransform(valueTransform);
     addFilterNode(rangeFilterController);
+    return rangeFilterController;
   }
 
-  public void addDateRangeFilter(String propertyName, String title, int initialYearsBefore) {
+  public DateRangeFilterController addDateRangeFilter(String propertyName, String title, int initialYearsBefore) {
     DateRangeFilterController dateRangeFilterController = uiService.loadFxml("theme/vault/search/dateRangeFilter.fxml");
     dateRangeFilterController.setTitle(title);
     dateRangeFilterController.setPropertyName(propertyName);
@@ -334,22 +339,25 @@ public class SearchController implements Controller<Pane> {
       dateRangeFilterController.setInitialYearsBefore(initialYearsBefore);
     }
     addFilterNode(dateRangeFilterController);
+    return dateRangeFilterController;
   }
 
-  public void addToggleFilter(String propertyName, String title, String value) {
+  public ToggleFilterController addToggleFilter(String propertyName, String title, String value) {
     ToggleFilterController toggleFilterController = uiService.loadFxml("theme/vault/search/toggleFilter.fxml");
     toggleFilterController.setTitle(title);
     toggleFilterController.setPropertyName(propertyName);
     toggleFilterController.setValue(value);
     addFilterNode(toggleFilterController);
+    return toggleFilterController;
   }
 
-  public void addBinaryFilter(String propertyName, String title, String firstValue, String secondValue, String firstLabel, String secondLabel) {
+  public BinaryFilterController addBinaryFilter(String propertyName, String title, String firstValue, String secondValue, String firstLabel, String secondLabel) {
     BinaryFilterController binaryFilterController = uiService.loadFxml("theme/vault/search/binaryFilter.fxml");
     binaryFilterController.setTitle(title);
     binaryFilterController.setPropertyName(propertyName);
     binaryFilterController.setOptions(firstLabel, firstValue, secondLabel, secondValue);
     addFilterNode(binaryFilterController);
+    return binaryFilterController;
   }
 
   /**
