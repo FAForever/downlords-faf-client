@@ -45,6 +45,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -124,6 +125,7 @@ public class UserInfoWindowController implements Controller<Node> {
   public NumberAxis yAxis;
   public NumberAxis xAxis;
   public LineChart<Long, Integer> ratingHistoryChart;
+  public VBox loadingHistoryPane;
   public ComboBox<TimePeriod> timePeriodComboBox;
   public ComboBox<Leaderboard> ratingTypeComboBox;
   public Label usernameLabel;
@@ -142,19 +144,15 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void initialize() {
-    loadingProgressLabel.managedProperty().bind(loadingProgressLabel.visibleProperty());
-    achievementsPane.managedProperty().bind(achievementsPane.visibleProperty());
-    mostRecentAchievementPane.managedProperty().bind(mostRecentAchievementPane.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(loadingHistoryPane, loadingProgressLabel, achievementsPane, mostRecentAchievementPane,
+        unlockedAchievementsHeader, unlockedAchievementsContainer, lockedAchievementsHeader, lockedAchievementsContainer,
+        ratingHistoryChart);
 
-    unlockedAchievementsHeader.managedProperty().bind(unlockedAchievementsHeader.visibleProperty());
     unlockedAchievementsHeader.visibleProperty().bind(unlockedAchievementsContainer.visibleProperty());
-    unlockedAchievementsContainer.managedProperty().bind(unlockedAchievementsContainer.visibleProperty());
     unlockedAchievementsContainer.visibleProperty().bind(Bindings.createBooleanBinding(
         () -> !unlockedAchievementsContainer.getChildren().isEmpty(), unlockedAchievementsContainer.getChildren()));
 
-    lockedAchievementsHeader.managedProperty().bind(lockedAchievementsHeader.visibleProperty());
     lockedAchievementsHeader.visibleProperty().bind(lockedAchievementsContainer.visibleProperty());
-    lockedAchievementsContainer.managedProperty().bind(lockedAchievementsContainer.visibleProperty());
     lockedAchievementsContainer.visibleProperty().bind(Bindings.createBooleanBinding(
         () -> !lockedAchievementsContainer.getChildren().isEmpty(), lockedAchievementsContainer.getChildren()));
 
@@ -394,6 +392,8 @@ public class UserInfoWindowController implements Controller<Node> {
 
   public void onRatingTypeChange() {
     if (ratingTypeComboBox.getValue() != null) {
+      ratingHistoryChart.setVisible(false);
+      loadingHistoryPane.setVisible(true);
       loadStatistics(ratingTypeComboBox.getValue()).thenRun(this::plotPlayerRatingGraph);
     }
   }
@@ -424,7 +424,11 @@ public class UserInfoWindowController implements Controller<Node> {
 
     XYChart.Series<Long, Integer> series = new XYChart.Series<>(observableList(values));
     series.setName(i18n.get("userInfo.ratingOverTime"));
-    JavaFxUtil.runLater(() -> ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series))));
+    JavaFxUtil.runLater(() -> {
+      ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
+      loadingHistoryPane.setVisible(false);
+      ratingHistoryChart.setVisible(true);
+    });
   }
 
   @NotNull

@@ -271,7 +271,7 @@ public class FafService {
         .filter(gamePlayerStats -> gamePlayerStats.getCreateTime() != null
             && gamePlayerStats.getMeanAfter() != null
             && gamePlayerStats.getDeviationAfter() != null)
-        .map(entry -> new RatingHistoryDataPoint(entry.getCreateTime(), entry.getMeanAfter(), entry.getDeviationAfter()))
+        .map(entry -> new RatingHistoryDataPoint(entry.getGamePlayerStats().getScoreTime(), entry.getMeanAfter(), entry.getDeviationAfter()))
         .collect(Collectors.toList())
     );
   }

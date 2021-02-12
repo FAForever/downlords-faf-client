@@ -239,7 +239,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
             .intNum("gamePlayerStats.player.id").eq(playerId)
             .and()
             .string("leaderboard.technicalName").eq(leaderboardTechnicalName)),
-        SORT, "createTime"));
+        INCLUDE, "gamePlayerStats",
+        SORT, "gamePlayerStats.scoreTime"));
   }
 
   @Override

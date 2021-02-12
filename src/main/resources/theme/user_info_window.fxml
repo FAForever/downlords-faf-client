@@ -93,17 +93,28 @@
                                         <children>
                                   <ComboBox fx:id="timePeriodComboBox" onAction="#plotPlayerRatingGraph"/>
                                   <ComboBox fx:id="ratingTypeComboBox" onAction="#onRatingTypeChange"/>
-                              </children>
-                            </HBox>
-                              <LineChart fx:id="ratingHistoryChart" createSymbols="false" legendVisible="false" prefHeight="300.0" VBox.vgrow="ALWAYS">
-                              <xAxis>
-                                  <NumberAxis forceZeroInRange="false" autoRanging="false" side="BOTTOM" fx:id="xAxis" />
-                              </xAxis>
-                              <yAxis>
-                                  <NumberAxis fx:id="yAxis" forceZeroInRange="false" side="LEFT" />
-                              </yAxis>
-                              </LineChart>
-                          </children>
+                                        </children>
+                                    </HBox>
+                                    <LineChart fx:id="ratingHistoryChart" createSymbols="false" legendVisible="false"
+                                               prefHeight="300.0" VBox.vgrow="ALWAYS">
+                                        <xAxis>
+                                            <NumberAxis forceZeroInRange="false" autoRanging="false" side="BOTTOM"
+                                                        fx:id="xAxis"/>
+                                        </xAxis>
+                                        <yAxis>
+                                            <NumberAxis fx:id="yAxis" forceZeroInRange="false" side="LEFT"/>
+                                        </yAxis>
+                                    </LineChart>
+                                    <VBox fx:id="loadingHistoryPane" alignment="CENTER"
+                                          maxHeight="1.7976931348623157E308"
+                                          maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
+                                        <Label text="%vault.loading">
+                                            <graphic>
+                                                <ProgressIndicator/>
+                                            </graphic>
+                                        </Label>
+                                    </VBox>
+                                </children>
                         </VBox>
                       </children>
                     </GridPane>
