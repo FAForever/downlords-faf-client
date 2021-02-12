@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import com.github.rutledgepaulv.qbuilders.properties.concrete.IntegerProperty;
+import com.github.rutledgepaulv.qbuilders.properties.concrete.DoubleProperty;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import javafx.beans.InvalidationListener;
 import javafx.scene.control.MenuButton;
@@ -48,6 +48,7 @@ public class RangeFilterControllerTest extends AbstractPlainJavaFxTest {
     instance.setIncrement(increment);
     instance.setSnapToTicks(true);
     instance.setTickUnit(increment);
+    instance.setValueTransform((value) -> value);
   }
 
   @Test
@@ -122,25 +123,25 @@ public class RangeFilterControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetConditionMaximum() throws Exception {
-    IntegerProperty property = new QBuilder<>().intNum(propertyName);
+    DoubleProperty property = new QBuilder<>().doubleNum(propertyName);
     instance.rangeSlider.setHighValue(50.0);
 
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.lte(50).query(new RSQLVisitor()));
+    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.lte(50.0).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
 
   @Test
   public void testGetConditionMinimum() throws Exception {
-    IntegerProperty property = new QBuilder<>().intNum(propertyName);
+    DoubleProperty property = new QBuilder<>().doubleNum(propertyName);
     instance.rangeSlider.setLowValue(50.0);
 
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.gte(50).query(new RSQLVisitor()));
+    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.gte(50.0).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
 
@@ -152,8 +153,8 @@ public class RangeFilterControllerTest extends AbstractPlainJavaFxTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), new QBuilder<>().intNum(propertyName).gte(50).query(new RSQLVisitor()));
-    assertEquals(result.get().get(1).query(new RSQLVisitor()), new QBuilder<>().intNum(propertyName).lte(50).query(new RSQLVisitor()));
+    assertEquals(result.get().get(0).query(new RSQLVisitor()), new QBuilder<>().doubleNum(propertyName).gte(50.0).query(new RSQLVisitor()));
+    assertEquals(result.get().get(1).query(new RSQLVisitor()), new QBuilder<>().doubleNum(propertyName).lte(50.0).query(new RSQLVisitor()));
     assertTrue(instance.menu.getStyleClass().contains("query-filter-selected"));
   }
 }
