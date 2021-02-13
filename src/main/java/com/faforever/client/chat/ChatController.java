@@ -14,7 +14,6 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -61,7 +60,7 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void onChannelLeft(ChatChannel chatChannel) {
-    Platform.runLater(() -> removeTab(chatChannel.getName()));
+    JavaFxUtil.runLater(() -> removeTab(chatChannel.getName()));
   }
 
   private void onChannelJoined(ChatChannel chatChannel) {
@@ -77,34 +76,34 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void onDisconnected() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       connectingProgressPane.setVisible(true);
       tabPane.setVisible(false);
     });
   }
 
   private void onConnected() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       connectingProgressPane.setVisible(false);
       tabPane.setVisible(true);
     });
   }
 
   private void onConnecting() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       connectingProgressPane.setVisible(true);
       tabPane.setVisible(false);
     });
   }
 
   private void onLoggedOut() {
-    Platform.runLater(() -> tabPane.getTabs().clear());
+    JavaFxUtil.runLater(() -> tabPane.getTabs().clear());
   }
 
   private void removeTab(String playerOrChannelName) {
     AbstractChatTabController controller = nameToChatTabController.get(playerOrChannelName);
     if (controller != null) {
-      tabPane.getTabs().remove(controller.getRoot());
+      JavaFxUtil.runLater(() -> tabPane.getTabs().remove(controller.getRoot()));
     }
   }
 
@@ -183,7 +182,7 @@ public class ChatController extends AbstractViewController<Node> {
     if (isMatchmakerPartyMessage(message)) {
       return;
     }
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);
       } else {
@@ -217,18 +216,20 @@ public class ChatController extends AbstractViewController<Node> {
 
   @Subscribe
   public void onInitiatePrivateChatEvent(InitiatePrivateChatEvent event) {
-    Platform.runLater(() -> openPrivateMessageTabForUser(event.getUsername()));
+    openPrivateMessageTabForUser(event.getUsername());
   }
 
   private void openPrivateMessageTabForUser(String username) {
     if (username.equalsIgnoreCase(userService.getUsername())) {
       return;
     }
-    AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
-    Tab tab = controller.getRoot();
+    JavaFxUtil.runLater(() -> {
+      AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
+      Tab tab = controller.getRoot();
+      tabPane.getSelectionModel().select(tab);
+      nameToChatTabController.get(tab.getId()).onDisplay();
+    });
     eventBus.post(new NavigateEvent(NavigationItem.CHAT));
-    tabPane.getSelectionModel().select(tab);
-    nameToChatTabController.get(tab.getId()).onDisplay();
   }
 
   public void onJoinChannelButtonClicked() {
@@ -251,14 +252,14 @@ public class ChatController extends AbstractViewController<Node> {
     if (isCurrentUser(chatUser)) {
       AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
       if (chatTab != null) {
-        Platform.runLater(() -> tabPane.getTabs().remove(chatTab.getRoot()));
+        JavaFxUtil.runLater(() -> tabPane.getTabs().remove(chatTab.getRoot()));
       }
     }
   }
 
   private void onUserJoinedChannel(ChatChannelUser chatUser, String channelName) {
     if (isCurrentUser(chatUser)) {
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         AbstractChatTabController tabController = getOrCreateChannelTab(channelName);
         onConnected();
         if (chatService.isDefaultChannel(channelName)) {

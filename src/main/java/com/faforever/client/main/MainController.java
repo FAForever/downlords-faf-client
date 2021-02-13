@@ -88,7 +88,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.github.nocatch.NoCatch.noCatch;
-import static javafx.application.Platform.runLater;
 import static javafx.scene.layout.Background.EMPTY;
 
 @Component
@@ -206,9 +205,9 @@ public class MainController implements Controller<Node> {
     transientNotificationsController.getRoot().getChildren().addListener(new ToastDisplayer(transientNotificationsController));
 
     updateNotificationsButton(Collections.emptyList());
-    notificationService.addPersistentNotificationListener(change -> runLater(() -> updateNotificationsButton(change.getSet())));
-    notificationService.addImmediateNotificationListener(notification -> runLater(() -> displayImmediateNotification(notification)));
-    notificationService.addTransientNotificationListener(notification -> runLater(() -> transientNotificationsController.addNotification(notification)));
+    notificationService.addPersistentNotificationListener(change -> JavaFxUtil.runLater(() -> updateNotificationsButton(change.getSet())));
+    notificationService.addImmediateNotificationListener(notification -> JavaFxUtil.runLater(() -> displayImmediateNotification(notification)));
+    notificationService.addTransientNotificationListener(notification -> JavaFxUtil.runLater(() -> transientNotificationsController.addNotification(notification)));
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
 
@@ -245,27 +244,27 @@ public class MainController implements Controller<Node> {
 
   @Subscribe
   public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    runLater(this::enterLoggedInState);
+    JavaFxUtil.runLater(this::enterLoggedInState);
   }
 
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
-    runLater(this::enterLoggedOutState);
+    JavaFxUtil.runLater(this::enterLoggedOutState);
   }
 
   @Subscribe
   public void onUnreadNews(UnreadNewsEvent event) {
-    runLater(() -> newsButton.pseudoClassStateChanged(HIGHLIGHTED, event.hasUnreadNews()));
+    JavaFxUtil.runLater(() -> newsButton.pseudoClassStateChanged(HIGHLIGHTED, event.hasUnreadNews()));
   }
 
   @Subscribe
   public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
-    runLater(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
+    JavaFxUtil.runLater(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
   }
 
   @Subscribe
   public void onUnreadPrivateMessage(UnreadPrivateMessageEvent event) {
-    runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
+    JavaFxUtil.runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
   }
 
   private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {

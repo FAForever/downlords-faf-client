@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
@@ -21,7 +22,6 @@ import com.faforever.client.vault.VaultEntityShowRoomController;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
-import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
@@ -148,15 +148,14 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testShowReplayEventWhenUninitialized() {
-    Platform.runLater(() -> instance.display(new ShowReplayEvent(123)));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
     verify(replayDetailController).setReplay(testReplay);
   }
 
   @Test
   public void testShowReplayEventWhenInitialized() {
-    Platform.runLater(() -> instance.display(new OpenOnlineReplayVaultEvent()));
-    Platform.runLater(() -> instance.display(new ShowReplayEvent(123)));
+    JavaFxUtil.runLater(() -> instance.display(new OpenOnlineReplayVaultEvent()));
+    JavaFxUtil.runLater(() -> instance.display(new ShowReplayEvent(123)));
     WaitForAsyncUtils.waitForFxEvents();
     verify(replayDetailController).setReplay(testReplay);
   }
@@ -164,8 +163,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void showReplayButReplayNotPresent() {
     when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
-    Platform.runLater(() -> instance.display(new ShowReplayEvent(123)));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -18,7 +19,6 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
@@ -131,7 +131,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowMapDetail() throws MalformedURLException {
     MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    Platform.runLater(() -> instance.onDisplayDetails(mapBean));
+    JavaFxUtil.runLater(() -> instance.onDisplayDetails(mapBean));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapDetailController).setMap(mapBean);

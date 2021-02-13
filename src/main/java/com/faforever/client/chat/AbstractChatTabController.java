@@ -24,7 +24,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
-import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
@@ -281,7 +280,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
-        Platform.runLater(messageTextField()::requestFocus);
+        JavaFxUtil.runLater(messageTextField()::requestFocus);
       }
     });
 
@@ -458,7 +457,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (!isChatReady) {
         waitingMessages.add(chatMessage);
       } else {
-        Platform.runLater(() -> {
+        JavaFxUtil.runLater(() -> {
           addMessage(chatMessage);
           removeTopmostMessages();
           scrollToBottomIfDesired();
@@ -468,10 +467,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void scrollToBottomIfDesired() {
+    JavaFxUtil.assertApplicationThread();
     engine.executeScript("scrollToBottomIfDesired()");
   }
 
   private void removeTopmostMessages() {
+    JavaFxUtil.assertApplicationThread();
     int maxMessageItems = preferencesService.getPreferences().getChat().getMaxMessages();
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
@@ -486,6 +487,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * entry.
    */
   private void addMessage(ChatMessage chatMessage) {
+    JavaFxUtil.assertApplicationThread();
     noCatch(() -> {
       if (requiresNewChatSection(chatMessage)) {
         appendChatMessageSection(chatMessage);
@@ -650,6 +652,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected String convertUrlsToHyperlinks(String text) {
+    JavaFxUtil.assertApplicationThread();
     return (String) engine.executeScript("link('" + text.replace("'", "\\'") + "')");
   }
 
@@ -663,7 +666,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Subclasses may override in order to perform actions when the view is being displayed.
    */
   protected void onDisplay() {
-    messageTextField().requestFocus();
+    JavaFxUtil.runLater(() -> messageTextField().requestFocus());
   }
 
   /**

@@ -10,7 +10,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.io.CharStreams;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
@@ -70,7 +69,7 @@ public class TournamentsController extends AbstractViewController<Node> {
   }
 
   private void onLoadingStart() {
-    Platform.runLater(() -> loadingIndicator.setVisible(true));
+    JavaFxUtil.runLater(() -> loadingIndicator.setVisible(true));
   }
 
   private void onLoadingStop() {
@@ -92,7 +91,7 @@ public class TournamentsController extends AbstractViewController<Node> {
     webViewConfigurer.configureWebView(tournamentDetailWebView);
 
     tournamentService.getAllTournaments()
-        .thenAccept(tournaments -> Platform.runLater(() -> {
+        .thenAccept(tournaments -> JavaFxUtil.runLater(() -> {
           tournaments.sort(
               Comparator.<TournamentBean, Integer>comparing(o -> o.getStatus().getSortOrderPriority())
                   .thenComparing(TournamentBean::getCreatedAt)

@@ -13,7 +13,6 @@ import com.faforever.client.player.Player;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
@@ -142,7 +141,7 @@ public class PrivateUserInfoController implements Controller<Node> {
                     .filter(playerAchievement -> playerAchievement.getState() == AchievementState.UNLOCKED)
                     .count();
 
-                Platform.runLater(() -> unlockedAchievementsLabel.setText(
+                JavaFxUtil.runLater(() -> unlockedAchievementsLabel.setText(
                     i18n.get("chat.privateMessage.achievements.unlockedFormat", unlockedAchievements, totalAchievements))
                 );
               })

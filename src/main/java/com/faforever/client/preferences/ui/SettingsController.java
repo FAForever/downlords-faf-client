@@ -529,7 +529,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectBackgroundImage() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       FileChooser directoryChooser = new FileChooser();
       directoryChooser.setTitle(i18n.get("settings.appearance.chooseImage"));
       File result = directoryChooser.showOpenDialog(getRoot().getScene().getWindow());
@@ -570,7 +570,7 @@ public class SettingsController implements Controller<Node> {
   public void onPatchGamePrefsForMultipleInstances() {
     try {
       gameService.patchGamePrefsForMultiInstances()
-          .thenRun(() -> Platform.runLater(() -> allowReplayWhileInGameButton.setDisable(true)))
+          .thenRun(() -> JavaFxUtil.runLater(() -> allowReplayWhileInGameButton.setDisable(true)))
           .exceptionally(throwable -> {
             log.error("Game.prefs patch failed", throwable);
             notificationService.addImmediateErrorNotification(throwable, "settings.fa.patchGamePrefsFailed");

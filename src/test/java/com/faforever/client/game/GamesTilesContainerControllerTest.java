@@ -1,12 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -65,7 +65,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     CountDownLatch createdTiledFlowPaneCountDown = new CountDownLatch(1);
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.createTiledFlowPane(observableList, new ComboBox<>());
       createdTiledFlowPaneCountDown.countDown();
     });
@@ -83,7 +83,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     CountDownLatch initializedCountDown = new CountDownLatch(1);
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.createTiledFlowPane(observableList, new ComboBox<>());
       initializedCountDown.countDown();
     });
@@ -100,7 +100,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
 
     ObservableList<Game> observableList = FXCollections.observableArrayList();
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.createTiledFlowPane(observableList, new ComboBox<>());
       instance.tiledFlowPane.getChildren().addListener((Observable observable) -> latch.countDown());
       observableList.add(new Game());
@@ -119,7 +119,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
     ObservableList<Game> observableList = FXCollections.observableArrayList();
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       observableList.add(GameBuilder.create().defaultValues().get());
       instance.createTiledFlowPane(observableList, new ComboBox<>());
       observableList.add(GameBuilder.create().defaultValues().get());
@@ -154,7 +154,7 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     preferences.setGameTileSortingOrder(TilesSortingOrder.PLAYER_ASC);
 
     CountDownLatch createdTiledFlowPaneCountDown = new CountDownLatch(1);
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.createTiledFlowPane(observableList, new ComboBox<>());
       createdTiledFlowPaneCountDown.countDown();
     });

@@ -9,6 +9,7 @@ import com.faforever.client.fa.relay.GpgClientMessageSerializer;
 import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.fa.relay.GpgServerMessageType;
 import com.faforever.client.fa.relay.LobbyMode;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -248,7 +249,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
           int serverPort = server.getPort();
 
           log.info("Trying to connect to FAF server at {}:{}", serverHost, serverPort);
-          Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
+          JavaFxUtil.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
 
 
           try (Socket fafServerSocket = new Socket(serverHost, serverPort);
@@ -264,12 +265,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             writeToServer(new InitSessionMessage(Version.getCurrentVersion()));
 
             log.info("FAF server connection established");
-            Platform.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
+            JavaFxUtil.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
             reconnectTimerService.resetConnectionFailures();
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
-            Platform.runLater(() -> connectionState.set(ConnectionState.DISCONNECTED));
+            JavaFxUtil.runLater(() -> connectionState.set(ConnectionState.DISCONNECTED));
             if (isCancelled()) {
               log.debug("Connection to FAF server has been closed");
             } else {

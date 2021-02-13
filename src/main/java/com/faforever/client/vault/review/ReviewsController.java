@@ -73,7 +73,7 @@ public class ReviewsController implements Controller<Pane> {
     this.i18n = i18n;
     this.uiService = uiService;
     this.playerService = playerService;
-    onReviewsChangedListener = observable -> Platform.runLater(this::onReviewsChanged);
+    onReviewsChangedListener = observable -> JavaFxUtil.runLater(this::onReviewsChanged);
     ownReview = Optional.empty();
   }
 
@@ -137,7 +137,7 @@ public class ReviewsController implements Controller<Pane> {
     if (Platform.isFxApplicationThread()) {
       onReviewsChanged();
     } else {
-      Platform.runLater(this::onReviewsChanged);
+      JavaFxUtil.runLater(this::onReviewsChanged);
     }
   }
 
@@ -161,7 +161,7 @@ public class ReviewsController implements Controller<Pane> {
         })
         .collect(Collectors.toList());
 
-    Platform.runLater(() -> otherReviewsContainer.getChildren().setAll(reviewNodes));
+    JavaFxUtil.runLater(() -> otherReviewsContainer.getChildren().setAll(reviewNodes));
   }
 
   private void onReviewsChanged() {
@@ -202,7 +202,7 @@ public class ReviewsController implements Controller<Pane> {
 
   public void setOwnReview(Optional<Review> ownReview) {
     this.ownReview = ownReview;
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (ownReview.isPresent()) {
         ownReviewPaneController.setReview(ownReview);
         ownReviewRoot.setVisible(true);

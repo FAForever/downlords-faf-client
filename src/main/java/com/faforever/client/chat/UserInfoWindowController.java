@@ -25,7 +25,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -192,14 +191,14 @@ public class UserInfoWindowController implements Controller<Node> {
 
   private void setAvailableAchievements(List<AchievementDefinition> achievementDefinitions) {
     ObservableList<Node> children = lockedAchievementsContainer.getChildren();
-    Platform.runLater(children::clear);
+    JavaFxUtil.runLater(children::clear);
 
     achievementDefinitions.forEach(achievementDefinition -> {
       AchievementItemController controller = uiService.loadFxml("theme/achievement_item.fxml");
       controller.setAchievementDefinition(achievementDefinition);
       achievementDefinitionById.put(achievementDefinition.getId(), achievementDefinition);
       achievementItemById.put(achievementDefinition.getId(), controller);
-      Platform.runLater(() -> children.add(controller.getRoot()));
+      JavaFxUtil.runLater(() -> children.add(controller.getRoot()));
     });
   }
 
@@ -306,7 +305,7 @@ public class UserInfoWindowController implements Controller<Node> {
     lossSeries.getData().add(new XYChart.Data<>("UEF", uefPlays - uefWins));
     lossSeries.getData().add(new XYChart.Data<>("Seraphim", seraphimPlays - seraphimWins));
 
-    Platform.runLater(() -> factionsChart.getData().addAll(winsSeries, lossSeries));
+    JavaFxUtil.runLater(() -> factionsChart.getData().addAll(winsSeries, lossSeries));
   }
 
   private void plotUnitsByCategoriesChart(Map<String, PlayerEvent> playerEvents) {
@@ -314,7 +313,7 @@ public class UserInfoWindowController implements Controller<Node> {
     int landBuilt = playerEvents.containsKey(EVENT_BUILT_LAND_UNITS) ? playerEvents.get(EVENT_BUILT_LAND_UNITS).getCurrentCount() : 0;
     int navalBuilt = playerEvents.containsKey(EVENT_BUILT_NAVAL_UNITS) ? playerEvents.get(EVENT_BUILT_NAVAL_UNITS).getCurrentCount() : 0;
 
-    Platform.runLater(() -> unitsBuiltChart.setData(FXCollections.observableArrayList(
+    JavaFxUtil.runLater(() -> unitsBuiltChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.air"), airBuilt),
         new PieChart.Data(i18n.get("stats.land"), landBuilt),
         new PieChart.Data(i18n.get("stats.naval"), navalBuilt)
@@ -326,7 +325,7 @@ public class UserInfoWindowController implements Controller<Node> {
     int tech2Built = playerEvents.containsKey(EVENT_BUILT_TECH_2_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_2_UNITS).getCurrentCount() : 0;
     int tech3Built = playerEvents.containsKey(EVENT_BUILT_TECH_3_UNITS) ? playerEvents.get(EVENT_BUILT_TECH_3_UNITS).getCurrentCount() : 0;
 
-    Platform.runLater(() -> techBuiltChart.setData(FXCollections.observableArrayList(
+    JavaFxUtil.runLater(() -> techBuiltChart.setData(FXCollections.observableArrayList(
         new PieChart.Data(i18n.get("stats.tech1"), tech1Built),
         new PieChart.Data(i18n.get("stats.tech2"), tech2Built),
         new PieChart.Data(i18n.get("stats.tech3"), tech3Built)
@@ -334,8 +333,8 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   private void plotGamesPlayedChart() {
-    Platform.runLater(() -> gamesPlayedChart.getData().clear());
-    leaderboardService.getEntriesForPlayer(player.getId()).thenAccept(leaderboardEntries -> Platform.runLater(() ->
+    JavaFxUtil.runLater(() -> gamesPlayedChart.getData().clear());
+    leaderboardService.getEntriesForPlayer(player.getId()).thenAccept(leaderboardEntries -> JavaFxUtil.runLater(() ->
         leaderboardEntries.forEach(leaderboardEntry ->
             gamesPlayedChart.getData().add(new PieChart.Data(i18n.getWithDefault(leaderboardEntry.getLeaderboard().getTechnicalName(), leaderboardEntry.getLeaderboard().getNameKey()),
                 leaderboardEntry.getGamesPlayed())))))
@@ -354,14 +353,14 @@ public class UserInfoWindowController implements Controller<Node> {
     PlayerAchievement mostRecentPlayerAchievement = null;
 
     ObservableList<Node> children = unlockedAchievementsContainer.getChildren();
-    Platform.runLater(children::clear);
+    JavaFxUtil.runLater(children::clear);
 
     for (PlayerAchievement playerAchievement : playerAchievements) {
       AchievementItemController achievementItemController = achievementItemById.get(playerAchievement.getAchievement().getId());
       achievementItemController.setPlayerAchievement(playerAchievement);
 
       if (isUnlocked(playerAchievement)) {
-        Platform.runLater(() -> children.add(achievementItemController.getRoot()));
+        JavaFxUtil.runLater(() -> children.add(achievementItemController.getRoot()));
         if (mostRecentPlayerAchievement == null
             || playerAchievement.getUpdateTime().compareTo(mostRecentPlayerAchievement.getUpdateTime()) > 0) {
           mostRecentPlayerAchievement = playerAchievement;
@@ -380,7 +379,7 @@ public class UserInfoWindowController implements Controller<Node> {
       String mostRecentAchievementName = mostRecentAchievement.getName();
       String mostRecentAchievementDescription = mostRecentAchievement.getDescription();
 
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         mostRecentAchievementNameLabel.setText(mostRecentAchievementName);
         mostRecentAchievementDescriptionLabel.setText(mostRecentAchievementDescription);
         mostRecentAchievementImageView.setImage(achievementService.getImage(mostRecentAchievement, UNLOCKED));
@@ -395,7 +394,7 @@ public class UserInfoWindowController implements Controller<Node> {
 
   public void onRatingTypeChange() {
     if (ratingTypeComboBox.getValue() != null) {
-      loadStatistics(ratingTypeComboBox.getValue()).thenRun(() -> Platform.runLater(this::plotPlayerRatingGraph));
+      loadStatistics(ratingTypeComboBox.getValue()).thenRun(this::plotPlayerRatingGraph);
     }
   }
 
@@ -425,7 +424,7 @@ public class UserInfoWindowController implements Controller<Node> {
 
     XYChart.Series<Long, Integer> series = new XYChart.Series<>(observableList(values));
     series.setName(i18n.get("userInfo.ratingOverTime"));
-    ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
+    JavaFxUtil.runLater(() -> ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series))));
   }
 
   @NotNull

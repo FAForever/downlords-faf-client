@@ -16,7 +16,6 @@ import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.DirectoryChooser;
 import lombok.extern.slf4j.Slf4j;
@@ -141,7 +140,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   }
 
   public void onUploadButtonClicked() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
       directoryChooser.setInitialDirectory(preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory().toFile());
       directoryChooser.setTitle(i18n.get("mapVault.upload.chooseDirectory"));

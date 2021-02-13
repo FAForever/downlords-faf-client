@@ -8,7 +8,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ListChangeListener;
@@ -54,7 +53,7 @@ public class ModCardController implements Controller<Node> {
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
 
   private void populateReviews() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       numberOfReviewsLabel.setText(i18n.number(modVersion.getReviewsSummary().getReviews()));
       starsController.setValue(modVersion.getReviewsSummary().getScore() / modVersion.getReviewsSummary().getReviews());
     });

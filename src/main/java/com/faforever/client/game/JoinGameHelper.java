@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.discord.DiscordJoinEvent;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -15,7 +16,6 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,6 +118,6 @@ public class JoinGameHelper {
       log.debug("Join was requested via Discord but was rejected due to it being disabled in settings");
       return;
     }
-    Platform.runLater(() -> join(gameId));
+    JavaFxUtil.runLater(() -> join(gameId));
   }
 }

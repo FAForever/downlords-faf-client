@@ -10,7 +10,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.vault.replay.WatchButtonController;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -161,7 +160,7 @@ public class GameDetailController implements Controller<Pane> {
     ));
 
     featuredModInvalidationListener = observable -> modService.getFeaturedMod(game.getFeaturedMod())
-        .thenAccept(featuredMod -> Platform.runLater(() -> {
+        .thenAccept(featuredMod -> JavaFxUtil.runLater(() -> {
           gameTypeLabel.setText(i18n.get("loading"));
           String fullName = featuredMod != null ? featuredMod.getDisplayName() : null;
           gameTypeLabel.setText(StringUtils.defaultString(fullName));
@@ -185,9 +184,9 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void createTeams() {
-    teamListPane.getChildren().clear();
-    ObservableMap<String, List<String>> teams = this.game.get().getTeams();
-    synchronized (teams) {
+    ObservableMap<String, List<String>> teams = game.get().getTeams();
+    JavaFxUtil.runLater(() -> teamListPane.getChildren().clear());
+    synchronized (game.get().getTeams()) {
       TeamCardController.createAndAdd(teams, game.get().getRatingType(), playerService, uiService, teamListPane);
     }
   }

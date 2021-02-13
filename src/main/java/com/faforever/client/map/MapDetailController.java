@@ -20,7 +20,6 @@ import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
@@ -192,7 +191,7 @@ public class MapDetailController implements Controller<Node> {
         .findFirst());
 
     mapService.getFileSize(map.getDownloadUrl())
-        .thenAccept(mapFileSize -> Platform.runLater(() -> {
+        .thenAccept(mapFileSize -> JavaFxUtil.runLater(() -> {
           if (mapFileSize > -1) {
             installButton.setText(i18n.get("mapVault.installButtonFormat", Bytes.formatSize(mapFileSize, i18n.getUserSpecificLocale())));
             installButton.setDisable(false);
@@ -224,7 +223,7 @@ public class MapDetailController implements Controller<Node> {
   @VisibleForTesting
   void onDeleteReview(Review review) {
     reviewService.deleteMapVersionReview(review)
-        .thenRun(() -> Platform.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           map.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
@@ -303,7 +302,7 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void hideMap() {
-    mapService.hideMapVersion(map).thenAccept(aVoid -> Platform.runLater(() -> {
+    mapService.hideMapVersion(map).thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
       map.setHidden(true);
       renewAuthorControls();
     })).exceptionally(throwable -> {
@@ -315,7 +314,7 @@ public class MapDetailController implements Controller<Node> {
 
   public void unrankMap() {
     mapService.unrankMapVersion(map)
-        .thenAccept(aVoid -> Platform.runLater(() -> {
+        .thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
           map.setRanked(false);
           renewAuthorControls();
         }))

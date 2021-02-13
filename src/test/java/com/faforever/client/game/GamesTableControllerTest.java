@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.preferences.Preferences;
@@ -9,7 +10,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
@@ -62,13 +62,13 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
 
     loadFxml("theme/play/games_table.fxml", param -> instance);
 
-    Platform.runLater(() -> getRoot().getChildren().addAll(instance.getRoot()));
+    JavaFxUtil.runLater(() -> getRoot().getChildren().addAll(instance.getRoot()));
     WaitForAsyncUtils.waitForFxEvents();
   }
 
   @Test
   public void test() throws Exception {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBuilder.create().defaultValues().get(),
           GameBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
@@ -80,7 +80,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testPrivateGameColumnIsHidden() throws Exception {
     preferences.setShowPasswordProtectedGames(false);
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBuilder.create().defaultValues().get(),
           GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
@@ -96,7 +96,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testModdedGameColumnIsHidden() throws Exception {
     preferences.setShowModdedGames(false);
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBuilder.create().defaultValues().get(),
           GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
@@ -113,7 +113,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   public void testKeepsSorting() {
     preferences.getGameListSorting().setAll(new Pair<>("hostColumn", SortType.DESCENDING));
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBuilder.create().defaultValues().get(),
           GameBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
@@ -130,7 +130,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   public void testSortingUpdatesPreferences() {
     assertThat(preferencesService.getPreferences().getGameListSorting(), hasSize(0));
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBuilder.create().defaultValues().get(),
           GameBuilder.create().defaultValues().status(GameStatus.CLOSED).get()

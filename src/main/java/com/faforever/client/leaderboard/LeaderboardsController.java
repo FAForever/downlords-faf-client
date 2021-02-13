@@ -1,12 +1,12 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Validator;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
@@ -53,7 +53,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     super.initialize();
 
     leaderboardService.getLeaderboards().thenApply(leaderboards -> {
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         leaderboardComboBox.getItems().clear();
         leaderboardComboBox.setConverter(leaderboardStringConverter());
         leaderboardComboBox.getItems().addAll(leaderboards);

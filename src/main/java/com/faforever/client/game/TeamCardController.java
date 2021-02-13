@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -56,10 +57,12 @@ public class TeamCardController implements Controller<Node> {
           .map(Optional::get)
           .collect(Collectors.toList());
 
-      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-      teamCardController.setPlayersInTeam(entry.getKey(), players,
-          player -> RatingUtil.getLeaderboardRating(player, ratingType), null, RatingPrecision.ROUNDED);
-      teamsPane.getChildren().add(teamCardController.getRoot());
+      JavaFxUtil.runLater(() -> {
+        TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+        teamCardController.setPlayersInTeam(entry.getKey(), players,
+            player -> RatingUtil.getLeaderboardRating(player, ratingType), null, RatingPrecision.ROUNDED);
+        teamsPane.getChildren().add(teamCardController.getRoot());
+      });
     }
   }
 

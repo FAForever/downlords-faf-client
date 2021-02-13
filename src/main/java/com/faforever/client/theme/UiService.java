@@ -11,7 +11,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -287,7 +286,7 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private void setSceneStyleSheet(Scene scene, String[] styleSheets) {
-    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheets));
+    JavaFxUtil.runLater(() -> scene.getStylesheets().setAll(styleSheets));
   }
 
   private String getSceneStyleSheet() {
@@ -462,7 +461,7 @@ public class UiService implements InitializingBean, DisposableBean {
     webViews.stream()
         .map(Reference::get)
         .filter(Objects::nonNull)
-        .forEach(webView -> Platform.runLater(
+        .forEach(webView -> JavaFxUtil.runLater(
             () -> webView.getEngine().setUserStyleSheetLocation(noCatch(() -> currentTempStyleSheet.toUri().toURL()).toString())));
     logger.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
   }

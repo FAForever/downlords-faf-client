@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -9,7 +10,6 @@ import com.faforever.client.map.generator.UnsupportedVersionException;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -198,7 +198,7 @@ public class GenerateMapController implements Controller<Pane> {
       GenerationType generationType = generationTypeComboBox.getValue();
       generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, getOptionMap(), generationType);
     }
-    generateFuture.thenAccept(mapName -> Platform.runLater(() -> {
+    generateFuture.thenAccept(mapName -> JavaFxUtil.runLater(() -> {
       createGameController.initMapSelection();
       createGameController.mapListView.getItems().stream()
           .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))

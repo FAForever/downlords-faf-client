@@ -1,11 +1,11 @@
 package com.faforever.client.ui.tray;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.VPos;
 import javafx.scene.SnapshotParameters;
@@ -50,15 +50,15 @@ public class TrayIconManager implements InitializingBean {
    */
   @Subscribe
   public void onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent event) {
-    Platform.runLater(() -> {
-      if (event.getDelta().isPresent()) {
-        badgeCount += event.getDelta().get();
-      } else if (event.getNewValue().isPresent()) {
-        badgeCount = event.getNewValue().get();
-      } else {
-        throw new IllegalStateException("No delta nor new value is available");
-      }
+    if (event.getDelta().isPresent()) {
+      badgeCount += event.getDelta().get();
+    } else if (event.getNewValue().isPresent()) {
+      badgeCount = event.getNewValue().get();
+    } else {
+      throw new IllegalStateException("No delta nor new value is available");
+    }
 
+    JavaFxUtil.runLater(() -> {
       List<Image> icons;
       if (badgeCount < 1) {
         icons = IntStream.range(4, 9)

@@ -3,6 +3,7 @@ package com.faforever.client.mod;
 import com.faforever.client.api.dto.ApiException;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;
@@ -14,7 +15,6 @@ import com.faforever.client.notification.ReportAction;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -105,7 +105,7 @@ public class ModUploadController implements Controller<Node> {
 
   private void setModVersionInfo(ModVersion modVersion) {
     this.modVersionInfo = modVersion;
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       enterModInfoState();
       modNameLabel.textProperty().bind(modVersion.displayNameProperty());
       descriptionLabel.textProperty().bind(modVersion.descriptionProperty());

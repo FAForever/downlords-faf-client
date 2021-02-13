@@ -29,7 +29,6 @@ import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.application.Platform;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -48,7 +47,6 @@ import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -220,7 +218,7 @@ public class ReplayDetailController implements Controller<Node> {
 
     if (replay.getReplayFile() == null) {
       replayService.getSize(replay.getId())
-          .thenAccept(replaySize -> Platform.runLater(() -> {
+          .thenAccept(replaySize -> JavaFxUtil.runLater(() -> {
             if (replaySize > -1) {
               String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
               downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
@@ -269,7 +267,7 @@ public class ReplayDetailController implements Controller<Node> {
   @VisibleForTesting
   void onDeleteReview(Review review) {
     reviewService.deleteGameReview(review)
-        .thenRun(() -> Platform.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           replay.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
@@ -325,7 +323,7 @@ public class ReplayDetailController implements Controller<Node> {
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
 
-    Platform.runLater(() -> teams.forEach((team, value) -> {
+    JavaFxUtil.runLater(() -> teams.forEach((team, value) -> {
       List<Integer> playerIds = value.stream()
           .map(PlayerStats::getPlayerId)
           .collect(Collectors.toList());

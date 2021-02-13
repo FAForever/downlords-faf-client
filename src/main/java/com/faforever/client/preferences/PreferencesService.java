@@ -18,7 +18,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
-import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Alert;
@@ -252,7 +251,7 @@ public class PreferencesService implements InitializingBean {
     } catch (Exception e) {
       logger.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
       CountDownLatch waitForUser = new CountDownLatch(1);
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         Alert errorReading = new Alert(AlertType.ERROR, "Error reading setting. Reset settings? ", ButtonType.YES, ButtonType.CANCEL);
         errorReading.showAndWait();
 
