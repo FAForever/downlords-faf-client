@@ -204,7 +204,7 @@ public class MockChatService implements ChatService, InitializingBean {
   }
 
   @Override
-  public ChatChannelUser getChatUser(String username, String channelName) {
+  public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
     return new ChatChannelUser(username, false);
   }
 

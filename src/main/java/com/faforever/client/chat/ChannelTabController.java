@@ -334,7 +334,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getMessageCssClass(String login) {
-    ChatChannelUser chatUser = chatService.getChatUser(login, chatChannel.getName());
+    ChatChannelUser chatUser = chatService.getOrCreateChatUser(login, chatChannel.getName());
     Optional<Player> currentPlayerOptional = playerService.getCurrentPlayer();
 
     if (currentPlayerOptional.isPresent()) {
@@ -529,7 +529,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getInlineStyle(String username) {
-    ChatChannelUser chatUser = chatService.getChatUser(username, chatChannel.getName());
+    ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, chatChannel.getName());
 
     Optional<Player> playerOptional = playerService.getPlayerForUsername(username);
 

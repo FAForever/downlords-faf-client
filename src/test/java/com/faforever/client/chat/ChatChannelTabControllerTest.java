@@ -165,7 +165,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(playerName).defaultValues().moderator(true).get();
 
     when(playerService.getCurrentPlayer()).thenReturn(Optional.empty());
-    when(chatService.getChatUser(playerName, defaultChatChannel.getName())).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(playerName, defaultChatChannel.getName())).thenReturn(chatUser);
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
 
@@ -317,7 +317,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
     ChatChannelUser chatUser = new ChatChannelUser(somePlayer, false);
 
-    when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
     runOnFxThreadAndWait(() -> {
       instance.setChatChannel(defaultChatChannel);
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
@@ -340,7 +340,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     ChatChannelUser chatUser = new ChatChannelUser(somePlayer, false);
     chatUser.setColor(color);
 
-    when(chatService.getChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(somePlayer, CHANNEL_NAME)).thenReturn(chatUser);
     runOnFxThreadAndWait(() -> {
       instance.setChatChannel(defaultChatChannel);
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
@@ -358,7 +358,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     ChatChannelUser chatUser = new ChatChannelUser(playerName, false);
 
     when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
-    when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
     runOnFxThreadAndWait(() -> {
       instance.setChatChannel(defaultChatChannel);
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
@@ -375,7 +375,7 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     ChatChannelUser chatUser = new ChatChannelUser(playerName, false);
     when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
 
-    when(chatService.getChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.getOrCreateChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
     runOnFxThreadAndWait(() -> {
       instance.setChatChannel(defaultChatChannel);
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);

@@ -187,6 +187,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     };
   }
 
+  @Override
+  public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
+    Channel channel = client.getChannel(channelName).orElseThrow(() -> new IllegalArgumentException("Channel '" + channelName + "' is unknown"));
+    User user = channel.getUser(username).orElseThrow(() -> new IllegalArgumentException("Chat user '" + username + "' is unknown for channel '" + channelName + "'"));
+
+    return getOrCreateChatUser(user, channel);
+  }
 
   private ChatChannelUser getOrCreateChatUser(User user, Channel channel) {
     String username = user.getNick();
@@ -554,12 +561,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public ReadOnlyIntegerProperty unreadMessagesCount() {
     return unreadMessagesCount;
-  }
-
-  @Override
-  public ChatChannelUser getChatUser(String username, String channelName) {
-    return Optional.ofNullable(chatChannelUsersByChannelAndName.get(mapKey(username, channelName)))
-        .orElseThrow(() -> new IllegalArgumentException("Chat user '" + username + "' is unknown for channel '" + channelName + "'"));
   }
 
   @Override

@@ -23,6 +23,8 @@ public interface ChatService {
    */
   ChatChannel getOrCreateChannel(String channelName);
 
+  ChatChannelUser getOrCreateChatUser(String username, String channel);
+
   ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator);
 
   void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
@@ -57,8 +59,6 @@ public interface ChatService {
   void incrementUnreadMessagesCount(int delta);
 
   ReadOnlyIntegerProperty unreadMessagesCount();
-
-  ChatChannelUser getChatUser(String username, String channelName);
 
   String getDefaultChannelName();
 }
