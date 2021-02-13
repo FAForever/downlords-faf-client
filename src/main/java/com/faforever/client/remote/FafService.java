@@ -265,15 +265,14 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, String leaderboardTechnicalName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getRatingJournal(playerId, leaderboardTechnicalName)
+  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, int leaderboardId) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getRatingJournal(playerId, leaderboardId)
         .parallelStream()
         .filter(gamePlayerStats -> gamePlayerStats.getCreateTime() != null
             && gamePlayerStats.getMeanAfter() != null
             && gamePlayerStats.getDeviationAfter() != null)
-        .map(entry -> new RatingHistoryDataPoint(entry.getCreateTime(), entry.getMeanAfter(), entry.getDeviationAfter()))
-        .collect(Collectors.toList())
-    );
+        .map(entry -> new RatingHistoryDataPoint(entry.getGamePlayerStats().getScoreTime(), entry.getMeanAfter(), entry.getDeviationAfter()))
+        .collect(Collectors.toList()));
   }
 
   @Async

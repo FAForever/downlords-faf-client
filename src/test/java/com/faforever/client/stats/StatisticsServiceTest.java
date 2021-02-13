@@ -29,6 +29,6 @@ public class StatisticsServiceTest {
   @Test
   public void testGetStatisticsForPlayer() throws Exception {
     instance.getRatingHistory(123, leaderboard);
-    verify(fafService).getRatingHistory(123, leaderboard.getTechnicalName());
+    verify(fafService).getRatingHistory(123, leaderboard.getId());
   }
 }
