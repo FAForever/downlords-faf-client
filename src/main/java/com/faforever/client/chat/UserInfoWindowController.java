@@ -61,6 +61,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -410,7 +411,7 @@ public class UserInfoWindowController implements Controller<Node> {
 
   public void plotPlayerRatingGraph() {
     OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
-    List<XYChart.Data<Long, Integer>> values = ratingData.stream()
+    List<XYChart.Data<Long, Integer>> values = ratingData.stream().sorted(Comparator.comparing(RatingHistoryDataPoint::getInstant))
         .filter(dataPoint -> dataPoint.getInstant().isAfter(afterDate))
         .map(dataPoint -> new Data<>(dataPoint.getInstant().toEpochSecond(), RatingUtil.getRating(dataPoint)))
         .collect(Collectors.toList());
