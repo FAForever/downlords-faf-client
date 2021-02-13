@@ -421,12 +421,4 @@ public final class JavaFxUtil {
   public static void bindManagedToVisible(Node... nodes) {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
   }
-
-  public static void assureRunOnMainThread(Runnable runnable) {
-    if (Platform.isFxApplicationThread()) {
-      runnable.run();
-    } else {
-      runLater(runnable);
-    }
-  }
 }
