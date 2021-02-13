@@ -136,7 +136,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<LeaderboardRatingJournal> getRatingJournal(int playerId, String leaderboardTechnicalName) {
+  public List<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId) {
     return List.of();
   }
 

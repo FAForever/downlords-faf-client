@@ -63,7 +63,7 @@ public interface FafApiAccessor {
 
   List<LeaderboardEntry> getLeaderboardEntriesForPlayer(int playerId);
 
-  List<LeaderboardRatingJournal> getRatingJournal(int playerId, String leaderboardTechnicalName);
+  List<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId);
 
   Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page);
 

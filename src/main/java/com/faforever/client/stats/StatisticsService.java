@@ -19,6 +19,6 @@ public class StatisticsService {
   private final FafService fafService;
 
   public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, Leaderboard leaderboard) {
-    return fafService.getRatingHistory(playerId, leaderboard.getTechnicalName());
+    return fafService.getRatingHistory(playerId, leaderboard.getId());
   }
 }

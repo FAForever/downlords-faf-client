@@ -265,8 +265,8 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, String leaderboardTechnicalName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getRatingJournal(playerId, leaderboardTechnicalName)
+  public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, int leaderboardId) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getRatingJournal(playerId, leaderboardId)
         .parallelStream()
         .filter(gamePlayerStats -> gamePlayerStats.getCreateTime() != null
             && gamePlayerStats.getMeanAfter() != null

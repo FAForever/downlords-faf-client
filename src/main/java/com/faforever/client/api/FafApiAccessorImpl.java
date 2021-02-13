@@ -233,12 +233,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   @Cacheable(value = CacheNames.RATING_HISTORY, sync = true)
-  public List<LeaderboardRatingJournal> getRatingJournal(int playerId, String leaderboardTechnicalName) {
+  public List<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId) {
     return getAll("/data/leaderboardRatingJournal", java.util.Map.of(
         FILTER, rsql(qBuilder()
             .intNum("gamePlayerStats.player.id").eq(playerId)
             .and()
-            .string("leaderboard.technicalName").eq(leaderboardTechnicalName)),
+            .intNum("leaderboard.id").eq(leaderboardId)),
         INCLUDE, "gamePlayerStats"));
   }
 

@@ -179,11 +179,11 @@ public class FafApiAccessorImplTest {
         .thenReturn(gamePlayerStats)
         .thenReturn(emptyList());
 
-    List<LeaderboardRatingJournal> result = instance.getRatingJournal(123, "ladder_1v1");
+    List<LeaderboardRatingJournal> result = instance.getRatingJournal(123, 1);
 
     assertThat(result, is(gamePlayerStats));
     verify(restOperations).getForObject("/data/leaderboardRatingJournal?filter=gamePlayerStats.player.id==\"123\";" +
-        "leaderboard.technicalName==\"ladder_1v1\"&include=gamePlayerStats&sort=gamePlayerStats.scoreTime&page[size]=10000&page[number]=1", List.class);
+        "leaderboard.id==\"1\"&include=gamePlayerStats&page[size]=10000&page[number]=1", List.class);
   }
 
   @Test
