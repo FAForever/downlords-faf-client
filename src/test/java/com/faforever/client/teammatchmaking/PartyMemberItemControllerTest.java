@@ -8,17 +8,25 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
+import com.faforever.client.teammatchmaking.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.css.PseudoClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.Optional;
+
+import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
+import static com.faforever.client.teammatchmaking.PartyMemberItemController.PLAYING_PSEUDO_CLASS;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
@@ -35,44 +43,100 @@ public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
   private UiService uiService;
   @Mock
   private I18n i18n;
-  @Mock
-  private PartyMember partyMember;
 
-  private static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
   private PartyMemberItemController instance;
+  private Player owner;
   private Player player;
+  private Party party;
 
   @Before
-  public void setUp() throws Exception{
-    player = PlayerBuilder.create("tester").defaultValues().get();
-    when(partyMember.getPlayer()).thenReturn(player);
-    when(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames())).thenReturn("Games played: 0");
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>());
-    Party party = new Party();
-    party.setOwner(player);
+  public void setUp() throws Exception {
+    party = PartyBuilder.create().defaultValues().get();
+    owner = party.getOwner();
+    player = PlayerBuilder.create("player").id(100).defaultValues().get();
+    PartyMember partyMember = PartyMemberBuilder.create(owner).defaultValues().get();
+    party.getMembers().add(partyMember);
+    when(i18n.get("leaderboard.divisionName")).thenReturn("division");
+    when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
     when(teamMatchmakingService.getParty()).thenReturn(party);
 
     instance = new PartyMemberItemController(countryFlagService, avatarService, playerService, teamMatchmakingService,
         uiService, i18n);
     loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml", clazz -> instance);
-    instance.setMember(partyMember);
+    runOnFxThreadAndWait(() -> instance.setMember(partyMember));
   }
 
   @Test
   public void styleChangeWhenPlayerInGame() {
-    player.setGame(new Game());
-    WaitForAsyncUtils.waitForFxEvents();
+    assertFalse(instance.playerStatusImageView.isVisible());
+    assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
 
-    assertTrue(instance.playerStatusImageView.isManaged());
+    runOnFxThreadAndWait(() -> owner.setGame(new Game()));
+    assertTrue(instance.playerStatusImageView.isVisible());
     assertTrue(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
+
+    runOnFxThreadAndWait(() -> owner.setGame(null));
+    assertFalse(instance.playerStatusImageView.isVisible());
+    assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
   }
 
   @Test
-  public void styleChangeWhenPlayerNotInGame() {
-    player.setGame(null);
+  public void testPartyOwnerListener() {
+    assertThat(instance.crownLabel.isVisible(), is(true));
+    assertThat(instance.kickPlayerButton.isVisible(), is(false));
+    assertTrue(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
+
+    runOnFxThreadAndWait(() -> party.setOwner(player));
+    assertThat(instance.crownLabel.isVisible(), is(false));
+    assertThat(instance.kickPlayerButton.isVisible(), is(true));
+    assertFalse(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
+
+    runOnFxThreadAndWait(() -> party.setOwner(owner));
+    assertThat(instance.crownLabel.isVisible(), is(true));
+    assertThat(instance.kickPlayerButton.isVisible(), is(false));
+    assertTrue(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
+  }
+
+  @Test
+  public void testPlayerPropertyListener() {
+    verify(countryFlagService).loadCountryFlag(owner.getCountry());
+    verify(avatarService).loadAvatar(owner.getAvatarUrl());
+    assertThat(instance.usernameLabel.getText(), is(owner.getUsername()));
+    assertThat(instance.gameCountLabel.getText(), is("GAMES PLAYED: 0"));
+    assertThat(instance.clanLabel.isVisible(), is(true));
+    assertThat(instance.clanLabel.getText(), is(String.format("[%s]", player.getClan())));
+
+    owner.setCountry("DE");
+    owner.setAvatarUrl("");
+    owner.setClan("");
+    owner.setNumberOfGames(10);
+    owner.setUsername("player");
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.playerStatusImageView.isManaged());
-    assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
+    assertThat(instance.usernameLabel.getText(), is(owner.getUsername()));
+    assertThat(instance.gameCountLabel.getText(), is("GAMES PLAYED: 0"));
+    assertThat(instance.clanLabel.isVisible(), is(false));
+    assertThat(instance.clanLabel.getText(), is(""));
+  }
+
+  @Test
+  public void testOnKickPlayerButtonClicked() {
+    instance.onKickPlayerButtonClicked(null);
+
+    verify(teamMatchmakingService).kickPlayerFromParty(owner);
+  }
+
+  @Test
+  public void testGetRoot() {
+    assertThat(instance.getRoot(), is(instance.playerItemRoot));
+  }
+
+  @Test
+  public void testFactionLabels() {
+    assertThat(instance.uefLabel.isDisabled(), is(false));
+    assertThat(instance.aeonLabel.isDisabled(), is(false));
+    assertThat(instance.cybranLabel.isDisabled(), is(false));
+    assertThat(instance.seraphimLabel.isDisabled(), is(false));
   }
 }

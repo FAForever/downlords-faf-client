@@ -21,6 +21,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.replay.Replay;
@@ -34,6 +35,7 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReview;
@@ -548,6 +550,38 @@ public class FafService {
   public CompletableFuture<Optional<MatchmakingQueue>> getMatchmakingQueue(String technicalName) {
     return CompletableFuture.completedFuture(fafApiAccessor.getMatchmakerQueue(technicalName)
         .map(MatchmakingQueue::fromDto));
+  }
+
+  public void acceptPartyInvite(Player player) {
+    fafServerAccessor.acceptPartyInvite(player);
+  }
+
+  public void inviteToParty(Player player) {
+    fafServerAccessor.inviteToParty(player);
+  }
+
+  public void kickPlayerFromParty(Player player) {
+    fafServerAccessor.kickPlayerFromParty(player);
+  }
+
+  public void leaveParty() {
+    fafServerAccessor.leaveParty();
+  }
+
+  public void readyParty() {
+    fafServerAccessor.readyParty();
+  }
+
+  public void unreadyParty() {
+    fafServerAccessor.unreadyParty();
+  }
+
+  public void setPartyFactions(List<Faction> factions) {
+    fafServerAccessor.setPartyFactions(factions);
+  }
+
+  public void updateMatchmakerState(MatchmakingQueue queue, MatchmakingState state) {
+    fafServerAccessor.gameMatchmaking(queue, state);
   }
 
   @Async

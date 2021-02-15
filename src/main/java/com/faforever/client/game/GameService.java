@@ -34,6 +34,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeUtil;
@@ -146,15 +147,13 @@ public class GameService implements InitializingBean {
   private final ReconnectTimerService reconnectTimerService;
   private final ObservableList<Game> games;
   private final String faWindowTitle;
-  private final BooleanProperty inMatchmakerQueue;
-  private final BooleanProperty inOthersParty;
 
-  @VisibleForTesting
-  String matchedQueueRatingType;
   private Process process;
   private boolean rehostRequested;
   private int localReplayPort;
   private ForgedAlliancePrefs forgedAlliancePrefs;
+  private boolean inOthersParty;
+  private boolean inMatchmakerQueue;
 
   @Inject
   public GameService(ClientProperties clientProperties,
@@ -195,14 +194,14 @@ public class GameService implements InitializingBean {
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
-    inMatchmakerQueue = new SimpleBooleanProperty();
-    inOthersParty = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.observableList(new ArrayList<>(),
         item -> new Observable[]{item.statusProperty(), item.getTeams()}
     );
     forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
+    inMatchmakerQueue = false;
+    inOthersParty = false;
   }
 
   @Override
@@ -310,7 +309,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
     }
 
-    if (inMatchmakerQueue.get()) {
+    if (inMatchmakerQueue) {
       addAlreadyInQueueNotification();
       return completedFuture(null);
     }
@@ -346,7 +345,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> joinGame(game, password));
     }
 
-    if (inMatchmakerQueue.get()) {
+    if (inMatchmakerQueue) {
       addAlreadyInQueueNotification();
       return completedFuture(null);
     }
@@ -444,11 +443,11 @@ public class GameService implements InitializingBean {
       log.warn("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
-    } else if (inMatchmakerQueue.get()) {
+    } else if (inMatchmakerQueue) {
       log.warn("In matchmaker queue, not starting replay");
       notificationService.addImmediateWarnNotification("replay.inQueue");
       return false;
-    } else if (inOthersParty.get()) {
+    } else if (inOthersParty) {
       log.info("In party, not starting replay");
       notificationService.addImmediateWarnNotification("replay.inParty");
       return false;
@@ -554,13 +553,18 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
+    if (inMatchmakerQueue) {
+      log.debug("Matchmaker search has already been started, ignoring call");
+      return completedFuture(null);
+    }
+
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> startSearchMatchmaker());
     }
 
     log.info("Matchmaking search has been started");
-    inMatchmakerQueue.set(true);
+    inMatchmakerQueue = true;
 
     return modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
@@ -576,12 +580,7 @@ public class GameService implements InitializingBean {
               String ratingType = gameLaunchMessage.getRatingType();
 
               if (ratingType == null) {
-                log.warn("Rating type not in game launch message using MatchedQueueRatingType");
-                ratingType = matchedQueueRatingType;
-              }
-
-              if (ratingType == null) {
-                log.warn("matchedQueueRatingType null using default");
+                log.warn("Rating type not in game launch message using default");
                 ratingType = DEFAULT_RATING_TYPE;
               }
 
@@ -598,21 +597,13 @@ public class GameService implements InitializingBean {
   }
 
   public void onMatchmakerSearchStopped() {
-    if (inMatchmakerQueue.get()) {
+    if (inMatchmakerQueue) {
       fafService.stopSearchMatchmaker();
-      inMatchmakerQueue.set(false);
+      inMatchmakerQueue = false;
       log.debug("Matchmaker search stopped");
     } else {
       log.debug("Matchmaker search has already been stopped, ignoring call");
     }
-  }
-
-  public BooleanProperty getInMatchmakerQueueProperty() {
-    return inMatchmakerQueue;
-  }
-
-  public BooleanProperty getInOthersPartyProperty() {
-    return inOthersParty;
   }
 
   /**
@@ -917,13 +908,14 @@ public class GameService implements InitializingBean {
     }
   }
 
-  public void setMatchedQueueRatingType(String matchedQueueRatingType) {
-    this.matchedQueueRatingType = matchedQueueRatingType;
-  }
-
   @Subscribe
   public void onGameCloseRequested(CloseGameEvent event) {
     killGame();
+  }
+
+  @Subscribe
+  public void onPartyOwnerChangedEvent(PartyOwnerChangedEvent event) {
+    playerService.getCurrentPlayer().ifPresent(player -> inOthersParty = player != event.getNewOwner());
   }
 
   public void launchTutorial(MapBean mapVersion, String technicalMapName) {

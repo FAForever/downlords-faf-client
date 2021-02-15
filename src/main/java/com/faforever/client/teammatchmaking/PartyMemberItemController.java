@@ -10,16 +10,17 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.RatingUtil;
+import com.faforever.client.util.Assert;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.base.Strings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.value.WeakChangeListener;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.HBox;
@@ -30,16 +31,13 @@ import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
 
-import static javafx.beans.binding.Bindings.createObjectBinding;
-import static javafx.beans.binding.Bindings.createStringBinding;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class PartyMemberItemController implements Controller<Node> {
 
-  private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
-  private static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
+  public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
+  public static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -67,10 +65,14 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private Player player;
   private WeakReference<PartyMemberContextMenuController> contextMenuController = null;
+  private InvalidationListener playerStatusInvalidationListener;
+  private InvalidationListener playerPropertiesInvalidationListener;
+  private InvalidationListener partyOwnerInvalidationListener;
 
   @Override
   public void initialize() {
-    clanLabel.managedProperty().bind(clanLabel.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView, leagueImageView, kickPlayerButton);
+    initializeListeners();
   }
 
   @Override
@@ -79,72 +81,80 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   public void setMember(PartyMember member) {
-    this.player = member.getPlayer();
+    Assert.checkNotNullIllegalState(player, "Party member already set");
+    player = member.getPlayer();
 
-    initializeBindings();
-    playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, teamMatchmakingService.getParty().getOwner().equals(player));
-
+    // TODO: replace this with divisionproperty once it is available
+    leagueImageView.setVisible(false);
+    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase());
     playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
-    player.statusProperty().addListener(new WeakChangeListener<>((observable, oldValue, newValue) -> markMemberBusy(newValue)));
-    markMemberBusy(player.statusProperty().get());
 
+    addListeners();
     selectFactionsBasedOnParty();
   }
 
-  private void markMemberBusy(PlayerStatus status) {
-    if (status != PlayerStatus.IDLE) {
-      JavaFxUtil.runLater(() -> {
-        playerStatusImageView.setVisible(true);
-        playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, true);
-        teamMatchmakingService.getPlayersInGame().add(player);
-      });
-    } else {
-      JavaFxUtil.runLater(() -> {
-        playerStatusImageView.setVisible(false);
-        playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, false);
-        teamMatchmakingService.getPlayersInGame().remove(player);
-      });
-    }
+  private void initializeListeners() {
+    playerStatusInvalidationListener = observable -> setMemberGameStatus();
+    playerPropertiesInvalidationListener = observable -> setPlayerProperties();
+    partyOwnerInvalidationListener = observable -> setPartyOwnerProperties();
   }
 
-  private void initializeBindings() {
-    countryImageView.imageProperty().bind(createObjectBinding(() ->
-        countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
-    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
-    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    leagueImageView.setManaged(false);
-    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView);
+  private void setMemberGameStatus() {
+    boolean inGame = player.getStatus() != PlayerStatus.IDLE;
+    JavaFxUtil.runLater(() -> {
+      playerStatusImageView.setVisible(inGame);
+      playerCard.pseudoClassStateChanged(PLAYING_PSEUDO_CLASS, inGame);
+    });
+  }
 
-    clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
-    clanLabel.textProperty().bind(createStringBinding(() -> Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
-    usernameLabel.textProperty().bind(player.usernameProperty());
-    leagueLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("leaderboard.divisionName", RatingUtil.getLeaderboardRating(player, "")).toUpperCase(),
-        player.leaderboardRatingMapProperty())); // TODO: replace this with divisionproperty once it is available
-    gameCountLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(),
-        player.numberOfGamesProperty()));
-    crownLabel.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(player));
+  private void setPartyOwnerProperties() {
+    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Current Player not set"));
+    Player owner = teamMatchmakingService.getParty().getOwner();
+    JavaFxUtil.runLater(() -> {
+      crownLabel.setVisible(owner == player);
+      kickPlayerButton.setVisible(owner == currentPlayer && player != currentPlayer);
+      playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS, owner == player);
+    });
+  }
 
-    BooleanBinding isDifferentPlayerBinding = playerService.currentPlayerProperty().isNotEqualTo(player);
-    kickPlayerButton.visibleProperty().bind(teamMatchmakingService.getParty().ownerProperty().isEqualTo(playerService.currentPlayerProperty()).and(isDifferentPlayerBinding));
-    JavaFxUtil.bindManagedToVisible(kickPlayerButton);
+  private void setPlayerProperties() {
+    Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
+    Image avatarImage = Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl());
+    String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
+    JavaFxUtil.runLater(() -> {
+      countryImageView.setImage(countryFlag);
+      avatarImageView.setImage(avatarImage);
+      clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));
+      clanLabel.setText(clanTag);
+      gameCountLabel.setText(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase());
+      usernameLabel.setText(player.getUsername());
+    });
+  }
+
+  private void addListeners() {
+    JavaFxUtil.addAndTriggerListener(player.clanProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.avatarUrlProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.countryProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.numberOfGamesProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.usernameProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(player.statusProperty(), new WeakInvalidationListener(playerStatusInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(partyOwnerInvalidationListener));
   }
 
   private void selectFactionsBasedOnParty() {
-    uefLabel.setDisable(!isFactionSelectedInParty(Faction.UEF));
-    aeonLabel.setDisable(!isFactionSelectedInParty(Faction.AEON));
-    cybranLabel.setDisable(!isFactionSelectedInParty(Faction.CYBRAN));
-    seraphimLabel.setDisable(!isFactionSelectedInParty(Faction.SERAPHIM));
+    uefLabel.setDisable(factionIsNotSelected(Faction.UEF));
+    aeonLabel.setDisable(factionIsNotSelected(Faction.AEON));
+    cybranLabel.setDisable(factionIsNotSelected(Faction.CYBRAN));
+    seraphimLabel.setDisable(factionIsNotSelected(Faction.SERAPHIM));
   }
 
-  private boolean isFactionSelectedInParty(Faction faction) {
+  private boolean factionIsNotSelected(Faction faction) {
     return teamMatchmakingService.getParty().getMembers().stream()
-        .anyMatch(m -> m.getPlayer().getId() == player.getId() && m.getFactions().contains(faction));
+        .noneMatch(member -> member.getPlayer() == player && member.getFactions().contains(faction));
   }
 
   public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
-    teamMatchmakingService.kickPlayerFromParty(this.player);
+    teamMatchmakingService.kickPlayerFromParty(player);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {

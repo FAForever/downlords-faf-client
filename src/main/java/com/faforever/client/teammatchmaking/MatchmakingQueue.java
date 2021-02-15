@@ -17,7 +17,7 @@ import java.time.Instant;
 
 public class MatchmakingQueue {
   private final IntegerProperty queueId;
-  private final StringProperty queueName;
+  private final StringProperty technicalName;
   private final ObjectProperty<Instant> queuePopTime;
   private final IntegerProperty teamSize;
   private final IntegerProperty partiesInQueue;
@@ -28,7 +28,7 @@ public class MatchmakingQueue {
 
   public MatchmakingQueue() {
     this.queueId = new SimpleIntegerProperty();
-    this.queueName = new SimpleStringProperty();
+    this.technicalName = new SimpleStringProperty();
     this.queuePopTime = new SimpleObjectProperty<>(Instant.now().plus(Duration.ofDays(1)));
     this.teamSize = new SimpleIntegerProperty(0);
     this.partiesInQueue = new SimpleIntegerProperty(0);
@@ -41,7 +41,7 @@ public class MatchmakingQueue {
   public static MatchmakingQueue fromDto(MatchmakerQueue dto) {
     MatchmakingQueue queue = new MatchmakingQueue();
     queue.setQueueId(Integer.parseInt(dto.getId()));
-    queue.setQueueName(dto.getTechnicalName());
+    queue.setTechnicalName(dto.getTechnicalName());
     queue.setLeaderboard(Leaderboard.fromDto(dto.getLeaderboard()));
     return queue;
   }
@@ -83,16 +83,16 @@ public class MatchmakingQueue {
     return queueId;
   }
 
-  public String getQueueName() {
-    return queueName.get();
+  public String getTechnicalName() {
+    return technicalName.get();
   }
 
-  public void setQueueName(String queueName) {
-    this.queueName.set(queueName);
+  public void setTechnicalName(String technicalName) {
+    this.technicalName.set(technicalName);
   }
 
-  public StringProperty queueNameProperty() {
-    return queueName;
+  public StringProperty technicalNameProperty() {
+    return technicalName;
   }
 
   public Instant getQueuePopTime() {

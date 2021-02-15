@@ -220,7 +220,7 @@ public final class JavaFxUtil {
     }
     if (image.isBackgroundLoading() && image.getProgress() < 1) {
       // Let's hope that loading doesn't finish before the listener is added
-      JavaFxUtil.addListener(image.progressProperty(), new ChangeListener<Number>() {
+      JavaFxUtil.addListener(image.progressProperty(), new ChangeListener<>() {
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
           if (newValue.intValue() >= 1) {
