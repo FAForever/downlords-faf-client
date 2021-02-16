@@ -24,7 +24,7 @@ public class RatingRange implements Comparable<RatingRange> {
   }
 
   public Integer getMin() {
-    return min;
+    return min == null ? 0 : min;
   }
 
   public Integer getMax() {
