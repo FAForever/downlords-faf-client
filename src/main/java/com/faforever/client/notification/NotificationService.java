@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static com.faforever.client.notification.Severity.ERROR;
+import static com.faforever.client.notification.Severity.WARN;
 import static java.util.Collections.singletonList;
 import static javafx.collections.FXCollections.observableSet;
 import static javafx.collections.FXCollections.synchronizedObservableSet;
@@ -93,13 +94,17 @@ public class NotificationService {
     onImmediateNotificationListeners.add(listener);
   }
 
-  
+
   public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
   }
-  
+
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
         Arrays.asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
+  }
+
+  public void addImmediateNotification(String titleKey, String messageKey, Object... args) {
+    addNotification(new ImmediateNotification(i18n.get(titleKey), i18n.get(messageKey, args), WARN, List.of(new DismissAction(i18n))));
   }
 }

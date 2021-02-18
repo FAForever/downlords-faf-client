@@ -92,7 +92,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.previousMapName.setText("Bad");
     instance.onGenerateMap();
 
-    verify(notificationService).addImmediateErrorNotification(any(IllegalArgumentException.class), eq("mapGenerator.invalidName"));
+    verify(notificationService).addImmediateNotification(eq("errorTitle"), eq("mapGenerator.invalidName"));
   }
 
   @Test

@@ -86,7 +86,7 @@ public class GamePathHandler implements InitializingBean {
       return;
     }
     if (gamePathValidWithError != null) {
-      notificationService.addNotification(new ImmediateNotification(i18n.get("gameSelect.select.invalidPath"), i18n.get(gamePathValidWithError), Severity.WARN));
+      notificationService.addImmediateNotification("gameSelect.select.invalidPath", gamePathValidWithError);
       future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new IllegalArgumentException("Invalid path")));
       return;
     }

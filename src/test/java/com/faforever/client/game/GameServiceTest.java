@@ -773,7 +773,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.getInMatchmakerQueueProperty().setValue(true);
     instance.runWithReplay(null, null, null, null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inQueue"));
+    verify(notificationService).addImmediateNotification(eq("errorTitle"), eq("replay.inQueue"));
   }
 
   @Test
@@ -781,7 +781,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.getInMatchmakerQueueProperty().setValue(true);
     instance.runWithLiveReplay(null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inQueue"));
+    verify(notificationService).addImmediateNotification(eq("errorTitle"), eq("replay.inQueue"));
   }
 
   @Test
@@ -789,7 +789,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.getInOthersPartyProperty().setValue(true);
     instance.runWithReplay(null, null, null, null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inParty"));
+    verify(notificationService).addImmediateNotification(eq("errorTitle"), eq("replay.inParty"));
   }
 
   @Test
@@ -797,7 +797,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.getInOthersPartyProperty().setValue(true);
     instance.runWithLiveReplay(null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
-    verify(notificationService).addImmediateErrorNotification(any(UnsupportedOperationException.class), eq("replay.inParty"));
+    verify(notificationService).addImmediateNotification(eq("errorTitle"), eq("replay.inParty"));
   }
 
   @Test

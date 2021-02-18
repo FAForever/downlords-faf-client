@@ -51,6 +51,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
@@ -395,8 +396,13 @@ public class ReplayService {
     downloadReplay(replayId)
         .thenAccept(this::runReplayFile)
         .exceptionally(throwable -> {
-          log.error("Replay could not be started", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted", replayId);
+          if (throwable.getCause() instanceof FileNotFoundException) {
+            log.warn("Replay not available on server yet", throwable);
+            notificationService.addImmediateNotification("errorTitle", "replayNotAvailable", replayId);
+          } else {
+            log.error("Replay could not be started", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted", replayId);
+          }
           return null;
         });
   }
