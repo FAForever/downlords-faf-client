@@ -12,13 +12,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MapsManagementControllerTest extends AbstractPlainJavaFxTest {
