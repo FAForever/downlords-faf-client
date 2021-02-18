@@ -13,10 +13,10 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -307,7 +307,7 @@ public class ReplayService {
                 i18n.get("errorTitle"),
                 i18n.get("liveReplayCouldNotBeStarted"),
                 Severity.ERROR, throwable,
-                asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))
+                asList(new DismissAction(i18n), new GetHelpAction(i18n, reportingService, throwable))
             ));
             return null;
           });

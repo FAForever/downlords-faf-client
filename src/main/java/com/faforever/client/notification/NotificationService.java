@@ -96,12 +96,12 @@ public class NotificationService {
 
 
   public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
-    addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new ReportAction(i18n, reportingService, throwable))));
+    addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new GetHelpAction(i18n, reportingService, throwable))));
   }
 
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
-        Arrays.asList(new DismissAction(i18n), new ReportAction(i18n, reportingService, throwable))));
+        Arrays.asList(new DismissAction(i18n), new GetHelpAction(i18n, reportingService, throwable))));
   }
 
   public void addImmediateNotification(String titleKey, String messageKey, Object... args) {

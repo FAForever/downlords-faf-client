@@ -1,6 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -27,6 +28,7 @@ public class ImmediateNotificationController implements Controller<Node> {
   public Label notificationText;
   public TitledPane exceptionArea;
   public TextArea exceptionTextArea;
+  public Label helpText;
   public VBox immediateNotificationRoot;
   private Runnable closeListener;
 
@@ -35,12 +37,10 @@ public class ImmediateNotificationController implements Controller<Node> {
   }
 
   public void initialize() {
-    exceptionArea.managedProperty().bind(exceptionArea.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(exceptionArea, notificationText, helpText);
     exceptionTextArea.managedProperty().bind(exceptionArea.visibleProperty());
-    notificationText.managedProperty().bind(notificationText.visibleProperty());
-    exceptionTextArea.maxWidthProperty().bind(exceptionArea.prefWidthProperty());
-    notificationText.maxWidthProperty().bind(dialogLayout.prefWidthProperty());
-    exceptionArea.maxWidthProperty().bind(dialogLayout.prefWidthProperty());
+
+    dialogLayout.setMaxWidth(650);
 
     dialogLayout.setBody(immediateNotificationRoot);
   }
@@ -56,6 +56,7 @@ public class ImmediateNotificationController implements Controller<Node> {
     } else {
       exceptionTextArea.setVisible(false);
       exceptionArea.setVisible(false);
+      helpText.setVisible(false);
     }
 
     dialogLayout.setHeading(new Label(notification.getTitle()));
@@ -84,11 +85,6 @@ public class ImmediateNotificationController implements Controller<Node> {
         button.getStyleClass().add("dialog-accept");
         ButtonBar.setButtonData(button, ButtonBar.ButtonData.OK_DONE);
         break;
-    }
-
-    // Until implemented
-    if (action instanceof ReportAction) {
-      button.setDisable(true);
     }
 
     return button;

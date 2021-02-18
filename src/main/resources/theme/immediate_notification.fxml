@@ -11,10 +11,11 @@
       xmlns="http://javafx.com/javafx/8.0.141"
       fx:controller="com.faforever.client.notification.ImmediateNotificationController">
     <children>
-        <Label fx:id="notificationText" wrapText="true" styleClass="text"/>
+        <Label fx:id="notificationText" wrapText="true"/>
         <TitledPane fx:id="exceptionArea" styleClass="h3" text="%errorDetails">
             <TextArea fx:id="exceptionTextArea" editable="false" wrapText="true"/>
         </TitledPane>
+        <Label fx:id="helpText" wrapText="true" text="%findHelp"/>
     </children>
     <VBox.margin>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

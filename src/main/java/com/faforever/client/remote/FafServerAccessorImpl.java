@@ -17,9 +17,9 @@ import com.faforever.client.legacy.UidService;
 import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
@@ -560,7 +560,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       return;
     }
     notificationService.addNotification(new ImmediateNotification(i18n.get("UIDNotExecuted"), e.getMessage(), Severity.ERROR,
-        Collections.singletonList(new ReportAction(i18n, reportingService, e))));
+        Collections.singletonList(new GetHelpAction(i18n, reportingService, e))));
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
