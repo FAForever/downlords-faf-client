@@ -286,7 +286,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     Channel channel = event.getChannel();
     String source = channel.getName();
 
-    eventBus.post(new ChatMessageEvent(new ChatMessage(source, Instant.ofEpochMilli(user.getCreationTime()), user.getNick(), event.getMessage(), false)));
+    eventBus.post(new ChatMessageEvent(new ChatMessage(source, Instant.now(), user.getNick(), event.getMessage(), false)));
   }
 
   @Handler
