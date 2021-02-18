@@ -135,7 +135,7 @@ public class TeamMatchmakingService {
           .orElseGet(() -> CompletableFuture.completedFuture(null))));
     });
 
-    CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()])).thenRun(() -> {
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).thenRun(() -> {
       queuesReadyForUpdate.set(true);
     });
   }
@@ -170,22 +170,22 @@ public class TeamMatchmakingService {
     matchmakingQueues.stream()
         .filter(q -> Objects.equals(q.getQueueName(), message.getQueueName()))
         .forEach(q -> {
-          JavaFxUtil.runLater(() -> {
-            q.setJoined(message.getState() == MatchmakingState.START);
-            leaveQueueTimeouts.forEach(f -> f.cancel(false));
-          });
+              JavaFxUtil.runLater(() -> {
+                q.setJoined(message.getState() == MatchmakingState.START);
+                leaveQueueTimeouts.forEach(f -> f.cancel(false));
+              });
 
-          //TODO: check current state / other queues
-          if (message.getState() == MatchmakingState.START) {
-            gameService.startSearchMatchmaker();
+              //TODO: check current state / other queues
+              if (message.getState() == MatchmakingState.START) {
+                gameService.startSearchMatchmaker();
 
-            Optional<PartyMember> ownPartyMember = party.getMembers().stream()
-                .filter(m -> m.getPlayer().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1))
-                .findFirst();
-            ownPartyMember.ifPresent(m -> sendFactionSelection(m.getFactions()));
-          }
-        }
-    );
+                Optional<PartyMember> ownPartyMember = party.getMembers().stream()
+                    .filter(m -> m.getPlayer().getId() == playerService.getCurrentPlayer().map(Player::getId).orElse(-1))
+                    .findFirst();
+                ownPartyMember.ifPresent(m -> sendFactionSelection(m.getFactions()));
+              }
+            }
+        );
 
     if (matchmakingQueues.stream()
         .noneMatch(q -> q.isJoined() && !q.getQueueName().equals(message.getQueueName())) // filter catches a race condition due MatchmakingQueue::isJoined being set on UI thread
@@ -359,18 +359,18 @@ public class TeamMatchmakingService {
   }
 
   private void initMyParty() {
-    Player currentPlayer = playerService.getCurrentPlayer().orElse(null);
-
-    PartyMember newPartyMember = new PartyMember(currentPlayer);
-    party.getMembers().stream()
-        .filter(partyMember -> partyMember.getPlayer().equals(currentPlayer))
-        .findFirst().
-        ifPresent(partyMember -> {
-          newPartyMember.setFactions(partyMember.getFactions());
-          sendFactionSelection(partyMember.getFactions());
-        });
-
     JavaFxUtil.runLater(() -> {
+      Player currentPlayer = playerService.getCurrentPlayer().orElse(null);
+
+      PartyMember newPartyMember = new PartyMember(currentPlayer);
+      party.getMembers().stream()
+          .filter(partyMember -> partyMember.getPlayer().equals(currentPlayer))
+          .findFirst().
+          ifPresent(partyMember -> {
+            newPartyMember.setFactions(partyMember.getFactions());
+            sendFactionSelection(partyMember.getFactions());
+          });
+
       party.setOwner(currentPlayer);
       party.getMembers().setAll(newPartyMember);
       playersInGame.clear();
@@ -422,7 +422,7 @@ public class TeamMatchmakingService {
   }
 
   private void setOwnerFromInfoMessage(PartyInfoMessage message) {
-    List<Player> players =  playerService.getOnlinePlayersByIds(List.of(message.getOwner()));
+    List<Player> players = playerService.getOnlinePlayersByIds(List.of(message.getOwner()));
     if (!players.isEmpty()) {
       JavaFxUtil.runLater(() -> party.setOwner(players.get(0)));
     }

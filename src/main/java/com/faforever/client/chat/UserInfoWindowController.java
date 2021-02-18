@@ -395,7 +395,7 @@ public class UserInfoWindowController implements Controller<Node> {
     if (ratingTypeComboBox.getValue() != null) {
       ratingHistoryChart.setVisible(false);
       loadingHistoryPane.setVisible(true);
-      loadStatistics(ratingTypeComboBox.getValue()).thenRun(this::plotPlayerRatingGraph);
+      loadStatistics(ratingTypeComboBox.getValue()).thenRun(() -> JavaFxUtil.runLater(this::plotPlayerRatingGraph));
     }
   }
 
@@ -410,6 +410,7 @@ public class UserInfoWindowController implements Controller<Node> {
   }
 
   public void plotPlayerRatingGraph() {
+    JavaFxUtil.assertApplicationThread();
     OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
     List<XYChart.Data<Long, Integer>> values = ratingData.stream().sorted(Comparator.comparing(RatingHistoryDataPoint::getInstant))
         .filter(dataPoint -> dataPoint.getInstant().isAfter(afterDate))
@@ -425,11 +426,9 @@ public class UserInfoWindowController implements Controller<Node> {
 
     XYChart.Series<Long, Integer> series = new XYChart.Series<>(observableList(values));
     series.setName(i18n.get("userInfo.ratingOverTime"));
-    JavaFxUtil.runLater(() -> {
-      ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
-      loadingHistoryPane.setVisible(false);
-      ratingHistoryChart.setVisible(true);
-    });
+    ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
+    loadingHistoryPane.setVisible(false);
+    ratingHistoryChart.setVisible(true);
   }
 
   @NotNull

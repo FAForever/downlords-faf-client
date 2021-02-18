@@ -50,6 +50,7 @@ public class TeamCardController implements Controller<Node> {
    * @param playerService the service to use to look up players by name
    */
   static void createAndAdd(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType, PlayerService playerService, UiService uiService, Pane teamsPane) {
+    JavaFxUtil.assertApplicationThread();
     for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
       List<Player> players = entry.getValue().stream()
           .map(playerService::getPlayerForUsername)
@@ -57,12 +58,10 @@ public class TeamCardController implements Controller<Node> {
           .map(Optional::get)
           .collect(Collectors.toList());
 
-      JavaFxUtil.runLater(() -> {
-        TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-        teamCardController.setPlayersInTeam(entry.getKey(), players,
-            player -> RatingUtil.getLeaderboardRating(player, ratingType), null, RatingPrecision.ROUNDED);
-        teamsPane.getChildren().add(teamCardController.getRoot());
-      });
+      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+      teamCardController.setPlayersInTeam(entry.getKey(), players,
+          player -> RatingUtil.getLeaderboardRating(player, ratingType), null, RatingPrecision.ROUNDED);
+      teamsPane.getChildren().add(teamCardController.getRoot());
     }
   }
 

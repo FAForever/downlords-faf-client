@@ -50,15 +50,15 @@ public class TrayIconManager implements InitializingBean {
    */
   @Subscribe
   public void onSetApplicationBadgeEvent(UpdateApplicationBadgeEvent event) {
-    if (event.getDelta().isPresent()) {
-      badgeCount += event.getDelta().get();
-    } else if (event.getNewValue().isPresent()) {
-      badgeCount = event.getNewValue().get();
-    } else {
-      throw new IllegalStateException("No delta nor new value is available");
-    }
-
     JavaFxUtil.runLater(() -> {
+      if (event.getDelta().isPresent()) {
+        badgeCount += event.getDelta().get();
+      } else if (event.getNewValue().isPresent()) {
+        badgeCount = event.getNewValue().get();
+      } else {
+        throw new IllegalStateException("No delta nor new value is available");
+      }
+
       List<Image> icons;
       if (badgeCount < 1) {
         icons = IntStream.range(4, 9)

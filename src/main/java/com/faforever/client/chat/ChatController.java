@@ -101,9 +101,10 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private void removeTab(String playerOrChannelName) {
+    JavaFxUtil.assertApplicationThread();
     AbstractChatTabController controller = nameToChatTabController.get(playerOrChannelName);
     if (controller != null) {
-      JavaFxUtil.runLater(() -> tabPane.getTabs().remove(controller.getRoot()));
+      tabPane.getTabs().remove(controller.getRoot());
     }
   }
 
@@ -216,20 +217,19 @@ public class ChatController extends AbstractViewController<Node> {
 
   @Subscribe
   public void onInitiatePrivateChatEvent(InitiatePrivateChatEvent event) {
-    openPrivateMessageTabForUser(event.getUsername());
+    JavaFxUtil.runLater(() -> openPrivateMessageTabForUser(event.getUsername()));
   }
 
   private void openPrivateMessageTabForUser(String username) {
+    JavaFxUtil.assertApplicationThread();
     if (username.equalsIgnoreCase(userService.getUsername())) {
       return;
     }
-    JavaFxUtil.runLater(() -> {
-      AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
-      Tab tab = controller.getRoot();
-      tabPane.getSelectionModel().select(tab);
-      nameToChatTabController.get(tab.getId()).onDisplay();
-    });
+    AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
+    Tab tab = controller.getRoot();
     eventBus.post(new NavigateEvent(NavigationItem.CHAT));
+    tabPane.getSelectionModel().select(tab);
+    nameToChatTabController.get(tab.getId()).onDisplay();
   }
 
   public void onJoinChannelButtonClicked() {

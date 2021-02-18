@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.discord.JoinDiscordEvent;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -128,11 +129,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   @VisibleForTesting
   void onPlayerDisconnected(String userName) {
-    onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerDisconnect", userName), true)));
   }
 
   @VisibleForTesting
   void onPlayerConnected(String userName) {
-    onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.groupChat.playerConnect", userName), true)));
   }
 }

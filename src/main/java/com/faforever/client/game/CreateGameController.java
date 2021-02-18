@@ -170,7 +170,7 @@ public class CreateGameController implements Controller<Pane> {
         if (!initialized && preferencesService.getPreferences().getForgedAlliance().getInstallationPath() != null) {
           initialized = true;
 
-          init();
+          JavaFxUtil.runLater(this::init);
         }
       };
       preferencesService.addUpdateListener(new WeakReference<>(preferenceUpdateListener));
@@ -256,8 +256,10 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   protected void setSelectedMap(MapBean newValue) {
+    JavaFxUtil.assertApplicationThread();
+
     if (newValue == null) {
-      JavaFxUtil.runLater(() -> mapNameLabel.setText(""));
+      mapNameLabel.setText("");
       return;
     }
 
@@ -265,28 +267,24 @@ public class CreateGameController implements Controller<Pane> {
     preferencesService.storeInBackground();
 
     Image largePreview = mapService.loadPreview(newValue.getFolderName(), PreviewSize.LARGE);
+    mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
+        new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
+
     MapSize mapSize = newValue.getSize();
+    mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
+    mapNameLabel.setText(newValue.getDisplayName());
+    mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
+    mapDescriptionLabel.setText(Optional.ofNullable(newValue.getDescription())
+        .map(Strings::emptyToNull)
+        .map(FaStrings::removeLocalizationTag)
+        .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
+
     ComparableVersion mapVersion = newValue.getVersion();
-
-    JavaFxUtil.runLater(() -> {
-      mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
-          new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
-
-      mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
-      mapNameLabel.setText(newValue.getDisplayName());
-      mapPlayersLabel.setText(i18n.number(newValue.getPlayers()));
-      mapDescriptionLabel.setText(Optional.ofNullable(newValue.getDescription())
-          .map(Strings::emptyToNull)
-          .map(FaStrings::removeLocalizationTag)
-          .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
-
-      if (mapVersion == null) {
-        versionLabel.setVisible(false);
-      } else {
-        versionLabel.setVisible(true);
-        versionLabel.setText(i18n.get("map.versionFormat", mapVersion));
-      }
-    });
+    if (mapVersion == null) {
+      versionLabel.setVisible(false);
+    } else {
+      versionLabel.setText(i18n.get("map.versionFormat", mapVersion));
+    }
   }
 
   private void initFeaturedModList() {

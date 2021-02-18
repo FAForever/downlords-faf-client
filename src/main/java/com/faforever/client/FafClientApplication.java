@@ -90,8 +90,8 @@ public class FafClientApplication extends Application {
   public void init() {
     if (org.bridj.Platform.isWindows() && WindowsUtil.isAdmin()) {
       CountDownLatch waitForUserInput = new CountDownLatch(1);
-      Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);
       JavaFxUtil.runLater(() -> {
+        Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);
         Optional<ButtonType> buttonType = alert.showAndWait();
         if (buttonType.filter(button -> button == ButtonType.NO).isPresent()) {
           System.exit(EXIT_STATUS_RAN_AS_ADMIN);

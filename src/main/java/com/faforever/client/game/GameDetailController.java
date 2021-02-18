@@ -184,9 +184,10 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void createTeams() {
+    JavaFxUtil.assertApplicationThread();
+    teamListPane.getChildren().clear();
     ObservableMap<String, List<String>> teams = game.get().getTeams();
-    JavaFxUtil.runLater(() -> teamListPane.getChildren().clear());
-    synchronized (game.get().getTeams()) {
+    synchronized (teams) {
       TeamCardController.createAndAdd(teams, game.get().getRatingType(), playerService, uiService, teamListPane);
     }
   }

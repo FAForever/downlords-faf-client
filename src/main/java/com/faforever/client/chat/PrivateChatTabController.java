@@ -135,7 +135,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
       return;
     }
     userOffline = true;
-    onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true)));
   }
 
   @VisibleForTesting
@@ -144,6 +144,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
       return;
     }
     userOffline = false;
-    onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true)));
   }
 }

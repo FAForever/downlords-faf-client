@@ -128,23 +128,20 @@ public class BrowserCallback {
    */
   @SuppressWarnings("unused")
   public void showClanInfo(String clanTag) {
-    clanService.getClanByTag(clanTag).thenAccept(clan -> {
+    clanService.getClanByTag(clanTag).thenAccept(clan -> JavaFxUtil.runLater(() -> {
       if (clan.isEmpty() || clanTag.isEmpty()) {
         return;
       }
+      ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
+      clanTooltipController.setClan(clan.get());
+      clanTooltipController.getRoot().getStyleClass().add("tooltip");
+
       clanInfoPopup = new Popup();
+      clanInfoPopup.getContent().setAll(clanTooltipController.getRoot());
       clanInfoPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_LEFT);
       clanInfoPopup.setAutoHide(true);
-
-      JavaFxUtil.runLater(() -> {
-        ClanTooltipController clanTooltipController = uiService.loadFxml("theme/chat/clan_tooltip.fxml");
-        clanTooltipController.setClan(clan.get());
-        clanTooltipController.getRoot().getStyleClass().add("tooltip");
-
-        clanInfoPopup.getContent().setAll(clanTooltipController.getRoot());
-        clanInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY + 10);
-      });
-    });
+      clanInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY + 10);
+    }));
   }
 
   /**

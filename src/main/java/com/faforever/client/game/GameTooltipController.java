@@ -84,9 +84,9 @@ public class GameTooltipController implements Controller<Node> {
   private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType) {
     JavaFxUtil.runLater(() -> {
       synchronized (teamsList) {
-        JavaFxUtil.runLater(() -> teamsPane.getChildren().clear());
+        teamsPane.getChildren().clear();
         TeamCardController.createAndAdd(teamsList, ratingType, playerService, uiService, teamsPane);
-        JavaFxUtil.runLater(() -> teamsPane.setPrefColumns(Math.min(teamsList.size(), maxPrefColumns)));
+        teamsPane.setPrefColumns(Math.min(teamsList.size(), maxPrefColumns));
       }
     });
   }

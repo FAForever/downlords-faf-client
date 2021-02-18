@@ -138,15 +138,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       }
     });
 
-    player.statusProperty().addListener((observable, oldValue, newValue) -> {
-      JavaFxUtil.runLater(() -> {
-        if (newValue != PlayerStatus.IDLE) {
-          teamMatchmakingService.getPlayersInGame().add(player);
-        } else {
-          teamMatchmakingService.getPlayersInGame().remove(player);
-        }
-      });
-    });
+    player.statusProperty().addListener((observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
+      if (newValue != PlayerStatus.IDLE) {
+        teamMatchmakingService.getPlayersInGame().add(player);
+      } else {
+        teamMatchmakingService.getPlayersInGame().remove(player);
+      }
+    }));
 
     teamMatchmakingService.getParty().getMembers().addListener((InvalidationListener) c -> {
       refreshingLabel.setVisible(false);
@@ -311,7 +309,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public void onChatMessage(ChatMessageEvent event) {
     ChatMessage message = event.getMessage();
     if (message.getSource().equals(matchmakingChatController.getReceiver())) {
-      matchmakingChatController.onChatMessage(message);
+      JavaFxUtil.runLater(() -> matchmakingChatController.onChatMessage(message));
     }
   }
 
