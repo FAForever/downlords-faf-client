@@ -17,10 +17,14 @@ public class RatingRange implements Comparable<RatingRange> {
     Integer otherMin = o.getMin();
 
     if (min == null) {
-      return otherMin == null ? 0 : otherMin;
+      return otherMin == null ? 0 : -1;
     }
 
-    return Integer.compare(min, o.getMin());
+    if (otherMin == null) {
+      return 1;
+    }
+
+    return Integer.compare(min, otherMin);
   }
 
   public Integer getMin() {
