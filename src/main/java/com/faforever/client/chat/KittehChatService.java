@@ -232,7 +232,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       channels.values().parallelStream()
           .map(channel -> chatChannelUsersByChannelAndName.get(mapKey(player.getUsername(), channel.getName())))
           .filter(Objects::nonNull)
-          .forEach(chatChannelUser -> chatUserService.associatePlayerToChatUser(chatChannelUser, player));
+          .forEach(chatChannelUser -> {
+            chatUserService.associatePlayerToChatUser(chatChannelUser, player);
+            eventBus.post(new ChatUserCategoryChangeEvent(chatChannelUser));
+          });
     }
   }
 
