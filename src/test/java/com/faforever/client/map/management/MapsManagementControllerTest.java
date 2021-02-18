@@ -50,69 +50,22 @@ public class MapsManagementControllerTest extends AbstractPlainJavaFxTest {
   public void testFilterMaps() {
     switchFilterTo(MapFilter.CUSTOM_MAPS);
     assertThat(instance.listView.getItems().size(), is(2));
-    verifyItemsInTable(customMap1, customMap2);
+    verifyItemsInList(customMap1, customMap2);
 
     switchFilterTo(MapFilter.OFFICIAL_MAPS);
     assertThat(instance.listView.getItems().size(), is(1));
-    verifyItemsInTable(officialMap);
+    verifyItemsInList(officialMap);
 
     switchFilterTo(MapFilter.ALL_MAPS);
     assertThat(instance.listView.getItems().size(), is(3));
-    verifyItemsInTable(customMap1, customMap2, officialMap);
+    verifyItemsInList(customMap1, customMap2, officialMap);
   }
 
-//  @Test
-//  public void testRemoveButtonInteraction() {
-//    assertThat(instance.removeButton.isDisabled(), is(true));
-//    selectMaps(customMap1);
-//    assertThat(instance.removeButton.isDisabled(), is(false));
-//
-//    unselectMaps(customMap1);
-//    assertThat(instance.removeButton.isDisabled(), is(true));
-//
-//    selectMaps(customMap1);
-//    switchFilterTo(MapFilter.OFFICIAL_MAPS);
-//    assertThat(instance.removeButton.isDisabled(), is(true));
-//  }
-//
-//  @Test
-//  public void testOnRemoveButtonClicked() {
-//    when(mapService.uninstallMap(customMap1)).thenReturn(CompletableFuture.completedFuture(null));
-//    selectMaps(customMap1);
-//    assertThat(instance.getSelectedMaps().size(), is(1));
-//    runOnFxThreadAndWait(() -> instance.onRemoveButtonClicked());
-//    assertThat(instance.getSelectedMaps().isEmpty(), is(true));
-//    verify(notificationService, never()).addImmediateErrorNotification(any(Exception.class), any());
-//  }
-//
-//  @Test
-//  public void testOnRemoveButtonClickedWhenThrowException() {
-//    when(mapService.uninstallMap(customMap1))
-//        .thenReturn(CompletableFuture.failedFuture(new RuntimeException("an error when uninstall map")));
-//    selectMaps(customMap1);
-//    assertThat(instance.getSelectedMaps().size(), is(1));
-//    runOnFxThreadAndWait(() -> instance.onRemoveButtonClicked());
-//    assertThat(instance.getSelectedMaps().size(), is(1));
-//    verify(notificationService).addImmediateErrorNotification(any(RuntimeException.class), any());
-//  }
-
-  private void verifyItemsInTable(MapBean... items) {
+  private void verifyItemsInList(MapBean... items) {
     Arrays.stream(items).forEach(item -> assertThat(instance.listView.getItems().contains(item), is(true)));
   }
 
   private void switchFilterTo(MapFilter filter) {
     runOnFxThreadAndWait(() -> instance.filterMapsChoiceBox.setValue(filter));
   }
-
-//  private void selectMaps(MapBean... maps) {
-//    verifyItemsInTable(maps);
-//    assertThat(instance.getSelectedMaps().containsAll(Arrays.asList(maps)), is(false));
-//    instance.getSelectedMaps().addAll(Arrays.asList(maps));
-//  }
-//
-//  private void unselectMaps(MapBean... maps) {
-//    verifyItemsInTable(maps);
-//    assertThat(instance.getSelectedMaps().containsAll(Arrays.asList(maps)), is(true));
-//    instance.getSelectedMaps().removeAll(Arrays.asList(maps));
-//  }
 }
