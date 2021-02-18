@@ -134,6 +134,11 @@ public class VaultEntityControllerTest extends AbstractPlainJavaFxTest {
       }
 
       @Override
+      protected void onManageVaultButtonClicked() {
+
+      }
+
+      @Override
       protected Node getDetailView() {
         return new AnchorPane();
       }

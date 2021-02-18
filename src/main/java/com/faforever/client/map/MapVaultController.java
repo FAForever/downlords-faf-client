@@ -56,7 +56,8 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   @Override
   public void initialize() {
     super.initialize();
-
+    manageVaultButton.setVisible(true);
+    manageVaultButton.setText(i18n.get("management.maps.openButton.label"));
     preferencesService.getRemotePreferencesAsync().thenAccept(clientConfiguration ->
         recommendedShowRoomPageCount = clientConfiguration.getRecommendedMaps().size() / TOP_ELEMENT_COUNT)
         .exceptionally(throwable -> {
@@ -66,9 +67,6 @@ public class MapVaultController extends VaultEntityController<MapBean> {
         });
 
     eventBus.register(this);
-
-    mapsManagementButton.setVisible(true);
-    mapsManagementButton.setOnAction(event -> openMapsManagement());
   }
 
   protected void initSearchController() {
@@ -158,6 +156,13 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   }
 
   @Override
+  protected void onManageVaultButtonClicked() {
+    MapsManagementController controller = uiService.loadFxml("theme/vault/map/maps_management.fxml");
+    Dialog dialog = uiService.showInDialog(vaultRoot, controller.getRoot());
+    controller.setCloseButtonAction(dialog::close);
+  }
+
+  @Override
   protected Node getDetailView() {
     mapDetailController = uiService.loadFxml("theme/vault/map/map_detail.fxml");
     return mapDetailController.getRoot();
@@ -191,11 +196,5 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   @Subscribe
   public void onMapUploaded(MapUploadedEvent event) {
     onRefreshButtonClicked();
-  }
-
-  public void openMapsManagement() {
-    MapsManagementController controller = uiService.loadFxml("theme/vault/map/maps_management.fxml");
-    Dialog dialog = uiService.showInDialog(vaultRoot, controller.getRoot());
-    controller.setCloseButtonAction(dialog::close);
   }
 }

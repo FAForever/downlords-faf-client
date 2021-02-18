@@ -27,8 +27,6 @@
                     <HBox fx:id="searchBox" VBox.vgrow="NEVER">
                         <fx:include fx:id="search" source="search/search.fxml"
                                     HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="manageModsButton" text="%modVault.manageMods"
-                                visible="false"/>
                     </HBox>
                     <Separator fx:id="searchSeparator" maxWidth="1.7976931348623157E308"/>
                     <HBox spacing="10.0">
@@ -47,8 +45,7 @@
                                 <Region styleClass="icon,upload-icon"/>
                             </graphic>
                         </Button>
-                        <Button fx:id="mapsManagementButton" mnemonicParsing="false" text="%management.maps.openButton.label"
-                                visible="false"/>
+                        <Button fx:id="manageVaultButton" mnemonicParsing="false" visible="false"/>
                     </HBox>
                     <VBox fx:id="searchResultGroup" spacing="10.0">
                         <Label styleClass="h2" text="%searchResult"/>

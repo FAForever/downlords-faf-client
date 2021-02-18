@@ -52,8 +52,8 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
 
     eventBus.register(this);
 
-    manageModsButton.setVisible(true);
-    manageModsButton.setOnAction(event -> manageMods());
+    manageVaultButton.setVisible(true);
+    manageVaultButton.setText(i18n.get("modVault.manageMods"));
   }
 
   @Override
@@ -113,6 +113,13 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
   }
 
   @Override
+  protected void onManageVaultButtonClicked() {
+    ModManagerController modManagerController = uiService.loadFxml("theme/mod_manager.fxml");
+    Dialog dialog = uiService.showInDialog(vaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
+    dialog.setOnDialogClosed(event -> modManagerController.apply());
+  }
+
+  @Override
   protected Node getDetailView() {
     modDetailController = uiService.loadFxml("theme/vault/mod/mod_detail.fxml");
     return modDetailController.getRoot();
@@ -152,12 +159,6 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     Node root = modUploadController.getRoot();
     Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("modVault.upload.title"));
     modUploadController.setOnCancelButtonClickedListener(dialog::close);
-  }
-
-  public void manageMods() {
-    ModManagerController modManagerController = uiService.loadFxml("theme/mod_manager.fxml");
-    Dialog dialog = uiService.showInDialog(vaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
-    dialog.setOnDialogClosed(event -> modManagerController.apply());
   }
 
   @Subscribe
