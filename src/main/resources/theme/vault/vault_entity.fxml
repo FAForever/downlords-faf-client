@@ -14,6 +14,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+
 <BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <StackPane fx:id="vaultRoot">
@@ -46,6 +47,8 @@
                                 <Region styleClass="icon,upload-icon"/>
                             </graphic>
                         </Button>
+                        <Button fx:id="mapsManagementButton" mnemonicParsing="false" text="%management.maps.openButton.label"
+                                visible="false"/>
                     </HBox>
                     <VBox fx:id="searchResultGroup" spacing="10.0">
                         <Label styleClass="h2" text="%searchResult"/>

@@ -6,6 +6,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.map.event.MapUploadedEvent;
+import com.faforever.client.map.management.MapsManagementController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
@@ -65,6 +66,9 @@ public class MapVaultController extends VaultEntityController<MapBean> {
         });
 
     eventBus.register(this);
+
+    mapsManagementButton.setVisible(true);
+    mapsManagementButton.setOnAction(event -> openMapsManagement());
   }
 
   protected void initSearchController() {
@@ -187,5 +191,11 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   @Subscribe
   public void onMapUploaded(MapUploadedEvent event) {
     onRefreshButtonClicked();
+  }
+
+  public void openMapsManagement() {
+    MapsManagementController controller = uiService.loadFxml("theme/vault/map/maps_management.fxml");
+    Dialog dialog = uiService.showInDialog(vaultRoot, controller.getRoot());
+    controller.setCloseButtonAction(dialog::close);
   }
 }

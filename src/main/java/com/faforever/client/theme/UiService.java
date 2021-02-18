@@ -472,9 +472,15 @@ public class UiService implements InitializingBean, DisposableBean {
     return scene;
   }
 
+  public Dialog showInDialog(StackPane parent, Node content) {
+    return showInDialog(parent, content, null);
+  }
+
   public Dialog showInDialog(StackPane parent, Node content, String title) {
     DialogLayout dialogLayout = new DialogLayout();
-    dialogLayout.setHeading(new Label(title));
+    if (title != null) {
+      dialogLayout.setHeading(new Label(title));
+    }
     dialogLayout.setBody(content);
 
     Dialog dialog = new Dialog();

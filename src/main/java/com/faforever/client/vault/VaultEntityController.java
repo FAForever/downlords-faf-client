@@ -68,6 +68,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public Pagination pagination;
   public Button lastPageButton;
   public Button manageModsButton;
+  public Button mapsManagementButton;
   public Button firstPageButton;
   public SearchType searchType;
   public int pageSize;
@@ -108,7 +109,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination,
-        firstPageButton, lastPageButton, showRoomGroup, manageModsButton, searchBox, searchSeparator);
+        firstPageButton, lastPageButton, showRoomGroup, manageModsButton, mapsManagementButton, searchBox, searchSeparator);
 
     firstPageButton.disableProperty().bind(pagination.currentPageIndexProperty().isEqualTo(0));
     lastPageButton.disableProperty().bind(pagination.currentPageIndexProperty()
