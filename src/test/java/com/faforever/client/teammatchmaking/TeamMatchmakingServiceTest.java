@@ -236,6 +236,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     message2.setState(MatchmakingState.START);
 
     instance.onSearchInfoMessage(message2);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(gameService).startSearchMatchmaker();
     assertThat(instance.getMatchmakingQueues().stream()
