@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
@@ -18,7 +17,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 public class GamePathHandlerTest {
@@ -41,7 +39,7 @@ public class GamePathHandlerTest {
   public void testNotificationOnEmptyString() throws Exception {
     CompletableFuture<Path> completableFuture = new CompletableFuture<>();
     instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, Optional.of(completableFuture)));
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("gamePath.select.noneChosen");
     assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }
 
@@ -49,7 +47,7 @@ public class GamePathHandlerTest {
   public void testNotificationOnNull() throws Exception {
     CompletableFuture<Path> completableFuture = new CompletableFuture<>();
     instance.onGameDirectoryChosenEvent(new GameDirectoryChosenEvent(null, Optional.of(completableFuture)));
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("gamePath.select.noneChosen");
     assertThat(completableFuture.isCompletedExceptionally(), is(true));
   }
 }

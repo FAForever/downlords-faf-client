@@ -285,7 +285,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     sendFromServer(noticeMessage);
 
     ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService, timeout(1000)).addNotification(captor.capture());
+    verify(notificationService, timeout(1000)).addServerNotification(captor.capture());
 
     ImmediateNotification notification = captor.getValue();
     assertThat(notification.getSeverity(), is(Severity.WARN));
