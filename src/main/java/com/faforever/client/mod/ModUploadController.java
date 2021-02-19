@@ -8,6 +8,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -132,19 +133,22 @@ public class ModUploadController implements Controller<Node> {
   private void onUploadFailed(Throwable throwable) {
     enterModInfoState();
     if (throwable instanceof ApiException) {
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addServerNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
           asList(
               new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
+              new CopyErrorAction(i18n, reportingService, throwable),
+              new GetHelpAction(i18n, reportingService),
               new DismissAction(i18n)
           )
       ));
     } else {
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addServerNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR, throwable,
           asList(
               new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
-              new GetHelpAction(i18n, reportingService, throwable),
+              new CopyErrorAction(i18n, reportingService, throwable),
+              new GetHelpAction(i18n, reportingService),
               new DismissAction(i18n)
           )
       ));

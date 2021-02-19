@@ -312,7 +312,7 @@ public class ReplayDetailController implements Controller<Node> {
         .exceptionally(throwable -> {
           if (throwable.getCause() instanceof FileNotFoundException) {
             log.warn("Replay not available on server yet", throwable);
-            notificationService.addImmediateNotification("errorTitle", "replayNotAvailable", replay.getId());
+            notificationService.addImmediateWarnNotification("replayNotAvailable", replay.getId());
           } else {
             log.error("Replay could not be enriched", throwable);
             notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");

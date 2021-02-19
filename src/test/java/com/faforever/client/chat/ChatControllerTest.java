@@ -196,7 +196,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     instance.channelNameTextField.setText(TEST_CHANNEL_NAME.replace("#", ""));
     instance.onJoinChannelButtonClicked();
 
-    verify(notificationService).addImmediateNotification(anyString(), anyString(), anyString());
+    verify(notificationService).addImmediateWarnNotification(anyString(), anyString(), anyString());
   }
 
   @Test

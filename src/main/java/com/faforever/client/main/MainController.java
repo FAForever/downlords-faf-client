@@ -21,6 +21,7 @@ import com.faforever.client.notification.ImmediateNotificationController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
+import com.faforever.client.notification.ServerNotificationController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.preferences.PreferencesService;
@@ -207,6 +208,7 @@ public class MainController implements Controller<Node> {
     updateNotificationsButton(Collections.emptyList());
     notificationService.addPersistentNotificationListener(change -> JavaFxUtil.runLater(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> JavaFxUtil.runLater(() -> displayImmediateNotification(notification)));
+    notificationService.addServerNotificationListener(notification -> JavaFxUtil.runLater(() -> displayServerNotification(notification)));
     notificationService.addTransientNotificationListener(notification -> JavaFxUtil.runLater(() -> transientNotificationsController.addNotification(notification)));
     // Always load chat immediately so messages or joined channels don't need to be cached until we display them.
     getView(NavigationItem.CHAT);
@@ -576,6 +578,18 @@ public class MainController implements Controller<Node> {
     Alert<?> dialog = new Alert<>(fxStage.getStage());
 
     ImmediateNotificationController controller = ((ImmediateNotificationController) uiService.loadFxml("theme/immediate_notification.fxml"))
+        .setNotification(notification)
+        .setCloseListener(dialog::close);
+
+    dialog.setContent(controller.getDialogLayout());
+    dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
+    dialog.show();
+  }
+
+  private void displayServerNotification(ImmediateNotification notification) {
+    Alert<?> dialog = new Alert<>(fxStage.getStage());
+
+    ServerNotificationController controller = ((ServerNotificationController) uiService.loadFxml("theme/server_notification.fxml"))
         .setNotification(notification)
         .setCloseListener(dialog::close);
 

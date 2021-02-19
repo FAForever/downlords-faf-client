@@ -33,6 +33,7 @@ public class NotificationService {
   private final ObservableSet<PersistentNotification> persistentNotifications = synchronizedObservableSet(observableSet(new TreeSet<>()));
   private final List<OnTransientNotificationListener> onTransientNotificationListeners = new ArrayList<>();
   private final List<OnImmediateNotificationListener> onImmediateNotificationListeners = new ArrayList<>();
+  private final List<OnImmediateNotificationListener> onServerNotificationListeners = new ArrayList<>();
   private final ReportingService reportingService;
 
   // TODO fix circular reference
@@ -58,15 +59,23 @@ public class NotificationService {
   /**
    * Adds a {@link ImmediateNotification} to be displayed.
    */
-  
+
   public void addNotification(ImmediateNotification notification) {
     onImmediateNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
   }
 
   /**
+   * Adds a {@link ImmediateNotification} to be displayed.
+   */
+
+  public void addServerNotification(ImmediateNotification notification) {
+    onServerNotificationListeners.forEach(listener -> listener.onImmediateNotification(notification));
+  }
+
+  /**
    * Adds a listener to be notified about added/removed {@link PersistentNotification}s
    */
-  
+
   public void addPersistentNotificationListener(SetChangeListener<PersistentNotification> listener) {
     JavaFxUtil.addListener(persistentNotifications, listener);
   }
@@ -84,27 +93,30 @@ public class NotificationService {
     return Collections.unmodifiableSet(persistentNotifications);
   }
 
-  
+
   public void removeNotification(PersistentNotification notification) {
     persistentNotifications.remove(notification);
   }
 
-  
+
   public void addImmediateNotificationListener(OnImmediateNotificationListener listener) {
     onImmediateNotificationListeners.add(listener);
   }
 
+  public void addServerNotificationListener(OnImmediateNotificationListener listener) {
+    onServerNotificationListeners.add(listener);
+  }
 
   public void addPersistentErrorNotification(Throwable throwable, String messageKey, Object... args) {
-    addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new GetHelpAction(i18n, reportingService, throwable))));
+    addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new GetHelpAction(i18n, reportingService))));
   }
 
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
-        Arrays.asList(new DismissAction(i18n), new GetHelpAction(i18n, reportingService, throwable))));
+        Arrays.asList(new CopyErrorAction(i18n, reportingService, throwable), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))));
   }
 
-  public void addImmediateNotification(String titleKey, String messageKey, Object... args) {
-    addNotification(new ImmediateNotification(i18n.get(titleKey), i18n.get(messageKey, args), WARN, List.of(new DismissAction(i18n))));
+  public void addImmediateWarnNotification(String messageKey, Object... args) {
+    addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), WARN, List.of(new DismissAction(i18n))));
   }
 }

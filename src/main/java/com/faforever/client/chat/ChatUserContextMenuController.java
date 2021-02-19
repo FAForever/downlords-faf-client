@@ -14,9 +14,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.moderator.BanDialogController;
 import com.faforever.client.moderator.ModeratorService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
@@ -317,9 +315,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       replayService.runLiveReplay(player.getGame().getId());
     } catch (Exception e) {
       log.error("Cannot display live replay", e.getCause());
-      String title = i18n.get("replays.live.loadFailure.title");
-      String message = i18n.get("replays.live.loadFailure.message");
-      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+      notificationService.addImmediateErrorNotification(e, "replays.live.loadFailure.message");
     }
   }
 

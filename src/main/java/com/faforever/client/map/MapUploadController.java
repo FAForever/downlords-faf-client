@@ -7,6 +7,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -160,7 +161,7 @@ public class MapUploadController implements Controller<Node> {
   private void onUploadFailed(Throwable throwable) {
     enterMapInfoState();
     if (throwable instanceof ApiException) {
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addServerNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("mapVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
           asList(
               new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),
@@ -168,11 +169,12 @@ public class MapUploadController implements Controller<Node> {
           )
       ));
     } else {
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addServerNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("mapVault.upload.failed", throwable.getLocalizedMessage()), ERROR, throwable,
           asList(
               new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),
-              new GetHelpAction(i18n, reportingService, throwable),
+              new CopyErrorAction(i18n, reportingService, throwable),
+              new GetHelpAction(i18n, reportingService),
               new DismissAction(i18n)
           )
       ));

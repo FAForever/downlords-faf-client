@@ -12,6 +12,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -84,7 +85,6 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.move;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -307,7 +307,7 @@ public class ReplayService {
                 i18n.get("errorTitle"),
                 i18n.get("liveReplayCouldNotBeStarted"),
                 Severity.ERROR, throwable,
-                asList(new DismissAction(i18n), new GetHelpAction(i18n, reportingService, throwable))
+                List.of(new CopyErrorAction(i18n, reportingService, throwable), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))
             ));
             return null;
           });
@@ -398,7 +398,7 @@ public class ReplayService {
         .exceptionally(throwable -> {
           if (throwable.getCause() instanceof FileNotFoundException) {
             log.warn("Replay not available on server yet", throwable);
-            notificationService.addImmediateNotification("errorTitle", "replayNotAvailable", replayId);
+            notificationService.addImmediateWarnNotification("replayNotAvailable", replayId);
           } else {
             log.error("Replay could not be started", throwable);
             notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted", replayId);
