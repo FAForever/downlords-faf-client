@@ -30,7 +30,7 @@ public class ServerNotificationController implements Controller<Node> {
   public WebView errorMessageView;
   public Label exceptionAreaTitleLabel;
   public TextArea exceptionTextArea;
-  public VBox immediateNotificationRoot;
+  public VBox serverNotificationRoot;
   private Runnable closeListener;
 
   public ServerNotificationController(WebViewConfigurer webViewConfigurer) {
@@ -45,7 +45,7 @@ public class ServerNotificationController implements Controller<Node> {
     webViewConfigurer.configureWebView(errorMessageView);
     errorMessageView.managedProperty().bind(errorMessageView.visibleProperty());
 
-    dialogLayout.setBody(immediateNotificationRoot);
+    dialogLayout.setBody(serverNotificationRoot);
   }
 
   public ServerNotificationController setNotification(ImmediateNotification notification) {
@@ -66,7 +66,7 @@ public class ServerNotificationController implements Controller<Node> {
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
         .ifPresent(dialogLayout::setActions);
     if (notification.getCustomUI() != null) {
-      immediateNotificationRoot.getChildren().add(notification.getCustomUI());
+      serverNotificationRoot.getChildren().add(notification.getCustomUI());
     }
     return this;
   }
@@ -95,7 +95,7 @@ public class ServerNotificationController implements Controller<Node> {
   }
 
   public Region getRoot() {
-    return immediateNotificationRoot;
+    return serverNotificationRoot;
   }
 
   public ServerNotificationController setCloseListener(Runnable closeListener) {

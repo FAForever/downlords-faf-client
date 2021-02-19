@@ -715,7 +715,7 @@ public class GameService implements InitializingBean {
         log.info("Forged Alliance terminated with exit code {}", exitCode);
         if (exitCode != 0) {
           notificationService.addImmediateErrorNotification(new RuntimeException(String.format("Forged Alliance Crashed with exit code %d", exitCode)),
-              "game.crash", preferencesService.getMostRecentGameLogFile().toString());
+              "game.crash", preferencesService.getMostRecentGameLogFile().map(Path::toString).orElse(""));
         }
 
         synchronized (gameRunning) {
