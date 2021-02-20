@@ -48,17 +48,17 @@ public class MapsManagementController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    settingChoiceBox();
-    settingListView();
+    initializeChoiceBox();
+    initializeListView();
   }
 
-  private void settingListView() {
+  private void initializeListView() {
     listView.setCellFactory(param -> uiService.<RemovableMapCellController>loadFxml("theme/vault/map/removable_map_cell.fxml"));
     listView.setSelectionModel(new NoSelectionModel<>());
     listView.setItems(maps);
   }
 
-  private void settingChoiceBox() {
+  private void initializeChoiceBox() {
     filterMapsChoiceBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(MapFilter object) {
