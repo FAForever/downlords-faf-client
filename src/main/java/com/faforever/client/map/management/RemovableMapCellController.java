@@ -13,6 +13,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
+@Slf4j
 public class RemovableMapCellController extends ListCell<MapBean> implements Controller<Node> {
 
   public HBox root;
@@ -43,6 +45,7 @@ public class RemovableMapCellController extends ListCell<MapBean> implements Con
         mapNameLabel.setText(item.getDisplayName());
         if (mapService.isCustomMap(item)) {
           removeButton.setOnMouseClicked(event -> mapService.uninstallMap(item).exceptionally(throwable -> {
+            log.error("cannot uninstall the map", throwable);
             notificationService.addImmediateErrorNotification(throwable, "management.maps.uninstall.error");
             return null;
           }));
