@@ -1,7 +1,6 @@
 package com.faforever.client.reporting;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
@@ -106,7 +105,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("report.warning.noPlayer");
   }
 
   @Test
@@ -115,7 +114,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("report.warning.title");
   }
 
   @Test
@@ -124,7 +123,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("report.warning.noOffender");
   }
 
   @Test
@@ -133,7 +132,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("report.warning.noOffenderInGame");
   }
 
   @Test
@@ -142,7 +141,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("report.warning.noDescription");
   }
 
   @Test
@@ -151,7 +150,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("report.warning.noGameTime");
   }
 
   @Test
@@ -160,7 +159,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     instance.onReportButtonClicked();
 
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification("report.warning.gameIdNotNumeric");
   }
 
   @Test
@@ -170,19 +169,19 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetOffenderPlayer() throws Exception {
+  public void testSetOffenderPlayer() {
     instance.setOffender(player);
     assertEquals(player.getUsername(), instance.offender.getText());
   }
 
   @Test
-  public void testSetOffenderString() throws Exception {
+  public void testSetOffenderString() {
     instance.setOffender(player.getUsername());
     assertEquals(player.getUsername(), instance.offender.getText());
   }
 
   @Test
-  public void testSetGame() throws Exception {
+  public void testSetGame() {
     instance.setGame(replay);
     assertEquals(String.valueOf(replay.getId()), instance.gameId.getText());
   }
