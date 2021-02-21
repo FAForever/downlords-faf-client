@@ -127,7 +127,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
         .map(Entry::getValue)
         .collect(Collectors.toList());
     if (simModCount > 2) {
-      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.size()));
+      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.get(1), simMods.size() - 2));
     }
     return new SimpleStringProperty(Joiner.on(i18n.get("textSeparator")).join(modNames));
   }
