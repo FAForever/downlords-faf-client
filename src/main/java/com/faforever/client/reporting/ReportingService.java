@@ -1,20 +1,33 @@
 package com.faforever.client.reporting;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.PlatformService;
+import com.faforever.client.util.ClipboardUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.MethodHandles;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 
 @Lazy
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class ReportingService {
+  private final ClientProperties clientProperties;
+  private final PlatformService platformService;
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public void getHelp() {
+    platformService.showDocument(clientProperties.getLinks().get("linksTecHelpForum"));
+  }
 
-  public void reportError(Throwable e) {
-    logger.warn("Reporting has not yet been implemented");
+  public void copyError(Throwable throwable) {
+    StringWriter writer = new StringWriter();
+    throwable.printStackTrace(new PrintWriter(writer));
+
+    ClipboardUtil.copyToClipboard(writer.toString());
   }
 }

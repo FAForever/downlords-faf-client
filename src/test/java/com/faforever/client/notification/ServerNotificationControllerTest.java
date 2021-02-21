@@ -1,11 +1,13 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
@@ -17,14 +19,17 @@ import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest {
+public class ServerNotificationControllerTest extends AbstractPlainJavaFxTest {
 
-  private ImmediateNotificationController instance;
+  private ServerNotificationController instance;
+
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
 
   @Before
   public void setUp() throws Exception {
-    instance = new ImmediateNotificationController();
-    loadFxml("theme/immediate_notification.fxml", clazz -> instance);
+    instance = new ServerNotificationController(webViewConfigurer);
+    loadFxml("theme/server_notification.fxml", clazz -> instance);
   }
 
   @Test
@@ -35,7 +40,7 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
-    assertEquals("text", instance.notificationText.getText());
+    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.getDialogLayout().getActions(), empty());
   }
 
@@ -50,14 +55,14 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
-    assertEquals("text", instance.notificationText.getText());
+    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
     assertThat(instance.getDialogLayout().getActions(), hasSize(1));
     assertEquals("actionTitle", ((Button) instance.getDialogLayout().getActions().get(0)).getText());
   }
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instance.immediateNotificationRoot));
+    assertThat(instance.getRoot(), is(instance.serverNotificationRoot));
     assertThat(instance.getRoot().getParent(), is(instance.getDialogLayout().getBody().get(0).getParent()));
   }
 
@@ -66,3 +71,4 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
     assertThat(instance.getDialogLayout(), is(instanceOf(DialogLayout.class)));
   }
 }
+

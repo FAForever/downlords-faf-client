@@ -187,8 +187,8 @@ public class GenerateMapController implements Controller<Pane> {
     CompletableFuture<String> generateFuture;
     if (!previousMapName.getText().isEmpty()) {
       if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
-        log.warn("Invalid Generated Map Name", new IllegalArgumentException());
-        notificationService.addImmediateErrorNotification(new IllegalArgumentException(), "mapGenerator.invalidName");
+        log.warn(String.format("Invalid Generated Map Name %s", previousMapName.getText()));
+        notificationService.addImmediateWarnNotification("mapGenerator.invalidName");
         return;
       }
       generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
@@ -222,10 +222,10 @@ public class GenerateMapController implements Controller<Pane> {
       notificationService.addImmediateErrorNotification(e, "mapGenerator.invalidName");
     } else if (cause instanceof UnsupportedVersionException) {
       log.warn("Map generation failed due to unsupported version", e);
-      notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooNewVersion");
+      notificationService.addImmediateWarnNotification("mapGenerator.tooNewVersion");
     } else if (cause instanceof OutdatedVersionException) {
       log.warn("Map generation failed due to outdated version", e);
-      notificationService.addImmediateErrorNotification(cause, "mapGenerator.tooOldVersion");
+      notificationService.addImmediateWarnNotification("mapGenerator.tooOldVersion");
     } else {
       log.warn("Map generation failed", e);
       notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");

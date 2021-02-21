@@ -54,6 +54,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
@@ -378,6 +379,18 @@ public class PreferencesService implements InitializingBean {
       logger.error("Could not delete game log file");
     }
     return getFafLogDirectory().resolve(String.format("game_%d.log", gameUID));
+  }
+
+  public Optional<Path> getMostRecentGameLogFile() {
+    try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
+      return listOfLogFiles
+          .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches()).max(Comparator.comparingLong(p -> p.toFile().lastModified()));
+    } catch (IOException e) {
+      logger.error("Could not list log directory.", e);
+    } catch (NoCatchException e) {
+      logger.error("Could not delete game log file");
+    }
+    return Optional.empty();
   }
 
   @SneakyThrows

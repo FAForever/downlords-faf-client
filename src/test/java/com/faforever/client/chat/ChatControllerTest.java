@@ -30,7 +30,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -197,7 +196,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     instance.channelNameTextField.setText(TEST_CHANNEL_NAME.replace("#", ""));
     instance.onJoinChannelButtonClicked();
 
-    verify(notificationService).addImmediateErrorNotification(any(IllegalArgumentException.class), anyString(), anyString());
+    verify(notificationService).addImmediateWarnNotification(anyString(), anyString());
   }
 
   @Test

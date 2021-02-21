@@ -23,9 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,14 +83,12 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testBadMapNameFails() {
-    doNothing().when(notificationService).addImmediateErrorNotification(any(IllegalArgumentException.class), anyString());
-
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("Bad");
     instance.onGenerateMap();
 
-    verify(notificationService).addImmediateErrorNotification(any(IllegalArgumentException.class), eq("mapGenerator.invalidName"));
+    verify(notificationService).addImmediateWarnNotification("mapGenerator.invalidName");
   }
 
   @Test

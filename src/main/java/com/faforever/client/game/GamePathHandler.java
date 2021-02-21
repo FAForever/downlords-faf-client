@@ -1,9 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
@@ -64,7 +62,7 @@ public class GamePathHandler implements InitializingBean {
     Optional<CompletableFuture<Path>> future = event.getFuture();
 
     if (path == null) {
-      notificationService.addNotification(new ImmediateNotification(i18n.get("gameSelect.select.invalidPath"), i18n.get("gamePath.select.noneChosen"), Severity.WARN));
+      notificationService.addImmediateWarnNotification("gamePath.select.noneChosen");
       future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new CancellationException("User cancelled")));
       return;
     }
@@ -86,7 +84,7 @@ public class GamePathHandler implements InitializingBean {
       return;
     }
     if (gamePathValidWithError != null) {
-      notificationService.addNotification(new ImmediateNotification(i18n.get("gameSelect.select.invalidPath"), i18n.get(gamePathValidWithError), Severity.WARN));
+      notificationService.addImmediateWarnNotification(gamePathValidWithError);
       future.ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new IllegalArgumentException("Invalid path")));
       return;
     }

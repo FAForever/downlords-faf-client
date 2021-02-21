@@ -16,10 +16,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
@@ -195,20 +196,20 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void onNotice(NoticeMessage noticeMessage) {
     if (Objects.equals(noticeMessage.getStyle(), "kill")) {
       log.warn("Game close requested by server...");
-      notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
+      notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
       eventBus.post(new CloseGameEvent());
     }
 
     if (Objects.equals(noticeMessage.getStyle(), "kick")) {
       log.warn("Kicked from lobby, client closing after delay...");
-      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.ERROR, Collections.singletonList(new DismissAction(i18n))));
+      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
       taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
     }
 
     if (noticeMessage.getText() == null) {
       return;
     }
-    notificationService.addNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity(),
+    notificationService.addServerNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity(),
         Collections.singletonList(new DismissAction(i18n))));
   }
 
@@ -560,7 +561,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
       return;
     }
     notificationService.addNotification(new ImmediateNotification(i18n.get("UIDNotExecuted"), e.getMessage(), Severity.ERROR,
-        Collections.singletonList(new ReportAction(i18n, reportingService, e))));
+        List.of(new CopyErrorAction(i18n, reportingService, e), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))));
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {

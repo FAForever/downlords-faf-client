@@ -2,15 +2,16 @@ package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -22,51 +23,50 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ImmediateNotificationController implements Controller<Node> {
+public class ServerNotificationController implements Controller<Node> {
 
+  private final WebViewConfigurer webViewConfigurer;
   private final DialogLayout dialogLayout;
-  public Label notificationText;
-  public TitledPane exceptionArea;
+  public WebView errorMessageView;
+  public Label exceptionAreaTitleLabel;
   public TextArea exceptionTextArea;
-  public Label helpText;
-  public VBox immediateNotificationRoot;
+  public VBox serverNotificationRoot;
   private Runnable closeListener;
 
-  public ImmediateNotificationController() {
+  public ServerNotificationController(WebViewConfigurer webViewConfigurer) {
+    this.webViewConfigurer = webViewConfigurer;
     dialogLayout = new DialogLayout();
   }
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(exceptionArea, notificationText, helpText);
-    exceptionTextArea.managedProperty().bind(exceptionArea.visibleProperty());
+    exceptionAreaTitleLabel.managedProperty().bind(exceptionAreaTitleLabel.visibleProperty());
+    exceptionAreaTitleLabel.visibleProperty().bind(exceptionTextArea.visibleProperty());
+    exceptionTextArea.managedProperty().bind(exceptionTextArea.visibleProperty());
+    webViewConfigurer.configureWebView(errorMessageView);
+    errorMessageView.managedProperty().bind(errorMessageView.visibleProperty());
 
-    dialogLayout.setMaxWidth(650);
-
-    dialogLayout.setBody(immediateNotificationRoot);
+    dialogLayout.setBody(serverNotificationRoot);
   }
 
-  public ImmediateNotificationController setNotification(ImmediateNotification notification) {
+  public ServerNotificationController setNotification(ImmediateNotification notification) {
     StringWriter writer = new StringWriter();
     Throwable throwable = notification.getThrowable();
     if (throwable != null) {
       throwable.printStackTrace(new PrintWriter(writer));
       exceptionTextArea.setVisible(true);
       exceptionTextArea.setText(writer.toString());
-      exceptionArea.setExpanded(false);
     } else {
       exceptionTextArea.setVisible(false);
-      exceptionArea.setVisible(false);
-      helpText.setVisible(false);
     }
 
     dialogLayout.setHeading(new Label(notification.getTitle()));
-    notificationText.setText(notification.getText());
+    JavaFxUtil.runLater(() -> errorMessageView.getEngine().loadContent(notification.getText()));
 
     Optional.ofNullable(notification.getActions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
         .ifPresent(dialogLayout::setActions);
     if (notification.getCustomUI() != null) {
-      immediateNotificationRoot.getChildren().add(notification.getCustomUI());
+      serverNotificationRoot.getChildren().add(notification.getCustomUI());
     }
     return this;
   }
@@ -95,10 +95,10 @@ public class ImmediateNotificationController implements Controller<Node> {
   }
 
   public Region getRoot() {
-    return immediateNotificationRoot;
+    return serverNotificationRoot;
   }
 
-  public ImmediateNotificationController setCloseListener(Runnable closeListener) {
+  public ServerNotificationController setCloseListener(Runnable closeListener) {
     this.closeListener = closeListener;
     return this;
   }

@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.io.FileNotFoundException;
 import java.time.Duration;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
@@ -309,8 +310,13 @@ public class ReplayDetailController implements Controller<Node> {
           moreInformationPane.setVisible(true);
         })
         .exceptionally(throwable -> {
-          log.error("Replay could not be enriched", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");
+          if (throwable.getCause() instanceof FileNotFoundException) {
+            log.warn("Replay not available on server yet", throwable);
+            notificationService.addImmediateWarnNotification("replayNotAvailable", replay.getId());
+          } else {
+            log.error("Replay could not be enriched", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "replay.enrich.error");
+          }
           return null;
         });
   }
