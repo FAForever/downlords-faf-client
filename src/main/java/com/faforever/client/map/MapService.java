@@ -348,6 +348,10 @@ public class MapService implements InitializingBean, DisposableBean {
     return isOfficialMap(map.getFolderName());
   }
 
+  public boolean isCustomMap(MapBean map) {
+    return !isOfficialMap(map);
+  }
+
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
    */

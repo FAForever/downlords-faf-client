@@ -67,7 +67,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public SearchController searchController;
   public Pagination pagination;
   public Button lastPageButton;
-  public Button manageModsButton;
+  public Button manageVaultButton;
   public Button firstPageButton;
   public SearchType searchType;
   public int pageSize;
@@ -95,6 +95,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
   protected abstract void onUploadButtonClicked();
 
+  protected abstract void onManageVaultButtonClicked();
+
   protected abstract Node getDetailView();
 
   protected abstract void onDisplayDetails(T t);
@@ -108,15 +110,16 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
     JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination,
-        firstPageButton, lastPageButton, showRoomGroup, manageModsButton, searchBox, searchSeparator);
+        firstPageButton, lastPageButton, showRoomGroup, searchBox, searchSeparator);
 
     firstPageButton.disableProperty().bind(pagination.currentPageIndexProperty().isEqualTo(0));
     lastPageButton.disableProperty().bind(pagination.currentPageIndexProperty()
         .isEqualTo(pagination.pageCountProperty().subtract(1)));
 
-    backButton.setOnAction((event -> onBackButtonClicked()));
-    refreshButton.setOnAction((event -> onRefreshButtonClicked()));
-    uploadButton.setOnAction((event -> onUploadButtonClicked()));
+    backButton.setOnAction(event -> onBackButtonClicked());
+    refreshButton.setOnAction(event -> onRefreshButtonClicked());
+    uploadButton.setOnAction(event -> onUploadButtonClicked());
+    manageVaultButton.setOnAction(event -> onManageVaultButtonClicked());
 
     searchController.setSearchListener(this::onSearch);
     perPageComboBox.getItems().addAll(5, 10, 20, 50, 100, 200);

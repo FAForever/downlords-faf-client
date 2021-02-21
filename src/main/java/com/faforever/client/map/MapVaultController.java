@@ -6,6 +6,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.map.event.MapUploadedEvent;
+import com.faforever.client.map.management.MapsManagementController;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
@@ -55,7 +56,8 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   @Override
   public void initialize() {
     super.initialize();
-
+    manageVaultButton.setVisible(true);
+    manageVaultButton.setText(i18n.get("management.maps.openButton.label"));
     preferencesService.getRemotePreferencesAsync().thenAccept(clientConfiguration ->
         recommendedShowRoomPageCount = clientConfiguration.getRecommendedMaps().size() / TOP_ELEMENT_COUNT)
         .exceptionally(throwable -> {
@@ -151,6 +153,13 @@ public class MapVaultController extends VaultEntityController<MapBean> {
       }
       openUploadWindow(result.toPath());
     });
+  }
+
+  @Override
+  protected void onManageVaultButtonClicked() {
+    MapsManagementController controller = uiService.loadFxml("theme/vault/map/maps_management.fxml");
+    Dialog dialog = uiService.showInDialog(vaultRoot, controller.getRoot());
+    controller.setCloseButtonAction(dialog::close);
   }
 
   @Override

@@ -200,7 +200,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testGetRecommendedMaps() throws Exception {
+  public void testGetRecommendedMaps() {
     ClientConfiguration clientConfiguration = mock(ClientConfiguration.class);
     List<Integer> recommendedMapIds = Lists.newArrayList(1, 2, 3);
     when(clientConfiguration.getRecommendedMaps()).thenReturn(recommendedMapIds);
@@ -243,6 +243,17 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     assertThat(instance.isOfficialMap(officialMap.getFolderName()), is(true));
     assertThat(instance.isOfficialMap(customMap), is(false));
     assertThat(instance.isOfficialMap(customMap.getFolderName()), is(false));
+  }
+
+  @Test
+  public void testIsCustomMap() {
+    instance.officialMaps = ImmutableSet.of("SCMP_001");
+
+    MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001").get();
+    MapBean customMap = MapBeanBuilder.create().displayName("custom map").folderName("customMap.v0001").get();
+
+    assertThat(instance.isCustomMap(customMap), is(true));
+    assertThat(instance.isCustomMap(officialMap), is(false));
   }
 
   @Test

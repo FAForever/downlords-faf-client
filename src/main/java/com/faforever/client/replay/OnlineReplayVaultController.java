@@ -98,7 +98,12 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   }
 
   public void onUploadButtonClicked() {
-    //do nothing
+    // do nothing
+  }
+
+  @Override
+  protected void onManageVaultButtonClicked() {
+    // do nothing
   }
 
   @Override

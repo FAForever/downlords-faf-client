@@ -14,6 +14,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+
 <BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <StackPane fx:id="vaultRoot">
@@ -26,8 +27,6 @@
                     <HBox fx:id="searchBox" VBox.vgrow="NEVER">
                         <fx:include fx:id="search" source="search/search.fxml"
                                     HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="manageModsButton" text="%modVault.manageMods"
-                                visible="false"/>
                     </HBox>
                     <Separator fx:id="searchSeparator" maxWidth="1.7976931348623157E308"/>
                     <HBox spacing="10.0">
@@ -46,6 +45,7 @@
                                 <Region styleClass="icon,upload-icon"/>
                             </graphic>
                         </Button>
+                        <Button fx:id="manageVaultButton" mnemonicParsing="false" visible="false"/>
                     </HBox>
                     <VBox fx:id="searchResultGroup" spacing="10.0">
                         <Label styleClass="h2" text="%searchResult"/>
