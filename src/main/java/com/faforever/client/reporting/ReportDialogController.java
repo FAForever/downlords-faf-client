@@ -71,7 +71,6 @@ public class ReportDialogController implements Controller<Node> {
   public TableColumn<ModerationReport, String> noticeColumn;
   public TableColumn<ModerationReport, ModerationReportStatus> statusColumn;
   private Window ownerWindow;
-  private boolean validReport;
 
   public void initialize() {
     reportTable.setPlaceholder(new Label(i18n.get("report.noReports")));
@@ -147,7 +146,7 @@ public class ReportDialogController implements Controller<Node> {
           if (submit && report.getGameId() != null) {
             return replayService.findById(report.getGameId()).thenApply(replay -> {
               if (replay.isPresent()) {
-                if (replay.get().getTeams().values().stream().flatMap(Collection::stream).filter(username -> username.equals(offender.getText())).findAny().isPresent()) {
+                if (replay.get().getTeams().values().stream().flatMap(Collection::stream).anyMatch(username -> username.equals(offender.getText()))) {
                   return true;
                 } else {
                   warnOffenderNotInGame();
