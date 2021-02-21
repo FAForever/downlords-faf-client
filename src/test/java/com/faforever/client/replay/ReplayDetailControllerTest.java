@@ -15,6 +15,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.replay.Replay.PlayerStats;
+import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.theme.UiService;
@@ -98,6 +99,8 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   private TeamCardController teamCardController;
   @Mock
   private ClientProperties clientProperties;
+  @Mock
+  private ReportDialogController reportDialogController;
 
   private Player currentPlayer;
   private Replay onlineReplay;
@@ -141,6 +144,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
     when(i18n.get("game.onMapFormat", mapBean.getDisplayName())).thenReturn(mapBean.getDisplayName());
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
+    when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -490,6 +494,15 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
     verify(notificationService).addImmediateErrorNotification(any(), eq("review.save.error"));
     assertTrue(replay.getReviews().contains(review));
+  }
+
+  @Test
+  public void testReport() {
+    instance.setReplay(onlineReplay);
+    instance.onReport();
+
+    verify(reportDialogController).setGame(onlineReplay);
+    verify(reportDialogController).show();
   }
 
 }

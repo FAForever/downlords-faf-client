@@ -20,6 +20,7 @@ import com.faforever.client.rating.RatingService;
 import com.faforever.client.replay.Replay.ChatMessage;
 import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.replay.Replay.PlayerStats;
+import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ClipboardUtil;
 import com.faforever.client.util.RatingUtil;
@@ -31,6 +32,7 @@ import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -111,6 +113,7 @@ public class ReplayDetailController implements Controller<Node> {
   public TextField replayIdField;
   public ScrollPane scrollPane;
   public Button showRatingChangeButton;
+  public Button reportButton;
   public Label notRatedReasonLabel;
   private Replay replay;
   private ObservableMap<String, List<PlayerStats>> teams;
@@ -381,6 +384,16 @@ public class ReplayDetailController implements Controller<Node> {
       showRatingChangeButton.setDisable(false);
       notRatedReasonLabel.setVisible(false);
     }
+  }
+
+  public void onReport() {
+    ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
+    reportDialogController.setGame(replay);
+    Scene scene = getRoot().getScene();
+    if (scene != null) {
+      reportDialogController.setOwnerWindow(scene.getWindow());
+    }
+    reportDialogController.show();
   }
 
   @Override

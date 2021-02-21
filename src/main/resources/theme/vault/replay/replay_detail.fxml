@@ -138,6 +138,10 @@
                              </children>
                          </HBox>
                          <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
+                         <HBox alignment="CENTER_RIGHT">
+                             <Button fx:id="reportButton" alignment="CENTER_RIGHT" mnemonicParsing="false"
+                                     onAction="#onReport" text="%game.report"/>
+                         </HBox>
                          <Separator fx:id="ratingSeparator" layoutX="10.0" layoutY="251.0"
                                     maxWidth="1.7976931348623157E308"/>
                          <VBox fx:id="reviewsContainer" alignment="TOP_CENTER" maxWidth="640.0">

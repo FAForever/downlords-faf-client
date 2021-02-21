@@ -208,6 +208,13 @@ public class PlayerServiceTest {
   }
 
   @Test
+  public void testGetPlayerByName() throws Exception {
+    instance.getPlayerByName("junit");
+
+    verify(fafService).queryPlayerByName("junit");
+  }
+
+  @Test
   public void testSubscribeAnnotations() {
     assertThat(ReflectionUtils.findMethod(instance.getClass(), "onLoginSuccess", LoginSuccessEvent.class),
         hasAnnotation(Subscribe.class));

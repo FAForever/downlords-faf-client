@@ -19,6 +19,8 @@ import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.ModerationReport;
+import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
@@ -99,7 +101,9 @@ public interface FafApiAccessor {
 
   Optional<MapVersion> getMapLatestVersion(String mapFolderName);
 
-  List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds);
+  List<Player> getPlayersByIds(Collection<Integer> playerIds);
+
+  Optional<Player> queryPlayerByName(String playerName);
 
   GameReview createGameReview(GameReview review);
 
@@ -136,6 +140,10 @@ public interface FafApiAccessor {
   Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName);
 
   List<Tournament> getAllTournaments();
+
+  List<ModerationReport> getPlayerModerationReports(int playerId);
+
+  void postModerationReport(com.faforever.client.reporting.ModerationReport report);
 
   Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page);
 
