@@ -7,9 +7,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.WrappingStringCell;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.Replay;
@@ -176,48 +174,34 @@ public class ReportDialogController implements Controller<Node> {
   }
 
   private void warnNoOffender() {
-    notificationService.addNotification(new ImmediateNotification(i18n.get("report.warning.title"),
-        i18n.get("report.warning.noOffender"),
-        Severity.WARN));
+    notificationService.addImmediateWarnNotification("report.warning.noOffender");
   }
 
   private void warnOffenderNotInGame() {
-    notificationService.addNotification(new ImmediateNotification(i18n.get("report.warning.title"),
-        i18n.get("report.warning.noOffenderInGame"),
-        Severity.WARN));
+    notificationService.addImmediateWarnNotification("report.warning.noOffenderInGame");
   }
 
   private void warnNoDescription() {
-    notificationService.addNotification(new ImmediateNotification(i18n.get("report.warning.title"),
-        i18n.get("report.warning.noDescription"),
-        Severity.WARN));
+    notificationService.addImmediateWarnNotification("report.warning.noDescription");
   }
 
   private void warnNoPlayer() {
     log.info(String.format("No player named %s", offender.getText()));
-    notificationService.addNotification(new ImmediateNotification(i18n.get("report.warning.title"),
-        i18n.get("report.warning.noPlayer"),
-        Severity.WARN));
+    notificationService.addImmediateWarnNotification("report.warning.noPlayer");
   }
 
   private void warnNoGameTime() {
-    notificationService.addNotification(new ImmediateNotification(i18n.get("report.warning.title"),
-        i18n.get("report.warning.noGameTime"),
-        Severity.WARN));
+    notificationService.addImmediateWarnNotification("report.warning.noGameTime");
   }
 
   private void warnNonNumericGameId() {
     log.info(String.format("GameId %s not numeric", gameId.getText()));
-    notificationService.addNotification(new ImmediateNotification(i18n.get("report.warning.title"),
-        i18n.get("report.warning.gameIdNotNumeric"),
-        Severity.WARN));
+    notificationService.addImmediateWarnNotification("report.warning.gameIdNotNumeric");
   }
 
   private void warnNoGame() {
     log.info(String.format("Game %s does not exist", gameId.getText()));
-    notificationService.addNotification(new ImmediateNotification(i18n.get("report.warning.title"),
-        i18n.get("report.warning.noGame"),
-        Severity.WARN));
+    notificationService.addImmediateWarnNotification("report.warning.title");
   }
 
   public void setOffender(Player player) {
