@@ -514,7 +514,9 @@ public class MainController implements Controller<Node> {
   }
 
   public void onNavigateButtonClicked(ActionEvent event) {
-    eventBus.post(new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData()));
+    NavigateEvent navigateEvent = new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData());
+    log.debug("Navigating to {}", navigateEvent.getItem().toString());
+    eventBus.post(navigateEvent);
   }
 
   @Subscribe
