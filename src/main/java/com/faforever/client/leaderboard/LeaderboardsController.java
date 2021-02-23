@@ -5,10 +5,11 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.Validator;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
@@ -18,10 +19,14 @@ import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
+import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.stream.Collectors;
 
 import static javafx.collections.FXCollections.observableList;
 
@@ -35,7 +40,6 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final ReportingService reportingService;
   public Pane leaderboardRoot;
   public TableColumn<LeaderboardEntry, Number> rankColumn;
   public TableColumn<LeaderboardEntry, String> nameColumn;
@@ -48,15 +52,18 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   public Pane connectionProgressPane;
   public Pane contentPane;
 
+  @VisibleForTesting
+  protected AutoCompletionBinding<String> usernamesAutoCompletion;
+
   @Override
   public void initialize() {
     super.initialize();
-
     leaderboardService.getLeaderboards().thenApply(leaderboards -> {
       JavaFxUtil.runLater(() -> {
         leaderboardComboBox.getItems().clear();
         leaderboardComboBox.setConverter(leaderboardStringConverter());
         leaderboardComboBox.getItems().addAll(leaderboards);
+        leaderboardComboBox.getSelectionModel().selectedItemProperty().addListener(onLeaderboardSelected());
         leaderboardComboBox.getSelectionModel().selectFirst();
       });
       return null;
@@ -125,17 +132,26 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     };
   }
 
-  public void onLeaderboardSelected() {
-    contentPane.setVisible(false);
-    leaderboardService.getEntries(leaderboardComboBox.getValue()).thenAccept(leaderboardEntryBeans -> {
-      ratingTable.setItems(observableList(leaderboardEntryBeans));
-      contentPane.setVisible(true);
-    }).exceptionally(throwable -> {
+  public ChangeListener<Leaderboard> onLeaderboardSelected() {
+    return (obs, oldValue, newValue) -> {
       contentPane.setVisible(false);
-      log.warn("Error while loading leaderboard entries", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
-      return null;
-    });
+      searchTextField.clear();
+      if (usernamesAutoCompletion != null) {
+        usernamesAutoCompletion.dispose();
+      }
+      leaderboardService.getEntries(newValue).thenAccept(leaderboardEntryBeans -> {
+        ratingTable.setItems(observableList(leaderboardEntryBeans));
+        usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField,
+            leaderboardEntryBeans.stream().map(LeaderboardEntry::getUsername).collect(Collectors.toList()));
+        usernamesAutoCompletion.setDelay(0);
+        contentPane.setVisible(true);
+      }).exceptionally(throwable -> {
+        contentPane.setVisible(false);
+        log.warn("Error while loading leaderboard entries", throwable);
+        notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
+        return null;
+      });
+    };
   }
 
   public Node getRoot() {

@@ -16,7 +16,7 @@
       fx:controller="com.faforever.client.leaderboard.LeaderboardsController">
     <Separator minHeight="10.0"/>
     <HBox alignment="CENTER_LEFT" spacing="10.0">
-        <ComboBox fx:id="leaderboardComboBox" onAction="#onLeaderboardSelected"/>
+        <ComboBox fx:id="leaderboardComboBox"/>
         <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
             <graphic>
                 <Region styleClass="icon,search-icon"/>
