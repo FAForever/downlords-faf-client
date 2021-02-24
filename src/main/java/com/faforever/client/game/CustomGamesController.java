@@ -102,6 +102,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     });
 
     chooseSortingTypeChoiceBox.setVisible(false);
+    chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     chooseSortingTypeChoiceBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(TilesSortingOrder tilesSortingOrder) {
@@ -213,12 +214,10 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public void onTableButtonClicked() {
     gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
     gamesTableController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
-    JavaFxUtil.runLater(() -> {
-      gamesTableController.initializeGameTable(filteredItems);
+    gamesTableController.initializeGameTable(filteredItems);
 
-      Node root = gamesTableController.getRoot();
-      populateContainer(root);
-    });
+    Node root = gamesTableController.getRoot();
+    populateContainer(root);
   }
 
   private void populateContainer(Node root) {
@@ -234,12 +233,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), new WeakChangeListener<>(gameChangeListener));
 
-    JavaFxUtil.runLater(() -> {
-      chooseSortingTypeChoiceBox.getItems().clear();
-      Node root = gamesTilesContainerController.getRoot();
-      populateContainer(root);
-      gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
-    });
+    Node root = gamesTilesContainerController.getRoot();
+    populateContainer(root);
+    gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
   }
 
   @VisibleForTesting
