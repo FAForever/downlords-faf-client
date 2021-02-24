@@ -87,7 +87,7 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     instance.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(i18n).get(eq("game.mods.twoAndMore"), contains("test"), contains("test"), eq(2));
+    verify(i18n).get(eq("game.mods.twoAndMore"), contains("test"), eq(3));
   }
 
   @Test
