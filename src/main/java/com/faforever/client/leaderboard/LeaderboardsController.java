@@ -9,7 +9,6 @@ import com.faforever.client.util.Validator;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;

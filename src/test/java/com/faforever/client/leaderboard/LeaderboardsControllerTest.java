@@ -13,8 +13,11 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.leaderboard.LeaderboardEntryBuilder.create;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -59,12 +62,24 @@ public class LeaderboardsControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnDisplay() {
     showLeaderboard(leaderboardGlobal);
+    assertTrue(instance.contentPane.isVisible());
     assertEquals(3, instance.ratingTable.getItems().size());
     verifyNoInteractions(notificationService);
 
     showLeaderboard(leaderboard1v1);
+    assertTrue(instance.contentPane.isVisible());
     assertEquals(4, instance.ratingTable.getItems().size());
     verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testOnDisplayWhenThrowException() {
+    Exception exception = new RuntimeException("error of loading leaderboard entries");
+    when(leaderboardService.getEntries(leaderboard1v1))
+        .thenReturn(CompletableFuture.failedFuture(exception));
+    showLeaderboard(leaderboard1v1);
+    assertFalse(instance.contentPane.isVisible());
+    verify(notificationService).addImmediateErrorNotification(any(), any());
   }
 
   @Test
@@ -104,7 +119,10 @@ public class LeaderboardsControllerTest extends AbstractPlainJavaFxTest {
   }
 
   private void showLeaderboard(Leaderboard leaderboard) {
-    runOnFxThreadAndWait(() -> instance.leaderboardComboBox.setValue(leaderboard));
+    runOnFxThreadAndWait(() -> {
+      instance.leaderboardComboBox.setValue(leaderboard);
+      instance.onLeaderboardSelected();
+    });
   }
 
   private void setSearchText(String text) {
