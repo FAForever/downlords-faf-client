@@ -71,12 +71,7 @@ public class InvitePlayerController implements Controller<Pane> {
   }
 
   public void requestFocus() {
-    JavaFxUtil.runLater(() -> {
-      if (!playerTextField.isFocused()) {
-        playerTextField.requestFocus();
-        requestFocus(); // Yes, this is a loop, because it often fails on the first try
-      }
-    });
+    JavaFxUtil.runLater(() -> playerTextField.requestFocus());
   }
 
   private Collection<String> getPlayerNames() {
