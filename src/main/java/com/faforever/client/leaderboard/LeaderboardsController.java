@@ -63,7 +63,6 @@ public class LeaderboardsController extends AbstractViewController<Node> {
         leaderboardComboBox.getItems().clear();
         leaderboardComboBox.setConverter(leaderboardStringConverter());
         leaderboardComboBox.getItems().addAll(leaderboards);
-        leaderboardComboBox.getSelectionModel().selectedItemProperty().addListener(onLeaderboardSelected());
         leaderboardComboBox.getSelectionModel().selectFirst();
       });
       return null;
@@ -132,26 +131,24 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     };
   }
 
-  public ChangeListener<Leaderboard> onLeaderboardSelected() {
-    return (obs, oldValue, newValue) -> {
+  public void onLeaderboardSelected() {
+    contentPane.setVisible(false);
+    searchTextField.clear();
+    if (usernamesAutoCompletion != null) {
+      usernamesAutoCompletion.dispose();
+    }
+    leaderboardService.getEntries(leaderboardComboBox.getValue()).thenAccept(leaderboardEntryBeans -> {
+      ratingTable.setItems(observableList(leaderboardEntryBeans));
+      usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField,
+          leaderboardEntryBeans.stream().map(LeaderboardEntry::getUsername).collect(Collectors.toList()));
+      usernamesAutoCompletion.setDelay(0);
+      contentPane.setVisible(true);
+    }).exceptionally(throwable -> {
       contentPane.setVisible(false);
-      searchTextField.clear();
-      if (usernamesAutoCompletion != null) {
-        usernamesAutoCompletion.dispose();
-      }
-      leaderboardService.getEntries(newValue).thenAccept(leaderboardEntryBeans -> {
-        ratingTable.setItems(observableList(leaderboardEntryBeans));
-        usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField,
-            leaderboardEntryBeans.stream().map(LeaderboardEntry::getUsername).collect(Collectors.toList()));
-        usernamesAutoCompletion.setDelay(0);
-        contentPane.setVisible(true);
-      }).exceptionally(throwable -> {
-        contentPane.setVisible(false);
-        log.warn("Error while loading leaderboard entries", throwable);
-        notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
-        return null;
-      });
-    };
+      log.warn("Error while loading leaderboard entries", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
+      return null;
+    });
   }
 
   public Node getRoot() {
