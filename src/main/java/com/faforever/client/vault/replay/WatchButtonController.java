@@ -50,27 +50,46 @@ public class WatchButtonController implements Controller<Node> {
 
   public void setGame(Game game) {
     this.game = game;
+    Assert.notNull(game, "Game must not be null");
     Assert.notNull(game.getStartTime(), "The game's start must not be null: " + game);
-    delayTimeline.play();
+    if (canWatch()) {
+      allowWatch();
+    } else {
+      delayTimeline.play();
+    }
+  }
+
+  private boolean canWatch() {
+    java.time.Duration duration = getWatchDelayTime();
+    return duration.isZero() || duration.isNegative();
+  }
+
+  private void allowWatch() {
+    watchButton.setText(i18n.get("game.watch"));
+    watchButton.setDisable(false);
   }
 
   private void updateWatchButtonTimer() {
-    Assert.notNull(game, "Game must not be null");
+    if (canWatch()) {
+      delayTimeline.stop();
+      allowWatch();
+    } else {
+      updateTimer();
+    }
+  }
+
+  private void updateTimer() {
+    watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(getWatchDelayTime())));
+    watchButton.setDisable(true);
+  }
+
+  private java.time.Duration getWatchDelayTime() {
     Assert.notNull(game.getStartTime(),
         "Game's start time is null, in which case it shouldn't even be listed: " + game);
-
-    java.time.Duration watchDelay = java.time.Duration.between(
+    return java.time.Duration.between(
         Instant.now(),
         game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())
     );
-    if (watchDelay.isZero() || watchDelay.isNegative()) {
-      delayTimeline.stop();
-      watchButton.setText(i18n.get("game.watch"));
-      watchButton.setDisable(false);
-    } else {
-      watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(watchDelay)));
-      watchButton.setDisable(true);
-    }
   }
 
   @Override
