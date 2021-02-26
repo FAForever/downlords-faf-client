@@ -98,7 +98,7 @@ public class I18n implements InitializingBean {
     try {
       return messageSource.getMessage(key, args, locale);
     } catch (Exception e) {
-      log.error("Could not load message {} with locale {} defaulting to US english", key, locale.toString(), e);
+      log.error("Could not load message {} with locale {} defaulting to US english", key, locale, e);
       return messageSource.getMessage(key, args, Locale.US);
     }
   }
@@ -111,7 +111,7 @@ public class I18n implements InitializingBean {
     try {
       return messageSource.getMessage(key, args, defaultMessage, locale);
     } catch (Exception e) {
-      log.error("Could not load message {} with locale {} defaulting to US english", key, locale.toString(), e);
+      log.error("Could not load message {} with locale {} defaulting to US english", key, locale, e);
       return messageSource.getMessage(key, args, defaultMessage, Locale.US);
     }
   }
