@@ -39,7 +39,7 @@ public class WatchButtonController implements Controller<Node> {
 
   public void initialize() {
     delayTimeline = new Timeline(
-        new KeyFrame(Duration.ZERO, event -> updateWatchButtonTimer()),
+        new KeyFrame(Duration.ZERO, event -> onFinished()),
         new KeyFrame(Duration.seconds(1))
     );
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
@@ -55,6 +55,7 @@ public class WatchButtonController implements Controller<Node> {
     if (canWatch()) {
       allowWatch();
     } else {
+      updateWatchButtonTimer();
       delayTimeline.play();
     }
   }
@@ -69,16 +70,16 @@ public class WatchButtonController implements Controller<Node> {
     watchButton.setDisable(false);
   }
 
-  private void updateWatchButtonTimer() {
+  private void onFinished() {
     if (canWatch()) {
       delayTimeline.stop();
       allowWatch();
     } else {
-      updateTimer();
+      updateWatchButtonTimer();
     }
   }
 
-  private void updateTimer() {
+  private void updateWatchButtonTimer() {
     watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(getWatchDelayTime())));
     watchButton.setDisable(true);
   }
