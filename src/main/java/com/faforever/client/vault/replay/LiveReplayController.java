@@ -68,6 +68,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     selectedGame = new SimpleObjectProperty<>();
   }
 
+  @Override
   public void initialize() {
     initializeGameTable(gameService.getGames());
   }

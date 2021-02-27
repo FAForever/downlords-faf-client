@@ -6,6 +6,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.util.TimeService;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.Node;
@@ -91,6 +92,11 @@ public class WatchButtonController implements Controller<Node> {
         Instant.now(),
         game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())
     );
+  }
+
+  @VisibleForTesting
+  public Timeline getDelayTimeline() {
+    return delayTimeline;
   }
 
   @Override
