@@ -39,6 +39,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
@@ -54,6 +55,7 @@ import static javax.imageio.ImageIO.write;
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
  */
+@Slf4j
 public final class JavaFxUtil {
 
   public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<>() {
@@ -412,7 +414,11 @@ public final class JavaFxUtil {
 
   public static void runLater(Runnable runnable) {
     if (Platform.isFxApplicationThread()) {
-      runnable.run();
+      try {
+        runnable.run();
+      } catch (Exception e) {
+        log.error("Uncaught Application Thread Error", e);
+      }
     } else {
       Platform.runLater(runnable);
     }
