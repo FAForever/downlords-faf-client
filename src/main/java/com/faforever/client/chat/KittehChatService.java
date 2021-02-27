@@ -56,7 +56,9 @@ import org.kitteh.irc.client.library.event.channel.ChannelTopicEvent;
 import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
+import org.kitteh.irc.client.library.event.user.PrivateNoticeEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
+import org.kitteh.irc.client.library.feature.auth.NickServ;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
@@ -111,6 +113,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   String defaultChannelName;
   @VisibleForTesting
   DefaultClient client;
+  private NickServ nickServ;
   /**
    * A list of channels the server wants us to join.
    */
@@ -333,6 +336,17 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     eventBus.post(new ChatMessageEvent(new ChatMessage(user.getNick(), Instant.ofEpochMilli(user.getCreationTime()), user.getNick(), event.getMessage())));
   }
 
+  @Handler
+  private void onNotice(PrivateNoticeEvent event) {
+    String message = event.getMessage();
+
+    if (message.contains("choose a different nick")) {
+      nickServ.startAuthentication();
+    } else if (message.contains("isn't registered")) {
+      client.sendMessage("NickServ", String.format("register %s %s@users.faforever.com", getPassword(), client.getNick()));
+    }
+  }
+
   private void joinAutoChannels() {
     log.debug("Joining auto channel: {}", autoChannels);
     if (autoChannels == null) {
@@ -428,7 +442,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
         .host(irc.getHost())
         .port(irc.getPort(), SecurityType.SECURE)
         .secureTrustManagerFactory(new TrustEveryoneFactory())
-        .password(getPassword())
         .then()
         .listeners()
         .input(this::onMessage)
@@ -436,9 +449,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
         .then()
         .build();
 
+    nickServ = NickServ.builder(client).account(username).password(getPassword()).build();
+
     client.getEventManager().registerEventListener(this);
     client.getActorTracker().setQueryChannelInformation(false);
     client.connect();
+
   }
 
   @Override
