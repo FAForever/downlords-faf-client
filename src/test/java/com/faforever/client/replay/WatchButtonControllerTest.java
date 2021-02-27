@@ -18,49 +18,73 @@ import java.time.temporal.ChronoUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class WatchButtonControllerTest extends AbstractPlainJavaFxTest {
 
   private static final int WATCH_DELAY = 10; // in seconds;
 
   @Mock
-  ReplayService replayService;
+  private ReplayService replayService;
   @Mock
-  TimeService timeService;
+  private TimeService timeService;
   @Mock
-  I18n i18n;
+  private I18n i18n;
 
-  WatchButtonController instance;
+  private WatchButtonController instance;
+  private Game game;
 
   @Before
   public void setUp() throws Exception {
     ClientProperties properties = new ClientProperties();
     properties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
 
+    game = GameBuilder.create().defaultValues().get();
     instance = new WatchButtonController(replayService, properties, timeService, i18n);
     loadFxml("theme/vault/replay/watch_button.fxml",  clazz -> instance);
   }
 
   @Test
   public void testButtonWhenWatchNotAllowed() {
-    Instant startTime = Instant.now().minus(5, ChronoUnit.SECONDS);
-    Game game = GameBuilder.create().defaultValues().startTime(startTime).get();
+    game.setStartTime(Instant.now().minus(5, ChronoUnit.SECONDS));
 
     setGame(game);
     assertThat(instance.watchButton.isDisabled(), is(true));
   }
 
   @Test
+  public void testButtonOnClickedWhenWatchNotAllowed() {
+    game.setStartTime(Instant.now().minus(5, ChronoUnit.SECONDS));
+
+    setGame(game);
+    clickWatchButton();
+    verify(replayService, never()).runLiveReplay(game.getId());
+  }
+
+  @Test
   public void testButtonWhenWatchAllowed() {
-    Instant startTime = Instant.now().minus(15, ChronoUnit.SECONDS);
-    Game game = GameBuilder.create().defaultValues().startTime(startTime).get();
+    game.setStartTime(Instant.now().minus(15, ChronoUnit.SECONDS));
 
     setGame(game);
     assertThat(instance.watchButton.isDisabled(), is(false));
   }
 
+  @Test
+  public void testButtonOnClickedWhenWatchAllowed() {
+    game.setStartTime(Instant.now().minus(15, ChronoUnit.SECONDS));
+
+    setGame(game);
+    clickWatchButton();
+    verify(replayService).runLiveReplay(game.getId());
+  }
+
   private void setGame(Game game) {
     runOnFxThreadAndWait(() -> instance.setGame(game));
+  }
+
+  private void clickWatchButton() {
+    runOnFxThreadAndWait(()-> instance.watchButton.fire());
   }
 
   @After
