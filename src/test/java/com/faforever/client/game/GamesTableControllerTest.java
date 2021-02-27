@@ -110,6 +110,32 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testPrivateGameColumnIsShownWithCoop() throws Exception {
+    preferences.setShowPasswordProtectedGames(false);
+    JavaFxUtil.runLater(() -> {
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBuilder.create().defaultValues().get(),
+          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+      ), string -> string, false);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.passwordProtectionColumn.isVisible());
+  }
+
+  @Test
+  public void testModdedGameColumnIsShownWithCoop() throws Exception {
+    preferences.setShowModdedGames(false);
+    JavaFxUtil.runLater(() -> {
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBuilder.create().defaultValues().get(),
+          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+      ), string -> string, false);
+    });
+    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.modsColumn.isVisible());
+  }
+
+  @Test
   public void testKeepsSorting() {
     preferences.getGameListSorting().setAll(new Pair<>("hostColumn", SortType.DESCENDING));
 

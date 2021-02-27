@@ -111,8 +111,8 @@ public class GamesTableController implements Controller<Node> {
 
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
+
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
-    passwordProtectionColumn.setVisible(preferencesService.getPreferences().isShowPasswordProtectedGames());
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
         () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
         param.getValue().mapFolderNameProperty()
@@ -130,7 +130,6 @@ public class GamesTableController implements Controller<Node> {
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);
-    modsColumn.setVisible(preferencesService.getPreferences().isShowModdedGames());
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     coopMissionName.setVisible(coopMissionNameProvider != null);
 
@@ -151,7 +150,9 @@ public class GamesTableController implements Controller<Node> {
         -> JavaFxUtil.runLater(() -> selectedGame.set(newValue)));
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
-    if (listenToFilterPreferences) {
+    if (listenToFilterPreferences && coopMissionNameProvider == null) {
+      modsColumn.setVisible(preferencesService.getPreferences().isShowModdedGames());
+      passwordProtectionColumn.setVisible(preferencesService.getPreferences().isShowPasswordProtectedGames());
       JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(showModdedGamesChangedListener));
       JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(showPasswordProtectedGamesChangedListener));
     }
