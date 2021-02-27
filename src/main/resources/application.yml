@@ -62,10 +62,10 @@ faf-client:
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}
-  main:
-    web-environment: false
   application:
     name: Downlord's FAF Client
+  main:
+    web-application-type: none
 
 security:
   oauth2:
