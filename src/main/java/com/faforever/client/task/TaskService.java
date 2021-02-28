@@ -1,6 +1,6 @@
 package com.faforever.client.task;
 
-import javafx.application.Platform;
+import com.faforever.client.fx.JavaFxUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
@@ -44,7 +44,7 @@ public class TaskService {
         logger.warn("Task failed", (Throwable) throwable);
       }
     });
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       activeTasks.add(task);
       executorService.execute(task);
     });
