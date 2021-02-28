@@ -68,6 +68,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     selectedGame = new SimpleObjectProperty<>();
   }
 
+  @Override
   public void initialize() {
     initializeGameTable(gameService.getGames());
   }
@@ -77,10 +78,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
     filteredGameList.setPredicate(game -> game.getStatus() == GameStatus.PLAYING);
     SortedList<Game> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(liveReplayControllerRoot.comparatorProperty());
-
-    startTimeColumn.setSortType(SortType.DESCENDING);
-    liveReplayControllerRoot.getSortOrder().add(startTimeColumn);
-    liveReplayControllerRoot.sort();
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
@@ -105,6 +102,10 @@ public class LiveReplayController extends AbstractViewController<Node> {
         -> JavaFxUtil.runLater(() -> selectedGame.set(newValue)));
 
     liveReplayControllerRoot.setItems(sortedList);
+
+    startTimeColumn.setSortType(SortType.DESCENDING);
+    liveReplayControllerRoot.getSortOrder().add(startTimeColumn);
+    liveReplayControllerRoot.sort();
   }
 
   private Node watchReplayButton(Game game) {
