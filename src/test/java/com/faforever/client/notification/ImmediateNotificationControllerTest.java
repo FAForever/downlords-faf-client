@@ -1,13 +1,11 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
@@ -23,12 +21,9 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
 
   private ImmediateNotificationController instance;
 
-  @Mock
-  private WebViewConfigurer webViewConfigurer;
-
   @Before
   public void setUp() throws Exception {
-    instance = new ImmediateNotificationController(webViewConfigurer);
+    instance = new ImmediateNotificationController();
     loadFxml("theme/immediate_notification.fxml", clazz -> instance);
   }
 
@@ -40,7 +35,7 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
-    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
+    assertEquals("text", instance.notificationText.getText());
     assertThat(instance.getDialogLayout().getActions(), empty());
   }
 
@@ -55,7 +50,7 @@ public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("title", ((Label) instance.getDialogLayout().getHeading().get(0)).getText());
-    assertEquals("text", instance.errorMessageView.getEngine().getDocument().getDocumentElement().getTextContent());
+    assertEquals("text", instance.notificationText.getText());
     assertThat(instance.getDialogLayout().getActions(), hasSize(1));
     assertEquals("actionTitle", ((Button) instance.getDialogLayout().getActions().get(0)).getText());
   }

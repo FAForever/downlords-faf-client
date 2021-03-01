@@ -1,6 +1,7 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.Game;
@@ -13,7 +14,6 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.base.Joiner;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -68,6 +68,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     selectedGame = new SimpleObjectProperty<>();
   }
 
+  @Override
   public void initialize() {
     initializeGameTable(gameService.getGames());
   }
@@ -77,10 +78,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
     filteredGameList.setPredicate(game -> game.getStatus() == GameStatus.PLAYING);
     SortedList<Game> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(liveReplayControllerRoot.comparatorProperty());
-
-    startTimeColumn.setSortType(SortType.DESCENDING);
-    liveReplayControllerRoot.getSortOrder().add(startTimeColumn);
-    liveReplayControllerRoot.sort();
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
@@ -102,9 +99,13 @@ public class LiveReplayController extends AbstractViewController<Node> {
     watchColumn.setCellFactory(param -> new NodeTableCell<>(this::watchReplayButton));
 
     liveReplayControllerRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
-        -> Platform.runLater(() -> selectedGame.set(newValue)));
+        -> JavaFxUtil.runLater(() -> selectedGame.set(newValue)));
 
     liveReplayControllerRoot.setItems(sortedList);
+
+    startTimeColumn.setSortType(SortType.DESCENDING);
+    liveReplayControllerRoot.getSortOrder().add(startTimeColumn);
+    liveReplayControllerRoot.sort();
   }
 
   private Node watchReplayButton(Game game) {
@@ -127,7 +128,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
         .map(Entry::getValue)
         .collect(Collectors.toList());
     if (simModCount > 2) {
-      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.size()));
+      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1));
     }
     return new SimpleStringProperty(Joiner.on(i18n.get("textSeparator")).join(modNames));
   }

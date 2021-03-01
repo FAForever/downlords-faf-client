@@ -11,8 +11,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
-import com.google.common.collect.Iterators;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
@@ -23,6 +21,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -47,10 +46,6 @@ import java.util.stream.Collectors;
 public abstract class VaultEntityController<T> extends AbstractViewController<Node> {
 
   protected static final int TOP_ELEMENT_COUNT = 7;
-  /**
-   * How many cards should be badged into one UI thread runnable.
-   */
-  private static final int BATCH_SIZE = 10;
   protected final UiService uiService;
   protected final NotificationService notificationService;
   protected final I18n i18n;
@@ -58,8 +53,10 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected final ReportingService reportingService;
   public Pane root;
   public StackPane vaultRoot;
+  public HBox searchBox;
   public VBox searchResultGroup;
   public Pane searchResultPane;
+  public Separator searchSeparator;
   public VBox showRoomGroup;
   public VBox loadingPane;
   public Button backButton;
@@ -70,7 +67,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public SearchController searchController;
   public Pagination pagination;
   public Button lastPageButton;
-  public Button manageModsButton;
+  public Button manageVaultButton;
   public Button firstPageButton;
   public SearchType searchType;
   public int pageSize;
@@ -88,6 +85,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }
 
+  protected abstract void initSearchController();
+
   protected abstract Node getEntityCard(T t);
 
   protected abstract List<ShowRoomCategory> getShowRoomCategories();
@@ -95,6 +94,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected abstract void setSupplier(SearchConfig searchConfig);
 
   protected abstract void onUploadButtonClicked();
+
+  protected abstract void onManageVaultButtonClicked();
 
   protected abstract Node getDetailView();
 
@@ -108,25 +109,17 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public void initialize() {
     super.initialize();
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    loadingPane.managedProperty().bind(loadingPane.visibleProperty());
-    searchResultGroup.managedProperty().bind(searchResultGroup.visibleProperty());
-    backButton.managedProperty().bind(backButton.visibleProperty());
-    refreshButton.managedProperty().bind(refreshButton.visibleProperty());
-    pagination.managedProperty().bind(pagination.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(loadingPane, searchResultGroup, backButton, refreshButton, pagination,
+        firstPageButton, lastPageButton, showRoomGroup, searchBox, searchSeparator);
 
-    firstPageButton.managedProperty().bind(firstPageButton.visibleProperty());
     firstPageButton.disableProperty().bind(pagination.currentPageIndexProperty().isEqualTo(0));
-    lastPageButton.managedProperty().bind(lastPageButton.visibleProperty());
     lastPageButton.disableProperty().bind(pagination.currentPageIndexProperty()
         .isEqualTo(pagination.pageCountProperty().subtract(1)));
 
-    showRoomGroup.managedProperty().bind(showRoomGroup.visibleProperty());
-
-    manageModsButton.managedProperty().bind(manageModsButton.visibleProperty());
-
-    backButton.setOnAction((event -> onBackButtonClicked()));
-    refreshButton.setOnAction((event -> onRefreshButtonClicked()));
-    uploadButton.setOnAction((event -> onUploadButtonClicked()));
+    backButton.setOnAction(event -> onBackButtonClicked());
+    refreshButton.setOnAction(event -> onRefreshButtonClicked());
+    uploadButton.setOnAction(event -> onUploadButtonClicked());
+    manageVaultButton.setOnAction(event -> onManageVaultButtonClicked());
 
     searchController.setSearchListener(this::onSearch);
     perPageComboBox.getItems().addAll(5, 10, 20, 50, 100, 200);
@@ -134,15 +127,17 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     perPageComboBox.setOnAction((event -> changePerPageCount()));
     pageSize = perPageComboBox.getValue();
 
+    initSearchController();
+
     BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);
     searchController.setSearchButtonDisabledCondition(inSearchableState);
 
     pagination.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> {
-          if (!oldValue.equals(newValue)) {
-            SearchConfig searchConfig = searchController.getLastSearchConfig();
-            onPageChange(searchConfig, false);
-            pagination.setMaxPageIndicatorCount(10);
-          }
+      if (!oldValue.equals(newValue)) {
+        SearchConfig searchConfig = searchController.getLastSearchConfig();
+        onPageChange(searchConfig, false);
+        pagination.setMaxPageIndicatorCount(10);
+      }
         }
     );
     paginationGroup.managedProperty().bind(paginationGroup.visibleProperty());
@@ -172,22 +167,23 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     List<VBox> childrenToAdd = showRoomCategories.parallelStream()
         .map(showRoomCategory -> {
           VaultEntityShowRoomController vaultEntityShowRoomController = loadShowRoom(showRoomCategory);
+          VBox showRoomRoot = vaultEntityShowRoomController.getRoot();
           synchronized (monitorForAddingFutures) {
             loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(ignored -> showRoomCategory.getEntitySupplier().get())
                 .thenAccept(result -> {
-                  vaultEntityShowRoomController.getRoot().managedProperty().bind(vaultEntityShowRoomController.getRoot().visibleProperty());
+                  showRoomRoot.managedProperty().bind(showRoomRoot.visibleProperty());
                   if (result.getFirst().isEmpty()) {
-                    vaultEntityShowRoomController.getRoot().setVisible(false);
+                    showRoomRoot.setVisible(false);
                   }
                   populate(result.getFirst(), vaultEntityShowRoomController.getPane());
                 }));
           }
-          return vaultEntityShowRoomController.getRoot();
+          return showRoomRoot;
         })
         .collect(Collectors.toList());
 
     loadingEntitiesFutureReference.get()
-        .thenRun(() -> Platform.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           showRoomGroup.getChildren().addAll(childrenToAdd);
           enterShowRoomState();
         }))
@@ -254,9 +250,8 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
   protected void displaySearchResult(List<T> results) {
     JavaFxUtil.assertBackgroundThread();
-    enterSearchingState();
     populate(results, searchResultPane);
-    Platform.runLater(this::enterResultState);
+    JavaFxUtil.runLater(this::enterResultState);
   }
 
   protected void displayFromSupplier(Supplier<CompletableFuture<Tuple<List<T>, Integer>>> supplier, boolean firstLoad) {
@@ -265,7 +260,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           displaySearchResult(tuple.getFirst());
           if (firstLoad) {
             //when theres no search results the page count should be 1, 0 (which is returned) results in infinite pages
-            Platform.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getSecond())));
+            JavaFxUtil.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getSecond())));
           }
         })
         .exceptionally(throwable -> {
@@ -282,17 +277,15 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         .map(this::getEntityCard)
         .collect(Collectors.toList());
 
-    Platform.runLater(children::clear);
-
-    Iterators.partition(childrenToAdd.iterator(), BATCH_SIZE).forEachRemaining(newChildren -> Platform.runLater(() -> {
-      children.addAll(newChildren);
-      // The more button is referenced by the panes user data
+    JavaFxUtil.runLater(() -> {
+      children.clear();
+      children.addAll(childrenToAdd);
       Object userData = pane.getUserData();
       if (userData == null) {
         return;
       }
       pane.getChildren().add((Node) userData);
-    }));
+    });
   }
 
   protected void onFirstPageOpened(SearchConfig searchConfig) {
@@ -339,7 +332,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   public enum SearchType {
-    SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, LADDER, PLAYED, HIGHEST_RATED_UI
+    SEARCH, OWN, NEWEST, HIGHEST_RATED, PLAYER, RECOMMENDED, MAP_POOL, PLAYED, HIGHEST_RATED_UI
   }
 
   @Value

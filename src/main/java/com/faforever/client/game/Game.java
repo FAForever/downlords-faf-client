@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -29,6 +30,7 @@ public class Game {
   private final IntegerProperty numPlayers;
   private final IntegerProperty maxPlayers;
   private final DoubleProperty averageRating;
+  private final StringProperty ratingType;
   private final ObjectProperty<Integer> minRating;
   private final ObjectProperty<Integer> maxRating;
   private final BooleanProperty passwordProtected;
@@ -38,6 +40,7 @@ public class Game {
   private final ObjectProperty<VictoryCondition> victoryCondition;
   private final ObjectProperty<Instant> startTime;
   private final BooleanProperty enforceRating;
+  private final ObjectProperty<GameType> gameType;
   /**
    * Maps a sim mod's UID to its name.
    */
@@ -57,6 +60,7 @@ public class Game {
     numPlayers = new SimpleIntegerProperty();
     maxPlayers = new SimpleIntegerProperty();
     averageRating = new SimpleDoubleProperty(0);
+    ratingType = new SimpleStringProperty();
     minRating = new SimpleObjectProperty<>(null);
     maxRating = new SimpleObjectProperty<>(null);
     passwordProtected = new SimpleBooleanProperty();
@@ -69,6 +73,7 @@ public class Game {
     status = new SimpleObjectProperty<>();
     startTime = new SimpleObjectProperty<>();
     enforceRating = new SimpleBooleanProperty(false);
+    gameType = new SimpleObjectProperty<>();
   }
 
   public String getHost() {
@@ -167,6 +172,18 @@ public class Game {
     this.averageRating.set(averageRating);
   }
 
+  public String getRatingType() {
+    return ratingType.get();
+  }
+
+  public void setRatingType(String ratingType) {
+    this.ratingType.set(ratingType);
+  }
+
+  public StringProperty ratingTypeProperty() {
+    return ratingType;
+  }
+
   public Integer getMinRating() {
     return minRating.get();
   }
@@ -223,6 +240,18 @@ public class Game {
     return victoryCondition;
   }
 
+  public GameType getGameType() {
+    return gameType.get();
+  }
+
+  public void setGameType(GameType gameType) {
+    this.gameType.set(gameType);
+  }
+
+  public ObjectProperty<GameType> gameTypeProperty() {
+    return gameType;
+  }
+
   /**
    * Returns a map of simulation mod UIDs to the mod's name.
    */
@@ -275,6 +304,10 @@ public class Game {
   public boolean equals(Object obj) {
     return obj instanceof Game
         && id.getValue().equals(((Game) obj).id.getValue());
+  }
+
+  public void setVisibility(GameVisibility visibility) {
+    this.visibility.setValue(visibility);
   }
 
   public GameVisibility getVisibility() {

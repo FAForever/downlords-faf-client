@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardRatingMapBuilder;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.remote.domain.GameStatus;
@@ -41,7 +42,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
     player = PlayerBuilder.create("junit").defaultValues().get();
     chatChannelUser = ChatChannelUserBuilder.create("junit")
         .defaultValues()
-        .setPlayer(player)
+        .player(player)
         .get();
 
     loadFxml("theme/chat/user_filter.fxml", clazz -> instance);
@@ -64,29 +65,27 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testIsBoundedByRatingWithinBounds() {
-    player.setGlobalRatingMean(500f);
-    player.setGlobalRatingDeviation(0f);
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().defaultValues().get());
 
-    instance.minRatingFilterField.setText("300");
-    instance.maxRatingFilterField.setText("700");
+    instance.minRatingFilterField.setText("-100");
+    instance.maxRatingFilterField.setText("100");
 
     assertTrue(instance.isBoundByRating(chatChannelUser));
   }
 
   @Test
   public void testIsBoundedByRatingNotWithinBounds() {
-    player.setGlobalRatingMean(500f);
-    player.setGlobalRatingDeviation(0f);
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().defaultValues().get());
 
-    instance.minRatingFilterField.setText("600");
-    instance.maxRatingFilterField.setText("300");
+    instance.minRatingFilterField.setText("300");
+    instance.maxRatingFilterField.setText("600");
 
     assertFalse(instance.isBoundByRating(chatChannelUser));
   }
 
   @Test
   public void testIsGameStatusMatchPlaying() {
-    player.setGame(GameBuilder.create().defaultValues().state(GameStatus.PLAYING).get());
+    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
     instance.playerStatusFilter = PLAYING;
 
     assertTrue(instance.isGameStatusMatch(chatChannelUser));
@@ -94,12 +93,12 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testIsGameStatusMatchLobby() {
-    player.setGame(GameBuilder.create().defaultValues().state(GameStatus.OPEN).host(player.getUsername()).get());
+    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get());
     instance.playerStatusFilter = HOSTING;
 
     assertTrue(instance.isGameStatusMatch(chatChannelUser));
 
-    player.setGame(GameBuilder.create().defaultValues().state(GameStatus.OPEN).get());
+    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.OPEN).get());
     instance.playerStatusFilter = LOBBYING;
 
     assertTrue(instance.isGameStatusMatch(chatChannelUser));

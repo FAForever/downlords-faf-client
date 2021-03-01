@@ -11,6 +11,7 @@ public final class CacheNames {
   public static final String ACHIEVEMENT_IMAGES = "achievementImages";
   public static final String ACHIEVEMENTS = "achievements";
   public static final String MODS = "mods";
+  public static final String LEADERBOARD = "Leaderboard";
   public static final String LADDER_1V1_LEADERBOARD = "ladder1v1Leaderboard";
   public static final String GLOBAL_LEADERBOARD = "globalLeaderboard";
   public static final String MAPS = "maps";
@@ -25,6 +26,8 @@ public final class CacheNames {
   public static final String FEATURED_MOD_FILES = "featuredModFiles";
   public static final String COOP_LEADERBOARD = "coopLeaderboard";
   public static final String CLAN = "clan";
+  public static final String MATCHMAKER_QUEUES = "matchmakerQueues";
+  public static final String MATCHMAKER_POOLS = "matchmakerPools";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

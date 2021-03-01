@@ -16,7 +16,8 @@ faf-client:
     linksYoutube: https://www.youtube.com/channel/UCkAWiUu4QE172kv-ZuyR42w
 
   vault:
-    rules_url: https://forums.faforever.com/viewtopic.php?f=2&t=17873
+    map_rules_url: https://forum.faforever.com/topic/323/faf-map-vault-rules-regulations
+    mod_rules_url: https://forum.faforever.com/topic/607/faf-mod-vault-rules-regulations
     map_validation_url: ${faf-client.api.base-url}/maps/validate
     mapDownloadUrlFormat: ${faf-client.vault.base-url}/maps/%s.zip
     mapPreviewUrlFormat: ${faf-client.vault.base-url}/maps/previews/%s/%s.png
@@ -61,10 +62,10 @@ faf-client:
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}
-  main:
-    web-environment: false
   application:
     name: Downlord's FAF Client
+  main:
+    web-application-type: none
 
 security:
   oauth2:

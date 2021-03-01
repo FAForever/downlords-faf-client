@@ -19,12 +19,12 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.base.Strings;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -70,8 +70,7 @@ import static javafx.collections.FXCollections.observableList;
 public class CoopController extends AbstractViewController<Node> {
 
   private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
-      gameInfoBean.getStatus() == GameStatus.OPEN
-          && COOP.getTechnicalName().equals(gameInfoBean.getFeaturedMod());
+      gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
 
   private final ReplayService replayService;
   private final GameService gameService;
@@ -148,7 +147,7 @@ public class CoopController extends AbstractViewController<Node> {
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
     coopService.getMissions().thenAccept(coopMaps -> {
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         missionComboBox.setItems(observableList(coopMaps));
         GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
 
@@ -162,7 +161,7 @@ public class CoopController extends AbstractViewController<Node> {
 
       SingleSelectionModel<CoopMission> selectionModel = missionComboBox.getSelectionModel();
       if (selectionModel.isEmpty()) {
-        Platform.runLater(selectionModel::selectFirst);
+        JavaFxUtil.runLater(selectionModel::selectFirst);
       }
     }).exceptionally(throwable -> {
       notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
@@ -234,7 +233,7 @@ public class CoopController extends AbstractViewController<Node> {
         .thenAccept(coopLeaderboardEntries -> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-          Platform.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
+          JavaFxUtil.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
         })
         .exceptionally(throwable -> {
           log.warn("Could not load coop leaderboard", throwable);
@@ -248,7 +247,7 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void setSelectedMission(CoopMission mission) {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       descriptionWebView.getEngine().loadContent(mission.getDescription());
       mapImageView.setImage(mapService.loadPreview(mission.getMapFolderName(), PreviewSize.SMALL));
     });
@@ -257,6 +256,7 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void populateContainer(Node root) {
+    JavaFxUtil.assertApplicationThread();
     gameViewContainer.getChildren().setAll(root);
     JavaFxUtil.setAnchors(root, 0d);
   }

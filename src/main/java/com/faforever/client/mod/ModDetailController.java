@@ -7,12 +7,13 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
-import javafx.application.Platform;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
@@ -45,6 +46,7 @@ public class ModDetailController implements Controller<Node> {
   private final TimeService timeService;
   private final ReviewService reviewService;
   private final PlayerService playerService;
+  private final UiService uiService;
 
   public Label updatedLabel;
   public Label sizeLabel;
@@ -57,6 +59,7 @@ public class ModDetailController implements Controller<Node> {
   public Button installButton;
   public ImageView thumbnailImageView;
   public Label nameLabel;
+  public Label idLabel;
   public Label uploaderLabel;
   public ProgressBar progressBar;
   public Label modDescriptionLabel;
@@ -68,14 +71,12 @@ public class ModDetailController implements Controller<Node> {
   private ListChangeListener<ModVersion> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
+    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
-    installButton.managedProperty().bind(installButton.visibleProperty());
-    progressBar.managedProperty().bind(progressBar.visibleProperty());
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
-    progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
-    getRoot().managedProperty().bind(getRoot().visibleProperty());
+
 
     modDetailRoot.setOnKeyPressed(keyEvent -> {
       if (keyEvent.getCode() == KeyCode.ESCAPE) {
@@ -124,6 +125,7 @@ public class ModDetailController implements Controller<Node> {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
     nameLabel.setText(modVersion.getDisplayName());
+    idLabel.setText(i18n.get("mod.idNumber", modVersion.getId()));
 
     setUploaderAndAuthor(modVersion);
 
@@ -142,7 +144,8 @@ public class ModDetailController implements Controller<Node> {
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
 
-    reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid()));
+    reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid())
+        && !modVersion.getMod().getAuthor().equals(player.getUsername()));
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
     reviewsController.setReviews(modVersion.getReviews());
@@ -153,10 +156,10 @@ public class ModDetailController implements Controller<Node> {
 
   private void setUploaderAndAuthor(ModVersion modVersion) {
     if (modVersion.getMod() != null) {
-      com.faforever.client.api.dto.Player uploader = modVersion.getMod().getUploader();
+      String uploader = modVersion.getMod().getUploader();
 
-      if (uploader != null && uploader.getLogin() != null) {
-        uploaderLabel.setText(i18n.get("modVault.details.uploader", uploader.getLogin()));
+      if (uploader != null) {
+        uploaderLabel.setText(i18n.get("modVault.details.uploader", uploader));
       } else {
         uploaderLabel.setText(null);
       }
@@ -164,20 +167,22 @@ public class ModDetailController implements Controller<Node> {
     }
   }
 
-  private void onDeleteReview(Review review) {
+  @VisibleForTesting
+  void onDeleteReview(Review review) {
     reviewService.deleteModVersionReview(review)
-        .thenRun(() -> Platform.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           modVersion.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be deleted", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
   }
 
-  private void onSendReview(Review review) {
+  @VisibleForTesting
+  void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
@@ -189,9 +194,9 @@ public class ModDetailController implements Controller<Node> {
           }
           reviewsController.setOwnReview(Optional.of(review));
         })
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
   }

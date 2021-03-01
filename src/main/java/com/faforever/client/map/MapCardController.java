@@ -9,8 +9,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import com.jfoenix.controls.JFXRippler;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ListChangeListener;
@@ -57,10 +55,8 @@ public class MapCardController implements Controller<Node> {
   private Consumer<MapBean> onOpenDetailListener;
   private ListChangeListener<MapBean> installStatusChangeListener;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
-  private JFXRippler jfxRippler;
 
   public void initialize() {
-    jfxRippler = new JFXRippler(mapTileRoot);
     installButton.managedProperty().bind(installButton.visibleProperty());
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installStatusChangeListener = change -> {
@@ -113,10 +109,9 @@ public class MapCardController implements Controller<Node> {
   }
 
   private void populateReviews() {
-    ObservableList<Review> reviews = map.getReviews();
-    Platform.runLater(() -> {
-      numberOfReviewsLabel.setText(i18n.number(reviews.size()));
-      starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
+    JavaFxUtil.runLater(() -> {
+      numberOfReviewsLabel.setText(i18n.number(map.getReviewsSummary().getReviews()));
+      starsController.setValue(map.getReviewsSummary().getScore() / map.getReviewsSummary().getReviews());
     });
   }
 
@@ -150,7 +145,7 @@ public class MapCardController implements Controller<Node> {
   }
 
   public Node getRoot() {
-    return jfxRippler;
+    return mapTileRoot;
   }
 
   public void setOnOpenDetailListener(Consumer<MapBean> onOpenDetailListener) {

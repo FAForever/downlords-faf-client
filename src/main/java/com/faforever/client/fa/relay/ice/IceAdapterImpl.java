@@ -73,7 +73,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final FafService fafService;
   private final PreferencesService preferencesService;
 
-  private IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
+  private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private CompletableFuture<Integer> iceAdapterClientFuture;
   private Process process;
   private LobbyMode lobbyInitMode;
@@ -292,6 +292,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
+    // TODO: Replace with game type. Needs https://github.com/FAForever/server/issues/685
     if (gameLaunchMessage.getInitMode() != null) {
       lobbyInitMode = gameLaunchMessage.getInitMode();
       return;

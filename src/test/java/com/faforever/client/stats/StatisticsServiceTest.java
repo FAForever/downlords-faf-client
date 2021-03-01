@@ -1,6 +1,7 @@
 package com.faforever.client.stats;
 
-import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.leaderboard.Leaderboard;
+import com.faforever.client.leaderboard.LeaderboardBuilder;
 import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,15 +18,17 @@ public class StatisticsServiceTest {
   private FafService fafService;
 
   private StatisticsService instance;
+  private Leaderboard leaderboard;
 
   @Before
   public void setUp() throws Exception {
+    leaderboard = LeaderboardBuilder.create().defaultValues().get();
     instance = new StatisticsService(fafService);
   }
 
   @Test
   public void testGetStatisticsForPlayer() throws Exception {
-    instance.getRatingHistory(KnownFeaturedMod.FAF, 123);
-    verify(fafService).getRatingHistory(123, KnownFeaturedMod.FAF);
+    instance.getRatingHistory(123, leaderboard);
+    verify(fafService).getRatingHistory(123, leaderboard.getId());
   }
 }

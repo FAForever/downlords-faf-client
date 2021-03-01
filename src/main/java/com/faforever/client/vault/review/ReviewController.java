@@ -38,6 +38,7 @@ public class ReviewController implements Controller<Pane> {
   public TextArea reviewTextArea;
   public Label starsTipLabel;
   public Label usernameLabel;
+  public Label versionLabel;
   public StarsController selectionStarsController;
   public StarsController displayStarsController;
   public ImageView avatarImageView;
@@ -92,6 +93,15 @@ public class ReviewController implements Controller<Pane> {
     displayStarsController.setValue(rating);
     usernameLabel.setText(definiteReview.getPlayer().getUsername());
     reviewTextLabel.setText(definiteReview.getText());
+    if (!definiteReview.getVersion().toString().isBlank()) {
+      if (definiteReview.getVersion() == definiteReview.getLatestVersion()) {
+        versionLabel.setText(i18n.get("review.currentVersion"));
+      } else {
+        versionLabel.setText(i18n.get("review.version", definiteReview.getVersion().toString()));
+      }
+    } else {
+      versionLabel.setVisible(false);
+    }
     displayReviewPane.setVisible(true);
     editReviewPane.setVisible(false);
     editButton.setVisible(isReviewOwnedByCurrentUser);

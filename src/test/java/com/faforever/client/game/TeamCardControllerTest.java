@@ -5,7 +5,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.Rating;
+import com.faforever.client.util.RatingUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
@@ -54,21 +54,30 @@ public class TeamCardControllerTest extends AbstractPlainJavaFxTest {
     when(ratingChangeLabelController.getRoot()).thenReturn(new Label());
     when(player.getId()).thenReturn(1);
 
-    playerStats = new PlayerStats(1, 1000, 0, 1100d, 0d, 0, null);
+    playerStats = PlayerStats.builder()
+        .playerId(1)
+        .beforeMean(1000.0)
+        .beforeDeviation(0.0)
+        .afterMean(1100.0)
+        .afterMean(0.0)
+        .score(0)
+        .faction(null)
+        .build();
+
     teams.put("2", Collections.singletonList(playerStats));
 
     loadFxml("theme/team_card.fxml", param -> instance);
   }
 
   @Test
-  public void setPlayersInTeam() throws Exception {
-    instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0), null, RatingType.ROUNDED);
+  public void setPlayersInTeam() {
+    instance.setPlayersInTeam("2", playerList, player -> RatingUtil.getRating(1000, 0), null, RatingPrecision.ROUNDED);
     verify(i18n).get("game.tooltip.teamTitle", 1, 1000);
   }
 
   @Test
-  public void showRatingChange() throws Exception {
-    instance.setPlayersInTeam("2", playerList, player -> new Rating(1000, 0), null, RatingType.EXACT);
+  public void showRatingChange() {
+    instance.setPlayersInTeam("2", playerList, player -> RatingUtil.getRating(1000, 0), null, RatingPrecision.EXACT);
     instance.showRatingChange(teams);
     verify(ratingChangeLabelController).setRatingChange(playerStats);
   }

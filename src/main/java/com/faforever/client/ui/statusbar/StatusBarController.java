@@ -23,8 +23,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
-import static javafx.application.Platform.runLater;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class StatusBarController implements Controller<Node> {
@@ -57,7 +55,7 @@ public class StatusBarController implements Controller<Node> {
     setCurrentWorkerInStatusBar(null);
     versionLabel.setText(Version.getCurrentVersion());
 
-    JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> runLater(() -> {
+    JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
       switch (newValue) {
         case DISCONNECTED:
           fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
@@ -77,7 +75,7 @@ public class StatusBarController implements Controller<Node> {
       }
     }));
 
-    JavaFxUtil.addListener(chatService.connectionStateProperty(), (observable, oldValue, newValue) -> runLater(() -> {
+    JavaFxUtil.addListener(chatService.connectionStateProperty(), (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
       chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
       chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
       switch (newValue) {
@@ -114,7 +112,7 @@ public class StatusBarController implements Controller<Node> {
    * @param worker the task to set, {@code null} to unset
    */
   private void setCurrentWorkerInStatusBar(Worker<?> worker) {
-    runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (worker == null) {
         taskPane.setVisible(false);
         taskProgressBar.progressProperty().unbind();

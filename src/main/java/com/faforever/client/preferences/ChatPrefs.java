@@ -2,6 +2,7 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
+import com.faforever.client.chat.ChatUserCategory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import javafx.beans.property.BooleanProperty;
@@ -24,7 +25,7 @@ import javafx.scene.paint.Color;
 import java.util.Locale;
 import java.util.Optional;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.preferences.LanguageChannel.FRENCH;
 import static com.faforever.client.preferences.LanguageChannel.GERMAN;
 import static com.faforever.client.preferences.LanguageChannel.RUSSIAN;
@@ -46,9 +47,11 @@ public class ChatPrefs {
   private final ObjectProperty<ChatColorMode> chatColorMode;
   private final IntegerProperty channelTabScrollPaneWidth;
   private final MapProperty<String, Color> userToColor;
+  private final MapProperty<ChatUserCategory, Color> groupToColor;
   private final BooleanProperty hideFoeMessages;
   private final BooleanProperty playerListShown;
   private final ObjectProperty<TimeInfo> timeFormat;
+  private final ObjectProperty<DateInfo> dateFormat;
   private final ObjectProperty<ChatFormat> chatFormat;
   private final ListProperty<String> autoJoinChannels;
   /**
@@ -58,6 +61,7 @@ public class ChatPrefs {
 
   public ChatPrefs() {
     timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
+    dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
     maxMessages = new SimpleIntegerProperty(500);
     zoom = new SimpleDoubleProperty(1);
     learnedAutoComplete = new SimpleBooleanProperty(false);
@@ -65,7 +69,8 @@ public class ChatPrefs {
     hideFoeMessages = new SimpleBooleanProperty(true);
     channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
     userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    chatColorMode = new SimpleObjectProperty<>(CUSTOM);
+    groupToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
+    chatColorMode = new SimpleObjectProperty<>(DEFAULT);
     idleThreshold = new SimpleIntegerProperty(10);
     chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
     autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -90,6 +95,14 @@ public class ChatPrefs {
 
   public void setTimeFormat(TimeInfo time) {
     this.timeFormat.set(time);
+  }
+
+  public DateInfo getDateFormat() {
+    return dateFormat.get();
+  }
+
+  public void setDateFormat(DateInfo date) {
+    this.dateFormat.set(date);
   }
 
   public ChatFormat getChatFormat() {
@@ -118,6 +131,18 @@ public class ChatPrefs {
 
   public MapProperty<String, Color> userToColorProperty() {
     return userToColor;
+  }
+
+  public ObservableMap<ChatUserCategory, Color> getGroupToColor() {
+    return groupToColor.get();
+  }
+
+  public void setGroupToColor(ObservableMap<ChatUserCategory, Color> groupToColor) {
+    this.groupToColor.set(groupToColor);
+  }
+
+  public MapProperty<ChatUserCategory, Color> groupToColorProperty() {
+    return groupToColor;
   }
 
   public boolean getPreviewImageUrls() {

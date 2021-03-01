@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -17,7 +16,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.concurrent.Task;
-import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
@@ -34,8 +32,6 @@ import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static com.faforever.client.task.CompletableTask.Priority.HIGH;
-
 @Lazy
 @Service
 @Profile(FafClientApplication.PROFILE_OFFLINE)
@@ -51,11 +47,11 @@ public class MockChatService implements ChatService, InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  private Timer timer = new Timer(true);
-  private Collection<Consumer<ChatMessage>> onChatMessageListeners = new ArrayList<>();
-  private Map<String, Channel> channelUserListListeners = new HashMap<>();
-  private ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
-  private IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private final Timer timer = new Timer(true);
+  private final Collection<Consumer<ChatMessage>> onChatMessageListeners = new ArrayList<>();
+  private final Map<String, ChatChannel> channelUserListListeners = new HashMap<>();
+  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
   @Override
   public void afterPropertiesSet() {
@@ -89,20 +85,12 @@ public class MockChatService implements ChatService, InitializingBean {
 
   @Override
   public CompletableFuture<String> sendMessageInBackground(String target, String message) {
-    return taskService.submitTask(new CompletableTask<String>(HIGH) {
-      @Override
-      protected String call() throws Exception {
-        updateTitle(i18n.get("chat.sendMessageTask.title"));
-
-        Thread.sleep(200);
-        return message;
-      }
-    }).getFuture();
+    return CompletableFuture.completedFuture(message);
   }
 
   @Override
-  public Channel getOrCreateChannel(String channelName) {
-    channelUserListListeners.putIfAbsent(channelName, new Channel(channelName));
+  public ChatChannel getOrCreateChannel(String channelName) {
+    channelUserListListeners.putIfAbsent(channelName, new ChatChannel(channelName));
     return channelUserListListeners.get(channelName);
   }
 
@@ -122,7 +110,7 @@ public class MockChatService implements ChatService, InitializingBean {
   }
 
   @Override
-  public void addChannelsListener(MapChangeListener<String, Channel> listener) {
+  public void addChannelsListener(MapChangeListener<String, ChatChannel> listener) {
 
   }
 
@@ -146,15 +134,15 @@ public class MockChatService implements ChatService, InitializingBean {
     ConcurrentUtil.executeInBackground(new Task<Void>() {
       @Override
       protected Void call() throws Exception {
-        ChatChannelUser chatUser = new ChatChannelUser(userService.getUsername(), null, false);
-        ChatChannelUser mockUser = new ChatChannelUser("MockUser", null, false);
-        ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", null, true);
+        ChatChannelUser chatUser = new ChatChannelUser(userService.getUsername(), false);
+        ChatChannelUser mockUser = new ChatChannelUser("MockUser", false);
+        ChatChannelUser moderatorUser = new ChatChannelUser("MockModerator", true);
 
-        Channel channel = getOrCreateChannel(channelName);
-        channel.addUser(chatUser);
-        channel.addUser(mockUser);
-        channel.addUser(moderatorUser);
-        channel.setTopic("le wild channel topic appears");
+        ChatChannel chatChannel = getOrCreateChannel(channelName);
+        chatChannel.addUser(chatUser);
+        chatChannel.addUser(mockUser);
+        chatChannel.addUser(moderatorUser);
+        chatChannel.setTopic("le wild channel topic appears");
 
         return null;
       }
@@ -216,8 +204,8 @@ public class MockChatService implements ChatService, InitializingBean {
   }
 
   @Override
-  public ChatChannelUser getChatUser(String username, String channelName) {
-    return new ChatChannelUser(username, Color.ALICEBLUE, false);
+  public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
+    return new ChatChannelUser(username, false);
   }
 
   @Override

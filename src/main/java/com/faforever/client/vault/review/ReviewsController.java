@@ -23,6 +23,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public class ReviewsController implements Controller<Pane> {
   private Pane ownReviewRoot;
   private Consumer<Review> onDeleteReviewListener;
   private ObservableList<Review> reviews;
-  private InvalidationListener onReviewsChangedListener;
+  private final InvalidationListener onReviewsChangedListener;
   private Optional<Review> ownReview;
   private List<List<Review>> reviewPages;
   private int currentReviewPage;
@@ -72,14 +73,14 @@ public class ReviewsController implements Controller<Pane> {
     this.i18n = i18n;
     this.uiService = uiService;
     this.playerService = playerService;
-    onReviewsChangedListener = observable -> Platform.runLater(this::onReviewsChanged);
+    onReviewsChangedListener = observable -> JavaFxUtil.runLater(this::onReviewsChanged);
     ownReview = Optional.empty();
   }
 
   public void initialize() {
     ownReviewRoot = ownReviewPaneController.getRoot();
     JavaFxUtil.setAnchors(ownReviewRoot, 0d);
-    ownReviewRoot.managedProperty().bind(ownReviewRoot.visibleProperty());
+
     ownReviewRoot.setVisible(false);
     ownReviewPaneController.setOnDeleteReviewListener(this::onDeleteReview);
     ownReviewPaneController.setOnCancelListener(this::onCancelReview);
@@ -87,15 +88,11 @@ public class ReviewsController implements Controller<Pane> {
 
     // Prevent flickering
     setReviews(FXCollections.emptyObservableList());
-    createReviewButton.managedProperty().bind(createReviewButton.visibleProperty());
     createReviewButton.setVisible(false);
-
-    ownReviewLabel.managedProperty().bind(ownReviewLabel.visibleProperty());
     ownReviewLabel.setVisible(false);
 
-    pageLeftButton.managedProperty().bind(pageLeftButton.visibleProperty());
-    reviewsPagination.managedProperty().bind(reviewsPagination.visibleProperty());
-    pageRightButton.managedProperty().bind(pageRightButton.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(createReviewButton, ownReviewLabel, ownReviewRoot, pageLeftButton,
+        reviewsPagination, pageRightButton);
   }
 
   private void onDeleteReview(Review review) {
@@ -122,13 +119,13 @@ public class ReviewsController implements Controller<Pane> {
   }
 
   public void setReviews(ObservableList<Review> reviews) {
-    this.reviews = reviews;
+    this.reviews = reviews.sorted(Comparator.comparing(Review::getVersion).reversed());
 
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player available"));
 
-    JavaFxUtil.addListener(reviews, onReviewsChangedListener);
-    FilteredList<Review> onlyOtherNonEmptyReviews = reviews
+    JavaFxUtil.addListener(this.reviews, onReviewsChangedListener);
+    FilteredList<Review> onlyOtherNonEmptyReviews = this.reviews
         .filtered(review -> review.getPlayer().getId() != currentPlayer.getId() && !Strings.isNullOrEmpty(review.getText()));
 
     reviewPages = Lists.newArrayList(Iterables.partition(onlyOtherNonEmptyReviews, REVIEWS_PER_PAGE));
@@ -140,12 +137,12 @@ public class ReviewsController implements Controller<Pane> {
     if (Platform.isFxApplicationThread()) {
       onReviewsChanged();
     } else {
-      Platform.runLater(this::onReviewsChanged);
+      JavaFxUtil.runLater(this::onReviewsChanged);
     }
   }
 
   public void setCanWriteReview(boolean canWriteReview) {
-    createReviewButton.setVisible(canWriteReview);
+    createReviewButton.setDisable(!canWriteReview);
   }
 
   private void displayReviewsPage(int page) {
@@ -164,7 +161,7 @@ public class ReviewsController implements Controller<Pane> {
         })
         .collect(Collectors.toList());
 
-    Platform.runLater(() -> otherReviewsContainer.getChildren().setAll(reviewNodes));
+    JavaFxUtil.runLater(() -> otherReviewsContainer.getChildren().setAll(reviewNodes));
   }
 
   private void onReviewsChanged() {
@@ -205,7 +202,7 @@ public class ReviewsController implements Controller<Pane> {
 
   public void setOwnReview(Optional<Review> ownReview) {
     this.ownReview = ownReview;
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (ownReview.isPresent()) {
         ownReviewPaneController.setReview(ownReview);
         ownReviewRoot.setVisible(true);

@@ -11,9 +11,6 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue.QueueName;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -21,13 +18,14 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.Player;
 import com.faforever.client.remote.domain.PlayersMessage;
-import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
@@ -130,15 +128,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
             updatedAchievementsMessage.setUpdatedAchievements(Arrays.asList(updatedAchievement));
 
             messageListeners.getOrDefault(updatedAchievementsMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(updatedAchievementsMessage));
-          }
-        }, 7000);
-
-        timer.schedule(new TimerTask() {
-          @Override
-          public void run() {
-            MatchmakerInfoMessage matchmakerServerMessage = new MatchmakerInfoMessage();
-            matchmakerServerMessage.setQueues(singletonList(new MatchmakerQueue(QueueName.LADDER_1V1, null, singletonList(new RatingRange(100, 200)), singletonList(new RatingRange(100, 200)))));
-            messageListeners.getOrDefault(matchmakerServerMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(matchmakerServerMessage));
           }
         }, 7000);
 
@@ -245,8 +234,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction) {
-    logger.debug("Searching 1v1 match with faction: {}", faction);
+  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+    logger.debug("Starting matchmaker game");
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
     gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
@@ -254,8 +243,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void stopSearchingRanked() {
-    logger.debug("Stopping searching 1v1 match");
+  public void stopSearchMatchmaker() {
+
   }
 
   @Override
@@ -315,6 +304,46 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public void ping() {
+
+  }
+
+  @Override
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
+
+  }
+
+  @Override
+  public void inviteToParty(com.faforever.client.player.Player recipient) {
+
+  }
+
+  @Override
+  public void acceptPartyInvite(com.faforever.client.player.Player sender) {
+
+  }
+
+  @Override
+  public void kickPlayerFromParty(com.faforever.client.player.Player kickedPlayer) {
+
+  }
+
+  @Override
+  public void readyParty() {
+
+  }
+
+  @Override
+  public void unreadyParty() {
+
+  }
+
+  @Override
+  public void leaveParty() {
+
+  }
+
+  @Override
+  public void setPartyFactions(List<Faction> factions) {
 
   }
 

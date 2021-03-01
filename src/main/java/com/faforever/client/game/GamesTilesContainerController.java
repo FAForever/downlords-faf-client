@@ -40,7 +40,7 @@ public class GamesTilesContainerController implements Controller<Node> {
   public FlowPane tiledFlowPane;
   public ScrollPane tiledScrollPane;
   private final ChangeListener<? super TilesSortingOrder> sortingListener;
-  private ObjectProperty<Game> selectedGame;
+  private final ObjectProperty<Game> selectedGame;
   private Comparator<Node> appliedComparator;
   @VisibleForTesting
   Map<Integer, Node> uidToGameCard;
@@ -108,10 +108,10 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   @VisibleForTesting
   void createTiledFlowPane(ObservableList<Game> games, ComboBox<TilesSortingOrder> choseSortingTypeChoiceBox) {
+    JavaFxUtil.assertApplicationThread();
     initializeChoiceBox(choseSortingTypeChoiceBox);
     uidToGameCard = new HashMap<>();
 
-    JavaFxUtil.assertApplicationThread();
     //No lock is needed here because game updates are always done on the Application thread
     games.forEach(this::addGameCard);
     JavaFxUtil.addListener(games, new WeakListChangeListener<>(gameListChangeListener));
@@ -122,7 +122,6 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   private void initializeChoiceBox(ComboBox<TilesSortingOrder> sortingTypeChoiceBox) {
     sortingTypeChoiceBox.setVisible(true);
-    sortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     sortingTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener(new WeakChangeListener<>(sortingListener));
     sortingTypeChoiceBox.getSelectionModel().select(preferencesService.getPreferences().getGameTileSortingOrder());
   }

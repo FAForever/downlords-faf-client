@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 public class I18n implements InitializingBean {
   private static final Pattern MESSAGES_FILE_PATTERN = Pattern.compile("(.*[/\\\\]messages)(?:_([a-z]{2}))(?:_([a-z]{2}))?\\.properties", Pattern.CASE_INSENSITIVE);
@@ -93,7 +95,25 @@ public class I18n implements InitializingBean {
   }
 
   public String get(Locale locale, String key, Object... args) {
-    return messageSource.getMessage(key, args, locale);
+    try {
+      return messageSource.getMessage(key, args, locale);
+    } catch (Exception e) {
+      log.error("Could not load message {} with locale {} defaulting to US english", key, locale, e);
+      return messageSource.getMessage(key, args, Locale.US);
+    }
+  }
+
+  public String getWithDefault(String defaultMessage, String key, Object... args) {
+    return getWithDefault(userSpecificLocale, defaultMessage, key, args);
+  }
+
+  public String getWithDefault(Locale locale, String defaultMessage, String key, Object... args) {
+    try {
+      return messageSource.getMessage(key, args, defaultMessage, locale);
+    } catch (Exception e) {
+      log.error("Could not load message {} with locale {} defaulting to US english", key, locale, e);
+      return messageSource.getMessage(key, args, defaultMessage, Locale.US);
+    }
   }
 
   public Locale getUserSpecificLocale() {

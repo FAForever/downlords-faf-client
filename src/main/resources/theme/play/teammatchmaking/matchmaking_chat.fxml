@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.web.WebView?>
+<Tab xmlns="http://javafx.com/javafx"
+     xmlns:fx="http://javafx.com/fxml" fx:id="matchmakingChatTabRoot"
+     fx:controller="com.faforever.client.chat.MatchmakingChatController">
+    <VBox>
+        <children>
+            <HBox spacing="50.0">
+                <StackPane maxHeight="28.0">
+                    <Label styleClass="discord-icon-background" maxWidth="16" maxHeight="16" />
+                    <Button styleClass="discord-button" onAction="#onDiscordButtonClicked">
+                        <graphic>
+                            <Region styleClass="icon,discord-icon,discord-color"/>
+                        </graphic>
+                        <tooltip>
+                            <Tooltip text="%discord.join"/>
+                        </tooltip>
+                    </Button>
+                </StackPane>
+                <TextFlow fx:id="topicText" maxWidth="1.7976931348623157E308">
+                    <Hyperlink fx:id="discordLink" text="https://discord.gg/jj9yGUP" onAction="#onDiscordButtonClicked" styleClass="discord-invite-link"/>
+                </TextFlow>
+                <padding>
+                    <Insets left="5.0" right="5.0" top="4.0" bottom="2.0"/>
+                </padding>
+            </HBox>
+            <Separator maxWidth="1.7976931348623157E308" />
+            <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                       promptText="%chat.messagePrompt" styleClass="tmm-chat">
+            </TextField>
+        </children>
+    </VBox>
+</Tab>

@@ -1,7 +1,6 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.theme.UiService;
-import javafx.application.Platform;
 import javafx.scene.control.ListCell;
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +21,7 @@ public class DualStringListCell<T> extends ListCell<T> {
   @Override
   protected void updateItem(T item, boolean empty) {
     super.updateItem(item, empty);
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (empty || item == null) {
         setText(null);
         setGraphic(null);

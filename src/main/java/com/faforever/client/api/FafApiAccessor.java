@@ -6,23 +6,25 @@ import com.faforever.client.api.dto.CoopMission;
 import com.faforever.client.api.dto.CoopResult;
 import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
-import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.GlobalLeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
-import com.faforever.client.api.dto.Ladder1v1Map;
+import com.faforever.client.api.dto.Leaderboard;
+import com.faforever.client.api.dto.LeaderboardEntry;
+import com.faforever.client.api.dto.LeaderboardRatingJournal;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
+import com.faforever.client.api.dto.MatchmakerQueue;
+import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.ModerationReport;
+import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.api.dto.Tournament;
 import com.faforever.client.api.dto.TutorialCategory;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -43,7 +45,6 @@ public interface FafApiAccessor {
 
   List<PlayerAchievement> getPlayerAchievements(int playerId);
 
-  @SuppressWarnings("unchecked")
   List<PlayerEvent> getPlayerEvents(int playerId);
 
   List<AchievementDefinition> getAchievementDefinitions();
@@ -56,13 +57,15 @@ public interface FafApiAccessor {
 
   List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods();
 
-  List<Ladder1v1LeaderboardEntry> getLadder1v1Leaderboard();
+  List<Leaderboard> getLeaderboards();
 
-  List<GlobalLeaderboardEntry> getGlobalLeaderboard();
+  List<LeaderboardEntry> getAllLeaderboardEntries(String leaderboardTechnicalName);
 
-  Ladder1v1LeaderboardEntry getLadder1v1EntryForPlayer(int playerId);
+  Tuple<List<LeaderboardEntry>, java.util.Map<String, ?>> getLeaderboardEntriesWithMeta(String leaderboardTechnicalName, int count, int page);
 
-  List<GamePlayerStats> getGamePlayerStats(int playerId, KnownFeaturedMod knownFeaturedMod);
+  List<LeaderboardEntry> getLeaderboardEntriesForPlayer(int playerId);
+
+  List<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId);
 
   Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page);
 
@@ -96,7 +99,11 @@ public interface FafApiAccessor {
 
   Optional<MapVersion> findMapByFolderName(String folderName);
 
-  List<com.faforever.client.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds);
+  Optional<MapVersion> getMapLatestVersion(String mapFolderName);
+
+  List<Player> getPlayersByIds(Collection<Integer> playerIds);
+
+  Optional<Player> queryPlayerByName(String playerName);
 
   GameReview createGameReview(GameReview review);
 
@@ -128,9 +135,15 @@ public interface FafApiAccessor {
 
   Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page);
 
-  Tuple<List<Ladder1v1Map>, java.util.Map<String, ?>> getLadder1v1MapsWithMeta(int count, int page);
+  List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId);
+
+  Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName);
 
   List<Tournament> getAllTournaments();
+
+  List<ModerationReport> getPlayerModerationReports(int playerId);
+
+  void postModerationReport(com.faforever.client.reporting.ModerationReport report);
 
   Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page);
 

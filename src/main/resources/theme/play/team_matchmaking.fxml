@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<StackPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1"
+           fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController" fx:id="teamMatchmakingRoot">
+    <GridPane fx:id="contentPane">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="710.0"/>
+            <ColumnConstraints hgrow="ALWAYS" fx:id="column2" />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES" />
+            <RowConstraints vgrow="ALWAYS" fx:id="row2"/>
+        </rowConstraints>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" >
+            <VBox fx:id="preparationArea" spacing="25.0" >
+                <children>
+                    <Label fx:id="matchmakerHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.playerTitle"/>
+                    <AnchorPane>
+                        <HBox fx:id="playerCard" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
+                              AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                              AnchorPane.rightAnchor="0.0">
+                            <padding>
+                                <Insets bottom="10.0" left="15.0" right="15.0" top="10.0"/>
+                            </padding>
+                            <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0"
+                                       preserveRatio="true">
+                            </ImageView>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <children>
+                                    <HBox alignment="CENTER_LEFT" spacing="4.0">
+                                        <children>
+                                            <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]:">
+                                                <padding>
+                                                    <Insets bottom="-4.0"/>
+                                                </padding>
+                                            </Label>
+                                            <Label fx:id="usernameLabel" styleClass="name" text="&lt;Username&gt;"/>
+                                            <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0"
+                                                       preserveRatio="true">
+                                                <HBox.margin>
+                                                    <Insets left="5.0"/>
+                                                </HBox.margin>
+                                            </ImageView>
+                                        </children>
+                                        <padding>
+                                            <Insets top="1.0" bottom="-1.0"/>
+                                        </padding>
+                                    </HBox>
+                                    <HBox spacing="15.0">
+                                        <Label fx:id="leagueLabel" styleClass="player-card-text"
+                                               text="%leaderboard.divisionName"/>
+                                        <Label fx:id="gameCountLabel" styleClass="player-card-text"
+                                               text="%teammatchmaking.gameCount"/>
+                                        <Pane HBox.hgrow="ALWAYS"/>
+                                        <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0"
+                                                   preserveRatio="true"/>
+                                        <Pane minWidth="15.0"/>
+                                    </HBox>
+                                </children>
+                            </VBox>
+                            <ToggleButton fx:id="uefButton" mnemonicParsing="false"
+                                          styleClass="faction-button, tmm, uef"
+                                          onAction="#onFactionButtonClicked" selected="true">
+                                <graphic>
+                                    <Region styleClass="uef-icon"/>
+                                </graphic>
+                            </ToggleButton>
+                            <ToggleButton fx:id="cybranButton" mnemonicParsing="false"
+                                          styleClass="faction-button, tmm, cybran"
+                                          onAction="#onFactionButtonClicked" selected="true">
+                                <graphic>
+                                    <Region styleClass="cybran-icon"/>
+                                </graphic>
+                            </ToggleButton>
+                            <ToggleButton fx:id="aeonButton" mnemonicParsing="false"
+                                          styleClass="faction-button, tmm, aeon"
+                                          onAction="#onFactionButtonClicked" selected="true">
+                                <graphic>
+                                    <Region styleClass="aeon-icon"/>
+                                </graphic>
+                            </ToggleButton>
+                            <ToggleButton fx:id="seraphimButton" mnemonicParsing="false"
+                                          styleClass="faction-button, tmm, seraphim"
+                                          onAction="#onFactionButtonClicked" selected="true">
+                                <graphic>
+                                    <Region styleClass="seraphim-icon"/>
+                                </graphic>
+                            </ToggleButton>
+                        </HBox>
+                        <Label fx:id="crownLabel" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" >
+                            <graphic>
+                                <Region styleClass="icon, crown-icon" />
+                            </graphic>
+                        </Label>
+                        <padding>
+                            <Insets top="-10.0" />
+                        </padding>
+                    </AnchorPane>
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <children>
+                            <Label fx:id="partyHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.partyTitle"/>
+                            <Button fx:id="invitePlayerButton" mnemonicParsing="false"
+                                    styleClass="tmm, invite-button"
+                                    text="%teammatchmaking.invitePlayer" onAction="#onInvitePlayerButtonClicked"/>
+                            <Button fx:id="leavePartyButton" mnemonicParsing="false"
+                                    styleClass="tmm, leave-button"
+                                    text="%teammatchmaking.leaveParty" onAction="#onLeavePartyButtonClicked"/>
+                            <Label fx:id="refreshingLabel" visible="false" >
+                                <graphic>
+                                    <Region styleClass="icon, refresh-icon" />
+                                </graphic>
+                            </Label>
+                        </children>
+                    </HBox>
+                    <GridPane fx:id="partyMemberPane" hgap="35" vgap="23">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50.0"/>
+                            <ColumnConstraints percentWidth="50.0"/>
+                        </columnConstraints>
+                    </GridPane>
+                    <Separator/>
+                    <Label fx:id="queueHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.queueTitle"/>
+                    <HBox fx:id="queueBox" spacing="12.0"/>
+                </children>
+                <padding>
+                    <Insets bottom="5.0" left="20.0" right="20.0" top="23.0"/>
+                </padding>
+            </VBox>
+        </ScrollPane>
+        <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane" tabClosingPolicy="UNAVAILABLE"
+                 GridPane.columnIndex="1" GridPane.fillWidth="true" GridPane.rowSpan="2" />
+    </GridPane>
+</StackPane>

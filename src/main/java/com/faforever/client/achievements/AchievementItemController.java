@@ -5,10 +5,10 @@ import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
 import com.google.common.base.MoreObjects;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -82,7 +82,7 @@ public class AchievementItemController implements Controller<Node> {
       Integer currentSteps = MoreObjects.firstNonNull(playerAchievement.getCurrentSteps(), 0);
       Integer totalSteps = achievementDefinition.getTotalSteps();
       progressBar.setProgress((double) currentSteps / totalSteps);
-      Platform.runLater(() -> progressLabel.setText(i18n.get("achievement.stepsFormat", currentSteps, totalSteps)));
+      JavaFxUtil.runLater(() -> progressLabel.setText(i18n.get("achievement.stepsFormat", currentSteps, totalSteps)));
     }
   }
 }

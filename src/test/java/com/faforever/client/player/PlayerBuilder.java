@@ -1,7 +1,13 @@
 package com.faforever.client.player;
 
 import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.chat.avatar.AvatarBeanBuilder;
+import com.faforever.client.clan.ClanBuilder;
 import com.faforever.client.game.Game;
+import com.faforever.client.leaderboard.LeaderboardRating;
+import com.faforever.client.leaderboard.LeaderboardRatingMapBuilder;
+
+import java.util.Map;
 
 public class PlayerBuilder {
 
@@ -16,12 +22,13 @@ public class PlayerBuilder {
   }
 
   public PlayerBuilder defaultValues() {
-    return id(1)
-        .leaderboardRatingDeviation(250)
-        .leaderboardRatingMean(1500)
-        .socialStatus(SocialStatus.OTHER)
-        .clan("e")
-        .country("US");
+    id(1);
+    leaderboardRatings(LeaderboardRatingMapBuilder.create().defaultValues().get());
+    socialStatus(SocialStatus.OTHER);
+    clan(ClanBuilder.TEST_CLAN_TAG);
+    country("US");
+    avatar(AvatarBeanBuilder.create().defaultValues().get());
+    return this;
   }
 
   public PlayerBuilder clan(String clan) {
@@ -43,13 +50,8 @@ public class PlayerBuilder {
     return this;
   }
 
-  public PlayerBuilder leaderboardRatingMean(float mean) {
-    player.setLeaderboardRatingMean(mean);
-    return this;
-  }
-
-  public PlayerBuilder leaderboardRatingDeviation(float deviation) {
-    player.setLeaderboardRatingDeviation(deviation);
+  public PlayerBuilder leaderboardRatings(Map<String, LeaderboardRating> leaderboardRatingMap) {
+    player.setLeaderboardRatings(leaderboardRatingMap);
     return this;
   }
 

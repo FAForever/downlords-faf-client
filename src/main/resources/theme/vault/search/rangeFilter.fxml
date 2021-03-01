@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.controlsfx.control.RangeSlider?>
+<MenuButton xmlns:fx="http://javafx.com/fxml/1" fx:id="menu"
+            xmlns="http://javafx.com/javafx/8.0.121"
+            fx:controller="com.faforever.client.query.RangeFilterController" styleClass="query-filter">
+    <items>
+        <CustomMenuItem hideOnClick="false" styleClass="query-item">
+            <content>
+                <VBox>
+                    <RangeSlider fx:id="rangeSlider"/>
+                    <HBox>
+                        <TextField fx:id="lowValue" promptText="%search.lowValue"/>
+                        <TextField fx:id="highValue" promptText="%search.highValue"/>
+                    </HBox>
+                </VBox>
+            </content>
+        </CustomMenuItem>
+    </items>
+</MenuButton>

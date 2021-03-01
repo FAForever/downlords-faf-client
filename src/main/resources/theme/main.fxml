@@ -13,8 +13,6 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
-<?import javafx.scene.control.Tooltip?>
 <StackPane fx:id="mainRoot" alignment="TOP_LEFT" minHeight="10.0" minWidth="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.main.MainController">
     <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="10.0" VBox.vgrow="ALWAYS">
         <children>
@@ -28,46 +26,56 @@
                                   <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder" />
                                   <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder" />
                                   <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder" />
-                                  <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile" />
-                                  <SeparatorMenuItem mnemonicParsing="false" />
-                                  <MenuItem disable="true" text="%menu.feedback" />
-                                  <MenuItem onAction="#onLinksAndHelp" text="%help.title" />
-                                  <SeparatorMenuItem mnemonicParsing="false" />
-                                  <MenuItem onAction="#onSettingsSelected" text="%menu.settings" />
-                                  <SeparatorMenuItem mnemonicParsing="false" />
-                                  <MenuItem onAction="#onExitItemSelected" text="%menu.exit" />
+                                  <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
+                                  <SeparatorMenuItem mnemonicParsing="false"/>
+                                  <MenuItem disable="true" text="%menu.feedback"/>
+                                  <MenuItem onAction="#onLinksAndHelp" text="%help.title"/>
+                                  <SeparatorMenuItem mnemonicParsing="false"/>
+                                  <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
+                                  <SeparatorMenuItem mnemonicParsing="false"/>
+                                  <MenuItem onAction="#onExitItemSelected" text="%menu.exit"/>
                               </items>
                           </MenuButton>
-                          <ToggleButton fx:id="newsButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.news">
-                              <toggleGroup>
-                                  <ToggleGroup fx:id="mainNavigation" />
-                              </toggleGroup>
-                          </ToggleButton>
-                          <ToggleButton fx:id="chatButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onChat" styleClass="main-navigation-button" text="%main.chat" toggleGroup="$mainNavigation" />
-                          <ToggleButton fx:id="playButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.play" toggleGroup="$mainNavigation" />
-                          <ToggleButton fx:id="vaultButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.vault" toggleGroup="$mainNavigation" />
-                          <ToggleButton fx:id="leaderboardsButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.leaderboards" toggleGroup="$mainNavigation" />
-                          <ToggleButton fx:id="tournamentsButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.tournaments" toggleGroup="$mainNavigation" />
-                          <ToggleButton fx:id="unitsButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.units" toggleGroup="$mainNavigation" />
-                          <ToggleButton fx:id="tutorialsButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onNavigateButtonClicked" styleClass="main-navigation-button" text="%main.tutorials" toggleGroup="$mainNavigation" />
+                      <ToggleButton fx:id="newsButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.news">
+                          <toggleGroup>
+                              <ToggleGroup fx:id="mainNavigation"/>
+                          </toggleGroup>
+                      </ToggleButton>
+                      <ToggleButton fx:id="chatButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onChat"
+                                    styleClass="main-navigation-button" text="%main.chat"
+                                    toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="playButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onPlay" styleClass="main-navigation-button"
+                                    text="%main.play" toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="replayButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.replay" toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="mapButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.maps" toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="modButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.mods" toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="leaderboardsButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.leaderboards" toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="tournamentsButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.tournaments" toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="unitsButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.units" toggleGroup="$mainNavigation"/>
+                      <ToggleButton fx:id="tutorialsButton" minWidth="-Infinity" mnemonicParsing="false"
+                                    onAction="#onNavigateButtonClicked" styleClass="main-navigation-button"
+                                    text="%main.tutorials" toggleGroup="$mainNavigation"/>
                   </children>
                </HBox>
                <MenuButton fx:id="navigationDropdown" minHeight="-Infinity" minWidth="-Infinity" />
                     <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
                <HBox fx:id="rightMenuPane" alignment="TOP_RIGHT" maxHeight="-Infinity" minHeight="-Infinity" minWidth="-Infinity" styleClass="right-menu">
                    <children>
-                       <Button fx:id="discordButton" maxHeight="-Infinity" mnemonicParsing="false"
-                               styleClass="discord-button" onAction="#onDiscordButtonClicked">
-                           <graphic>
-                               <Region styleClass="icon,discord-icon"/>
-                           </graphic>
-                           <tooltip>
-                               <Tooltip text="%discord.join"/>
-                           </tooltip>
-                           <HBox.margin>
-                               <Insets right="10.0"/>
-                           </HBox.margin>
-                       </Button>
                        <StackPane alignment="TOP_RIGHT" maxHeight="-Infinity">
                            <children>
                                <Button fx:id="notificationButton" contentDisplay="CENTER"

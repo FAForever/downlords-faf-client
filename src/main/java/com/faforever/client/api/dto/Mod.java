@@ -35,4 +35,7 @@ public class Mod {
 
   @Relationship("latestVersion")
   private ModVersion latestVersion;
+
+  @Relationship("reviewsSummary")
+  private ModReviewsSummary modReviewsSummary;
 }

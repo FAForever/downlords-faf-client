@@ -1,10 +1,10 @@
 package com.faforever.client.ui.alert;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.ui.effects.DepthManager;
 import com.sun.javafx.event.EventHandlerManager;
 import javafx.animation.Animation;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -266,7 +266,7 @@ public class Alert<R> extends Dialog<R> {
       } else {
         animateClosing = false;
         transition = null;
-        Platform.runLater(this::hide);
+        JavaFxUtil.runLater(this::hide);
       }
     }
   }

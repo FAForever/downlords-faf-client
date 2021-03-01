@@ -5,17 +5,18 @@ import com.faforever.client.api.dto.Event;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GamePlayerStats;
 import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.Ladder1v1LeaderboardEntry;
+import com.faforever.client.api.dto.LeaderboardRatingJournal;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.ModerationReport;
+import com.faforever.client.api.dto.Player;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.leaderboard.LeaderboardEntry;
-import com.faforever.client.mod.ModInfoBeanBuilder;
 import com.faforever.client.mod.ModVersion;
+import com.faforever.client.mod.ModVersionBuilder;
+import com.faforever.client.reporting.ModerationReportBuilder;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,22 +32,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.verify;
@@ -158,10 +164,10 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  public void testGetMods() {
+  public void testGetMods() throws MalformedURLException {
     List<ModVersion> modVersions = Arrays.asList(
-        ModInfoBeanBuilder.create().defaultValues().uid("1").get(),
-        ModInfoBeanBuilder.create().defaultValues().uid("2").get()
+        ModVersionBuilder.create().defaultValues().uid("1").get(),
+        ModVersionBuilder.create().defaultValues().uid("2").get()
     );
 
     when(restOperations.getForObject(startsWith("/data/mod"), eq(List.class)))
@@ -172,69 +178,67 @@ public class FafApiAccessorImplTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testGetLadder1v1Leaderboard() {
-    List<LeaderboardEntry> result = Arrays.asList(
-        Ladder1v1EntryBeanBuilder.create().defaultValues().username("user1").get(),
-        Ladder1v1EntryBeanBuilder.create().defaultValues().username("user2").get()
-    );
-
-    ArgumentCaptor<Map<String, ?>> captor = ArgumentCaptor.forClass(Map.class);
-    when(restOperations.getForObject(eq("/leaderboards/ladder1v1"), eq(List.class), captor.capture()))
-        .thenReturn(result)
-        .thenReturn(emptyList());
-
-    assertThat(instance.getLadder1v1Leaderboard(), equalTo(result));
-
-    Map<String, ?> params = captor.getValue();
-    assertThat(params.get("sort"), is("-rating"));
-    assertThat(params.get("include"), is("player"));
-    assertThat(params.get("fields[ladder1v1Rating]"), is("rating,numGames,winGames"));
-    assertThat(params.get("fields[player]"), is("login"));
-  }
-
-  @Test
-  public void testGetLadder1v1EntryForPlayer() {
-    Ladder1v1LeaderboardEntry entry = new Ladder1v1LeaderboardEntry();
-    when(restOperations.getForObject("/leaderboards/ladder1v1/123", Ladder1v1LeaderboardEntry.class, emptyMap())).thenReturn(entry);
-
-    assertThat(instance.getLadder1v1EntryForPlayer(123), equalTo(entry));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testGetFafGamePlayerStats() {
+  public void testGetRatingHistory() {
     List<GamePlayerStats> gamePlayerStats = Collections.singletonList(new GamePlayerStats());
 
     when(restOperations.getForObject(anyString(), eq(List.class)))
         .thenReturn(gamePlayerStats)
         .thenReturn(emptyList());
 
-    List<GamePlayerStats> result = instance.getGamePlayerStats(123, KnownFeaturedMod.FAF);
+    List<LeaderboardRatingJournal> result = instance.getRatingJournal(123, 1);
 
     assertThat(result, is(gamePlayerStats));
-    verify(restOperations).getForObject("/data/gamePlayerStats" +
-        "?filter=player.id==\"123\";game.featuredMod.technicalName==\"faf\"" +
-        "&page[size]=10000" +
-        "&page[number]=1", List.class);
+    verify(restOperations).getForObject("/data/leaderboardRatingJournal?filter=gamePlayerStats.player.id==\"123\";" +
+        "leaderboard.id==\"1\"&include=gamePlayerStats&page[size]=10000&page[number]=1", List.class);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testGetRatingHistory1v1() {
-    List<GamePlayerStats> gamePlayerStats = Collections.singletonList(new GamePlayerStats());
+  public void testQueryPlayerByName() {
+    Player player = new Player();
 
     when(restOperations.getForObject(anyString(), eq(List.class)))
-        .thenReturn(gamePlayerStats)
+        .thenReturn(List.of(player))
         .thenReturn(emptyList());
 
-    List<GamePlayerStats> result = instance.getGamePlayerStats(123, KnownFeaturedMod.LADDER_1V1);
+    Optional<Player> result = instance.queryPlayerByName("junit");
 
-    assertThat(result, is(gamePlayerStats));
-    verify(restOperations).getForObject("/data/gamePlayerStats" +
-        "?filter=player.id==\"123\";game.featuredMod.technicalName==\"ladder1v1\"" +
-        "&page[size]=10000" +
-        "&page[number]=1", List.class);
+    assertTrue(result.isPresent());
+    assertThat(result.get(), is(player));
+    verify(restOperations).getForObject("/data/player?filter=login==\"junit\"&include=names&page[size]=10000&page[number]=1", List.class);
+  }
+
+  @Test
+  public void testGetPlayerModerationReports() {
+    List<ModerationReport> report = List.of(new ModerationReport());
+
+    when(restOperations.getForObject(anyString(), eq(List.class)))
+        .thenReturn(List.of(report))
+        .thenReturn(emptyList());
+
+    List<ModerationReport> result = instance.getPlayerModerationReports(123);
+
+    assertThat(result, is(result));
+    verify(restOperations).getForObject("/data/moderationReport?filter=reporter.id==\"123\"&include=reporter,lastModerator,reportedUsers,game", List.class);
+  }
+
+  @Test
+  public void testPostModerationReport() {
+    com.faforever.client.reporting.ModerationReport report = ModerationReportBuilder.create().defaultValues().get();
+
+    instance.postModerationReport(report);
+
+    List<Map<String, String>> reportedUsers = new ArrayList<>();
+    report.getReportedUsers().forEach(player -> reportedUsers.add(Map.of("type", "player", "id", String.valueOf(player.getId()))));
+    Map<String, Object> relationships = new HashMap<>(Map.of("reportedUsers", Map.of("data", reportedUsers)));
+    if (report.getGameId() != null) {
+      relationships.put("game", java.util.Map.of("data", Map.of("type", "game", "id", report.getGameId())));
+    }
+    java.util.Map<String, Object> body = Map.of("data", List.of(Map.of(
+        "type", "moderationReport",
+        "attributes", Map.of("gameIncidentTimecode", report.getGameIncidentTimeCode(), "reportDescription", report.getReportDescription()),
+        "relationships", relationships)));
+
+    verify(restOperations).postForEntity("/data/moderationReport", body, String.class);
   }
 
   @Test
@@ -341,6 +345,35 @@ public class FafApiAccessorImplTest {
 
     instance.getLastGamesOnMap(4, "42", 3);
 
-    verify(restOperations).getForObject("/data/game?filter=mapVersion.id==\"42\";playerStats.player.id==\"4\"&sort=-endTime&page[size]=3&page[number]=1", List.class);
+    verify(restOperations).getForObject(contains("filter=mapVersion.id==\"42\";playerStats.player.id==\"4\""), eq(List.class));
+  }
+
+  @Test
+  public void testGetLatestVersionMap() {
+    MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001");
+
+    com.faforever.client.api.dto.Map map = new com.faforever.client.api.dto.Map()
+        .setLatestVersion(new MapVersion().setFolderName("palaneum.v0002"));
+    MapVersion mapFromServer = new MapVersion().setFolderName("palaneum.v0001")
+        .setMap(map);
+
+    when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
+        .thenReturn(Collections.singletonList(mapFromServer));
+
+    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.of(mapFromServer)));
+    String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
+    verify(restOperations).getForObject(contains(parameters), eq(List.class));
+  }
+
+  @Test
+  public void testGetLatestVersionMapIfNoMapFromServer() {
+    MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001__1"); // the map does not exist on server
+
+    when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
+        .thenReturn(emptyList());
+
+    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.empty()));
+    String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
+    verify(restOperations).getForObject(contains(parameters), eq(List.class));
   }
 }

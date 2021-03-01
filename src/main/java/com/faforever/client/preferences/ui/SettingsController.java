@@ -7,6 +7,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.Action;
@@ -14,6 +15,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -46,7 +48,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
@@ -64,6 +65,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -88,11 +90,11 @@ public class SettingsController implements Controller<Node> {
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final ClientUpdateService clientUpdateService;
+  private final GameService gameService;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
   public ToggleGroup colorModeToggleGroup;
-  public Toggle customColorsToggle;
   public Toggle randomColorsToggle;
   public Toggle defaultColorsToggle;
   public CheckBox hideFoeToggle;
@@ -112,7 +114,6 @@ public class SettingsController implements Controller<Node> {
   public CheckBox playFriendJoinsGameSoundCheckBox;
   public CheckBox playFriendPlaysGameSoundCheckBox;
   public CheckBox displayPmReceivedToastCheckBox;
-  public CheckBox displayLadder1v1ToastCheckBox;
   public CheckBox playPmReceivedSoundCheckBox;
   public CheckBox afterGameReviewCheckBox;
   public Region settingsRoot;
@@ -123,13 +124,9 @@ public class SettingsController implements Controller<Node> {
   public Toggle topRightToastButton;
   public Toggle topLeftToastButton;
   public ToggleButton bottomRightToastButton;
-  public PasswordField currentPasswordField;
-  public PasswordField newPasswordField;
-  public PasswordField confirmPasswordField;
   public ComboBox<TimeInfo> timeComboBox;
+  public ComboBox<DateInfo> dateComboBox;
   public ComboBox<ChatFormat> chatComboBox;
-  public Label passwordChangeErrorLabel;
-  public Label passwordChangeSuccessLabel;
   public ComboBox<UnitDataBaseType> unitDatabaseComboBox;
   public CheckBox notifyOnAtMentionOnlyToggle;
   public Pane languagesContainer;
@@ -148,6 +145,9 @@ public class SettingsController implements Controller<Node> {
   public Button clearCacheButton;
   public CheckBox gameDataCacheCheckBox;
   public Spinner<Integer> gameDataCacheTimeSpinner;
+  public CheckBox allowReplayWhileInGameCheckBox;
+  public Button allowReplayWhileInGameButton;
+  public CheckBox debugLogToggle;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -156,7 +156,8 @@ public class SettingsController implements Controller<Node> {
 
   public SettingsController(UserService userService, PreferencesService preferencesService, UiService uiService,
                             I18n i18n, EventBus eventBus, NotificationService notificationService,
-                            PlatformService platformService, ClientProperties clientProperties, ClientUpdateService clientUpdateService) {
+                            PlatformService platformService, ClientProperties clientProperties,
+                            ClientUpdateService clientUpdateService, GameService gameService) {
     this.userService = userService;
     this.preferencesService = preferencesService;
     this.uiService = uiService;
@@ -166,6 +167,7 @@ public class SettingsController implements Controller<Node> {
     this.platformService = platformService;
     this.clientProperties = clientProperties;
     this.clientUpdateService = clientUpdateService;
+    this.gameService = gameService;
 
     availableLanguagesListener = observable -> {
       LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
@@ -242,9 +244,6 @@ public class SettingsController implements Controller<Node> {
       if (newValue == defaultColorsToggle) {
         preferences.getChat().setChatColorMode(ChatColorMode.DEFAULT);
       }
-      if (newValue == customColorsToggle) {
-        preferences.getChat().setChatColorMode(ChatColorMode.CUSTOM);
-      }
       if (newValue == randomColorsToggle) {
         preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
       }
@@ -277,6 +276,7 @@ public class SettingsController implements Controller<Node> {
       }
     });
     configureTimeSetting(preferences);
+    configureDateSetting(preferences);
     configureChatSetting(preferences);
     configureLanguageSelection();
     configureThemeSelection();
@@ -288,7 +288,6 @@ public class SettingsController implements Controller<Node> {
     displayFriendJoinsGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameToastEnabledProperty());
     displayFriendPlaysGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendPlaysGameToastEnabledProperty());
     displayPmReceivedToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageToastEnabledProperty());
-    displayLadder1v1ToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().ladder1v1ToastEnabledProperty());
     playFriendOnlineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOnlineSoundEnabledProperty());
     playFriendOfflineSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOfflineSoundEnabledProperty());
     playFriendJoinsGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameSoundEnabledProperty());
@@ -307,8 +306,6 @@ public class SettingsController implements Controller<Node> {
 
     backgroundImageLocation.textProperty().bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
 
-    passwordChangeErrorLabel.setVisible(false);
-
     autoChannelListView.setSelectionModel(new NoSelectionModel<>());
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
@@ -325,14 +322,18 @@ public class SettingsController implements Controller<Node> {
 
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
-    prereleaseToggle.selectedProperty().bindBidirectional(preferences.prereleaseCheckEnabledProperty());
+    prereleaseToggle.selectedProperty().bindBidirectional(preferences.preReleaseCheckEnabledProperty());
     prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue != null && newValue && (oldValue == null || !oldValue)) {
         clientUpdateService.checkForUpdateInBackground();
       }
     });
 
+    debugLogToggle.selectedProperty().bindBidirectional(preferences.debugLogEnabledProperty());
+
     initUnitDatabaseSelection(preferences);
+
+    initAllowReplaysWhileInGame(preferences);
 
     initNotifyMeOnAtMention();
 
@@ -351,6 +352,18 @@ public class SettingsController implements Controller<Node> {
     String username = userService.getUsername();
     notifyAtMentionTitle.setText(i18n.get("settings.chat.notifyOnAtMentionOnly", "@" + username));
     notifyAtMentionDescription.setText(i18n.get("settings.chat.notifyOnAtMentionOnly.description", "@" + username));
+  }
+
+  private void initAllowReplaysWhileInGame(Preferences preferences) {
+    allowReplayWhileInGameCheckBox.setSelected(preferences.getForgedAlliance().isAllowReplaysWhileInGame());
+    JavaFxUtil.bindBidirectional(allowReplayWhileInGameCheckBox.selectedProperty(), preferences.getForgedAlliance().allowReplaysWhileInGameProperty());
+    try {
+      gameService.isGamePrefsPatchedToAllowMultiInstances()
+          .thenAccept(isPatched -> allowReplayWhileInGameButton.setDisable(isPatched));
+    } catch (IOException e) {
+      log.warn("Failed evaluating if game.prefs file is patched for multiple instances.", e);
+      allowReplayWhileInGameButton.setDisable(true);
+    }
   }
 
   private void configureStartTab(Preferences preferences) {
@@ -403,6 +416,22 @@ public class SettingsController implements Controller<Node> {
     preferencesService.storeInBackground();
   }
 
+  private void configureDateSetting(Preferences preferences) {
+    dateComboBox.setButtonCell(new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
+    dateComboBox.setCellFactory(param -> new StringListCell<>(dateInfo -> i18n.get(dateInfo.getDisplayNameKey())));
+    dateComboBox.setItems(FXCollections.observableArrayList(DateInfo.values()));
+    dateComboBox.setDisable(false);
+    dateComboBox.setFocusTraversable(true);
+    dateComboBox.getSelectionModel().select(preferences.getChat().getDateFormat());
+  }
+
+  public void onDateFormatSelected() {
+    log.debug("A new date format was selected: {}", dateComboBox.getValue());
+    Preferences preferences = preferencesService.getPreferences();
+    preferences.getChat().setDateFormat(dateComboBox.getValue());
+    preferencesService.storeInBackground();
+  }
+
 
   private void configureChatSetting(Preferences preferences) {
     chatComboBox.setButtonCell(new StringListCell<>(chatFormat -> i18n.get(chatFormat.getI18nKey())));
@@ -423,16 +452,13 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void setSelectedColorMode(ChatColorMode newValue) {
-    switch (newValue) {
-      case DEFAULT:
-        colorModeToggleGroup.selectToggle(defaultColorsToggle);
-        break;
-      case CUSTOM:
-        colorModeToggleGroup.selectToggle(customColorsToggle);
-        break;
-      case RANDOM:
-        colorModeToggleGroup.selectToggle(randomColorsToggle);
-        break;
+    if (newValue != null) {
+      switch (newValue) {
+        case DEFAULT -> colorModeToggleGroup.selectToggle(defaultColorsToggle);
+        case RANDOM -> colorModeToggleGroup.selectToggle(randomColorsToggle);
+      }
+    } else {
+      colorModeToggleGroup.selectToggle(defaultColorsToggle);
     }
   }
 
@@ -491,42 +517,6 @@ public class SettingsController implements Controller<Node> {
     // TODO implement
   }
 
-  public void onChangePasswordClicked() {
-    passwordChangeSuccessLabel.setVisible(false);
-    passwordChangeErrorLabel.setVisible(false);
-
-    if (currentPasswordField.getText().isEmpty()) {
-      passwordChangeErrorLabel.setVisible(true);
-      passwordChangeErrorLabel.setText(i18n.get("settings.account.currentPassword.empty"));
-      return;
-    }
-
-    if (newPasswordField.getText().isEmpty()) {
-      passwordChangeErrorLabel.setVisible(true);
-      passwordChangeErrorLabel.setText(i18n.get("settings.account.newPassword.empty"));
-      return;
-    }
-
-    if (!newPasswordField.getText().equals(confirmPasswordField.getText())) {
-      passwordChangeErrorLabel.setVisible(true);
-      passwordChangeErrorLabel.setText(i18n.get("settings.account.confirmPassword.mismatch"));
-      return;
-    }
-
-    userService.changePassword(currentPasswordField.getText(), newPasswordField.getText()).getFuture()
-        .thenAccept(aVoid -> {
-          passwordChangeSuccessLabel.setVisible(true);
-          currentPasswordField.setText("");
-          newPasswordField.setText("");
-          confirmPasswordField.setText("");
-        }).exceptionally(throwable -> {
-          passwordChangeErrorLabel.setVisible(true);
-          passwordChangeErrorLabel.setText(i18n.get("settings.account.changePassword.error", throwable.getCause().getLocalizedMessage()));
-          return null;
-        }
-    );
-  }
-
   public void onPreviewToastButtonClicked() {
     notificationService.addNotification(new TransientNotification(
         i18n.get("settings.notifications.toastPreview.title"),
@@ -539,7 +529,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectBackgroundImage() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       FileChooser directoryChooser = new FileChooser();
       directoryChooser.setTitle(i18n.get("settings.appearance.chooseImage"));
       File result = directoryChooser.showOpenDialog(getRoot().getScene().getWindow());
@@ -575,6 +565,21 @@ public class SettingsController implements Controller<Node> {
     preferencesService.getPreferences().getChat().getAutoJoinChannels().add(channelTextField.getText());
     preferencesService.storeInBackground();
     channelTextField.clear();
+  }
+
+  public void onPatchGamePrefsForMultipleInstances() {
+    try {
+      gameService.patchGamePrefsForMultiInstances()
+          .thenRun(() -> JavaFxUtil.runLater(() -> allowReplayWhileInGameButton.setDisable(true)))
+          .exceptionally(throwable -> {
+            log.error("Game.prefs patch failed", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "settings.fa.patchGamePrefsFailed");
+            return null;
+          });
+    } catch (Exception e) {
+      log.error("Game.prefs patch failed", e);
+      notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
+    }
   }
 }
 

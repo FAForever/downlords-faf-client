@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static com.faforever.client.util.LuaUtil.loadFile;
@@ -82,9 +83,9 @@ import static java.util.stream.Collectors.toCollection;
 @Service
 public class MapService implements InitializingBean, DisposableBean {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String DEBUG = "debug";
-
+  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final String MAP_VERSION_REGEX = ".*[.v](?<version>\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
@@ -103,6 +104,14 @@ public class MapService implements InitializingBean, DisposableBean {
   private final Map<Path, MapBean> pathToMap = new HashMap<>();
   private final ObservableList<MapBean> installedMaps = FXCollections.observableArrayList();
   private final Map<String, MapBean> mapsByFolderName = new HashMap<>();
+  @VisibleForTesting
+  Set<String> officialMaps = ImmutableSet.of(
+      "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
+      "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
+      "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
+      "SCMP_034", "SCMP_035", "SCMP_036", "SCMP_037", "SCMP_038", "SCMP_039", "SCMP_040", "X1MP_001", "X1MP_002", "X1MP_003", "X1MP_004",
+      "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
+  );
   private Thread directoryWatcherThread;
 
   @Inject
@@ -143,15 +152,6 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     });
   }
-
-  @VisibleForTesting
-  Set<String> officialMaps = ImmutableSet.of(
-      "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
-      "SCMP_012", "SCMP_013", "SCMP_014", "SCMP_015", "SCMP_016", "SCMP_017", "SCMP_018", "SCMP_019", "SCMP_020", "SCMP_021", "SCMP_022",
-      "SCMP_023", "SCMP_024", "SCMP_025", "SCMP_026", "SCMP_027", "SCMP_028", "SCMP_029", "SCMP_030", "SCMP_031", "SCMP_032", "SCMP_033",
-      "SCMP_034", "SCMP_035", "SCMP_036", "SCMP_037", "SCMP_038", "SCMP_039", "SCMP_040", "X1MP_001", "X1MP_002", "X1MP_003", "X1MP_004",
-      "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
-  );
 
   private static URL getDownloadUrl(String mapName, String baseUrl) {
     return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
@@ -260,7 +260,8 @@ public class MapService implements InitializingBean, DisposableBean {
     installedMaps.remove(pathToMap.remove(path));
   }
 
-  private void addInstalledMap(Path path) throws MapLoadException {
+  @VisibleForTesting
+  void addInstalledMap(Path path) throws MapLoadException {
     try {
       MapBean mapBean = readMap(path);
       pathToMap.put(path, mapBean);
@@ -343,6 +344,13 @@ public class MapService implements InitializingBean, DisposableBean {
     return officialMaps.stream().anyMatch(name -> name.equalsIgnoreCase(mapName));
   }
 
+  public boolean isOfficialMap(MapBean map) {
+    return isOfficialMap(map.getFolderName());
+  }
+
+  public boolean isCustomMap(MapBean map) {
+    return !isOfficialMap(map);
+  }
 
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
@@ -390,7 +398,7 @@ public class MapService implements InitializingBean, DisposableBean {
    * Loads the preview of a map or returns a "unknown map" image.
    */
 
-  @Cacheable(CacheNames.MAP_PREVIEW)
+  @Cacheable(value = CacheNames.MAP_PREVIEW)
   public Image loadPreview(MapBean map, PreviewSize previewSize) {
     URL url;
     switch (previewSize) {
@@ -406,7 +414,7 @@ public class MapService implements InitializingBean, DisposableBean {
     return loadPreview(url, previewSize);
   }
 
-  @Cacheable(CacheNames.MAP_PREVIEW)
+  @Cacheable(value = CacheNames.MAP_PREVIEW)
   public Image loadPreview(URL url, PreviewSize previewSize) {
     return assetService.loadAndCacheImage(url, Paths.get("maps").resolve(previewSize.folderName),
         () -> uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE));
@@ -417,7 +425,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (isOfficialMap(map.getFolderName())) {
       throw new IllegalArgumentException("Attempt to uninstall an official map");
     }
-    UninstallMapTask task = applicationContext.getBean(com.faforever.client.map.UninstallMapTask.class);
+    UninstallMapTask task = applicationContext.getBean(UninstallMapTask.class);
     task.setMap(map);
     return taskService.submitTask(task).getFuture();
   }
@@ -475,6 +483,38 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.findMapByFolderName(folderName);
   }
 
+  public CompletableFuture<MapBean> getMapLatestVersion(MapBean map) {
+    String folderName = map.getFolderName();
+    if (containsVersionControl(folderName)) {
+      return fafService.getMapLatestVersion(folderName).thenApply(latestMap -> latestMap.orElse(map));
+    }
+    return CompletableFuture.completedFuture(map);
+  }
+
+  private boolean containsVersionControl(String mapFolderName) {
+    return Pattern.matches(MAP_VERSION_REGEX, mapFolderName);
+  }
+
+  public CompletableFuture<MapBean> updateLatestVersionIfNecessary(MapBean map) {
+    return getMapLatestVersion(map).thenCompose(latestMap -> {
+      CompletableFuture<Void> downloadFuture;
+      if (!isInstalled(latestMap.getFolderName())) {
+        downloadFuture = download(latestMap.getFolderName());
+      } else {
+        downloadFuture = CompletableFuture.completedFuture(null);
+      }
+      return downloadFuture.thenApply(aVoid -> latestMap);
+    }).thenCompose(latestMap -> {
+      CompletableFuture<Void> uninstallFuture;
+      if (!latestMap.getFolderName().equals(map.getFolderName())) {
+        uninstallFuture = uninstallMap(map);
+      } else {
+        uninstallFuture = CompletableFuture.completedFuture(null);
+      }
+      return uninstallFuture.thenApply(aVoid -> latestMap);
+    });
+  }
+
   public CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId) {
     return fafService.getLastGameOnMap(playerId, mapVersionId)
         .thenApply(Optional::isPresent);
@@ -495,14 +535,19 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.findMapById(id);
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getLadderMapsWithPageCount(int loadMoreCount, int page) {
-    return fafService.getLadder1v1MapsWithPageCount(loadMoreCount, page);
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int loadMoreCount, int page) {
+    return fafService.getMatchmakerMapsWithPageCount(matchmakerQueueId, loadMoreCount, page);
   }
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     if (mapGeneratorService.isGeneratedMap(folderName)) {
       return mapGeneratorService.generateMap(folderName).thenRun(() -> {
       });
+    }
+
+    if (isInstalled(folderName)) {
+      logger.debug("Map '{}' exists locally already. Download is not required", folderName);
+      return CompletableFuture.completedFuture(null);
     }
 
     DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
@@ -534,7 +579,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Void> unrankMapVersion(MapBean map) {
     applicationContext.getBean(this.getClass()).evictCache();
-    return fafService.unrankeMapVersion(map);
+    return fafService.unRankMapVersion(map);
   }
 
   @Override

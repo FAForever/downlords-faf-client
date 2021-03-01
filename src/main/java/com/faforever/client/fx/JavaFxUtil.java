@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.sun.javafx.stage.PopupWindowHelper;
 import com.sun.jna.Pointer;
@@ -25,6 +26,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -37,6 +39,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
@@ -52,6 +55,7 @@ import static javax.imageio.ImageIO.write;
 /**
  * Utility class to fix some annoying JavaFX shortcomings.
  */
+@Slf4j
 public final class JavaFxUtil {
 
   public static final StringConverter<Path> PATH_STRING_CONVERTER = new StringConverter<>() {
@@ -151,6 +155,21 @@ public final class JavaFxUtil {
     Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
     stage.setX((screenBounds.getMaxX() - screenBounds.getMinX() - width) / 2);
     stage.setY((screenBounds.getMaxY() - screenBounds.getMinY() - height) / 2);
+  }
+
+  public static void addLabelContextMenus(UiService uiService, Label... labels) {
+    Arrays.stream(labels).forEach(label -> addLabelContextMenuRequest(uiService, label));
+  }
+
+  /**
+   * Adds Label Context Menu Handler to Label
+   */
+  public static void addLabelContextMenuRequest(UiService uiService, Label label) {
+    label.setOnContextMenuRequested(event -> {
+      LabelContextMenuController controller = uiService.loadFxml("theme/label_context_menu.fxml");
+      controller.setLabel(label);
+      controller.getContextMenu().show(label.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    });
   }
 
   public static void assertApplicationThread() {
@@ -349,6 +368,16 @@ public final class JavaFxUtil {
   }
 
   /**
+   * Since the JavaFX properties API is not thread safe, unbinding a property must be synchronized on the property -
+   * which is what this method does.
+   */
+  public static <T> void unbind(Property<T> property) {
+    synchronized (property) {
+      property.unbind();
+    }
+  }
+
+  /**
    * Since the JavaFX properties API is not thread safe, binding properties must be synchronized on the properties -
    * which is what this method does. Since synchronization happens on both property in order {@code property1,
    * property2}, this is prone to deadlocks. To avoid this, pass the property with the lower visibility (e.g. method- or
@@ -385,7 +414,11 @@ public final class JavaFxUtil {
 
   public static void runLater(Runnable runnable) {
     if (Platform.isFxApplicationThread()) {
-      runnable.run();
+      try {
+        runnable.run();
+      } catch (Exception e) {
+        log.error("Uncaught Application Thread Error", e);
+      }
     } else {
       Platform.runLater(runnable);
     }
@@ -393,13 +426,5 @@ public final class JavaFxUtil {
 
   public static void bindManagedToVisible(Node... nodes) {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
-  }
-
-  public static void assureRunOnMainThread(Runnable runnable) {
-    if (Platform.isFxApplicationThread()) {
-      runnable.run();
-    } else {
-      runLater(runnable);
-    }
   }
 }

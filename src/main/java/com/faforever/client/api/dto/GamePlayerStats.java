@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,17 +24,24 @@ public class GamePlayerStats {
   private byte color;
   private byte team;
   private byte startSpot;
+  @Deprecated
   private Float beforeMean;
+  @Deprecated
   private Float beforeDeviation;
+  @Deprecated
   private Float afterMean;
+  @Deprecated
   private Float afterDeviation;
   private byte score;
   @Nullable
   private OffsetDateTime scoreTime;
 
-  @Relationship("replay")
+  @Relationship("game")
   private Game replay;
 
   @Relationship("player")
   private Player player;
+
+  @Relationship("ratingChanges")
+  private List<LeaderboardRatingJournal> leaderboardRatingJournals;
 }

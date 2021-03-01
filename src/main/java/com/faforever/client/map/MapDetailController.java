@@ -10,15 +10,16 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
@@ -57,6 +58,7 @@ public class MapDetailController implements Controller<Node> {
   private final ReportingService reportingService;
   private final PlayerService playerService;
   private final ReviewService reviewService;
+  private final UiService uiService;
   private final EventBus eventBus;
 
   public Label progressLabel;
@@ -67,6 +69,7 @@ public class MapDetailController implements Controller<Node> {
   public Label authorLabel;
   public ProgressBar progressBar;
   public Label mapDescriptionLabel;
+  public Label mapVersionLabel;
   public Node mapDetailRoot;
   public ScrollPane scrollPane;
   public Label dimensionsLabel;
@@ -86,17 +89,13 @@ public class MapDetailController implements Controller<Node> {
   private ListChangeListener<MapBean> installStatusChangeListener;
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, hideButton,
+        unrankButton, loadingContainer, hideBox, getRoot());
+    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
-    installButton.managedProperty().bind(installButton.visibleProperty());
-    progressBar.managedProperty().bind(progressBar.visibleProperty());
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
-    progressLabel.managedProperty().bind(progressLabel.visibleProperty());
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());
     loadingContainer.visibleProperty().bind(progressBar.visibleProperty());
-    hideButton.managedProperty().bind(hideButton.visibleProperty());
-    unrankButton.managedProperty().bind(unrankButton.visibleProperty());
-    hideBox.managedProperty().bind(hideBox.visibleProperty());
 
     reviewsController.setCanWriteReview(false);
 
@@ -181,7 +180,8 @@ public class MapDetailController implements Controller<Node> {
 
     reviewsController.setCanWriteReview(false);
     mapService.hasPlayedMap(player.getId(), map.getId())
-        .thenAccept(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed));
+        .thenAccept(hasPlayed -> reviewsController.setCanWriteReview(hasPlayed
+            && (map.getAuthor() == null || !map.getAuthor().equals(player.getUsername()))));
 
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
@@ -191,7 +191,7 @@ public class MapDetailController implements Controller<Node> {
         .findFirst());
 
     mapService.getFileSize(map.getDownloadUrl())
-        .thenAccept(mapFileSize -> Platform.runLater(() -> {
+        .thenAccept(mapFileSize -> JavaFxUtil.runLater(() -> {
           if (mapFileSize > -1) {
             installButton.setText(i18n.get("mapVault.installButtonFormat", Bytes.formatSize(mapFileSize, i18n.getUserSpecificLocale())));
             installButton.setDisable(false);
@@ -205,6 +205,9 @@ public class MapDetailController implements Controller<Node> {
         .map(Strings::emptyToNull)
         .map(FaStrings::removeLocalizationTag)
         .orElseGet(() -> i18n.get("map.noDescriptionAvailable")));
+    if (map.getVersion() != null) {
+      mapVersionLabel.setText(map.getVersion().toString());
+    }
 
 
     if (mapService.isOfficialMap(map.getFolderName())) {
@@ -217,20 +220,22 @@ public class MapDetailController implements Controller<Node> {
     }
   }
 
-  private void onDeleteReview(Review review) {
+  @VisibleForTesting
+  void onDeleteReview(Review review) {
     reviewService.deleteMapVersionReview(review)
-        .thenRun(() -> Platform.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           map.getReviews().remove(review);
           reviewsController.setOwnReview(Optional.empty());
         }))
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be deleted", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
   }
 
-  private void onSendReview(Review review) {
+  @VisibleForTesting
+  void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
@@ -242,9 +247,9 @@ public class MapDetailController implements Controller<Node> {
           }
           reviewsController.setOwnReview(Optional.of(review));
         })
-        // TODO display error to user
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
   }
@@ -253,7 +258,7 @@ public class MapDetailController implements Controller<Node> {
     installMap();
   }
 
-  public CompletableFuture<Void> installMap(){
+  public CompletableFuture<Void> installMap() {
     return mapService.downloadAndInstallMap(map, progressBar.progressProperty(), progressLabel.textProperty())
         .thenRun(() -> setInstalled(true))
         .exceptionally(throwable -> {
@@ -297,7 +302,7 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void hideMap() {
-    mapService.hideMapVersion(map).thenAccept(aVoid -> Platform.runLater(() -> {
+    mapService.hideMapVersion(map).thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
       map.setHidden(true);
       renewAuthorControls();
     })).exceptionally(throwable -> {
@@ -309,7 +314,7 @@ public class MapDetailController implements Controller<Node> {
 
   public void unrankMap() {
     mapService.unrankMapVersion(map)
-        .thenAccept(aVoid -> Platform.runLater(() -> {
+        .thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
           map.setRanked(false);
           renewAuthorControls();
         }))

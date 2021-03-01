@@ -1,6 +1,5 @@
 package com.faforever.client.fx;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.TableCell;
 
@@ -9,7 +8,7 @@ import java.util.function.Function;
 public class NodeTableCell<S, T> extends TableCell<S, T> {
 
   private final Function<T, ? extends Node> function;
-  private String[] cssClasses;
+  private final String[] cssClasses;
 
   public NodeTableCell(Function<T, ? extends Node> function) {
     this(function, new String[0]);
@@ -24,7 +23,7 @@ public class NodeTableCell<S, T> extends TableCell<S, T> {
   protected void updateItem(T item, boolean empty) {
     super.updateItem(item, empty);
 
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (empty || item == null) {
         setText(null);
         setGraphic(null);

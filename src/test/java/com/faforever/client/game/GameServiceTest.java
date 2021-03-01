@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
@@ -19,6 +18,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.ReconnectTimerService;
@@ -44,7 +44,11 @@ import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -54,10 +58,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.faforever.client.fa.RatingMode.GLOBAL;
-import static com.faforever.client.game.Faction.AEON;
 import static com.faforever.client.game.Faction.CYBRAN;
-import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
+import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.remote.domain.GameStatus.CLOSED;
 import static com.faforever.client.remote.domain.GameStatus.OPEN;
 import static com.faforever.client.remote.domain.GameStatus.PLAYING;
@@ -73,11 +75,14 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -91,6 +96,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
   private static final Integer GPG_PORT = 1234;
   private static final int LOCAL_REPLAY_PORT = 15111;
+  private static final String GLOBAL_RATING_TYPE = "global";
+  private static final String LADDER_1v1_RATING_TYPE = "ladder_1v1";
 
   private GameService instance;
 
@@ -128,6 +135,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private ReconnectTimerService reconnectTimerService;
   @Mock
   private DiscordRichPresenceService discordRichPresenceService;
+  @Mock
+  private Process process;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfoMessage>> gameInfoMessageListenerCaptor;
@@ -135,19 +144,14 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   private ArgumentCaptor<Set<String>> simModsCaptor;
 
   private Player junitPlayer;
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
     junitPlayer = PlayerBuilder.create("JUnit").defaultValues().get();
+    preferences = PreferencesBuilder.create().defaultValues().get();
 
     ClientProperties clientProperties = new ClientProperties();
-
-    instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
-        preferencesService, gameUpdater, notificationService, i18n, executorService, playerService,
-        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
-        replayService, reconnectTimerService);
-
-    Preferences preferences = new Preferences();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
@@ -165,19 +169,28 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
       return null;
     }).when(executorService).execute(any());
 
+    instance = new GameService(clientProperties, fafService, forgedAllianceService, mapService,
+        preferencesService, gameUpdater, notificationService, i18n, executorService, playerService,
+        reportingService, eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
+        replayService, reconnectTimerService);
+
     instance.afterPropertiesSet();
 
     verify(fafService).addOnMessageListener(eq(GameInfoMessage.class), gameInfoMessageListenerCaptor.capture());
   }
 
   private void mockGlobalStartGameProcess(int uid, String... additionalArgs) throws IOException {
-    mockStartGameProcess(uid, GLOBAL, null, false, additionalArgs);
+    mockStartGameProcess(uid, GLOBAL_RATING_TYPE, null, false, additionalArgs);
   }
 
-  private void mockStartGameProcess(int uid, RatingMode ratingMode, Faction faction, boolean rehost, String... additionalArgs) throws IOException {
+  private void mockStartGameProcess(int uid, String ratingType, Faction faction, boolean rehost, String... additionalArgs) throws IOException {
     when(forgedAllianceService.startGame(
-        uid, faction, asList(additionalArgs), ratingMode, GPG_PORT, LOCAL_REPLAY_PORT, rehost, junitPlayer)
-    ).thenReturn(mock(Process.class));
+        uid, faction, asList(additionalArgs), ratingType, GPG_PORT, LOCAL_REPLAY_PORT, rehost, junitPlayer)
+    ).thenReturn(process);
+  }
+
+  private void mockStartReplayProcess(Path path, int id) throws IOException {
+    when(forgedAllianceService.startReplay(path, id)).thenReturn(process);
   }
 
   @Test
@@ -194,25 +207,128 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     simMods.put("123-456-789", "Fake mod name");
 
     game.setSimMods(simMods);
-    game.setMapFolderName("map");
 
     GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
 
     mockGlobalStartGameProcess(gameLaunchMessage.getUid());
-    when(mapService.isInstalled("map")).thenReturn(true);
+    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
     when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
 
-    assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
+    assertNull(future.get(TIMEOUT, TIME_UNIT));
     verify(mapService, never()).download(any());
     verify(replayService).start(eq(game.getId()), any());
-    
+
     verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, asList(), GLOBAL,
+        gameLaunchMessage.getUid(), null, asList(), gameLaunchMessage.getRatingType(),
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void testJoinGameNoLaunchNoGameRatingType() throws Exception {
+    Game game = GameBuilder.create().defaultValues().ratingType(null).get();
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().ratingType(null).get();
+
+    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
+    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
+    when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+
+    assertNull(future.get(TIMEOUT, TIME_UNIT));
+    verify(mapService, never()).download(any());
+    verify(replayService).start(eq(game.getId()), any());
+
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, asList(), GameService.DEFAULT_RATING_TYPE,
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void testJoinGameNoLaunchRatingType() throws Exception {
+    Game game = GameBuilder.create().defaultValues().get();
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().ratingType(null).get();
+
+    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
+    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
+    when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+
+    assertNull(future.get(TIMEOUT, TIME_UNIT));
+    verify(mapService, never()).download(any());
+    verify(replayService).start(eq(game.getId()), any());
+
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, asList(), game.getRatingType(),
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void testStartReplayWhileInGameAllowed() throws Exception {
+    preferences.getForgedAlliance().setAllowReplaysWhileInGame(true);
+    Game game = GameBuilder.create().defaultValues().get();
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    Path replayPath = Paths.get("temp.scfareplay");
+    int replayId = 1234;
+
+    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
+    when(mapService.isInstalled(anyString())).thenReturn(true);
+    when(fafService.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(process.isAlive()).thenReturn(true);
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+    future.join();
+    mockStartReplayProcess(replayPath, replayId);
+    future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future.join();
+
+    verify(replayService).start(eq(game.getId()), any());
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, asList(), GLOBAL_RATING_TYPE,
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+    verify(forgedAllianceService).startReplay(replayPath, replayId);
+  }
+
+  @Test
+  public void testStartReplayWhileInGameNotAllowed() throws Exception {
+    preferences.getForgedAlliance().setAllowReplaysWhileInGame(false);
+    Game game = GameBuilder.create().defaultValues().get();
+
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    Path replayPath = Paths.get("temp.scfareplay");
+    int replayId = 1234;
+
+    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
+    when(mapService.isInstalled(anyString())).thenReturn(true);
+    when(fafService.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(process.isAlive()).thenReturn(true);
+
+    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
+    future.join();
+    mockStartReplayProcess(replayPath, replayId);
+    future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future.join();
+
+    verify(replayService).start(eq(game.getId()), any());
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, asList(), GLOBAL_RATING_TYPE,
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+    verify(forgedAllianceService, never()).startReplay(replayPath, replayId);
   }
 
   @Test
@@ -266,7 +382,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL,
+        gameLaunchMessage.getUid(), null, asList("/foo", "bar", "/bar", "foo"), GLOBAL_RATING_TYPE,
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
     verify(replayService).start(eq(gameLaunchMessage.getUid()), any());
   }
@@ -415,35 +531,36 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     int uid = 123;
     String map = "scmp_037";
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
-        .uid(uid).mod("ladder1v1").mapname(map)
+        .uid(uid).mod("FAF").mapname(map)
         .expectedPlayers(2)
         .faction(CYBRAN)
         .initMode(LobbyMode.AUTO_LOBBY)
         .mapPosition(4)
         .team(1)
+        .ratingType(LADDER_1v1_RATING_TYPE)
         .get();
 
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
     String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
-    mockStartGameProcess(uid, RatingMode.LADDER_1V1, CYBRAN, false, additionalArgs);
-    when(fafService.startSearchLadder1v1(CYBRAN)).thenReturn(completedFuture(gameLaunchMessage));
+    mockStartGameProcess(uid, LADDER_1v1_RATING_TYPE, CYBRAN, false, additionalArgs);
+    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(LADDER_1V1.getTechnicalName())).thenReturn(completedFuture(featuredMod));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
 
-    instance.startSearchLadder1v1(CYBRAN).toCompletableFuture();
+    instance.startSearchMatchmaker().toCompletableFuture();
 
-    verify(fafService).startSearchLadder1v1(CYBRAN);
+    verify(fafService).startSearchMatchmaker();
     verify(mapService).download(map);
     verify(replayService).start(eq(uid), any());
     verify(forgedAllianceService).startGame(
-        uid, CYBRAN, asList(additionalArgs), RatingMode.LADDER_1V1, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+        uid, CYBRAN, asList(additionalArgs), LADDER_1v1_RATING_TYPE, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
 
   @Test
-  public void testStartSearchLadder1v1GameRunningDoesNothing() throws Exception {
+  public void testStartSearchMatchmakerGameRunningDoesNothing() throws Exception {
     Process process = mock(Process.class);
     when(process.isAlive()).thenReturn(true);
 
@@ -465,25 +582,25 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchLadder1v1(AEON);
+    instance.startSearchMatchmaker();
 
-    assertThat(instance.searching1v1Property().get(), is(false));
+    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
   }
 
   @Test
-  public void testStopSearchLadder1v1() {
-    instance.searching1v1Property().set(true);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
-    verify(fafService).stopSearchingRanked();
+  public void testStopSearchMatchmaker() {
+    instance.getInMatchmakerQueueProperty().set(true);
+    instance.onMatchmakerSearchStopped();
+    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
+    verify(fafService).stopSearchMatchmaker();
   }
 
   @Test
-  public void testStopSearchLadder1v1NotSearching() {
-    instance.searching1v1Property().set(false);
-    instance.stopSearchLadder1v1();
-    assertThat(instance.searching1v1Property().get(), is(false));
-    verify(fafService, never()).stopSearchingRanked();
+  public void testStopSearchMatchmakerNotSearching() {
+    instance.getInMatchmakerQueueProperty().set(false);
+    instance.onMatchmakerSearchStopped();
+    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
+    verify(fafService, never()).stopSearchMatchmaker();
   }
 
   @Test
@@ -500,7 +617,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     Game game = GameBuilder.create().defaultValues().get();
     instance.currentGame.set(game);
 
-    mockStartGameProcess(game.getId(), GLOBAL, null, true);
+    mockStartGameProcess(game.getId(), GLOBAL_RATING_TYPE, null, true);
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create().defaultValues().get()));
@@ -509,7 +626,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance.onRehostRequest(new RehostRequestEvent());
 
-    verify(forgedAllianceService).startGame(anyInt(), eq(null), anyList(), eq(GLOBAL), anyInt(), eq(LOCAL_REPLAY_PORT), eq(true), eq(junitPlayer));
+    verify(forgedAllianceService).startGame(anyInt(), eq(null), anyList(), eq(GLOBAL_RATING_TYPE), anyInt(), eq(LOCAL_REPLAY_PORT), eq(true), eq(junitPlayer));
   }
 
   @Test
@@ -549,6 +666,34 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testGameHost() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    when(gameUpdater.update(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())).thenReturn(completedFuture(null));
+    when(mapService.download(newGameInfo.getMap())).thenReturn(completedFuture(null));
+    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    instance.hostGame(newGameInfo);
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, List.of(), gameLaunchMessage.getRatingType(),
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void testGameHostNoGameLaunchRatingType() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().ratingType(null).get();
+    when(gameUpdater.update(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())).thenReturn(completedFuture(null));
+    when(mapService.download(newGameInfo.getMap())).thenReturn(completedFuture(null));
+    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
+    instance.hostGame(newGameInfo);
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, List.of(), GameService.DEFAULT_RATING_TYPE,
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
   public void runWithLiveReplayIfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
     instance.runWithLiveReplay(null, null, null, null);
@@ -556,10 +701,57 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void startSearchLadder1v1IfNoGameSet() {
+  public void startSearchMatchmakerIfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
-    instance.startSearchLadder1v1(null);
+    instance.startSearchMatchmaker();
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void startSearchMatchmaker() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(mapService.download(gameLaunchMessage.getMapname())).thenReturn(completedFuture(null));
+    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    instance.startSearchMatchmaker();
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
+        gameLaunchMessage.getRatingType(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void startSearchMatchmakerNoLaunchRatingType() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().ratingType(null).get();
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(mapService.download(gameLaunchMessage.getMapname())).thenReturn(completedFuture(null));
+    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    instance.setMatchedQueueRatingType("ladder_1v1");
+    instance.startSearchMatchmaker();
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
+        "ladder_1v1", GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void startSearchMatchmakerNoLaunchRatingTypeNoQueueRatingType() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().ratingType(null).get();
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(mapService.download(gameLaunchMessage.getMapname())).thenReturn(completedFuture(null));
+    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    instance.setMatchedQueueRatingType(null);
+    instance.startSearchMatchmaker();
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
+        GameService.DEFAULT_RATING_TYPE, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
 
   @Test
@@ -574,6 +766,38 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(preferencesService.isGamePathValid()).thenReturn(false);
     instance.runWithReplay(null, null, null, null, null, null, null);
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void runWithReplayInMatchmakerQueue() {
+    instance.getInMatchmakerQueueProperty().setValue(true);
+    instance.runWithReplay(null, null, null, null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateWarnNotification("replay.inQueue");
+  }
+
+  @Test
+  public void runWithLiveReplayInMatchmakerQueue() {
+    instance.getInMatchmakerQueueProperty().setValue(true);
+    instance.runWithLiveReplay(null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateWarnNotification("replay.inQueue");
+  }
+
+  @Test
+  public void runWithReplayInParty() {
+    instance.getInOthersPartyProperty().setValue(true);
+    instance.runWithReplay(null, null, null, null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateWarnNotification("replay.inParty");
+  }
+
+  @Test
+  public void runWithLiveReplayInParty() {
+    instance.getInOthersPartyProperty().setValue(true);
+    instance.runWithLiveReplay(null, null, null, null);
+    WaitForAsyncUtils.waitForFxEvents();
+    verify(notificationService).addImmediateWarnNotification("replay.inParty");
   }
 
   @Test
@@ -596,11 +820,11 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(replayService.start(anyInt(), any(Supplier.class))).thenReturn(CompletableFuture.completedFuture(new Throwable()));
+    when(replayService.start(anyInt(), any(Supplier.class))).thenReturn(completedFuture(new Throwable()));
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
 
-    assertThat(future.get(TIMEOUT, TIME_UNIT), is(nullValue()));
+    assertNull(future.get(TIMEOUT, TIME_UNIT));
     verify(mapService, never()).download(any());
     verify(replayService).start(eq(game.getId()), any());
     verify(iceAdapter).stop();

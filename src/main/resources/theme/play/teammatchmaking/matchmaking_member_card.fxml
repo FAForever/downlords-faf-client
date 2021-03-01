@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Button?>
+<AnchorPane fx:id="playerItemRoot" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            onContextMenuRequested="#onContextMenuRequested"
+            fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
+    <children>
+        <HBox fx:id="playerCard" prefHeight="75.0" spacing="10.0" styleClass="player-card" alignment="CENTER_LEFT"
+              AnchorPane.topAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0">
+            <ImageView fx:id="leagueImageView" fitHeight="40.0" fitWidth="80.0" pickOnBounds="true"
+                       preserveRatio="true"/>
+            <VBox HBox.hgrow="ALWAYS">
+                <HBox spacing="3.0" alignment="CENTER_LEFT">
+                    <HBox alignment="CENTER_LEFT" spacing="4.0" HBox.hgrow="ALWAYS" >
+                        <children>
+                            <Label fx:id="clanLabel" styleClass="clan" text="[CLAN]" />
+                            <Label fx:id="usernameLabel" styleClass="member-name" text="&lt;Username&gt;" />
+                            <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" preserveRatio="true">
+                                <HBox.margin>
+                                    <Insets left="5.0"/>
+                                </HBox.margin>
+                            </ImageView>
+                        </children>
+                        <padding>
+                            <Insets top="2.0" />
+                        </padding>
+                    </HBox>
+                    <ImageView fx:id="playerStatusImageView" HBox.hgrow="ALWAYS" visible="false"/>
+                    <Label fx:id="uefLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, uef-icon" />
+                        </graphic>
+                    </Label>
+                    <Label fx:id="cybranLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, cybran-icon" />
+                        </graphic>
+                    </Label>
+                    <Label fx:id="aeonLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, aeon-icon" />
+                        </graphic>
+                    </Label>
+                    <Label fx:id="seraphimLabel" styleClass="faction-indicator" alignment="BOTTOM_CENTER" >
+                        <graphic>
+                            <Region styleClass="icon, seraphim-icon" />
+                        </graphic>
+                    </Label>
+                </HBox>
+                <HBox spacing="15.0" alignment="CENTER_LEFT">
+                    <children>
+                        <Label fx:id="leagueLabel" text="%leaderboard.divisionName" styleClass="player-card-text" />
+                        <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text" />
+                        <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
+                            <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />
+                            <padding>
+                                <Insets right="1.0" />
+                            </padding>
+                        </HBox>
+                    </children>
+                </HBox>
+            </VBox>
+            <padding>
+                <Insets bottom="8.0" left="12.0" right="14.0" top="12.0" />
+            </padding>
+        </HBox>
+        <Button fx:id="kickPlayerButton" onAction="#onKickPlayerButtonClicked" styleClass="kickbutton"
+                AnchorPane.topAnchor="5.0" AnchorPane.rightAnchor="0.0">
+            <graphic>
+                <Region styleClass="icon, close-icon"/>
+            </graphic>
+        </Button>
+        <Label fx:id="crownLabel" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="15.0" >
+            <graphic>
+                <Region styleClass="icon, crown-icon" />
+            </graphic>
+        </Label>
+    </children>
+    <padding>
+        <Insets top="-10.0" right="-10.0"/>
+    </padding>
+</AnchorPane>
+

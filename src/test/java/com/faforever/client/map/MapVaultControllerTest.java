@@ -1,8 +1,8 @@
 package com.faforever.client.map;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
@@ -19,20 +19,20 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -59,8 +59,6 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private SpecificationController specificationController;
   @Mock
-  private PlayerService playerService;
-  @Mock
   private ReportingService reportingService;
   @Mock
   private ClientConfiguration clientConfiguration;
@@ -75,6 +73,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
     when(clientConfiguration.getRecommendedMaps()).thenReturn(Collections.emptyList());
+    when(i18n.get(anyString())).thenReturn("test");
 
     doAnswer(invocation -> {
       mapDetailController = mock(MapDetailController.class);
@@ -83,7 +82,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     }).when(uiService).loadFxml("theme/vault/map/map_detail.fxml");
 
     instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
-    sortOrder = preferencesService.getPreferences().getVaultPrefs().getMapSortConfig();
+    sortOrder = preferencesService.getPreferences().getVault().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
 
@@ -103,7 +102,6 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(mapService.getLadderMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
   }
 
@@ -121,8 +119,6 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     instance.setSupplier(null);
     instance.searchType = SearchType.OWN;
     instance.setSupplier(null);
-    instance.searchType = SearchType.LADDER;
-    instance.setSupplier(null);
 
     verify(mapService).findByQueryWithPageCount(standardSearchConfig, instance.pageSize, 1);
     verify(mapService).getHighestRatedMapsWithPageCount(instance.pageSize, 1);
@@ -130,17 +126,16 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     verify(mapService).getNewestMapsWithPageCount(instance.pageSize, 1);
     verify(mapService).getMostPlayedMapsWithPageCount(instance.pageSize, 1);
     verify(mapService).getOwnedMapsWithPageCount(instance.pageSize, 1);
-    verify(mapService).getLadderMapsWithPageCount(instance.pageSize, 1);
   }
 
   @Test
-  public void testShowMapDetail() {
+  public void testShowMapDetail() throws MalformedURLException {
     MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
-    Platform.runLater(() -> instance.onDisplayDetails(mapBean));
+    JavaFxUtil.runLater(() -> instance.onDisplayDetails(mapBean));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapDetailController).setMap(mapBean);
-    assertThat(mapDetailController.getRoot().isVisible(), is(true));
+    assertTrue(mapDetailController.getRoot().isVisible());
   }
 
   @Test

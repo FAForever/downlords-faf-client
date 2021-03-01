@@ -11,8 +11,6 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
-import com.jfoenix.controls.JFXRippler;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
@@ -62,12 +60,6 @@ public class ReplayCardController implements Controller<Node> {
   private Replay replay;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private Consumer<Replay> onOpenDetailListener;
-  private JFXRippler jfxRippler;
-
-  @Override
-  public void initialize() {
-    jfxRippler = new JFXRippler(replayTileRoot);
-  }
 
   public void setReplay(Replay replay) {
     this.replay = replay;
@@ -75,7 +67,7 @@ public class ReplayCardController implements Controller<Node> {
     Optional<MapBean> optionalMap = Optional.ofNullable(replay.getMap());
     if (optionalMap.isPresent()) {
       MapBean map = optionalMap.get();
-      Image image = mapService.loadPreview(map, PreviewSize.SMALL);
+      Image image = mapService.loadPreview(map.getFolderName(), PreviewSize.SMALL);
       mapThumbnailImageView.setImage(image);
       onMapLabel.setText(i18n.get("game.onMapFormat", map.getDisplayName()));
     } else {
@@ -95,10 +87,11 @@ public class ReplayCardController implements Controller<Node> {
     }
 
     replay.getTeamPlayerStats().values().stream()
-        .flatMapToInt(playerStats -> playerStats.stream()
+        .flatMapToInt(playerStats -> playerStats.stream().filter(stats -> stats.getBeforeMean() != null && stats.getBeforeDeviation() != null)
             .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
         .average()
-        .ifPresent(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)));
+        .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),
+            () -> ratingLabel.setText("-"));
 
     Integer replayTicks = replay.getReplayTicks();
     if (replayTicks != null) {
@@ -133,14 +126,14 @@ public class ReplayCardController implements Controller<Node> {
 
   private void populateReviews() {
     ObservableList<Review> reviews = replay.getReviews();
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       numberOfReviewsLabel.setText(i18n.number(reviews.size()));
       starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
     });
   }
 
   public Node getRoot() {
-    return jfxRippler;
+    return replayTileRoot;
   }
 
   public void setOnOpenDetailListener(Consumer<Replay> onOpenDetailListener) {

@@ -1,8 +1,10 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
@@ -15,19 +17,20 @@ import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -58,19 +61,19 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ReportingService reportingService;
 
-  private SortConfig sortOrder;
-  private SearchConfig standardSearchConfig;
+  private Preferences preferences;
   private ModDetailController modDetailController;
 
   @Before
   public void setUp() throws Exception {
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+    preferences = PreferencesBuilder.create().defaultValues().get();
+
+    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(modService.getHighestRatedUiModsWithPageCount(anyInt(),anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
+    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
+    when(i18n.get(anyString())).thenReturn("test");
 
-    sortOrder = preferencesService.getPreferences().getVaultPrefs().getMapSortConfig();
-    standardSearchConfig = new SearchConfig(sortOrder, "query");
     instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
 
     doAnswer(invocation -> {
@@ -95,6 +98,8 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetSupplier() {
+    SortConfig sortOrder = preferences.getVault().getMapSortConfig();
+    SearchConfig standardSearchConfig = new SearchConfig(sortOrder, "query");
     instance.searchType = SearchType.SEARCH;
     instance.setSupplier(standardSearchConfig);
     instance.searchType = SearchType.NEWEST;
@@ -111,9 +116,9 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testShowModDetail() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().get();
-    Platform.runLater(()-> instance.onDisplayDetails(modVersion));
+  public void testShowModDetail() throws MalformedURLException {
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
+    JavaFxUtil.runLater(() -> instance.onDisplayDetails(modVersion));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(modDetailController).setModVersion(modVersion);

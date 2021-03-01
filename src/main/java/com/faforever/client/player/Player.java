@@ -1,28 +1,30 @@
 package com.faforever.client.player;
 
-import com.faforever.client.api.dto.GlobalRating;
-import com.faforever.client.api.dto.Ladder1v1Rating;
 import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.remote.domain.GameStatus;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import lombok.SneakyThrows;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.player.SocialStatus.OTHER;
@@ -39,10 +41,7 @@ public class Player {
   private final StringProperty avatarUrl;
   private final StringProperty avatarTooltip;
   private final ObjectProperty<SocialStatus> socialStatus;
-  private final FloatProperty globalRatingDeviation;
-  private final FloatProperty globalRatingMean;
-  private final FloatProperty leaderboardRatingDeviation;
-  private final FloatProperty leaderboardRatingMean;
+  private final MapProperty<String, LeaderboardRating> leaderboardRatings;
   private final ObjectProperty<Game> game;
   private final ObjectProperty<PlayerStatus> status;
   private final ObservableSet<ChatChannelUser> chatChannelUsers;
@@ -70,10 +69,7 @@ public class Player {
     country = new SimpleStringProperty();
     avatarUrl = new SimpleStringProperty();
     avatarTooltip = new SimpleStringProperty();
-    globalRatingDeviation = new SimpleFloatProperty();
-    globalRatingMean = new SimpleFloatProperty();
-    leaderboardRatingDeviation = new SimpleFloatProperty();
-    leaderboardRatingMean = new SimpleFloatProperty();
+    leaderboardRatings = new SimpleMapProperty<>();
     status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
     chatChannelUsers = FXCollections.observableSet();
     game = new SimpleObjectProperty<>();
@@ -92,10 +88,6 @@ public class Player {
     Player player = new Player(dto.getLogin());
     player.setId(Integer.parseInt(dto.getId()));
     player.setUsername(dto.getLogin());
-    player.setGlobalRatingMean(Optional.ofNullable(dto.getGlobalRating()).map(GlobalRating::getMean).orElse(0d).floatValue());
-    player.setGlobalRatingDeviation(Optional.ofNullable(dto.getGlobalRating()).map(GlobalRating::getDeviation).orElse(0d).floatValue());
-    player.setLeaderboardRatingMean(Optional.ofNullable(dto.getLadder1v1Rating()).map(Ladder1v1Rating::getMean).orElse(0d).floatValue());
-    player.setLeaderboardRatingDeviation(Optional.ofNullable(dto.getLadder1v1Rating()).map(Ladder1v1Rating::getDeviation).orElse(0d).floatValue());
     if (dto.getNames() != null) {
       player.getNames().addAll(dto.getNames().stream().map(NameRecord::fromDto).collect(Collectors.toList()));
     }
@@ -191,6 +183,21 @@ public class Player {
     return country;
   }
 
+  @SneakyThrows
+  public void setAvatar(AvatarBean avatar) {
+    if (avatar != null) {
+      if (avatar.getUrl() != null) {
+        setAvatarUrl(avatar.getUrl().toExternalForm());
+      } else {
+        setAvatarUrl(null);
+      }
+      setAvatarTooltip(avatar.getDescription());
+    } else {
+      setAvatarUrl(null);
+      setAvatarTooltip(null);
+    }
+  }
+
   public String getAvatarUrl() {
     return avatarUrl.get();
   }
@@ -215,28 +222,16 @@ public class Player {
     return avatarTooltip;
   }
 
-  public float getGlobalRatingDeviation() {
-    return globalRatingDeviation.get();
+  public Map<String, LeaderboardRating> getLeaderboardRatings() {
+    return leaderboardRatings.get();
   }
 
-  public void setGlobalRatingDeviation(float globalRatingDeviation) {
-    this.globalRatingDeviation.set(globalRatingDeviation);
+  public void setLeaderboardRatings(Map<String, LeaderboardRating> leaderboardRatings) {
+    this.leaderboardRatings.set(FXCollections.observableMap(leaderboardRatings));
   }
 
-  public FloatProperty globalRatingDeviationProperty() {
-    return globalRatingDeviation;
-  }
-
-  public float getGlobalRatingMean() {
-    return globalRatingMean.get();
-  }
-
-  public void setGlobalRatingMean(float globalRatingMean) {
-    this.globalRatingMean.set(globalRatingMean);
-  }
-
-  public FloatProperty globalRatingMeanProperty() {
-    return globalRatingMean;
+  public MapProperty<String, LeaderboardRating> leaderboardRatingMapProperty() {
+    return leaderboardRatings;
   }
 
   public PlayerStatus getStatus() {
@@ -278,26 +273,6 @@ public class Player {
     return game;
   }
 
-  public float getLeaderboardRatingMean() {
-    return leaderboardRatingMean.get();
-  }
-
-  public void setLeaderboardRatingMean(float leaderboardRatingMean) {
-    this.leaderboardRatingMean.set(leaderboardRatingMean);
-  }
-
-  public FloatProperty leaderboardRatingMeanProperty() {
-    return leaderboardRatingMean;
-  }
-
-  public float getLeaderboardRatingDeviation() {
-    return leaderboardRatingDeviation.get();
-  }
-
-  public void setLeaderboardRatingDeviation(float leaderboardRatingDeviation) {
-    this.leaderboardRatingDeviation.set(leaderboardRatingDeviation);
-  }
-
   public Instant getIdleSince() {
     return idleSince.get();
   }
@@ -310,10 +285,6 @@ public class Player {
     return idleSince;
   }
 
-  public FloatProperty leaderboardRatingDeviationProperty() {
-    return leaderboardRatingDeviation;
-  }
-
   public ObservableSet<ChatChannelUser> getChatChannelUsers() {
     return chatChannelUsers;
   }
@@ -323,14 +294,12 @@ public class Player {
     setClan(player.getClan());
     setCountry(player.getCountry());
 
-    if (player.getGlobalRating() != null) {
-      setGlobalRatingMean(player.getGlobalRating()[0]);
-      setGlobalRatingDeviation(player.getGlobalRating()[1]);
+    if (player.getRatings() != null) {
+      Map<String, LeaderboardRating> ratingMap = new HashMap<>();
+      player.getRatings().forEach((key, value) -> ratingMap.put(key, LeaderboardRating.fromDto(value)));
+      setLeaderboardRatings(ratingMap);
     }
-    if (player.getLadderRating() != null) {
-      setLeaderboardRatingMean(player.getLadderRating()[0]);
-      setLeaderboardRatingDeviation(player.getLadderRating()[1]);
-    }
+
     setNumberOfGames(player.getNumberOfGames());
     if (player.getAvatar() != null) {
       setAvatarUrl(player.getAvatar().getUrl());

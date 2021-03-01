@@ -1,5 +1,6 @@
 package com.faforever.client.ui.preferences;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -19,8 +20,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static javafx.application.Platform.runLater;
-
 
 @Component
 @RequiredArgsConstructor
@@ -39,7 +38,7 @@ public class GameDirectoryRequiredHandler implements InitializingBean {
 
   @Subscribe
   public void onChooseGameDirectory(GameDirectoryChooseEvent event) {
-    runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
       directoryChooser.setTitle(i18n.get("missingGamePath.chooserTitle"));
       File result = directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow());

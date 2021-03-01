@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.mod.MountInfo;
 import org.hamcrest.CoreMatchers;
@@ -41,8 +42,11 @@ public class FaInitGeneratorTest {
 
     instance = new FaInitGenerator(preferencesService);
 
-    Preferences preferences = new Preferences();
-    preferences.getForgedAlliance().setInstallationPath(faDirectory.getRoot().toPath());
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .installationPath(faDirectory.getRoot().toPath())
+        .then()
+        .get();
 
     when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
     when(preferencesService.getPreferences()).thenReturn(preferences);

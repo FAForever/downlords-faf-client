@@ -1,9 +1,9 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.client.util.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -24,8 +24,20 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   private final FafService fafService;
 
   @Override
-  public CompletableFuture<List<RatingStat>> getLadder1v1Stats() {
-    return fafService.getLadder1v1Leaderboard().thenApply(this::toRatingStats);
+  public CompletableFuture<List<Leaderboard>> getLeaderboards() {
+    return fafService.getLeaderboards();
+  }
+
+  public CompletableFuture<List<LeaderboardEntry>> getEntries(Leaderboard leaderboard) {
+    return fafService.getAllLeaderboardEntries(leaderboard.getTechnicalName());
+  }
+
+  public CompletableFuture<Tuple<List<LeaderboardEntry>, Integer>> getPagedEntries(Leaderboard leaderboard, int count, int page) {
+    return fafService.getLeaderboardEntriesWithPageCount(leaderboard.getTechnicalName(), count, page);
+  }
+
+  public CompletableFuture<List<RatingStat>> getLeaderboardStats(String leaderboardTechnicalName) {
+    return fafService.getAllLeaderboardEntries(leaderboardTechnicalName).thenApply(this::toRatingStats);
   }
 
   private List<RatingStat> toRatingStats(List<LeaderboardEntry> entries) {
@@ -47,19 +59,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
   }
 
   @Override
-  public CompletableFuture<LeaderboardEntry> getEntryForPlayer(int playerId) {
-    return fafService.getLadder1v1EntryForPlayer(playerId);
-  }
-
-  @Override
-  public CompletableFuture<List<LeaderboardEntry>> getEntries(KnownFeaturedMod ratingType) {
-    switch (ratingType) {
-      case FAF:
-        return fafService.getGlobalLeaderboard();
-      case LADDER_1V1:
-        return fafService.getLadder1v1Leaderboard();
-      default:
-        throw new IllegalArgumentException("Not supported: " + ratingType);
-    }
+  public CompletableFuture<List<LeaderboardEntry>> getEntriesForPlayer(int playerId) {
+    return fafService.getLeaderboardEntriesForPlayer(playerId);
   }
 }

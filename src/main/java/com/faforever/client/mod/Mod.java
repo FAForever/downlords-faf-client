@@ -1,6 +1,6 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.dto.Player;
+import com.faforever.client.vault.review.ReviewsSummary;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -18,7 +18,8 @@ public class Mod {
   private final StringProperty author;
   private final ObjectProperty<OffsetDateTime> createTime;
   private final ObjectProperty<OffsetDateTime> updateTime;
-  private final ObjectProperty<Player> uploader;
+  private final StringProperty uploader;
+  private final ObjectProperty<ReviewsSummary> reviewsSummary;
   private final ObservableList<ModVersion> versions;
   private final ObjectProperty<ModVersion> latestVersion;
 
@@ -29,7 +30,8 @@ public class Mod {
     displayName = new SimpleStringProperty();
     createTime = new SimpleObjectProperty<>();
     updateTime = new SimpleObjectProperty<>();
-    uploader = new SimpleObjectProperty<>();
+    reviewsSummary = new SimpleObjectProperty<>();
+    uploader = new SimpleStringProperty();
     versions = FXCollections.observableArrayList();
   }
 
@@ -41,8 +43,9 @@ public class Mod {
     mod.setCreateTime(dto.getCreateTime());
     mod.setUpdateTime(dto.getUpdateTime());
     if (dto.getUploader() != null) {
-      mod.setUploader(dto.getUploader());
+      mod.setUploader(dto.getUploader().getLogin());
     }
+    mod.setReviewsSummary(ReviewsSummary.fromDto(dto.getModReviewsSummary()));
     mod.addVersions(dto.getVersions().stream().map(modVersion -> ModVersion.fromDto(modVersion, mod)).collect(Collectors.toList()));
     mod.setLatestVersion(ModVersion.fromDto(dto.getLatestVersion(), mod));
     return mod;
@@ -108,15 +111,27 @@ public class Mod {
     return updateTime;
   }
 
-  public Player getUploader() {
+  public ReviewsSummary getReviewsSummary() {
+    return reviewsSummary.get();
+  }
+
+  public void setReviewsSummary(ReviewsSummary reviewsSummary) {
+    this.reviewsSummary.set(reviewsSummary);
+  }
+
+  public ObjectProperty<ReviewsSummary> reviewsSummaryProperty() {
+    return reviewsSummary;
+  }
+
+  public String getUploader() {
     return uploader.get();
   }
 
-  public void setUploader(Player uploader) {
+  public void setUploader(String uploader) {
     this.uploader.set(uploader);
   }
 
-  public ObjectProperty<Player> uploaderProperty() {
+  public StringProperty uploaderProperty() {
     return uploader;
   }
 

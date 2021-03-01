@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import com.jfoenix.controls.JFXProgressBar?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.image.ImageView?>
@@ -11,10 +11,10 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<?import javafx.scene.layout.Region?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308"
             maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
             xmlns="http://javafx.com/javafx/10.0.2" fx:controller="com.faforever.client.map.MapDetailController">
@@ -28,7 +28,7 @@
                   <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                         spacing="20.0">
                       <children>
-                          <GridPane fx:id="gridPane" hgap="20.0" vgap="20.0">
+                          <GridPane fx:id="gridPane" hgap="20.0" vgap="20.0" maxHeight="1.7976931348623157E308">
                               <columnConstraints>
                                   <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
                                   <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
@@ -44,14 +44,14 @@
                                   <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
                                   <RowConstraints fx:id="hideRow" fillHeight="false"/>
                                   <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
-                                  <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="60.0" vgrow="ALWAYS"/>
+                                  <RowConstraints fillHeight="false" minHeight="10.0" vgrow="ALWAYS"/>
                               </rowConstraints>
                               <children>
                                   <ImageView fx:id="thumbnailImageView" fitHeight="256.0" fitWidth="256.0"
                                              pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER"
                                              GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
                                   <VBox GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
-                                        GridPane.hgrow="ALWAYS">
+                                        GridPane.hgrow="ALWAYS" GridPane.rowIndex="0">
                                       <children>
                                           <Label fx:id="nameLabel" styleClass="h1" text="&lt;Title&gt;"/>
                                           <Label fx:id="mapIdLabel" text="#&lt;id&gt;"/>
@@ -75,16 +75,16 @@
                                           <Region styleClass="icon,date-icon"/>
                                       </graphic>
                                   </Label>
-                                  <VBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="1"
+                                  <VBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="5"
                                         GridPane.columnSpan="2147483647">
                                       <HBox alignment="TOP_RIGHT" spacing="10.0">
                                           <children>
                                               <Button fx:id="createGameButton" defaultButton="true"
-                                                         mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
-                                                         text="%games.create"/>
+                                                      mnemonicParsing="false" onAction="#onCreateGameButtonClicked"
+                                                      text="%games.create"/>
                                               <Button fx:id="installButton" defaultButton="true"
-                                                         mnemonicParsing="false" onAction="#onInstallButtonClicked"
-                                                         text="%mapVault.installButtonFormat"/>
+                                                      mnemonicParsing="false" onAction="#onInstallButtonClicked"
+                                                      text="%mapVault.installButtonFormat"/>
                                               <Button fx:id="uninstallButton" mnemonicParsing="false"
                                                          onAction="#onUninstallButtonClicked"
                                                          text="%mapVault.uninstall"/>
@@ -93,20 +93,30 @@
                                       <VBox fx:id="loadingContainer" alignment="TOP_RIGHT" maxWidth="300.0">
                                           <children>
                                               <Label fx:id="progressLabel"/>
-                                              <JFXProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
-                                                              progress="0.0"/>
+                                              <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308"
+                                                           progress="0.0"/>
                                           </children>
                                       </VBox>
                                   </VBox>
                                   <Label fx:id="authorLabel" styleClass="secondary" text="&lt;Author&gt;"
                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
                                          GridPane.valignment="TOP"/>
+                                  <Label maxWidth="1.7976931348623157E308" styleClass="secondary" text="%map.version"
+                                         GridPane.columnIndex="2" GridPane.columnSpan="2147483647"
+                                         GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
+                                  <Label fx:id="mapVersionLabel" styleClass="secondary"
+                                         maxWidth="1.7976931348623157E308" minWidth="0.0"
+                                         text="&lt;Version&gt;" wrapText="true" GridPane.columnIndex="3"
+                                         GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
+                                         GridPane.valignment="TOP"/>
                                   <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%map.description"
                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
                                          GridPane.hgrow="ALWAYS" GridPane.rowIndex="5"/>
                                   <Label fx:id="mapDescriptionLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
-                                         text="&lt;Description&gt;" wrapText="true" GridPane.columnIndex="1"
+                                         text="&lt;Description&gt;" wrapText="true" GridPane.vgrow="ALWAYS"
+                                         GridPane.columnIndex="1"
                                          GridPane.columnSpan="2147483647" GridPane.rowIndex="6"
+                                         maxHeight="1.7976931348623157E308"
                                          GridPane.valignment="TOP"/>
                                   <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
                                         GridPane.rowIndex="3">

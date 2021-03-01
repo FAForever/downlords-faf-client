@@ -1,9 +1,9 @@
 package com.faforever.client.test;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.vault.VaultEntityController;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -17,6 +17,7 @@ import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.net.URL;
@@ -35,7 +36,7 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
   private final Pane root;
   private Scene scene;
   private Stage stage;
-  private List<Throwable> exceptionsCaught = new ArrayList<>();
+  private final List<Throwable> exceptionsCaught = new ArrayList<>();
 
   public AbstractPlainJavaFxTest() {
     root = new Pane();
@@ -100,7 +101,7 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
       loader.setController(controller);
     }
     CountDownLatch latch = new CountDownLatch(1);
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       try {
         noCatch((Callable<Object>) loader::load);
       } catch (Exception e) {
@@ -120,5 +121,10 @@ public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
 
   protected URL getThemeFileUrl(String file) {
     return noCatch(() -> new ClassPathResource(getThemeFile(file)).getURL());
+  }
+
+  protected void runOnFxThreadAndWait(Runnable runnable) {
+    JavaFxUtil.runLater(runnable);
+    WaitForAsyncUtils.waitForFxEvents();
   }
 }

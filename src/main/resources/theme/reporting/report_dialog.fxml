@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      xmlns="http://javafx.com/javafx"
+      fx:controller="com.faforever.client.reporting.ReportDialogController"
+      fx:id="reportDialogRoot" spacing="10.0"
+      prefHeight="700.0" prefWidth="1000.0">
+    <HBox alignment="CENTER" spacing="20.0" styleClass="user-info-header-area">
+        <Label fx:id="reportLabel" maxWidth="1.7976931348623157E308" styleClass="h2" text="%report.title"/>
+    </HBox>
+    <GridPane VBox.vgrow="ALWAYS" hgap="10.0" vgap="10.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+            <ColumnConstraints hgrow="NEVER" minWidth="10.0"/>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+            <RowConstraints vgrow="SOMETIMES"/>
+        </rowConstraints>
+        <padding>
+            <Insets top="25" right="25" bottom="25" left="25"/>
+        </padding>
+        <Label text="%report.userSearch" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.halignment="RIGHT"
+               styleClass="h3"/>
+        <TextField fx:id="offender" maxHeight="Infinity" promptText="%report.offender" GridPane.columnSpan="3"
+                   GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <Label text="%report.description" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.halignment="RIGHT"
+               styleClass="h3"/>
+        <TextArea fx:id="reportDescription" maxHeight="Infinity" promptText="%report.description.placeholder"
+                  GridPane.columnSpan="3" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.rowSpan="2"
+                  GridPane.halignment="CENTER"/>
+        <Label text="%report.gameID" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.halignment="RIGHT"
+               styleClass="h3"/>
+        <TextField fx:id="gameId" maxHeight="Infinity" promptText="%report.gamePrompt"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label text="%report.gameTime" GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.halignment="RIGHT"
+               styleClass="h3"/>
+        <TextField fx:id="gameTime" maxHeight="Infinity" promptText="%report.gamePrompt"
+                   GridPane.rowIndex="3" GridPane.columnIndex="3" GridPane.halignment="CENTER"/>
+        <Button defaultButton="true" onAction="#onReportButtonClicked" text="%report.submit" GridPane.columnIndex="0"
+                GridPane.rowIndex="5"
+                GridPane.columnSpan="4" GridPane.halignment="CENTER"/>
+        <Separator GridPane.columnSpan="4" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <Label text="%report.previousReports" GridPane.columnIndex="0" GridPane.rowIndex="7"
+               GridPane.halignment="CENTER"
+               styleClass="h2" GridPane.columnSpan="4"/>
+        <TableView fx:id="reportTable" GridPane.rowIndex="8" GridPane.rowSpan="4" GridPane.columnIndex="0"
+                   GridPane.columnSpan="4" GridPane.halignment="CENTER">
+            <columns>
+                <TableColumn fx:id="idColumn" editable="false" minWidth="30.0" prefWidth="60.0"
+                             text="%report.id"/>
+                <TableColumn fx:id="createTimeColumn" editable="false" minWidth="100.0" prefWidth="120.0"
+                             text="%report.createTime"/>
+                <TableColumn fx:id="offenderColumn" editable="false" minWidth="70.0" prefWidth="100.0"
+                             text="%report.offender"/>
+                <TableColumn fx:id="gameColumn" editable="false" minWidth="70.0" prefWidth="100.0"
+                             text="%report.gameID"/>
+                <TableColumn fx:id="descriptionColumn" editable="false" minWidth="100.0" prefWidth="170.0"
+                             text="%report.description"/>
+                <TableColumn fx:id="moderatorColumn" editable="false" minWidth="50.0" prefWidth="100.0"
+                             text="%report.moderator"/>
+                <TableColumn fx:id="noticeColumn" editable="false" minWidth="100.0" prefWidth="150.0"
+                             text="%report.notice"/>
+                <TableColumn fx:id="statusColumn" editable="false" minWidth="50.0" prefWidth="100.0"
+                             text="%report.status"/>
+            </columns>
+        </TableView>
+    </GridPane>
+</VBox>

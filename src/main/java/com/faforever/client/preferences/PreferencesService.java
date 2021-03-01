@@ -1,6 +1,9 @@
 package com.faforever.client.preferences;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Faction;
 import com.faforever.client.preferences.gson.ColorTypeAdapter;
 import com.faforever.client.preferences.gson.ExcludeFieldsWithExcludeAnnotationStrategy;
@@ -15,7 +18,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
-import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Alert;
@@ -51,8 +53,8 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
@@ -112,6 +114,11 @@ public class PreferencesService implements InitializingBean {
         .toString());
     // duplicated, see getIceAdapterLogDirectory; make getIceAdapterLogDirectory or ice log dir static?
 
+    System.setProperty("MAP_GENERATOR_LOG", PreferencesService.FAF_DATA_DIRECTORY
+        .resolve("logs")
+        .resolve("map-generator.log")
+        .toString());
+
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
 
@@ -165,6 +172,9 @@ public class PreferencesService implements InitializingBean {
     } else {
       preferences = new Preferences();
     }
+
+    setLoggingLevel();
+    JavaFxUtil.addListener(preferences.debugLogEnabledProperty(), (observable, oldValue, newValue) -> setLoggingLevel());
 
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
     if (Files.notExists(gamePrefs)) {
@@ -242,7 +252,7 @@ public class PreferencesService implements InitializingBean {
     } catch (Exception e) {
       logger.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
       CountDownLatch waitForUser = new CountDownLatch(1);
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         Alert errorReading = new Alert(AlertType.ERROR, "Error reading setting. Reset settings? ", ButtonType.YES, ButtonType.CANCEL);
         errorReading.showAndWait();
 
@@ -360,8 +370,7 @@ public class PreferencesService implements InitializingBean {
     try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
       listOfLogFiles
           .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches())
-          .sorted(Comparator.comparingLong(p -> p.toFile().lastModified()))
-          .sorted(Collections.reverseOrder())
+          .sorted(Comparator.comparingLong(p -> ((Path) p).toFile().lastModified()).reversed())
           .skip(NUMBER_GAME_LOGS_STORED - 1)
           .forEach(p -> noCatch(() -> Files.delete(p)));
     } catch (IOException e) {
@@ -370,6 +379,18 @@ public class PreferencesService implements InitializingBean {
       logger.error("Could not delete game log file");
     }
     return getFafLogDirectory().resolve(String.format("game_%d.log", gameUID));
+  }
+
+  public Optional<Path> getMostRecentGameLogFile() {
+    try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
+      return listOfLogFiles
+          .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches()).max(Comparator.comparingLong(p -> p.toFile().lastModified()));
+    } catch (IOException e) {
+      logger.error("Could not list log directory.", e);
+    } catch (NoCatchException e) {
+      logger.error("Could not delete game log file");
+    }
+    return Optional.empty();
   }
 
   @SneakyThrows
@@ -459,5 +480,20 @@ public class PreferencesService implements InitializingBean {
         throw new CompletionException(e);
       }
     });
+  }
+
+  public void setLoggingLevel() {
+    storeInBackground();
+    Level targetLogLevel = preferences.isDebugLogEnabled() ? Level.DEBUG : Level.INFO;
+    final LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())).getLoggerContext();
+    loggerContext.getLoggerList()
+        .stream()
+        .filter(logger -> logger.getName().startsWith("com.faforever"))
+        .forEach(logger -> ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger.getName())).setLevel(targetLogLevel));
+
+    logger.info("Switching FA Forever logging configuration to {}", targetLogLevel.levelStr);
+    if (targetLogLevel == Level.DEBUG) {
+      logger.debug("Confirming debug logging");
+    }
   }
 }

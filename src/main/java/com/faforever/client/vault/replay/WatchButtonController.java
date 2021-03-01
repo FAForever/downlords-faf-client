@@ -6,6 +6,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.util.TimeService;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.Node;
@@ -39,7 +40,7 @@ public class WatchButtonController implements Controller<Node> {
 
   public void initialize() {
     delayTimeline = new Timeline(
-        new KeyFrame(Duration.ZERO, event -> updateWatchButtonTimer()),
+        new KeyFrame(Duration.ZERO, event -> onFinished()),
         new KeyFrame(Duration.seconds(1))
     );
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
@@ -50,27 +51,52 @@ public class WatchButtonController implements Controller<Node> {
 
   public void setGame(Game game) {
     this.game = game;
+    Assert.notNull(game, "Game must not be null");
     Assert.notNull(game.getStartTime(), "The game's start must not be null: " + game);
-    delayTimeline.play();
+    if (canWatch()) {
+      allowWatch();
+    } else {
+      updateWatchButtonTimer();
+      delayTimeline.play();
+    }
+  }
+
+  private boolean canWatch() {
+    java.time.Duration duration = getWatchDelayTime();
+    return duration.isZero() || duration.isNegative();
+  }
+
+  private void allowWatch() {
+    watchButton.setText(i18n.get("game.watch"));
+    watchButton.setDisable(false);
+  }
+
+  private void onFinished() {
+    if (canWatch()) {
+      delayTimeline.stop();
+      allowWatch();
+    } else {
+      updateWatchButtonTimer();
+    }
   }
 
   private void updateWatchButtonTimer() {
-    Assert.notNull(game, "Game must not be null");
+    watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(getWatchDelayTime())));
+    watchButton.setDisable(true);
+  }
+
+  private java.time.Duration getWatchDelayTime() {
     Assert.notNull(game.getStartTime(),
         "Game's start time is null, in which case it shouldn't even be listed: " + game);
-
-    java.time.Duration watchDelay = java.time.Duration.between(
+    return java.time.Duration.between(
         Instant.now(),
         game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())
     );
-    if (watchDelay.isZero() || watchDelay.isNegative()) {
-      delayTimeline.stop();
-      watchButton.setText(i18n.get("game.watch"));
-      watchButton.setDisable(false);
-    } else {
-      watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(watchDelay)));
-      watchButton.setDisable(true);
-    }
+  }
+
+  @VisibleForTesting
+  public Timeline getDelayTimeline() {
+    return delayTimeline;
   }
 
   @Override

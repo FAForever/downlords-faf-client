@@ -1,7 +1,11 @@
 package com.faforever.client.util;
 
 import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.leaderboard.Leaderboard;
+import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.player.Player;
+
+import java.util.Optional;
 
 public final class RatingUtil {
 
@@ -14,32 +18,36 @@ public final class RatingUtil {
     return (int) (ratingToBeRounded / 100) * 100;
   }
 
-  public static int getRoundedGlobalRating(Player player) {
-    return getRoundedRating(getGlobalRating(player));
+  public static Integer getRoundedLeaderboardRating(Player player, String ratingType) {
+    Optional<Integer> exactRating = Optional.ofNullable(getLeaderboardRating(player, ratingType));
+    return exactRating.map(RatingUtil::getRoundedRating).orElse(null);
+  }
+
+  public static Integer getRoundedLeaderboardRating(Player player, Leaderboard leaderboard) {
+    Optional<Integer> exactRating = Optional.ofNullable(getLeaderboardRating(player, leaderboard));
+    return exactRating.map(RatingUtil::getRoundedRating).orElse(null);
   }
 
   public static int getRoundedRating(int rating) {
     return (rating + 50) / 100 * 100;
   }
 
-  public static int getGlobalRating(Player playerInfo) {
-    return getRating(playerInfo.getGlobalRatingMean(), playerInfo.getGlobalRatingDeviation());
+  public static Integer getLeaderboardRating(Player player, String ratingType) {
+    Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(player.getLeaderboardRatings().get(ratingType));
+    return leaderboardRating.map(RatingUtil::getRating).orElse(null);
+  }
+
+  public static Integer getLeaderboardRating(Player player, Leaderboard leaderboard) {
+    Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(player.getLeaderboardRatings().get(leaderboard.getTechnicalName()));
+    return leaderboardRating.map(RatingUtil::getRating).orElse(0);
+  }
+
+  public static int getRating(LeaderboardRating leaderboardRating) {
+    return (int) (leaderboardRating.getMean() - 3f * leaderboardRating.getDeviation());
   }
 
   public static int getRating(double ratingMean, double ratingDeviation) {
     return (int) (ratingMean - 3f * ratingDeviation);
-  }
-
-  public static int getLeaderboardRating(Player player) {
-    return getRating(player.getLeaderboardRatingMean(), player.getLeaderboardRatingDeviation());
-  }
-
-  public static int getGlobalRating(com.faforever.client.remote.domain.Player player) {
-    return getRating(player.getGlobalRating()[0], player.getGlobalRating()[1]);
-  }
-
-  public static int getLeaderboardRating(com.faforever.client.remote.domain.Player player) {
-    return getRating(player.getLadderRating()[0], player.getLadderRating()[1]);
   }
 
   public static int getRating(RatingHistoryDataPoint datapoint) {

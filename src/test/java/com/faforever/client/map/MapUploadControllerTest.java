@@ -28,9 +28,9 @@ public class MapUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReportingService reportingService;
-  @Mock
   private PlatformService platformService;
+  @Mock
+  private ReportingService reportingService;
   @Mock
   private I18n i18n;
   @Mock

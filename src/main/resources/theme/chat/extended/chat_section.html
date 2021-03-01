@@ -6,12 +6,19 @@
       <span class="clan-tag {css-classes}"
             onmouseover="showClanInfo('{clan-tag}')"
             onmouseout="hideClanInfo()"
-            onclick="showClanWebsite('{clan-tag}')">{decorated-clan-tag}</span>
+            onclick="showClanWebsite('{clan-tag}')"
+            style="{inline-style}">
+        {decorated-clan-tag}
+      </span>
 
       <span class="username {css-classes}"
             onmouseover="showPlayerInfo('{username}')"
             onmouseout="hidePlayerInfo()"
-            onclick="messagePlayer('{username}')">{username}</span>
+            onclick="messagePlayer('{username}')"
+            style="{inline-style}">
+        {username}
+
+      </span>
       <span class="time">{time}</span>
     </div>
   </div>

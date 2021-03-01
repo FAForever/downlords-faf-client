@@ -21,7 +21,6 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -76,6 +75,8 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
+  @Mock
+  private ChatUserService chatUserService;
 
   private PrivateChatTabController instance;
   private String playerName;
@@ -84,10 +85,11 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws IOException, ExecutionException, InterruptedException {
     PreferencesService preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.afterPropertiesSet();
+    preferencesService.getPreferences().getNotification().setPrivateMessageToastEnabled(true);
 
     instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
         i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,
-        audioService, chatService, webViewConfigurer, countryFlagService);
+        audioService, chatService, webViewConfigurer, countryFlagService, chatUserService);
 
 
     playerName = "testUser";
@@ -137,29 +139,6 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testOnChatMessageFocusedDoesntTriggersNotification() {
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyZeroInteractions(notificationService);
-  }
-
-  @Test
-  public void onChatMessageTestNotFoeShowFoe() {
-    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
-  }
-
-  @Ignore("Not yet implemented")
-  @Test
-  public void onChatMessageTestNotFoeHideFoe() {
-
-  }
-
-  @Ignore("Not yet implemented")
-  @Test
-  public void onChatMessageTestIsFoeShowFoe() {
-
-  }
-
-  @Ignore("Not yet implemented")
-  @Test
-  public void onChatMessageTestIsFoeHideFoe() {
-
   }
 
   @Test

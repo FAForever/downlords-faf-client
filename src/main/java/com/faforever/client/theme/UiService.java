@@ -11,7 +11,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -28,9 +27,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.CacheManager;
@@ -45,7 +43,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.lang.invoke.MethodHandles;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.net.URL;
@@ -79,6 +76,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 @Lazy
 @Service
+@Slf4j
 public class UiService implements InitializingBean, DisposableBean {
 
   public static final String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
@@ -117,7 +115,6 @@ public class UiService implements InitializingBean, DisposableBean {
 
   public static Theme DEFAULT_THEME = new Theme("Default", "Downlord", 1, "1");
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   /**
    * This value needs to be updated whenever theme-breaking changes were made to the client.
    */
@@ -179,7 +176,7 @@ public class UiService implements InitializingBean, DisposableBean {
     if (themesByFolderName.containsKey(storedTheme)) {
       setTheme(themesByFolderName.get(storedTheme));
     } else {
-      logger.warn("Selected theme was not found in folder {}, falling back to default.", storedTheme);
+      log.warn("Selected theme was not found in folder {}, falling back to default.", storedTheme);
       setTheme(DEFAULT_THEME);
     }
 
@@ -192,7 +189,7 @@ public class UiService implements InitializingBean, DisposableBean {
       try {
         deleteRecursively(cacheStylesheetsDirectory);
       } catch (IOException e) {
-        logger.warn("Missing permission to delete style sheets cache directory '{}'", cacheStylesheetsDirectory);
+        log.warn("Missing permission to delete style sheets cache directory '{}'", cacheStylesheetsDirectory);
       }
     }
   }
@@ -207,7 +204,7 @@ public class UiService implements InitializingBean, DisposableBean {
           key.reset();
         }
       } catch (InterruptedException | ClosedWatchServiceException e) {
-        logger.debug("Watcher service terminated");
+        log.debug("Watcher service terminated");
       }
     });
   }
@@ -222,7 +219,7 @@ public class UiService implements InitializingBean, DisposableBean {
       String folderName = path.getFileName().toString();
       themesByFolderName.put(folderName, readTheme(reader));
     } catch (IOException e) {
-      logger.warn("Theme could not be read: " + metadataFile.toAbsolutePath(), e);
+      log.warn("Theme could not be read: " + metadataFile.toAbsolutePath(), e);
     }
   }
 
@@ -248,7 +245,7 @@ public class UiService implements InitializingBean, DisposableBean {
    */
   private void watchTheme(Theme theme) {
     Path themePath = getThemeDirectory(theme);
-    logger.debug("Watching theme directory for changes: {}", themePath.toAbsolutePath());
+    log.debug("Watching theme directory for changes: {}", themePath.toAbsolutePath());
     noCatch(() -> Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath, watchService))));
   }
 
@@ -261,7 +258,12 @@ public class UiService implements InitializingBean, DisposableBean {
         watchKeys.remove(path);
       }
     }
-
+    try {
+      //When replacing a theme file sometimes it is deleted and added again a few milli seconds later.
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      log.info("Watch thread was interrupted");
+    }
     reloadStylesheet();
   }
 
@@ -269,20 +271,20 @@ public class UiService implements InitializingBean, DisposableBean {
     if (watchKeys.containsKey(directory)) {
       return;
     }
-    logger.debug("Watching directory: {}", directory.toAbsolutePath());
+    log.debug("Watching directory: {}", directory.toAbsolutePath());
     noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
   }
 
   private void reloadStylesheet() {
     String[] styleSheets = getStylesheets();
 
-    logger.debug("Changes detected, reloading stylesheets: {}", styleSheets);
+    log.debug("Changes detected, reloading stylesheets: {}", styleSheets);
     scenes.forEach(scene -> setSceneStyleSheet(scene, styleSheets));
     loadWebViewsStyleSheet(getWebViewStyleSheet());
   }
 
   private void setSceneStyleSheet(Scene scene, String[] styleSheets) {
-    Platform.runLater(() -> scene.getStylesheets().setAll(styleSheets));
+    JavaFxUtil.runLater(() -> scene.getStylesheets().setAll(styleSheets));
   }
 
   private String getSceneStyleSheet() {
@@ -302,7 +304,7 @@ public class UiService implements InitializingBean, DisposableBean {
   /**
    * Loads an image from the current theme.
    */
-  @Cacheable(CacheNames.THEME_IMAGES)
+  @Cacheable(value = CacheNames.THEME_IMAGES, sync = true)
   public Image getThemeImage(String relativeImage) {
     return new Image(getThemeFile(relativeImage), true);
   }
@@ -410,25 +412,33 @@ public class UiService implements InitializingBean, DisposableBean {
    * context, so its scope (which should always be "prototype") depends on the bean definition.
    */
   public <T extends Controller<?>> T loadFxml(String relativePath) {
+    log.debug("Loading fxml {}", relativePath);
     FXMLLoader loader = new FXMLLoader();
     loader.setControllerFactory(applicationContext::getBean);
     loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
     noCatch((NoCatchRunnable) loader::load);
-    return loader.getController();
+    T controller = loader.getController();
+    log.debug("fxml {} loaded successfully controller class is {}", relativePath, controller.getClass().getSimpleName());
+    return controller;
   }
 
   public <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
+    log.debug("Loading Fxml {} with class {}", relativePath, controllerClass.getSimpleName());
     FXMLLoader loader = new FXMLLoader();
     loader.setControllerFactory(applicationContext::getBean);
     loader.setController(applicationContext.getBean(controllerClass));
     loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
     noCatch((NoCatchRunnable) loader::load);
-    return loader.getController();
+    T controller = loader.getController();
+    log.debug("Fxml {} with class {} loaded successfully controller class is {}", relativePath, controllerClass.getSimpleName(),
+        controller.getClass().getSimpleName());
+    return controller;
   }
 
   private Path getThemeDirectory(Theme theme) {
+    log.debug("Retrieving Theme {}", theme.getDisplayName());
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 
@@ -457,9 +467,9 @@ public class UiService implements InitializingBean, DisposableBean {
     webViews.stream()
         .map(Reference::get)
         .filter(Objects::nonNull)
-        .forEach(webView -> Platform.runLater(
+        .forEach(webView -> JavaFxUtil.runLater(
             () -> webView.getEngine().setUserStyleSheetLocation(noCatch(() -> currentTempStyleSheet.toUri().toURL()).toString())));
-    logger.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
+    log.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
   }
 
   public Scene createScene(Parent root) {
@@ -468,9 +478,15 @@ public class UiService implements InitializingBean, DisposableBean {
     return scene;
   }
 
+  public Dialog showInDialog(StackPane parent, Node content) {
+    return showInDialog(parent, content, null);
+  }
+
   public Dialog showInDialog(StackPane parent, Node content, String title) {
     DialogLayout dialogLayout = new DialogLayout();
-    dialogLayout.setHeading(new Label(title));
+    if (title != null) {
+      dialogLayout.setHeading(new Label(title));
+    }
     dialogLayout.setBody(content);
 
     Dialog dialog = new Dialog();
@@ -489,6 +505,9 @@ public class UiService implements InitializingBean, DisposableBean {
 
   @SneakyThrows
   public boolean doesThemeNeedRestart(Theme theme) {
+    if (theme.equals(DEFAULT_THEME)) {
+      return true;
+    }
     try (Stream<Path> stream = Files.list(getThemeDirectory(theme))) {
       return stream.anyMatch(path -> Files.isRegularFile(path) && !path.endsWith(".css") && !path.endsWith(".properties"));
     }

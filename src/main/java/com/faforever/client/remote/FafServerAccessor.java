@@ -4,12 +4,15 @@ import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.net.URL;
@@ -46,9 +49,9 @@ public interface FafServerAccessor {
 
   void requestMatchmakerInfo();
 
-  CompletableFuture<GameLaunchMessage> startSearchLadder1v1(Faction faction);
+  CompletableFuture<GameLaunchMessage> startSearchMatchmaker();
 
-  void stopSearchingRanked();
+  void stopSearchMatchmaker();
 
   void sendGpgMessage(GpgGameMessage message);
 
@@ -73,4 +76,20 @@ public interface FafServerAccessor {
   void restoreGameSession(int id);
 
   void ping();
+
+  void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state);
+
+  void inviteToParty(Player recipient);
+
+  void acceptPartyInvite(Player sender);
+
+  void kickPlayerFromParty(Player kickedPlayer);
+
+  void readyParty();
+
+  void unreadyParty();
+
+  void leaveParty();
+
+  void setPartyFactions(List<Faction> factions);
 }

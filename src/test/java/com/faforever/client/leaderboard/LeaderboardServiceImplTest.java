@@ -1,7 +1,6 @@
 package com.faforever.client.leaderboard;
 
 
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.remote.FafService;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,24 +30,28 @@ public class LeaderboardServiceImplTest {
 
   private LeaderboardServiceImpl instance;
 
+  private Leaderboard leaderboard;
+
   @Before
   public void setUp() throws Exception {
+    leaderboard = LeaderboardBuilder.create().defaultValues().get();
+
     instance = new LeaderboardServiceImpl(fafService);
   }
 
   @Test
-  public void testGetLeaderboardEntries() throws Exception {
+  public void testGetLeaderboardEntries() {
     List<LeaderboardEntry> ladder1V1Entries = Collections.emptyList();
-    when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(ladder1V1Entries));
+    when(fafService.getAllLeaderboardEntries(leaderboard.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(ladder1V1Entries));
 
-    List<LeaderboardEntry> result = instance.getEntries(KnownFeaturedMod.LADDER_1V1).toCompletableFuture().get(2, TimeUnit.SECONDS);
+    List<LeaderboardEntry> result = instance.getEntries(leaderboard).toCompletableFuture().join();
 
-    verify(fafService).getLadder1v1Leaderboard();
+    verify(fafService).getAllLeaderboardEntries(leaderboard.getTechnicalName());
     assertThat(result, is(ladder1V1Entries));
   }
 
   @Test
-  public void testGetLadder1v1Stats() throws Exception {
+  public void testGetLeaderboardStats() {
     LeaderboardEntry leaderboardEntry1 = new LeaderboardEntry();
     leaderboardEntry1.setRating(151);
     leaderboardEntry1.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN);
@@ -61,23 +64,23 @@ public class LeaderboardServiceImplTest {
     leaderboardEntry3.setRating(221);
     leaderboardEntry3.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN);
 
-    when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(fafService.getAllLeaderboardEntries(leaderboard.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         leaderboardEntry1, leaderboardEntry2, leaderboardEntry3
     )));
 
-    List<RatingStat> result = instance.getLadder1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
-    verify(fafService).getLadder1v1Leaderboard();
+    List<RatingStat> result = instance.getLeaderboardStats(leaderboard.getTechnicalName()).join();
+    verify(fafService).getAllLeaderboardEntries(leaderboard.getTechnicalName());
 
     result.sort(Comparator.comparingInt(RatingStat::getRating));
 
-    assertThat(result, hasSize(2));
-    assertThat(result.get(0).getTotalCount(), is(2));
-    assertThat(result.get(0).getCountWithEnoughGamesPlayed(), is(2));
-    assertThat(result.get(0).getRating(), is(100));
+    assertEquals(2, result.size());
+    assertEquals(2, result.get(0).getTotalCount());
+    assertEquals(2, result.get(0).getCountWithEnoughGamesPlayed());
+    assertEquals(100, result.get(0).getRating());
 
-    assertThat(result.get(1).getTotalCount(), is(1));
-    assertThat(result.get(1).getCountWithEnoughGamesPlayed(), is(1));
-    assertThat(result.get(1).getRating(), is(200));
+    assertEquals(1, result.get(1).getTotalCount());
+    assertEquals(1, result.get(1).getCountWithEnoughGamesPlayed());
+    assertEquals(200, result.get(1).getRating());
   }
 
   @Test
@@ -94,30 +97,30 @@ public class LeaderboardServiceImplTest {
     leaderboardEntry3.setRating(221);
     leaderboardEntry3.setGamesPlayed(LeaderboardService.MINIMUM_GAMES_PLAYED_TO_BE_SHOWN - 1);
 
-    when(fafService.getLadder1v1Leaderboard()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
+    when(fafService.getAllLeaderboardEntries(leaderboard.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
         leaderboardEntry1, leaderboardEntry2, leaderboardEntry3
     )));
 
-    List<RatingStat> result = instance.getLadder1v1Stats().toCompletableFuture().get(2, TimeUnit.SECONDS);
-    verify(fafService).getLadder1v1Leaderboard();
+    List<RatingStat> result = instance.getLeaderboardStats(leaderboard.getTechnicalName()).toCompletableFuture().get(2, TimeUnit.SECONDS);
+    verify(fafService).getAllLeaderboardEntries(leaderboard.getTechnicalName());
 
-    assertThat(result, hasSize(2));
-    assertThat(result.get(0).getTotalCount(), is(2));
-    assertThat(result.get(0).getCountWithEnoughGamesPlayed(), is(1));
-    assertThat(result.get(0).getRating(), is(100));
+    assertEquals(2, result.size());
+    assertEquals(2, result.get(0).getTotalCount());
+    assertEquals(1, result.get(0).getCountWithEnoughGamesPlayed());
+    assertEquals(100, result.get(0).getRating());
 
-    assertThat(result.get(1).getTotalCount(), is(1));
-    assertThat(result.get(1).getCountWithEnoughGamesPlayed(), is(0));
-    assertThat(result.get(1).getRating(), is(200));
+    assertEquals(1, result.get(1).getTotalCount());
+    assertEquals(0, result.get(1).getCountWithEnoughGamesPlayed());
+    assertEquals(200, result.get(1).getRating());
   }
 
   @Test
-  public void testGetEntryForPlayer() throws Exception {
+  public void testGetEntriesForPlayer() {
     LeaderboardEntry entry = new LeaderboardEntry();
-    when(fafService.getLadder1v1EntryForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(entry));
+    when(fafService.getLeaderboardEntriesForPlayer(PLAYER_ID)).thenReturn(CompletableFuture.completedFuture(List.of(entry)));
 
-    LeaderboardEntry result = instance.getEntryForPlayer(PLAYER_ID).toCompletableFuture().get(2, TimeUnit.SECONDS);
-    verify(fafService).getLadder1v1EntryForPlayer(PLAYER_ID);
-    assertThat(result, is(entry));
+    List<LeaderboardEntry> result = instance.getEntriesForPlayer(PLAYER_ID).toCompletableFuture().join();
+    verify(fafService).getLeaderboardEntriesForPlayer(PLAYER_ID);
+    assertEquals(List.of(entry), result);
   }
 }

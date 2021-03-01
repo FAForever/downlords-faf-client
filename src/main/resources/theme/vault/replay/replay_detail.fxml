@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
-<?import javafx.scene.layout.Region?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
             styleClass="dimmer" xmlns="http://javafx.com/javafx/8.0.121"
             fx:controller="com.faforever.client.replay.ReplayDetailController">
@@ -103,12 +103,12 @@
                                  </graphic>
                               </Label>
                                <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
-                                          onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
-                                          GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
-                                          GridPane.rowIndex="4">
-                                 <graphic>
-                                     <Region styleClass="icon,play-icon"/>
-                                 </graphic>
+                                       onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
+                                       GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
+                                       GridPane.rowIndex="4" GridPane.columnIndex="5">
+                                   <graphic>
+                                       <Region styleClass="icon,play-icon"/>
+                                   </graphic>
                                </Button>
                                <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
                                       GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
@@ -128,24 +128,29 @@
                            </VBox.margin>
                         </GridPane>
                          <Separator maxWidth="1.7976931348623157E308"/>
-                         <HBox>
+                         <HBox fx:id="teamsInfoBox">
                              <children>
                                  <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%game.lineUp"
                                         HBox.hgrow="ALWAYS"/>
                                  <Button fx:id="showRatingChangeButton" alignment="CENTER" mnemonicParsing="false"
-                                            onAction="#showRatingChange" text="%game.showRatingChange"/>
+                                         onAction="#showRatingChange" text="%game.showRatingChange"/>
                                  <Label fx:id="notRatedReasonLabel" alignment="CENTER"/>
                              </children>
                          </HBox>
                          <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
+                         <HBox alignment="CENTER_RIGHT">
+                             <Button fx:id="reportButton" alignment="CENTER_RIGHT" mnemonicParsing="false"
+                                     onAction="#onReport" text="%game.report"/>
+                         </HBox>
                          <Separator fx:id="ratingSeparator" layoutX="10.0" layoutY="251.0"
                                     maxWidth="1.7976931348623157E308"/>
-                         <VBox alignment="TOP_CENTER" maxWidth="640.0">
+                         <VBox fx:id="reviewsContainer" alignment="TOP_CENTER" maxWidth="640.0">
                              <children>
                                  <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
                              </children>
                          </VBox>
-                         <Separator layoutX="10.0" layoutY="254.0" maxWidth="1.7976931348623157E308"/>
+                         <Separator fx:id="reviewSeparator" layoutX="10.0" layoutY="254.0"
+                                    maxWidth="1.7976931348623157E308"/>
                          <Button fx:id="downloadMoreInfoButton" mnemonicParsing="false"
                                     onAction="#onDownloadMoreInfoClicked" text="%game.downloadMoreInfo"/>
                          <VBox fx:id="moreInformationPane" maxWidth="1.7976931348623157E308">

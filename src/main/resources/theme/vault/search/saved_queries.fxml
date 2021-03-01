@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="root" xmlns="http://javafx.com/javafx/11.0.1"
+      fx:controller="com.faforever.client.vault.search.SavedQueriesController">
+    <ListView fx:id="queryListView" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+        <VBox.margin>
+            <Insets bottom="10.0" top="10.0"/>
+        </VBox.margin>
+    </ListView>
+    <HBox alignment="CENTER" spacing="10.0">
+        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onSearchButtonClicked"
+                text="%search" HBox.hgrow="ALWAYS"/>
+        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onRemoveQueryButtonClicked"
+                text="%search.removeQuery" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+</VBox>

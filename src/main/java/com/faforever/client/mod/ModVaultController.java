@@ -4,6 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
+import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -15,7 +16,6 @@ import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.DirectoryChooser;
 import lombok.extern.slf4j.Slf4j;
@@ -52,21 +52,17 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
 
     eventBus.register(this);
 
-    searchController.setRootType(com.faforever.client.api.dto.Mod.class);
-    searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVaultPrefs().modVaultConfigProperty());
-    searchController.setOnlyShowLastYearCheckBoxVisible(false, false);
-
-    manageModsButton.setVisible(true);
-    manageModsButton.setOnAction(event -> manageMods());
+    manageVaultButton.setVisible(true);
+    manageVaultButton.setText(i18n.get("modVault.manageMods"));
   }
 
   @Override
   protected void onDisplayDetails(ModVersion modVersion) {
-    JavaFxUtil.assertApplicationThread();
-    modDetailController.setModVersion(modVersion);
-    modDetailController.getRoot().setVisible(true);
-    modDetailController.getRoot().requestFocus();
+    JavaFxUtil.runLater(() -> {
+      modDetailController.setModVersion(modVersion);
+      modDetailController.getRoot().setVisible(true);
+      modDetailController.getRoot().requestFocus();
+    });
   }
 
   protected void setSupplier(SearchConfig searchConfig) {
@@ -103,7 +99,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
   }
 
   public void onUploadButtonClicked() {
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
       directoryChooser.setInitialDirectory(preferencesService.getPreferences().getForgedAlliance().getModsDirectory().toFile());
       directoryChooser.setTitle(i18n.get("modVault.upload.chooseDirectory"));
@@ -117,9 +113,33 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
   }
 
   @Override
+  protected void onManageVaultButtonClicked() {
+    ModManagerController modManagerController = uiService.loadFxml("theme/mod_manager.fxml");
+    Dialog dialog = uiService.showInDialog(vaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
+    dialog.setOnDialogClosed(event -> modManagerController.apply());
+  }
+
+  @Override
   protected Node getDetailView() {
     modDetailController = uiService.loadFxml("theme/vault/mod/mod_detail.fxml");
     return modDetailController.getRoot();
+  }
+
+  protected void initSearchController() {
+    searchController.setRootType(com.faforever.client.api.dto.Mod.class);
+    searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);
+    searchController.setSortConfig(preferencesService.getPreferences().getVault().mapSortConfigProperty());
+    searchController.setOnlyShowLastYearCheckBoxVisible(false);
+    searchController.setVaultRoot(vaultRoot);
+    searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedModQueries());
+
+    searchController.addTextFilter("displayName", i18n.get("mod.displayName"));
+    searchController.addTextFilter("author", i18n.get("mod.author"));
+    searchController.addDateRangeFilter("latestVersion.updateTime", i18n.get("mod.uploadedDateTime"), 0);
+
+    searchController.addBinaryFilter("latestVersion.type", i18n.get("mod.type"),
+        ModType.UI.toString(), ModType.SIM.toString(), i18n.get("modType.ui"), i18n.get("modType.sim"));
+    searchController.addToggleFilter("latestVersion.ranked", i18n.get("mod.onlyRanked"), "true");
   }
 
   @Override
@@ -139,12 +159,6 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     Node root = modUploadController.getRoot();
     Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("modVault.upload.title"));
     modUploadController.setOnCancelButtonClickedListener(dialog::close);
-  }
-
-  public void manageMods() {
-    ModManagerController modManagerController = uiService.loadFxml("theme/mod_manager.fxml");
-    Dialog dialog = uiService.showInDialog(vaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
-    dialog.setOnDialogClosed(event -> modManagerController.apply());
   }
 
   @Subscribe

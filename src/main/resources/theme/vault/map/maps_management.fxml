@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+          prefHeight="400.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1"
+          xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.faforever.client.map.management.MapsManagementController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints minHeight="30.0" prefHeight="40.0"/>
+        <RowConstraints minHeight="10.0" vgrow="ALWAYS"/>
+        <RowConstraints minHeight="30.0" vgrow="SOMETIMES"/>
+    </rowConstraints>
+    <children>
+        <ChoiceBox fx:id="filterMapsChoiceBox" maxWidth="170.0" minWidth="170.0">
+            <GridPane.margin>
+                <Insets/>
+            </GridPane.margin>
+        </ChoiceBox>
+        <ListView fx:id="listView" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+            <opaqueInsets>
+                <Insets/>
+            </opaqueInsets>
+            <GridPane.margin>
+                <Insets bottom="10.0" top="10.0"/>
+            </GridPane.margin>
+        </ListView>
+        <Button fx:id="closeButton" layoutX="109.0" layoutY="384.0" mnemonicParsing="false"
+                onAction="#onCloseButtonClicked" text="%management.maps.closeButton.label" GridPane.halignment="RIGHT"
+                GridPane.rowIndex="2">
+            <GridPane.margin>
+                <Insets right="10.0"/>
+            </GridPane.margin>
+        </Button>
+    </children>
+</GridPane>

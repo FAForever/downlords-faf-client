@@ -17,6 +17,15 @@ public class Player {
   private float[] globalRating;
   private float[] ladderRating;
   private Map<String, String> league;
+  private Map<String, LeaderboardRating> ratings;
+
+  public Map<String, LeaderboardRating> getRatings() {
+    return ratings;
+  }
+
+  public void setRatings(Map<String, LeaderboardRating> ratings) {
+    this.ratings = ratings;
+  }
 
   public float[] getLadderRating() {
     return ladderRating;

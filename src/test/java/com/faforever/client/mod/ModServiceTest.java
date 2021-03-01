@@ -4,8 +4,8 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
@@ -15,7 +15,6 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.commons.io.ByteCopier;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
@@ -34,6 +33,7 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -77,11 +77,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   public TemporaryFolder corruptedModsDirectory = new TemporaryFolder();
 
   @Mock
-  PreferencesService preferencesService;
-  @Mock
-  private Preferences preferences;
-  @Mock
-  private ForgedAlliancePrefs forgedAlliancePrefs;
+  private PreferencesService preferencesService;
   @Mock
   private ApplicationContext applicationContext;
   @Mock
@@ -103,16 +99,18 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
+    gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .preferencesFile(gamePrefsPath)
+        .modsDirectory(modsDirectory.getRoot().toPath())
+        .then()
+        .get();
+
     instance = new ModService(fafService, preferencesService, taskService, applicationContext, notificationService, i18n,
         platformService, assetService);
 
-    gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
-
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferences.getForgedAlliance()).thenReturn(forgedAlliancePrefs);
-    when(forgedAlliancePrefs.getPreferencesFile()).thenReturn(gamePrefsPath);
-    when(forgedAlliancePrefs.getModsDirectory()).thenReturn(modsDirectory.getRoot().toPath());
-    when(forgedAlliancePrefs.modsDirectoryProperty()).thenReturn(new SimpleObjectProperty<>(modsDirectory.getRoot().toPath()));
     when(taskService.submitTask(any(CompletableTask.class))).then(invocation -> {
       CompletableTask<?> completableTask = invocation.getArgument(0);
       completableTask.run();
@@ -214,7 +212,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues().downloadUrl(modUrl).get();
     instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
@@ -380,7 +378,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGetPathForModUnknownModReturnsNull() {
     assertThat(instance.getInstalledModVersions(), hasSize(1));
-    assertThat(instance.getPathForMod(ModInfoBeanBuilder.create().uid("1").get()), Matchers.nullValue());
+    assertThat(instance.getPathForMod(ModVersionBuilder.create().uid("1").get()), Matchers.nullValue());
   }
 
   @Test
@@ -399,9 +397,9 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testLoadThumbnail() {
-    ModVersion modVersion = ModInfoBeanBuilder.create().defaultValues()
-        .thumbnailUrl("http://127.0.0.1:65534/thumbnail.png")
+  public void testLoadThumbnail() throws MalformedURLException {
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues()
+        .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
         .get();
     instance.loadThumbnail(modVersion);
     verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Paths.get("mods")), any());

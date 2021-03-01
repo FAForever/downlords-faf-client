@@ -1,20 +1,24 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.dto.ApiException;
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.ReportAction;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
@@ -47,6 +51,8 @@ public class ModUploadController implements Controller<Node> {
   private final NotificationService notificationService;
   private final ReportingService reportingService;
   private final I18n i18n;
+  private final PlatformService platformService;
+  private final ClientProperties clientProperties;
   private final EventBus eventBus;
   public Label uploadTaskMessageLabel;
   public Label uploadTaskTitleLabel;
@@ -61,6 +67,8 @@ public class ModUploadController implements Controller<Node> {
   public Label uidLabel;
   public ImageView thumbnailImageView;
   public Region modUploadRoot;
+  public CheckBox rulesCheckBox;
+  public Label rulesLabel;
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
   private ModVersion modVersionInfo;
@@ -98,7 +106,7 @@ public class ModUploadController implements Controller<Node> {
 
   private void setModVersionInfo(ModVersion modVersion) {
     this.modVersionInfo = modVersion;
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       enterModInfoState();
       modNameLabel.textProperty().bind(modVersion.displayNameProperty());
       descriptionLabel.textProperty().bind(modVersion.descriptionProperty());
@@ -125,19 +133,22 @@ public class ModUploadController implements Controller<Node> {
   private void onUploadFailed(Throwable throwable) {
     enterModInfoState();
     if (throwable instanceof ApiException) {
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addServerNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
           asList(
               new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
+              new CopyErrorAction(i18n, reportingService, throwable),
+              new GetHelpAction(i18n, reportingService),
               new DismissAction(i18n)
           )
       ));
     } else {
-      notificationService.addNotification(new ImmediateNotification(
+      notificationService.addServerNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("modVault.upload.failed", throwable.getLocalizedMessage()), ERROR, throwable,
           asList(
               new Action(i18n.get("modVault.upload.retry"), event -> onUploadClicked()),
-              new ReportAction(i18n, reportingService, throwable),
+              new CopyErrorAction(i18n, reportingService, throwable),
+              new GetHelpAction(i18n, reportingService),
               new DismissAction(i18n)
           )
       ));
@@ -145,6 +156,10 @@ public class ModUploadController implements Controller<Node> {
   }
 
   public void onUploadClicked() {
+    if (!rulesCheckBox.isSelected()) {
+      rulesLabel.getStyleClass().add("bad");
+      return;
+    }
     enterUploadingState();
 
     uploadProgressPane.setVisible(true);
@@ -176,6 +191,10 @@ public class ModUploadController implements Controller<Node> {
     uploadProgressPane.setVisible(false);
     parseProgressPane.setVisible(false);
     uploadCompletePane.setVisible(true);
+  }
+
+  public void onShowRulesClicked() {
+    platformService.showDocument(clientProperties.getVault().getModRulesUrl());
   }
 
   public void onCancelClicked() {

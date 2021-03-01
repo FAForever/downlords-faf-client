@@ -6,17 +6,21 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.theme.UiService;
+import javafx.collections.FXCollections;
 import javafx.scene.input.MouseButton;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,11 +58,11 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
 
     instance.setOnSelectedListener(onSelectedConsumer);
-    instance.setGame(game);
   }
 
   @Test
   public void testOnLeftDoubleClick() {
+    instance.setGame(game);
     instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
     verify(joinGameHelper).join(any());
     verify(onSelectedConsumer).accept(game);
@@ -66,8 +70,35 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnLeftSingleClick() {
+    instance.setGame(game);
     instance.onClick(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
     verify(joinGameHelper, never()).join(any());
     verify(onSelectedConsumer).accept(game);
+  }
+
+  @Test
+  public void testSimModeLabel4Mods() {
+    HashMap<String, String> simMods = new HashMap<>();
+    simMods.put("test1", "test1");
+    simMods.put("test2", "test2");
+    simMods.put("test3", "test3");
+    simMods.put("test4", "test4");
+    game.setSimMods(FXCollections.observableMap(simMods));
+    instance.setGame(game);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(i18n).get(eq("game.mods.twoAndMore"), contains("test"), eq(3));
+  }
+
+  @Test
+  public void testSimModeLabel2Mods() {
+    HashMap<String, String> simMods = new HashMap<>();
+    simMods.put("test1", "test1");
+    simMods.put("test2", "test2");
+    game.setSimMods(FXCollections.observableMap(simMods));
+    instance.setGame(game);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(i18n).get("textSeparator");
   }
 }

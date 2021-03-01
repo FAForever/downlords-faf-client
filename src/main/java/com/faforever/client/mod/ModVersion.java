@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.vault.review.Review;
+import com.faforever.client.vault.review.ReviewsSummary;
 import com.faforever.commons.mod.ModLoadException;
 import com.faforever.commons.mod.MountInfo;
 import javafx.beans.Observable;
@@ -29,7 +30,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class ModVersion {
@@ -133,6 +133,14 @@ public class ModVersion {
     modVersionVersion.setIcon(dto.getIcon());
     modVersionVersion.setRanked(dto.isRanked());
     modVersionVersion.setHidden(dto.isHidden());
+    if (parent != null) {
+      modVersionVersion.setReviewsSummary(parent.getReviewsSummary());
+      parent.getVersions().forEach(v -> {
+        if (v.getReviews() != null) {
+          v.getReviews().forEach(modVersionReview -> modVersionVersion.getReviews().add(modVersionReview));
+        }
+      });
+    }
     Optional.ofNullable(dto.getCreateTime())
         .ifPresent(offsetDateTime -> modVersionVersion.setCreateTime(offsetDateTime.toLocalDateTime()));
     Optional.ofNullable(dto.getUpdateTime())
@@ -142,7 +150,7 @@ public class ModVersion {
     Mod mod = Optional.ofNullable(parent)
         .orElseGet(() -> Mod.fromDto(dto.getMod()));
     modVersionVersion.setMod(mod);
-    Optional.ofNullable(mod.getUploader()).ifPresent(uploader -> modVersionVersion.setUploader(uploader.getLogin()));
+    Optional.ofNullable(mod.getUploader()).ifPresent(modVersionVersion::setUploader);
     return modVersionVersion;
   }
 
@@ -150,7 +158,7 @@ public class ModVersion {
     com.faforever.client.api.dto.ModVersion modVersionVersion = dto.getLatestVersion();
 
     ModVersion modVersion = new ModVersion();
-    Optional.ofNullable(dto.getUploader()).ifPresent(uploader -> modVersion.setUploader(uploader.getLogin()));
+    Optional.ofNullable(dto.getUploader()).ifPresent(uploaderDTO -> modVersion.setUploader(uploaderDTO.getLogin()));
     modVersion.setDescription(modVersionVersion.getDescription());
     modVersion.setDisplayName(dto.getDisplayName());
     modVersion.setId(modVersionVersion.getId());
@@ -158,15 +166,19 @@ public class ModVersion {
     modVersion.setVersion(modVersionVersion.getVersion());
     modVersion.setDownloadUrl(modVersionVersion.getDownloadUrl());
     modVersion.setThumbnailUrl(modVersionVersion.getThumbnailUrl());
-    modVersion.setReviewsSummary(ReviewsSummary.fromDto(modVersionVersion.getModVersionReviewsSummary()));
+    modVersion.setReviewsSummary(ReviewsSummary.fromDto(dto.getModReviewsSummary()));
     modVersion.setCreateTime(dto.getCreateTime().toLocalDateTime());
     Optional.ofNullable(modVersionVersion.getUpdateTime()).map(OffsetDateTime::toLocalDateTime).ifPresent(modVersion::setUpdateTime);
-    modVersion.getReviews().setAll(
-        dto.getVersions().stream()
-            .filter(v -> v.getReviews() != null)
-            .flatMap(v -> v.getReviews().parallelStream())
-            .map(Review::fromDto)
-            .collect(Collectors.toList()));
+    dto.getVersions().forEach(v -> {
+      if (v.getReviews() != null) {
+        v.getReviews().forEach(modVersionReview -> {
+          Review review = Review.fromDto(modVersionReview);
+          review.setVersion(v.getVersion());
+          review.setLatestVersion(dto.getLatestVersion().getVersion());
+          modVersion.getReviews().add(review);
+        });
+      }
+    });
     modVersion.setModType(ModType.fromDto(modVersionVersion.getType()));
     modVersion.setMod(Mod.fromDto(dto));
     return modVersion;

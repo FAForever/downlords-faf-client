@@ -7,10 +7,12 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardRating;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Player;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
-import javafx.application.Platform;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
@@ -29,37 +31,33 @@ import java.util.concurrent.CompletableFuture;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 public class PrivateUserInfoController implements Controller<Node> {
-  private final CountryFlagService countryFlagService;
   private final I18n i18n;
   private final AchievementService achievementService;
-
+  private final LeaderboardService leaderboardService;
+  private final EventBus eventBus;
+  private final ChatUserService chatUserService;
   public ImageView userImageView;
   public Label usernameLabel;
   public ImageView countryImageView;
   public Label countryLabel;
-  public Label globalRatingLabel;
-  public Label leaderboardRatingLabel;
+  public Label ratingsLabels;
+  public Label ratingsValues;
   public Label gamesPlayedLabel;
   public GameDetailController gameDetailController;
   public Pane gameDetailWrapper;
   public Label unlockedAchievementsLabel;
   public Node privateUserInfoRoot;
-  public Label globalRatingLabelLabel;
-  public Label leaderboardRatingLabelLabel;
   public Label gamesPlayedLabelLabel;
   public Label unlockedAchievementsLabelLabel;
+  private ChatChannelUser chatUser;
 
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener globalRatingInvalidationListener;
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener leaderboardRatingInvalidationListener;
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener gameInvalidationListener;
-
-  public PrivateUserInfoController(CountryFlagService countryFlagService, I18n i18n, AchievementService achievementService) {
-    this.countryFlagService = countryFlagService;
+  public PrivateUserInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
+                                   EventBus eventBus, ChatUserService chatUserService) {
     this.i18n = i18n;
     this.achievementService = achievementService;
+    this.leaderboardService = leaderboardService;
+    this.eventBus = eventBus;
+    this.chatUserService = chatUserService;
   }
 
   @Override
@@ -73,10 +71,8 @@ public class PrivateUserInfoController implements Controller<Node> {
         countryLabel,
         gamesPlayedLabel,
         unlockedAchievementsLabel,
-        globalRatingLabel,
-        leaderboardRatingLabel,
-        globalRatingLabelLabel,
-        leaderboardRatingLabelLabel,
+        ratingsLabels,
+        ratingsValues,
         gamesPlayedLabelLabel,
         unlockedAchievementsLabelLabel
     );
@@ -84,20 +80,22 @@ public class PrivateUserInfoController implements Controller<Node> {
   }
 
   public void setChatUser(@NotNull ChatChannelUser chatUser) {
-    chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
-      chatUser.playerProperty().addListener((observable, oldValue, newValue) -> {
+    this.chatUser = chatUser;
+    this.chatUser.setDisplayed(true);
+    this.chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
+      this.chatUser.playerProperty().addListener((observable, oldValue, newValue) -> {
         if (newValue != null) {
           displayPlayerInfo(newValue);
-        } else {
-          displayChatUserInfo(chatUser);
         }
       });
-      displayChatUserInfo(chatUser);
+      displayChatUserInfo();
     });
+    JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
+    JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
+    JavaFxUtil.bind(countryLabel.textProperty(), this.chatUser.countryNameProperty());
   }
 
-  private void displayChatUserInfo(ChatChannelUser chatUser) {
-    usernameLabel.textProperty().bind(chatUser.usernameProperty());
+  private void displayChatUserInfo() {
     onPlayerGameChanged(null);
     setPlayerInfoVisible(false);
   }
@@ -105,10 +103,8 @@ public class PrivateUserInfoController implements Controller<Node> {
   private void setPlayerInfoVisible(boolean visible) {
     userImageView.setVisible(visible);
     countryLabel.setVisible(visible);
-    globalRatingLabel.setVisible(visible);
-    globalRatingLabelLabel.setVisible(visible);
-    leaderboardRatingLabel.setVisible(visible);
-    leaderboardRatingLabelLabel.setVisible(visible);
+    ratingsLabels.setVisible(visible);
+    ratingsValues.setVisible(visible);
     gamesPlayedLabel.setVisible(visible);
     gamesPlayedLabelLabel.setVisible(visible);
     unlockedAchievementsLabel.setVisible(visible);
@@ -116,28 +112,17 @@ public class PrivateUserInfoController implements Controller<Node> {
   }
 
   private void displayPlayerInfo(Player player) {
+    chatUserService.associatePlayerToChatUser(chatUser, player);
     setPlayerInfoVisible(true);
-
-    usernameLabel.textProperty().bind(player.usernameProperty());
 
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
     userImageView.setVisible(true);
 
-    countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
-    countryLabel.setText(i18n.getCountryNameLocalized(player.getCountry()));
-    countryLabel.setVisible(true);
+    InvalidationListener ratingInvalidationListener = (observable) -> loadReceiverRatingInformation(player);
+    JavaFxUtil.addListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
+    loadReceiverRatingInformation(player);
 
-    globalRatingInvalidationListener = (observable) -> loadReceiverGlobalRatingInformation(player);
-    JavaFxUtil.addListener(player.globalRatingMeanProperty(), new WeakInvalidationListener(globalRatingInvalidationListener));
-    JavaFxUtil.addListener(player.globalRatingDeviationProperty(), new WeakInvalidationListener(globalRatingInvalidationListener));
-    loadReceiverGlobalRatingInformation(player);
-
-    leaderboardRatingInvalidationListener = (observable) -> loadReceiverLadderRatingInformation(player);
-    JavaFxUtil.addListener(player.leaderboardRatingMeanProperty(), new WeakInvalidationListener(leaderboardRatingInvalidationListener));
-    JavaFxUtil.addListener(player.leaderboardRatingDeviationProperty(), new WeakInvalidationListener(leaderboardRatingInvalidationListener));
-    loadReceiverLadderRatingInformation(player);
-
-    gameInvalidationListener = observable -> onPlayerGameChanged(player.getGame());
+    InvalidationListener gameInvalidationListener = observable -> onPlayerGameChanged(player.getGame());
     JavaFxUtil.addListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
     onPlayerGameChanged(player.getGame());
 
@@ -156,7 +141,7 @@ public class PrivateUserInfoController implements Controller<Node> {
                     .filter(playerAchievement -> playerAchievement.getState() == AchievementState.UNLOCKED)
                     .count();
 
-                Platform.runLater(() -> unlockedAchievementsLabel.setText(
+                JavaFxUtil.runLater(() -> unlockedAchievementsLabel.setText(
                     i18n.get("chat.privateMessage.achievements.unlockedFormat", unlockedAchievements, totalAchievements))
                 );
               })
@@ -172,13 +157,23 @@ public class PrivateUserInfoController implements Controller<Node> {
     gameDetailWrapper.setVisible(newGame != null);
   }
 
-  private void loadReceiverGlobalRatingInformation(Player player) {
-    Platform.runLater(() -> globalRatingLabel.setText(i18n.get("chat.privateMessage.ratingFormat",
-        RatingUtil.getRating(player.getGlobalRatingMean(), player.getGlobalRatingDeviation()))));
-  }
-
-  private void loadReceiverLadderRatingInformation(Player player) {
-    Platform.runLater(() -> leaderboardRatingLabel.setText(i18n.get("chat.privateMessage.ratingFormat",
-        RatingUtil.getRating(player.getLeaderboardRatingMean(), player.getLeaderboardRatingDeviation()))));
+  private void loadReceiverRatingInformation(Player player) {
+    leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
+      StringBuilder ratingNames = new StringBuilder();
+      StringBuilder ratingNumbers = new StringBuilder();
+      leaderboards.forEach(leaderboard -> {
+        LeaderboardRating leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
+        if (leaderboardRating != null) {
+          String leaderboardName = i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
+          ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n\n");
+          ratingNumbers.append(i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard))).append("\n\n");
+        }
+      });
+      JavaFxUtil.runLater(() -> {
+        ratingsLabels.setText(ratingNames.toString());
+        ratingsValues.setText(ratingNumbers.toString());
+      });
+    });
   }
 }
+

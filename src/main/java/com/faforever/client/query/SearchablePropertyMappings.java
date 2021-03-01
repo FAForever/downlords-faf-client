@@ -14,12 +14,10 @@ import java.util.Map;
  */
 public class SearchablePropertyMappings {
   public static final String NEWEST_MOD_KEY = "latestVersion.createTime";
-  public static final String HIGHEST_RATED_MOD_KEY = "latestVersion.reviewsSummary.lowerBound";
+  public static final String HIGHEST_RATED_MOD_KEY = "reviewsSummary.lowerBound";
 
   public static final Map<String, Property> GAME_PROPERTY_MAPPING = ImmutableMap.<String, Property>builder()
       .put("playerStats.player.login", new Property("game.player.username", false))
-      .put("playerStats.player.globalRating.rating", new Property("game.player.globalRating", false))
-      .put("playerStats.player.ladder1v1Rating.rating", new Property("game.player.ladderRating", false))
       .put("featuredMod.technicalName", new Property("featuredMod.technicalName", false))
       .put("mapVersion.map.displayName", new Property("game.map.displayName", false))
       .put("playerStats.faction", new Property("game.player.faction", false))
@@ -38,9 +36,10 @@ public class SearchablePropertyMappings {
       .put("host.id", new Property("game.host.id", false))
       .put("featuredMod.displayName", new Property("featuredMod.displayName", false))
       .put("mapVersion.description", new Property("map.description", false))
-      .put("mapVersion.width", new Property("game.map.width", false))
-      .put("mapVersion.height", new Property("game.map.height", false))
+      .put("mapVersion.width", new Property("map.widthPixels", false))
+      .put("mapVersion.height", new Property("map.heightPixels", false))
       .put("mapVersion.folderName", new Property("game.map.folderName", false))
+      .put("mapVersion.map.author.login", new Property("game.map.author", false))
 
       .build();
 
@@ -55,8 +54,8 @@ public class SearchablePropertyMappings {
       .put("latestVersion.updateTime", new Property("map.updatedDateTime", false))
       .put("latestVersion.description", new Property("map.description", false))
       .put("latestVersion.maxPlayers", new Property("map.maxPlayers", false))
-      .put("latestVersion.width", new Property("map.width", false))
-      .put("latestVersion.height", new Property("map.height", false))
+      .put("latestVersion.width", new Property("map.widthPixels", false))
+      .put("latestVersion.height", new Property("map.heightPixels", false))
       .put("latestVersion.folderName", new Property("map.folderName", false))
       .put("latestVersion.ranked", new Property("map.ranked", false))
       .put("latestVersion.id", new Property("map.versionId", false))

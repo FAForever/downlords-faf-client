@@ -4,13 +4,11 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
-import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
@@ -80,13 +78,17 @@ public class UserFilterController implements Controller<Node> {
   }
 
   private boolean filterUser(CategoryOrChatUserListItem userListItem) {
+    if (userListItem.getUser() == null) {
+      // The categories should display in the list independently of a filter
+      return true;
+    }
+
     ChatChannelUser user = userListItem.getUser();
-    return userListItem.getCategory() != null
-        || (channelTabController.isUsernameMatch(user)
+    return channelTabController.isUsernameMatch(user)
         && isInClan(user)
         && isBoundByRating(user)
         && isGameStatusMatch(user)
-        && isCountryMatch(user));
+        && isCountryMatch(user);
   }
 
   private void filterCountry() {
@@ -136,9 +138,9 @@ public class UserFilterController implements Controller<Node> {
       return false;
     }
 
+    //TODO filter by specifc leaderboard rating remove hardcoded value
     Player player = optionalPlayer.get();
-
-    int globalRating = RatingUtil.getGlobalRating(player);
+    int rating = RatingUtil.getLeaderboardRating(player, "global");
     int minRating;
     int maxRating;
 
@@ -153,7 +155,7 @@ public class UserFilterController implements Controller<Node> {
       maxRating = Integer.MAX_VALUE;
     }
 
-    return globalRating >= minRating && globalRating <= maxRating;
+    return rating >= minRating && rating <= maxRating;
   }
 
   @VisibleForTesting
@@ -177,8 +179,13 @@ public class UserFilterController implements Controller<Node> {
   }
 
   boolean isCountryMatch(ChatChannelUser chatUser) {
+    // Users of  'chat only' group have no country so that need to check it for empty string
+    if (countryFilterField.getText().isEmpty()) {
+      return true;
+    }
+
     Optional<Player> playerOptional = chatUser.getPlayer();
-    if (!playerOptional.isPresent()) {
+    if (playerOptional.isEmpty()) {
       return false;
     }
 
@@ -208,20 +215,7 @@ public class UserFilterController implements Controller<Node> {
       gameStatusToggleGroup.selectToggle(null);
       return;
     }
-
-    switch (status) {
-      case PLAYING:
-        gameStatusMenu.setText(i18n.get("game.gameStatus.playing"));
-        break;
-      case LOBBYING:
-        gameStatusMenu.setText(i18n.get("game.gameStatus.lobby"));
-        break;
-      case IDLE:
-        gameStatusMenu.setText(i18n.get("game.gameStatus.none"));
-        break;
-      default:
-        throw new ProgrammingError("Uncovered player status: " + status);
-    }
+    gameStatusMenu.setText(i18n.get(status.getI18nKey()));
   }
 
   public Node getRoot() {

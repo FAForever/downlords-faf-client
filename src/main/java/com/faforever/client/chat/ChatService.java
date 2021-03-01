@@ -9,6 +9,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface ChatService {
 
+  String PARTY_CHANNEL_SUFFIX = "'sParty";
+
   void connect();
 
   void disconnect();
@@ -19,7 +21,9 @@ public interface ChatService {
    * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
    * operations on the returned list must be synchronized, even iteration. Use the map as monitor. </p>
    */
-  Channel getOrCreateChannel(String channelName);
+  ChatChannel getOrCreateChannel(String channelName);
+
+  ChatChannelUser getOrCreateChatUser(String username, String channel);
 
   ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator);
 
@@ -27,7 +31,7 @@ public interface ChatService {
 
   void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener);
 
-  void addChannelsListener(MapChangeListener<String, Channel> listener);
+  void addChannelsListener(MapChangeListener<String, ChatChannel> listener);
 
   void removeUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
 
@@ -55,8 +59,6 @@ public interface ChatService {
   void incrementUnreadMessagesCount(int delta);
 
   ReadOnlyIntegerProperty unreadMessagesCount();
-
-  ChatChannelUser getChatUser(String username, String channelName);
 
   String getDefaultChannelName();
 }

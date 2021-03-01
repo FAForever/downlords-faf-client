@@ -6,7 +6,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableMap;
@@ -44,17 +43,19 @@ public class GameTooltipController implements Controller<Node> {
   private WeakInvalidationListener weakModChangeListener;
   private int maxPrefColumns;
   private Game game;
+  private boolean showMods;
 
   public void initialize() {
     modsPane.managedProperty().bind(modsPane.visibleProperty());
     maxPrefColumns = teamsPane.getPrefColumns();
+    showMods = true;
   }
 
   public void setGame(Game game) {
     if (lastTeams != null && weakTeamChangeListener != null) {
       lastTeams.removeListener(weakTeamChangeListener);
     }
-    if (lastSimMods != null && weakModChangeListener != null) {
+    if (showMods && lastSimMods != null && weakModChangeListener != null) {
       lastSimMods.removeListener(weakModChangeListener);
     }
     this.game = game;
@@ -64,31 +65,35 @@ public class GameTooltipController implements Controller<Node> {
     if (game == null) {
       return;
     }
-    teamChangedListener = change -> createTeams(game.getTeams());
-    simModsChangedListener = change -> createModsList(game.getSimMods());
-    lastSimMods = game.getSimMods();
+    teamChangedListener = change -> createTeams(game.getTeams(), game.getRatingType());
     lastTeams = game.getTeams();
-    createTeams(game.getTeams());
-    createModsList(game.getSimMods());
+    createTeams(game.getTeams(), game.getRatingType());
     weakTeamChangeListener = new WeakInvalidationListener(teamChangedListener);
     JavaFxUtil.addListener(game.getTeams(), weakTeamChangeListener);
-    weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
-    JavaFxUtil.addListener(game.getSimMods(), weakModChangeListener);
+    if (showMods) {
+      simModsChangedListener = change -> createModsList(game.getSimMods());
+      lastSimMods = game.getSimMods();
+      createModsList(game.getSimMods());
+      weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
+      JavaFxUtil.addListener(game.getSimMods(), weakModChangeListener);
+    } else {
+      modsPane.setVisible(false);
+    }
   }
 
-  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList) {
-    Platform.runLater(() -> {
+  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType) {
+    JavaFxUtil.runLater(() -> {
       synchronized (teamsList) {
         teamsPane.getChildren().clear();
-        TeamCardController.createAndAdd(teamsList, playerService, uiService, teamsPane);
-        teamsPane.setPrefColumns(teamsList.size() < maxPrefColumns ? teamsList.size() : maxPrefColumns);
+        TeamCardController.createAndAdd(teamsList, ratingType, playerService, uiService, teamsPane);
+        teamsPane.setPrefColumns(Math.min(teamsList.size(), maxPrefColumns));
       }
     });
   }
 
   private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
     String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
-    Platform.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
       if (simMods.isEmpty()) {
         modsPane.setVisible(false);
         return;
@@ -97,6 +102,10 @@ public class GameTooltipController implements Controller<Node> {
       modsLabel.setText(stringSimMods);
       modsPane.setVisible(true);
     });
+  }
+
+  public void setShowMods(boolean showMods) {
+    this.showMods = showMods;
   }
 
   public Node getRoot() {

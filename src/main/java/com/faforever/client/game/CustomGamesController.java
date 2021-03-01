@@ -9,12 +9,12 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
@@ -38,8 +38,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -49,16 +47,8 @@ import java.util.function.Predicate;
 @Slf4j
 public class CustomGamesController extends AbstractViewController<Node> {
 
-  private static final Collection<String> HIDDEN_FEATURED_MODS = Arrays.asList(
-      KnownFeaturedMod.COOP.getTechnicalName(),
-      KnownFeaturedMod.LADDER_1V1.getTechnicalName(),
-      KnownFeaturedMod.GALACTIC_WAR.getTechnicalName(),
-      KnownFeaturedMod.MATCHMAKER.getTechnicalName()
-  );
-
   private static final Predicate<Game> OPEN_CUSTOM_GAMES_PREDICATE = gameInfoBean ->
-      gameInfoBean.getStatus() == GameStatus.OPEN
-          && !HIDDEN_FEATURED_MODS.contains(gameInfoBean.getFeaturedMod());
+      gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.CUSTOM;
 
   private final UiService uiService;
   private final GameService gameService;
@@ -112,6 +102,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     });
 
     chooseSortingTypeChoiceBox.setVisible(false);
+    chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     chooseSortingTypeChoiceBox.setConverter(new StringConverter<>() {
       @Override
       public String toString(TilesSortingOrder tilesSortingOrder) {
@@ -223,12 +214,10 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public void onTableButtonClicked() {
     gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
     gamesTableController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
-    Platform.runLater(() -> {
-      gamesTableController.initializeGameTable(filteredItems);
+    gamesTableController.initializeGameTable(filteredItems);
 
-      Node root = gamesTableController.getRoot();
-      populateContainer(root);
-    });
+    Node root = gamesTableController.getRoot();
+    populateContainer(root);
   }
 
   private void populateContainer(Node root) {
@@ -244,12 +233,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), new WeakChangeListener<>(gameChangeListener));
 
-    Platform.runLater(() -> {
-      chooseSortingTypeChoiceBox.getItems().clear();
-      Node root = gamesTilesContainerController.getRoot();
-      populateContainer(root);
-      gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
-    });
+    Node root = gamesTilesContainerController.getRoot();
+    populateContainer(root);
+    gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
   }
 
   @VisibleForTesting

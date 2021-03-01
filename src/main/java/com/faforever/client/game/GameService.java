@@ -4,7 +4,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fa.ForgedAllianceService;
-import com.faforever.client.fa.RatingMode;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
@@ -24,9 +23,9 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.remote.domain.GameInfoMessage;
@@ -41,7 +40,6 @@ import com.faforever.client.util.TimeUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -61,12 +59,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -81,20 +82,20 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.faforever.client.fa.RatingMode.NONE;
-import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
+import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
 import static com.github.nocatch.NoCatch.noCatch;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 
 /**
  * Downloads necessary maps, mods and updates before starting
@@ -104,6 +105,13 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Slf4j
 @RequiredArgsConstructor
 public class GameService implements InitializingBean {
+
+  @VisibleForTesting
+  static final String DEFAULT_RATING_TYPE = "global";
+  private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
+  private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = "\ndebug = {\n" +
+      "    enable_debug_facilities = true\n" +
+      "}";
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
@@ -134,17 +142,17 @@ public class GameService implements InitializingBean {
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
   private final ReconnectTimerService reconnectTimerService;
-
-  @VisibleForTesting
-  RatingMode ratingMode;
-
   private final ObservableList<Game> games;
   private final String faWindowTitle;
-  private final BooleanProperty searching1v1;
+  private final BooleanProperty inMatchmakerQueue;
+  private final BooleanProperty inOthersParty;
 
+  @VisibleForTesting
+  String matchedQueueRatingType;
   private Process process;
   private boolean rehostRequested;
   private int localReplayPort;
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Inject
   public GameService(ClientProperties clientProperties,
@@ -185,12 +193,14 @@ public class GameService implements InitializingBean {
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     uidToGameInfoBean = FXCollections.observableMap(new ConcurrentHashMap<>());
-    searching1v1 = new SimpleBooleanProperty();
+    inMatchmakerQueue = new SimpleBooleanProperty();
+    inOthersParty = new SimpleBooleanProperty();
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.observableList(new ArrayList<>(),
         item -> new Observable[]{item.statusProperty(), item.getTeams()}
     );
+    forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
   }
 
   @Override
@@ -218,7 +228,7 @@ public class GameService implements InitializingBean {
 
     eventBus.register(this);
 
-    fafService.addOnMessageListener(GameInfoMessage.class, message -> Platform.runLater(() -> onGameInfo(message)));
+    fafService.addOnMessageListener(GameInfoMessage.class, message -> JavaFxUtil.runLater(() -> onGameInfo(message)));
     fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
 
     JavaFxUtil.addListener(
@@ -289,6 +299,7 @@ public class GameService implements InitializingBean {
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
       log.debug("Game is running, ignoring host request");
+      notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
 
@@ -297,17 +308,34 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
     }
 
-    stopSearchLadder1v1();
+    if (inMatchmakerQueue.get()) {
+      addAlreadyInQueueNotification();
+      return completedFuture(null);
+    }
 
-    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, emptyMap(), newGameInfo.getSimMods())
+    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), RatingMode.GLOBAL));
+        .thenAccept(gameLaunchMessage -> {
+
+          String ratingType = gameLaunchMessage.getRatingType();
+          if (ratingType == null) {
+            log.warn("Rating type not in gameLaunchMessage using default");
+            ratingType = DEFAULT_RATING_TYPE;
+          }
+
+          startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
+        });
+  }
+
+  private void addAlreadyInQueueNotification() {
+    notificationService.addImmediateWarnNotification("teammatchmaking.notification.customAlreadyInQueue.message");
   }
 
   public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
       log.debug("Game is running, ignoring join request");
+      notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
 
@@ -316,9 +344,12 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> joinGame(game, password));
     }
 
-    log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
+    if (inMatchmakerQueue.get()) {
+      addAlreadyInQueueNotification();
+      return completedFuture(null);
+    }
 
-    stopSearchLadder1v1();
+    log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
     Set<String> simModUIds = game.getSimMods().keySet();
@@ -340,7 +371,19 @@ public class GameService implements InitializingBean {
             game.setPassword(password);
             currentGame.set(game);
           }
-          startGame(gameLaunchMessage, null, RatingMode.GLOBAL);
+
+          String ratingType = gameLaunchMessage.getRatingType();
+          if (ratingType == null) {
+            log.warn("Rating type not in gameLaunchMessage using game rating type");
+            ratingType = game.getRatingType();
+          }
+
+          if (ratingType == null) {
+            log.warn("Rating type not in game using default");
+            ratingType = DEFAULT_RATING_TYPE;
+          }
+
+          startGame(gameLaunchMessage, null, ratingType);
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be joined", throwable);
@@ -359,27 +402,31 @@ public class GameService implements InitializingBean {
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-  public void runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
-    if (isRunning()) {
-      log.warn("Forged Alliance is already running, not starting replay");
-      return;
+  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
+    if (!canStartReplay()) {
+      return completedFuture(null);
     }
 
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       gameDirectoryFuture.thenAccept(pathSet -> runWithReplay(path, replayId, featuredMod, version, modVersions, simMods, mapName));
-      return;
+      return completedFuture(null);
     }
 
-    modService.getFeaturedMod(featuredMod)
+    onMatchmakerSearchStopped();
+
+    return modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName).handleAsync((ignoredResult, throwable) -> askWhetherToStartWithOutMap(throwable)))
         .thenRun(() -> {
           try {
-            process = forgedAllianceService.startReplay(path, replayId);
+            Process processForReplay = forgedAllianceService.startReplay(path, replayId);
+            if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
+              return;
+            }
+            this.process = processForReplay;
             setGameRunning(true);
-            this.ratingMode = NONE;
-            spawnTerminationListener(process);
+            spawnTerminationListener(this.process);
           } catch (IOException e) {
             notifyCantPlayReplay(replayId, e);
           }
@@ -390,8 +437,25 @@ public class GameService implements InitializingBean {
         });
   }
 
+  private boolean canStartReplay() {
+    if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
+      log.warn("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
+      notificationService.addImmediateWarnNotification("replay.gameRunning");
+      return false;
+    } else if (inMatchmakerQueue.get()) {
+      log.warn("In matchmaker queue, not starting replay");
+      notificationService.addImmediateWarnNotification("replay.inQueue");
+      return false;
+    } else if (inOthersParty.get()) {
+      log.info("In party, not starting replay");
+      notificationService.addImmediateWarnNotification("replay.inParty");
+      return false;
+    }
+    return true;
+  }
+
   @NotNull
-  private CompletableFuture<Path> postGameDirectoryChooseEvent() {
+  public CompletableFuture<Path> postGameDirectoryChooseEvent() {
     CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
     eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
     return gameDirectoryFuture;
@@ -421,13 +485,16 @@ public class GameService implements InitializingBean {
   }
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
-    log.error("Could not play replay '" + replayId + "'", throwable);
-    notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted");
+    if (throwable.getCause() instanceof UnsupportedOperationException) {
+      notificationService.addImmediateErrorNotification(throwable, "gameUpdate.error.gameNotWritableAllowMultiOn");
+    } else {
+      log.error("Could not play replay '" + replayId + "'", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted");
+    }
   }
 
   public CompletableFuture<Void> runWithLiveReplay(URI replayUrl, Integer gameId, String gameType, String mapName) {
-    if (isRunning()) {
-      log.warn("Forged Alliance is already running, not starting live replay");
+    if (!canStartReplay()) {
       return completedFuture(null);
     }
 
@@ -435,6 +502,8 @@ public class GameService implements InitializingBean {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
     }
+
+    onMatchmakerSearchStopped();
 
     Game gameBean = getByUid(gameId);
 
@@ -445,11 +514,18 @@ public class GameService implements InitializingBean {
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, modVersions, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> noCatch(() -> {
-          process = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
+          Process processCreated = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
+          if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
+            return;
+          }
+          this.process = processCreated;
           setGameRunning(true);
-          this.ratingMode = NONE;
-          spawnTerminationListener(process);
-        }));
+          spawnTerminationListener(this.process);
+        }))
+        .exceptionally(throwable -> {
+          notifyCantPlayReplay(gameId, throwable);
+          return null;
+        });
   }
 
   private Player getCurrentPlayer() {
@@ -468,26 +544,24 @@ public class GameService implements InitializingBean {
     return game;
   }
 
-  public void addOnRankedMatchNotificationListener(Consumer<MatchmakerInfoMessage> listener) {
-    fafService.addOnMessageListener(MatchmakerInfoMessage.class, listener);
-  }
-
-  public CompletableFuture<Void> startSearchLadder1v1(Faction faction) {
+  public CompletableFuture<Void> startSearchMatchmaker() {
     if (isRunning()) {
-      log.debug("Game is running, ignoring 1v1 search request");
+      log.debug("Game is running, ignoring matchmaking search request");
+      notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
 
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      return gameDirectoryFuture.thenCompose(path -> startSearchLadder1v1(faction));
+      return gameDirectoryFuture.thenCompose(path -> startSearchMatchmaker());
     }
 
-    searching1v1.set(true);
+    log.info("Matchmaking search has been started");
+    inMatchmakerQueue.set(true);
 
-    return modService.getFeaturedMod(LADDER_1V1.getTechnicalName())
+    return modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
-        .thenCompose(aVoid -> fafService.startSearchLadder1v1(faction))
+        .thenCompose(aVoid -> fafService.startSearchMatchmaker())
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
             .thenRun(() -> {
               gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
@@ -496,27 +570,46 @@ public class GameService implements InitializingBean {
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
               gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
 
-              startGame(gameLaunchMessage, faction, RatingMode.LADDER_1V1);
+              String ratingType = gameLaunchMessage.getRatingType();
+
+              if (ratingType == null) {
+                log.warn("Rating type not in game launch message using MatchedQueueRatingType");
+                ratingType = matchedQueueRatingType;
+              }
+
+              if (ratingType == null) {
+                log.warn("matchedQueueRatingType null using default");
+                ratingType = DEFAULT_RATING_TYPE;
+              }
+
+              startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
             }))
         .exceptionally(throwable -> {
-          if (throwable instanceof CancellationException) {
-            log.info("Ranked1v1 search has been cancelled");
+          if (throwable.getCause() instanceof CancellationException) {
+            log.info("Matchmaking search has been cancelled");
           } else {
-            log.warn("Ranked1v1 could not be started", throwable);
+            log.warn("Matchmade game could not be started", throwable);
           }
           return null;
         });
   }
 
-  public void stopSearchLadder1v1() {
-    if (searching1v1.get()) {
-      fafService.stopSearchingRanked();
-      searching1v1.set(false);
+  public void onMatchmakerSearchStopped() {
+    if (inMatchmakerQueue.get()) {
+      fafService.stopSearchMatchmaker();
+      inMatchmakerQueue.set(false);
+      log.debug("Matchmaker search stopped");
+    } else {
+      log.debug("Matchmaker search has already been stopped, ignoring call");
     }
   }
 
-  public BooleanProperty searching1v1Property() {
-    return searching1v1;
+  public BooleanProperty getInMatchmakerQueueProperty() {
+    return inMatchmakerQueue;
+  }
+
+  public BooleanProperty getInOthersPartyProperty() {
+    return inOthersParty;
   }
 
   /**
@@ -553,13 +646,12 @@ public class GameService implements InitializingBean {
    * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
    * (mod/map download, connectivity check etc.)
    */
-  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, RatingMode ratingMode) {
+  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, String ratingType) {
     if (isRunning()) {
       log.warn("Forged Alliance is already running, not starting game");
       return;
     }
 
-    stopSearchLadder1v1();
     int uid = gameLaunchMessage.getUid();
     replayServer.start(uid, () -> getByUid(uid))
         .thenCompose(port -> {
@@ -568,11 +660,10 @@ public class GameService implements InitializingBean {
         })
         .thenAccept(adapterPort -> {
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
-          process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingMode,
+          process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingType,
               adapterPort, localReplayPort, rehostRequested, getCurrentPlayer()));
           setGameRunning(true);
 
-          this.ratingMode = ratingMode;
           spawnTerminationListener(process);
         })
         .exceptionally(throwable -> {
@@ -622,6 +713,10 @@ public class GameService implements InitializingBean {
         rehostRequested = false;
         int exitCode = process.waitFor();
         log.info("Forged Alliance terminated with exit code {}", exitCode);
+        if (exitCode != 0) {
+          notificationService.addImmediateErrorNotification(new RuntimeException(String.format("Forged Alliance Crashed with exit code %d", exitCode)),
+              "game.crash", preferencesService.getMostRecentGameLogFile().map(Path::toString).orElse(""));
+        }
 
         synchronized (gameRunning) {
           gameRunning.set(false);
@@ -676,9 +771,7 @@ public class GameService implements InitializingBean {
   }
 
   private void onGameInfo(GameInfoMessage gameInfoMessage) {
-    // Since all game updates are usually reflected on the UI and to prevent deadlocks
     JavaFxUtil.assertApplicationThread();
-
     if (gameInfoMessage.getGames() != null) {
       gameInfoMessage.getGames().forEach(this::onGameInfo);
       return;
@@ -727,7 +820,9 @@ public class GameService implements InitializingBean {
   }
 
   private Game createOrUpdateGame(GameInfoMessage gameInfoMessage) {
+    JavaFxUtil.assertApplicationThread();
     Integer gameId = gameInfoMessage.getUid();
+    log.debug("Updating Game {}", gameId);
     final Game game;
     synchronized (uidToGameInfoBean) {
       if (!uidToGameInfoBean.containsKey(gameId)) {
@@ -737,36 +832,11 @@ public class GameService implements InitializingBean {
         eventBus.post(new GameAddedEvent(game));
       } else {
         game = uidToGameInfoBean.get(gameId);
-
-        /* Since this method synchronizes on and updates members of "game", deadlocks can happen easily (updates can
-         fire events on the event bus, and each event subscriber is synchronized as well). By ensuring that we run all
-         updates in the application thread, we eliminate this risk. This is not required during construction of the
-         game however, since members are not yet accessible from outside. */
-        JavaFxUtil.assertApplicationThread();
-
         updateFromGameInfo(gameInfoMessage, game);
         eventBus.post(new GameUpdatedEvent(game));
       }
     }
     return game;
-  }
-
-  public int parseRating(String string) {
-    try {
-      return Integer.parseInt(string);
-    } catch (NumberFormatException e) {
-      int rating;
-      String[] split = string.replace("k", "").split("\\.");
-      try {
-        rating = Integer.parseInt(split[0]) * 1000;
-        if (split.length == 2) {
-          rating += Integer.parseInt(split[1]) * 100;
-        }
-        return rating;
-      } catch (NumberFormatException e1) {
-        return Integer.MAX_VALUE;
-      }
-    }
   }
 
   private double calcAverageRating(GameInfoMessage gameInfoMessage) {
@@ -775,7 +845,7 @@ public class GameService implements InitializingBean {
         .map(playerService::getPlayerForUsername)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .mapToInt(RatingUtil::getGlobalRating)
+        .mapToInt(player -> RatingUtil.getLeaderboardRating(player, gameInfoMessage.getRatingType()))
         .average()
         .orElse(0.0);
   }
@@ -793,6 +863,8 @@ public class GameService implements InitializingBean {
     ));
     game.setStatus(gameInfoMessage.getState());
     game.setPasswordProtected(gameInfoMessage.getPasswordProtected());
+    game.setGameType(gameInfoMessage.getGameType());
+    game.setRatingType(gameInfoMessage.getRatingType());
 
     game.setAverageRating(calcAverageRating(gameInfoMessage));
 
@@ -831,6 +903,10 @@ public class GameService implements InitializingBean {
     }
   }
 
+  public void setMatchedQueueRatingType(String matchedQueueRatingType) {
+    this.matchedQueueRatingType = matchedQueueRatingType;
+  }
+
   @Subscribe
   public void onGameCloseRequested(CloseGameEvent event) {
     killGame();
@@ -859,5 +935,26 @@ public class GameService implements InitializingBean {
           return null;
         });
 
+  }
+
+  @Async
+  public CompletableFuture<Void> patchGamePrefsForMultiInstances() throws IOException, ExecutionException, InterruptedException {
+    if (isGamePrefsPatchedToAllowMultiInstances().get()) {
+      return failedFuture(new IllegalStateException("Can not patch game.prefs file cause it already is patched"));
+    }
+    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    Files.writeString(preferencesFile, GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING, US_ASCII, StandardOpenOption.APPEND);
+    return completedFuture(null);
+  }
+
+  private String getGamePrefsContent() throws IOException {
+    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    return Files.readString(preferencesFile, US_ASCII);
+  }
+
+  @Async
+  public CompletableFuture<Boolean> isGamePrefsPatchedToAllowMultiInstances() throws IOException {
+    String gamePrefsContent = getGamePrefsContent();
+    return completedFuture(GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN.matcher(gamePrefsContent).find());
   }
 }

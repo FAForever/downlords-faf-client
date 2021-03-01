@@ -37,8 +37,7 @@ public class OnGameFullNotifier implements InitializingBean {
   private final MapService mapService;
   private final EventBus eventBus;
   private final GameService gameService;
-  private final ClientProperties clientProperties;
-  private String faWindowTitle;
+  private final String faWindowTitle;
 
   @Inject
   public OnGameFullNotifier(PlatformService platformService, ExecutorService executorService,
@@ -54,7 +53,6 @@ public class OnGameFullNotifier implements InitializingBean {
     this.mapService = mapService;
     this.eventBus = eventBus;
     this.gameService = gameService;
-    this.clientProperties = clientProperties;
     this.faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
   }
 

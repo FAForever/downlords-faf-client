@@ -12,6 +12,7 @@ import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
@@ -38,16 +39,17 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -95,8 +97,11 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     mapList = FXCollections.observableArrayList();
 
-    preferences = new Preferences();
-    preferences.getForgedAlliance().setInstallationPath(Paths.get("."));
+    preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .installationPath(Paths.get(""))
+        .then()
+        .get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
@@ -130,6 +135,15 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.filteredMapBeans.get(0).getFolderName(), is("test2"));
     assertThat(instance.filteredMapBeans.get(1).getDisplayName(), is("Test1"));
+  }
+
+  @Test
+  public void showOnlyToFriendsRemembered() {
+    instance.onlyForFriendsCheckBox.setSelected(true);
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
+    instance.onlyForFriendsCheckBox.setSelected(false);
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
+    verify(preferencesService, times(2)).storeInBackground();
   }
 
   @Test
@@ -180,8 +194,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetLastGameTitle() {
-    preferences.getLastGamePrefs().setLastGameTitle("testGame");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
+    preferences.getLastGame().setLastGameTitle("testGame");
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -192,9 +205,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testButtonBindingIfFeaturedModNotSet() {
-    preferences.getLastGamePrefs().setLastGameTitle("123");
+    preferences.getLastGame().setLastGameTitle("123");
     when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -206,7 +218,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfTitleNotSet() {
 
     when(i18n.get("game.create.titleMissing")).thenReturn("title missing");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -218,7 +229,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfNotConnected() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -230,7 +240,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   public void testButtonBindingIfNotConnecting() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
-    preferences.getForgedAlliance().setInstallationPath(Paths.get(""));
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -241,7 +250,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testSelectLastMap() {
     MapBean lastMapBean = MapBuilder.create().defaultValues().folderName("foo").get();
-    preferences.getLastGamePrefs().setLastMap("foo");
+    preferences.getLastGame().setLastMap("foo");
 
     mapList.add(MapBuilder.create().defaultValues().folderName("Test1").get());
     mapList.add(lastMapBean);
@@ -268,29 +277,109 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testCreateGame() {
+  public void testCloseButtonTriggeredAfterCreatingGame() {
+    Runnable closeAction = mock(Runnable.class);
+    instance.setOnCloseButtonClickedListener(closeAction);
+
+    MapBean map = MapBuilder.create().defaultValues().get();
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(gameService.hostGame(any())).thenReturn(completedFuture(null));
+
+    mapList.add(map);
+    instance.mapListView.getSelectionModel().select(0);
+    instance.onCreateButtonClicked();
+
+    verify(closeAction).run();
+  }
+
+  @Test
+  public void testCreateGameWithSelectedModAndMap() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
     ModVersion modVersion = new ModVersion();
     String uidMod = "junit-mod";
     modVersion.setUid(uidMod);
+
     when(modManagerController.apply()).thenReturn(Collections.singletonList(modVersion));
 
-    Runnable closeRunnable = mock(Runnable.class);
-    instance.setOnCloseButtonClickedListener(closeRunnable);
+    MapBean map = MapBuilder.create().defaultValues().get();
+    when(mapService.isOfficialMap(map)).thenReturn(false);
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
 
-    when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(null));
-
-    String mapFolderName = "junit-map-folder";
-    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").folderName(mapFolderName).get());
+    mapList.add(map);
     instance.mapListView.getSelectionModel().select(0);
-
+    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
     instance.onCreateButtonClicked();
 
     verify(modManagerController).apply();
-    verify(closeRunnable).run();
-
     assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(uidMod));
-    assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(mapFolderName));
+    assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(map.getFolderName()));
+  }
+
+  @Test
+  public void testCreateGameOnSelectedMapIfNoNewVersionMap() {
+    ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
+    MapBean map = MapBuilder.create().defaultValues().get();
+
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
+
+    mapList.add(map);
+    instance.mapListView.getSelectionModel().select(0);
+    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+    instance.onCreateButtonClicked();
+
+    assertThat(captor.getValue().getMap(), is(map.getFolderName()));
+  }
+
+  @Test
+  public void testCreateGameOnUpdatedMapIfNewVersionMapExist() {
+    ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
+
+    MapBean outdatedMap = MapBuilder.create().defaultValues().folderName("test.v0001").get();
+    MapBean updatedMap = MapBuilder.create().defaultValues().folderName("test.v0002").get();
+    when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(completedFuture(updatedMap));
+    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
+
+    mapList.add(outdatedMap);
+    instance.mapListView.getSelectionModel().select(0);
+    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+    instance.onCreateButtonClicked();
+
+    assertThat(captor.getValue().getMap(), is(updatedMap.getFolderName()));
+  }
+
+  @Test
+  public void testCreateGameOnOfficialMap() {
+    ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
+
+    MapBean map = MapBuilder.create().defaultValues().get();
+    when(mapService.isOfficialMap(map)).thenReturn(true);
+    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
+
+    mapList.add(map);
+    instance.mapListView.getSelectionModel().select(0);
+    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+    instance.onCreateButtonClicked();
+
+    assertThat(captor.getValue().getMap(), is(map.getFolderName()));
+  }
+
+  @Test
+  public void testCreateGameOnSelectedMapImmediatelyIfThrowExceptionWhenUpdatingMap() {
+    ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
+
+    MapBean map = MapBuilder.create().defaultValues().get();
+    when(mapService.updateLatestVersionIfNecessary(map))
+        .thenReturn(CompletableFuture.failedFuture(new RuntimeException("error when checking for update or updating map")));
+    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
+
+    mapList.add(map);
+    instance.mapListView.getSelectionModel().select(0);
+    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+    instance.onCreateButtonClicked();
+
+    assertThat(captor.getValue().getMap(), is(map.getFolderName()));
   }
 
   @Test
@@ -310,7 +399,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
     FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
-    preferences.getLastGamePrefs().setLastGameType(null);
+    preferences.getLastGame().setLastGameType(null);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -324,7 +413,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
     FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
-    preferences.getLastGamePrefs().setLastGameType("last");
+    preferences.getLastGame().setLastGameType("last");
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -336,15 +425,15 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnlyFriendsBinding() {
     instance.onlyForFriendsCheckBox.setSelected(true);
-    assertThat(preferences.getLastGamePrefs().isLastGameOnlyFriends(), is(true));
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
     instance.onlyForFriendsCheckBox.setSelected(false);
-    assertThat(preferences.getLastGamePrefs().isLastGameOnlyFriends(), is(false));
+    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
   }
 
   @Test
   public void testPasswordIsSaved() {
     instance.passwordTextField.setText("1234");
-    assertEquals(preferences.getLastGamePrefs().getLastGamePassword(), "1234");
+    assertEquals(preferences.getLastGame().getLastGamePassword(), "1234");
     verify(preferencesService).storeInBackground();
   }
 

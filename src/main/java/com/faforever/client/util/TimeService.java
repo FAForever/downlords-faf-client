@@ -2,6 +2,7 @@ package com.faforever.client.util;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import lombok.RequiredArgsConstructor;
@@ -74,13 +75,22 @@ public class TimeService {
     return asDate(temporal);
   }
 
-  
+  public String asDateTime(TemporalAccessor temporalAccessor) {
+    if (temporalAccessor == null) {
+      return i18n.get("noDateAvailable");
+    }
+    return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+        .withLocale(getCurrentDateLocale())
+        .withZone(TimeZone.getDefault().toZoneId())
+        .format(temporalAccessor);
+  }
+
   public String asDate(TemporalAccessor temporalAccessor) {
     if (temporalAccessor == null) {
       return i18n.get("noDateAvailable");
     }
     return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-        .withLocale(getCurrentTimeLocale())
+        .withLocale(getCurrentDateLocale())
         .withZone(TimeZone.getDefault().toZoneId())
         .format(temporalAccessor);
   }
@@ -106,6 +116,15 @@ public class TimeService {
       return Locale.getDefault();
     }
     return preferencesService.getPreferences().getChat().getTimeFormat().getUsedLocale();
+
+  }
+
+  private Locale getCurrentDateLocale() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    if (chatPrefs.getDateFormat().equals(DateInfo.AUTO)) {
+      return Locale.getDefault();
+    }
+    return preferencesService.getPreferences().getChat().getDateFormat().getUsedLocale();
 
   }
 

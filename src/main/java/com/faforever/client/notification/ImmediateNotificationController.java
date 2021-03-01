@@ -1,17 +1,16 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.ui.dialog.DialogLayout;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -25,25 +24,23 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ImmediateNotificationController implements Controller<Node> {
 
-  private final WebViewConfigurer webViewConfigurer;
   private final DialogLayout dialogLayout;
-  public WebView errorMessageView;
-  public Label exceptionAreaTitleLabel;
+  public Label notificationText;
+  public TitledPane exceptionArea;
   public TextArea exceptionTextArea;
+  public Label helpText;
   public VBox immediateNotificationRoot;
   private Runnable closeListener;
 
-  public ImmediateNotificationController(WebViewConfigurer webViewConfigurer) {
-    this.webViewConfigurer = webViewConfigurer;
+  public ImmediateNotificationController() {
     dialogLayout = new DialogLayout();
   }
 
   public void initialize() {
-    exceptionAreaTitleLabel.managedProperty().bind(exceptionAreaTitleLabel.visibleProperty());
-    exceptionAreaTitleLabel.visibleProperty().bind(exceptionTextArea.visibleProperty());
-    exceptionTextArea.managedProperty().bind(exceptionTextArea.visibleProperty());
-    webViewConfigurer.configureWebView(errorMessageView);
-    errorMessageView.managedProperty().bind(errorMessageView.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(exceptionArea, notificationText, helpText);
+    exceptionTextArea.managedProperty().bind(exceptionArea.visibleProperty());
+
+    dialogLayout.setMaxWidth(650);
 
     dialogLayout.setBody(immediateNotificationRoot);
   }
@@ -55,12 +52,15 @@ public class ImmediateNotificationController implements Controller<Node> {
       throwable.printStackTrace(new PrintWriter(writer));
       exceptionTextArea.setVisible(true);
       exceptionTextArea.setText(writer.toString());
+      exceptionArea.setExpanded(false);
     } else {
       exceptionTextArea.setVisible(false);
+      exceptionArea.setVisible(false);
+      helpText.setVisible(false);
     }
 
     dialogLayout.setHeading(new Label(notification.getTitle()));
-    Platform.runLater(() -> errorMessageView.getEngine().loadContent(notification.getText()));
+    notificationText.setText(notification.getText());
 
     Optional.ofNullable(notification.getActions())
         .map(actions -> actions.stream().map(this::createButton).collect(Collectors.toList()))
@@ -85,11 +85,6 @@ public class ImmediateNotificationController implements Controller<Node> {
         button.getStyleClass().add("dialog-accept");
         ButtonBar.setButtonData(button, ButtonBar.ButtonData.OK_DONE);
         break;
-    }
-
-    // Until implemented
-    if (action instanceof ReportAction) {
-      button.setDisable(true);
     }
 
     return button;

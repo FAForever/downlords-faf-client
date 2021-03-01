@@ -3,32 +3,29 @@ package com.faforever.client.chat;
 import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.JoinGameHelper;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.moderator.BanDialogController;
 import com.faforever.client.moderator.ModeratorService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.reporting.ReportDialogController;
+import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.util.ClipboardUtil;
 import com.google.common.eventbus.EventBus;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -54,7 +51,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.faforever.client.chat.ChatColorMode.CUSTOM;
+import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
@@ -66,7 +63,6 @@ import static java.util.Locale.US;
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private final PreferencesService preferencesService;
-  private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final ReplayService replayService;
   private final NotificationService notificationService;
@@ -75,8 +71,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   private final JoinGameHelper joinGameHelper;
   private final AvatarService avatarService;
   private final UiService uiService;
-  private final PlatformService platformService;
   private final ModeratorService moderatorService;
+  private final TeamMatchmakingService teamMatchmakingService;
   public ComboBox<AvatarBean> avatarComboBox;
   public CustomMenuItem avatarPickerMenuItem;
   public MenuItem sendPrivateMessageItem;
@@ -105,13 +101,12 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   @SuppressWarnings("FieldCanBeLocal")
   private ChangeListener<Player> playerChangeListener;
 
-  public ChatUserContextMenuController(PreferencesService preferencesService, ClientProperties clientProperties,
+  public ChatUserContextMenuController(PreferencesService preferencesService,
                                        PlayerService playerService, ReplayService replayService,
                                        NotificationService notificationService, I18n i18n, EventBus eventBus,
                                        JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService,
-                                       PlatformService platformService, ModeratorService moderatorService) {
+                                       ModeratorService moderatorService, TeamMatchmakingService teamMatchmakingService) {
     this.preferencesService = preferencesService;
-    this.clientProperties = clientProperties;
     this.playerService = playerService;
     this.replayService = replayService;
     this.notificationService = notificationService;
@@ -120,8 +115,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     this.joinGameHelper = joinGameHelper;
     this.avatarService = avatarService;
     this.uiService = uiService;
-    this.platformService = platformService;
     this.moderatorService = moderatorService;
+    this.teamMatchmakingService = teamMatchmakingService;
   }
 
   public void initialize() {
@@ -130,10 +125,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     removeCustomColorButton.managedProperty().bind(removeCustomColorButton.visibleProperty());
 
     avatarPickerMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() -> !avatarComboBox.getItems().isEmpty(), avatarComboBox.getItems()));
-
-    // Workaround for the issue that the popup gets closed when the "custom color" button is clicked, causing an NPE
-    // in the custom color popup window.
-    colorPicker.focusedProperty().addListener((observable, oldValue, newValue) -> chatUserContextMenuRoot.setAutoHide(!newValue));
   }
 
   @NotNull
@@ -165,19 +156,28 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
       String lowerUsername = chatUser.getUsername().toLowerCase(US);
+      ChatUserCategory userCategory;
+      if (chatUser.isModerator()) {
+        userCategory = ChatUserCategory.MODERATOR;
+      } else {
+        userCategory = chatUser.getSocialStatus().map(status -> switch (status) {
+          case FRIEND -> ChatUserCategory.FRIEND;
+          case FOE -> ChatUserCategory.FOE;
+          default -> ChatUserCategory.OTHER;
+        }).orElse(ChatUserCategory.OTHER);
+      }
       if (newValue == null) {
         chatPrefs.getUserToColor().remove(lowerUsername);
+        chatUser.setColor(chatPrefs.getGroupToColor().getOrDefault(userCategory, null));
       } else {
         chatPrefs.getUserToColor().put(lowerUsername, newValue);
+        chatUser.setColor(newValue);
       }
-      chatUser.setColor(newValue);
-      chatUserContextMenuRoot.hide();
     });
 
-    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isEqualTo(CUSTOM)
+    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
         .and(colorPicker.valueProperty().isNotNull()));
-    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty()
-        .isEqualTo(CUSTOM));
+    colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
 
 
     playerChangeListener = (observable, oldValue, newValue) -> {
@@ -201,20 +201,19 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
       reportItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
 
-      // TODO: Make this ignore TMM games too and not just ladder
-      // https://github.com/FAForever/downlords-faf-client/issues/1770
       joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
           .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
               .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
           .and(Bindings.createBooleanBinding(() -> {
                 return newValue.getGame() != null
-                    && newValue.getGame().getFeaturedMod() != null
-                    && !newValue.getGame().getFeaturedMod().equals(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
+                    && newValue.getGame().getGameType() != GameType.MATCHMAKER;
               }, newValue.gameProperty())
           ));
       watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
-      inviteItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
-          .and(newValue.statusProperty().isNotEqualTo(PlayerStatus.PLAYING)));
+      inviteItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
+              newValue.socialStatusProperty().get() != SELF &&
+              newValue.statusProperty().get() == PlayerStatus.IDLE,
+          newValue.statusProperty()));
 
     };
     JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
@@ -242,7 +241,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       items.add(0, new AvatarBean(null, i18n.get("chat.userContext.noAvatar")));
 
       String currentAvatarUrl = player.getAvatarUrl();
-      Platform.runLater(() -> {
+      JavaFxUtil.runLater(() -> {
         avatarComboBox.getItems().setAll(items);
         avatarComboBox.getSelectionModel().select(items.stream()
             .filter(avatarBean -> Objects.equals(Objects.toString(avatarBean.getUrl(), null), currentAvatarUrl))
@@ -289,7 +288,11 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onReport() {
-    platformService.showDocument(clientProperties.getWebsite().getReportUrl());
+    ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
+    chatUser.getPlayer().ifPresentOrElse(reportDialogController::setOffender,
+        () -> reportDialogController.setOffender(chatUser.getUsername()));
+    reportDialogController.setOwnerWindow(chatUserContextMenuRoot.getOwnerWindow());
+    reportDialogController.show();
   }
 
   public void onAddFoeSelected() {
@@ -311,9 +314,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
       replayService.runLiveReplay(player.getGame().getId());
     } catch (Exception e) {
       log.error("Cannot display live replay", e.getCause());
-      String title = i18n.get("replays.live.loadFailure.title");
-      String message = i18n.get("replays.live.loadFailure.message");
-      notificationService.addNotification(new ImmediateNotification(title, message, Severity.ERROR));
+      notificationService.addImmediateErrorNotification(e, "replays.live.loadFailure.message");
     }
   }
 
@@ -323,7 +324,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onInviteToGameSelected() {
-    //FIXME implement
+    Player player = getPlayer();
+    teamMatchmakingService.invitePlayer(player.getUsername());
   }
 
   public void onBan(ActionEvent actionEvent) {
