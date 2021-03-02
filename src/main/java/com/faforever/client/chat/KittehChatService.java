@@ -449,7 +449,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
         .then()
         .build();
 
-    nickServ = NickServ.builder(client).account(username).password(getPassword()).build();
+    nickServ = NickServ.builder(client)
+        .account(username)
+        .password(getPassword())
+        .build();
 
     client.getEventManager().registerEventListener(this);
     client.getActorTracker().setQueryChannelInformation(false);
