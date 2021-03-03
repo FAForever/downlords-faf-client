@@ -435,7 +435,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     this.defaultChannelName = irc.getDefaultChannel();
 
     client = (DefaultClient) Client.builder()
-        .user(username)
+        .user(String.valueOf(userService.getUserId()))
         .realName(username)
         .nick(username)
         .server()
