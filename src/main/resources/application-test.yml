@@ -26,5 +26,11 @@ faf-client:
     client-id: 3bc8282c-7730-11e5-8bcf-feff819cdc9f
     client-secret: 6035bd78-7730-11e5-8bcf-feff819cdc9f
 
+  oauth:
+    base-url: https://hydra.test.faforever.com
+    scopes: openid offline public_profile read_events read_achievements upload_map upload_mod
+    client-id: faf-java-client
+    redirect-url: http://localhost
+
   forged-alliance:
     exe-url: https://content.test.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe

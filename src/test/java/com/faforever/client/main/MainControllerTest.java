@@ -1,6 +1,7 @@
 package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
+import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
@@ -159,10 +160,10 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLogOutResets() throws Exception {
-    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent("junit", "", 1)));
+    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent()));
     runOnFxThreadAndWait(() -> instance.onNavigateEvent(new NavigateEvent(NavigationItem.PLAY)));
     runOnFxThreadAndWait(() -> instance.onLoggedOutEvent(new LoggedOutEvent()));
-    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent("junit", "", 1)));
+    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent()));
     runOnFxThreadAndWait(() -> instance.onNavigateEvent(new NavigateEvent(NavigationItem.PLAY)));
     verify(uiService, times(2)).loadFxml(NavigationItem.PLAY.getFxmlFile());
   }
@@ -194,7 +195,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   private void fakeLogin() throws InterruptedException {
-    instance.onLoginSuccessEvent(new LoginSuccessEvent("junit", "", 1));
+    instance.onLoginSuccessEvent(new LoginSuccessEvent());
     WaitForAsyncUtils.waitForFxEvents();
   }
 
@@ -300,5 +301,11 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();
     verify(platformService).reveal(expectedPath);
+  }
+
+  @Test
+  public void testOnSessionExpired() throws Exception {
+    runOnFxThreadAndWait(() -> instance.onSessionExpiredEvent(new SessionExpiredEvent()));
+    verify(uiService, times(2)).loadFxml("theme/login.fxml");
   }
 }

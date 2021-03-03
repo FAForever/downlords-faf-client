@@ -1,5 +1,8 @@
 package com.faforever.client.config;
 
+import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
+import com.faforever.client.update.ClientConfiguration.SocketEndpoint;
+import com.faforever.client.update.ClientConfiguration.UrlEndpoint;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -23,6 +26,7 @@ public class ClientProperties {
   private Imgur imgur = new Imgur();
   private TrueSkill trueSkill = new TrueSkill();
   private Api api = new Api();
+  private Oauth oauth = new Oauth();
   private UnitDatabase unitDatabase = new UnitDatabase();
   private MapGenerator mapGenerator = new MapGenerator();
   private Website website = new Website();
@@ -126,8 +130,6 @@ public class ClientProperties {
   @Data
   public static class Website {
     private String baseUrl;
-    private String forgotPasswordUrl;
-    private String createAccountUrl;
     private String reportUrl;
     private String newsHubUrl;
   }
@@ -138,6 +140,36 @@ public class ClientProperties {
     private String clientId;
     private String clientSecret;
     private int maxPageSize = 10_000;
+  }
+
+  public void updateFromEndpoint(ServerEndpoints serverEndpoints) {
+    SocketEndpoint lobby = serverEndpoints.getLobby();
+    if (lobby != null) {
+      server.setHost(lobby.getHost());
+      server.setPort(lobby.getPort());
+    }
+
+    SocketEndpoint liveReplay = serverEndpoints.getLiveReplay();
+    if (liveReplay != null) {
+      replay.setRemoteHost(liveReplay.getHost());
+      replay.setRemotePort(liveReplay.getPort());
+    }
+
+    SocketEndpoint irc = serverEndpoints.getIrc();
+    if (irc != null) {
+      this.irc.setHost(irc.getHost());
+      this.irc.setPort(irc.getPort());
+    }
+
+    UrlEndpoint api = serverEndpoints.getApi();
+    if (api != null) {
+      this.api.setBaseUrl(api.getUrl());
+    }
+
+    UrlEndpoint oauth = serverEndpoints.getOauth();
+    if (oauth != null) {
+      this.oauth.setBaseUrl(oauth.getUrl());
+    }
   }
 
   @Data
@@ -164,5 +196,13 @@ public class ClientProperties {
     private String discordPrereleaseFeedbackChannelUrl;
     /** URL to join the FAF Discord server. */
     private String joinUrl;
+  }
+
+  @Data
+  public static class Oauth {
+    private String baseUrl;
+    private String redirectUrl;
+    private String clientId;
+    private String scopes;
   }
 }

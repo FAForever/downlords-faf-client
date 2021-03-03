@@ -31,9 +31,11 @@ public interface FafServerAccessor {
   @SuppressWarnings("unchecked")
   <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener);
 
+  ConnectionState getConnectionState();
+
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletableFuture<LoginMessage> connectAndLogIn(String username, String password);
+  CompletableFuture<LoginMessage> connectAndLogin(String token);
 
   CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
 

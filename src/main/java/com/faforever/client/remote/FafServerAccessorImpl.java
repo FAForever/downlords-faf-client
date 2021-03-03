@@ -46,13 +46,14 @@ import com.faforever.client.remote.domain.IceServersServerMessage;
 import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.InitSessionMessage;
 import com.faforever.client.remote.domain.InviteToPartyMessage;
+import com.faforever.client.remote.domain.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.JoinGameMessage;
 import com.faforever.client.remote.domain.KickPlayerFromPartyMessage;
 import com.faforever.client.remote.domain.LeavePartyMessage;
 import com.faforever.client.remote.domain.ListIceServersMessage;
 import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
-import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.LoginOauthClientMessage;
 import com.faforever.client.remote.domain.MakeBroadcastMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.MessageTarget;
@@ -92,7 +93,6 @@ import com.faforever.commons.api.dto.Faction;
 import com.github.nocatch.NoCatch;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -132,7 +132,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Lazy
 @Component
@@ -172,14 +171,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @org.jetbrains.annotations.NotNull
   private final ClientProperties clientProperties;
   private Task<Void> fafConnectionTask;
-  private String localIp;
   private ServerWriter serverWriter;
   private volatile CompletableFuture<LoginMessage> loginFuture;
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
   private final ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
-  private String username;
-  private String password;
+  private String token;
   private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
@@ -228,16 +225,20 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
+  public ConnectionState getConnectionState() {
+    return connectionState.get();
+  }
+
+  @Override
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
+  public CompletableFuture<LoginMessage> connectAndLogin(String token) {
     sessionFuture = new CompletableFuture<>();
     loginFuture = new CompletableFuture<>();
-    this.username = username;
-    this.password = password;
+    this.token = token;
 
     // TODO extract class?
     fafConnectionTask = new Task<>() {
@@ -252,14 +253,11 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
           log.info("Trying to connect to FAF server at {}:{}", serverHost, serverPort);
           JavaFxUtil.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
 
-
           try (Socket fafServerSocket = new Socket(serverHost, serverPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
             FafServerAccessorImpl.this.fafServerSocket = fafServerSocket;
 
             fafServerSocket.setKeepAlive(true);
-
-            localIp = fafServerSocket.getLocalAddress().getHostAddress();
 
             serverWriter = createServerWriter(outputStream);
 
@@ -542,13 +540,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     log.info("FAF session initiated, session ID: {}", sessionMessage.getSession());
     this.sessionId.set(sessionMessage.getSession());
     sessionFuture.complete(sessionMessage);
-    logIn(username, password);
+    logIn(token);
   }
 
-  private void logIn(String username, String password) {
+  private void logIn(String token) {
     try {
       String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
-      writeToServer(new LoginClientMessage(username, Hashing.sha256().hashString(password, UTF_8).toString(), sessionId.get(), uniqueId, localIp));
+      writeToServer(new LoginOauthClientMessage(token, sessionId.get(), uniqueId));
     } catch (IOException e) {
       onUIDNotExecuted(e);
     }
@@ -562,6 +560,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     }
     notificationService.addNotification(new ImmediateNotification(i18n.get("UIDNotExecuted"), e.getMessage(), Severity.ERROR,
         List.of(new CopyErrorAction(i18n, reportingService, e), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))));
+  }
+
+  private void onIrcPassword(IrcPasswordServerMessage ircPasswordServerMessage) {
+    eventBus.post(ircPasswordServerMessage);
   }
 
   private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
@@ -583,6 +585,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(NoticeMessage.class, this::onNotice);
     addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
     addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
+    addOnMessageListener(IrcPasswordServerMessage.class, this::onIrcPassword);
     addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
     addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);

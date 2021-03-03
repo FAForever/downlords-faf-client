@@ -43,6 +43,7 @@ import com.faforever.commons.api.dto.Map;
 import com.faforever.commons.api.dto.MapPoolAssignment;
 import com.faforever.commons.api.dto.MapVersion;
 import com.faforever.commons.api.dto.MapVersionReview;
+import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersionReview;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
@@ -93,6 +94,10 @@ public class FafService {
     return fafServerAccessor.requestHostGame(newGameInfo);
   }
 
+  public ConnectionState getLobbyConnectionState() {
+    return fafServerAccessor.getConnectionState();
+  }
+
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
     return fafServerAccessor.connectionStateProperty();
   }
@@ -117,8 +122,13 @@ public class FafService {
     fafServerAccessor.sendGpgMessage(message);
   }
 
-  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
-    return fafServerAccessor.connectAndLogIn(username, password);
+  @Async
+  public CompletableFuture<LoginMessage> connectToServer(String token) {
+    return fafServerAccessor.connectAndLogin(token);
+  }
+
+  public void authorizeApi() {
+    fafApiAccessor.authorize();
   }
 
   public void disconnect() {
@@ -266,8 +276,13 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<MeResult> getCurrentUser() {
+    return CompletableFuture.completedFuture(fafApiAccessor.verifyUser());
+  }
+
+  @Async
   public CompletableFuture<Set<String>> getPermissions() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getOwnPlayer().getPermissions());
+    return CompletableFuture.completedFuture(fafApiAccessor.verifyUser().getPermissions());
   }
 
   public void selectAvatar(AvatarBean avatar) {

@@ -12,6 +12,7 @@ public enum ClientMessageType {
   SOCIAL_REMOVE("social_remove"),
   STATISTICS("stats"),
   LOGIN("hello"),
+  OAUTH_LOGIN("auth"),
   GAME_MATCH_MAKING("game_matchmaking"),
   AVATAR("avatar"),
   ICE_SERVERS("ice_servers"),
@@ -29,7 +30,7 @@ public enum ClientMessageType {
   MATCHMAKER_INFO("matchmaker_info"),
   GAME_MATCHMAKING("game_matchmaking");
 
-  private static Map<String, ClientMessageType> fromString;
+  private static final Map<String, ClientMessageType> fromString;
 
   static {
     fromString = new HashMap<>();
@@ -38,7 +39,7 @@ public enum ClientMessageType {
     }
   }
 
-  private String string;
+  private final String string;
 
   ClientMessageType(String string) {
     this.string = string;

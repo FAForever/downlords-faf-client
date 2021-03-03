@@ -30,7 +30,6 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
-import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -77,7 +76,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
     testClan.setTag("e");
     testClan.setLeader(PlayerBuilder.create("test_player").defaultValues().id(2).get());
     when(playerService.isOnline(eq(2))).thenReturn(true);
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("junit").defaultValues().get());
 
     instance = new ChatUserItemController(
         preferencesService,
@@ -189,7 +188,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
         .clan("e")
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
     instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -214,7 +213,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
         .clan("e")
         .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
+    when(playerService.getCurrentPlayer()).thenReturn(otherClanLeader);
     instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -236,7 +235,7 @@ public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
         .defaultValues()
         .clan("not")
         .get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(otherClanLeader));
+    when(playerService.getCurrentPlayer()).thenReturn(otherClanLeader);
     instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 

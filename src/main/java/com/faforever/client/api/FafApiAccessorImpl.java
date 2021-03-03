@@ -6,7 +6,6 @@ import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.io.CountingFileSystemResource;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -54,9 +53,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.token.grant.password.ResourceOwnerPasswordResourceDetails;
-import org.springframework.security.oauth2.common.AuthenticationScheme;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -117,19 +113,18 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
   private static final String PLAYER_INCLUDES = "names";
   private static final String REPORT_INCLUDES = "reporter,lastModerator,reportedUsers,game";
-  private static final String OAUTH_TOKEN_PATH = "/oauth/token";
   private static final String FILTER = "filter";
   private static final String SORT = "sort";
   private static final String INCLUDE = "include";
   private static final String NOT_HIDDEN = "latestVersion.hidden==\"false\"";
   private static final String FILENAME_TEMPLATE = "maps/%s.zip";
 
-
   private final EventBus eventBus;
   private final RestTemplateBuilder unconfiguredTemplateBuilder;
   private final ClientProperties clientProperties;
   private final JsonApiMessageConverter jsonApiMessageConverter;
   private final JsonApiErrorHandler jsonApiErrorHandler;
+  private final OAuthTokenInterceptor oAuthTokenInterceptor;
   private final HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
   private RestTemplateBuilder templateBuilder;
@@ -156,12 +151,11 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     authorizedLatch = new CountDownLatch(1);
-    restOperations = null;
   }
 
   @Subscribe
-  public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    authorize(event.getUserId(), event.getUsername(), event.getPassword());
+  public void onSessionExpiredEvent(SessionExpiredEvent event) {
+    authorizedLatch = new CountDownLatch(1);
   }
 
   @Override
@@ -435,8 +429,10 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     }
   }
 
+  @SneakyThrows
   @Override
-  public MeResult getOwnPlayer() {
+  public MeResult verifyUser() {
+    authorizedLatch.await();
     return getOne("/me", MeResult.class);
   }
 
@@ -621,6 +617,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @SneakyThrows
   public List<Tournament> getAllTournaments() {
+    authorizedLatch.await();
     List<Tournament> tournaments = Arrays.asList(restOperations.getForObject(TOURNAMENT_LIST_ENDPOINT, Tournament[].class));
     log.debug("Retrieved {} from {}", tournaments, TOURNAMENT_LIST_ENDPOINT);
     return tournaments;
@@ -649,22 +646,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  @SneakyThrows
-  public void authorize(int playerId, String username, String password) {
+  public void authorize() {
     Api apiProperties = clientProperties.getApi();
-
-    ResourceOwnerPasswordResourceDetails details = new ResourceOwnerPasswordResourceDetails();
-    details.setClientId(apiProperties.getClientId());
-    details.setClientSecret(apiProperties.getClientSecret());
-    details.setClientAuthenticationScheme(AuthenticationScheme.header);
-    details.setAccessTokenUri(apiProperties.getBaseUrl() + OAUTH_TOKEN_PATH);
-    details.setUsername(username);
-    details.setPassword(password);
 
     restOperations = templateBuilder
         // Base URL can be changed in login window
         .rootUri(apiProperties.getBaseUrl())
-        .configure(new OAuth2RestTemplate(details));
+        .interceptors(oAuthTokenInterceptor)
+        .build();
 
     authorizedLatch.countDown();
   }
@@ -702,18 +691,20 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     authorizedLatch.await();
     return restOperations.patchForObject(endpointPath, request, type);
   }
-
+  @SneakyThrows
   private void delete(String endpointPath) {
+    authorizedLatch.await();
     restOperations.delete(endpointPath);
   }
 
+  @SneakyThrows
   private <T> T getOne(String endpointPath, Class<T> type) {
+    authorizedLatch.await();
     T object = restOperations.getForObject(endpointPath, type, Collections.emptyMap());
     log.debug("Retrieved {} from {} with type {}", object, endpointPath, type);
     return object;
   }
 
-  @SneakyThrows
   @NotNull
   private <T> T getOne(String endpointPath, Class<T> type, java.util.Map<String, Serializable> params) {
     java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
@@ -723,7 +714,6 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .queryParams(CollectionUtils.toMultiValueMap(multiValues))
         .build();
 
-    authorizedLatch.await();
     return getOne(uriComponents.toUriString(), type);
   }
 

@@ -32,7 +32,6 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
@@ -98,7 +97,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     installedMaps.add(testMap);
 
     when(timeService.asDate(any(LocalDateTime.class))).thenReturn("test date");
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(currentPlayer));
+    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class))).thenReturn(CompletableFuture.runAsync(() -> {
     }));
     when(i18n.number(testMap.getPlayers())).thenReturn(String.valueOf(testMap.getPlayers()));

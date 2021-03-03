@@ -50,7 +50,7 @@ public interface FafApiAccessor {
 
   AchievementDefinition getAchievementDefinition(String achievementId);
 
-  void authorize(int playerId, String username, String password);
+  void authorize();
 
   List<Mod> getMods();
 
@@ -152,5 +152,5 @@ public interface FafApiAccessor {
 
   void updateMapVersion(String id, MapVersion mapVersion);
 
-  MeResult getOwnPlayer();
+  MeResult verifyUser();
 }

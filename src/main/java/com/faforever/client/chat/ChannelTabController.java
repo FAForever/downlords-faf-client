@@ -337,11 +337,6 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   protected String getMessageCssClass(String login) {
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(login, chatChannel.getName());
-    Optional<Player> currentPlayerOptional = playerService.getCurrentPlayer();
-
-    if (currentPlayerOptional.isPresent()) {
-      return "";
-    }
 
     if (chatUser.isModerator()) {
       return CSS_CLASS_MODERATOR;

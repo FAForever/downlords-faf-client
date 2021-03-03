@@ -15,8 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import java.util.Optional;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +52,7 @@ public class MatchmakingQueueItemControllerTest extends AbstractPlainJavaFxTest 
     when(i18n.getOrDefault(eq(queue.getTechnicalName()), anyString())).thenReturn(queue.getTechnicalName());
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
 
     instance = new MatchmakingQueueItemController(playerService, teamMatchmakingService, i18n, eventBus);
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);

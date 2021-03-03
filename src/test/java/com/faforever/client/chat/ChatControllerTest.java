@@ -6,6 +6,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.api.dto.MeResult;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
@@ -77,6 +78,7 @@ public class ChatControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/chat/private_chat_tab.fxml")).thenReturn(privateChatTabController);
     when(uiService.loadFxml("theme/chat/channel_tab.fxml")).thenReturn(channelTabController);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
+    when(userService.getOwnUser()).thenReturn(new MeResult());
     when(chatService.connectionStateProperty()).thenReturn(connectionState);
 
     loadFxml("theme/chat/chat.fxml", clazz -> instance);

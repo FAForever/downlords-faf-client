@@ -82,8 +82,7 @@ public class ReviewController implements Controller<Pane> {
       return;
     }
 
-    Player currentPlayer = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("No player is available"));
+    Player currentPlayer = playerService.getCurrentPlayer();
 
     boolean isReviewOwnedByCurrentUser = currentPlayer.equals(review.getPlayer());
 

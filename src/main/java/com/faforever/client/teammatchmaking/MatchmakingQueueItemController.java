@@ -115,7 +115,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   private void setQueueButtonState() {
     boolean disable = teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
         || teamMatchmakingService.partyMembersNotReady()
-        || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null));
+        || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer());
     JavaFxUtil.runLater(() -> joinLeaveQueueButton.setDisable(disable));
   }
 

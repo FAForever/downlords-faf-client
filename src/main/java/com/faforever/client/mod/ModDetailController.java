@@ -139,8 +139,7 @@ public class ModDetailController implements Controller<Node> {
     sizeLabel.setText(Bytes.formatSize(getModSize(), i18n.getUserSpecificLocale()));
     versionLabel.setText(modVersion.getVersion().toString());
 
-    Player player = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("No current player is available"));
+    Player player = playerService.getCurrentPlayer();
 
     reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid())
         && !modVersion.getMod().getAuthor().equals(player.getUsername()));
@@ -182,8 +181,7 @@ public class ModDetailController implements Controller<Node> {
   @VisibleForTesting
   void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
-    Player player = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("No current player is available"));
+    Player player = playerService.getCurrentPlayer();
     review.setPlayer(player);
     review.setVersion(modVersion.getVersion());
     review.setLatestVersion(modVersion.getVersion());

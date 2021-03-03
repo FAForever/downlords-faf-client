@@ -273,8 +273,7 @@ public class ChatUserItemController implements Controller<Node> {
 
     Clan clan = chatUser.getClan().get();
 
-    Player currentPlayer = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("Player has to be set"));
+    Player currentPlayer = playerService.getCurrentPlayer();
 
     if (currentPlayer.getId() != clan.getLeader().getId()
         && playerService.isOnline(clan.getLeader().getId())) {

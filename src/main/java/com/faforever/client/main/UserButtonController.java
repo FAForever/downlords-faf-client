@@ -4,8 +4,10 @@ import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
@@ -27,6 +29,8 @@ public class UserButtonController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final UiService uiService;
+  private final UserService userService;
+  private final PreferencesService preferencesService;
   public MenuButton userMenuButtonRoot;
 
   public void initialize() {
@@ -35,7 +39,7 @@ public class UserButtonController implements Controller<Node> {
 
   @Subscribe
   public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    JavaFxUtil.runLater(() -> userMenuButtonRoot.setText(event.getUsername()));
+    JavaFxUtil.runLater(() -> userMenuButtonRoot.setText(userService.getUsername()));
   }
 
   @Override
@@ -45,7 +49,7 @@ public class UserButtonController implements Controller<Node> {
 
   public void onShowProfile(ActionEvent event) {
     UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
-    userInfoWindowController.setPlayer(playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set")));
+    userInfoWindowController.setPlayer(playerService.getCurrentPlayer());
     Scene scene = userMenuButtonRoot.getScene();
     if (scene != null) {
       userInfoWindowController.setOwnerWindow(scene.getWindow());

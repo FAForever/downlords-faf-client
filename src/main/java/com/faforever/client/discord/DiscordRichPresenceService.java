@@ -108,7 +108,7 @@ public class DiscordRichPresenceService implements DisposableBean {
     //I want no internationalisation in here as it should always be English
     switch (game.getStatus()) {
       case OPEN:
-        boolean isHost = game.getHost().equals(playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must have been set")).getUsername());
+        boolean isHost = game.getHost().equals(playerService.getCurrentPlayer().getUsername());
         return isHost ? HOSTING : WAITING;
       default:
         return PLAYING;

@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
+import com.faforever.client.remote.domain.IrcPasswordServerMessage;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -52,10 +53,17 @@ public class MockChatService implements ChatService, InitializingBean {
   private final Map<String, ChatChannel> channelUserListListeners = new HashMap<>();
   private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+  private String password;
 
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
+  }
+
+  @Subscribe
+  public void onIrcPassword(IrcPasswordServerMessage event) {
+    password = event.getPassword();
+    connect();
   }
 
   @Subscribe

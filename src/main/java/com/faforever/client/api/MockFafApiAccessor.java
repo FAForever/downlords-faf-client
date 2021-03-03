@@ -74,7 +74,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public void authorize(int playerId, String username, String password) {
+  public void authorize() {
 
   }
 
@@ -334,7 +334,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public MeResult getOwnPlayer() {
+  public MeResult verifyUser() {
     return null;
   }
 

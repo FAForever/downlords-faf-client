@@ -52,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import java.io.FileNotFoundException;
 import java.time.Duration;
@@ -243,14 +242,13 @@ public class ReplayDetailController implements Controller<Node> {
         downloadMoreInfoButton.setDisable(true);
         watchButton.setDisable(true);
       }
-      Optional<Player> currentPlayer = playerService.getCurrentPlayer();
-      Assert.state(currentPlayer.isPresent(), "No user is logged in");
+      Player currentPlayer = playerService.getCurrentPlayer();
 
       reviewsController.setOnSendReviewListener(this::onSendReview);
       reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
       reviewsController.setReviews(replay.getReviews());
       reviewsController.setOwnReview(replay.getReviews().stream()
-          .filter(review -> review.getPlayer().equals(currentPlayer.get()))
+          .filter(review -> review.getPlayer().equals(currentPlayer))
           .findFirst().orElse(null));
 
       // These items are initially empty but will be populated in #onDownloadMoreInfoClicked()
@@ -293,8 +291,7 @@ public class ReplayDetailController implements Controller<Node> {
   @VisibleForTesting
   void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
-    Player player = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("No current player is available"));
+    Player player = playerService.getCurrentPlayer();
     review.setPlayer(player);
     reviewService.saveGameReview(review, replay.getId())
         .thenRun(() -> {

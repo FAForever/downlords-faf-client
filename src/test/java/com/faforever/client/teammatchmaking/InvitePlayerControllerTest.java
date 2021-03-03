@@ -1,6 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,7 +31,7 @@ public class InvitePlayerControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerNames())
         .thenReturn(Set.of("axel12", "TrustTheFall", "nInPrisonForWhat", "Sheikah"));
     when(playerService.getCurrentPlayer())
-        .thenReturn(Optional.of(new Player("axel12")));
+        .thenReturn(PlayerBuilder.create("axel12").defaultValues().get());
     instance = new InvitePlayerController(playerService, uiService, teamMatchmakingService);
     loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml", clazz -> instance);
   }

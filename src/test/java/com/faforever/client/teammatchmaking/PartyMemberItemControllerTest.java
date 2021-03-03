@@ -17,8 +17,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Optional;
-
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.PLAYING_PSEUDO_CLASS;
 import static org.hamcrest.CoreMatchers.is;
@@ -59,7 +57,7 @@ public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
     party.getMembers().add(partyMember);
     when(i18n.get("leaderboard.divisionName")).thenReturn("division");
     when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
     when(teamMatchmakingService.getParty()).thenReturn(party);
 
     instance = new PartyMemberItemController(countryFlagService, avatarService, playerService, teamMatchmakingService,

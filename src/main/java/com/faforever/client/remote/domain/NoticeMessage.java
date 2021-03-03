@@ -15,16 +15,12 @@ public class NoticeMessage extends FafServerMessage {
     if (style == null) {
       return Severity.INFO;
     }
-    switch (style) {
-      case "error":
-        return Severity.ERROR;
-      case "warning":
-        return Severity.WARN;
-      case "info":
-        return Severity.INFO;
-      default:
-        return Severity.INFO;
-    }
+    return switch (style) {
+      case "error" -> Severity.ERROR;
+      case "warning" -> Severity.WARN;
+      case "info" -> Severity.INFO;
+      default -> Severity.INFO;
+    };
   }
 
   public String getText() {

@@ -13,19 +13,17 @@ import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.player.UserOfflineEvent;
-import com.faforever.client.player.event.CurrentPlayerInfo;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.hash.Hashing;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -81,7 +79,6 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.ChatUserCategory.MODERATOR;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Locale.US;
 import static javafx.collections.FXCollections.observableHashMap;
 import static javafx.collections.FXCollections.observableMap;
@@ -119,6 +116,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @VisibleForTesting
   DefaultClient client;
   private NickServ nickServ;
+  private String password;
   /**
    * A list of channels the server wants us to join.
    */
@@ -128,7 +126,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
    * channels after a reconnect that the user left before the reconnect.
    */
   private boolean autoChannelsJoined;
-  private boolean newbieChannelJoined;
 
   @Override
   public void afterPropertiesSet() {
@@ -215,22 +212,17 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Subscribe
-  public void onLoginSuccessEvent(LoginSuccessEvent event) {
-    connect();
+  public void onIrcPassword(IrcPasswordServerMessage event) {
+    password = event.getPassword();
+    if (connectionState.get() == ConnectionState.DISCONNECTED) {
+      connect();
+    }
   }
 
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     disconnect();
     eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
-  }
-
-  @Subscribe
-  public void onCurrentPlayerInfo(CurrentPlayerInfo currentPlayerInfo) {
-    if (!newbieChannelJoined && currentPlayerInfo.getCurrentPlayer().getNumberOfGames() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
-      joinChannel(NEWBIE_CHANNEL_NAME);
-    }
-    newbieChannelJoined = true;
   }
 
   @Subscribe
@@ -251,6 +243,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   public void onConnect(ClientNegotiationCompleteEvent event) {
     connectionState.set(ConnectionState.CONNECTED);
+    if (userService.getOwnPlayerInfo().getNumberOfGames() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
+      joinChannel(NEWBIE_CHANNEL_NAME);
+    }
   }
 
   @Handler
@@ -349,7 +344,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     if (message.contains("choose a different nick")) {
       nickServ.startAuthentication();
     } else if (message.contains("isn't registered")) {
-      client.sendMessage("NickServ", String.format("register %s %s@users.faforever.com", getPassword(), client.getNick()));
+      client.sendMessage("NickServ", String.format("register %s %s@users.faforever.com", password, client.getNick()));
     }
   }
 
@@ -379,7 +374,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     synchronized (chatChannelUsersByChannelAndName) {
       chatChannelUsersByChannelAndName.clear();
     }
-    newbieChannelJoined = false;
     autoChannelsJoined = false;
   }
 
@@ -410,18 +404,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onMessage(String message) {
-    message = message.replace(getPassword(), "*****");
+    message = message.replace(password, "*****");
     ircLog.debug(message);
   }
 
   @Handler
   private void onDisconnect(ClientConnectionEndedEvent event) {
     connectionState.set(ConnectionState.DISCONNECTED);
-  }
-
-  @NotNull
-  private String getPassword() {
-    return Hashing.md5().hashString(Hashing.sha256().hashString(userService.getPassword(), UTF_8).toString(), UTF_8).toString();
   }
 
   private void onSocialMessage(SocialMessage socialMessage) {
@@ -458,7 +447,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     nickServ = NickServ.builder(client)
         .account(username)
-        .password(getPassword())
+        .password(password)
         .build();
 
     client.getEventManager().registerEventListener(this);

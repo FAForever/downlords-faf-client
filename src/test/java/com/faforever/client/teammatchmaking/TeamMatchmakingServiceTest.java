@@ -91,13 +91,11 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     ReadOnlyObjectProperty<ConnectionState> state = new SimpleObjectProperty<>();
-    when(fafService.connectionStateProperty()).thenReturn(state);
-    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>(player));
     instance = new TeamMatchmakingService(playerService, notificationService, preferencesService,
         fafService, eventBus, i18n, taskScheduler, gameService);
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
   }
 
   private void setPartyMembers() {

@@ -14,6 +14,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.domain.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.user.UserService;
@@ -171,7 +172,6 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
         .get();
 
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
-    when(userService.getPassword()).thenReturn(CHAT_PASSWORD);
 
     when(defaultChannel.getClient()).thenReturn(instance.client);
     when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
@@ -625,7 +625,9 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLeaveChannel() {
-    instance.connect();
+    IrcPasswordServerMessage event = new IrcPasswordServerMessage();
+    event.setPassword("abc");
+    instance.onIrcPassword(event);
     instance.leaveChannel(DEFAULT_CHANNEL_NAME);
   }
 

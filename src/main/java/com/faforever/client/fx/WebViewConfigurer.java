@@ -39,7 +39,6 @@ public class WebViewConfigurer {
 
   public void configureWebView(WebView webView) {
     WebEngine engine = webView.getEngine();
-//    Accessor.getPageFor(engine).setBackgroundColor(0);
     webView.setContextMenuEnabled(false);
     webView.setOnScroll(event -> {
       if (event.isControlDown()) {

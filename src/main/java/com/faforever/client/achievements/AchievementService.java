@@ -42,7 +42,7 @@ public class AchievementService implements InitializingBean {
   private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
   
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
-    int currentPlayerId = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has to be set")).getId();
+    int currentPlayerId = playerService.getCurrentPlayer().getId();
     if (Objects.equals(currentPlayerId, playerId)) {
       if (readOnlyPlayerAchievements.isEmpty()) {
 
@@ -84,7 +84,7 @@ public class AchievementService implements InitializingBean {
 
   private CompletableFuture<List<PlayerAchievement>> reloadAchievements() {
     CompletableFuture<List<PlayerAchievement>> achievementsLoadedFuture = new CompletableFuture<>();
-    int playerId = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has to be set")).getId();
+    int playerId = playerService.getCurrentPlayer().getId();
     fafService.getPlayerAchievements(playerId).thenAccept(achievements -> {
       playerAchievements.setAll(achievements);
       achievementsLoadedFuture.complete(readOnlyPlayerAchievements);

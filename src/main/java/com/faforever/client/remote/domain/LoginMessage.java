@@ -2,26 +2,17 @@ package com.faforever.client.remote.domain;
 
 public class LoginMessage extends FafServerMessage {
 
-  private int id;
-  private String login;
+  private PlayerInfo me;
 
   public LoginMessage() {
     super(FafServerMessageType.WELCOME);
   }
 
-  public int getId() {
-    return id;
+  public PlayerInfo getMe() {
+    return me;
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  public String getLogin() {
-    return login;
-  }
-
-  public void setLogin(String login) {
-    this.login = login;
+  public void setMe(PlayerInfo me) {
+    this.me = me;
   }
 }

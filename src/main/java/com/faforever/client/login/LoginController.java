@@ -7,18 +7,18 @@ import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.update.ClientConfiguration;
-import com.faforever.client.update.ClientConfiguration.Endpoints;
+import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.control.Button;
@@ -30,40 +30,44 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.web.WebView;
 import javafx.util.StringConverter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.concurrent.CancellationException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class LoginController implements Controller<Pane> {
 
-  private static final Pattern EMAIL_REGEX = Pattern.compile(".*[@].*[.].*");
   private final UserService userService;
   private final PreferencesService preferencesService;
+  private final NotificationService notificationService;
   private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
+  private final WebViewConfigurer webViewConfigurer;
   private CompletableFuture<Void> initializeFuture;
-  private Boolean loginAllowed;
 
+  public Pane errorPane;
   public Pane loginFormPane;
   public Pane loginProgressPane;
-  public CheckBox autoLoginCheckBox;
-  public TextField usernameInput;
-  public TextField passwordInput;
-  public ComboBox<ClientConfiguration.Endpoints> environmentComboBox;
-  public Button loginButton;
+  public WebView loginWebView;
+  public ComboBox<ServerEndpoints> environmentComboBox;
   public Button downloadUpdateButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
@@ -75,273 +79,188 @@ public class LoginController implements Controller<Pane> {
   public TextField ircServerHostField;
   public TextField ircServerPortField;
   public TextField apiBaseUrlField;
+  public TextField oauthBaseUrlField;
   public Button serverStatusButton;
+  public CheckBox rememberMeCheckBox;
 
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;
 
-  public LoginController(
-      UserService userService,
-      PreferencesService preferencesService,
-      PlatformService platformService,
-      ClientProperties clientProperties,
-      I18n i18n, ClientUpdateService clientUpdateService) {
-    this.userService = userService;
-    this.preferencesService = preferencesService;
-    this.platformService = platformService;
-    this.clientProperties = clientProperties;
-    this.i18n = i18n;
-    this.clientUpdateService = clientUpdateService;
-  }
-
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane, loginWebView,
+        serverConfigPane, serverStatusButton, errorPane, loginProgressPane);
+    LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     updateInfoFuture = clientUpdateService.getNewestUpdate();
 
-    downloadUpdateButton.managedProperty().bind(downloadUpdateButton.visibleProperty());
     downloadUpdateButton.setVisible(false);
-
-    loginErrorLabel.managedProperty().bind(loginErrorLabel.visibleProperty());
+    errorPane.setVisible(false);
     loginErrorLabel.setVisible(false);
-
-    loginFormPane.managedProperty().bind(loginFormPane.visibleProperty());
-
-    loginProgressPane.managedProperty().bind(loginProgressPane.visibleProperty());
-    loginProgressPane.setVisible(false);
-
-    serverConfigPane.managedProperty().bind(serverConfigPane.visibleProperty());
     serverConfigPane.setVisible(false);
-
-    serverStatusButton.managedProperty().bind(serverStatusButton.visibleProperty());
     serverStatusButton.setVisible(clientProperties.getStatusPageUrl() != null);
+    rememberMeCheckBox.setSelected(loginPrefs.isRememberMe());
+    loginPrefs.rememberMeProperty().bindBidirectional(rememberMeCheckBox.selectedProperty());
 
     // fallback values if configuration is not read from remote
-    populateEndpointFields(
-        clientProperties.getServer().getHost(),
-        clientProperties.getServer().getPort(),
-        clientProperties.getReplay().getRemoteHost(),
-        clientProperties.getReplay().getRemotePort(),
-        clientProperties.getIrc().getHost(),
-        clientProperties.getIrc().getPort(),
-        clientProperties.getApi().getBaseUrl()
-    );
+    populateEndpointFields();
 
     environmentComboBox.setConverter(new StringConverter<>() {
       @Override
-      public String toString(Endpoints endpoints) {
-        return endpoints == null ? null : endpoints.getName();
+      public String toString(ServerEndpoints serverEndpoints) {
+        return serverEndpoints == null ? null : serverEndpoints.getName();
       }
 
       @Override
-      public Endpoints fromString(String string) {
+      public ServerEndpoints fromString(String string) {
         throw new UnsupportedOperationException("Not supported");
       }
     });
 
-    ReadOnlyObjectProperty<Endpoints> selectedEndpointProperty = environmentComboBox.getSelectionModel().selectedItemProperty();
+    ReadOnlyObjectProperty<ServerEndpoints> selectedEndpointProperty = environmentComboBox.getSelectionModel().selectedItemProperty();
 
     selectedEndpointProperty.addListener(observable -> {
-      Endpoints endpoints = environmentComboBox.getSelectionModel().getSelectedItem();
+      ServerEndpoints serverEndpoints = environmentComboBox.getSelectionModel().getSelectedItem();
 
-      if (endpoints == null) {
+      if (serverEndpoints == null) {
         return;
       }
 
-      serverHostField.setText(endpoints.getLobby().getHost());
-      serverPortField.setText(String.valueOf(endpoints.getLobby().getPort()));
+      clientProperties.updateFromEndpoint(serverEndpoints);
 
-      replayServerHostField.setText(endpoints.getLiveReplay().getHost());
-      replayServerPortField.setText(String.valueOf(endpoints.getLiveReplay().getPort()));
+      populateEndpointFields();
 
-      ircServerHostField.setText(endpoints.getIrc().getHost());
-      ircServerPortField.setText(String.valueOf(endpoints.getIrc().getPort()));
-
-      apiBaseUrlField.setText(endpoints.getApi().getUrl());
+      loginWebView.getEngine().load(userService.getHydraUrl());
     });
+
+    oauthBaseUrlField.setOnAction((event -> {
+      clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
+      loginWebView.getEngine().load(userService.getHydraUrl());
+    }));
 
 
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
           .thenAccept(clientConfiguration -> {
-            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+            ServerEndpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
 
-            Server server = clientProperties.getServer();
-            server.setHost(defaultEndpoint.getLobby().getHost());
-            server.setPort(defaultEndpoint.getLobby().getPort());
-
-            Replay replay = clientProperties.getReplay();
-            replay.setRemoteHost(defaultEndpoint.getLiveReplay().getHost());
-            replay.setRemotePort(defaultEndpoint.getLiveReplay().getPort());
-
-            Irc irc = clientProperties.getIrc();
-            irc.setHost(defaultEndpoint.getIrc().getHost());
-            irc.setPort(defaultEndpoint.getIrc().getPort());
-
-            clientProperties.getApi().setBaseUrl(defaultEndpoint.getApi().getUrl());
+            clientProperties.updateFromEndpoint(defaultEndpoint);
 
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
             try {
               shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
             } catch (Exception e) {
-              log.error("Something went wrong checking for update", e);
+              log.error("Error occurred checking for update", e);
             }
+
             if (minimumVersion != null && shouldUpdate) {
-              loginAllowed = false;
               JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
-            } else {
-              loginAllowed = true;
             }
+
             JavaFxUtil.runLater(() -> {
               environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
               environmentComboBox.getSelectionModel().select(defaultEndpoint);
             });
           }).exceptionally(throwable -> {
             log.warn("Could not read remote preferences", throwable);
-            loginAllowed = true;
             return null;
+          }).thenRunAsync(() -> {
+            String refreshToken = loginPrefs.getRefreshToken();
+            if (refreshToken != null) {
+              loginWithToken(refreshToken);
+            }
           });
     } else {
-      loginAllowed = true;
       initializeFuture = CompletableFuture.completedFuture(null);
     }
+
+    webViewConfigurer.configureWebView(loginWebView);
+    loginWebView.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
+      List<NameValuePair> params;
+
+      try {
+        params = URLEncodedUtils.parse(new URI(newValue), StandardCharsets.UTF_8);
+      } catch (URISyntaxException e) {
+        log.error("Could not load webpage url", e);
+        return;
+      }
+
+      String code = params.stream().filter(param -> param.getName().equals("code"))
+          .map(NameValuePair::getValue)
+          .findFirst()
+          .orElse(null);
+      String reportedState = params.stream().filter(param -> param.getName().equals("state"))
+          .map(NameValuePair::getValue)
+          .findFirst()
+          .orElse(null);
+
+      if (code == null || reportedState == null) {
+        return;
+      }
+      String state = userService.getState();
+
+      if (!state.equals(reportedState)) {
+        log.warn("Reported state does not match there is something fishy");
+        loginWebView.getEngine().load(userService.getHydraUrl());
+        notificationService.addImmediateErrorNotification(new IllegalStateException("State returned by user service does not match initial state"), "login.badState");
+        return;
+      }
+
+      initializeFuture.join();
+
+      Server server = clientProperties.getServer();
+      server.setHost(serverHostField.getText());
+      server.setPort(Integer.parseInt(serverPortField.getText()));
+
+      Replay replay = clientProperties.getReplay();
+      replay.setRemoteHost(replayServerHostField.getText());
+      replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
+
+      Irc irc = clientProperties.getIrc();
+      irc.setHost(ircServerHostField.getText());
+      irc.setPort(Integer.parseInt(ircServerPortField.getText()));
+
+      clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
+      clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
+
+      if (!loginWebView.isVisible()) {
+        return;
+      }
+
+      loginWithCode(code);
+    });
   }
 
   private void showClientOutdatedPane(String minimumVersion) {
     JavaFxUtil.runLater(() -> {
+      errorPane.setVisible(true);
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
       loginErrorLabel.setVisible(true);
       downloadUpdateButton.setVisible(true);
       loginFormPane.setDisable(true);
+      loginFormPane.setVisible(false);
+      loginWebView.setVisible(false);
       log.warn("Update required");
     });
   }
 
-  private void populateEndpointFields(
-      String serverHost,
-      int serverPort,
-      String replayServerHost,
-      int replayServerPort,
-      String ircServerHost,
-      int ircServerPort,
-      String apiBaseUrl
-  ) {
+  private void populateEndpointFields() {
     JavaFxUtil.runLater(() -> {
-      serverHostField.setText(serverHost);
-      serverPortField.setText(String.valueOf(serverPort));
-      replayServerHostField.setText(replayServerHost);
-      replayServerPortField.setText(String.valueOf(replayServerPort));
-      ircServerHostField.setText(ircServerHost);
-      ircServerPortField.setText(String.valueOf(ircServerPort));
-      apiBaseUrlField.setText(apiBaseUrl);
+      Server server = clientProperties.getServer();
+      serverHostField.setText(server.getHost());
+      serverPortField.setText(String.valueOf(server.getPort()));
+      Replay replay = clientProperties.getReplay();
+      replayServerHostField.setText(replay.getRemoteHost());
+      replayServerPortField.setText(String.valueOf(replay.getRemotePort()));
+      Irc irc = clientProperties.getIrc();
+      ircServerHostField.setText(irc.getHost());
+      ircServerPortField.setText(String.valueOf(irc.getPort()));
+      apiBaseUrlField.setText(clientProperties.getApi().getBaseUrl());
+      oauthBaseUrlField.setText(clientProperties.getOauth().getBaseUrl());
     });
-  }
-
-  public void display() {
-    setShowLoginProgress(false);
-
-    LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
-    String username = loginPrefs.getUsername();
-    String password = loginPrefs.getPassword();
-    boolean isAutoLogin = loginPrefs.getAutoLogin();
-
-    // Fill the form even if autoLogin is true, since user may cancel the login
-    usernameInput.setText(Strings.nullToEmpty(username));
-    autoLoginCheckBox.setSelected(isAutoLogin);
-
-    initializeFuture.thenRun(() -> {
-      if (loginAllowed == null) {
-        log.error("loginAllowed not set for unknown reason. Possible race condition detected. Enabling login now to preserve user experience.");
-        loginAllowed = true;
-      }
-
-      if (loginAllowed && loginPrefs.getAutoLogin() && !isNullOrEmpty(username) && !isNullOrEmpty(password)) {
-        login(username, password, true);
-      } else if (isNullOrEmpty(username)) {
-        usernameInput.requestFocus();
-      } else {
-        passwordInput.requestFocus();
-      }
-    });
-  }
-
-  private void setShowLoginProgress(boolean show) {
-    if (show) {
-      loginErrorLabel.setVisible(false);
-    }
-    loginFormPane.setVisible(!show);
-    loginProgressPane.setVisible(show);
-    loginButton.setDisable(show);
-  }
-
-  private void login(String username, String password, boolean autoLogin) {
-    setShowLoginProgress(true);
-
-    if (EMAIL_REGEX.matcher(username).matches()) {
-      onLoginWithEmail();
-      return;
-    }
-    userService.login(username, password, autoLogin)
-        .exceptionally(throwable -> {
-          onLoginFailed(throwable);
-          return null;
-        });
-  }
-
-  private void onLoginWithEmail() {
-    loginErrorLabel.setText(i18n.get("login.withEmailWarning"));
-    loginErrorLabel.setVisible(true);
-    setShowLoginProgress(false);
-  }
-
-  private void onLoginFailed(Throwable e) {
-    log.warn("Login failed", e);
-    JavaFxUtil.runLater(() -> {
-      if (e instanceof CancellationException) {
-        loginErrorLabel.setVisible(false);
-      } else {
-        if (e instanceof LoginFailedException) {
-          loginErrorLabel.setText(e.getMessage());
-        } else {
-          loginErrorLabel.setText(e.getCause().getLocalizedMessage());
-        }
-        loginErrorLabel.setVisible(true);
-      }
-
-      setShowLoginProgress(false);
-    });
-  }
-
-  public void onLoginButtonClicked() {
-    String username = usernameInput.getText();
-    String password = passwordInput.getText();
-
-    boolean autoLogin = autoLoginCheckBox.isSelected();
-
-    Server server = clientProperties.getServer();
-    server.setHost(serverHostField.getText());
-    server.setPort(Integer.parseInt(serverPortField.getText()));
-
-    Replay replay = clientProperties.getReplay();
-    replay.setRemoteHost(replayServerHostField.getText());
-    replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
-
-    Irc irc = clientProperties.getIrc();
-    irc.setHost(ircServerHostField.getText());
-    irc.setPort(Integer.parseInt(ircServerPortField.getText()));
-
-    clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
-
-    login(username, password, autoLogin);
-  }
-
-  public void onCancelLoginButtonClicked() {
-    userService.cancelLogin();
-    setShowLoginProgress(false);
   }
 
   public void onDownloadUpdateButtonClicked() {
-    downloadUpdateButton.setOnAction(event -> {
-    });
+    downloadUpdateButton.setOnAction(event -> { });
     log.info("Downloading update");
     updateInfoFuture
         .thenAccept(updateInfo -> {
@@ -357,21 +276,52 @@ public class LoginController implements Controller<Pane> {
         });
   }
 
+  private void loginWithCode(String code) {
+    showLoginProgess();
+    userService.login(code)
+        .exceptionally(throwable -> {
+          showLoginForm();
+          notificationService.addImmediateErrorNotification(throwable, "login.failed");
+          return null;
+        });
+  }
+
+  private void loginWithToken(String refreshToken) {
+    showLoginProgess();
+    userService.loginWithRefreshToken(refreshToken)
+        .exceptionally(throwable -> {
+          showLoginForm();
+          if (!(throwable.getCause() instanceof HttpClientErrorException.BadRequest
+              || throwable.getCause() instanceof HttpClientErrorException.Unauthorized)) {
+            notificationService.addImmediateErrorNotification(throwable, "login.failed");
+          }
+          return null;
+        });
+  }
+
+  private void showLoginForm() {
+    JavaFxUtil.runLater(() -> {
+      loginWebView.getEngine().load(userService.getHydraUrl());
+      loginFormPane.setVisible(true);
+      loginProgressPane.setVisible(false);
+    });
+
+  }
+
+  private void showLoginProgess() {
+    JavaFxUtil.runLater(() -> {
+      loginFormPane.setVisible(false);
+      loginProgressPane.setVisible(true);
+    });
+  }
+
   public Pane getRoot() {
     return loginRoot;
   }
 
-  public void forgotLoginClicked() {
-    platformService.showDocument(clientProperties.getWebsite().getForgotPasswordUrl());
-  }
-
-  public void createNewAccountClicked() {
-    platformService.showDocument(clientProperties.getWebsite().getCreateAccountUrl());
-  }
-
   public void onMouseClicked(MouseEvent event) {
     if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-      serverConfigPane.setVisible(true);
+      serverConfigPane.setVisible(!serverConfigPane.isVisible());
     }
   }
 
