@@ -634,7 +634,7 @@
 }
 
 .create-game-dual-list-cell > .right-label {
-  -fx-text-fill: -fx-mid-text-color;
+  -fx-text-fill: -fx-accent;
 }
 
 /***************** Settings window *****************/
