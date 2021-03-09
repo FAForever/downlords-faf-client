@@ -2,16 +2,22 @@ package com.faforever.client.mod;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModVersion.ModType;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
@@ -50,6 +56,7 @@ public class ModManagerController implements Controller<Parent> {
   public ToggleButton simModsButton;
   public ListView<ModVersion> modListView;
   public VBox root;
+  public TextField modSearchTextField;
 
   private FilteredList<ModVersion> modVersionFilteredList;
 
@@ -86,6 +93,38 @@ public class ModManagerController implements Controller<Parent> {
     loadActivatedMods();
 
     modListView.scrollTo(modListView.getSelectionModel().getSelectedItem());
+
+    modSearchTextField.textProperty().addListener(new ChangeListener<String>() {
+      @Override
+      public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        if (newValue.isEmpty()) {
+          modVersionFilteredList.setPredicate(null);
+        } else {
+          modVersionFilteredList.setPredicate(modVersion -> modVersion.getDisplayName().toLowerCase().contains(newValue.toLowerCase()));
+        }
+        if (!modVersionFilteredList.isEmpty()) {
+          modListView.getSelectionModel().select(0);
+        }
+      }
+    });
+    modSearchTextField.setOnKeyPressed(event -> {
+      MultipleSelectionModel<ModVersion> selectionModel = modListView.getSelectionModel();
+      int currentMapIndex = selectionModel.getSelectedIndex();
+      int newMapIndex = currentMapIndex;
+      if (KeyCode.DOWN == event.getCode()) {
+        if (modVersionFilteredList.size() > currentMapIndex + 1) {
+          newMapIndex++;
+        }
+        event.consume();
+      } else if (KeyCode.UP == event.getCode()) {
+        if (currentMapIndex > 0) {
+          newMapIndex--;
+        }
+        event.consume();
+      }
+      selectionModel.select(newMapIndex);
+      modListView.scrollTo(newMapIndex);
+    });
   }
 
   private void loadActivatedMods() {
