@@ -13,26 +13,13 @@ on:
 jobs:
   release:
 
+    environment: deploy
     runs-on: ubuntu-latest
     env:
       INSTALL4J_DIR: "install4j/install4j8.0.8"
 
     steps:
       - uses: actions/checkout@v2
-
-          #      - name: Cache Install4j
-          #        id: cache-install4j
-          #        uses: actions/cache@v2.1.3
-          #        with:
-          #          path: $HOME/$INSTALL4J_DIR
-          #          key: $INSTALL4J_DIR
-
-      #      - name: Cache Bundled JRE
-      #        id: cache-jre
-      #        uses: actions/cache@v2.1.3
-      #        with:
-      #          path: $HOME/.install4j8/jres/windows-amd64-15.0.1.tar.gz
-      #          key: 15.0.1
       
       - name: Check Version Tag
         id: tag_check
@@ -56,14 +43,12 @@ jobs:
           JAVA_TOOL_OPTIONS: "-Dprism.verbose=true -Dprism.order=sw"
 
       - name: Download Install4j
-        #        if: steps.cache-install4j.outputs.cache-hit != 'true'
         run: |
             mkdir -p "$HOME/install4j"
             curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "$HOME/install4j/install4j8.tar.gz"
             tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
 
       - name: Download Bundled JRE
-        #        if: steps.cache-jre.outputs.cache-hit != 'true'
         run: |
             mkdir -p "$HOME/.install4j8/jres/"
             curl https://content.faforever.com/jre/windows-amd64-15.0.1.tar.gz -o "$HOME/.install4j8/jres/windows-amd64-15.0.1.tar.gz"

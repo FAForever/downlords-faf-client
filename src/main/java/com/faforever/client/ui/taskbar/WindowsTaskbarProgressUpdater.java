@@ -49,6 +49,7 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
   }
 
   private void onActiveTasksChanged() {
+    JavaFxUtil.assertApplicationThread();
     Collection<Worker<?>> runningTasks = taskService.getActiveWorkers();
     if (runningTasks.isEmpty()) {
       updateTaskbarProgress(null);

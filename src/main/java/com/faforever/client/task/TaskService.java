@@ -1,5 +1,6 @@
 package com.faforever.client.task;
 
+import com.faforever.client.fx.JavaFxUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
@@ -28,7 +29,7 @@ public class TaskService {
   private final ExecutorService executorService;
   private final ObservableList<Worker<?>> activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
 
-  private ObservableList<Worker<?>> unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
+  private final ObservableList<Worker<?>> unmodifiableObservableList = FXCollections.unmodifiableObservableList(activeTasks);
 
   /**
    * Submits a task for execution in background.
@@ -43,9 +44,10 @@ public class TaskService {
         logger.warn("Task failed", (Throwable) throwable);
       }
     });
-
-    activeTasks.add(task);
-    executorService.execute(task);
+    JavaFxUtil.runLater(() -> {
+      activeTasks.add(task);
+      executorService.execute(task);
+    });
 
     return task;
   }
