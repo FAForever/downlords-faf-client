@@ -127,8 +127,6 @@ public class CreateGameController implements Controller<Pane> {
         mapListView.getSelectionModel().select(0);
       }
     });
-    EventHandler keyEventHandler = new SearchTextFieldKeyEventHandler(mapListView,filteredMapBeans);
-    mapSearchTextField.setOnKeyPressed(keyEventHandler);
 
     Function<FeaturedMod, String> isDefaultModString = mod ->
         Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
@@ -183,6 +181,8 @@ public class CreateGameController implements Controller<Pane> {
       preferencesService.storeInBackground();
       validateTitle(newValue);
     });
+    EventHandler keyEventHandler = new SearchTextFieldKeyEventHandler(mapListView,filteredMapBeans);
+    mapSearchTextField.setOnKeyPressed(keyEventHandler);
     validateTitle(titleTextField.getText());
 
     createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {

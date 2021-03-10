@@ -7,6 +7,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import lombok.NonNull;
 
 public class CommonEventHandlers {
 
@@ -14,7 +15,7 @@ public class CommonEventHandlers {
     private ListView listView;
     private FilteredList filteredList;
 
-    public SearchTextFieldKeyEventHandler(ListView listView, FilteredList filteredList) {
+    public SearchTextFieldKeyEventHandler(@NonNull ListView listView,@NonNull FilteredList filteredList) {
       this.listView = listView;
       this.filteredList = filteredList;
     }
