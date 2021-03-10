@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -249,7 +250,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    instance.setStyles(List.of("TEST"));
+    instance.setStyles(new ArrayList<>(List.of("TEST")));
 
     assertTrue(instance.mapStyleLabel.isVisible());
     assertTrue(instance.mapStyleComboBox.isVisible());
@@ -260,8 +261,8 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(instance.mapStyleLabel.isVisible());
-    assertTrue(instance.mapStyleComboBox.isVisible());
+    assertFalse(instance.mapStyleLabel.isVisible());
+    assertFalse(instance.mapStyleComboBox.isVisible());
   }
 
   @Test
