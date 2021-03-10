@@ -4,10 +4,13 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.ModVersion.ModType;
+import com.faforever.client.util.CommonEventHandlers;
+import com.faforever.client.util.CommonEventHandlers.SearchTextFieldKeyEventHandler;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.ListCell;
@@ -18,6 +21,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
@@ -107,24 +111,8 @@ public class ModManagerController implements Controller<Parent> {
         }
       }
     });
-    modSearchTextField.setOnKeyPressed(event -> {
-      MultipleSelectionModel<ModVersion> selectionModel = modListView.getSelectionModel();
-      int currentMapIndex = selectionModel.getSelectedIndex();
-      int newMapIndex = currentMapIndex;
-      if (KeyCode.DOWN == event.getCode()) {
-        if (modVersionFilteredList.size() > currentMapIndex + 1) {
-          newMapIndex++;
-        }
-        event.consume();
-      } else if (KeyCode.UP == event.getCode()) {
-        if (currentMapIndex > 0) {
-          newMapIndex--;
-        }
-        event.consume();
-      }
-      selectionModel.select(newMapIndex);
-      modListView.scrollTo(newMapIndex);
-    });
+    EventHandler keyEventHandler = new SearchTextFieldKeyEventHandler(modListView,modVersionFilteredList);
+    modSearchTextField.setOnKeyPressed(keyEventHandler);
   }
 
   private void loadActivatedMods() {

@@ -24,12 +24,14 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
+import com.faforever.client.util.CommonEventHandlers.SearchTextFieldKeyEventHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
+import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -125,24 +127,8 @@ public class CreateGameController implements Controller<Pane> {
         mapListView.getSelectionModel().select(0);
       }
     });
-    mapSearchTextField.setOnKeyPressed(event -> {
-      MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
-      int currentMapIndex = selectionModel.getSelectedIndex();
-      int newMapIndex = currentMapIndex;
-      if (KeyCode.DOWN == event.getCode()) {
-        if (filteredMapBeans.size() > currentMapIndex + 1) {
-          newMapIndex++;
-        }
-        event.consume();
-      } else if (KeyCode.UP == event.getCode()) {
-        if (currentMapIndex > 0) {
-          newMapIndex--;
-        }
-        event.consume();
-      }
-      selectionModel.select(newMapIndex);
-      mapListView.scrollTo(newMapIndex);
-    });
+    EventHandler keyEventHandler = new SearchTextFieldKeyEventHandler(mapListView,filteredMapBeans);
+    mapSearchTextField.setOnKeyPressed(keyEventHandler);
 
     Function<FeaturedMod, String> isDefaultModString = mod ->
         Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
