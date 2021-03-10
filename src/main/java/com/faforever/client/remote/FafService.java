@@ -488,7 +488,7 @@ public class FafService {
         .flatMap(mapPool -> mapPool.getMapVersions().stream())
         .distinct()
         .map(MapBean::fromMapVersionDto)
-        .sorted(Comparator.comparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER))
+        .sorted(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER))
         .collect(toList());
     return paginateResult(count, page, mapVersions);
   }
