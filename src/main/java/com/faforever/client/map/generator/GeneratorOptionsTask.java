@@ -49,7 +49,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
 
     options = new ArrayList<>();
 
-    updateTitle(i18n.get("game.mapGeneration.generateMap.title", version));
+    updateTitle(i18n.get("game.mapGeneration.options.title", version));
 
     GeneratorCommand generatorCommand = GeneratorCommand.builder()
         .version(version)
@@ -74,7 +74,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
         }
       });
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
-      process.waitFor(10, TimeUnit.SECONDS);
+      process.waitFor(2, TimeUnit.SECONDS);
       if (process.isAlive()) {
         process.destroyForcibly();
         log.warn("Map generator option run timed out");
