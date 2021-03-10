@@ -114,6 +114,18 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testSetLastMapStyle() {
+    preferences.getGenerator().setMapStyle("TEST");
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.setStyles(new ArrayList<>(List.of("TEST")));
+
+    assertEquals(instance.mapStyleComboBox.getValue(), "TEST");
+  }
+
+  @Test
   public void testSetLastWaterRandom() {
     preferences.getGenerator().setWaterRandom(false);
 
