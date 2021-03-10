@@ -11,7 +11,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.*?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="generateMapRoot" hgap="10.0" styleClass="create-game-root"
+<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="generateMapRoot" hgap="10.0"
           vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
           fx:controller="com.faforever.client.game.GenerateMapController">
     <columnConstraints>
@@ -20,6 +20,7 @@
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
     </columnConstraints>
     <rowConstraints>
+        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
         <RowConstraints minHeight="10.0" vgrow="NEVER"/>
@@ -45,101 +46,108 @@
     </TextField>
     <Separator GridPane.columnSpan="3" GridPane.rowIndex="2"/>
     <Label styleClass="h2" text="%game.generateMap.generateNew" GridPane.columnIndex="0" GridPane.rowIndex="3"
-           GridPane.columnSpan="3"/>
-    <Label text="%game.generateMap.generationType" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+           GridPane.columnSpan="3" onMouseClicked="#onNewLabelClicked"/>
+    <Label fx:id="commandLineLabel" text="%game.generateMap.commandLine" GridPane.columnIndex="0" GridPane.rowIndex="4"
+           visible="false"/>
+    <TextField fx:id="commandLineArgsText" maxHeight="Infinity"
+               GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4" visible="false"/>
+    <Label text="%game.generateMap.generationType" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
     <ComboBox fx:id="generationTypeComboBox" maxHeight="Infinity" GridPane.columnIndex="1"
-              GridPane.columnSpan="2" GridPane.rowIndex="4">
+              GridPane.columnSpan="2" GridPane.rowIndex="5">
         <tooltip>
             <Tooltip text="%game.create.generationType"/>
         </tooltip>
     </ComboBox>
-    <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+    <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
     <Spinner fx:id="spawnCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 6.5em" GridPane.columnIndex="1"
-             GridPane.columnSpan="2" GridPane.rowIndex="5">
+             GridPane.columnSpan="2" GridPane.rowIndex="6">
         <tooltip>
             <Tooltip text="%game.create.spawnCount"/>
         </tooltip>
     </Spinner>
-    <Label text="%game.create.mapSize" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+    <Label text="%game.create.mapSize" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
     <Spinner fx:id="mapSizeSpinner" maxHeight="Infinity" style="-fx-pref-width: 6.5em" GridPane.columnIndex="1"
-             GridPane.columnSpan="2" GridPane.rowIndex="6">
+             GridPane.columnSpan="2" GridPane.rowIndex="7">
         <tooltip>
             <Tooltip text="%game.create.mapSize"/>
         </tooltip>
     </Spinner>
-    <Label text="%game.generateMap.waterSlider" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+    <Label text="%game.generateMap.style" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+    <ComboBox fx:id="mapStyleComboBox" maxHeight="Infinity" GridPane.columnIndex="1"
+              GridPane.columnSpan="2" GridPane.rowIndex="8"/>
+    <Label text="%game.generateMap.waterSlider" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
     <HBox fx:id="waterRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
-          GridPane.rowIndex="7">
+          GridPane.rowIndex="9">
         <Label text="%game.generateMap.random"/>
         <CheckBox fx:id="waterRandom"/>
     </HBox>
     <HBox fx:id="waterSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
-          GridPane.rowIndex="7">
+          GridPane.rowIndex="9">
         <Label text="%game.generateMap.less"/>
         <Slider fx:id="waterSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
                 HBox.hgrow="ALWAYS"/>
         <Label text="%game.generateMap.more"/>
     </HBox>
-    <Label text="%game.generateMap.plateauSlider" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+    <Label text="%game.generateMap.plateauSlider" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
     <HBox fx:id="plateauRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
-          GridPane.rowIndex="8">
+          GridPane.rowIndex="10">
         <Label text="%game.generateMap.random"/>
         <CheckBox fx:id="plateauRandom"/>
     </HBox>
     <HBox fx:id="plateauSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
-          GridPane.rowIndex="8">
+          GridPane.rowIndex="10">
         <Label text="%game.generateMap.less"/>
         <Slider fx:id="plateauSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
                 HBox.hgrow="ALWAYS"/>
         <Label text="%game.generateMap.more"/>
     </HBox>
-    <Label text="%game.generateMap.mountainSlider" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+    <Label text="%game.generateMap.mountainSlider" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
     <HBox fx:id="mountainRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
-          GridPane.rowIndex="9">
+          GridPane.rowIndex="11">
         <Label text="%game.generateMap.random"/>
         <CheckBox fx:id="mountainRandom"/>
     </HBox>
     <HBox fx:id="mountainSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
-          GridPane.rowIndex="9">
+          GridPane.rowIndex="11">
         <Label text="%game.generateMap.less"/>
         <Slider fx:id="mountainSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
                 HBox.hgrow="ALWAYS"/>
         <Label text="%game.generateMap.more"/>
     </HBox>
-    <Label text="%game.generateMap.rampSlider" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+    <Label text="%game.generateMap.rampSlider" GridPane.columnIndex="0" GridPane.rowIndex="12"/>
     <HBox fx:id="rampRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
-          GridPane.rowIndex="10">
+          GridPane.rowIndex="12">
         <Label text="%game.generateMap.random"/>
         <CheckBox fx:id="rampRandom"/>
     </HBox>
     <HBox fx:id="rampSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
-          GridPane.rowIndex="10">
+          GridPane.rowIndex="12">
         <Label text="%game.generateMap.less"/>
         <Slider fx:id="rampSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
                 HBox.hgrow="ALWAYS"/>
         <Label text="%game.generateMap.more"/>
     </HBox>
-    <Label text="%game.generateMap.mexSlider" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
+    <Label text="%game.generateMap.mexSlider" GridPane.columnIndex="0" GridPane.rowIndex="13"/>
     <HBox fx:id="mexRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
-          GridPane.rowIndex="11">
+          GridPane.rowIndex="13">
         <Label text="%game.generateMap.random"/>
         <CheckBox fx:id="mexRandom"/>
     </HBox>
     <HBox fx:id="mexSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
-          GridPane.rowIndex="11">
+          GridPane.rowIndex="13">
         <Label text="%game.generateMap.less"/>
         <Slider fx:id="mexSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
                 HBox.hgrow="ALWAYS"/>
         <Label text="%game.generateMap.more"/>
     </HBox>
-    <Label text="%game.generateMap.reclaimSlider" GridPane.columnIndex="0" GridPane.rowIndex="12"/>
+    <Label text="%game.generateMap.reclaimSlider" GridPane.columnIndex="0" GridPane.rowIndex="14"/>
     <HBox fx:id="reclaimRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
-          GridPane.rowIndex="12">
+          GridPane.rowIndex="14">
         <Label text="%game.generateMap.random"/>
         <CheckBox fx:id="reclaimRandom"/>
     </HBox>
     <HBox fx:id="reclaimSliderBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="2"
-          GridPane.rowIndex="12">
+          GridPane.rowIndex="14">
         <Label text="%game.generateMap.less"/>
         <Slider fx:id="reclaimSlider" max="127" majorTickUnit="1" snapToTicks="true" maxHeight="Infinity"
                 HBox.hgrow="ALWAYS"/>
@@ -149,12 +157,12 @@
 
     <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true"
             mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
-            text="%game.generateMap" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="13">
+            text="%game.generateMap" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="15">
     </Button>
 
     <!-- Cancel, Ok -->
     <Button mnemonicParsing="false" onAction="#onCloseButtonClicked"
-            styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
-            GridPane.rowIndex="13">
+            text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
+            GridPane.rowIndex="15">
     </Button>
 </GridPane>

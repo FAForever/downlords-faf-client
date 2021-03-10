@@ -18,11 +18,14 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.InvalidParameterException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +56,10 @@ public class GenerateMapController implements Controller<Pane> {
   public Pane generateMapRoot;
   public Button generateMapButton;
   public TextField previousMapName;
+  public Label commandLineLabel;
+  public TextField commandLineArgsText;
   public ComboBox<GenerationType> generationTypeComboBox;
+  public ComboBox<String> mapStyleComboBox;
   public Spinner<Integer> spawnCountSpinner;
   public Spinner<String> mapSizeSpinner;
   public Slider waterSlider;
@@ -84,7 +91,10 @@ public class GenerateMapController implements Controller<Pane> {
   private final int[] mapValues = new int[]{256, 512, 1024};
 
   public void initialize() {
-    initGenerationTypeSpinner();
+    JavaFxUtil.bindManagedToVisible(commandLineLabel, commandLineArgsText);
+    initCommandlineArgs();
+    initGenerationTypeComboBox();
+    initMapStyleComboBox();
     initSpawnCountSpinner();
     initMapSizeSpinner();
     GeneratorPrefs genPrefs = preferencesService.getPreferences().getGenerator();
@@ -116,14 +126,27 @@ public class GenerateMapController implements Controller<Pane> {
     };
   }
 
-  private void initGenerationTypeSpinner() {
+  private void initCommandlineArgs() {
     GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
-    GenerationType generationTypeProperty = generatorPrefs.getGenerationType();
+    String commandLineArgs = generatorPrefs.getCommandLineArgs();
+    commandLineArgsText.setText(commandLineArgs);
+    generatorPrefs.commandLineArgsProperty().bind(commandLineArgsText.textProperty());
+    commandLineArgsText.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    if (!commandLineArgsText.getText().isBlank()) {
+      commandLineArgsText.setVisible(true);
+      commandLineLabel.setVisible(true);
+    }
+  }
+
+  private void initGenerationTypeComboBox() {
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
+    GenerationType generationType = generatorPrefs.getGenerationType();
     generationTypeComboBox.setItems(FXCollections.observableArrayList(GenerationType.values()));
     generationTypeComboBox.setConverter(getGenerationTypeConverter());
-    generationTypeComboBox.setValue(generationTypeProperty);
+    generationTypeComboBox.setValue(generationType);
     generatorPrefs.generationTypeProperty().bind(generationTypeComboBox.valueProperty());
-    generationTypeComboBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    generationTypeComboBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
+        .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
   }
 
   private void initSpawnCountSpinner() {
@@ -131,7 +154,8 @@ public class GenerateMapController implements Controller<Pane> {
     int spawnCountProperty = generatorPrefs.getSpawnCount();
     spawnCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(2, 16, spawnCountProperty, 2));
     generatorPrefs.spawnCountProperty().bind(spawnCountSpinner.getValueFactory().valueProperty());
-    spawnCountSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    spawnCountSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
+        .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
   }
 
   private void initMapSizeSpinner() {
@@ -140,7 +164,15 @@ public class GenerateMapController implements Controller<Pane> {
     mapSizeSpinner.setValueFactory(new ListSpinnerValueFactory<>(validMapSizes));
     mapSizeSpinner.increment(validMapSizes.indexOf(mapSizeProperty));
     generatorPrefs.mapSizeProperty().bind(mapSizeSpinner.getValueFactory().valueProperty());
-    mapSizeSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty()));
+    mapSizeSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
+        .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
+  }
+
+  private void initMapStyleComboBox() {
+    mapStyleComboBox.visibleProperty().bind(mapStyleComboBox.getSelectionModel().selectedItemProperty().isNotNull());
+    mapStyleComboBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
+        .or(Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL))
+        .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
   }
 
   private void initOptionSlider(IntegerProperty valueProperty, BooleanProperty randomProperty,
@@ -150,8 +182,16 @@ public class GenerateMapController implements Controller<Pane> {
     randomBox.setSelected(randomProperty.getValue());
     slider.valueProperty().bindBidirectional(valueProperty);
     randomBox.selectedProperty().bindBidirectional(randomProperty);
-    sliderContainer.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
-    randomContainer.disableProperty().bind(Bindings.or(Bindings.isNotEmpty(previousMapName.textProperty()), Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL)));
+    sliderContainer.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
+        .or(Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL))
+        .or(Bindings.isNotEmpty(commandLineArgsText.textProperty()))
+        .or(Bindings.isNotNull(mapStyleComboBox.valueProperty())
+            .and(Bindings.notEqual(mapStyleComboBox.valueProperty(), MapGeneratorService.GENERATOR_RANDOM_STYLE))));
+    randomContainer.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
+        .or(Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL))
+        .or(Bindings.isNotEmpty(commandLineArgsText.textProperty()))
+        .or(Bindings.isNotNull(mapStyleComboBox.valueProperty())
+            .and(Bindings.notEqual(mapStyleComboBox.valueProperty(), MapGeneratorService.GENERATOR_RANDOM_STYLE))));
   }
 
   private Optional<Float> getSliderValue(Slider slider, CheckBox checkBox) {
@@ -192,11 +232,18 @@ public class GenerateMapController implements Controller<Pane> {
         return;
       }
       generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
+    } else if (!commandLineArgsText.getText().isBlank()) {
+      generateFuture = mapGeneratorService.generateMapWithArgs(commandLineArgsText.getText());
     } else {
       int spawnCount = spawnCountSpinner.getValue();
       int mapSize = mapValues[validMapSizes.indexOf(mapSizeSpinner.getValue())];
-      GenerationType generationType = generationTypeComboBox.getValue();
-      generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, getOptionMap(), generationType);
+      if (!MapGeneratorService.GENERATOR_RANDOM_STYLE.equals(mapStyleComboBox.getValue())) {
+        String style = mapStyleComboBox.getValue();
+        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, style);
+      } else {
+        GenerationType generationType = generationTypeComboBox.getValue();
+        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, getOptionMap(), generationType);
+      }
     }
     generateFuture.thenAccept(mapName -> JavaFxUtil.runLater(() -> {
       createGameController.initMapSelection();
@@ -232,8 +279,34 @@ public class GenerateMapController implements Controller<Pane> {
     }
   }
 
+  private void toggleCommandlineInput() {
+    commandLineLabel.setVisible(!commandLineLabel.isVisible());
+    commandLineArgsText.setVisible(!commandLineArgsText.isVisible());
+  }
+
   protected void setCreateGameController(CreateGameController controller) {
     createGameController = controller;
+  }
+
+  protected void setStyles(List<String> styles) {
+    styles.add(0, MapGeneratorService.GENERATOR_RANDOM_STYLE);
+    mapStyleComboBox.setItems(FXCollections.observableList(styles));
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
+    String mapStyle = generatorPrefs.getMapStyle();
+    if (mapStyleComboBox.getItems().contains(mapStyle)) {
+      mapStyleComboBox.getSelectionModel().select(mapStyle);
+    } else {
+      mapStyleComboBox.getSelectionModel().select(MapGeneratorService.GENERATOR_RANDOM_STYLE);
+    }
+    generatorPrefs.mapStyleProperty().bind(mapStyleComboBox.valueProperty());
+  }
+
+  public void onNewLabelClicked(MouseEvent mouseEvent) {
+    if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
+      if (mouseEvent.getClickCount() == 2) {
+        toggleCommandlineInput();
+      }
+    }
   }
 
   public Pane getRoot() {
