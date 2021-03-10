@@ -377,12 +377,12 @@ public class CreateGameController implements Controller<Pane> {
   private void onGenerateMap() {
     try {
       mapGeneratorService.setGeneratorVersion(mapGeneratorService.queryMaxSupportedVersion());
-      mapGeneratorService.downloadGeneratorIfNecessary(mapGeneratorService.getGeneratorVersion());
       GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
+      mapGeneratorService.downloadGeneratorIfNecessary(mapGeneratorService.getGeneratorVersion())
+          .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles().thenAccept(generateMapController::setStyles));
 
       Pane root = generateMapController.getRoot();
       generateMapController.setCreateGameController(this);
-      mapGeneratorService.getGeneratorStyles().thenAccept(generateMapController::setStyles);
       Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
       generateMapController.setOnCloseButtonClickedListener(dialog::close);
 

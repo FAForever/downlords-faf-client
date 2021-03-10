@@ -34,22 +34,17 @@ public class GeneratorCommandTest {
 
   @Test(expected = IllegalStateException.class)
   public void testFilePathNullThrowsException() {
-    defaultBuilder().generatorExecutableFile(null).build();
+    defaultBuilder().generatorExecutableFile(null).build().getCommand();
   }
 
   @Test(expected = IllegalStateException.class)
   public void testMapSizeNullThrowsException() {
-    defaultBuilder().mapSize(null).build();
+    defaultBuilder().mapSize(null).build().getCommand();
   }
 
   @Test(expected = IllegalStateException.class)
   public void testSpawnCountNullThrowsException() {
-    defaultBuilder().spawnCount(null).build();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testGenerationTypeNullThrowsException() {
-    defaultBuilder().generationType(null).build();
+    defaultBuilder().spawnCount(null).build().getCommand();
   }
 
   @Test
@@ -100,6 +95,12 @@ public class GeneratorCommandTest {
   }
 
   @Test
+  public void testGenerationTypeNull() {
+    List<String> command = defaultBuilder().generationType(null).build().getCommand();
+    assertEquals(defaultBuilder().build().getCommand(), command);
+  }
+
+  @Test
   public void testBlindType() {
     List<String> command = defaultBuilder().generationType(GenerationType.BLIND).build().getCommand();
     assertTrue(command.contains("--blind"));
@@ -115,6 +116,24 @@ public class GeneratorCommandTest {
   public void testUnexploredType() {
     List<String> command = defaultBuilder().generationType(GenerationType.UNEXPLORED).build().getCommand();
     assertTrue(command.contains("--unexplored"));
+  }
+
+  @Test
+  public void testStyleSet() {
+    List<String> command = defaultBuilder().style("TEST").build().getCommand();
+    assertTrue(command.containsAll(List.of("--style", "TEST")));
+  }
+
+  @Test
+  public void testBiomeSet() {
+    List<String> command = defaultBuilder().biome("TEST").build().getCommand();
+    assertTrue(command.containsAll(List.of("--biome", "TEST")));
+  }
+
+  @Test
+  public void testCommandArgsSet() {
+    List<String> command = defaultBuilder().commandLineArgs("--help").build().getCommand();
+    assertTrue(command.contains("--help"));
   }
 
   @Test

@@ -18,6 +18,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.dialog.Dialog;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,6 +34,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
@@ -86,6 +88,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private MapGeneratorService mapGeneratorService;
   @Mock
   private ModManagerController modManagerController;
+  @Mock
+  private GenerateMapController generateMapController;
 
   private Preferences preferences;
   private CreateGameController instance;
@@ -102,6 +106,10 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
         .installationPath(Paths.get(""))
         .then()
         .get();
+    when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapGeneratorService.getGeneratorStyles()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());
+    when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
@@ -446,4 +454,15 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.titleTextField.getPseudoClassStates().contains(invalidClass), is(true));
   }
 
+  @Test
+  public void testOnGenerateMapClicked() {
+    instance.onGenerateMapButtonClicked();
+
+    verify(mapGeneratorService).queryMaxSupportedVersion();
+    verify(mapGeneratorService).setGeneratorVersion(any());
+    verify(mapGeneratorService).downloadGeneratorIfNecessary(any());
+    verify(mapGeneratorService).getGeneratorStyles();
+    verify(generateMapController).setStyles(any());
+    verify(generateMapController).setOnCloseButtonClickedListener(any());
+  }
 }

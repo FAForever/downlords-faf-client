@@ -61,10 +61,12 @@ public class GeneratorCommand {
           return command;
         }
 
-        switch (generationType) {
-          case BLIND -> command.add("--blind");
-          case TOURNAMENT -> command.add("--tournament-style");
-          case UNEXPLORED -> command.add("--unexplored");
+        if (generationType != null) {
+          switch (generationType) {
+            case BLIND -> command.add("--blind");
+            case TOURNAMENT -> command.add("--tournament-style");
+            case UNEXPLORED -> command.add("--unexplored");
+          }
         }
 
         if (landDensity != null) {

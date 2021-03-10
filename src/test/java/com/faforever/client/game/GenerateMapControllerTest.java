@@ -8,6 +8,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import javafx.collections.FXCollections;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -15,6 +16,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,7 +25,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,6 +61,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     preferences.getGenerator().rampDensityProperty().unbind();
     preferences.getGenerator().mexDensityProperty().unbind();
     preferences.getGenerator().reclaimDensityProperty().unbind();
+    preferences.getGenerator().commandLineArgsProperty().unbind();
   }
 
   @Before
@@ -230,6 +233,38 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testSetLastCommandLineArgs() {
+    preferences.getGenerator().setCommandLineArgs("--help");
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertEquals("--help", instance.commandLineArgsText.getText());
+    assertTrue(instance.commandLineArgsText.isVisible());
+    assertTrue(instance.commandLineLabel.isVisible());
+  }
+
+  @Test
+  public void testStylesVisibleWhenPopulated() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.setStyles(List.of("TEST"));
+
+    assertTrue(instance.mapStyleLabel.isVisible());
+    assertTrue(instance.mapStyleComboBox.isVisible());
+  }
+
+  @Test
+  public void testStylesNotVisibleWhenNotPopulated() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(instance.mapStyleLabel.isVisible());
+    assertTrue(instance.mapStyleComboBox.isVisible());
+  }
+
+  @Test
   public void testWaterSliderVisibilityWhenRandom() {
     preferences.getGenerator().setWaterRandom(true);
 
@@ -369,6 +404,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(instance.reclaimSliderBox.isDisabled());
     assertFalse(instance.mexRandomBox.isDisabled());
     assertFalse(instance.mexSliderBox.isDisabled());
+    assertFalse(instance.mapStyleComboBox.isDisabled());
   }
 
   @Test
@@ -376,6 +412,29 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
     instance.previousMapName.setText("neroxis_map_generator");
+
+    assertTrue(instance.commandLineArgsText.isDisabled());
+    assertTrue(instance.generationTypeComboBox.isDisabled());
+    assertTrue(instance.rampRandomBox.isDisabled());
+    assertTrue(instance.rampSliderBox.isDisabled());
+    assertTrue(instance.waterRandomBox.isDisabled());
+    assertTrue(instance.waterSliderBox.isDisabled());
+    assertTrue(instance.plateauRandomBox.isDisabled());
+    assertTrue(instance.plateauSliderBox.isDisabled());
+    assertTrue(instance.mountainRandomBox.isDisabled());
+    assertTrue(instance.mountainSliderBox.isDisabled());
+    assertTrue(instance.reclaimRandomBox.isDisabled());
+    assertTrue(instance.reclaimSliderBox.isDisabled());
+    assertTrue(instance.mexRandomBox.isDisabled());
+    assertTrue(instance.mexSliderBox.isDisabled());
+    assertTrue(instance.mapStyleComboBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsDisabledWithCommandLine() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.commandLineArgsText.setText("--help");
 
     assertTrue(instance.generationTypeComboBox.isDisabled());
     assertTrue(instance.rampRandomBox.isDisabled());
@@ -390,6 +449,69 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.reclaimSliderBox.isDisabled());
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
+    assertTrue(instance.mapStyleComboBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsDisabledWithStyle() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of("TEST")));
+    instance.mapStyleComboBox.getSelectionModel().selectFirst();
+
+    assertTrue(instance.rampRandomBox.isDisabled());
+    assertTrue(instance.rampSliderBox.isDisabled());
+    assertTrue(instance.waterRandomBox.isDisabled());
+    assertTrue(instance.waterSliderBox.isDisabled());
+    assertTrue(instance.plateauRandomBox.isDisabled());
+    assertTrue(instance.plateauSliderBox.isDisabled());
+    assertTrue(instance.mountainRandomBox.isDisabled());
+    assertTrue(instance.mountainSliderBox.isDisabled());
+    assertTrue(instance.reclaimRandomBox.isDisabled());
+    assertTrue(instance.reclaimSliderBox.isDisabled());
+    assertTrue(instance.mexRandomBox.isDisabled());
+    assertTrue(instance.mexSliderBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsNotDisabledWithNoStyle() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.mapStyleComboBox.getSelectionModel().clearSelection();
+
+    assertFalse(instance.rampRandomBox.isDisabled());
+    assertFalse(instance.rampSliderBox.isDisabled());
+    assertFalse(instance.waterRandomBox.isDisabled());
+    assertFalse(instance.waterSliderBox.isDisabled());
+    assertFalse(instance.plateauRandomBox.isDisabled());
+    assertFalse(instance.plateauSliderBox.isDisabled());
+    assertFalse(instance.mountainRandomBox.isDisabled());
+    assertFalse(instance.mountainSliderBox.isDisabled());
+    assertFalse(instance.reclaimRandomBox.isDisabled());
+    assertFalse(instance.reclaimSliderBox.isDisabled());
+    assertFalse(instance.mexRandomBox.isDisabled());
+    assertFalse(instance.mexSliderBox.isDisabled());
+  }
+
+  @Test
+  public void testOptionsNotDisabledWithRandomStyle() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+    instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_STYLE)));
+    instance.mapStyleComboBox.getSelectionModel().selectFirst();
+
+    assertFalse(instance.rampRandomBox.isDisabled());
+    assertFalse(instance.rampSliderBox.isDisabled());
+    assertFalse(instance.waterRandomBox.isDisabled());
+    assertFalse(instance.waterSliderBox.isDisabled());
+    assertFalse(instance.plateauRandomBox.isDisabled());
+    assertFalse(instance.plateauSliderBox.isDisabled());
+    assertFalse(instance.mountainRandomBox.isDisabled());
+    assertFalse(instance.mountainSliderBox.isDisabled());
+    assertFalse(instance.reclaimRandomBox.isDisabled());
+    assertFalse(instance.reclaimSliderBox.isDisabled());
+    assertFalse(instance.mexRandomBox.isDisabled());
+    assertFalse(instance.mexSliderBox.isDisabled());
   }
 
   @Test
@@ -411,6 +533,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(instance.reclaimSliderBox.isDisabled());
     assertFalse(instance.mexRandomBox.isDisabled());
     assertFalse(instance.mexSliderBox.isDisabled());
+    assertFalse(instance.mapStyleComboBox.isDisabled());
   }
 
   @Test
@@ -432,6 +555,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.reclaimSliderBox.isDisabled());
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
+    assertTrue(instance.mapStyleComboBox.isDisabled());
   }
 
   @Test
@@ -453,6 +577,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.reclaimSliderBox.isDisabled());
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
+    assertTrue(instance.mapStyleComboBox.isDisabled());
   }
 
   @Test
@@ -474,6 +599,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.reclaimSliderBox.isDisabled());
     assertTrue(instance.mexRandomBox.isDisabled());
     assertTrue(instance.mexSliderBox.isDisabled());
+    assertTrue(instance.mapStyleComboBox.isDisabled());
   }
 
   @Test
@@ -527,7 +653,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnGenerateMapNoName() {
+  public void testOnGenerateMapNoNameNoStyle() {
     preferences.getGenerator().setWaterRandom(true);
     preferences.getGenerator().setMountainRandom(true);
     preferences.getGenerator().setPlateauRandom(true);
@@ -546,7 +672,79 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.onGenerateMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapGeneratorService).generateMap(eq(10), eq(512), eq(new HashMap<>()), eq(GenerationType.CASUAL));
+    verify(mapGeneratorService).generateMap(10, 512, new HashMap<>(), GenerationType.CASUAL);
+  }
+
+  @Test
+  public void testOnGenerateMapSetStyle() {
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of("TEST")));
+    instance.mapStyleComboBox.getSelectionModel().selectFirst();
+    instance.setOnCloseButtonClickedListener(() -> {
+    });
+    instance.setCreateGameController(createGameController);
+    instance.onGenerateMap();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(mapGeneratorService).generateMap(10, 512, "TEST");
+  }
+
+  @Test
+  public void testOnGenerateMapRandomStyle() {
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_STYLE)));
+    instance.mapStyleComboBox.getSelectionModel().selectFirst();
+    instance.setOnCloseButtonClickedListener(() -> {
+    });
+    instance.setCreateGameController(createGameController);
+    instance.onGenerateMap();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(mapGeneratorService).generateMap(10, 512, new HashMap<>(), GenerationType.CASUAL);
+  }
+
+  @Test
+  public void testOnGenerateMapNoStyle() {
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.mapStyleComboBox.getSelectionModel().clearSelection();
+
+    instance.setOnCloseButtonClickedListener(() -> {
+    });
+    instance.setCreateGameController(createGameController);
+    instance.onGenerateMap();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(mapGeneratorService).generateMap(10, 512, new HashMap<>(), GenerationType.CASUAL);
+  }
+
+  @Test
+  public void testOnGenerateMapCommandLineArgs() {
+    when(mapGeneratorService.generateMapWithArgs(anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    instance.commandLineArgsText.setText("--help");
+
+    instance.setOnCloseButtonClickedListener(() -> {
+    });
+    instance.setCreateGameController(createGameController);
+    instance.onGenerateMap();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(mapGeneratorService).generateMapWithArgs("--help");
   }
 }
 

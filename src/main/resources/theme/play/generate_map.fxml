@@ -72,9 +72,10 @@
             <Tooltip text="%game.create.mapSize"/>
         </tooltip>
     </Spinner>
-    <Label text="%game.generateMap.style" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+    <Label fx:id="mapStyleLabel" text="%game.generateMap.style" GridPane.columnIndex="0" GridPane.rowIndex="8"
+           visible="false"/>
     <ComboBox fx:id="mapStyleComboBox" maxHeight="Infinity" GridPane.columnIndex="1"
-              GridPane.columnSpan="2" GridPane.rowIndex="8"/>
+              GridPane.columnSpan="2" GridPane.rowIndex="8" visible="false"/>
     <Label text="%game.generateMap.waterSlider" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
     <HBox fx:id="waterRandomBox" alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1"
           GridPane.rowIndex="9">

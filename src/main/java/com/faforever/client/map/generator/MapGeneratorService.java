@@ -161,10 +161,7 @@ public class MapGeneratorService implements InitializingBean {
     generateMapTask.setMapFilename(mapName);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
 
-    return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
-      CompletableFuture<String> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();
-      return generateMapFuture.join();
-    });
+    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
   }
 
   public CompletableFuture<String> generateMap(int spawnCount, int mapSize, Map<String, Float> optionMap, GenerationType generationType) {
@@ -199,10 +196,7 @@ public class MapGeneratorService implements InitializingBean {
       generateMapTask.setReclaimDensity(optionMap.get("reclaimDensity"));
     }
 
-    return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
-      CompletableFuture<String> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();
-      return generateMapFuture.join();
-    });
+    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
   }
 
   public CompletableFuture<String> generateMap(int spawnCount, int mapSize, String style) {
@@ -219,10 +213,7 @@ public class MapGeneratorService implements InitializingBean {
     generateMapTask.setStyle(style);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
 
-    return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
-      CompletableFuture<String> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();
-      return generateMapFuture.join();
-    });
+    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
   }
 
   public CompletableFuture<String> generateMapWithArgs(String commandLineArgs) {
@@ -237,10 +228,7 @@ public class MapGeneratorService implements InitializingBean {
     generateMapTask.setCommandLineArgs(commandLineArgs);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
 
-    return downloadGeneratorFuture.thenApplyAsync((aVoid) -> {
-      CompletableFuture<String> generateMapFuture = taskService.submitTask(generateMapTask).getFuture();
-      return generateMapFuture.join();
-    });
+    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
   }
 
   public CompletableFuture<Void> downloadGeneratorIfNecessary(ComparableVersion version) {

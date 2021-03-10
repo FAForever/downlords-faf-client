@@ -59,6 +59,7 @@ public class GenerateMapController implements Controller<Pane> {
   public Label commandLineLabel;
   public TextField commandLineArgsText;
   public ComboBox<GenerationType> generationTypeComboBox;
+  public Label mapStyleLabel;
   public ComboBox<String> mapStyleComboBox;
   public Spinner<Integer> spawnCountSpinner;
   public Spinner<String> mapSizeSpinner;
@@ -91,7 +92,7 @@ public class GenerateMapController implements Controller<Pane> {
   private final int[] mapValues = new int[]{256, 512, 1024};
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(commandLineLabel, commandLineArgsText);
+    JavaFxUtil.bindManagedToVisible(commandLineLabel, commandLineArgsText, mapStyleComboBox, mapStyleLabel);
     initCommandlineArgs();
     initGenerationTypeComboBox();
     initMapStyleComboBox();
@@ -169,7 +170,6 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   private void initMapStyleComboBox() {
-    mapStyleComboBox.visibleProperty().bind(mapStyleComboBox.getSelectionModel().selectedItemProperty().isNotNull());
     mapStyleComboBox.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
         .or(Bindings.notEqual(generationTypeComboBox.valueProperty(), GenerationType.CASUAL))
         .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
@@ -237,7 +237,7 @@ public class GenerateMapController implements Controller<Pane> {
     } else {
       int spawnCount = spawnCountSpinner.getValue();
       int mapSize = mapValues[validMapSizes.indexOf(mapSizeSpinner.getValue())];
-      if (!MapGeneratorService.GENERATOR_RANDOM_STYLE.equals(mapStyleComboBox.getValue())) {
+      if (mapStyleComboBox.getValue() != null && !MapGeneratorService.GENERATOR_RANDOM_STYLE.equals(mapStyleComboBox.getValue())) {
         String style = mapStyleComboBox.getValue();
         generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, style);
       } else {
@@ -299,6 +299,8 @@ public class GenerateMapController implements Controller<Pane> {
       mapStyleComboBox.getSelectionModel().select(MapGeneratorService.GENERATOR_RANDOM_STYLE);
     }
     generatorPrefs.mapStyleProperty().bind(mapStyleComboBox.valueProperty());
+    mapStyleComboBox.setVisible(true);
+    mapStyleLabel.setVisible(true);
   }
 
   public void onNewLabelClicked(MouseEvent mouseEvent) {
