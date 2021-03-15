@@ -106,13 +106,13 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
         .installationPath(Paths.get(""))
         .then()
         .get();
-    when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(mapGeneratorService.getGeneratorStyles()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
+    when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
     when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());
     when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
-    when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(emptyList()));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
     when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/default_achievement.png"));
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());

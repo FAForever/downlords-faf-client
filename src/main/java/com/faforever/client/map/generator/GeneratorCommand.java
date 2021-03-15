@@ -66,6 +66,8 @@ public class GeneratorCommand {
             case BLIND -> command.add("--blind");
             case TOURNAMENT -> command.add("--tournament-style");
             case UNEXPLORED -> command.add("--unexplored");
+            default -> {
+            }
           }
         }
 

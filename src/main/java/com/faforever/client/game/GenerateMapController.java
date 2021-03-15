@@ -10,6 +10,7 @@ import com.faforever.client.map.generator.UnsupportedVersionException;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -279,7 +280,8 @@ public class GenerateMapController implements Controller<Pane> {
     }
   }
 
-  private void toggleCommandlineInput() {
+  @VisibleForTesting
+  void toggleCommandlineInput() {
     commandLineLabel.setVisible(!commandLineLabel.isVisible());
     commandLineArgsText.setVisible(!commandLineArgsText.isVisible());
   }
@@ -304,10 +306,8 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   public void onNewLabelClicked(MouseEvent mouseEvent) {
-    if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-      if (mouseEvent.getClickCount() == 2) {
-        toggleCommandlineInput();
-      }
+    if (mouseEvent.getButton().equals(MouseButton.PRIMARY) && mouseEvent.getClickCount() == 2) {
+      toggleCommandlineInput();
     }
   }
 

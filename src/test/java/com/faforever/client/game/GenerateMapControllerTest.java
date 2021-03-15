@@ -258,6 +258,30 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testCommandLineArgsNotVisibleWhenNotSetInitially() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.commandLineArgsText.isVisible());
+    assertFalse(instance.commandLineLabel.isVisible());
+  }
+
+  @Test
+  public void testToggleCommandLineArgs() {
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.commandLineArgsText.isVisible());
+    assertFalse(instance.commandLineLabel.isVisible());
+
+    WaitForAsyncUtils.asyncFx(() -> instance.toggleCommandlineInput());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(instance.commandLineArgsText.isVisible());
+    assertTrue(instance.commandLineLabel.isVisible());
+  }
+
+  @Test
   public void testStylesVisibleWhenPopulated() {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
