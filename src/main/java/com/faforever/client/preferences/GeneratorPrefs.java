@@ -12,8 +12,10 @@ import javafx.beans.property.StringProperty;
 
 public class GeneratorPrefs {
   private final ObjectProperty<GenerationType> generationType;
+  private final StringProperty commandLineArgs;
   private final IntegerProperty spawnCount;
   private final StringProperty mapSize;
+  private final StringProperty mapStyle;
   private final IntegerProperty waterDensity;
   private final BooleanProperty waterRandom;
   private final IntegerProperty plateauDensity;
@@ -28,8 +30,10 @@ public class GeneratorPrefs {
   private final BooleanProperty reclaimRandom;
 
   public GeneratorPrefs() {
+    commandLineArgs = new SimpleStringProperty("");
     spawnCount = new SimpleIntegerProperty(6);
     mapSize = new SimpleStringProperty("10km");
+    mapStyle = new SimpleStringProperty("");
     generationType = new SimpleObjectProperty<>(GenerationType.CASUAL);
     waterDensity = new SimpleIntegerProperty(0);
     waterRandom = new SimpleBooleanProperty(true);
@@ -43,6 +47,18 @@ public class GeneratorPrefs {
     mexRandom = new SimpleBooleanProperty(true);
     reclaimDensity = new SimpleIntegerProperty(0);
     reclaimRandom = new SimpleBooleanProperty(true);
+  }
+
+  public String getCommandLineArgs() {
+    return commandLineArgs.get();
+  }
+
+  public void setCommandLineArgs(String commandLineArgs) {
+    this.commandLineArgs.set(commandLineArgs);
+  }
+
+  public StringProperty commandLineArgsProperty() {
+    return commandLineArgs;
   }
 
   public int getSpawnCount() {
@@ -67,6 +83,18 @@ public class GeneratorPrefs {
 
   public StringProperty mapSizeProperty() {
     return mapSize;
+  }
+
+  public String getMapStyle() {
+    return mapStyle.get();
+  }
+
+  public void setMapStyle(String mapStyle) {
+    this.mapStyle.set(mapStyle);
+  }
+
+  public StringProperty mapStyleProperty() {
+    return mapStyle;
   }
 
   public GenerationType getGenerationType() {

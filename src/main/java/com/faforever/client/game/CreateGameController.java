@@ -378,6 +378,8 @@ public class CreateGameController implements Controller<Pane> {
     try {
       mapGeneratorService.setGeneratorVersion(mapGeneratorService.queryMaxSupportedVersion());
       GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
+      mapGeneratorService.downloadGeneratorIfNecessary(mapGeneratorService.getGeneratorVersion())
+          .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles().thenAccept(generateMapController::setStyles));
 
       Pane root = generateMapController.getRoot();
       generateMapController.setCreateGameController(this);

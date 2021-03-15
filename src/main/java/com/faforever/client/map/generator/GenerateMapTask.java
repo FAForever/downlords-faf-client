@@ -25,6 +25,7 @@ import java.util.regex.Matcher;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Setter
 public class GenerateMapTask extends CompletableTask<String> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
@@ -33,32 +34,22 @@ public class GenerateMapTask extends CompletableTask<String> {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  @Setter
   private ComparableVersion version;
-  @Setter
   private Path generatorExecutableFile;
-  @Setter
   private String mapFilename;
-  @Setter
   private Integer spawnCount;
-  @Setter
   private Integer mapSize;
-  @Setter
   private String seed;
-  @Setter
   private Float landDensity;
-  @Setter
   private Float plateauDensity;
-  @Setter
   private Float mountainDensity;
-  @Setter
   private Float rampDensity;
-  @Setter
   private Float mexDensity;
-  @Setter
   private Float reclaimDensity;
-  @Setter
   private GenerationType generationType;
+  private String style;
+  private String biome;
+  private String commandLineArgs;
 
   @Inject
   public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
@@ -76,12 +67,12 @@ public class GenerateMapTask extends CompletableTask<String> {
 
     updateTitle(i18n.get("game.mapGeneration.generateMap.title", version));
 
-    GeneratorCommandBuilder generatorCommandBuilder = GeneratorCommandBuilder.create()
+    GeneratorCommand generatorCommand = GeneratorCommand.builder()
         .version(version)
         .spawnCount(spawnCount)
         .mapSize(mapSize)
         .seed(seed)
-        .generatorExecutableFilePath(generatorExecutableFile)
+        .generatorExecutableFile(generatorExecutableFile)
         .generationType(generationType)
         .landDensity(landDensity)
         .plateauDensity(plateauDensity)
@@ -89,12 +80,16 @@ public class GenerateMapTask extends CompletableTask<String> {
         .rampDensity(rampDensity)
         .mexDensity(mexDensity)
         .reclaimDensity(reclaimDensity)
-        .mapFilename(mapFilename);
+        .mapFilename(mapFilename)
+        .style(style)
+        .biome(biome)
+        .commandLineArgs(commandLineArgs)
+        .build();
 
     Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
     try {
-      List<String> command = generatorCommandBuilder.build();
+      List<String> command = generatorCommand.getCommand();
 
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.directory(workingDirectory.toFile());
@@ -102,7 +97,7 @@ public class GenerateMapTask extends CompletableTask<String> {
       processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().toAbsolutePath().toString());
 
       log.info("Starting map generator in directory: {} with command: {}",
-          processBuilder.directory(), processBuilder.command().stream().reduce((l, r) -> l + " " + r).get());
+          processBuilder.directory(), String.join(" ", processBuilder.command()));
 
       Process process = processBuilder.start();
       OsUtils.gobbleLines(process.getInputStream(), msg -> {

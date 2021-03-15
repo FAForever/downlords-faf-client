@@ -19,19 +19,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -40,12 +38,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
-  private final String generatedMapFormat = "neroxis_map_generator_%s_%s";
   private final ComparableVersion versionGeneratorPresent = new ComparableVersion("2.0.0");
   private final ComparableVersion versionNoGeneratorPresent = new ComparableVersion("1.0.0");
   private final ComparableVersion versionGeneratorTooOld = new ComparableVersion("0.1.0");
   private final ComparableVersion versionNoGeneratorTooNew = new ComparableVersion("3.0.0");
-  private final ComparableVersion unsupportedVersion = new ComparableVersion("3.0");
   private final Integer spawnCount = 6;
   private final Integer mapSize = 512;
   private final Map<String, Float> optionMap = Map.of("landDensity", .5f, "plateauDensity", .25f,
@@ -56,7 +52,6 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private final String seed = Long.toString(numericalSeed);
   private final String testMapNameNoGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionNoGeneratorPresent, seed);
   private final String testMapNameGenerator = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorPresent, seed);
-  private final String testMapNameUnsupportedVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, unsupportedVersion, seed);
   private final String testMapNameTooOldVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorTooOld, seed);
   private final String testMapNameTooNewVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionNoGeneratorTooNew, seed);
   @Rule
@@ -75,17 +70,13 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private DownloadMapGeneratorTask downloadMapGeneratorTask;
   @Mock
+  private GeneratorOptionsTask generatorOptionsTask;
+  @Mock
   private GenerateMapTask generateMapTask;
   @Mock
   private ClientProperties clientProperties;
   @Mock
   private MapGenerator mapGenerator;
-  @Mock
-  private GithubGeneratorRelease release;
-  @Mock
-  private RestTemplate restTemplate;
-  @Mock
-  private ResponseEntity<List<GithubGeneratorRelease>> responseEntity;
 
   @Before
   public void setUp() throws Exception {
@@ -104,6 +95,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
     when(applicationContext.getBean(DownloadMapGeneratorTask.class)).thenReturn(downloadMapGeneratorTask);
     when(applicationContext.getBean(GenerateMapTask.class)).thenReturn(generateMapTask);
+    when(applicationContext.getBean(GeneratorOptionsTask.class)).thenReturn(generatorOptionsTask);
     when(clientProperties.getMapGenerator()).thenReturn(mapGenerator);
     when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
     when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
@@ -114,6 +106,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    when(generatorOptionsTask.getFuture()).thenReturn(CompletableFuture.completedFuture(new ArrayList<>(List.of("TEST"))));
     doAnswer(invocation -> {
       CompletableTask<Void> task = invocation.getArgument(0);
       task.getFuture().get();
@@ -181,14 +174,55 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, optionMap, GenerationType.CASUAL);
     future.join();
 
-    verify(generateMapTask).setSpawnCount(eq(spawnCount));
-    verify(generateMapTask).setMapSize(eq(mapSize));
-    verify(generateMapTask).setLandDensity(eq(optionMap.get("landDensity")));
-    verify(generateMapTask).setMountainDensity(eq(optionMap.get("mountainDensity")));
-    verify(generateMapTask).setPlateauDensity(eq(optionMap.get("plateauDensity")));
-    verify(generateMapTask).setRampDensity(eq(optionMap.get("rampDensity")));
-    verify(generateMapTask).setMexDensity(eq(optionMap.get("mexDensity")));
-    verify(generateMapTask).setReclaimDensity(eq(optionMap.get("reclaimDensity")));
-    verify(generateMapTask).setGenerationType(eq(GenerationType.CASUAL));
+    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
+    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generateMapTask).setVersion(versionGeneratorPresent);
+    verify(generateMapTask).setSpawnCount(spawnCount);
+    verify(generateMapTask).setMapSize(mapSize);
+    verify(generateMapTask).setLandDensity(optionMap.get("landDensity"));
+    verify(generateMapTask).setMountainDensity(optionMap.get("mountainDensity"));
+    verify(generateMapTask).setPlateauDensity(optionMap.get("plateauDensity"));
+    verify(generateMapTask).setRampDensity(optionMap.get("rampDensity"));
+    verify(generateMapTask).setMexDensity(optionMap.get("mexDensity"));
+    verify(generateMapTask).setReclaimDensity(optionMap.get("reclaimDensity"));
+    verify(generateMapTask).setGenerationType(GenerationType.CASUAL);
+  }
+
+  @Test
+  public void testGenerateMapStyle() {
+    instance.setGeneratorVersion(versionGeneratorPresent);
+    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, "TEST");
+    future.join();
+
+    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
+    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generateMapTask).setVersion(versionGeneratorPresent);
+    verify(generateMapTask).setSpawnCount(spawnCount);
+    verify(generateMapTask).setMapSize(mapSize);
+    verify(generateMapTask).setStyle("TEST");
+  }
+
+  @Test
+  public void testGenerateMapWithArgs() {
+    instance.setGeneratorVersion(versionGeneratorPresent);
+    CompletableFuture<String> future = instance.generateMapWithArgs("--help");
+    future.join();
+
+    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
+    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generateMapTask).setVersion(versionGeneratorPresent);
+    verify(generateMapTask).setCommandLineArgs("--help");
+  }
+
+  @Test
+  public void testGetStyles() {
+    instance.setGeneratorVersion(versionGeneratorPresent);
+    CompletableFuture<List<String>> future = instance.getGeneratorStyles();
+    future.join();
+
+    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
+    verify(generatorOptionsTask).setGeneratorExecutableFile(fafDataDirectory.getRoot().toPath().resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generatorOptionsTask).setVersion(versionGeneratorPresent);
+    verify(generatorOptionsTask).setQuery("--styles");
   }
 }
