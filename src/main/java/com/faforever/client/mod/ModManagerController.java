@@ -102,17 +102,18 @@ public class ModManagerController implements Controller<Parent> {
       @Override
       public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
         if (newValue.isEmpty()) {
-          modVersionFilteredList.setPredicate(null);
+          modVersionFilteredList.setPredicate(viewToggleGroup.getSelectedToggle() == uiModsButton ? UI_FILTER : SIM_FILTER);
         } else {
-          modVersionFilteredList.setPredicate(modVersion -> modVersion.getDisplayName().toLowerCase().contains(newValue.toLowerCase()));
-        }
-        if (!modVersionFilteredList.isEmpty()) {
-          modListView.getSelectionModel().select(0);
+          modVersionFilteredList.setPredicate(getCombinedFilter(newValue));
         }
       }
     });
     EventHandler keyEventHandler = new SearchTextFieldKeyEventHandler(modListView,modVersionFilteredList);
     modSearchTextField.setOnKeyPressed(keyEventHandler);
+  }
+
+  private Predicate<ModVersion> getCombinedFilter(String newValue){
+    return modVersion -> (viewToggleGroup.getSelectedToggle() == uiModsButton ? modVersion.getModType() == ModType.UI : modVersion.getModType() == ModType.SIM) && modVersion.getDisplayName().toLowerCase().contains(newValue.toLowerCase());
   }
 
   private void loadActivatedMods() {
