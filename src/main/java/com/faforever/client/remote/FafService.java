@@ -7,9 +7,9 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapPoolAssignment;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
 import com.faforever.client.api.dto.PlayerAchievement;
@@ -481,14 +481,12 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
-    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPools(matchmakerQueueId)
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
+    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPoolsWithMeta(matchmakerQueueId, rating)
         .stream()
-        .map(MatchmakerQueueMapPool::getMapPool)
-        .flatMap(mapPool -> mapPool.getMapVersions().stream())
+        .map(MapPoolAssignment::getMapVersion)
         .distinct()
         .map(MapBean::fromMapVersionDto)
-        .sorted(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER))
         .collect(toList());
     return paginateResult(count, page, mapVersions);
   }

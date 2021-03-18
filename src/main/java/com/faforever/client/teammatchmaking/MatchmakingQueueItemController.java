@@ -49,7 +49,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   public Button mapPoolButton;
 
   @VisibleForTesting
-  protected MatchmakingQueue queue;
+  MatchmakingQueue queue;
 
   public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n, EventBus eventBus) {
     this.playerService = playerService;
@@ -142,6 +142,6 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   }
 
   public void showMapPool(ActionEvent actionEvent) {
-    eventBus.post(new ShowMapPoolEvent(queue.getQueueId()));
+    eventBus.post(new ShowMapPoolEvent(queue));
   }
 }

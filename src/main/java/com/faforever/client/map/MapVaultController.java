@@ -11,6 +11,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.VaultEntityController;
@@ -44,7 +45,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   private MapDetailController mapDetailController;
   private Integer recommendedShowRoomPageCount;
-  private Integer matchmakerQueueId;
+  private MatchmakingQueue matchmakingQueue;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -111,7 +112,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
       case NEWEST -> currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case HIGHEST_RATED -> currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case PLAYED -> currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case MAP_POOL -> currentSupplier = mapService.getMatchmakerMapsWithPageCount(matchmakerQueueId, pageSize, pagination.getCurrentPageIndex() + 1);
+      case MAP_POOL -> currentSupplier = mapService.getMatchmakerMapsWithPageCount(matchmakingQueue, pageSize, pagination.getCurrentPageIndex() + 1);
       case OWN -> currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
@@ -176,7 +177,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof ShowMapPoolEvent) {
-      matchmakerQueueId = ((ShowMapPoolEvent) navigateEvent).getQueueId();
+      matchmakingQueue = ((ShowMapPoolEvent) navigateEvent).getQueue();
       searchType = SearchType.MAP_POOL;
       onPageChange(null, true);
     } else {

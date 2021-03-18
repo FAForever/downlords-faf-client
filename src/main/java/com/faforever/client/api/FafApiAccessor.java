@@ -11,10 +11,10 @@ import com.faforever.client.api.dto.Leaderboard;
 import com.faforever.client.api.dto.LeaderboardEntry;
 import com.faforever.client.api.dto.LeaderboardRatingJournal;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapPoolAssignment;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.MatchmakerQueue;
-import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
@@ -135,7 +135,7 @@ public interface FafApiAccessor {
 
   Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page);
 
-  List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId);
+  List<MapPoolAssignment> getMatchmakerPoolsWithMeta(int matchmakerQueueId, float rating);
 
   Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName);
 

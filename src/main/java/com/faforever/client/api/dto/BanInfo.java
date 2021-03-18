@@ -1,6 +1,5 @@
 package com.faforever.client.api.dto;
 
-import com.faforever.commons.api.dto.RestrictedVisibility;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.jasminb.jsonapi.annotations.Id;
 import com.github.jasminb.jsonapi.annotations.Relationship;
@@ -10,7 +9,6 @@ import lombok.Data;
 import java.time.OffsetDateTime;
 
 @Type("banInfo")
-@RestrictedVisibility("HasBanRead")
 @Data
 public class BanInfo {
   @Id

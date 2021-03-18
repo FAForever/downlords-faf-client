@@ -12,11 +12,11 @@ import com.faforever.client.api.dto.Leaderboard;
 import com.faforever.client.api.dto.LeaderboardEntry;
 import com.faforever.client.api.dto.LeaderboardRatingJournal;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapPoolAssignment;
 import com.faforever.client.api.dto.MapStatistics;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.MatchmakerQueue;
-import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersion;
@@ -110,6 +110,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
       "map.reviewsSummary,map.versions.reviews,map.versions.reviews.player";
   private static final String MAP_STATISTICS_INCLUDES = "map,map.statistics,map.latestVersion,map.author," +
       "map.versions.reviews,map.versions.reviews.player,map.reviewsSummary";
+  private static final String MATCHMAKER_POOL_INCLUDES = "mapVersion,mapVersion.map,mapVersion.map.latestVersion," +
+      "mapVersion.map.author,mapVersion.map.statistics,mapVersion.map.reviewsSummary,mapVersion.map.versions.reviews," +
+      "mapVersion.map.versions.reviews.player";
   private static final String MOD_INCLUDES = "latestVersion,reviewsSummary,versions,versions.reviews," +
       "versions.reviews.player";
   private static final String LEADERBOARD_ENTRY_INCLUDES = "player,leaderboard";
@@ -492,14 +495,16 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
-  public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
-    return getAll("/data/matchmakerQueueMapPool", java.util.Map.of(
-        INCLUDE, "matchmakerQueue,mapPool,mapPool.mapVersions," +
-            "mapPool.mapVersions.map,mapPool.mapVersions.map.latestVersion," +
-            "mapPool.mapVersions.map.author,mapPool.mapVersions.map.statistics," +
-            "mapPool.mapVersions.map.reviewsSummary,mapPool.mapVersions.map.versions.reviews," +
-            "mapPool.mapVersions.map.versions.reviews.player",
-        FILTER, rsql(qBuilder().string("matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)))));
+  public List<MapPoolAssignment> getMatchmakerPoolsWithMeta(int matchmakerQueueId, float rating) {
+    QBuilder qBuilder = new QBuilder<>();
+    List<Condition<?>> conditions = new ArrayList<>();
+    conditions.add(qBuilder().string("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)));
+    conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating").lte(rating).or()
+        .floatNum("mapPool.matchmakerQueueMapPool.minRating").eq(null));
+    return getAll("/data/mapPoolAssignment", java.util.Map.of(
+        INCLUDE, MATCHMAKER_POOL_INCLUDES,
+        FILTER, rsql(qBuilder.and(conditions)).replace("ex", "isnull"),
+        SORT, "mapVersion.width,mapVersion.map.displayName"));
   }
 
   @Override
