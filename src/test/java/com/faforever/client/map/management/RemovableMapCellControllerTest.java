@@ -24,9 +24,9 @@ public class RemovableMapCellControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
 
-  private final MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001")
+  private final MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001").uid("officialMap")
       .version(null).get();
-  private final MapBean customMap = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0001")
+  private final MapBean customMap = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0001").uid("customMap")
       .version(1).get();
 
   private RemovableMapCellController instance;
