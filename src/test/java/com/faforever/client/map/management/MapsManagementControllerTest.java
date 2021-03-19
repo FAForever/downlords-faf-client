@@ -26,11 +26,11 @@ public class MapsManagementControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
 
-  private final MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001")
+  private final MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001").uid("official1")
       .version(null).get();
-  private final MapBean customMap1 = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0001")
+  private final MapBean customMap1 = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0001").uid("custom1")
       .version(1).get();
-  private final MapBean customMap2 = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0002")
+  private final MapBean customMap2 = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0002").uid("custom2")
       .version(2).get();
 
   private MapsManagementController instance;
@@ -38,8 +38,11 @@ public class MapsManagementControllerTest extends AbstractPlainJavaFxTest {
   @Before
   public void setUp() throws Exception {
     when(mapService.isOfficialMap(officialMap)).thenReturn(true);
+    when(mapService.isCustomMap(officialMap)).thenReturn(false);
     when(mapService.isCustomMap(customMap1)).thenReturn(true);
     when(mapService.isCustomMap(customMap2)).thenReturn(true);
+    when(mapService.isOfficialMap(customMap1)).thenReturn(false);
+    when(mapService.isOfficialMap(customMap2)).thenReturn(false);
     when(mapService.getInstalledMaps()).thenReturn(FXCollections.observableArrayList(officialMap, customMap1, customMap2));
 
     instance = new MapsManagementController(uiService, mapService, i18n);
