@@ -487,10 +487,8 @@ public class FafService {
         .map(mapPoolAssignment -> {
           if (mapPoolAssignment.getMapVersion() != null) {
             return MapBean.fromMapVersionDto(mapPoolAssignment.getMapVersion());
-          } else if (mapPoolAssignment.getMapParams() != null) {
-            if (mapPoolAssignment.getMapParams() instanceof NeroxisGeneratorParams) {
-              return MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapPoolAssignment.getMapParams());
-            }
+          } else if (mapPoolAssignment.getMapParams() instanceof NeroxisGeneratorParams) {
+            return MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapPoolAssignment.getMapParams());
           }
           return null;
         })
