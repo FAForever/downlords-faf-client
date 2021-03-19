@@ -493,6 +493,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     }
   }
 
+  @SneakyThrows
   @Override
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
   public List<MapPoolAssignment> getMatchmakerPoolsWithMeta(int matchmakerQueueId, float rating) {
@@ -500,7 +501,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     List<Condition<?>> conditions = new ArrayList<>();
     conditions.add(qBuilder().string("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)));
     conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating").lte(rating).or()
-        .floatNum("mapPool.matchmakerQueueMapPool.minRating").eq(null));
+        .floatNum("mapPool.matchmakerQueueMapPool.minRating").ne(null));
     return getAll("/data/mapPoolAssignment", java.util.Map.of(
         INCLUDE, MATCHMAKER_POOL_INCLUDES,
         FILTER, rsql(qBuilder.and(conditions)).replace("ex", "isnull"),

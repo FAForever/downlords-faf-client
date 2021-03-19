@@ -7,11 +7,11 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.Map;
-import com.faforever.client.api.dto.MapPoolAssignment;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.NeroxisGeneratorParams;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
@@ -484,9 +484,17 @@ public class FafService {
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
     List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPoolsWithMeta(matchmakerQueueId, rating)
         .stream()
-        .map(MapPoolAssignment::getMapVersion)
+        .map(mapPoolAssignment -> {
+          if (mapPoolAssignment.getMapVersion() != null) {
+            return MapBean.fromMapVersionDto(mapPoolAssignment.getMapVersion());
+          } else if (mapPoolAssignment.getMapParams() != null) {
+            if (mapPoolAssignment.getMapParams() instanceof NeroxisGeneratorParams) {
+              return MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapPoolAssignment.getMapParams());
+            }
+          }
+          return null;
+        })
         .distinct()
-        .map(MapBean::fromMapVersionDto)
         .collect(toList());
     return paginateResult(count, page, mapVersions);
   }

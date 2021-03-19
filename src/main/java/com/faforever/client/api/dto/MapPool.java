@@ -17,9 +17,6 @@ public class MapPool {
   private OffsetDateTime createTime;
   private OffsetDateTime updateTime;
   private String name;
-  @Relationship("mapVersions")
-  @Deprecated
-  private List<MapVersion> mapVersions;
   @Relationship("matchmakerQueueMapPool")
   @JsonIgnore
   private MatchmakerQueueMapPool matchmakerQueueMapPool;
