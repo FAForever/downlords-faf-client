@@ -183,6 +183,7 @@ public class TeamMatchmakingService implements InitializingBean {
         i18n.get("teammatchmaking.notification.matchFound.title"),
         i18n.get("teammatchmaking.notification.matchFound.message")
     ));
+
     matchmakingQueues.stream()
         .filter(matchmakingQueue -> Objects.equals(matchmakingQueue.getTechnicalName(), message.getQueueName()))
         .forEach(matchmakingQueue -> matchmakingQueue.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(60), taskScheduler));

@@ -260,6 +260,7 @@ dependencies {
   implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springSecurityOauth2AutoconfigureVersion}")
   implementation("org.springframework:spring-web")
   implementation("org.springframework:spring-websocket")
+  compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
   implementation("com.github.FAForever:faf-java-commons:${fafCommonsVersion}") {
     exclude module: 'guava'
