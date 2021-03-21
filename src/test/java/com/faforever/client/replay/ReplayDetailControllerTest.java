@@ -254,7 +254,6 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   public void setReplayNotAvailable() {
     onlineReplay.setReplayAvailable(false);
 
-    when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(-1));
     when(i18n.get("game.replayNotAvailable")).thenReturn("not available");
 
     instance.setReplay(onlineReplay);
