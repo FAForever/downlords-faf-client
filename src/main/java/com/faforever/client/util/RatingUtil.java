@@ -32,7 +32,8 @@ public final class RatingUtil {
 
   public static Integer getLeaderboardRating(Player player, String ratingType) {
     return Optional.of(player.getLeaderboardRatings())
-        .map(rating -> getRating(rating.get(ratingType)))
+        .map(rating -> rating.get(ratingType))
+        .map(RatingUtil::getRating)
         .orElse(0);
   }
 
