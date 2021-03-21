@@ -40,7 +40,7 @@ public class GeneratorCommand {
     List<String> command = new ArrayList<>(List.of(javaPath, "-jar", generatorExecutableFile.toAbsolutePath().toString()));
     if (version.compareTo(new ComparableVersion("1")) >= 0) {
       if (commandLineArgs != null) {
-        command.add(commandLineArgs);
+        command.addAll(Arrays.asList(commandLineArgs.split(" ")));
         return command;
       }
 
