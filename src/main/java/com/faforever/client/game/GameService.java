@@ -528,6 +528,7 @@ public class GameService implements InitializingBean {
         });
   }
 
+  @NotNull
   private Player getCurrentPlayer() {
     return playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
   }
