@@ -20,6 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -222,6 +223,7 @@ public class Player {
     return avatarTooltip;
   }
 
+  @NotNull
   public Map<String, LeaderboardRating> getLeaderboardRatings() {
     return leaderboardRatings.get();
   }
