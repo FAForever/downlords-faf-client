@@ -144,7 +144,7 @@ public class MapBean implements Comparable<MapBean> {
     MapBean mapBean = new MapBean();
     mapBean.setAuthor("Neroxis");
     mapBean.setDescription("");
-    mapBean.setDisplayName(String.format("neroxis_map_generator_%s_mapSize=%d_spawns=%d", mapParams.getVersion(), mapParams.getSize(), mapParams.getSpawns()));
+    mapBean.setDisplayName(String.format("neroxis_map_generator_%s_mapSize=%dkm_spawns=%d", mapParams.getVersion(), (int) (mapParams.getSize() / 51.2), mapParams.getSpawns()));
     mapBean.setFolderName(mapBean.getDisplayName());
     mapBean.setSize(MapSize.valueOf(mapParams.getSize(), mapParams.getSize()));
     mapBean.setDownloads(0);
