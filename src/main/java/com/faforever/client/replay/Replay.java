@@ -10,10 +10,12 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewsSummary;
 import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
@@ -43,6 +45,7 @@ public class Replay {
 
   private final IntegerProperty id;
   private final StringProperty title;
+  private final BooleanProperty replayAvailable;
   private final MapProperty<String, List<String>> teams;
   private final MapProperty<String, List<PlayerStats>> teamPlayerStats;
   private final ObjectProperty<Temporal> startTime;
@@ -66,6 +69,7 @@ public class Replay {
   public Replay() {
     id = new SimpleIntegerProperty();
     title = new SimpleStringProperty();
+    replayAvailable = new SimpleBooleanProperty(false);
     teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
     teamPlayerStats = new SimpleMapProperty<>(FXCollections.observableHashMap());
     startTime = new SimpleObjectProperty<>();
@@ -87,6 +91,7 @@ public class Replay {
     this();
     id.set(replayInfo.getUid());
     title.set(StringEscapeUtils.unescapeHtml4(replayInfo.getTitle()));
+    replayAvailable.set(true);
     startTime.set(fromPythonTime(replayInfo.getGameTime() > 0 ? replayInfo.getGameTime() : replayInfo.getLaunchedAt()));
     endTime.set(fromPythonTime(replayInfo.getGameEnd()));
     this.featuredMod.set(featuredMod);
@@ -99,6 +104,7 @@ public class Replay {
 
   public static Replay fromDto(Game dto) {
     Replay replay = new Replay();
+    replay.setReplayAvailable(dto.getReplayAvailable());
     replay.setId(Integer.parseInt(dto.getId()));
     replay.setFeaturedMod(FeaturedMod.fromFeaturedMod(dto.getFeaturedMod()));
     replay.setTitle(dto.getName());
@@ -106,7 +112,6 @@ public class Replay {
     Optional.ofNullable(dto.getEndTime()).ifPresent(replay::setEndTime);
     Optional.ofNullable(dto.getMapVersion()).ifPresent(mapVersion -> replay.setMap(MapBean.fromMapVersionDto(dto.getMapVersion())));
     replay.setReplayTicks(dto.getReplayTicks());
-//    replay.setViews(dto.getViews());
     replay.setTeams(teams(dto));
     replay.setTeamPlayerStats(teamPlayerStats(dto));
     replay.getReviews().setAll(reviews(dto));
@@ -147,6 +152,18 @@ public class Replay {
 
   public static String getReplayUrl(int replayId, String baseUrlFormat) {
     return String.format(baseUrlFormat, replayId);
+  }
+
+  public boolean getReplayAvailable() {
+    return replayAvailable.get();
+  }
+
+  public void setReplayAvailable(boolean replayAvailable) {
+    this.replayAvailable.set(replayAvailable);
+  }
+
+  public BooleanProperty replayAvailableProperty() {
+    return replayAvailable;
   }
 
   public Validity getValidity() {

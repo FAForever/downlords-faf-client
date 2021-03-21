@@ -74,6 +74,7 @@ public class ReplayCardController implements Controller<Node> {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 
+    watchButton.setDisable(!replay.getReplayAvailable());
     gameTitleLabel.setText(replay.getTitle());
     dateLabel.setText(timeService.asDate(replay.getStartTime()));
     timeLabel.setText(timeService.asShortTime(replay.getStartTime()));

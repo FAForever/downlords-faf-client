@@ -221,20 +221,27 @@ public class ReplayDetailController implements Controller<Node> {
             () -> ratingLabel.setText("-"));
 
     if (replay.getReplayFile() == null) {
-      replayService.getSize(replay.getId())
-          .thenAccept(replaySize -> JavaFxUtil.runLater(() -> {
-            if (replaySize > -1) {
-              String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
-              downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
-              watchButton.setText(i18n.get("game.watchButtonFormat", humanReadableSize));
-              downloadMoreInfoButton.setVisible(true);
-            } else {
-              downloadMoreInfoButton.setText(i18n.get("game.replayFileMissing"));
-              downloadMoreInfoButton.setDisable(true);
-              watchButton.setText(i18n.get("game.replayFileMissing"));
-              watchButton.setDisable(true);
-            }
-          }));
+      if (replay.getReplayAvailable()) {
+        replayService.getSize(replay.getId())
+            .thenAccept(replaySize -> JavaFxUtil.runLater(() -> {
+              if (replaySize > -1) {
+                String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
+                downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
+                watchButton.setText(i18n.get("game.watchButtonFormat", humanReadableSize));
+                downloadMoreInfoButton.setVisible(true);
+              } else {
+                downloadMoreInfoButton.setText(i18n.get("game.replayFileMissing"));
+                downloadMoreInfoButton.setDisable(true);
+                watchButton.setText(i18n.get("game.replayFileMissing"));
+                watchButton.setDisable(true);
+              }
+            }));
+      } else {
+        downloadMoreInfoButton.setText(i18n.get("game.replayNotAvailable"));
+        downloadMoreInfoButton.setDisable(true);
+        watchButton.setText(i18n.get("game.replayNotAvailable"));
+        watchButton.setDisable(true);
+      }
       Optional<Player> currentPlayer = playerService.getCurrentPlayer();
       Assert.state(currentPlayer.isPresent(), "No user is logged in");
 
