@@ -107,8 +107,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
         player.setLogin(USER_NAME);
         player.setClan("ABC");
         player.setCountry("A1");
-        player.setGlobalRating(new float[]{1500, 220});
-        player.setLadderRating(new float[]{1500, 220});
         player.setNumberOfGames(330);
 
         PlayersMessage playersMessage = new PlayersMessage();

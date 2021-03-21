@@ -14,8 +14,6 @@ public class Player {
   private Avatar avatar;
   private String country;
   private Integer numberOfGames;
-  private float[] globalRating;
-  private float[] ladderRating;
   private Map<String, String> league;
   private Map<String, LeaderboardRating> ratings;
 
@@ -25,22 +23,6 @@ public class Player {
 
   public void setRatings(Map<String, LeaderboardRating> ratings) {
     this.ratings = ratings;
-  }
-
-  public float[] getLadderRating() {
-    return ladderRating;
-  }
-
-  public void setLadderRating(float[] ladderRating) {
-    this.ladderRating = ladderRating;
-  }
-
-  public float[] getGlobalRating() {
-    return globalRating;
-  }
-
-  public void setGlobalRating(float[] globalRating) {
-    this.globalRating = globalRating;
   }
 
   public String getClan() {
