@@ -52,7 +52,7 @@ public class ForgedAllianceService {
                            String ratingType, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
     Path executable = getExecutable();
 
-    Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings().get(ratingType));
+    Optional<LeaderboardRating> leaderboardRating = Optional.ofNullable(currentPlayer.getLeaderboardRatings()).map(rating -> rating.get(ratingType));
 
     float mean = leaderboardRating.map(LeaderboardRating::getMean).orElse(0f);
     float deviation = leaderboardRating.map(LeaderboardRating::getDeviation).orElse(0f);

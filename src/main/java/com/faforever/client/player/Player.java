@@ -69,7 +69,7 @@ public class Player {
     country = new SimpleStringProperty();
     avatarUrl = new SimpleStringProperty();
     avatarTooltip = new SimpleStringProperty();
-    leaderboardRatings = new SimpleMapProperty<>();
+    leaderboardRatings = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
     status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
     chatChannelUsers = FXCollections.observableSet();
     game = new SimpleObjectProperty<>();
