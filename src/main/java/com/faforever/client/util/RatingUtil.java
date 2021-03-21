@@ -31,7 +31,9 @@ public final class RatingUtil {
   }
 
   public static Integer getLeaderboardRating(Player player, String ratingType) {
-    return Optional.ofNullable(player.getLeaderboardRatings()).map(rating -> getRating(rating.get(ratingType))).orElse(0);
+    return Optional.of(player.getLeaderboardRatings())
+        .map(rating -> getRating(rating.get(ratingType)))
+        .orElse(0);
   }
 
   public static Integer getLeaderboardRating(Player player, Leaderboard leaderboard) {
