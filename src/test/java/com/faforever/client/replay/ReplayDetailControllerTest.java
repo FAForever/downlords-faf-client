@@ -251,6 +251,22 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void setReplayNotAvailable() {
+    onlineReplay.setReplayAvailable(false);
+
+    when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(-1));
+    when(i18n.get("game.replayNotAvailable")).thenReturn("not available");
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertEquals("not available", instance.watchButton.getText());
+    assertEquals("not available", instance.downloadMoreInfoButton.getText());
+    assertTrue(instance.watchButton.isDisabled());
+    assertTrue(instance.downloadMoreInfoButton.isDisabled());
+  }
+
+  @Test
   public void setReplayNoRatingChange() {
     when(replayService.replayChangedRating(onlineReplay)).thenReturn(false);
     when(i18n.get("game.notRatedYet")).thenReturn("not rated yet");

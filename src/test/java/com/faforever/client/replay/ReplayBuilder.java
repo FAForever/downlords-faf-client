@@ -30,6 +30,7 @@ public class ReplayBuilder {
   public ReplayBuilder defaultValues() {
     id(1);
     title("test");
+    replayAvailable(true);
     startTime(LocalDateTime.MIN);
     endTime(LocalDateTime.MAX);
     validity(Validity.VALID);
@@ -49,6 +50,11 @@ public class ReplayBuilder {
 
   public ReplayBuilder title(String title) {
     replay.setTitle(title);
+    return this;
+  }
+
+  public ReplayBuilder replayAvailable(boolean available) {
+    replay.setReplayAvailable(available);
     return this;
   }
 
