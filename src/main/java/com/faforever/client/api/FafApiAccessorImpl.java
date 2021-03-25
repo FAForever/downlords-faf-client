@@ -496,7 +496,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @SneakyThrows
   @Override
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
-  public List<MapPoolAssignment> getMatchmakerPoolsWithMeta(int matchmakerQueueId, float rating) {
+  public List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating) {
     QBuilder qBuilder = new QBuilder<>();
     List<Condition<?>> conditions = new ArrayList<>();
     conditions.add(qBuilder().string("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)));

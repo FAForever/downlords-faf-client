@@ -302,7 +302,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<MapPoolAssignment> getMatchmakerPoolsWithMeta(int matchmakerQueueId, float rating) {
+  public List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating) {
     return List.of();
   }
 

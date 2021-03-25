@@ -482,7 +482,7 @@ public class FafService {
 
   @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
-    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPoolsWithMeta(matchmakerQueueId, rating)
+    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating)
         .stream()
         .map(mapPoolAssignment -> {
           if (mapPoolAssignment.getMapVersion() != null) {

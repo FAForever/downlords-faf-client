@@ -135,7 +135,7 @@ public interface FafApiAccessor {
 
   Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page);
 
-  List<MapPoolAssignment> getMatchmakerPoolsWithMeta(int matchmakerQueueId, float rating);
+  List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating);
 
   Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName);
 
