@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -234,6 +235,22 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals("-", instance.ratingLabel.getText());
+  }
+
+  @Test
+  public void setReplayMissing() {
+    onlineReplay.setReplayAvailable(false);
+    onlineReplay.setStartTime(OffsetDateTime.now().minusDays(2));
+
+    when(i18n.get("game.replayMissing")).thenReturn("missing");
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertEquals("missing", instance.watchButton.getText());
+    assertEquals("missing", instance.downloadMoreInfoButton.getText());
+    assertTrue(instance.watchButton.isDisabled());
+    assertTrue(instance.downloadMoreInfoButton.isDisabled());
   }
 
   @Test

@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import java.time.temporal.Temporal;
+import java.time.OffsetDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -48,8 +48,8 @@ public class Replay {
   private final BooleanProperty replayAvailable;
   private final MapProperty<String, List<String>> teams;
   private final MapProperty<String, List<PlayerStats>> teamPlayerStats;
-  private final ObjectProperty<Temporal> startTime;
-  private final ObjectProperty<Temporal> endTime;
+  private final ObjectProperty<OffsetDateTime> startTime;
+  private final ObjectProperty<OffsetDateTime> endTime;
   private final ObjectProperty<FeaturedMod> featuredMod;
   private final ObjectProperty<MapBean> map;
   private final ObjectProperty<Path> replayFile;
@@ -226,28 +226,28 @@ public class Replay {
     return id;
   }
 
-  public Temporal getStartTime() {
+  public OffsetDateTime getStartTime() {
     return startTime.get();
   }
 
-  public void setStartTime(Temporal startTime) {
+  public void setStartTime(OffsetDateTime startTime) {
     this.startTime.set(startTime);
   }
 
-  public ObjectProperty<Temporal> startTimeProperty() {
+  public ObjectProperty<OffsetDateTime> startTimeProperty() {
     return startTime;
   }
 
   @Nullable
-  public Temporal getEndTime() {
+  public OffsetDateTime getEndTime() {
     return endTime.get();
   }
 
-  public void setEndTime(Temporal endTime) {
+  public void setEndTime(OffsetDateTime endTime) {
     this.endTime.set(endTime);
   }
 
-  public ObjectProperty<Temporal> endTimeProperty() {
+  public ObjectProperty<OffsetDateTime> endTimeProperty() {
     return endTime;
   }
 

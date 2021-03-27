@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
 
 import java.io.FileNotFoundException;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -230,9 +231,14 @@ public class ReplayDetailController implements Controller<Node> {
               downloadMoreInfoButton.setVisible(true);
             }));
       } else {
-        downloadMoreInfoButton.setText(i18n.get("game.replayNotAvailable"));
+        if (replay.getStartTime().isBefore(OffsetDateTime.now().minusDays(1))) {
+          downloadMoreInfoButton.setText(i18n.get("game.replayMissing"));
+          watchButton.setText(i18n.get("game.replayMissing"));
+        } else {
+          downloadMoreInfoButton.setText(i18n.get("game.replayNotAvailable"));
+          watchButton.setText(i18n.get("game.replayNotAvailable"));
+        }
         downloadMoreInfoButton.setDisable(true);
-        watchButton.setText(i18n.get("game.replayNotAvailable"));
         watchButton.setDisable(true);
       }
       Optional<Player> currentPlayer = playerService.getCurrentPlayer();
