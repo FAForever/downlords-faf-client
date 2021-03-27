@@ -1,16 +1,10 @@
 package com.faforever.client.api.dto;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Value;
 
-@EqualsAndHashCode(callSuper = true)
-@Getter
-@Setter
-@JsonTypeName("neroxis")
-public class NeroxisGeneratorParams extends MapParams {
-  private int spawns;
-  private int size;
-  private String version;
+@Value
+public class NeroxisGeneratorParams implements MapParams {
+  int spawns;
+  int size;
+  String version;
 }
