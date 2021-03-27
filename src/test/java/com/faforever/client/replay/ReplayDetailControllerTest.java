@@ -237,20 +237,6 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void setReplayNoOnlineFile() {
-    when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(-1));
-    when(i18n.get("game.replayFileMissing")).thenReturn("file missing");
-
-    instance.setReplay(onlineReplay);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertEquals("file missing", instance.watchButton.getText());
-    assertEquals("file missing", instance.downloadMoreInfoButton.getText());
-    assertTrue(instance.watchButton.isDisabled());
-    assertTrue(instance.downloadMoreInfoButton.isDisabled());
-  }
-
-  @Test
   public void setReplayNotAvailable() {
     onlineReplay.setReplayAvailable(false);
 
