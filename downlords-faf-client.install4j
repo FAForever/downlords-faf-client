@@ -32,7 +32,7 @@
           <versionLine x="539" y="378" text="v${compiler:sys.version}" fontSize="10" fontColor="255,255,255" bold="true" />
         </text>
       </splashScreen>
-      <java mainClass="com.faforever.client.Main" vmParameters="-DnativeDir=natives -Dprism.dirtyopts=false -XX:+HeapDumpOnOutOfMemoryError -javaagent:lib/webview-patch.jar -Djava.net.preferIPv4Stack=true" preferredVM="client">
+      <java mainClass="com.faforever.client.Main" preferredVM="client">
         <classPath>
           <scanDirectory location="lib" />
         </classPath>
@@ -43,13 +43,19 @@
       <macStaticAssociationActions mode="selected" />
       <vmOptionsFile mode="content" overwriteMode="3">
         <content># Enter one VM parameter per line
-
-# Adjust maximum memory usage to 712MiB
--Xmx712m
--XX:ConcGCThreads=1
--XX:ParallelGCThreads=1
--XX:+UseG1GC
--Djava.library.path=.</content>
+            # Adjust maximum memory usage to 712MiB
+            -Xmx712m
+            -XX:ConcGCThreads=1
+            -XX:ParallelGCThreads=1
+            -XX:+UseG1GC
+            -XX:+HeapDumpOnOutOfMemoryError
+            -javaagent:lib/webview-patch.jar
+            -Djava.net.preferIPv4Stack=true
+            -DnativeDir=natives
+            -Dprism.dirtyopts=false
+            -Dprism.forceGPU=true
+            -Djava.library.path=.
+        </content>
       </vmOptionsFile>
       <iconImageFiles>
         <file path="./src/media/appicon/16.png" />
