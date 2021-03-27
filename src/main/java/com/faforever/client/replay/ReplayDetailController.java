@@ -56,7 +56,6 @@ import org.springframework.util.Assert;
 import java.io.FileNotFoundException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -185,7 +184,7 @@ public class ReplayDetailController implements Controller<Node> {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 
-    Temporal endTime = replay.getEndTime();
+    OffsetDateTime endTime = replay.getEndTime();
     if (endTime != null) {
       durationLabel.setText(timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)));
     } else {

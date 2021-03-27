@@ -30,8 +30,8 @@ public class ReplayBuilder {
     id(1);
     title("test");
     replayAvailable(true);
-    startTime(OffsetDateTime.MIN);
-    endTime(OffsetDateTime.MAX);
+    startTime(OffsetDateTime.now().minusHours(1));
+    endTime(OffsetDateTime.now());
     validity(Validity.VALID);
     featuredMod(new FeaturedMod());
     teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))));
