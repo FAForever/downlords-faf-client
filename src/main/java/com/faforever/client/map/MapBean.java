@@ -17,7 +17,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import lombok.EqualsAndHashCode;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@EqualsAndHashCode(of = "id")
 public class MapBean implements Comparable<MapBean> {
 
   private final StringProperty folderName;
@@ -56,7 +54,7 @@ public class MapBean implements Comparable<MapBean> {
     displayName = new SimpleStringProperty();
     folderName = new SimpleStringProperty();
     description = new SimpleStringProperty();
-    numberOfPlays = new SimpleIntegerProperty();
+    numberOfPlays = new SimpleIntegerProperty(0);
     downloads = new SimpleIntegerProperty();
     players = new SimpleIntegerProperty();
     size = new SimpleObjectProperty<>();
@@ -151,11 +149,6 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setId(mapBean.getDisplayName());
     mapBean.setPlayers(mapParams.getSpawns());
     mapBean.setVersion(new ComparableVersion("1"));
-    mapBean.setDownloadUrl(null);
-    mapBean.setSmallThumbnailUrl(null);
-    mapBean.setLargeThumbnailUrl(null);
-    mapBean.setCreateTime(null);
-    mapBean.setNumberOfPlays(0);
     mapBean.setReviewsSummary(new ReviewsSummary());
     mapBean.setHidden(false);
     mapBean.setRanked(true);

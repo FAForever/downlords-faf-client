@@ -7,6 +7,7 @@ import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.api.dto.Game;
 import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapPoolAssignment;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.Mod;
@@ -60,6 +61,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -482,18 +484,20 @@ public class FafService {
 
   @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
-    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating)
-        .stream()
-        .map(mapPoolAssignment -> {
-          if (mapPoolAssignment.getMapVersion() != null) {
-            return MapBean.fromMapVersionDto(mapPoolAssignment.getMapVersion());
-          } else if (mapPoolAssignment.getMapParams() instanceof NeroxisGeneratorParams) {
-            return MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapPoolAssignment.getMapParams());
-          }
-          return null;
-        })
+    List<MapPoolAssignment> poolAssignments = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating);
+    List<MapBean> mapVersions = poolAssignments.stream()
+        .map(MapPoolAssignment::getMapVersion)
         .distinct()
-        .collect(toList());
+        .filter(Objects::nonNull)
+        .map(MapBean::fromMapVersionDto)
+        .collect(Collectors.toList());
+    mapVersions.addAll(poolAssignments.stream()
+        .map(MapPoolAssignment::getMapParams)
+        .filter(mapParams -> mapParams instanceof NeroxisGeneratorParams)
+        .distinct()
+        .map(mapParams -> MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapParams))
+        .collect(Collectors.toList()));
+    mapVersions.sort(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER));
     return paginateResult(count, page, mapVersions);
   }
 
@@ -511,7 +515,7 @@ public class FafService {
   @Async
   public CompletableFuture<Optional<MatchmakingQueue>> getMatchmakingQueue(String technicalName) {
     return CompletableFuture.completedFuture(fafApiAccessor.getMatchmakerQueue(technicalName)
-    .map(MatchmakingQueue::fromDto));
+        .map(MatchmakingQueue::fromDto));
   }
 
   @Async

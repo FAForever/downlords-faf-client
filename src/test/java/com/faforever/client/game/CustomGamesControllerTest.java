@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
@@ -52,15 +51,13 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private GamesTilesContainerController gamesTilesContainerController;
-  @Mock
-  private PlayerService playerService;
 
   private ObservableList<Game> games;
   private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
-    instance = new CustomGamesController(uiService, gameService, preferencesService, eventBus, i18n, playerService);
+    instance = new CustomGamesController(uiService, gameService, preferencesService, eventBus, i18n);
 
     games = FXCollections.observableArrayList();
 
