@@ -19,6 +19,7 @@ public class Game {
   @Id
   private String id;
   private String name;
+  private Boolean replayAvailable;
   private OffsetDateTime startTime;
   private OffsetDateTime endTime;
   private Integer replayTicks;

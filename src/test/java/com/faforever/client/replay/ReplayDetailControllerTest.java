@@ -43,7 +43,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -135,8 +135,10 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBuilder.create("junit").defaultValues().get())));
     when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(12));
     when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
-    when(timeService.asDate(LocalDateTime.MIN)).thenReturn("Min Date");
-    when(timeService.asShortTime(LocalDateTime.MIN)).thenReturn("Min Time");
+    when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");
+    when(timeService.asShortTime(onlineReplay.getStartTime())).thenReturn("Min Time");
+    when(timeService.asDate(localReplay.getStartTime())).thenReturn("Min Date");
+    when(timeService.asShortTime(localReplay.getStartTime())).thenReturn("Min Time");
     when(timeService.shortDuration(any(Duration.class))).thenReturn("Forever");
     when(i18n.get("game.onUnknownMap")).thenReturn("unknown map");
     when(i18n.get("unknown")).thenReturn("unknown");
@@ -237,15 +239,32 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void setReplayNoOnlineFile() {
-    when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(-1));
-    when(i18n.get("game.replayFileMissing")).thenReturn("file missing");
+  public void setReplayMissing() {
+    onlineReplay.setReplayAvailable(false);
+    onlineReplay.setStartTime(OffsetDateTime.now().minusDays(2));
+
+    when(i18n.get("game.replayMissing")).thenReturn("missing");
 
     instance.setReplay(onlineReplay);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals("file missing", instance.watchButton.getText());
-    assertEquals("file missing", instance.downloadMoreInfoButton.getText());
+    assertEquals("missing", instance.watchButton.getText());
+    assertEquals("missing", instance.downloadMoreInfoButton.getText());
+    assertTrue(instance.watchButton.isDisabled());
+    assertTrue(instance.downloadMoreInfoButton.isDisabled());
+  }
+
+  @Test
+  public void setReplayNotAvailable() {
+    onlineReplay.setReplayAvailable(false);
+
+    when(i18n.get("game.replayNotAvailable")).thenReturn("not available");
+
+    instance.setReplay(onlineReplay);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertEquals("not available", instance.watchButton.getText());
+    assertEquals("not available", instance.downloadMoreInfoButton.getText());
     assertTrue(instance.watchButton.isDisabled());
     assertTrue(instance.downloadMoreInfoButton.isDisabled());
   }

@@ -10,8 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.temporal.Temporal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +29,9 @@ public class ReplayBuilder {
   public ReplayBuilder defaultValues() {
     id(1);
     title("test");
-    startTime(LocalDateTime.MIN);
-    endTime(LocalDateTime.MAX);
+    replayAvailable(true);
+    startTime(OffsetDateTime.now().minusHours(1));
+    endTime(OffsetDateTime.now());
     validity(Validity.VALID);
     featuredMod(new FeaturedMod());
     teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))));
@@ -52,6 +52,11 @@ public class ReplayBuilder {
     return this;
   }
 
+  public ReplayBuilder replayAvailable(boolean available) {
+    replay.setReplayAvailable(available);
+    return this;
+  }
+
   public ReplayBuilder teams(ObservableMap<String, List<String>> teams) {
     replay.setTeams(teams);
     return this;
@@ -62,12 +67,12 @@ public class ReplayBuilder {
     return this;
   }
 
-  public ReplayBuilder startTime(Temporal startTime) {
+  public ReplayBuilder startTime(OffsetDateTime startTime) {
     replay.setStartTime(startTime);
     return this;
   }
 
-  public ReplayBuilder endTime(Temporal endTime) {
+  public ReplayBuilder endTime(OffsetDateTime endTime) {
     replay.setEndTime(endTime);
     return this;
   }

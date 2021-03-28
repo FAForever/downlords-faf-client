@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
 
 import java.io.FileNotFoundException;
 import java.time.Duration;
-import java.time.temporal.Temporal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -184,7 +184,7 @@ public class ReplayDetailController implements Controller<Node> {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 
-    Temporal endTime = replay.getEndTime();
+    OffsetDateTime endTime = replay.getEndTime();
     if (endTime != null) {
       durationLabel.setText(timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)));
     } else {
@@ -221,20 +221,25 @@ public class ReplayDetailController implements Controller<Node> {
             () -> ratingLabel.setText("-"));
 
     if (replay.getReplayFile() == null) {
-      replayService.getSize(replay.getId())
-          .thenAccept(replaySize -> JavaFxUtil.runLater(() -> {
-            if (replaySize > -1) {
+      if (replay.getReplayAvailable()) {
+        replayService.getSize(replay.getId())
+            .thenAccept(replaySize -> JavaFxUtil.runLater(() -> {
               String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
               downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
               watchButton.setText(i18n.get("game.watchButtonFormat", humanReadableSize));
               downloadMoreInfoButton.setVisible(true);
-            } else {
-              downloadMoreInfoButton.setText(i18n.get("game.replayFileMissing"));
-              downloadMoreInfoButton.setDisable(true);
-              watchButton.setText(i18n.get("game.replayFileMissing"));
-              watchButton.setDisable(true);
-            }
-          }));
+            }));
+      } else {
+        if (replay.getStartTime().isBefore(OffsetDateTime.now().minusDays(1))) {
+          downloadMoreInfoButton.setText(i18n.get("game.replayMissing"));
+          watchButton.setText(i18n.get("game.replayMissing"));
+        } else {
+          downloadMoreInfoButton.setText(i18n.get("game.replayNotAvailable"));
+          watchButton.setText(i18n.get("game.replayNotAvailable"));
+        }
+        downloadMoreInfoButton.setDisable(true);
+        watchButton.setDisable(true);
+      }
       Optional<Player> currentPlayer = playerService.getCurrentPlayer();
       Assert.state(currentPlayer.isPresent(), "No user is logged in");
 
