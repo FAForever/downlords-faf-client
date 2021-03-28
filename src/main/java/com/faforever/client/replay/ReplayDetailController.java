@@ -231,8 +231,8 @@ public class ReplayDetailController implements Controller<Node> {
             }));
       } else {
         if (replay.getStartTime().isBefore(OffsetDateTime.now().minusDays(1))) {
-          downloadMoreInfoButton.setText(i18n.get("game.replayMissing"));
-          watchButton.setText(i18n.get("game.replayMissing"));
+          downloadMoreInfoButton.setText(i18n.get("game.replayFileMissing"));
+          watchButton.setText(i18n.get("game.replayFileMissing"));
         } else {
           downloadMoreInfoButton.setText(i18n.get("game.replayNotAvailable"));
           watchButton.setText(i18n.get("game.replayNotAvailable"));
