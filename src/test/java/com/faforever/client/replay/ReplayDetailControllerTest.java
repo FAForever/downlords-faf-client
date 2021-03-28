@@ -243,7 +243,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     onlineReplay.setReplayAvailable(false);
     onlineReplay.setStartTime(OffsetDateTime.now().minusDays(2));
 
-    when(i18n.get("game.replayMissing")).thenReturn("missing");
+    when(i18n.get("game.replayFileMissing")).thenReturn("missing");
 
     instance.setReplay(onlineReplay);
     WaitForAsyncUtils.waitForFxEvents();

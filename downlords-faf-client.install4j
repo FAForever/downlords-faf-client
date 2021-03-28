@@ -43,18 +43,18 @@
       <macStaticAssociationActions mode="selected" />
       <vmOptionsFile mode="content" overwriteMode="3">
         <content># Enter one VM parameter per line
-            # Adjust maximum memory usage to 712MiB
-            -Xmx712m
-            -XX:ConcGCThreads=1
-            -XX:ParallelGCThreads=1
-            -XX:+UseG1GC
-            -XX:+HeapDumpOnOutOfMemoryError
-            -javaagent:lib/webview-patch.jar
-            -Djava.net.preferIPv4Stack=true
-            -DnativeDir=natives
-            -Dprism.dirtyopts=false
-            -Dprism.forceGPU=true
-            -Djava.library.path=.
+# Adjust maximum memory usage to 712MiB
+-Xmx712m
+-XX:ConcGCThreads=1
+-XX:ParallelGCThreads=1
+-XX:+UseG1GC
+-XX:+HeapDumpOnOutOfMemoryError
+-javaagent:lib/webview-patch.jar
+-Djava.net.preferIPv4Stack=true
+-DnativeDir=natives
+-Dprism.dirtyopts=false
+-Dprism.forceGPU=true
+-Djava.library.path=.
         </content>
       </vmOptionsFile>
       <iconImageFiles>
