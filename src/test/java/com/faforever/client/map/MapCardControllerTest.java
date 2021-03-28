@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
@@ -37,6 +38,8 @@ public class MapCardControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
   @Mock
+  private MapGeneratorService mapGeneratorService;
+  @Mock
   private NotificationService notificationService;
   @Mock
   private ReportingService reportingService;
@@ -71,7 +74,7 @@ public class MapCardControllerTest extends AbstractPlainJavaFxTest {
     }));
     installedMaps = FXCollections.observableArrayList();
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
-    instance = new MapCardController(mapService, notificationService, i18n, reportingService);
+    instance = new MapCardController(mapService, mapGeneratorService, notificationService, i18n, reportingService);
     mapBean = new MapBean();
     mapBean.setFolderName("testMap");
     mapBean.setDisplayName("testMap");

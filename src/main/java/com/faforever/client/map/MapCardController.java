@@ -4,6 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
@@ -35,6 +36,7 @@ import java.util.function.Consumer;
 public class MapCardController implements Controller<Node> {
 
   private final MapService mapService;
+  private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final ReportingService reportingService;
@@ -82,6 +84,8 @@ public class MapCardController implements Controller<Node> {
     Image image;
     if (map.getLargeThumbnailUrl() != null) {
       image = mapService.loadPreview(map.getLargeThumbnailUrl(), PreviewSize.LARGE);
+    } else if (mapGeneratorService.isGeneratedMap(map.getDisplayName())) {
+      image = mapService.loadPreview(map.getDisplayName(), PreviewSize.LARGE);
     } else {
       image = IdenticonUtil.createIdenticon(map.getId());
     }

@@ -18,6 +18,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.util.Tuple;
@@ -535,8 +536,10 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.findMapById(id);
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int loadMoreCount, int page) {
-    return fafService.getMatchmakerMapsWithPageCount(matchmakerQueueId, loadMoreCount, page);
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakingQueue matchmakerQueue, int count, int page) {
+    Player player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No user is logged in"));
+    float meanRating = player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()).getMean();
+    return fafService.getMatchmakerMapsWithPageCount(matchmakerQueue.getQueueId(), meanRating, count, page);
   }
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {

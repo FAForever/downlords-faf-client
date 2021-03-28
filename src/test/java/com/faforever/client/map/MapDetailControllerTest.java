@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
@@ -52,6 +53,8 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
   private MapService mapService;
+  @Mock
+  private MapGeneratorService mapGeneratorService;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -107,7 +110,7 @@ public class MapDetailControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.hasPlayedMap(eq(currentPlayer.getId()), eq(testMap.getId()))).thenReturn(CompletableFuture.completedFuture(true));
     when(mapService.getFileSize(any(URL.class))).thenReturn(CompletableFuture.completedFuture(12));
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
-    instance = new MapDetailController(mapService, notificationService, i18n, timeService, reportingService, playerService, reviewService, uiService, eventBus);
+    instance = new MapDetailController(mapService, mapGeneratorService, notificationService, i18n, timeService, reportingService, playerService, reviewService, uiService, eventBus);
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {

@@ -9,9 +9,9 @@ import com.faforever.client.api.dto.GameReview;
 import com.faforever.client.api.dto.Map;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModVersionReview;
+import com.faforever.client.api.dto.NeroxisGeneratorParams;
 import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
@@ -481,14 +481,18 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, int count, int page) {
-    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPools(matchmakerQueueId)
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
+    List<MapBean> mapVersions = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating)
         .stream()
-        .map(MatchmakerQueueMapPool::getMapPool)
-        .flatMap(mapPool -> mapPool.getMapVersions().stream())
+        .map(mapPoolAssignment -> {
+          if (mapPoolAssignment.getMapVersion() != null) {
+            return MapBean.fromMapVersionDto(mapPoolAssignment.getMapVersion());
+          } else if (mapPoolAssignment.getMapParams() instanceof NeroxisGeneratorParams) {
+            return MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapPoolAssignment.getMapParams());
+          }
+          return null;
+        })
         .distinct()
-        .map(MapBean::fromMapVersionDto)
-        .sorted(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER))
         .collect(toList());
     return paginateResult(count, page, mapVersions);
   }

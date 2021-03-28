@@ -6,6 +6,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
@@ -29,6 +30,7 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
@@ -52,6 +54,7 @@ import java.util.concurrent.CompletableFuture;
 public class MapDetailController implements Controller<Node> {
 
   private final MapService mapService;
+  private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TimeService timeService;
@@ -156,11 +159,15 @@ public class MapDetailController implements Controller<Node> {
 
   public void setMap(MapBean map) {
     this.map = map;
+    Image image;
     if (map.getLargeThumbnailUrl() != null) {
-      thumbnailImageView.setImage(mapService.loadPreview(map, PreviewSize.LARGE));
+      image = mapService.loadPreview(map.getLargeThumbnailUrl(), PreviewSize.LARGE);
+    } else if (mapGeneratorService.isGeneratedMap(map.getDisplayName())) {
+      image = mapService.loadPreview(map.getDisplayName(), PreviewSize.LARGE);
     } else {
-      thumbnailImageView.setImage(IdenticonUtil.createIdenticon(map.getId()));
+      image = IdenticonUtil.createIdenticon(map.getId());
     }
+    thumbnailImageView.setImage(image);
     renewAuthorControls();
     nameLabel.setText(map.getDisplayName());
     authorLabel.setText(Optional.ofNullable(map.getAuthor()).orElse(i18n.get("map.unknownAuthor")));

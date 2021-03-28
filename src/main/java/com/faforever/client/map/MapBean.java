@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.api.dto.MapVersion;
+import com.faforever.client.api.dto.NeroxisGeneratorParams;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewsSummary;
 import javafx.beans.Observable;
@@ -16,6 +17,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import lombok.EqualsAndHashCode;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@EqualsAndHashCode(of = "id")
 public class MapBean implements Comparable<MapBean> {
 
   private final StringProperty folderName;
@@ -134,6 +137,28 @@ public class MapBean implements Comparable<MapBean> {
     });
     mapBean.setHidden(mapVersion.getHidden());
     mapBean.setRanked(mapVersion.getRanked());
+    return mapBean;
+  }
+
+  public static MapBean fromNeroxisGeneratedMapParams(NeroxisGeneratorParams mapParams) {
+    MapBean mapBean = new MapBean();
+    mapBean.setAuthor("Neroxis");
+    mapBean.setDescription("");
+    mapBean.setDisplayName(String.format("neroxis_map_generator_%s_mapSize=%dkm_spawns=%d", mapParams.getVersion(), (int) (mapParams.getSize() / 51.2), mapParams.getSpawns()));
+    mapBean.setFolderName(mapBean.getDisplayName());
+    mapBean.setSize(MapSize.valueOf(mapParams.getSize(), mapParams.getSize()));
+    mapBean.setDownloads(0);
+    mapBean.setId(mapBean.getDisplayName());
+    mapBean.setPlayers(mapParams.getSpawns());
+    mapBean.setVersion(new ComparableVersion("1"));
+    mapBean.setDownloadUrl(null);
+    mapBean.setSmallThumbnailUrl(null);
+    mapBean.setLargeThumbnailUrl(null);
+    mapBean.setCreateTime(null);
+    mapBean.setNumberOfPlays(0);
+    mapBean.setReviewsSummary(new ReviewsSummary());
+    mapBean.setHidden(false);
+    mapBean.setRanked(true);
     return mapBean;
   }
 

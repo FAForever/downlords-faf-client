@@ -13,10 +13,10 @@ import com.faforever.client.api.dto.Leaderboard;
 import com.faforever.client.api.dto.LeaderboardEntry;
 import com.faforever.client.api.dto.LeaderboardRatingJournal;
 import com.faforever.client.api.dto.Map;
+import com.faforever.client.api.dto.MapPoolAssignment;
 import com.faforever.client.api.dto.MapVersion;
 import com.faforever.client.api.dto.MapVersionReview;
 import com.faforever.client.api.dto.MatchmakerQueue;
-import com.faforever.client.api.dto.MatchmakerQueueMapPool;
 import com.faforever.client.api.dto.MeResult;
 import com.faforever.client.api.dto.Mod;
 import com.faforever.client.api.dto.ModReviewsSummary;
@@ -302,7 +302,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<MatchmakerQueueMapPool> getMatchmakerPools(int matchmakerQueueId) {
+  public List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating) {
     return List.of();
   }
 
