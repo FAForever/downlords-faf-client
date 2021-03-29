@@ -404,6 +404,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onMessage(String message) {
+    message = message.replace(getPassword(), "*****");
     log.debug(message);
   }
 
