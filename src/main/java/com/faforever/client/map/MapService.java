@@ -6,6 +6,7 @@ import com.faforever.client.config.ClientProperties.Vault;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -538,7 +539,8 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakingQueue matchmakerQueue, int count, int page) {
     Player player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No user is logged in"));
-    float meanRating = player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()).getMean();
+    float meanRating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
+        .map(LeaderboardRating::getMean).orElse(0f);
     return fafService.getMatchmakerMapsWithPageCount(matchmakerQueue.getQueueId(), meanRating, count, page);
   }
 
