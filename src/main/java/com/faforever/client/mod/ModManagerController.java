@@ -108,8 +108,6 @@ public class ModManagerController implements Controller<Parent> {
         }
       }
     });
-    EventHandler keyEventHandler = new SearchTextFieldKeyEventHandler(modListView,modVersionFilteredList);
-    modSearchTextField.setOnKeyPressed(keyEventHandler);
   }
 
   private Predicate<ModVersion> getCombinedFilter(String newValue){
