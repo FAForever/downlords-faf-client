@@ -59,6 +59,8 @@ import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
 import org.kitteh.irc.client.library.event.user.PrivateNoticeEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
 import org.kitteh.irc.client.library.feature.auth.NickServ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
@@ -89,6 +91,8 @@ import static javafx.collections.FXCollections.observableMap;
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 @RequiredArgsConstructor
 public class KittehChatService implements ChatService, InitializingBean, DisposableBean {
+
+  private static final Logger ircLog = LoggerFactory.getLogger("faf-irc");
 
   public static final int MAX_GAMES_FOR_NEWBIE_CHANNEL = 50;
   private static final String NEWBIE_CHANNEL_NAME = "#newbie";
@@ -250,7 +254,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onJoinEvent(ChannelJoinEvent event) {
     User user = event.getActor();
-    log.debug("User joined channel: {}", user);
+    ircLog.debug("User joined channel: {}", user);
     addUserToChannel(event.getChannel().getName(), getOrCreateChatUser(user, event.getChannel()));
   }
 
@@ -264,7 +268,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onPartEvent(ChannelPartEvent event) {
     User user = event.getActor();
-    log.debug("User joined channel: {}", user);
+    ircLog.debug("User left channel: {}", user);
     onChatUserLeftChannel(event.getChannel().getName(), user.getNick());
   }
 
@@ -325,12 +329,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   private void onPrivateMessage(PrivateMessageEvent event) {
     User user = event.getActor();
-    log.debug("Received private message: {}", event);
+    ircLog.debug("Received private message: {}", event);
 
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), user.getNick(), false);
     if (sender.getPlayer().map(Player::getSocialStatus).filter(status -> status == SocialStatus.FOE).isPresent()
         && preferencesService.getPreferences().getChat().getHideFoeMessages()) {
-      log.debug("Suppressing chat message from foe '{}'", user.getNick());
+      ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
       return;
     }
     eventBus.post(new ChatMessageEvent(new ChatMessage(user.getNick(), Instant.ofEpochMilli(user.getCreationTime()), user.getNick(), event.getMessage())));
@@ -388,7 +392,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     if (getOrCreateChannel(channelName).removeUser(username) == null) {
       return;
     }
-    log.debug("User '{}' left channel: {}", username, channelName);
+    ircLog.debug("User '{}' left channel: {}", username, channelName);
     if (userService.getUsername().equalsIgnoreCase(username)) {
       synchronized (channels) {
         channels.remove(channelName);
@@ -405,7 +409,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   private void onMessage(String message) {
     message = message.replace(getPassword(), "*****");
-    log.debug(message);
+    ircLog.debug(message);
   }
 
   @Handler

@@ -81,7 +81,6 @@ logging:
 
     org.ice4j.stack: warn
     com.nbarraille.jjsonrpc: warn
-    org.pircbotx: warn
 
     com.faforever.client.FafClientApplication: info
     com.faforever.client.api: info

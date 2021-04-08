@@ -45,7 +45,7 @@ public class UpdaterUtil {
         }
       }
     } catch (ZipException e) {
-      log.trace("File was no zip file", e);
+      log.debug("File was not zip file", e);
     }
   }
 }
