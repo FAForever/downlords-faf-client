@@ -8,29 +8,26 @@ import com.faforever.commons.replay.QtCompress;
 import com.google.common.io.BaseEncoding;
 import com.google.gson.Gson;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Lazy
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ReplayFileWriterImpl implements ReplayFileWriter {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final Gson gson = ReplayFiles.gson();
 
   private final I18n i18n;
@@ -43,7 +40,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
     Path replayFile = preferencesService.getReplaysDirectory().resolve(fileName);
     Path temporaryReplayFile = Files.createTempFile(preferencesService.getCacheDirectory(), fileName, "fafreplay");
 
-    logger.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getUserSpecificLocale()));
+    log.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getUserSpecificLocale()));
 
     Files.createDirectories(replayFile.getParent());
 

@@ -4,14 +4,12 @@ import com.faforever.client.i18n.I18n;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,12 +21,11 @@ import java.util.stream.Collectors;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.COUNTRY_NAMES;
 
+@Slf4j
 @Lazy
 @Service
 @RequiredArgsConstructor
 public class CountryFlagService {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final Collection<String> NON_COUNTRY_CODES = Arrays.asList("A1", "A2", "");
   private final I18n i18n;

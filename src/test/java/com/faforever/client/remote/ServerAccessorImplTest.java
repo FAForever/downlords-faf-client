@@ -36,6 +36,7 @@ import com.google.common.hash.Hashing;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -46,14 +47,11 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -79,9 +77,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
+@Slf4j
 public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
@@ -149,7 +146,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
   private void startFakeFafLobbyServer() throws IOException {
     fafLobbyServerSocket = new ServerSocket(0);
-    logger.info("Fake server listening on " + fafLobbyServerSocket.getLocalPort());
+    log.info("Fake server listening on " + fafLobbyServerSocket.getLocalPort());
 
     WaitForAsyncUtils.async(() -> {
 

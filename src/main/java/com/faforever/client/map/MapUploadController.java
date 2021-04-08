@@ -27,13 +27,11 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -44,9 +42,9 @@ import static java.util.Arrays.asList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class MapUploadController implements Controller<Node> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final MapService mapService;
   private final ExecutorService executorService;
   private final NotificationService notificationService;
@@ -109,7 +107,7 @@ public class MapUploadController implements Controller<Node> {
     CompletableFuture.supplyAsync(() -> mapService.readMap(mapPath), executorService)
         .thenAccept(this::setMapInfo)
         .exceptionally(throwable -> {
-          logger.warn("Map could not be read", throwable);
+          log.warn("Map could not be read", throwable);
           return null;
         });
   }

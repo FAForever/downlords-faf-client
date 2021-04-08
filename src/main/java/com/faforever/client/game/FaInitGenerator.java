@@ -5,8 +5,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.mod.MountInfo;
 import com.google.common.base.Joiner;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -32,8 +30,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Lazy
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class FaInitGenerator {
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final ClassPathResource INIT_TEMPLATE = new ClassPathResource("/fa/init_template.lua");
 
   private final PreferencesService preferencesService;
@@ -47,7 +45,7 @@ public class FaInitGenerator {
     Path initFile = preferencesService.getFafBinDirectory().resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
     String faPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath().toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
 
-    logger.debug("Generating init file at {}", initFile);
+    log.debug("Generating init file at {}", initFile);
 
     List<String> mountPointStrings = mountInfos.stream()
         .map(this::toMountPointFormat)

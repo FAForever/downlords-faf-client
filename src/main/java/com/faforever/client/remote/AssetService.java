@@ -4,13 +4,11 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,9 +20,8 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Lazy
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AssetService {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
 
@@ -46,11 +43,11 @@ public class AssetService {
     String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
     Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
     if (Files.exists(cachePath)) {
-      logger.debug("Using cached image: {}", cachePath);
+      log.debug("Using cached image: {}", cachePath);
       return new Image(noCatch(() -> cachePath.toUri().toURL().toExternalForm()), width, height, true, true);
     }
 
-    logger.debug("Fetching image {}", url);
+    log.debug("Fetching image {}", url);
 
     Image image = new Image(url.toString(), width, height, true, true, true);
     JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));

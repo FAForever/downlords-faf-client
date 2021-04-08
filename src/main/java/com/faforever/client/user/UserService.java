@@ -15,22 +15,20 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletableFuture;
 
 @Lazy
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService implements InitializingBean {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final StringProperty username = new SimpleStringProperty();
 
   private final FafService fafService;
@@ -68,7 +66,7 @@ public class UserService implements InitializingBean {
         })
         .whenComplete((aVoid, throwable) -> {
           if (throwable != null) {
-            logger.warn("Error during login", throwable);
+            log.warn("Error during login", throwable);
             fafService.disconnect();
           }
           loginFuture = null;
@@ -108,7 +106,7 @@ public class UserService implements InitializingBean {
   }
 
   public void logOut() {
-    logger.info("Logging out");
+    log.info("Logging out");
     fafService.disconnect();
     eventBus.post(new LoggedOutEvent());
     preferencesService.getPreferences().getLogin().setAutoLogin(false);

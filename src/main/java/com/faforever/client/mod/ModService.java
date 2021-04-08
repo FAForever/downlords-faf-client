@@ -30,11 +30,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.CacheEvict;
@@ -46,7 +45,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
@@ -78,10 +76,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @Lazy
 @Service
 @RequiredArgsConstructor
+@Slf4j
 // TODO divide and conquer
 public class ModService implements InitializingBean, DisposableBean {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private static final Pattern ACTIVE_MODS_PATTERN = Pattern.compile("active_mods\\s*=\\s*\\{.*?}", Pattern.DOTALL);
   private static final Pattern ACTIVE_MOD_PATTERN = Pattern.compile("\\['(.*?)']\\s*=\\s*(true|false)", Pattern.DOTALL);
@@ -128,7 +125,7 @@ public class ModService implements InitializingBean, DisposableBean {
       Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
       directoryWatcherThread = startDirectoryWatcher(modsDirectory);
     } catch (IOException e) {
-      logger.warn("Could not start mod directory watcher", e);
+      log.warn("Could not start mod directory watcher", e);
       // TODO notify user
     }
     loadInstalledMods();
@@ -148,7 +145,7 @@ public class ModService implements InitializingBean, DisposableBean {
           key.reset();
         }
       } catch (InterruptedException e) {
-        logger.debug("Watcher terminated ({})", e.getMessage());
+        log.debug("Watcher terminated ({})", e.getMessage());
       }
     }));
     thread.start();
@@ -161,7 +158,7 @@ public class ModService implements InitializingBean, DisposableBean {
         addMod(path);
       }
     } catch (IOException e) {
-      logger.warn("Mods could not be read from: " + modsDirectory, e);
+      log.warn("Mods could not be read from: " + modsDirectory, e);
     }
   }
 
@@ -174,7 +171,7 @@ public class ModService implements InitializingBean, DisposableBean {
     return fafService.getModVersion(uid)
         .thenCompose(mod -> downloadAndInstallMod(mod, null, null))
         .exceptionally(throwable -> {
-          logger.warn("Sim mod could not be installed", throwable);
+          log.warn("Sim mod could not be installed", throwable);
           return null;
         });
   }
@@ -260,7 +257,7 @@ public class ModService implements InitializingBean, DisposableBean {
   @SneakyThrows
   public ModVersion extractModInfo(Path path) {
     Path modInfoLua = path.resolve("mod_info.lua");
-    logger.debug("Reading mod {}", path);
+    log.debug("Reading mod {}", path);
     if (Files.notExists(modInfoLua)) {
       throw new ModLoadException("Missing mod_info.lua in: " + path.toAbsolutePath());
     }
@@ -412,12 +409,12 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private void removeMod(Path path) {
-    logger.debug("Removing mod: {}", path);
+    log.debug("Removing mod: {}", path);
     installedModVersions.remove(pathToMod.remove(path));
   }
 
   private void addMod(Path path) {
-    logger.debug("Adding mod: {}", path);
+    log.debug("Adding mod: {}", path);
     try {
       ModVersion modVersion = extractModInfo(path);
       pathToMod.put(path, modVersion);
@@ -425,13 +422,13 @@ public class ModService implements InitializingBean, DisposableBean {
         installedModVersions.add(modVersion);
       }
     } catch (ModLoadException e) {
-      logger.debug("Corrupt mod: " + path, e);
+      log.debug("Corrupt mod: " + path, e);
 
       notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
     } catch (Exception e) {
-      logger.warn("Skipping mod because of exception during adding of mod: " + path, e);
+      log.warn("Skipping mod because of exception during adding of mod: " + path, e);
 
       notificationService.addNotification(new PersistentNotification(i18n.get("corruptedModsError.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))

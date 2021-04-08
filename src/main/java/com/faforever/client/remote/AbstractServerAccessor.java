@@ -3,23 +3,20 @@ package com.faforever.client.remote;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.io.QDataInputStream;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.Socket;
 
 /**
  * Super class for all server accessors.
  */
+@Slf4j
 public abstract class AbstractServerAccessor implements DisposableBean {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private boolean stopped;
   private QDataInputStream dataInput;
@@ -38,16 +35,16 @@ public abstract class AbstractServerAccessor implements DisposableBean {
       dataInput.skipBlockSize();
       String message = dataInput.readQString();
 
-      logger.debug("Message from server: {}", message);
+      log.debug("Message from server: {}", message);
 
       try {
         onServerMessage(message);
       } catch (Exception e) {
-        logger.warn("Error while handling server message: " + message, e);
+        log.warn("Error while handling server message: " + message, e);
       }
     }
 
-    logger.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());
+    log.info("Connection to server {} has been closed", socket.getRemoteSocketAddress());
   }
 
   protected abstract void onServerMessage(String message) throws IOException;

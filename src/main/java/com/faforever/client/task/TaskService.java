@@ -5,12 +5,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -22,9 +20,8 @@ import java.util.concurrent.ExecutorService;
 @Lazy
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TaskService {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final ExecutorService executorService;
   private final ObservableList<Worker<?>> activeTasks = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
@@ -41,7 +38,7 @@ public class TaskService {
     task.getFuture().whenComplete((o, throwable) -> {
       activeTasks.remove(task);
       if (throwable != null) {
-        logger.warn("Task failed", (Throwable) throwable);
+        log.warn("Task failed", (Throwable) throwable);
       }
     });
     JavaFxUtil.runLater(() -> {

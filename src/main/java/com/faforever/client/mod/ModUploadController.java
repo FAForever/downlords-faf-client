@@ -25,13 +25,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -43,9 +41,9 @@ import static java.util.Arrays.asList;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
+@Slf4j
 public class ModUploadController implements Controller<Node> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ModService modService;
   private final ExecutorService executorService;
   private final NotificationService notificationService;
@@ -92,7 +90,7 @@ public class ModUploadController implements Controller<Node> {
     CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), executorService)
         .thenAccept(this::setModVersionInfo)
         .exceptionally(throwable -> {
-          logger.warn("ModVersion could not be read", throwable);
+          log.warn("ModVersion could not be read", throwable);
           return null;
         });
   }

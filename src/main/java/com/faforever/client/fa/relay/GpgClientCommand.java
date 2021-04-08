@@ -1,12 +1,11 @@
 package com.faforever.client.fa.relay;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public enum GpgClientCommand {
   DISCONNECTED("Disconnected"),
   CONNECTED("Connected"),
@@ -29,8 +28,6 @@ public enum GpgClientCommand {
   // Yes, this is the only lower-cased command in the protocol. Because reasons.
   CONNECTED_TO_HOST("connectedToHost");
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
   private static final Map<String, GpgClientCommand> fromString;
 
   static {
@@ -49,7 +46,7 @@ public enum GpgClientCommand {
   public static GpgClientCommand fromString(String string) {
     GpgClientCommand action = fromString.get(string);
     if (action == null) {
-      logger.warn("Unknown lobby action: {}", string);
+      log.warn("Unknown lobby action: {}", string);
     }
     return action;
   }

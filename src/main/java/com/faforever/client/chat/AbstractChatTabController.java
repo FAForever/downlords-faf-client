@@ -44,18 +44,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -81,13 +79,13 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
  * selectable, but text within a WebView is. This comes with some ugly implications; some of the logic has to be
  * performed in interaction with JavaScript, like when the user clicks a link.
  */
+@Slf4j
 public abstract class AbstractChatTabController implements Controller<Tab> {
 
   static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-section";
   private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final org.springframework.core.io.Resource CHAT_JS_RESOURCE = new ClassPathResource("/js/chat_container.js");
   private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
   private static final org.springframework.core.io.Resource JQUERY_JS_RESOURCE = new ClassPathResource("js/jquery-2.1.4.min.js");
@@ -424,7 +422,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       messageTextField.requestFocus();
     }).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-      logger.warn("Message could not be sent: {}", text, throwable);
+      log.warn("Message could not be sent: {}", text, throwable);
       notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
 
       messageTextField.setDisable(false);
@@ -446,7 +444,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           // TODO onDisplay error to user somehow
-          logger.warn("Message could not be sent: {}", text, throwable);
+          log.warn("Message could not be sent: {}", text, throwable);
           messageTextField.setDisable(false);
           return null;
         });

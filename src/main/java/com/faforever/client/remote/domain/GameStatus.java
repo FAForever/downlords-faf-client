@@ -1,13 +1,12 @@
 package com.faforever.client.remote.domain;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+@Slf4j
 public enum GameStatus {
 
   UNKNOWN("unknown"),
@@ -15,7 +14,6 @@ public enum GameStatus {
   OPEN("open"),
   CLOSED("closed");
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final Map<String, GameStatus> fromString;
 
   static {
@@ -34,7 +32,7 @@ public enum GameStatus {
   public static GameStatus fromString(String string) {
     GameStatus gameStatus = fromString.get(string != null ? string.toLowerCase(Locale.US) : null);
     if (gameStatus == null) {
-      logger.warn("Unknown game state: {}", string);
+      log.warn("Unknown game state: {}", string);
       return UNKNOWN;
     }
     return gameStatus;
