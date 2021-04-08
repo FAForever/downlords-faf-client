@@ -10,20 +10,16 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
-
+@Slf4j
 @Lazy
 @Component
 @RequiredArgsConstructor
 public class AchievementUnlockedNotifier implements InitializingBean {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -44,7 +40,7 @@ public class AchievementUnlockedNotifier implements InitializingBean {
         .forEachOrdered(updatedAchievement -> achievementService.getAchievementDefinition(updatedAchievement.getAchievementId())
             .thenAccept(this::notifyAboutUnlockedAchievement)
             .exceptionally(throwable -> {
-              logger.warn("Could not valueOf achievement definition for achievement: {}", updatedAchievement.getAchievementId(), throwable);
+              log.warn("Could not valueOf achievement definition for achievement: {}", updatedAchievement.getAchievementId(), throwable);
               return null;
             })
         );

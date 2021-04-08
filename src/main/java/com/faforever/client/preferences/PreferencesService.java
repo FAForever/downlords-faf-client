@@ -25,7 +25,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.InitializingBean;
@@ -65,6 +65,7 @@ import java.util.stream.Stream;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
+@Slf4j
 @Lazy
 @Service
 public class PreferencesService implements InitializingBean {
@@ -77,7 +78,6 @@ public class PreferencesService implements InitializingBean {
    * depending on the operating system.
    */
   protected static final Path FAF_DATA_DIRECTORY;
-  private static final Logger logger;
   private static final long STORE_DELAY = 1000;
   private static final Charset CHARSET = StandardCharsets.UTF_8;
   private static final String PREFS_FILE_NAME = "client.prefs";
@@ -122,8 +122,7 @@ public class PreferencesService implements InitializingBean {
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
 
-    logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    logger.debug("Logger initialized");
+    log.debug("Logger initialized");
   }
 
   private final Path preferencesFilePath;
@@ -178,7 +177,7 @@ public class PreferencesService implements InitializingBean {
 
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
     if (Files.notExists(gamePrefs)) {
-      logger.info("Initializing game preferences file: {}", gamePrefs);
+      log.info("Initializing game preferences file: {}", gamePrefs);
       Files.createDirectories(gamePrefs.getParent());
       Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
     }
@@ -246,11 +245,11 @@ public class PreferencesService implements InitializingBean {
     Assert.checkNotNullIllegalState(preferences, "Preferences have already been initialized");
 
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
-      logger.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
+      log.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
       preferences = gson.fromJson(reader, Preferences.class);
       migratePreferences(preferences);
     } catch (Exception e) {
-      logger.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
+      log.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
       CountDownLatch waitForUser = new CountDownLatch(1);
       JavaFxUtil.runLater(() -> {
         Alert errorReading = new Alert(AlertType.ERROR, "Error reading setting. Reset settings? ", ButtonType.YES, ButtonType.CANCEL);
@@ -262,7 +261,7 @@ public class PreferencesService implements InitializingBean {
             preferences = new Preferences();
             waitForUser.countDown();
           } catch (Exception ex) {
-            logger.error("Error deleting settings file", ex);
+            log.error("Error deleting settings file", ex);
             Alert errorDeleting = new Alert(AlertType.ERROR, MessageFormat.format("Error deleting setting. Please delete them yourself. You find them under {} .", preferencesFilePath.toAbsolutePath()), ButtonType.OK);
             errorDeleting.showAndWait();
             preferences = new Preferences();
@@ -290,15 +289,15 @@ public class PreferencesService implements InitializingBean {
         Files.createDirectories(parent);
       }
     } catch (IOException e) {
-      logger.warn("Could not create directory " + parent.toAbsolutePath(), e);
+      log.warn("Could not create directory " + parent.toAbsolutePath(), e);
       return;
     }
 
     try (Writer writer = Files.newBufferedWriter(preferencesFilePath, CHARSET)) {
-      logger.debug("Writing preferences file {}", preferencesFilePath.toAbsolutePath());
+      log.debug("Writing preferences file {}", preferencesFilePath.toAbsolutePath());
       gson.toJson(preferences, writer);
     } catch (IOException e) {
-      logger.warn("Preferences file " + preferencesFilePath.toAbsolutePath() + " could not be written", e);
+      log.warn("Preferences file " + preferencesFilePath.toAbsolutePath() + " could not be written", e);
     }
   }
 
@@ -374,9 +373,9 @@ public class PreferencesService implements InitializingBean {
           .skip(NUMBER_GAME_LOGS_STORED - 1)
           .forEach(p -> noCatch(() -> Files.delete(p)));
     } catch (IOException e) {
-      logger.error("Could not list log directory.", e);
+      log.error("Could not list log directory.", e);
     } catch (NoCatchException e) {
-      logger.error("Could not delete game log file");
+      log.error("Could not delete game log file");
     }
     return getFafLogDirectory().resolve(String.format("game_%d.log", gameUID));
   }
@@ -386,9 +385,9 @@ public class PreferencesService implements InitializingBean {
       return listOfLogFiles
           .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches()).max(Comparator.comparingLong(p -> p.toFile().lastModified()));
     } catch (IOException e) {
-      logger.error("Could not list log directory.", e);
+      log.error("Could not list log directory.", e);
     } catch (NoCatchException e) {
-      logger.error("Could not delete game log file");
+      log.error("Could not delete game log file");
     }
     return Optional.empty();
   }
@@ -411,7 +410,7 @@ public class PreferencesService implements InitializingBean {
       exeHash = sha256OfFile(binPath.resolve(SUPREME_COMMANDER_EXE));
     }
     for (String hash : clientProperties.getVanillaGameHashes()) {
-      logger.debug("Hash of Supreme Commander.exe in selected User directory: " + exeHash);
+      log.debug("Hash of Supreme Commander.exe in selected User directory: " + exeHash);
       if (hash.equals(exeHash)) {
         return "gamePath.select.vanillaGameSelected";
       }
@@ -491,9 +490,9 @@ public class PreferencesService implements InitializingBean {
         .filter(logger -> logger.getName().startsWith("com.faforever"))
         .forEach(logger -> ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger.getName())).setLevel(targetLogLevel));
 
-    logger.info("Switching FA Forever logging configuration to {}", targetLogLevel.levelStr);
+    log.info("Switching FA Forever logging configuration to {}", targetLogLevel.levelStr);
     if (targetLogLevel == Level.DEBUG) {
-      logger.debug("Confirming debug logging");
+      log.debug("Confirming debug logging");
     }
   }
 }

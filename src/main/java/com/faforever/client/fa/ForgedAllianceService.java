@@ -5,15 +5,13 @@ import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
@@ -29,9 +27,8 @@ import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANC
 @Lazy
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ForgedAllianceService {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
 
@@ -127,7 +124,7 @@ public class ForgedAllianceService {
     processBuilder.directory(executeDirectory.toFile());
     processBuilder.command(launchCommand);
 
-    logger.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
+    log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     return processBuilder.start();
   }

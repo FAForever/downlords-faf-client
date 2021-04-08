@@ -3,8 +3,7 @@ package com.faforever.client.remote;
 import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.io.QDataWriter;
 import com.faforever.client.util.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.serializer.Serializer;
 
 import java.io.BufferedOutputStream;
@@ -14,7 +13,6 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,9 +21,8 @@ import java.util.Map;
  * Sends data to the server. Classes should not use the server writer directly, but e.g. {@link
  * com.faforever.client.remote.FafService} or any other server accessor instead.
  */
+@Slf4j
 public class ServerWriter implements Closeable {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final QDataWriter qDataWriter;
   private final Map<Class<?>, Serializer<?>> objectWriters;
@@ -57,9 +54,9 @@ public class ServerWriter implements Closeable {
         qDataWriter.flush();
       }
     } catch (EOFException | SocketException e) {
-      logger.debug("Server writer has been closed");
+      log.debug("Server writer has been closed");
     } catch (IOException e) {
-      logger.debug("Server writer has been closed", e);
+      log.debug("Server writer has been closed", e);
     }
   }
 

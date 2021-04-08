@@ -7,9 +7,8 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
 import com.faforever.commons.io.Unzipper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -32,9 +30,8 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class InstallModTask extends CompletableTask<Void> {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
   private final I18n i18n;
@@ -55,7 +52,7 @@ public class InstallModTask extends CompletableTask<Void> {
 
     Path tempFile = Files.createTempFile(preferencesService.getCacheDirectory(), "mod", null);
 
-    logger.info("Downloading mod {} to {}", url, tempFile);
+    log.info("Downloading mod {} to {}", url, tempFile);
     updateTitle(i18n.get("downloadingModTask.downloading", url));
 
     Files.createDirectories(tempFile.getParent());
@@ -79,7 +76,7 @@ public class InstallModTask extends CompletableTask<Void> {
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {
-        logger.warn("Could not delete temporary file: " + tempFile.toAbsolutePath(), e);
+        log.warn("Could not delete temporary file: " + tempFile.toAbsolutePath(), e);
       }
     }
     return null;
@@ -92,7 +89,7 @@ public class InstallModTask extends CompletableTask<Void> {
 
     deleteOldModIfExisting(tempFile, modsDirectory);
 
-    logger.info("Unzipping {} to {}", tempFile, modsDirectory);
+    log.info("Unzipping {} to {}", tempFile, modsDirectory);
     try (InputStream inputStream = Files.newInputStream(tempFile)) {
       ResourceLocks.acquireDiskLock();
 
@@ -116,10 +113,10 @@ public class InstallModTask extends CompletableTask<Void> {
       Path modDirectory = modsDirectory.resolve(topLevelDirectory);
       if (Files.isDirectory(modDirectory)) {
         FileUtils.deleteRecursively(modDirectory);
-        logger.trace("Deleting old version of the mod stored in {}", modDirectory);
+        log.trace("Deleting old version of the mod stored in {}", modDirectory);
       }
     } catch (Exception e) {
-      logger.warn("Could not delete directory of old mod", e);
+      log.warn("Could not delete directory of old mod", e);
     }
   }
 

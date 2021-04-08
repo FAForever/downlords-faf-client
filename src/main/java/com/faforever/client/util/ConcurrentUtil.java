@@ -3,15 +3,12 @@ package com.faforever.client.util;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CompletionException;
 
+@Slf4j
 public final class ConcurrentUtil {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private ConcurrentUtil() {
     // Utility class
@@ -32,7 +29,7 @@ public final class ConcurrentUtil {
         return (Task<T>) worker;
       }
     };
-    service.setOnFailed(event -> logger.error("Task failed", event.getSource().getException()));
+    service.setOnFailed(event -> log.error("Task failed", event.getSource().getException()));
     service.start();
 
     return service;

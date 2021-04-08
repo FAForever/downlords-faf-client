@@ -5,8 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.io.ByteCopier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -24,9 +22,9 @@ import java.nio.file.Path;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class ReplayDownloadTask extends CompletableTask<Path> {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String TEMP_FAF_REPLAY_FILE_NAME = "temp.fafreplay";
 
   private final I18n i18n;
@@ -50,7 +48,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
 
     String replayUrl = Replay.getReplayUrl(replayId, clientProperties.getVault().getReplayDownloadUrlFormat());
 
-    logger.info("Downloading replay {} from {}", replayId, replayUrl);
+    log.info("Downloading replay {} from {}", replayId, replayUrl);
 
     HttpURLConnection urlConnection = (HttpURLConnection) new URL(replayUrl).openConnection();
     urlConnection.setInstanceFollowRedirects(true);

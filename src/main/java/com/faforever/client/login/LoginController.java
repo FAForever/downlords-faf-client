@@ -32,13 +32,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
@@ -51,7 +48,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class LoginController implements Controller<Pane> {
 
   private static final Pattern EMAIL_REGEX = Pattern.compile(".*[@].*[.].*");
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final UserService userService;
   private final PreferencesService preferencesService;
   private final PlatformService platformService;
@@ -283,7 +279,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private void onLoginFailed(Throwable e) {
-    logger.warn("Login failed", e);
+    log.warn("Login failed", e);
     JavaFxUtil.runLater(() -> {
       if (e instanceof CancellationException) {
         loginErrorLabel.setVisible(false);

@@ -8,15 +8,13 @@ import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Validator;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -27,9 +25,8 @@ import static java.nio.file.Files.newOutputStream;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class ModUploadTask extends CompletableTask<Void> {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
   private final FafService fafService;
@@ -56,7 +53,7 @@ public class ModUploadTask extends CompletableTask<Void> {
     Path tmpFile = createTempFile(cacheDirectory, "mod", ".zip");
 
     try {
-      logger.debug("Zipping mod {} to {}", modPath, tmpFile);
+      log.debug("Zipping mod {} to {}", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.compressing"));
 
       Locale locale = i18n.getUserSpecificLocale();
@@ -72,7 +69,7 @@ public class ModUploadTask extends CompletableTask<Void> {
             .zip();
       }
 
-      logger.debug("Uploading mod {} as {}", modPath, tmpFile);
+      log.debug("Uploading mod {} as {}", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.uploading"));
 
       fafService.uploadMod(tmpFile, byteListener);

@@ -35,13 +35,12 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.CacheEvict;
@@ -53,7 +52,6 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,12 +79,12 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.stream.Collectors.toCollection;
 
 
+@Slf4j
 @Lazy
 @Service
 public class MapService implements InitializingBean, DisposableBean {
 
   public static final String DEBUG = "debug";
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String MAP_VERSION_REGEX = ".*[.v](?<version>\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
   private final PreferencesService preferencesService;
   private final TaskService taskService;
@@ -173,13 +171,13 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private void tryLoadMaps() {
     if (forgedAlliancePreferences.getInstallationPath() == null) {
-      logger.warn("Could not load maps: installation path is not set");
+      log.warn("Could not load maps: installation path is not set");
       return;
     }
 
     Path mapsDirectory = forgedAlliancePreferences.getCustomMapsDirectory();
     if (mapsDirectory == null) {
-      logger.warn("Could not load maps: custom map directory is not set");
+      log.warn("Could not load maps: custom map directory is not set");
       return;
     }
 
@@ -188,7 +186,7 @@ public class MapService implements InitializingBean, DisposableBean {
       Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
       directoryWatcherThread = startDirectoryWatcher(mapsDirectory);
     } catch (IOException e) {
-      logger.warn("Could not start map directory watcher", e);
+      log.warn("Could not start map directory watcher", e);
       // TODO notify user
     }
 
@@ -212,7 +210,7 @@ public class MapService implements InitializingBean, DisposableBean {
                   try {
                     Thread.sleep(1000);
                   } catch (InterruptedException e) {
-                    logger.debug("Thread interrupted ({})", e.getMessage());
+                    log.debug("Thread interrupted ({})", e.getMessage());
                   }
                   addInstalledMap(mapPath);
                 }
@@ -220,7 +218,7 @@ public class MapService implements InitializingBean, DisposableBean {
           key.reset();
         }
       } catch (InterruptedException e) {
-        logger.debug("Watcher terminated ({})", e.getMessage());
+        log.debug("Watcher terminated ({})", e.getMessage());
       }
     }));
     thread.setDaemon(true);
@@ -251,7 +249,7 @@ public class MapService implements InitializingBean, DisposableBean {
             addInstalledMap(mapPath);
           }
         } catch (IOException e) {
-          logger.warn("Maps could not be read from: " + forgedAlliancePreferences.getCustomMapsDirectory(), e);
+          log.warn("Maps could not be read from: " + forgedAlliancePreferences.getCustomMapsDirectory(), e);
         }
         return null;
       }
@@ -271,7 +269,7 @@ public class MapService implements InitializingBean, DisposableBean {
         installedMaps.add(mapBean);
       }
     } catch (MapLoadException e) {
-      logger.warn("Map could not be read: " + path.getFileName(), e);
+      log.warn("Map could not be read: " + path.getFileName(), e);
     }
   }
 
@@ -337,7 +335,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public Optional<MapBean> getMapLocallyFromName(String mapFolderName) {
-    logger.debug("Trying to find map '{}' locally", mapFolderName);
+    log.debug("Trying to find map '{}' locally", mapFolderName);
     String mapFolderKey = mapFolderName.toLowerCase();
     return Optional.ofNullable(mapsByFolderName.get(mapFolderKey));
   }
@@ -551,7 +549,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
 
     if (isInstalled(folderName)) {
-      logger.debug("Map '{}' exists locally already. Download is not required", folderName);
+      log.debug("Map '{}' exists locally already. Download is not required", folderName);
       return CompletableFuture.completedFuture(null);
     }
 

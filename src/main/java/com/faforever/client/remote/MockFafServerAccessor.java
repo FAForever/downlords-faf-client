@@ -32,13 +32,11 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,10 +59,10 @@ import static java.util.Collections.singletonList;
 @Component
 @Profile(FafClientApplication.PROFILE_OFFLINE)
 @RequiredArgsConstructor
+@Slf4j
 // NOSONAR
 public class MockFafServerAccessor implements FafServerAccessor {
 
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final String USER_NAME = "MockUser";
   private final Timer timer = new Timer("LobbyServerAccessorTimer", true);
   private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
@@ -233,7 +231,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
-    logger.debug("Starting matchmaker game");
+    log.debug("Starting matchmaker game");
     GameLaunchMessage gameLaunchMessage = new GameLaunchMessage();
     gameLaunchMessage.setUid(123);
     gameLaunchMessage.setMod(KnownFeaturedMod.DEFAULT.getTechnicalName());

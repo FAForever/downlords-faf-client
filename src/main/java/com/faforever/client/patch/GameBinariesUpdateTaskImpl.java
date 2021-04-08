@@ -11,9 +11,8 @@ import com.faforever.client.util.Validator;
 import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import com.faforever.commons.io.ByteCopier;
 import com.google.common.annotations.VisibleForTesting;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -37,6 +35,7 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.setAttribute;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements GameBinariesUpdateTask {
@@ -57,7 +56,6 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
       "wxmsw24u-vs80.dll",
       "zlibwapi.dll"
   );
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
@@ -81,14 +79,14 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   protected Void call() throws Exception {
     updateTitle(i18n.get("updater.binary.taskTitle"));
     Assert.checkNullIllegalState(version, "Field 'version' must not be null");
-    logger.info("Updating binaries to {}", version);
+    log.info("Updating binaries to {}", version);
 
     Path exePath = preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
     ForgedAllianceExePatcher.patchVersion(exePath, version);
-    logger.debug("Binaries have been updated successfully");
+    log.debug("Binaries have been updated successfully");
     return null;
   }
 
@@ -100,7 +98,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     }
     ResourceLocks.acquireDownloadLock();
     try {
-      logger.debug("Downloading {} to {}", fafExeUrl, exePath);
+      log.debug("Downloading {} to {}", fafExeUrl, exePath);
       URLConnection urlConnection = new URL(fafExeUrl).openConnection();
       try (InputStream inputStream = urlConnection.getInputStream();
            OutputStream outputStream = Files.newOutputStream(exePath)) {
@@ -118,7 +116,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
   @VisibleForTesting
   void copyGameFilesToFafBinDirectory() throws IOException {
-    logger.debug("Copying Forged Alliance binaries FAF folder");
+    log.debug("Copying Forged Alliance binaries FAF folder");
 
     Path fafBinDirectory = preferencesService.getFafBinDirectory();
     createDirectories(fafBinDirectory);
@@ -131,7 +129,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
           .forEach(source -> {
             Path destination = fafBinDirectory.resolve(source.getFileName());
 
-            logger.debug("Copying file '{}' to '{}'", source, destination);
+            log.debug("Copying file '{}' to '{}'", source, destination);
             noCatch(() -> createDirectories(destination.getParent()));
             noCatch(() -> {
               if (!Files.exists(destination)) {

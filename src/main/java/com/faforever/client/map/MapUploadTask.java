@@ -8,8 +8,7 @@ import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Validator;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.io.Zipper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -28,9 +26,8 @@ import static java.nio.file.Files.newOutputStream;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class MapUploadTask extends CompletableTask<Void> implements InitializingBean {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final PreferencesService preferencesService;
   private final FafApiAccessor fafApiAccessor;
@@ -63,7 +60,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
     Path tmpFile = createTempFile(cacheDirectory, "map", ".zip");
 
     try {
-      logger.debug("Zipping map {} to {}", mapPath, tmpFile);
+      log.debug("Zipping map {} to {}", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.compressing"));
 
       Locale locale = i18n.getUserSpecificLocale();
@@ -79,7 +76,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
             .zip();
       }
 
-      logger.debug("Uploading map {} as {}", mapPath, tmpFile);
+      log.debug("Uploading map {} as {}", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.uploading"));
 
       fafApiAccessor.uploadMap(tmpFile, isRanked, byteListener);

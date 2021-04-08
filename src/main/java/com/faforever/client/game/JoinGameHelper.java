@@ -17,12 +17,9 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -32,8 +29,6 @@ import static java.util.Arrays.asList;
 @Component
 @Slf4j
 public class JoinGameHelper {
-
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private final I18n i18n;
   private final PlayerService playerService;
@@ -87,7 +82,7 @@ public class JoinGameHelper {
     } else {
       gameService.joinGame(game, password)
           .exceptionally(throwable -> {
-            logger.warn("Game could not be joined", throwable);
+            log.warn("Game could not be joined", throwable);
             notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
             return null;
           });

@@ -8,12 +8,9 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,7 +30,6 @@ public class GamePathHandler implements InitializingBean {
       Paths.get(System.getProperty("user.home"), ".steam", "steam", "steamapps", "common", "Supreme Commander Forged Alliance"),
       Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
-  private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final NotificationService notificationService;
   private final I18n i18n;
   private final EventBus eventBus;
@@ -90,7 +86,7 @@ public class GamePathHandler implements InitializingBean {
     }
 
 
-    logger.info("Found game path at {}", gamePath);
+    log.info("Found game path at {}", gamePath);
     preferencesService.getPreferences().getForgedAlliance().setInstallationPath(gamePath);
     preferencesService.storeInBackground();
     future.ifPresent(pathCompletableFuture -> pathCompletableFuture.complete(gamePath));
@@ -105,14 +101,14 @@ public class GamePathHandler implements InitializingBean {
       }
     }
 
-    logger.info("Game path could not be detected");
+    log.info("Game path could not be detected");
     eventBus.post(new MissingGamePathEvent());
   }
 
   public void detectAndUpdateGamePath() {
     Path faPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath();
     if (faPath == null || Files.notExists(faPath)) {
-      logger.info("Game path is not specified or non-existent, trying to detect");
+      log.info("Game path is not specified or non-existent, trying to detect");
       detectGamePath();
     }
   }
