@@ -121,8 +121,6 @@ public class PreferencesService implements InitializingBean {
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
-
-    log.debug("Logger initialized");
   }
 
   private final Path preferencesFilePath;
@@ -197,6 +195,7 @@ public class PreferencesService implements InitializingBean {
 
   public static void configureLogging() {
     // Calling this method causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
+    log.debug("Logger initialized");
   }
 
 
