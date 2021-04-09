@@ -23,7 +23,9 @@ public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage
 
   @Override
   protected void addTypeAdapters(GsonBuilder gsonBuilder) {
-    gsonBuilder.registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
+    gsonBuilder
+        .serializeNulls()
+        .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
         .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
         .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
         .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
