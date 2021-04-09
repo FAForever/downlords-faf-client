@@ -161,7 +161,23 @@ public class LoginController implements Controller<Pane> {
 
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
-          .thenApply(clientConfiguration -> {
+          .thenAccept(clientConfiguration -> {
+            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+
+            Server server = clientProperties.getServer();
+            server.setHost(defaultEndpoint.getLobby().getHost());
+            server.setPort(defaultEndpoint.getLobby().getPort());
+
+            Replay replay = clientProperties.getReplay();
+            replay.setRemoteHost(defaultEndpoint.getLiveReplay().getHost());
+            replay.setRemotePort(defaultEndpoint.getLiveReplay().getPort());
+
+            Irc irc = clientProperties.getIrc();
+            irc.setHost(defaultEndpoint.getIrc().getHost());
+            irc.setPort(defaultEndpoint.getIrc().getPort());
+
+            clientProperties.getApi().setBaseUrl(defaultEndpoint.getApi().getUrl());
+
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
             try {
@@ -175,13 +191,11 @@ public class LoginController implements Controller<Pane> {
             } else {
               loginAllowed = true;
             }
-            return clientConfiguration;
-          })
-          .thenAccept(clientConfiguration -> JavaFxUtil.runLater(() -> {
-            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
-            environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
-            environmentComboBox.getSelectionModel().select(defaultEndpoint);
-          })).exceptionally(throwable -> {
+            JavaFxUtil.runLater(() -> {
+              environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
+              environmentComboBox.getSelectionModel().select(defaultEndpoint);
+            });
+          }).exceptionally(throwable -> {
             log.warn("Could not read remote preferences", throwable);
             loginAllowed = true;
             return null;
@@ -262,20 +276,6 @@ public class LoginController implements Controller<Pane> {
   private void login(String username, String password, boolean autoLogin) {
     setShowLoginProgress(true);
 
-    Server server = clientProperties.getServer();
-    server.setHost(serverHostField.getText());
-    server.setPort(Integer.parseInt(serverPortField.getText()));
-
-    Replay replay = clientProperties.getReplay();
-    replay.setRemoteHost(replayServerHostField.getText());
-    replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
-
-    Irc irc = clientProperties.getIrc();
-    irc.setHost(ircServerHostField.getText());
-    irc.setPort(Integer.parseInt(ircServerPortField.getText()));
-
-    clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
-
     if (EMAIL_REGEX.matcher(username).matches()) {
       onLoginWithEmail();
       return;
@@ -316,6 +316,20 @@ public class LoginController implements Controller<Pane> {
     String password = passwordInput.getText();
 
     boolean autoLogin = autoLoginCheckBox.isSelected();
+
+    Server server = clientProperties.getServer();
+    server.setHost(serverHostField.getText());
+    server.setPort(Integer.parseInt(serverPortField.getText()));
+
+    Replay replay = clientProperties.getReplay();
+    replay.setRemoteHost(replayServerHostField.getText());
+    replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
+
+    Irc irc = clientProperties.getIrc();
+    irc.setHost(ircServerHostField.getText());
+    irc.setPort(Integer.parseInt(ircServerPortField.getText()));
+
+    clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
 
     login(username, password, autoLogin);
   }
