@@ -28,6 +28,5 @@ faf-client:
 
 logging:
   level:
-    org.pircbotx.PircBotX: off
-    com.faforever.client.chat.PircBotXChatService: off
+    com.faforever.client.chat.KittehChatService: off
     com.faforever.client.fa.relay.ice: debug

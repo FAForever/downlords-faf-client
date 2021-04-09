@@ -261,6 +261,21 @@ public class LoginController implements Controller<Pane> {
 
   private void login(String username, String password, boolean autoLogin) {
     setShowLoginProgress(true);
+
+    Server server = clientProperties.getServer();
+    server.setHost(serverHostField.getText());
+    server.setPort(Integer.parseInt(serverPortField.getText()));
+
+    Replay replay = clientProperties.getReplay();
+    replay.setRemoteHost(replayServerHostField.getText());
+    replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
+
+    Irc irc = clientProperties.getIrc();
+    irc.setHost(ircServerHostField.getText());
+    irc.setPort(Integer.parseInt(ircServerPortField.getText()));
+
+    clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
+
     if (EMAIL_REGEX.matcher(username).matches()) {
       onLoginWithEmail();
       return;
@@ -301,20 +316,6 @@ public class LoginController implements Controller<Pane> {
     String password = passwordInput.getText();
 
     boolean autoLogin = autoLoginCheckBox.isSelected();
-
-    Server server = clientProperties.getServer();
-    server.setHost(serverHostField.getText());
-    server.setPort(Integer.parseInt(serverPortField.getText()));
-
-    Replay replay = clientProperties.getReplay();
-    replay.setRemoteHost(replayServerHostField.getText());
-    replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
-
-    Irc irc = clientProperties.getIrc();
-    irc.setHost(ircServerHostField.getText());
-    irc.setPort(Integer.parseInt(ircServerPortField.getText()));
-
-    clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
 
     login(username, password, autoLogin);
   }
