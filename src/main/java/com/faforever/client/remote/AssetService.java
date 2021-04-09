@@ -8,8 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriUtils;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Supplier;
@@ -39,7 +41,7 @@ public class AssetService {
       return defaultSupplier.get();
     }
 
-    String urlString = url.toString();
+    String urlString = UriUtils.encodePath(url.toString(), StandardCharsets.UTF_8);
     String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
     Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
     if (Files.exists(cachePath)) {
@@ -49,7 +51,7 @@ public class AssetService {
 
     log.debug("Fetching image {}", url);
 
-    Image image = new Image(url.toString(), width, height, true, true, true);
+    Image image = new Image(urlString, width, height, true, true, true);
     JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
     return image;
   }
