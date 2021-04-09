@@ -60,7 +60,7 @@ public class ClientProperties {
   @Data
   public static class Irc {
     private String host;
-    private int port = 8167;
+    private int port;
     /**
      * Channel to join by default.
      *
@@ -74,7 +74,7 @@ public class ClientProperties {
   @Data
   public static class Server {
     private String host;
-    private int port = 8001;
+    private int port;
   }
 
   @Data
@@ -91,7 +91,7 @@ public class ClientProperties {
   @Data
   public static class Replay {
     private String remoteHost;
-    private int remotePort = 15000;
+    private int remotePort;
     private String replayFileFormat = "%d-%s.fafreplay";
     private String replayFileGlob = "*.fafreplay";
     // TODO this should acutally be reported by the server

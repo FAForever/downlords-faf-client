@@ -1,9 +1,11 @@
 faf-client:
   server:
     host: lobby.faforever.com
+    port: 8001
 
   irc:
     host: irc.faforever.com
+    port: 6697
 
   vault:
     base-url: https://content.faforever.com
@@ -14,6 +16,7 @@ faf-client:
 
   replay:
     remote-host: lobby.faforever.com
+    remote-port: 15000
 
   website:
     base-url: https://www.faforever.com
