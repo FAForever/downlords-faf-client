@@ -298,7 +298,7 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
-      log.debug("Game is running, ignoring host request");
+      log.warn("Game is running, ignoring host request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
@@ -334,7 +334,7 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Void> joinGame(Game game, String password) {
     if (isRunning()) {
-      log.debug("Game is running, ignoring join request");
+      log.warn("Game is running, ignoring join request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
@@ -547,7 +547,7 @@ public class GameService implements InitializingBean {
 
   public CompletableFuture<Void> startSearchMatchmaker() {
     if (isRunning()) {
-      log.debug("Game is running, ignoring matchmaking search request");
+      log.warn("Game is running, ignoring matchmaking search request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }

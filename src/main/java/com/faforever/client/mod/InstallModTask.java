@@ -113,7 +113,7 @@ public class InstallModTask extends CompletableTask<Void> {
       Path modDirectory = modsDirectory.resolve(topLevelDirectory);
       if (Files.isDirectory(modDirectory)) {
         FileUtils.deleteRecursively(modDirectory);
-        log.trace("Deleting old version of the mod stored in {}", modDirectory);
+        log.debug("Deleting old version of the mod stored in {}", modDirectory);
       }
     } catch (Exception e) {
       log.warn("Could not delete directory of old mod", e);

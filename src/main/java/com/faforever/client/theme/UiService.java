@@ -10,7 +10,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
-import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -412,33 +411,35 @@ public class UiService implements InitializingBean, DisposableBean {
    * context, so its scope (which should always be "prototype") depends on the bean definition.
    */
   public <T extends Controller<?>> T loadFxml(String relativePath) {
-    log.debug("Loading fxml {}", relativePath);
     FXMLLoader loader = new FXMLLoader();
     loader.setControllerFactory(applicationContext::getBean);
     loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
-    noCatch((NoCatchRunnable) loader::load);
-    T controller = loader.getController();
-    log.debug("fxml {} loaded successfully controller class is {}", relativePath, controller.getClass().getSimpleName());
-    return controller;
+    try {
+      loader.load();
+      return loader.getController();
+    } catch (IOException e) {
+      log.warn("Could not load fxml {}", relativePath, e);
+      return null;
+    }
   }
 
   public <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
-    log.debug("Loading Fxml {} with class {}", relativePath, controllerClass.getSimpleName());
     FXMLLoader loader = new FXMLLoader();
     loader.setControllerFactory(applicationContext::getBean);
     loader.setController(applicationContext.getBean(controllerClass));
     loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
-    noCatch((NoCatchRunnable) loader::load);
-    T controller = loader.getController();
-    log.debug("Fxml {} with class {} loaded successfully controller class is {}", relativePath, controllerClass.getSimpleName(),
-        controller.getClass().getSimpleName());
-    return controller;
+    try {
+      loader.load();
+      return loader.getController();
+    } catch (IOException e) {
+      log.warn("Could not load fxml {} with class {}", relativePath, controllerClass.getSimpleName(), e);
+      return null;
+    }
   }
 
   private Path getThemeDirectory(Theme theme) {
-    log.debug("Retrieving Theme {}", theme.getDisplayName());
     return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 

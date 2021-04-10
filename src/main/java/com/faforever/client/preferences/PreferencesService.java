@@ -118,6 +118,12 @@ public class PreferencesService implements InitializingBean {
         .resolve("logs")
         .resolve("map-generator.log")
         .toString());
+    // duplicated, see getIRCLogDirectory; make getIRCLogDirectory or ice log dir static?
+
+    System.setProperty("IRC_LOG", PreferencesService.FAF_DATA_DIRECTORY
+        .resolve("logs")
+        .resolve("irc.log")
+        .toString());
 
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install();
