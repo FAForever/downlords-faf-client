@@ -2,9 +2,7 @@ package com.faforever.client.remote;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.CloseGameEvent;
-import com.faforever.client.game.Faction;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.FactionDeserializer;
 import com.faforever.client.legacy.ServerMessageSerializer;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.notification.ImmediateNotification;
@@ -16,26 +14,16 @@ import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
 import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
-import com.faforever.client.remote.domain.InitSessionMessage;
-import com.faforever.client.remote.domain.LoginClientMessage;
 import com.faforever.client.remote.domain.LoginMessage;
-import com.faforever.client.remote.domain.MessageTarget;
 import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.SessionMessage;
-import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
-import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
-import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
-import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
 import com.faforever.client.remote.io.QDataInputStream;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
 import com.google.common.eventbus.EventBus;
 import com.google.common.hash.Hashing;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
@@ -67,10 +55,11 @@ import java.util.concurrent.TimeUnit;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -83,14 +72,6 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
-  private static final Gson gson = new GsonBuilder()
-      .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-      .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
-      .registerTypeAdapter(Faction.class, new FactionDeserializer())
-      .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
-      .create();
 
   @Rule
   public TemporaryFolder faDirectory = new TemporaryFolder();
@@ -185,23 +166,21 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn(username, password).toCompletableFuture();
 
-    String json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    InitSessionMessage initSessionMessage = gson.fromJson(json, InitSessionMessage.class);
+    String initSessionJSON = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(initSessionMessage.getCommand(), is(ClientMessageType.ASK_SESSION));
+    assertThat(initSessionJSON, containsString(ClientMessageType.ASK_SESSION.getString()));
 
     SessionMessage sessionMessage = new SessionMessage();
     sessionMessage.setSession(sessionId);
     sendFromServer(sessionMessage);
 
-    json = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
-    LoginClientMessage loginClientMessage = gson.fromJson(json, LoginClientMessage.class);
+    String loginClientJSON = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(loginClientMessage.getCommand(), is(ClientMessageType.LOGIN));
-    assertThat(loginClientMessage.getLogin(), is(username));
-    assertThat(loginClientMessage.getPassword(), is(Hashing.sha256().hashString(password, UTF_8).toString()));
-    assertThat(loginClientMessage.getSession(), is(sessionId));
-    assertThat(loginClientMessage.getUniqueId(), is("encrypteduidstring"));
+    assertThat(loginClientJSON, containsString(ClientMessageType.LOGIN.getString()));
+    assertThat(loginClientJSON, containsString(username));
+    assertThat(loginClientJSON, containsString(Hashing.sha256().hashString(password, UTF_8).toString()));
+    assertThat(loginClientJSON, containsString(String.valueOf(sessionId)));
+    assertThat(loginClientJSON, containsString("encrypteduidstring"));
 
     LoginMessage loginServerMessage = new LoginMessage();
     loginServerMessage.setId(playerUid);
