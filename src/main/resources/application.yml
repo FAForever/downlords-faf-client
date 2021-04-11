@@ -23,10 +23,10 @@ faf-client:
     mapPreviewUrlFormat: ${faf-client.vault.base-url}/maps/previews/%s/%s.png
 
   website:
-      forgot-password-url: ${faf-client.website.base-url}/account/password/reset
-      create-account-url: ${faf-client.website.base-url}/account/register
-      report-url: ${faf-client.website.base-url}/account/report
-      news-hub-url: ${faf-client.website.base-url}/newshub
+    forgot-password-url: ${faf-client.website.base-url}/account/password/reset
+    create-account-url: ${faf-client.website.base-url}/account/register
+    report-url: ${faf-client.website.base-url}/account/report
+    news-hub-url: ${faf-client.website.base-url}/newshub
 
   imgur:
     upload:

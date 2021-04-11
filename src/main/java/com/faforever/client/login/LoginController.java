@@ -161,7 +161,23 @@ public class LoginController implements Controller<Pane> {
 
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
-          .thenApply(clientConfiguration -> {
+          .thenAccept(clientConfiguration -> {
+            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+
+            Server server = clientProperties.getServer();
+            server.setHost(defaultEndpoint.getLobby().getHost());
+            server.setPort(defaultEndpoint.getLobby().getPort());
+
+            Replay replay = clientProperties.getReplay();
+            replay.setRemoteHost(defaultEndpoint.getLiveReplay().getHost());
+            replay.setRemotePort(defaultEndpoint.getLiveReplay().getPort());
+
+            Irc irc = clientProperties.getIrc();
+            irc.setHost(defaultEndpoint.getIrc().getHost());
+            irc.setPort(defaultEndpoint.getIrc().getPort());
+
+            clientProperties.getApi().setBaseUrl(defaultEndpoint.getApi().getUrl());
+
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
             try {
@@ -175,13 +191,11 @@ public class LoginController implements Controller<Pane> {
             } else {
               loginAllowed = true;
             }
-            return clientConfiguration;
-          })
-          .thenAccept(clientConfiguration -> JavaFxUtil.runLater(() -> {
-            Endpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
-            environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
-            environmentComboBox.getSelectionModel().select(defaultEndpoint);
-          })).exceptionally(throwable -> {
+            JavaFxUtil.runLater(() -> {
+              environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
+              environmentComboBox.getSelectionModel().select(defaultEndpoint);
+            });
+          }).exceptionally(throwable -> {
             log.warn("Could not read remote preferences", throwable);
             loginAllowed = true;
             return null;
@@ -261,6 +275,7 @@ public class LoginController implements Controller<Pane> {
 
   private void login(String username, String password, boolean autoLogin) {
     setShowLoginProgress(true);
+
     if (EMAIL_REGEX.matcher(username).matches()) {
       onLoginWithEmail();
       return;
