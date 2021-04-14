@@ -1,6 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.dto.Game;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -12,6 +11,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.commons.api.dto.Game;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;

@@ -17,7 +17,7 @@ public final class NameRecord {
     this.changeDate = new SimpleObjectProperty<>();
   }
 
-  public static NameRecord fromDto(com.faforever.client.api.dto.NameRecord dto) {
+  public static NameRecord fromDto(com.faforever.commons.api.dto.NameRecord dto) {
     NameRecord nameRecord = new NameRecord();
     nameRecord.setName(dto.getName());
     nameRecord.setChangeDate(dto.getChangeTime());

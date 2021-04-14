@@ -1,14 +1,14 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.dto.Game;
-import com.faforever.client.api.dto.GamePlayerStats;
-import com.faforever.client.api.dto.LeaderboardRatingJournal;
-import com.faforever.client.api.dto.Validity;
-import com.faforever.client.game.Faction;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewsSummary;
+import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.api.dto.Game;
+import com.faforever.commons.api.dto.GamePlayerStats;
+import com.faforever.commons.api.dto.LeaderboardRatingJournal;
+import com.faforever.commons.api.dto.Validity;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;

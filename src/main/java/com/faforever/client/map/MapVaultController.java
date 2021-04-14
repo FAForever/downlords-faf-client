@@ -71,7 +71,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   }
 
   protected void initSearchController() {
-    searchController.setRootType(com.faforever.client.api.dto.Map.class);
+    searchController.setRootType(com.faforever.commons.api.dto.Map.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
     searchController.setSortConfig(preferencesService.getPreferences().getVault().mapSortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(false);

@@ -7,6 +7,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.commons.api.dto.Faction;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

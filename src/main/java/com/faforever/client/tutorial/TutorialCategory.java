@@ -23,7 +23,7 @@ public class TutorialCategory {
     categoryKey = new SimpleStringProperty();
   }
 
-  public static TutorialCategory fromDto(com.faforever.client.api.dto.TutorialCategory dto) {
+  public static TutorialCategory fromDto(com.faforever.commons.api.dto.TutorialCategory dto) {
     TutorialCategory tutorialCategory = new TutorialCategory();
     tutorialCategory.setId(Integer.parseInt(dto.getId()));
     tutorialCategory.setCategoryKey(dto.getCategoryKey());

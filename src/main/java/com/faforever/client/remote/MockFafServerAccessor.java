@@ -2,7 +2,6 @@ package com.faforever.client.remote;
 
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.fa.relay.GpgGameMessage;
-import com.faforever.client.game.Faction;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -27,6 +26,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;

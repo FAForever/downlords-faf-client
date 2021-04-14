@@ -1,7 +1,7 @@
 package com.faforever.client.api;
 
-import com.faforever.client.api.dto.Event;
-import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.commons.api.dto.Event;
+import com.faforever.commons.api.dto.PlayerEvent;
 
 public class PlayerEventBuilder extends PlayerEvent {
 

@@ -21,7 +21,7 @@ public class JsonApiConfig {
   @Bean
   public ResourceConverter resourceConverter(ObjectMapper objectMapper) {
     objectMapper.setSerializationInclusion(Include.NON_NULL);
-    return new ResourceConverter(objectMapper, findJsonApiTypes("com.faforever.client.api.dto"));
+    return new ResourceConverter(objectMapper, findJsonApiTypes("com.faforever.commons.api.dto"));
   }
 
   private Class<?>[] findJsonApiTypes(String scanPackage) {

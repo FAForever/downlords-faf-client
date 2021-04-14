@@ -1,8 +1,5 @@
 package com.faforever.client.coop;
 
-import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.GamePlayerStats;
-import com.faforever.client.api.dto.Player;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
@@ -24,6 +21,9 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
+import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.GamePlayerStats;
+import com.faforever.commons.api.dto.Player;
 import com.google.common.base.Strings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;

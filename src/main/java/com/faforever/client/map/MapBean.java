@@ -1,9 +1,9 @@
 package com.faforever.client.map;
 
-import com.faforever.client.api.dto.MapVersion;
-import com.faforever.client.api.dto.NeroxisGeneratorParams;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewsSummary;
+import com.faforever.commons.api.dto.MapVersion;
+import com.faforever.commons.api.dto.NeroxisGeneratorParams;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -72,7 +72,7 @@ public class MapBean implements Comparable<MapBean> {
     ranked = new SimpleBooleanProperty();
   }
 
-  public static MapBean fromMapDto(com.faforever.client.api.dto.Map map) {
+  public static MapBean fromMapDto(com.faforever.commons.api.dto.Map map) {
     MapVersion mapVersion = map.getLatestVersion();
 
     MapBean mapBean = new MapBean();
@@ -90,8 +90,8 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
     mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
     mapBean.setNumberOfPlays(map.getStatistics().getPlays());
-    mapBean.setRanked(mapVersion.getRanked());
-    mapBean.setHidden(mapVersion.getHidden());
+    mapBean.setRanked(mapVersion.isRanked());
+    mapBean.setHidden(mapVersion.isHidden());
     mapBean.setReviewsSummary(ReviewsSummary.fromDto(map.getMapReviewsSummary()));
     map.getVersions().forEach(v -> {
       if (v.getReviews() != null) {
@@ -106,7 +106,7 @@ public class MapBean implements Comparable<MapBean> {
     return mapBean;
   }
 
-  public static MapBean fromMapVersionDto(com.faforever.client.api.dto.MapVersion mapVersion) {
+  public static MapBean fromMapVersionDto(com.faforever.commons.api.dto.MapVersion mapVersion) {
     MapBean mapBean = new MapBean();
     Optional.ofNullable(mapVersion.getMap().getAuthor()).ifPresent(author -> mapBean.setAuthor(author.getLogin()));
     mapBean.setDescription(mapVersion.getDescription());
@@ -133,8 +133,8 @@ public class MapBean implements Comparable<MapBean> {
         });
       }
     });
-    mapBean.setHidden(mapVersion.getHidden());
-    mapBean.setRanked(mapVersion.getRanked());
+    mapBean.setHidden(mapVersion.isHidden());
+    mapBean.setRanked(mapVersion.isRanked());
     return mapBean;
   }
 

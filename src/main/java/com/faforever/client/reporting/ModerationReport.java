@@ -1,7 +1,7 @@
 package com.faforever.client.reporting;
 
-import com.faforever.client.api.dto.ModerationReportStatus;
 import com.faforever.client.player.Player;
+import com.faforever.commons.api.dto.ModerationReportStatus;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SetProperty;
@@ -43,7 +43,7 @@ public class ModerationReport {
     gameId = new SimpleObjectProperty<>();
   }
 
-  public static ModerationReport fromReportDto(com.faforever.client.api.dto.ModerationReport dto) {
+  public static ModerationReport fromReportDto(com.faforever.commons.api.dto.ModerationReport dto) {
     ModerationReport report = new ModerationReport();
 
     report.setReportId(Integer.parseInt(dto.getId()));

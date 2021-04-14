@@ -85,7 +85,7 @@ public class Player {
     this.username.set(username);
   }
 
-  public static Player fromDto(com.faforever.client.api.dto.Player dto) {
+  public static Player fromDto(com.faforever.commons.api.dto.Player dto) {
     Player player = new Player(dto.getLogin());
     player.setId(Integer.parseInt(dto.getId()));
     player.setUsername(dto.getLogin());

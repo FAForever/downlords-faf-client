@@ -1,7 +1,5 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.AchievementType;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -9,6 +7,8 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementType;
 import javafx.scene.image.Image;
 import org.junit.Before;
 import org.junit.Test;

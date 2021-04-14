@@ -39,7 +39,7 @@ public class Clan {
     createTime = new SimpleObjectProperty<>();
   }
 
-  public static Clan fromDto(com.faforever.client.api.dto.Clan dto) {
+  public static Clan fromDto(com.faforever.commons.api.dto.Clan dto) {
     Clan clan = new Clan();
     clan.setId(dto.getId());
     clan.setName(dto.getName());

@@ -29,7 +29,7 @@ public class Leaderboard {
     updateTime = new SimpleObjectProperty<>();
   }
 
-  public static Leaderboard fromDto(com.faforever.client.api.dto.Leaderboard dto) {
+  public static Leaderboard fromDto(com.faforever.commons.api.dto.Leaderboard dto) {
     Leaderboard leaderboard = new Leaderboard();
     leaderboard.setId(Integer.parseInt(dto.getId()));
     leaderboard.setCreateTime(dto.getCreateTime());

@@ -1,7 +1,6 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.fa.relay.GpgGameMessage;
-import com.faforever.client.game.Faction;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
@@ -13,6 +12,7 @@ import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
+import com.faforever.commons.api.dto.Faction;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.net.URL;

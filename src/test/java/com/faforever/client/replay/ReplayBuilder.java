@@ -1,10 +1,10 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.dto.Validity;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewsSummary;
+import com.faforever.commons.api.dto.Validity;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;

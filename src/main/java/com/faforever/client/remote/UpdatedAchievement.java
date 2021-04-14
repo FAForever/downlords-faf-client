@@ -1,6 +1,6 @@
 package com.faforever.client.remote;
 
-import com.faforever.client.api.dto.AchievementState;
+import com.faforever.commons.api.dto.AchievementState;
 import org.jetbrains.annotations.Nullable;
 
 public class UpdatedAchievement {

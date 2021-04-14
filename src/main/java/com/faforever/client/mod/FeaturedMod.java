@@ -36,7 +36,7 @@ public class FeaturedMod {
     bireusUrl = new SimpleObjectProperty<>();
   }
 
-  public static FeaturedMod fromFeaturedMod(com.faforever.client.api.dto.FeaturedMod featuredMod) {
+  public static FeaturedMod fromFeaturedMod(com.faforever.commons.api.dto.FeaturedMod featuredMod) {
     FeaturedMod bean = new FeaturedMod();
     bean.setId(featuredMod.getId());
     bean.technicalName.set(featuredMod.getTechnicalName());

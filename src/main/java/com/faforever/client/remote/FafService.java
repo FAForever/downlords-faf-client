@@ -1,19 +1,6 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.FeaturedModFile;
-import com.faforever.client.api.dto.Game;
-import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.Map;
-import com.faforever.client.api.dto.MapPoolAssignment;
-import com.faforever.client.api.dto.MapVersion;
-import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.Mod;
-import com.faforever.client.api.dto.ModVersionReview;
-import com.faforever.client.api.dto.NeroxisGeneratorParams;
-import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.clan.Clan;
@@ -45,6 +32,19 @@ import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.FeaturedModFile;
+import com.faforever.commons.api.dto.Game;
+import com.faforever.commons.api.dto.GameReview;
+import com.faforever.commons.api.dto.Map;
+import com.faforever.commons.api.dto.MapPoolAssignment;
+import com.faforever.commons.api.dto.MapVersion;
+import com.faforever.commons.api.dto.MapVersionReview;
+import com.faforever.commons.api.dto.Mod;
+import com.faforever.commons.api.dto.ModVersionReview;
+import com.faforever.commons.api.dto.NeroxisGeneratorParams;
+import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.io.ByteCountListener;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -169,7 +169,7 @@ public class FafService {
 
   @Async
   public CompletableFuture<Tuple<List<LeaderboardEntry>, Integer>> getLeaderboardEntriesWithPageCount(String leaderboardTechnicalName, int count, int page) {
-    Tuple<List<com.faforever.client.api.dto.LeaderboardEntry>, java.util.Map<String, ?>> tuple = fafApiAccessor.getLeaderboardEntriesWithMeta(leaderboardTechnicalName, count, page);
+    Tuple<List<com.faforever.commons.api.dto.LeaderboardEntry>, java.util.Map<String, ?>> tuple = fafApiAccessor.getLeaderboardEntriesWithMeta(leaderboardTechnicalName, count, page);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
         .map(LeaderboardEntry::fromDto)
@@ -281,7 +281,7 @@ public class FafService {
   @Async
   public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
-        .sorted(Comparator.comparingInt(com.faforever.client.api.dto.FeaturedMod::getOrder))
+        .sorted(Comparator.comparingInt(com.faforever.commons.api.dto.FeaturedMod::getOrder))
         .map(FeaturedMod::fromFeaturedMod)
         .collect(Collectors.toList()));
   }
@@ -382,7 +382,7 @@ public class FafService {
       GameReview updatedReview = fafApiAccessor.createGameReview(
           (GameReview) gameReview
               .setGame(new Game().setId(String.valueOf(gameId)))
-              .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
+              .setPlayer((com.faforever.commons.api.dto.Player) (new com.faforever.commons.api.dto.Player().setId(String.valueOf(review.getPlayer().getId()))))
       );
       review.setId(updatedReview.getId());
     } else {
@@ -401,9 +401,9 @@ public class FafService {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
       ModVersionReview updatedReview = fafApiAccessor.createModVersionReview(
           (ModVersionReview) modVersionReview
-              .setModVersion(new com.faforever.client.api.dto.ModVersion().setId(String.valueOf(modVersionId)))
+              .setModVersion((com.faforever.commons.api.dto.ModVersion) new com.faforever.commons.api.dto.ModVersion().setId(String.valueOf(modVersionId)))
+              .setPlayer((com.faforever.commons.api.dto.Player) new com.faforever.commons.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
               .setId(String.valueOf(review.getId()))
-              .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
       );
       review.setId(updatedReview.getId());
     } else {
@@ -422,9 +422,9 @@ public class FafService {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
       MapVersionReview updatedReview = fafApiAccessor.createMapVersionReview(
           (MapVersionReview) mapVersionReview
-              .setMapVersion(new MapVersion().setId(mapVersionId))
+              .setMapVersion((com.faforever.commons.api.dto.MapVersion) new MapVersion().setId(mapVersionId))
+              .setPlayer((com.faforever.commons.api.dto.Player) new com.faforever.commons.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
               .setId(String.valueOf(review.getId()))
-              .setPlayer(new com.faforever.client.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
       );
       review.setId(updatedReview.getId());
     } else {

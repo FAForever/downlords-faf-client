@@ -1,11 +1,9 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.api.dto.Validity;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
-import com.faforever.client.game.Faction;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
@@ -28,6 +26,8 @@ import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
+import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.api.dto.Validity;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.ObservableMap;

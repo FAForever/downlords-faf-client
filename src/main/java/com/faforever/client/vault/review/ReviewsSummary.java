@@ -24,7 +24,7 @@ public class ReviewsSummary {
     lowerBound = new SimpleFloatProperty();
   }
 
-  public static ReviewsSummary fromDto(com.faforever.client.api.dto.ReviewsSummary dto) {
+  public static ReviewsSummary fromDto(com.faforever.commons.api.dto.ReviewsSummary dto) {
     ReviewsSummary reviewsSummary = new ReviewsSummary();
     if (dto != null) {
       reviewsSummary.setId(dto.getId());

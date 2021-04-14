@@ -9,6 +9,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.commons.api.dto.Faction;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;

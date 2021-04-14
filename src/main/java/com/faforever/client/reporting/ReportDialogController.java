@@ -1,7 +1,6 @@
 package com.faforever.client.reporting;
 
 import ch.micheljung.fxwindow.FxStage;
-import com.faforever.client.api.dto.ModerationReportStatus;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
@@ -15,6 +14,7 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.TimeService;
+import com.faforever.commons.api.dto.ModerationReportStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.Node;

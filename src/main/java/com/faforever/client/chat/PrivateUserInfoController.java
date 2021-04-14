@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.achievements.AchievementService;
-import com.faforever.client.api.dto.AchievementState;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
@@ -12,6 +11,7 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Player;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
+import com.faforever.commons.api.dto.AchievementState;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;

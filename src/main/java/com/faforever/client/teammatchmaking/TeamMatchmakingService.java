@@ -2,7 +2,6 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -34,6 +33,7 @@ import com.faforever.client.remote.domain.SearchInfoMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.util.IdenticonUtil;
+import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

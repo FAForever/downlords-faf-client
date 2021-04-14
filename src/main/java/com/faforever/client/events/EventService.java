@@ -1,7 +1,7 @@
 package com.faforever.client.events;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.dto.PlayerEvent;
+import com.faforever.commons.api.dto.PlayerEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;

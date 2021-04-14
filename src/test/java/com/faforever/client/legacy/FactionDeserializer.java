@@ -1,6 +1,6 @@
 package com.faforever.client.legacy;
 
-import com.faforever.client.game.Faction;
+import com.faforever.commons.api.dto.Faction;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;

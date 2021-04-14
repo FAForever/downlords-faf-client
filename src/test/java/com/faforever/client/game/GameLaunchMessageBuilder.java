@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.remote.domain.GameLaunchMessage;
+import com.faforever.commons.api.dto.Faction;
 
 import java.util.Arrays;
 

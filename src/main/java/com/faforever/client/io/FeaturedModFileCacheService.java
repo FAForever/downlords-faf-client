@@ -1,9 +1,9 @@
 package com.faforever.client.io;
 
-import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.UpdaterUtil;
+import com.faforever.commons.api.dto.FeaturedModFile;
 import com.google.common.hash.Hashing;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +112,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
       final boolean olderThanCacheTime = comparableLastAccessTime.plusDays(preferencesService.getPreferences().getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now());
       final boolean gameDataCacheActivated = preferencesService.getPreferences().isGameDataCacheActivated();
       if (olderThanCacheTime || !gameDataCacheActivated) {
-        log.debug("Deleting cached file ''{}'' ", filePath.toString());
+        log.debug("Deleting cached file ''{}'' ", filePath);
         Files.deleteIfExists(filePath);
       }
     } catch (Exception e) {

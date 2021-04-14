@@ -1,11 +1,11 @@
 package com.faforever.client.query;
 
-import com.faforever.client.api.dto.Game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.query.SearchablePropertyMappings.Property;
 import com.faforever.client.remote.domain.VictoryCondition;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.ProgrammingError;
+import com.faforever.commons.api.dto.Game;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator;

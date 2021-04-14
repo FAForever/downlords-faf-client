@@ -1,13 +1,13 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.AchievementType;
-import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementType;
+import com.faforever.commons.api.dto.PlayerAchievement;
 import com.google.common.base.MoreObjects;
 import javafx.scene.Node;
 import javafx.scene.control.Label;

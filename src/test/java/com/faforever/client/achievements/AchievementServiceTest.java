@@ -1,12 +1,12 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.PlayerAchievement;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -1,6 +1,5 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.api.dto.ApiException;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -15,6 +14,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.commons.api.dto.ApiException;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
