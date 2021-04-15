@@ -38,11 +38,11 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -234,19 +234,24 @@ public final class JavaFxUtil {
     }
   }
 
-  @SneakyThrows
   private static void writeImage(Image image, Path path, String format) {
-    if (image == null) {
-      return;
+    try {
+      if (image == null) {
+        return;
+      }
+      if (path.getParent() != null) {
+        createDirectories(path.getParent());
+      }
+      BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+      if (bufferedImage == null) {
+        log.debug("Could not read image from {} for {}", image.getUrl(), path);
+        return;
+      }
+      write(bufferedImage, format, path.toFile());
+      log.debug("Image written to {}", path);
+    } catch (IOException e) {
+      log.warn("Could not write image to {}", path, e);
     }
-    if (path.getParent() != null) {
-      createDirectories(path.getParent());
-    }
-    BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
-    if (bufferedImage == null) {
-      return;
-    }
-    write(bufferedImage, format, path.toFile());
   }
 
   public static void setAnchors(Node node, double value) {

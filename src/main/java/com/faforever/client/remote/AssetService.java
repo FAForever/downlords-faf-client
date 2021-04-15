@@ -3,8 +3,8 @@ package com.faforever.client.remote;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.PreferencesService;
 import javafx.scene.image.Image;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -21,11 +21,16 @@ import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AssetService {
 
   private final PreferencesService preferencesService;
+  private final UrlValidator urlValidator;
+
+  public AssetService(PreferencesService preferencesService) {
+    this.preferencesService = preferencesService;
+    urlValidator = new UrlValidator();
+  }
 
   @Nullable
   public Image loadAndCacheImage(URL url, Path cacheSubFolder, @Nullable Supplier<Image> defaultSupplier) {
@@ -41,7 +46,8 @@ public class AssetService {
       return defaultSupplier.get();
     }
 
-    String urlString = UriUtils.encodePath(url.toString(), StandardCharsets.UTF_8);
+    String urlString = url.toString();
+    urlString = urlValidator.isValid(urlString) ? urlString : UriUtils.encodePath(urlString, StandardCharsets.UTF_8);
     String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
     Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
     if (Files.exists(cachePath)) {
@@ -50,7 +56,6 @@ public class AssetService {
     }
 
     log.debug("Fetching image {}", url);
-
     Image image = new Image(urlString, width, height, true, true, true);
     JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
     return image;
