@@ -501,6 +501,18 @@ public class FafService {
     return paginateResult(count, page, mapVersions);
   }
 
+  @Async
+  public CompletableFuture<List<MapBean>> getAllMatchmakerMaps(int matchmakerQueueId, float rating) {
+    List<MapPoolAssignment> poolAssignments = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating);
+    List<MapBean> mapVersions = poolAssignments.stream()
+        .map(MapPoolAssignment::getMapVersion)
+        .distinct()
+        .filter(Objects::nonNull)
+        .map(MapBean::fromMapVersionDto)
+        .collect(Collectors.toList());
+    return CompletableFuture.completedFuture(mapVersions);
+  }
+
   @NotNull
   private <T> CompletableFuture<Tuple<List<T>, Integer>> paginateResult(int count, int page, List<T> results) {
     int totalPages = (results.size() - 1) / count + 1;

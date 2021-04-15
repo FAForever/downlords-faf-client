@@ -542,6 +542,13 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.getMatchmakerMapsWithPageCount(matchmakerQueue.getQueueId(), meanRating, count, page);
   }
 
+  public CompletableFuture<List<MapBean>> getAllMatchmakerMaps(MatchmakingQueue matchmakerQueue) {
+    Player player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No user is logged in"));
+    float meanRating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
+        .map(LeaderboardRating::getMean).orElse(0f);
+    return fafService.getAllMatchmakerMaps(matchmakerQueue.getQueueId(), meanRating);
+  }
+
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     if (mapGeneratorService.isGeneratedMap(folderName)) {
       return mapGeneratorService.generateMap(folderName).thenRun(() -> {

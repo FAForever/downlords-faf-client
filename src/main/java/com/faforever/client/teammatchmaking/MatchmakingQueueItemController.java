@@ -4,6 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
+import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
@@ -14,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static javafx.beans.binding.Bindings.createBooleanBinding;
 import static javafx.beans.binding.Bindings.createStringBinding;
@@ -29,11 +33,13 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class MatchmakingQueueItemController implements Controller<VBox> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s";
 
   private final PlayerService playerService;
+  private final MapService mapService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
   private final EventBus eventBus;
@@ -50,13 +56,6 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   @VisibleForTesting
   MatchmakingQueue queue;
-
-  public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n, EventBus eventBus) {
-    this.playerService = playerService;
-    this.teamMatchmakingService = teamMatchmakingService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-  }
 
   @Override
   public void initialize() {
@@ -132,11 +131,17 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     if (queue.isJoined()) {
       teamMatchmakingService.leaveQueue(queue);
     } else {
-      boolean success = teamMatchmakingService.joinQueue(queue);
-      if (!success) {
-        joinLeaveQueueButton.setSelected(false);
-        refreshingLabel.setVisible(false);
-      }
+      mapService.getAllMatchmakerMaps(queue)
+          .thenCompose(mapBeans -> CompletableFuture.allOf(mapBeans.stream().filter(mapBean -> !mapService.isInstalled(mapBean.getFolderName()))
+              .map(mapBean -> mapService.downloadAndInstallMap(mapBean, null, null))
+              .collect(Collectors.toList()).toArray(new CompletableFuture<?>[0])))
+          .thenAccept(aVoid -> {
+            boolean success = teamMatchmakingService.joinQueue(queue);
+            if (!success) {
+              joinLeaveQueueButton.setSelected(false);
+              refreshingLabel.setVisible(false);
+            }
+          });
     }
     refreshingLabel.setVisible(true);
   }
