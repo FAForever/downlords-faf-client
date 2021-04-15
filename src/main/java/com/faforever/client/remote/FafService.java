@@ -422,7 +422,7 @@ public class FafService {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
       MapVersionReview updatedReview = fafApiAccessor.createMapVersionReview(
           (MapVersionReview) mapVersionReview
-              .setMapVersion((com.faforever.commons.api.dto.MapVersion) new MapVersion().setId(mapVersionId))
+              .setMapVersion((MapVersion) new MapVersion().setId(mapVersionId))
               .setPlayer((com.faforever.commons.api.dto.Player) new com.faforever.commons.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
               .setId(String.valueOf(review.getId()))
       );

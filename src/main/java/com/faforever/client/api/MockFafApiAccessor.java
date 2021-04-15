@@ -204,7 +204,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public List<com.faforever.commons.api.dto.Player> getPlayersByIds(Collection<Integer> playerIds) {
+  public List<Player> getPlayersByIds(Collection<Integer> playerIds) {
     return List.of();
   }
 
