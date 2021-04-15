@@ -352,15 +352,16 @@ public class FafApiAccessorImplTest {
   public void testGetLatestVersionMap() {
     MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001");
 
+    MapVersion latestVersion = new MapVersion().setFolderName("palaneum.v0002");
     com.faforever.commons.api.dto.Map map = new com.faforever.commons.api.dto.Map()
-        .setLatestVersion(new MapVersion().setFolderName("palaneum.v0002"));
+        .setLatestVersion(latestVersion);
     MapVersion mapFromServer = new MapVersion().setFolderName("palaneum.v0001")
         .setMap(map);
 
     when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
         .thenReturn(Collections.singletonList(mapFromServer));
 
-    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.of(mapFromServer)));
+    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.of(latestVersion)));
     String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
     verify(restOperations).getForObject(contains(parameters), eq(List.class));
   }
