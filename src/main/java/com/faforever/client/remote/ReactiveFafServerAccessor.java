@@ -194,7 +194,7 @@ public class ReactiveFafServerAccessor implements FafServerAccessor {
   public void sendGpgMessage(GpgGameMessage message) {
     lobbyClient.sendGpgGameMessage(
         new com.faforever.commons.lobby.GpgGameOutboundMessage(
-            message.getCommand().getString(),
+            message.getRawCommand(),
             message.getArgs()
         )
     );
