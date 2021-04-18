@@ -248,6 +248,7 @@ public class ReactiveFafServerAccessor implements FafServerAccessor {
             .map(iceServer ->
                 new IceServer()
                     .setUrl(iceServer.getUrl())
+                    .setUrls((List<String>) iceServer.getUrls())
                     .setUsername(iceServer.getUsername())
                     .setCredentialType(iceServer.getCredentialType())
                     .setCredential(iceServer.getCredential())

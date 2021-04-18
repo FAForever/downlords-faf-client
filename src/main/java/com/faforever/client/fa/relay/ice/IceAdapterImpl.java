@@ -45,7 +45,6 @@ import java.lang.reflect.Proxy;
 import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -107,7 +106,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         urls.add(iceServer.getUrl());
       }
       if (iceServer.getUrls() != null) {
-        urls.addAll(Arrays.asList(iceServer.getUrls()));
+        urls.addAll(iceServer.getUrls());
       }
 
       map.put("urls", urls);
