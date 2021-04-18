@@ -88,15 +88,14 @@ public class ReactiveFafServerAccessor implements FafServerAccessor {
     password = Hashing.sha256().hashString(password, UTF_8).toString();
 
     FafLobbyClient.Config config = new Config(
-//        clientProperties.getServer().getHost(),
+        clientProperties.getServer().getHost(),
 //        clientProperties.getServer().getPort(),
-        "test.faforever.com",
         8002,
         username,
         password,
         "127.0.0.1",
         sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
-        8096,
+        1024 * 1024,
         false
     );
     lobbyClient = new FafLobbyClient(config, objectMapper);
