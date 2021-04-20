@@ -101,8 +101,13 @@ public class MatchmakingQueueItemControllerTest extends AbstractPlainJavaFxTest 
     when(mapService.isInstalled(map1.getFolderName())).thenReturn(false);
     when(mapService.isInstalled(map2.getFolderName())).thenReturn(true);
     when(mapService.isInstalled(map3.getFolderName())).thenReturn(false);
+    CompletableFuture<Void> downloadFuture = new CompletableFuture<>();
+    when(mapService.downloadAndInstallMap(any(), any(), any())).thenReturn(downloadFuture);
 
     instance.joinLeaveQueueButton.fire();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    downloadFuture.complete(null);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(mapService).downloadAndInstallMap(eq(map1), isNull(), isNull());
@@ -122,6 +127,8 @@ public class MatchmakingQueueItemControllerTest extends AbstractPlainJavaFxTest 
   @Test
   public void testOnJoinQueueFailed() {
     when(teamMatchmakingService.joinQueue(any())).thenReturn(false);
+    when(mapService.getAllMatchmakerMaps(queue)).thenReturn(CompletableFuture.completedFuture(
+        List.of()));
 
     instance.joinLeaveQueueButton.fire();
     WaitForAsyncUtils.waitForFxEvents();

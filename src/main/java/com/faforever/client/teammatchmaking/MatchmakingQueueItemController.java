@@ -138,8 +138,10 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
           .thenAccept(aVoid -> {
             boolean success = teamMatchmakingService.joinQueue(queue);
             if (!success) {
-              joinLeaveQueueButton.setSelected(false);
-              refreshingLabel.setVisible(false);
+              JavaFxUtil.runLater(() -> {
+                joinLeaveQueueButton.setSelected(false);
+                refreshingLabel.setVisible(false);
+              });
             }
           });
     }
