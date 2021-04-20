@@ -109,7 +109,7 @@ public class CoopController extends AbstractViewController<Node> {
 
     numberOfPlayersComboBox.setButtonCell(numberOfPlayersCell());
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
-    numberOfPlayersComboBox.getSelectionModel().select(2);
+    numberOfPlayersComboBox.getSelectionModel().select(0);
     numberOfPlayersComboBox.getSelectionModel().selectedItemProperty().addListener(observable -> loadLeaderboard());
 
     // TODO don't use API object but bean instead
