@@ -4,6 +4,8 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
@@ -12,6 +14,8 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue;
+import com.faforever.client.teammatchmaking.MatchmakingQueueBuilder;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration;
@@ -301,6 +305,32 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     assertThat(checkCustomMapFolderExist(map), is(true));
     assertThat(instance.updateLatestVersionIfNecessary(map).join(), is(map));
     assertThat(checkCustomMapFolderExist(map), is(true));
+  }
+
+  @Test
+  public void testGetMatchMakerMaps() throws Exception {
+    Player player = PlayerBuilder.create("test").defaultValues().get();
+    MatchmakingQueue queue = MatchmakingQueueBuilder.create().defaultValues().get();
+
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(fafService.getAllMatchmakerMaps(queue.getQueueId(), player.getLeaderboardRatings().get(queue.getLeaderboard().getTechnicalName()).getMean()))
+        .thenReturn(CompletableFuture.completedFuture(List.of()));
+
+    instance.getAllMatchmakerMaps(queue);
+
+    verify(playerService).getCurrentPlayer();
+  }
+
+  @Test
+  public void testGetMatchMakerMapsNoUser() throws Exception {
+    expectedException.expect(IllegalStateException.class);
+    MatchmakingQueue queue = MatchmakingQueueBuilder.create().defaultValues().get();
+
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.empty());
+
+    instance.getAllMatchmakerMaps(queue);
+
+    verify(playerService).getCurrentPlayer();
   }
 
   private void prepareDownloadMapTask(MapBean mapToDownload) {
