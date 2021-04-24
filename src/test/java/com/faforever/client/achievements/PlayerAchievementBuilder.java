@@ -1,10 +1,10 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.AchievementState;
-import com.faforever.client.api.dto.PlayerAchievement;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementState;
+import com.faforever.commons.api.dto.PlayerAchievement;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 public class PlayerAchievementBuilder {
 
@@ -21,8 +21,8 @@ public class PlayerAchievementBuilder {
   public PlayerAchievementBuilder defaultValues() {
     playerAchievement.setAchievement(new AchievementDefinition().setId("1-2-3"));
     playerAchievement.setState(AchievementState.REVEALED);
-    playerAchievement.setCreateTime(Instant.now());
-    playerAchievement.setUpdateTime(Instant.now());
+    playerAchievement.setCreateTime(OffsetDateTime.now());
+    playerAchievement.setUpdateTime(OffsetDateTime.now());
     return this;
   }
 

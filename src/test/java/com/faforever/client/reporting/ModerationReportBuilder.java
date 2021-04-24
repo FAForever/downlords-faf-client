@@ -1,8 +1,8 @@
 package com.faforever.client.reporting;
 
-import com.faforever.client.api.dto.ModerationReportStatus;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
+import com.faforever.commons.api.dto.ModerationReportStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 

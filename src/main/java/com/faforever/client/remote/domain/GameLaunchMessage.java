@@ -1,7 +1,7 @@
 package com.faforever.client.remote.domain;
 
 import com.faforever.client.fa.relay.LobbyMode;
-import com.faforever.client.game.Faction;
+import com.faforever.commons.api.dto.Faction;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

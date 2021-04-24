@@ -1,6 +1,5 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.io.FeaturedModFileCacheService;
@@ -8,6 +7,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.commons.api.dto.FeaturedModFile;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;

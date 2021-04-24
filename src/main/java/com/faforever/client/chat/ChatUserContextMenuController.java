@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
@@ -25,6 +24,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.util.ClipboardUtil;
+import com.faforever.commons.api.dto.GroupPermission;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;

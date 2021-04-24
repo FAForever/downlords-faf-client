@@ -1,6 +1,5 @@
 package com.faforever.client.remote;
 
-import com.faforever.client.game.Faction;
 import com.faforever.client.game.GameVisibility;
 import com.faforever.client.remote.domain.ClientMessage;
 import com.faforever.client.remote.domain.ClientMessageType;
@@ -17,6 +16,7 @@ import com.faforever.client.remote.gson.GameVisibilityTypeAdapter;
 import com.faforever.client.remote.gson.MatchmakingStateTypeAdapter;
 import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
 import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
+import com.faforever.commons.api.dto.Faction;
 import com.google.gson.GsonBuilder;
 
 public class ClientMessageSerializer extends JsonMessageSerializer<ClientMessage> {

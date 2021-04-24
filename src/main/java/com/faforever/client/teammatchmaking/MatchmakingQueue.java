@@ -1,7 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.api.dto.MatchmakerQueue;
 import com.faforever.client.leaderboard.Leaderboard;
+import com.faforever.commons.api.dto.MatchmakerQueue;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;

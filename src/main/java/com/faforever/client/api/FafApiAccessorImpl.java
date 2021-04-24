@@ -1,32 +1,5 @@
 package com.faforever.client.api;
 
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.Clan;
-import com.faforever.client.api.dto.CoopMission;
-import com.faforever.client.api.dto.CoopResult;
-import com.faforever.client.api.dto.FeaturedModFile;
-import com.faforever.client.api.dto.Game;
-import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.GameReviewsSummary;
-import com.faforever.client.api.dto.Leaderboard;
-import com.faforever.client.api.dto.LeaderboardEntry;
-import com.faforever.client.api.dto.LeaderboardRatingJournal;
-import com.faforever.client.api.dto.Map;
-import com.faforever.client.api.dto.MapPoolAssignment;
-import com.faforever.client.api.dto.MapStatistics;
-import com.faforever.client.api.dto.MapVersion;
-import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.MatchmakerQueue;
-import com.faforever.client.api.dto.MeResult;
-import com.faforever.client.api.dto.Mod;
-import com.faforever.client.api.dto.ModVersion;
-import com.faforever.client.api.dto.ModVersionReview;
-import com.faforever.client.api.dto.ModerationReport;
-import com.faforever.client.api.dto.Player;
-import com.faforever.client.api.dto.PlayerAchievement;
-import com.faforever.client.api.dto.PlayerEvent;
-import com.faforever.client.api.dto.Tournament;
-import com.faforever.client.api.dto.TutorialCategory;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Api;
@@ -37,6 +10,33 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.Clan;
+import com.faforever.commons.api.dto.CoopMission;
+import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.FeaturedModFile;
+import com.faforever.commons.api.dto.Game;
+import com.faforever.commons.api.dto.GameReview;
+import com.faforever.commons.api.dto.GameReviewsSummary;
+import com.faforever.commons.api.dto.Leaderboard;
+import com.faforever.commons.api.dto.LeaderboardEntry;
+import com.faforever.commons.api.dto.LeaderboardRatingJournal;
+import com.faforever.commons.api.dto.Map;
+import com.faforever.commons.api.dto.MapPoolAssignment;
+import com.faforever.commons.api.dto.MapStatistics;
+import com.faforever.commons.api.dto.MapVersion;
+import com.faforever.commons.api.dto.MapVersionReview;
+import com.faforever.commons.api.dto.MatchmakerQueue;
+import com.faforever.commons.api.dto.MeResult;
+import com.faforever.commons.api.dto.Mod;
+import com.faforever.commons.api.dto.ModVersion;
+import com.faforever.commons.api.dto.ModVersionReview;
+import com.faforever.commons.api.dto.ModerationReport;
+import com.faforever.commons.api.dto.Player;
+import com.faforever.commons.api.dto.PlayerAchievement;
+import com.faforever.commons.api.dto.PlayerEvent;
+import com.faforever.commons.api.dto.Tournament;
+import com.faforever.commons.api.dto.TutorialCategory;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
@@ -203,7 +203,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
-  public List<com.faforever.client.api.dto.FeaturedMod> getFeaturedMods() {
+  public List<com.faforever.commons.api.dto.FeaturedMod> getFeaturedMods() {
     return getMany("/data/featuredMod", 1000, java.util.Map.of());
   }
 
@@ -598,7 +598,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @SneakyThrows
   public List<Tournament> getAllTournaments() {
-    return Arrays.asList(restOperations.getForObject(TOURNAMENT_LIST_ENDPOINT, Tournament[].class));
+    List<Tournament> tournaments = Arrays.asList(restOperations.getForObject(TOURNAMENT_LIST_ENDPOINT, Tournament[].class));
+    log.debug("Retrieved {} from {}", tournaments, TOURNAMENT_LIST_ENDPOINT);
+    return tournaments;
   }
 
   @Override
@@ -682,7 +684,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   private <T> T getOne(String endpointPath, Class<T> type) {
-    return restOperations.getForObject(endpointPath, type, Collections.emptyMap());
+    T object = restOperations.getForObject(endpointPath, type, Collections.emptyMap());
+    log.debug("Retrieved {} from {} with type {}", object, endpointPath, type);
+    return object;
   }
 
   @SneakyThrows
@@ -743,7 +747,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    return restOperations.getForObject(uriComponents.toUriString(), List.class);
+    List<T> objects = restOperations.getForObject(uriComponents.toUriString(), List.class);
+    log.debug("Retrieved {} from {} with parameters {}", objects, endpointPath, params);
+    return objects;
   }
 
   @SneakyThrows
@@ -755,7 +761,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    return restOperations.getForObject(uriComponents.toUriString(), List.class);
+    List<T> objects = restOperations.getForObject(uriComponents.toUriString(), List.class);
+    log.debug("Retrieved {} from {} with parameters {}", objects, endpointPath, params);
+    return objects;
   }
 
   @SneakyThrows
@@ -768,6 +776,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    return restOperations.getForObject(uriComponents.toUriString(), JSONAPIDocument.class);
+    JSONAPIDocument<List<T>> objects = restOperations.getForObject(uriComponents.toUriString(), JSONAPIDocument.class);
+    if (objects != null) {
+      log.debug("Retrieved {} from {} with parameters {} with meta {}", objects.get(), endpointPath, params, objects.getMeta());
+    } else {
+      log.warn("Retrieved nothing from {} with parameters {}", endpointPath, params);
+    }
+    return objects;
   }
 }

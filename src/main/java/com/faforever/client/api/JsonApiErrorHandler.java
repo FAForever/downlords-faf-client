@@ -1,7 +1,7 @@
 package com.faforever.client.api;
 
 
-import com.faforever.client.api.dto.ApiException;
+import com.faforever.commons.api.dto.ApiException;
 import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
 import com.github.jasminb.jsonapi.models.errors.Errors;
 import org.springframework.http.HttpStatus;

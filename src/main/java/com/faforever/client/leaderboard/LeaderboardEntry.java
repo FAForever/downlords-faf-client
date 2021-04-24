@@ -27,7 +27,7 @@ public class LeaderboardEntry {
     leaderboard = new SimpleObjectProperty<>();
   }
 
-  public static LeaderboardEntry fromDto(com.faforever.client.api.dto.LeaderboardEntry entry) {
+  public static LeaderboardEntry fromDto(com.faforever.commons.api.dto.LeaderboardEntry entry) {
     LeaderboardEntry leaderboardEntry = new LeaderboardEntry();
     leaderboardEntry.setLeaderboard(Leaderboard.fromDto(entry.getLeaderboard()));
     leaderboardEntry.setUsername(entry.getPlayer().getLogin());

@@ -1,6 +1,6 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.game.Faction;
+import com.faforever.commons.api.dto.Faction;
 import org.junit.Test;
 
 import java.nio.file.Paths;

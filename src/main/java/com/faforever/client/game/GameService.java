@@ -37,6 +37,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeUtil;
+import com.faforever.commons.api.dto.Faction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;

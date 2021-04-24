@@ -1,9 +1,9 @@
 package com.faforever.client.io;
 
-import com.faforever.client.api.dto.FeaturedModFile;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.commons.api.dto.FeaturedModFile;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -1,6 +1,6 @@
 package com.faforever.client.tournament;
 
-import com.faforever.client.api.dto.Tournament;
+import com.faforever.commons.api.dto.Tournament;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;

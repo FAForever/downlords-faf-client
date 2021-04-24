@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.api.dto.FeaturedMod;
+import com.faforever.commons.api.dto.FeaturedMod;
 
 public class GameTypeInfoBuilder {
 

@@ -1,11 +1,11 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.AchievementType;
-import com.faforever.client.api.dto.PlayerAchievement;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementType;
+import com.faforever.commons.api.dto.PlayerAchievement;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import org.junit.Before;
@@ -77,7 +77,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
         .get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.dto.AchievementState.UNLOCKED)
+        .state(com.faforever.commons.api.dto.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 
@@ -107,7 +107,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.dto.AchievementState.REVEALED)
+        .state(com.faforever.commons.api.dto.AchievementState.REVEALED)
         .get();
 
     instance.setPlayerAchievement(playerAchievement);
@@ -120,7 +120,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
     PlayerAchievement playerAchievement = PlayerAchievementBuilder.create().defaultValues()
-        .state(com.faforever.client.api.dto.AchievementState.UNLOCKED)
+        .state(com.faforever.commons.api.dto.AchievementState.UNLOCKED)
         .currentSteps(50)
         .get();
 

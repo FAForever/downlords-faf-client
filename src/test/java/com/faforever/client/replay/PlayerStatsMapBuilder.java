@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.game.Faction;
 import com.faforever.client.replay.Replay.PlayerStats;
+import com.faforever.commons.api.dto.Faction;
 
 import java.util.ArrayList;
 import java.util.HashMap;

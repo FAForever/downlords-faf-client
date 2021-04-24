@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.api.dto.GroupPermission;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.game.Game;
@@ -23,6 +22,7 @@ import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.commons.api.dto.GroupPermission;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;

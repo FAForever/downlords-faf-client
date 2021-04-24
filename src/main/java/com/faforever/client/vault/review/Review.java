@@ -29,7 +29,7 @@ public class Review {
     updateTime = new SimpleObjectProperty<>();
   }
 
-  public static Review fromDto(com.faforever.client.api.dto.Review dto) {
+  public static Review fromDto(com.faforever.commons.api.dto.Review dto) {
     Review review = new Review();
     review.setId(dto.getId());
     review.setText(dto.getText());

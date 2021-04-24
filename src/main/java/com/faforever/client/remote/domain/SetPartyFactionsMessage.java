@@ -1,6 +1,6 @@
 package com.faforever.client.remote.domain;
 
-import com.faforever.client.game.Faction;
+import com.faforever.commons.api.dto.Faction;
 import lombok.Getter;
 import lombok.Setter;
 

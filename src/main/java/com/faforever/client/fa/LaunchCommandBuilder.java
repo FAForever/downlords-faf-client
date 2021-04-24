@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.game.Faction;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.commons.api.dto.Faction;
 import com.google.common.base.Strings;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -140,7 +140,7 @@ public class LaunchCommandBuilder {
     Assert.state(!(uid != null && username == null), "username has not been set");
 
     List<String> command = new ArrayList<>();
-    command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath().toString() + "\"")));
+    command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath() + "\"")));
     command.addAll(Arrays.asList(
         "/init", ForgedAlliancePrefs.INIT_FILE_NAME,
         "/nobugreport"

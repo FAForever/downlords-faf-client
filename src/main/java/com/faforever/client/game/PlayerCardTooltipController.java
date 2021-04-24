@@ -6,6 +6,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
+import com.faforever.commons.api.dto.Faction;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;

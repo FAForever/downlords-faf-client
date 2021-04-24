@@ -1,22 +1,22 @@
 package com.faforever.client.api;
 
-import com.faforever.client.api.dto.AchievementDefinition;
-import com.faforever.client.api.dto.Event;
-import com.faforever.client.api.dto.Game;
-import com.faforever.client.api.dto.GamePlayerStats;
-import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.LeaderboardRatingJournal;
-import com.faforever.client.api.dto.MapVersion;
-import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.ModVersionReview;
-import com.faforever.client.api.dto.ModerationReport;
-import com.faforever.client.api.dto.Player;
-import com.faforever.client.api.dto.PlayerAchievement;
-import com.faforever.client.api.dto.PlayerEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.mod.ModVersionBuilder;
 import com.faforever.client.reporting.ModerationReportBuilder;
+import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.Event;
+import com.faforever.commons.api.dto.Game;
+import com.faforever.commons.api.dto.GamePlayerStats;
+import com.faforever.commons.api.dto.GameReview;
+import com.faforever.commons.api.dto.LeaderboardRatingJournal;
+import com.faforever.commons.api.dto.MapVersion;
+import com.faforever.commons.api.dto.MapVersionReview;
+import com.faforever.commons.api.dto.ModVersionReview;
+import com.faforever.commons.api.dto.ModerationReport;
+import com.faforever.commons.api.dto.Player;
+import com.faforever.commons.api.dto.PlayerAchievement;
+import com.faforever.commons.api.dto.PlayerEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -312,7 +312,7 @@ public class FafApiAccessorImplTest {
     when(restOperations.postForEntity(eq("/data/modVersion/5/reviews"), eq(modVersionReview), eq(ModVersionReview.class)))
         .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
-    instance.createModVersionReview(modVersionReview.setModVersion(new com.faforever.client.api.dto.ModVersion().setId("5")));
+    instance.createModVersionReview(modVersionReview.setModVersion((com.faforever.commons.api.dto.ModVersion) new com.faforever.commons.api.dto.ModVersion().setId("5")));
 
     ArgumentCaptor<ModVersionReview> captor = ArgumentCaptor.forClass(ModVersionReview.class);
     verify(restOperations).postForEntity(eq("/data/modVersion/5/reviews"), captor.capture(), eq(ModVersionReview.class));
@@ -323,7 +323,7 @@ public class FafApiAccessorImplTest {
 
   @Test
   public void testCreateMapVersionReview() {
-    MapVersionReview mapVersionReview = new MapVersionReview().setMapVersion(new MapVersion().setId("5"));
+    MapVersionReview mapVersionReview = new MapVersionReview().setMapVersion((MapVersion) new MapVersion().setId("5"));
     when(restOperations.postForEntity(eq("/data/mapVersion/5/reviews"), eq(mapVersionReview), eq(MapVersionReview.class)))
         .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
@@ -352,15 +352,16 @@ public class FafApiAccessorImplTest {
   public void testGetLatestVersionMap() {
     MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001");
 
-    com.faforever.client.api.dto.Map map = new com.faforever.client.api.dto.Map()
-        .setLatestVersion(new MapVersion().setFolderName("palaneum.v0002"));
+    MapVersion latestVersion = new MapVersion().setFolderName("palaneum.v0002");
+    com.faforever.commons.api.dto.Map map = new com.faforever.commons.api.dto.Map()
+        .setLatestVersion(latestVersion);
     MapVersion mapFromServer = new MapVersion().setFolderName("palaneum.v0001")
         .setMap(map);
 
     when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
         .thenReturn(Collections.singletonList(mapFromServer));
 
-    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.of(mapFromServer)));
+    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.of(latestVersion)));
     String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
     verify(restOperations).getForObject(contains(parameters), eq(List.class));
   }

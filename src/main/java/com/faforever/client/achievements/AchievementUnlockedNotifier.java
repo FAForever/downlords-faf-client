@@ -1,7 +1,6 @@
 package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
-import com.faforever.client.api.dto.AchievementDefinition;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -9,6 +8,7 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
+import com.faforever.commons.api.dto.AchievementDefinition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;

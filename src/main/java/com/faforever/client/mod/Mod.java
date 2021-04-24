@@ -35,7 +35,7 @@ public class Mod {
     versions = FXCollections.observableArrayList();
   }
 
-  public static Mod fromDto(com.faforever.client.api.dto.Mod dto) {
+  public static Mod fromDto(com.faforever.commons.api.dto.Mod dto) {
     Mod mod = new Mod();
     mod.setId(dto.getId());
     mod.setDisplayName(dto.getDisplayName());

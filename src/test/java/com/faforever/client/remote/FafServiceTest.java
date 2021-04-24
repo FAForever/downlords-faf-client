@@ -1,13 +1,13 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.api.dto.GameReview;
-import com.faforever.client.api.dto.MapVersionReview;
-import com.faforever.client.api.dto.ModVersionReview;
-import com.faforever.client.api.dto.Player;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
 import com.faforever.client.vault.review.Review;
+import com.faforever.commons.api.dto.GameReview;
+import com.faforever.commons.api.dto.MapVersionReview;
+import com.faforever.commons.api.dto.ModVersionReview;
+import com.faforever.commons.api.dto.Player;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class FafServiceTest {
     Review review = createReview(null, "something", 3, 42);
 
     when(fafApiAccessor.createGameReview(any()))
-        .thenReturn((GameReview) new GameReview().setPlayer(player()).setId("1").setScore((byte) 1));
+        .thenReturn((GameReview) new GameReview().setPlayer(player()).setScore((byte) 1).setId("1"));
 
     instance.saveGameReview(review, 5);
     verify(fafApiAccessor).createGameReview(any());
@@ -74,7 +74,7 @@ public class FafServiceTest {
     Review review = createReview(null, "something", 3, 42);
 
     when(fafApiAccessor.createMapVersionReview(any()))
-        .thenReturn((MapVersionReview) new MapVersionReview().setPlayer(player()).setId("1").setScore((byte) 1));
+        .thenReturn((MapVersionReview) new MapVersionReview().setPlayer(player()).setScore((byte) 1).setId("1"));
 
     instance.saveMapVersionReview(review, "5");
     verify(fafApiAccessor).createMapVersionReview(any());
@@ -85,7 +85,7 @@ public class FafServiceTest {
     Review review = createReview(null, "something", 3, 42);
 
     when(fafApiAccessor.createModVersionReview(any()))
-        .thenReturn((ModVersionReview) new ModVersionReview().setPlayer(player()).setId("1").setScore((byte) 1));
+        .thenReturn((ModVersionReview) new ModVersionReview().setPlayer(player()).setScore((byte) 1).setId("1"));
 
     instance.saveModVersionReview(review, "5");
     verify(fafApiAccessor).createModVersionReview(any());
@@ -108,6 +108,6 @@ public class FafServiceTest {
   }
 
   private Player player() {
-    return new Player().setId("1");
+    return (Player) new Player().setId("1");
   }
 }

@@ -38,11 +38,11 @@ public class Tutorial {
     imageUrl = new SimpleStringProperty();
   }
 
-  public static Tutorial fromDto(com.faforever.client.api.dto.Tutorial dto) {
+  public static Tutorial fromDto(com.faforever.commons.api.dto.Tutorial dto) {
     return fromDto(dto, null);
   }
 
-  public static Tutorial fromDto(com.faforever.client.api.dto.Tutorial dto, TutorialCategory tutorialCategory) {
+  public static Tutorial fromDto(com.faforever.commons.api.dto.Tutorial dto, TutorialCategory tutorialCategory) {
     Tutorial tutorial = new Tutorial();
     tutorial.setId(Integer.parseInt(dto.getId()));
     tutorial.setDescription(dto.getDescription());
