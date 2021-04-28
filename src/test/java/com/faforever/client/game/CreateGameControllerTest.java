@@ -76,9 +76,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private
   NotificationService notificationService;
   @Mock
-  private
-  ReportingService reportingService;
-  @Mock
   private I18n i18n;
   @Mock
   private UiService uiService;
@@ -94,10 +91,12 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private Preferences preferences;
   private CreateGameController instance;
   private ObservableList<MapBean> mapList;
+  private MapFilterController mapFilterController;
 
   @Before
   public void setUp() throws Exception {
     instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, fafService, mapGeneratorService, uiService);
+    mapFilterController = new MapFilterController();
 
     mapList = FXCollections.observableArrayList();
 
@@ -110,6 +109,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
     when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());
     when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
+    when(uiService.loadFxml("theme/play/map_filter.fxml")).thenReturn(mapFilterController);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
@@ -118,6 +118,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 
+    loadFxml("theme/play/map_filter.fxml", clazz -> mapFilterController);
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
         return modManagerController;
