@@ -357,6 +357,13 @@
   -fx-background: -fx-base;
 }
 
+/***************** Map Filter Window *****************/
+
+.filter-map {
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-base;
+}
+
 /***************** User Info Window *****************/
 
 .user-info-header-area {
@@ -628,11 +635,6 @@
 
 .create-game-dual-list-cell > .right-label {
   -fx-text-fill: -fx-mid-text-color;
-}
-
-.moreFilters:hover {
-  -fx-underline: true;
-  -fx-cursor: hand;
 }
 
 /***************** Settings window *****************/

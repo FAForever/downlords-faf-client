@@ -29,22 +29,23 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
-import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -101,15 +102,13 @@ public class CreateGameController implements Controller<Pane> {
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
   public Button generateMapButton;
-  public Label moreFiltersLabel;
-  public VBox additionalFiltersBox;
-  public TextField numberOfPlayersTextField;
-  public TextField mapWidthTextField;
-  public TextField mapHeightTextField;
+  public ToggleButton mapFilterButton;
+  public Popup mapFilterPopup;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
   private PreferenceUpdateListener preferenceUpdateListener;
+  private MapFilterController mapFilterController;
   /**
    * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
    */
@@ -117,9 +116,26 @@ public class CreateGameController implements Controller<Pane> {
 
   public void initialize() {
     JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
-    JavaFxUtil.bindManagedToVisible(additionalFiltersBox, versionLabel);
+    JavaFxUtil.bindManagedToVisible(versionLabel);
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
-    prepareListenersForSearchTextFields();
+    mapSearchTextField.setOnKeyPressed(event -> {
+      MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
+      int currentMapIndex = selectionModel.getSelectedIndex();
+      int newMapIndex = currentMapIndex;
+      if (KeyCode.DOWN == event.getCode()) {
+        if (filteredMapBeans.size() > currentMapIndex + 1) {
+          newMapIndex++;
+        }
+        event.consume();
+      } else if (KeyCode.UP == event.getCode()) {
+        if (currentMapIndex > 0) {
+          newMapIndex--;
+        }
+        event.consume();
+      }
+      selectionModel.select(newMapIndex);
+      mapListView.scrollTo(newMapIndex);
+    });
 
     Function<FeaturedMod, String> isDefaultModString = mod ->
         Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
@@ -154,70 +170,6 @@ public class CreateGameController implements Controller<Pane> {
     } else {
       init();
     }
-  }
-
-  private void prepareListenersForSearchTextFields() {
-    JavaFxUtil.makeNumericTextField(numberOfPlayersTextField, 2, false);
-    JavaFxUtil.makeNumericTextField(mapWidthTextField, 2, false);
-    JavaFxUtil.makeNumericTextField(mapHeightTextField, 2, false);
-
-    JavaFxUtil.addListener(mapSearchTextField.textProperty(), (obs, old, value) -> runMapSearch());
-    JavaFxUtil.addListener(numberOfPlayersTextField.textProperty(), (obs, old, value) -> runMapSearch());
-    JavaFxUtil.addListener(mapWidthTextField.textProperty(), (obs, old, value) -> runMapSearch());
-    JavaFxUtil.addListener(mapHeightTextField.textProperty(), (obs, old, value) -> runMapSearch());
-    mapSearchTextField.setOnKeyPressed(getOnDownKeyEventHandler());
-    numberOfPlayersTextField.setOnKeyPressed(getOnDownKeyEventHandler());
-    mapWidthTextField.setOnKeyPressed(getOnDownKeyEventHandler());
-    mapHeightTextField.setOnKeyPressed(getOnDownKeyEventHandler());
-  }
-
-  private EventHandler<KeyEvent> getOnDownKeyEventHandler() {
-    return (event) -> {
-      MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
-      int currentMapIndex = selectionModel.getSelectedIndex();
-      int newMapIndex = currentMapIndex;
-      if (KeyCode.DOWN == event.getCode()) {
-        if (filteredMapBeans.size() > currentMapIndex + 1) {
-          newMapIndex++;
-        }
-        event.consume();
-      } else if (KeyCode.UP == event.getCode()) {
-        if (currentMapIndex > 0) {
-          newMapIndex--;
-        }
-        event.consume();
-      }
-      selectionModel.select(newMapIndex);
-      mapListView.scrollTo(newMapIndex);
-    };
-  }
-
-  private void runMapSearch() {
-    filteredMapBeans.setPredicate((map) ->
-        isEqualToNumberOfPlayers(map) && isEqualToMapWidth(map) && isEqualToMapHeight(map) && containsMapName(map));
-    if (!filteredMapBeans.isEmpty()) {
-      mapListView.getSelectionModel().select(0);
-    }
-  }
-
-  private boolean containsMapName(MapBean map) {
-    String value = mapSearchTextField.getText().toLowerCase();
-    return map.getDisplayName().toLowerCase().contains(value) || map.getFolderName().toLowerCase().contains(value);
-  }
-
-  private boolean isEqualToNumberOfPlayers(MapBean map) {
-    String value = numberOfPlayersTextField.getText();
-    return value.isEmpty() || map.getPlayers() == Integer.parseInt(value);
-  }
-
-  private boolean isEqualToMapWidth(MapBean map) {
-    String value = mapWidthTextField.getText();
-    return value.isEmpty() || map.getSize().getWidthInKm() == Integer.parseInt(value);
-  }
-
-  private boolean isEqualToMapHeight(MapBean map) {
-    String value = mapHeightTextField.getText();
-    return value.isEmpty() || map.getSize().getHeightInKm() == Integer.parseInt(value);
   }
 
   public void onCloseButtonClicked() {
@@ -261,6 +213,20 @@ public class CreateGameController implements Controller<Pane> {
         titleTextField.textProperty().isEmpty()
             .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
     );
+    initMapFilterPopup();
+  }
+
+  private void initMapFilterPopup() {
+    mapFilterPopup = new Popup();
+    mapFilterPopup.setAutoFix(false);
+    mapFilterPopup.setAutoHide(true);
+    mapFilterPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
+
+    mapFilterController = uiService.loadFxml("theme/play/map_filter.fxml");
+    mapFilterController.setMapSearchTextField(mapSearchTextField);
+    mapFilterController.filterAppliedProperty().addListener(((observable, old, newValue) -> mapFilterButton.setSelected(newValue)));
+    mapFilterController.setMapList(filteredMapBeans);
+    mapFilterPopup.getContent().setAll(mapFilterController.getRoot());
   }
 
   private void validateTitle(String gameTitle) {
@@ -290,6 +256,11 @@ public class CreateGameController implements Controller<Pane> {
     filteredMapBeans = new FilteredList<>(
         mapService.getInstalledMaps().filtered(mapBean -> mapBean.getType() == Type.SKIRMISH).sorted((o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName()))
     );
+    JavaFxUtil.addListener(filteredMapBeans.predicateProperty(), (obs, old, value) -> {
+      if (!filteredMapBeans.isEmpty()) {
+        mapListView.getSelectionModel().select(0);
+      }
+    });
 
     mapListView.setItems(filteredMapBeans);
     mapListView.setCellFactory(param -> new StringListCell<>(MapBean::getDisplayName));
@@ -512,8 +483,13 @@ public class CreateGameController implements Controller<Pane> {
     this.onCloseButtonClickedListener = onCloseButtonClickedListener;
   }
 
-  public void onMoreFiltersLabelClicked() {
-    moreFiltersLabel.setVisible(false);
-    additionalFiltersBox.setVisible(true);
+  public void onMapFilterButtonClicked() {
+    mapFilterButton.setSelected(mapFilterController.filterAppliedProperty().getValue());
+    if (mapFilterPopup.isShowing()) {
+      mapFilterPopup.hide();
+    } else {
+      Bounds screenBounds = mapSearchTextField.localToScreen(mapSearchTextField.getBoundsInLocal());
+      mapFilterPopup.show(mapSearchTextField.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMinY());
+    }
   }
 }
