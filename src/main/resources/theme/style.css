@@ -630,6 +630,11 @@
   -fx-text-fill: -fx-mid-text-color;
 }
 
+.moreFilters:hover {
+  -fx-underline: true;
+  -fx-cursor: hand;
+}
+
 /***************** Settings window *****************/
 
 .settings .label {

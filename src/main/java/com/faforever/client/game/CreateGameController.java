@@ -21,7 +21,6 @@ import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -30,6 +29,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
+import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -38,11 +38,13 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -76,7 +78,6 @@ public class CreateGameController implements Controller<Pane> {
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
-  private final ReportingService reportingService;
   private final FafService fafService;
   private final MapGeneratorService mapGeneratorService;
   private final UiService uiService;
@@ -100,6 +101,11 @@ public class CreateGameController implements Controller<Pane> {
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
   public Button generateMapButton;
+  public Label moreFiltersLabel;
+  public VBox additionalFiltersBox;
+  public TextField numberOfPlayersTextField;
+  public TextField mapWidthTextField;
+  public TextField mapHeightTextField;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
@@ -111,38 +117,9 @@ public class CreateGameController implements Controller<Pane> {
 
   public void initialize() {
     JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
-    versionLabel.managedProperty().bind(versionLabel.visibleProperty());
-
-    mapPreviewPane.prefHeightProperty().bind(mapPreviewPane.widthProperty());
-    mapSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.isEmpty()) {
-        filteredMapBeans.setPredicate(null);
-      } else {
-        filteredMapBeans.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase())
-            || mapInfoBean.getFolderName().toLowerCase().contains(newValue.toLowerCase()));
-      }
-      if (!filteredMapBeans.isEmpty()) {
-        mapListView.getSelectionModel().select(0);
-      }
-    });
-    mapSearchTextField.setOnKeyPressed(event -> {
-      MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
-      int currentMapIndex = selectionModel.getSelectedIndex();
-      int newMapIndex = currentMapIndex;
-      if (KeyCode.DOWN == event.getCode()) {
-        if (filteredMapBeans.size() > currentMapIndex + 1) {
-          newMapIndex++;
-        }
-        event.consume();
-      } else if (KeyCode.UP == event.getCode()) {
-        if (currentMapIndex > 0) {
-          newMapIndex--;
-        }
-        event.consume();
-      }
-      selectionModel.select(newMapIndex);
-      mapListView.scrollTo(newMapIndex);
-    });
+    JavaFxUtil.bindManagedToVisible(additionalFiltersBox, versionLabel);
+    JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
+    prepareListenersForSearchTextFields();
 
     Function<FeaturedMod, String> isDefaultModString = mod ->
         Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
@@ -177,6 +154,70 @@ public class CreateGameController implements Controller<Pane> {
     } else {
       init();
     }
+  }
+
+  private void prepareListenersForSearchTextFields() {
+    JavaFxUtil.makeNumericTextField(numberOfPlayersTextField, 2, false);
+    JavaFxUtil.makeNumericTextField(mapWidthTextField, 2, false);
+    JavaFxUtil.makeNumericTextField(mapHeightTextField, 2, false);
+
+    JavaFxUtil.addListener(mapSearchTextField.textProperty(), (obs, old, value) -> runMapSearch());
+    JavaFxUtil.addListener(numberOfPlayersTextField.textProperty(), (obs, old, value) -> runMapSearch());
+    JavaFxUtil.addListener(mapWidthTextField.textProperty(), (obs, old, value) -> runMapSearch());
+    JavaFxUtil.addListener(mapHeightTextField.textProperty(), (obs, old, value) -> runMapSearch());
+    mapSearchTextField.setOnKeyPressed(getOnDownKeyEventHandler());
+    numberOfPlayersTextField.setOnKeyPressed(getOnDownKeyEventHandler());
+    mapWidthTextField.setOnKeyPressed(getOnDownKeyEventHandler());
+    mapHeightTextField.setOnKeyPressed(getOnDownKeyEventHandler());
+  }
+
+  private EventHandler<KeyEvent> getOnDownKeyEventHandler() {
+    return (event) -> {
+      MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
+      int currentMapIndex = selectionModel.getSelectedIndex();
+      int newMapIndex = currentMapIndex;
+      if (KeyCode.DOWN == event.getCode()) {
+        if (filteredMapBeans.size() > currentMapIndex + 1) {
+          newMapIndex++;
+        }
+        event.consume();
+      } else if (KeyCode.UP == event.getCode()) {
+        if (currentMapIndex > 0) {
+          newMapIndex--;
+        }
+        event.consume();
+      }
+      selectionModel.select(newMapIndex);
+      mapListView.scrollTo(newMapIndex);
+    };
+  }
+
+  private void runMapSearch() {
+    filteredMapBeans.setPredicate((map) ->
+        isEqualToNumberOfPlayers(map) && isEqualToMapWidth(map) && isEqualToMapHeight(map) && containsMapName(map));
+    if (!filteredMapBeans.isEmpty()) {
+      mapListView.getSelectionModel().select(0);
+    }
+  }
+
+  private boolean containsMapName(MapBean map) {
+    String value = mapSearchTextField.getText().toLowerCase();
+    return map.getDisplayName().toLowerCase().contains(value) || map.getFolderName().toLowerCase().contains(value);
+  }
+
+  private boolean isEqualToNumberOfPlayers(MapBean map) {
+    String value = numberOfPlayersTextField.getText();
+    return value.isEmpty() || map.getPlayers() == Integer.parseInt(value);
+  }
+
+  private boolean isEqualToMapWidth(MapBean map) {
+    String value = mapWidthTextField.getText();
+    return value.isEmpty() || map.getSize().getWidthInKm() == Integer.parseInt(value);
+  }
+
+  private boolean isEqualToMapHeight(MapBean map) {
+    String value = mapHeightTextField.getText();
+    return value.isEmpty() || map.getSize().getHeightInKm() == Integer.parseInt(value);
   }
 
   public void onCloseButtonClicked() {
@@ -469,5 +510,10 @@ public class CreateGameController implements Controller<Pane> {
 
   void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
     this.onCloseButtonClickedListener = onCloseButtonClickedListener;
+  }
+
+  public void onMoreFiltersLabelClicked() {
+    moreFiltersLabel.setVisible(false);
+    additionalFiltersBox.setVisible(true);
   }
 }
