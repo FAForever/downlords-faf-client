@@ -88,7 +88,7 @@
                                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                         <Label fx:id="moreFiltersLabel" styleClass="moreFilters"
                                onMouseClicked="#onMoreFiltersLabelClicked"
-                               text="more filters..." AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0"
+                               text="%game.moreFilters" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0"
                                AnchorPane.topAnchor="0.0"/>
                     </children>
                 </AnchorPane>
@@ -96,7 +96,7 @@
                     <children>
                         <HBox alignment="CENTER_RIGHT">
                             <children>
-                                <Label text="Number of players:">
+                                <Label text="%game.numberOfPlayers">
                                     <HBox.margin>
                                         <Insets right="5.0"/>
                                     </HBox.margin>
@@ -106,7 +106,7 @@
                         </HBox>
                         <HBox alignment="CENTER_RIGHT">
                             <children>
-                                <Label text="Map size, in km:">
+                                <Label text="%game.mapSizeInKm">
                                     <HBox.margin>
                                         <Insets right="5.0"/>
                                     </HBox.margin>
