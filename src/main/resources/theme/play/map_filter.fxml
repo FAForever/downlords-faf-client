@@ -10,8 +10,8 @@
       spacing="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <TextField fx:id="numberOfPlayersTextField" promptText="%game.filter.numberOfPlayers"/>
-        <TextField fx:id="mapWidthTextField" promptText="%game.filter.mapWidth"/>
-        <TextField fx:id="mapHeightTextField" promptText="%game.filter.mapHeight"/>
+        <TextField fx:id="mapWidthInKmTextField" promptText="%game.filter.mapWidth"/>
+        <TextField fx:id="mapHeightInKmTextField" promptText="%game.filter.mapHeight"/>
     </children>
     <padding>
         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>

@@ -223,9 +223,9 @@ public class CreateGameController implements Controller<Pane> {
     mapFilterPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
 
     mapFilterController = uiService.loadFxml("theme/play/map_filter.fxml");
-    mapFilterController.setMapSearchTextField(mapSearchTextField);
-    mapFilterController.filterAppliedProperty().addListener(((observable, old, newValue) -> mapFilterButton.setSelected(newValue)));
-    mapFilterController.setMapList(filteredMapBeans);
+    mapFilterController.setMapNameTextField(mapSearchTextField);
+    mapFilterController.getFilterAppliedProperty().addListener(((observable, old, newValue) -> mapFilterButton.setSelected(newValue)));
+    mapFilterController.setFilteredMapList(filteredMapBeans);
     mapFilterPopup.getContent().setAll(mapFilterController.getRoot());
   }
 
@@ -484,7 +484,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onMapFilterButtonClicked() {
-    mapFilterButton.setSelected(mapFilterController.filterAppliedProperty().getValue());
+    mapFilterButton.setSelected(mapFilterController.getFilterAppliedProperty().getValue());
     if (mapFilterPopup.isShowing()) {
       mapFilterPopup.hide();
     } else {

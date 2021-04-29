@@ -15,7 +15,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
@@ -47,6 +46,8 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -142,6 +143,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
     instance.mapSearchTextField.setText("Test");
 
+    assertEquals(2, instance.filteredMapBeans.size());
     assertThat(instance.filteredMapBeans.get(0).getFolderName(), is("test2"));
     assertThat(instance.filteredMapBeans.get(1).getDisplayName(), is("Test1"));
   }
@@ -464,5 +466,22 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     verify(mapGeneratorService).getGeneratorStyles();
     verify(generateMapController).setStyles(any());
     verify(generateMapController).setOnCloseButtonClickedListener(any());
+  }
+
+  @Test
+  public void testOnMapFilterButtonClicked() {
+    settingMapFilterPopupForTestEnvironment();
+    runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
+    assertTrue(instance.mapFilterPopup.isShowing());
+
+    runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
+    assertFalse(instance.mapFilterPopup.isShowing());
+  }
+
+  private void settingMapFilterPopupForTestEnvironment() {
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.mapSearchTextField);
+      instance.mapFilterPopup.setOpacity(0.0);
+    });
   }
 }

@@ -19,40 +19,37 @@ public class MapFilterController implements Controller<Node> {
 
   public VBox mapFilterRoot;
   public TextField numberOfPlayersTextField;
-  public TextField mapWidthTextField;
-  public TextField mapHeightTextField;
+  public TextField mapWidthInKmTextField;
+  public TextField mapHeightInKmTextField;
   private TextField mapNameTextField;
-  private final BooleanProperty filterApplied = new SimpleBooleanProperty(false);
+  private final BooleanProperty filterAppliedProperty = new SimpleBooleanProperty(false);
   private FilteredList<MapBean> filteredMaps;
 
   @Override
   public void initialize() {
-    JavaFxUtil.addListener(numberOfPlayersTextField.textProperty(), (obs, old, value) -> runSearch());
-    JavaFxUtil.addListener(mapWidthTextField.textProperty(), (obs, old, value) -> runSearch());
-    JavaFxUtil.addListener(mapHeightTextField.textProperty(), (obs, old, value) -> runSearch());
+    JavaFxUtil.addListener(numberOfPlayersTextField.textProperty(), (obs, old, value) -> runFilter());
+    JavaFxUtil.addListener(mapWidthInKmTextField.textProperty(), (obs, old, value) -> runFilter());
+    JavaFxUtil.addListener(mapHeightInKmTextField.textProperty(), (obs, old, value) -> runFilter());
   }
 
-  public void setMapSearchTextField(TextField textField) {
+  public void setMapNameTextField(TextField textField) {
     mapNameTextField = textField;
-    JavaFxUtil.addListener(mapNameTextField.textProperty(), (obs, old, value) -> runSearch());
+    JavaFxUtil.addListener(mapNameTextField.textProperty(), (obs, old, value) -> runFilter());
   }
 
-  public void setMapList(FilteredList<MapBean> filteredMaps) {
+  public void setFilteredMapList(FilteredList<MapBean> filteredMaps) {
     this.filteredMaps = filteredMaps;
   }
 
-  public BooleanProperty filterAppliedProperty() {
-    return filterApplied;
+  public BooleanProperty getFilterAppliedProperty() {
+    return filterAppliedProperty;
   }
 
-  public void runSearch() {
+  public void runFilter() {
     filteredMaps.setPredicate((map) ->
         isEqualToNumberOfPlayers(map) && isEqualToMapWidth(map) && isEqualToMapHeight(map) && containsMapName(map));
-    filterApplied.set(
-        !mapNameTextField.getText().isEmpty() ||
-            !numberOfPlayersTextField.getText().isEmpty() ||
-            !mapWidthTextField.getText().isEmpty() ||
-            !mapHeightTextField.getText().isEmpty());
+    filterAppliedProperty.set(!mapNameTextField.getText().isEmpty() || !numberOfPlayersTextField.getText().isEmpty() ||
+            !mapWidthInKmTextField.getText().isEmpty() || !mapHeightInKmTextField.getText().isEmpty());
   }
 
   private boolean containsMapName(MapBean map) {
@@ -66,12 +63,12 @@ public class MapFilterController implements Controller<Node> {
   }
 
   private boolean isEqualToMapWidth(MapBean map) {
-    String value = mapWidthTextField.getText();
+    String value = mapWidthInKmTextField.getText();
     return value.isEmpty() || map.getSize().getWidthInKm() == Integer.parseInt(value);
   }
 
   private boolean isEqualToMapHeight(MapBean map) {
-    String value = mapHeightTextField.getText();
+    String value = mapHeightInKmTextField.getText();
     return value.isEmpty() || map.getSize().getHeightInKm() == Integer.parseInt(value);
   }
 
