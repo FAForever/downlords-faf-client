@@ -38,6 +38,7 @@ public class GenerateMapTask extends CompletableTask<String> {
   private Path generatorExecutableFile;
   private String mapFilename;
   private Integer spawnCount;
+  private Integer numTeams;
   private Integer mapSize;
   private String seed;
   private Float landDensity;
@@ -70,6 +71,7 @@ public class GenerateMapTask extends CompletableTask<String> {
     GeneratorCommand generatorCommand = GeneratorCommand.builder()
         .version(version)
         .spawnCount(spawnCount)
+        .numTeams(numTeams)
         .mapSize(mapSize)
         .seed(seed)
         .generatorExecutableFile(generatorExecutableFile)

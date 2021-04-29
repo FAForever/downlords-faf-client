@@ -16,13 +16,13 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -63,6 +65,9 @@ public class GenerateMapController implements Controller<Pane> {
   public Label mapStyleLabel;
   public ComboBox<String> mapStyleComboBox;
   public Spinner<Integer> spawnCountSpinner;
+  private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(IntStream.range(0, 17)
+      .filter(value -> value != 1)
+      .boxed().collect(Collectors.toList()));
   public Spinner<String> mapSizeSpinner;
   public Slider waterSlider;
   public CheckBox waterRandom;
@@ -90,6 +95,11 @@ public class GenerateMapController implements Controller<Pane> {
   public HBox reclaimRandomBox;
   private Runnable onCloseButtonClickedListener;
   private final ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
+  private final FilteredList<Integer> selectableTeamSizes = new FilteredList<>(validTeamSizes);
+  private final ObservableList<Integer> validSpawnCount = FXCollections.observableList(IntStream.range(2, 17)
+      .boxed().collect(Collectors.toList()));
+  private final FilteredList<Integer> selectableSpawnCounts = new FilteredList<>(validSpawnCount);
+  public Spinner<Integer> numTeamsSpinner;
   private final int[] mapValues = new int[]{256, 512, 1024};
 
   public void initialize() {
@@ -97,6 +107,7 @@ public class GenerateMapController implements Controller<Pane> {
     initCommandlineArgs();
     initGenerationTypeComboBox();
     initMapStyleComboBox();
+    initNumTeamsSpinner();
     initSpawnCountSpinner();
     initMapSizeSpinner();
     GeneratorPrefs genPrefs = preferencesService.getPreferences().getGenerator();
@@ -151,13 +162,43 @@ public class GenerateMapController implements Controller<Pane> {
         .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
   }
 
+  private void initNumTeamsSpinner() {
+    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
+    int numTeamsProperty = generatorPrefs.getNumTeams();
+    numTeamsSpinner.setValueFactory(new ListSpinnerValueFactory<>(selectableTeamSizes));
+    numTeamsSpinner.valueProperty().addListener((observable) -> {
+      int spawnCount = spawnCountSpinner.getValue();
+      int lastIndex = selectableSpawnCounts.indexOf(spawnCount);
+      selectableSpawnCounts.setPredicate((value) -> {
+        int numTeams = numTeamsSpinner.getValue();
+        return numTeams == 0 || value % numTeams == 0;
+      });
+      int newIndex = selectableSpawnCounts.indexOf(spawnCount);
+      if (newIndex > 0) {
+        int diff = newIndex - lastIndex;
+        if (diff > 0) {
+          spawnCountSpinner.increment(diff);
+        } else {
+          spawnCountSpinner.decrement(-diff);
+        }
+      }
+    });
+    generatorPrefs.numTeamsProperty().bind(numTeamsSpinner.valueProperty());
+    int lastIndex = selectableTeamSizes.indexOf(numTeamsProperty);
+    numTeamsSpinner.increment(lastIndex > 0 ? lastIndex : 1);
+    numTeamsSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
+        .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
+  }
+
   private void initSpawnCountSpinner() {
     GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     int spawnCountProperty = generatorPrefs.getSpawnCount();
-    spawnCountSpinner.setValueFactory(new IntegerSpinnerValueFactory(2, 16, spawnCountProperty, 2));
-    generatorPrefs.spawnCountProperty().bind(spawnCountSpinner.getValueFactory().valueProperty());
+    spawnCountSpinner.setValueFactory(new ListSpinnerValueFactory<>(selectableSpawnCounts));
+    generatorPrefs.spawnCountProperty().bind(spawnCountSpinner.valueProperty());
     spawnCountSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
         .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
+    int lastIndex = selectableSpawnCounts.indexOf(spawnCountProperty);
+    spawnCountSpinner.increment(Math.max(lastIndex, 0));
   }
 
   private void initMapSizeSpinner() {
@@ -238,12 +279,13 @@ public class GenerateMapController implements Controller<Pane> {
     } else {
       int spawnCount = spawnCountSpinner.getValue();
       int mapSize = mapValues[validMapSizes.indexOf(mapSizeSpinner.getValue())];
+      int numTeams = numTeamsSpinner.getValue();
       if (mapStyleComboBox.getValue() != null && !MapGeneratorService.GENERATOR_RANDOM_STYLE.equals(mapStyleComboBox.getValue())) {
         String style = mapStyleComboBox.getValue();
         generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, style);
       } else {
         GenerationType generationType = generationTypeComboBox.getValue();
-        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, getOptionMap(), generationType);
+        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, numTeams, getOptionMap(), generationType);
       }
     }
     generateFuture.thenAccept(mapName -> JavaFxUtil.runLater(() -> {

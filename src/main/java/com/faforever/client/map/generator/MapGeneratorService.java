@@ -164,7 +164,7 @@ public class MapGeneratorService implements InitializingBean {
     return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
   }
 
-  public CompletableFuture<String> generateMap(int spawnCount, int mapSize, Map<String, Float> optionMap, GenerationType generationType) {
+  public CompletableFuture<String> generateMap(int spawnCount, int mapSize, int numTeams, Map<String, Float> optionMap, GenerationType generationType) {
 
     String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, generatorVersion);
     Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
@@ -175,6 +175,7 @@ public class MapGeneratorService implements InitializingBean {
     generateMapTask.setVersion(generatorVersion);
     generateMapTask.setSpawnCount(spawnCount);
     generateMapTask.setMapSize(mapSize);
+    generateMapTask.setNumTeams(numTeams);
     generateMapTask.setGenerationType(generationType);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
     if (optionMap.containsKey("landDensity")) {

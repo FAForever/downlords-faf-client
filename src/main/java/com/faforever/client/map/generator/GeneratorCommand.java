@@ -18,6 +18,7 @@ public class GeneratorCommand {
   ComparableVersion version;
   String mapFilename;
   Integer spawnCount;
+  Integer numTeams;
   Integer mapSize;
   String seed;
   Float landDensity;
@@ -49,12 +50,12 @@ public class GeneratorCommand {
         return command;
       }
 
-      if (mapFilename == null && (mapSize == null || spawnCount == null)) {
+      if (mapFilename == null && (mapSize == null || spawnCount == null || numTeams == null)) {
         throw new IllegalStateException("Map generation parameters not properly set");
       }
 
       if (mapFilename == null) {
-        command.addAll(Arrays.asList("--map-size", mapSize.toString(), "--spawn-count", spawnCount.toString()));
+        command.addAll(Arrays.asList("--map-size", mapSize.toString(), "--spawn-count", spawnCount.toString(), "--num-teams", numTeams.toString()));
 
         if (style != null) {
           command.addAll(Arrays.asList("--style", style));
