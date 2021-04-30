@@ -27,14 +27,17 @@ public class MapFilterController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    JavaFxUtil.addListener(numberOfPlayersTextField.textProperty(), (obs, old, value) -> runFilter());
-    JavaFxUtil.addListener(mapWidthInKmTextField.textProperty(), (obs, old, value) -> runFilter());
-    JavaFxUtil.addListener(mapHeightInKmTextField.textProperty(), (obs, old, value) -> runFilter());
+    JavaFxUtil.makeNumericTextField(numberOfPlayersTextField, 2, false);
+    JavaFxUtil.makeNumericTextField(mapWidthInKmTextField, 2, false);
+    JavaFxUtil.makeNumericTextField(mapHeightInKmTextField, 2, false);
+    JavaFxUtil.addListener(numberOfPlayersTextField.textProperty(), (observable, oldValue, newValue) -> runFilter());
+    JavaFxUtil.addListener(mapWidthInKmTextField.textProperty(), (observable, oldValue, newValue) -> runFilter());
+    JavaFxUtil.addListener(mapHeightInKmTextField.textProperty(), (observable, oldValue, newValue) -> runFilter());
   }
 
   public void setMapNameTextField(TextField textField) {
     mapNameTextField = textField;
-    JavaFxUtil.addListener(mapNameTextField.textProperty(), (obs, old, value) -> runFilter());
+    JavaFxUtil.addListener(mapNameTextField.textProperty(), (observable, oldValue, newValue) -> runFilter());
   }
 
   public void setFilteredMapList(FilteredList<MapBean> filteredMaps) {

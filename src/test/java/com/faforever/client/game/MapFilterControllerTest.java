@@ -14,6 +14,7 @@ import java.util.List;
 
 import static com.faforever.client.map.MapBeanBuilder.create;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class MapFilterControllerTest extends AbstractPlainJavaFxTest {
 
@@ -93,7 +94,7 @@ public class MapFilterControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testFilterByNameIfNoMatch() {
     runOnFxThreadAndWait(() -> mapNameTextField.setText("map6"));
-    assertEquals(0, filteredMapList.size());
+    assertTrue(filteredMapList.isEmpty());
     verifyFilterAppliedProperty(true);
   }
 
