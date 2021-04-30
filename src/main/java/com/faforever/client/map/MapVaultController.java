@@ -191,6 +191,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
     Node root = mapUploadController.getRoot();
     Dialog dialog = uiService.showInDialog(vaultRoot, root, i18n.get("mapVault.upload.title"));
+    uiService.makeScrollableDialog(dialog);
     mapUploadController.setOnCancelButtonClickedListener(dialog::close);
   }
 

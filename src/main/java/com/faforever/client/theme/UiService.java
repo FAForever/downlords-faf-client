@@ -21,8 +21,10 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import lombok.SneakyThrows;
@@ -502,6 +504,13 @@ public class UiService implements InitializingBean, DisposableBean {
 
     dialog.show(parent);
     return dialog;
+  }
+
+  public void makeScrollableDialog(Dialog dialog) {
+    Region dialogContent = dialog.getContent();
+    ScrollPane scrollPane = new ScrollPane(dialogContent);
+    JavaFxUtil.bind(scrollPane.prefHeightProperty(), dialogContent.heightProperty());
+    dialog.setContent(scrollPane);
   }
 
   @SneakyThrows
