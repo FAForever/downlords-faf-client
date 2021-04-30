@@ -22,6 +22,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
@@ -509,6 +510,7 @@ public class UiService implements InitializingBean, DisposableBean {
   public void makeScrollableDialog(Dialog dialog) {
     Region dialogContent = dialog.getContent();
     ScrollPane scrollPane = new ScrollPane(dialogContent);
+    scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
     JavaFxUtil.bind(scrollPane.prefHeightProperty(), dialogContent.heightProperty());
     dialog.setContent(scrollPane);
   }
