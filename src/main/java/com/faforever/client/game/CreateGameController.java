@@ -256,7 +256,7 @@ public class CreateGameController implements Controller<Pane> {
     filteredMapBeans = new FilteredList<>(
         mapService.getInstalledMaps().filtered(mapBean -> mapBean.getType() == Type.SKIRMISH).sorted((o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName()))
     );
-    JavaFxUtil.addListener(filteredMapBeans.predicateProperty(), (obs, old, value) -> {
+    JavaFxUtil.addListener(filteredMapBeans.predicateProperty(), (observable, oldValue, newValue) -> {
       if (!filteredMapBeans.isEmpty()) {
         mapListView.getSelectionModel().select(0);
       }
