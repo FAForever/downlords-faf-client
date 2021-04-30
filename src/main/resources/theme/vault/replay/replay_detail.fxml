@@ -52,8 +52,8 @@
                                           pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="2147483647"
                                           GridPane.valignment="TOP"/>
                                <Label fx:id="titleLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
-                                      text="&lt;Title&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
-                                      GridPane.valignment="TOP"/>
+                                      text="&lt;Title&gt;" wrapText="true" GridPane.columnIndex="1"
+                                      GridPane.columnSpan="4" GridPane.valignment="TOP"/>
                                <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;"
                                       GridPane.columnIndex="1" GridPane.rowIndex="2">
                                  <graphic>
