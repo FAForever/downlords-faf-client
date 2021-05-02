@@ -32,6 +32,7 @@ import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
+import com.faforever.commons.replay.ReplayMetadata;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
@@ -210,17 +211,18 @@ public class ReplayService {
 
   private CompletableFuture<Replay> tryLoadingLocalReplay(Path replayFile) {
     try {
-      LocalReplayInfo replayInfo = replayFileReader.parseMetaData(replayFile);
+      ReplayData replayData = replayFileReader.parseReplay(replayFile);
+      ReplayMetadata replayMetadata = replayData.getMetadata();
 
-      CompletableFuture<FeaturedMod> featuredModFuture = modService.getFeaturedMod(replayInfo.getFeaturedMod());
-      CompletableFuture<Optional<MapBean>> mapBeanFuture = mapService.findByMapFolderName(replayInfo.getMapname());
+      CompletableFuture<FeaturedMod> featuredModFuture = modService.getFeaturedMod(replayMetadata.getFeaturedMod());
+      CompletableFuture<Optional<MapBean>> mapBeanFuture = mapService.findByMapFolderName(replayMetadata.getMapname());
 
       return CompletableFuture.allOf(featuredModFuture, mapBeanFuture).thenApply(ignoredVoid -> {
         Optional<MapBean> mapBean = mapBeanFuture.join();
         if (mapBean.isEmpty()) {
           log.warn("Could not find map for replay file '{}'", replayFile);
         }
-        return new Replay(replayInfo, replayFile, featuredModFuture.join(), mapBean.orElse(null));
+        return new Replay(replayMetadata, replayFile, featuredModFuture.join(), mapBean.orElse(null));
       });
     } catch (Exception e) {
       log.warn("Could not read replay file '{}'", replayFile, e);
@@ -403,20 +405,21 @@ public class ReplayService {
   }
 
   private void runFafReplayFile(Path path) throws IOException {
-    byte[] rawReplayBytes = replayFileReader.readRawReplayData(path);
+    ReplayData replayData = replayFileReader.parseReplay(path);
+    byte[] rawReplayBytes = replayData.getRawData();
 
     Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
     createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
-    LocalReplayInfo replayInfo = replayFileReader.parseMetaData(path);
-    String gameType = replayInfo.getFeaturedMod();
-    Integer replayId = replayInfo.getUid();
-    Map<String, Integer> modVersions = replayInfo.getFeaturedModVersions();
+    ReplayMetadata replayMetadata = replayData.getMetadata();
+    String gameType = replayMetadata.getFeaturedMod();
+    Integer replayId = replayMetadata.getUid();
+    Map<String, Integer> modVersions = replayMetadata.getFeaturedModVersions();
     String mapName = parseMapFolderName(rawReplayBytes);
 
-    Set<String> simMods = replayInfo.getSimMods() != null ? replayInfo.getSimMods().keySet() : emptySet();
+    Set<String> simMods = replayMetadata.getSimMods() != null ? replayMetadata.getSimMods().keySet() : emptySet();
 
     Integer version = parseSupComVersion(rawReplayBytes);
 
@@ -424,7 +427,8 @@ public class ReplayService {
   }
 
   private void runSupComReplayFile(Path path) {
-    byte[] rawReplayBytes = replayFileReader.readRawReplayData(path);
+    ReplayData replayData = replayFileReader.parseReplay(path);
+    byte[] rawReplayBytes = replayData.getRawData();
 
     Integer version = parseSupComVersion(rawReplayBytes);
     String mapName = parseMapName(rawReplayBytes);
