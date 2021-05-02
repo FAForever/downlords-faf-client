@@ -40,7 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -290,7 +289,7 @@ public class ReplayServiceTest {
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
-    replayMetadata.setSimMods(Collections.emptyMap());
+    replayMetadata.setSimMods(emptyMap());
     replayMetadata.setFeaturedModVersions(emptyMap());
     replayMetadata.setFeaturedMod("faf");
     replayMetadata.setMapname(TEST_MAP_NAME);
@@ -314,7 +313,7 @@ public class ReplayServiceTest {
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
-    replayMetadata.setSimMods(Collections.emptyMap());
+    replayMetadata.setSimMods(emptyMap());
     replayMetadata.setFeaturedModVersions(emptyMap());
     replayMetadata.setFeaturedMod("faf");
     replayMetadata.setMapname("None");
@@ -402,7 +401,7 @@ public class ReplayServiceTest {
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
-    replayMetadata.setSimMods(Collections.emptyMap());
+    replayMetadata.setSimMods(emptyMap());
     replayMetadata.setFeaturedModVersions(emptyMap());
     replayMetadata.setFeaturedMod("faf");
     replayMetadata.setMapname(TEST_MAP_NAME);
