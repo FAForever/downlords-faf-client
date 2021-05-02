@@ -133,8 +133,8 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     searchController.setVaultRoot(vaultRoot);
     searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedModQueries());
 
-    searchController.addTextFilter("displayName", i18n.get("mod.displayName"));
-    searchController.addTextFilter("author", i18n.get("mod.author"));
+    searchController.addTextFilter("displayName", i18n.get("mod.displayName"), false);
+    searchController.addTextFilter("author", i18n.get("mod.author"), false);
     searchController.addDateRangeFilter("latestVersion.updateTime", i18n.get("mod.uploadedDateTime"), 0);
 
     searchController.addBinaryFilter("latestVersion.type", i18n.get("mod.type"),

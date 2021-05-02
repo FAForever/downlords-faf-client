@@ -289,8 +289,9 @@ public class SearchController implements Controller<Pane> {
     queryInvalidationListener.invalidated(null);
   }
 
-  public void addTextFilter(String propertyName, String title) {
+  public void addTextFilter(String propertyName, String title, boolean exact) {
     TextFilterController textFilterController = uiService.loadFxml("theme/vault/search/textFilter.fxml");
+    textFilterController.setExact(exact);
     textFilterController.setPropertyName(propertyName);
     textFilterController.setTitle(title);
     textFilterController.setOnAction(this::onSearchButtonClicked);

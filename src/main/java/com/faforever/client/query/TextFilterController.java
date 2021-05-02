@@ -27,6 +27,7 @@ public class TextFilterController implements FilterNodeController {
   public VBox textBox;
   public TextField textField;
   private String propertyName;
+  private boolean exact;
 
   public void initialize() {
     textField = TextFields.createClearableTextField();
@@ -42,7 +43,10 @@ public class TextFilterController implements FilterNodeController {
       if (!textField.getStyleClass().contains("query-filter-selected")) {
         textField.getStyleClass().add("query-filter-selected");
       }
-      return Optional.of(Collections.singletonList(property.eq("*" + value + "*")));
+      if (!exact) {
+        value = "*" + value + "*";
+      }
+      return Optional.of(Collections.singletonList(property.eq(value)));
     } else {
       textField.getStyleClass().removeIf(styleClass -> styleClass.equals("query-filter-selected"));
       return Optional.empty();

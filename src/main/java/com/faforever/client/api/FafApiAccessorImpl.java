@@ -370,7 +370,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public Tuple<List<Game>, java.util.Map<String, ?>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig) {
     JSONAPIDocument<List<Game>> jsonApiDoc = getPageWithMeta(REPLAY_ENDPOINT, maxResults, page, java.util.Map.of(
-        FILTER, "(" + query + ");endTime=isnull=false",
+        FILTER, query + ";endTime=isnull=false",
         INCLUDE, REPLAY_INCLUDES,
         SORT, sortConfig.toQuery()
     ));
