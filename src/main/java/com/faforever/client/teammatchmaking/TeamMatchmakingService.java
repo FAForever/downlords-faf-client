@@ -211,7 +211,7 @@ public class TeamMatchmakingService {
           } else {
             gameService.setMatchedQueueRatingType(null);
           }
-          q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(15), taskScheduler);
+          q.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(60), taskScheduler);
         });
 
     matchmakingQueues.forEach(q -> q.setJoined(false));
@@ -221,7 +221,7 @@ public class TeamMatchmakingService {
   protected void onMatchCancelledMessage(MatchCancelledMessage message) {
     matchmakingQueues.stream()
         .filter(q -> q.getMatchingStatus() != null)
-        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(15), taskScheduler));
+        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(60), taskScheduler));
 
     gameService.setMatchedQueueRatingType(null);
     matchFoundAndWaitingForGameLaunch = false;
@@ -236,7 +236,7 @@ public class TeamMatchmakingService {
 
     matchmakingQueues.stream()
         .filter(q -> q.getMatchingStatus() != null)
-        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(15), taskScheduler));
+        .forEach(q -> q.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(60), taskScheduler));
 
     matchFoundAndWaitingForGameLaunch = false;
     gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
