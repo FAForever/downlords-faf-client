@@ -22,6 +22,7 @@ import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayData;
+import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
@@ -241,8 +242,8 @@ public class ReplayServiceTest {
     Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
     Path file2 = replayDirectory.newFile("replay2.fafreplay").toPath();
 
-    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file1);
-    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(file2);
+    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file1);
+    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file2);
 
     Collection<Replay> localReplays = new ArrayList<>();
     try {
@@ -262,11 +263,14 @@ public class ReplayServiceTest {
   public void testLoadLocalReplays() throws Exception {
     Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    LocalReplayInfo localReplayInfo = new LocalReplayInfo();
-    localReplayInfo.setUid(123);
-    localReplayInfo.setTitle("title");
+    ReplayMetadata replayMetadata = new ReplayMetadata();
+    replayMetadata.setUid(123);
+    replayMetadata.setTitle("title");
 
-    when(replayFileReader.parseMetaData(file1)).thenReturn(localReplayInfo);
+    ReplayData replayData = new ReplayData(replayMetadata, new byte[]{}, List.of(), List.of());
+
+
+    when(replayFileReader.parseReplay(file1)).thenReturn(replayData);
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
@@ -284,16 +288,16 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    LocalReplayInfo replayInfo = new LocalReplayInfo();
-    replayInfo.setUid(123);
-    replayInfo.setSimMods(Collections.emptyMap());
-    replayInfo.setFeaturedModVersions(emptyMap());
-    replayInfo.setFeaturedMod("faf");
-    replayInfo.setMapname(TEST_MAP_NAME);
+    ReplayMetadata replayMetadata = new ReplayMetadata();
+    replayMetadata.setUid(123);
+    replayMetadata.setSimMods(Collections.emptyMap());
+    replayMetadata.setFeaturedModVersions(emptyMap());
+    replayMetadata.setFeaturedMod("faf");
+    replayMetadata.setMapname(TEST_MAP_NAME);
 
-    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
-    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    ReplayData replayData = new ReplayData(replayMetadata, REPLAY_FIRST_BYTES, List.of(), List.of());
 
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
 
     instance.runReplay(replay);
 
@@ -308,15 +312,16 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    LocalReplayInfo replayInfo = new LocalReplayInfo();
-    replayInfo.setUid(123);
-    replayInfo.setSimMods(Collections.emptyMap());
-    replayInfo.setFeaturedModVersions(emptyMap());
-    replayInfo.setFeaturedMod("faf");
-    replayInfo.setMapname("None");
+    ReplayMetadata replayMetadata = new ReplayMetadata();
+    replayMetadata.setUid(123);
+    replayMetadata.setSimMods(Collections.emptyMap());
+    replayMetadata.setFeaturedModVersions(emptyMap());
+    replayMetadata.setFeaturedMod("faf");
+    replayMetadata.setMapname("None");
 
-    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
-    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES_GENERATED_MAP);
+    ReplayData replayData = new ReplayData(replayMetadata, REPLAY_FIRST_BYTES_GENERATED_MAP, List.of(), List.of());
+
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
     when(mapGeneratorService.isGeneratedMap(TEST_MAP_NAME_GENERATED)).thenReturn(true);
 
 
@@ -333,7 +338,9 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    ReplayData replayData = new ReplayData(new ReplayMetadata(), REPLAY_FIRST_BYTES, List.of(), List.of());
+
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
 
     instance.runReplay(replay);
 
@@ -345,7 +352,7 @@ public class ReplayServiceTest {
   public void testRunReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
 
-    doThrow(new FakeTestException()).when(replayFileReader).readRawReplayData(replayFile);
+    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
@@ -358,8 +365,7 @@ public class ReplayServiceTest {
   public void testRunFafReplayFileExceptionPropagates() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
-    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(replayFile);
-    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
@@ -394,15 +400,16 @@ public class ReplayServiceTest {
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     Replay replay = new Replay();
 
-    LocalReplayInfo replayInfo = new LocalReplayInfo();
-    replayInfo.setUid(123);
-    replayInfo.setSimMods(Collections.emptyMap());
-    replayInfo.setFeaturedModVersions(emptyMap());
-    replayInfo.setFeaturedMod("faf");
-    replayInfo.setMapname(TEST_MAP_NAME);
+    ReplayMetadata replayMetadata = new ReplayMetadata();
+    replayMetadata.setUid(123);
+    replayMetadata.setSimMods(Collections.emptyMap());
+    replayMetadata.setFeaturedModVersions(emptyMap());
+    replayMetadata.setFeaturedMod("faf");
+    replayMetadata.setMapname(TEST_MAP_NAME);
 
-    when(replayFileReader.parseMetaData(replayFile)).thenReturn(replayInfo);
-    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    ReplayData replayData = new ReplayData(replayMetadata, REPLAY_FIRST_BYTES, List.of(), List.of());
+
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
 
     instance.runReplay(replay);
 
@@ -421,7 +428,9 @@ public class ReplayServiceTest {
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     Replay replay = new Replay();
 
-    when(replayFileReader.readRawReplayData(replayFile)).thenReturn(REPLAY_FIRST_BYTES);
+    ReplayData replayData = new ReplayData(new ReplayMetadata(), REPLAY_FIRST_BYTES, List.of(), List.of());
+
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
 
     instance.runReplay(replay);
 
@@ -433,7 +442,7 @@ public class ReplayServiceTest {
   @Test
   public void testRunScFaOnlineReplayExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
-    doThrow(new FakeTestException()).when(replayFileReader).parseMetaData(replayFile);
+    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
@@ -459,7 +468,7 @@ public class ReplayServiceTest {
   @Test
   public void testEnrich() throws Exception {
     Path path = Paths.get("foo.bar");
-    when(replayFileReader.parseReplay(path)).thenReturn(new ReplayData(emptyList(), emptyList()));
+    when(replayFileReader.parseReplay(path)).thenReturn(new ReplayData(new ReplayMetadata(), new byte[]{}, emptyList(), emptyList()));
 
     instance.enrich(new Replay(), path);
 
