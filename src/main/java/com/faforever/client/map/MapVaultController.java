@@ -78,8 +78,8 @@ public class MapVaultController extends VaultEntityController<MapBean> {
     searchController.setVaultRoot(vaultRoot);
     searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedMapQueries());
 
-    searchController.addTextFilter("displayName", i18n.get("map.name"));
-    searchController.addTextFilter("author.login", i18n.get("map.author"));
+    searchController.addTextFilter("displayName", i18n.get("map.name"), false);
+    searchController.addTextFilter("author.login", i18n.get("map.author"), false);
     searchController.addDateRangeFilter("latestVersion.updateTime", i18n.get("map.uploadedDateTime"), 0);
 
     LinkedHashMap<String, String> mapSizeMap = new LinkedHashMap<>();

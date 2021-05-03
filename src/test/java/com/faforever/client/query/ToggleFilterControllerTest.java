@@ -79,6 +79,6 @@ public class ToggleFilterControllerTest extends AbstractPlainJavaFxTest {
     Optional<List<Condition>> result = instance.getCondition();
 
     assertTrue(result.isPresent());
-    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.in(value).query(new RSQLVisitor()));
+    assertEquals(result.get().get(0).query(new RSQLVisitor()), property.eq(value).query(new RSQLVisitor()));
   }
 }

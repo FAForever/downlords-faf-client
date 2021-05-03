@@ -120,11 +120,11 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
     searchController.setVaultRoot(vaultRoot);
     searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedReplayQueries());
 
-    searchController.addTextFilter("playerStats.player.login", i18n.get("game.player.username"));
-    searchController.addTextFilter("mapVersion.map.displayName", i18n.get("game.map.displayName"));
-    searchController.addTextFilter("mapVersion.map.author.login", i18n.get("game.map.author"));
-    searchController.addTextFilter("name", i18n.get("game.title"));
-    searchController.addTextFilter("id", i18n.get("game.id"));
+    searchController.addTextFilter("playerStats.player.login", i18n.get("game.player.username"), false);
+    searchController.addTextFilter("mapVersion.map.displayName", i18n.get("game.map.displayName"), false);
+    searchController.addTextFilter("mapVersion.map.author.login", i18n.get("game.map.author"), false);
+    searchController.addTextFilter("name", i18n.get("game.title"), false);
+    searchController.addTextFilter("id", i18n.get("game.id"), true);
 
     CategoryFilterController featuredModFilterController = uiService.loadFxml("theme/vault/search/categoryFilter.fxml");
     featuredModFilterController.setTitle(i18n.get("featuredMod.displayName"));

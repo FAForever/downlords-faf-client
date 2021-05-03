@@ -32,7 +32,7 @@ public class ToggleFilterController implements FilterNodeController {
     QBuilder qBuilder = new QBuilder<>();
     StringProperty property = qBuilder.string(propertyName);
     if (checkBox.isSelected()) {
-      return Optional.of(Collections.singletonList(property.in(value)));
+      return Optional.of(Collections.singletonList(property.eq(value)));
     } else {
       return Optional.empty();
     }
