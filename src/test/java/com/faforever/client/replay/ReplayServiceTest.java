@@ -21,7 +21,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
-import com.faforever.commons.replay.ReplayData;
+import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.eventbus.EventBus;
 import org.junit.Before;
@@ -41,11 +41,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.Matchers.empty;
@@ -67,7 +67,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ReplayServiceTest {
-
   /**
    * First 64 bytes of a SCFAReplay file with version 3599. ASCII representation:
    * <pre>
@@ -87,51 +86,13 @@ public class ReplayServiceTest {
       0x73, 0x2E, 0x76, 0x30, 0x30, 0x30, 0x31, 0x2F, 0x66, 0x6F, 0x72, 0x62, 0x69, 0x64, 0x64, 0x65,
       0x6E, 0x20, 0x70, 0x61, 0x73, 0x73, 0x2E, 0x73, 0x63, 0x6D, 0x61, 0x70, 0x00, 0x0D, 0x0A, 0x1A
   };
-  private static final String TEST_MAP_NAME = "forbidden pass.v0001";
-
-  private static final byte[] REPLAY_MAP_FOLDER_BYTES = new byte[]{
-      0x75, 0x74, 0x6F, 0x54, 0x65, 0x61, 0x6D, 0x73, 0x00, 0x01, 0x6E, 0x6F, 0x6E, 0x65, 0x00, 0x01,
-      0x53, 0x63, 0x65, 0x6E, 0x61, 0x72, 0x69, 0x6F, 0x46, 0x69, 0x6C, 0x65, 0x00, 0x01, 0x2F, 0x6D,
-      0x61, 0x70, 0x73, 0x2F, 0x73, 0x63, 0x63, 0x61, 0x5F, 0x63, 0x6F, 0x6F, 0x70, 0x5F, 0x72, 0x30,
-      0x32, 0x2E, 0x76, 0x30, 0x30, 0x31, 0x35, 0x2F, 0x73, 0x63, 0x63, 0x61, 0x5F, 0x63, 0x6F, 0x6F,
-      0x70, 0x5F, 0x72, 0x30, 0x32, 0x5F, 0x73, 0x63, 0x65, 0x6E, 0x61, 0x72, 0x69, 0x6F, 0x2E, 0x6C,
-      0x75, 0x61, 0x00, 0x01, 0x55, 0x6E, 0x69, 0x74, 0x43, 0x61, 0x70, 0x00, 0x01, 0x31, 0x30, 0x30,
-      0x30, 0x00, 0x01, 0x52, 0x61, 0x74, 0x69, 0x6E, 0x67, 0x73, 0x00, 0x04, 0x01, 0x67, 0x72, 0x75
-  };
+  private static final String TEST_VERSION_STRING = "Supreme Commander v1.50.3599";
+  private static final String TEST_MAP_PATH = "/maps/forbidden_pass.v0001/forbidden_pass_scenario.lua";
+  private static final String TEST_MAP_NAME = "forbidden_pass.v0001";
+  private static final String COOP_MAP_PATH = "/maps/scca_coop_r02.v0015/scca_coop_r02_scenario.lua";
   private static final String COOP_MAP_NAME = "scca_coop_r02.v0015";
-
-  private static final byte[] REPLAY_FIRST_BYTES_BAD_FILENAME = new byte[]{
-      0x53, 0x75, 0x70, 0x72, 0x65, 0x6d, 0x65, 0x20, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x65,
-      0x72, 0x20, 0x76, 0x31, 0x2e, 0x35, 0x30, 0x2e, 0x33, 0x35, 0x39, 0x39, 0x00, 0x0a, 0x00, 0x52,
-      0x65, 0x70, 0x6c, 0x61, 0x79, 0x20, 0x76, 0x31, 0x2e, 0x39, 0x0a, 0x2f, 0x6d, 0x61, 0x70, 0x73,
-      0x2f, 0x66, 0x6f, 0x72, 0x62, 0x69, 0x64, 0x64, 0x65, 0x6e, 0x20, 0x3f, 0x70, 0x61, 0x73, 0x73,
-      0x2e, 0x76, 0x30, 0x30, 0x30, 0x31, 0x2f, 0x66, 0x6f, 0x72, 0x62, 0x69, 0x64, 0x64, 0x65, 0x6e,
-      0x20, 0x3f, 0x70, 0x61, 0x73, 0x73, 0x2e, 0x73, 0x63, 0x6d, 0x61, 0x70, 0x00, 0x0D, 0x0a, 0x1a
-  };
-  private static final String BAD_MAP_NAME = "forbidden ?pass.v0001";
-
-  private static final byte[] REPLAY_MAP_FOLDER_BYTES_BAD_FILENAME = new byte[]{
-      0x75, 0x74, 0x6f, 0x54, 0x65, 0x61, 0x6d, 0x73, 0x00, 0x01, 0x6e, 0x6f, 0x6e, 0x65, 0x00, 0x01,
-      0x53, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f, 0x46, 0x69, 0x6c, 0x65, 0x00, 0x01, 0x2f, 0x6d,
-      0x61, 0x70, 0x73, 0x2f, 0x73, 0x63, 0x63, 0x61, 0x5f, 0x63, 0x6f, 0x6f, 0x70, 0x5f, 0x72, 0x30,
-      0x32, 0x2e, 0x76, 0x30, 0x30, 0x31, 0x35, 0x2f, 0x73, 0x63, 0x63, 0x61, 0x5f, 0x63, 0x6f, 0x6f,
-      0x70, 0x3c, 0x3e, 0x5f, 0x72, 0x30, 0x32, 0x5f, 0x73, 0x63, 0x65, 0x6e, 0x61, 0x72, 0x69, 0x6f,
-      0x2e, 0x6c, 0x75, 0x61, 0x00, 0x01, 0x55, 0x6e, 0x69, 0x74, 0x43, 0x61, 0x70, 0x00, 0x01, 0x31,
-      0x30, 0x30, 0x30, 0x00, 0x01, 0x52, 0x61, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x00, 0x04, 0x01, 0x67,
-      0x72, 0x75
-  };
-  private static final String BAD_FOLDER_NAME = "scca_coop<>_r02.v0015";
-
-  private static final byte[] REPLAY_FIRST_BYTES_GENERATED_MAP = new byte[]{
-      0x53, 0x75, 0x70, 0x72, 0x65, 0x6d, 0x65, 0x20, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x65,
-      0x72, 0x20, 0x76, 0x31, 0x2e, 0x35, 0x30, 0x2e, 0x33, 0x35, 0x39, 0x39, 0x00, 0x0a, 0x00, 0x52,
-      0x65, 0x70, 0x6c, 0x61, 0x79, 0x20, 0x76, 0x31, 0x2e, 0x39, 0x0a, 0x2f, 0x6d, 0x61, 0x70, 0x73,
-      0x2f, 0x6e, 0x65, 0x72, 0x6f, 0x78, 0x69, 0x73, 0x5f, 0x6d, 0x61, 0x70, 0x5f, 0x67, 0x65, 0x6e,
-      0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x31, 0x2e, 0x30, 0x2e, 0x30, 0x5f, 0x41, 0x42, 0x63,
-      0x64, 0x2f, 0x6e, 0x65, 0x72, 0x6f, 0x78, 0x69, 0x73, 0x5f, 0x6d, 0x61, 0x70, 0x5f, 0x67, 0x65,
-      0x6e, 0x65, 0x72, 0x61, 0x74, 0x6f, 0x72, 0x5f, 0x31, 0x2e, 0x30, 0x2e, 0x30, 0x5f, 0x41, 0x42,
-      0x63, 0x64, 0x2e, 0x73, 0x63, 0x6d, 0x61, 0x70, 0x00, 0x0D, 0x0a, 0x1a
-  };
+  private static final String BAD_MAP_PATH = "/maps/forbidden_?pass.v0001/forbidden_pass_?scenario.lua";
+  private static final String TEST_MAP_PATH_GENERATED = "/maps/neroxis_map_generator_1.0.0_ABcd/neroxis_map_generator_1.0.0_ABcd_scenario.lua";
   private static final String TEST_MAP_NAME_GENERATED = "neroxis_map_generator_1.0.0_ABcd";
 
   @Rule
@@ -175,6 +136,8 @@ public class ReplayServiceTest {
   private ExecutorService executorService;
   @Mock
   private UserService userService;
+  @Mock
+  private ReplayDataParser replayDataParser;
 
   @Before
   public void setUp() throws Exception {
@@ -183,6 +146,21 @@ public class ReplayServiceTest {
     instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
         taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher);
 
+    ReplayMetadata replayMetadata = new ReplayMetadata();
+    replayMetadata.setUid(123);
+    replayMetadata.setSimMods(emptyMap());
+    replayMetadata.setFeaturedModVersions(emptyMap());
+    replayMetadata.setFeaturedMod("faf");
+    replayMetadata.setMapname(TEST_MAP_NAME);
+
+    when(replayFileReader.parseReplay(any())).thenReturn(replayDataParser);
+    when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
+    when(replayDataParser.getData()).thenReturn(REPLAY_FIRST_BYTES);
+    when(replayDataParser.getChatMessages()).thenReturn(List.of());
+    when(replayDataParser.getGameOptions()).thenReturn(List.of());
+    when(replayDataParser.getMods()).thenReturn(Map.of());
+    when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH);
+    when(replayDataParser.getReplayPatchFieldId()).thenReturn(TEST_VERSION_STRING);
     when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
     when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
@@ -191,35 +169,24 @@ public class ReplayServiceTest {
 
   @Test
   public void testParseSupComVersion() throws Exception {
-    Integer version = ReplayService.parseSupComVersion(REPLAY_FIRST_BYTES);
+    when(replayDataParser.getReplayPatchFieldId()).thenReturn(TEST_VERSION_STRING);
+    Integer version = ReplayService.parseSupComVersion(replayDataParser);
 
     assertEquals((Integer) 3599, version);
   }
 
   @Test
-  public void testParseMapName() throws Exception {
-    String mapName = ReplayService.parseMapName(REPLAY_FIRST_BYTES);
-
-    assertEquals(TEST_MAP_NAME, mapName);
-  }
-
-  @Test
   public void testParseMapFolderName() throws Exception {
-    String mapName = ReplayService.parseMapFolderName(REPLAY_MAP_FOLDER_BYTES);
-
+    when(replayDataParser.getMap()).thenReturn(COOP_MAP_PATH);
+    String mapName = ReplayService.parseMapFolderName(replayDataParser);
     assertEquals(COOP_MAP_NAME, mapName);
-  }
-
-  @Test
-  public void testParseBadMapNameThrowsException() throws Exception {
-    expectedException.expect(IllegalArgumentException.class);
-    ReplayService.parseMapName(REPLAY_FIRST_BYTES_BAD_FILENAME);
   }
 
   @Test
   public void testParseBadFolderNameThrowsException() throws Exception {
     expectedException.expect(IllegalArgumentException.class);
-    ReplayService.parseMapFolderName(REPLAY_MAP_FOLDER_BYTES_BAD_FILENAME);
+    when(replayDataParser.getMap()).thenReturn(BAD_MAP_PATH);
+    ReplayService.parseMapFolderName(replayDataParser);
   }
 
   @Test
@@ -266,10 +233,8 @@ public class ReplayServiceTest {
     replayMetadata.setUid(123);
     replayMetadata.setTitle("title");
 
-    ReplayData replayData = new ReplayData(replayMetadata, new byte[]{}, List.of(), List.of());
-
-
-    when(replayFileReader.parseReplay(file1)).thenReturn(replayData);
+    when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
+    when(replayFileReader.parseReplay(file1)).thenReturn(replayDataParser);
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
@@ -287,17 +252,6 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    ReplayMetadata replayMetadata = new ReplayMetadata();
-    replayMetadata.setUid(123);
-    replayMetadata.setSimMods(emptyMap());
-    replayMetadata.setFeaturedModVersions(emptyMap());
-    replayMetadata.setFeaturedMod("faf");
-    replayMetadata.setMapname(TEST_MAP_NAME);
-
-    ReplayData replayData = new ReplayData(replayMetadata, REPLAY_FIRST_BYTES, List.of(), List.of());
-
-    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
-
     instance.runReplay(replay);
 
     verify(gameService).runWithReplay(any(), eq(123), eq("faf"), eq(3599), eq(emptyMap()), eq(emptySet()), eq(TEST_MAP_NAME));
@@ -311,18 +265,8 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    ReplayMetadata replayMetadata = new ReplayMetadata();
-    replayMetadata.setUid(123);
-    replayMetadata.setSimMods(emptyMap());
-    replayMetadata.setFeaturedModVersions(emptyMap());
-    replayMetadata.setFeaturedMod("faf");
-    replayMetadata.setMapname("None");
-
-    ReplayData replayData = new ReplayData(replayMetadata, REPLAY_FIRST_BYTES_GENERATED_MAP, List.of(), List.of());
-
-    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
+    when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH_GENERATED);
     when(mapGeneratorService.isGeneratedMap(TEST_MAP_NAME_GENERATED)).thenReturn(true);
-
 
     instance.runReplay(replay);
 
@@ -337,9 +281,7 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    ReplayData replayData = new ReplayData(new ReplayMetadata(), REPLAY_FIRST_BYTES, List.of(), List.of());
-
-    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
 
     instance.runReplay(replay);
 
@@ -406,9 +348,8 @@ public class ReplayServiceTest {
     replayMetadata.setFeaturedMod("faf");
     replayMetadata.setMapname(TEST_MAP_NAME);
 
-    ReplayData replayData = new ReplayData(replayMetadata, REPLAY_FIRST_BYTES, List.of(), List.of());
-
-    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
+    when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
 
     instance.runReplay(replay);
 
@@ -427,9 +368,7 @@ public class ReplayServiceTest {
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     Replay replay = new Replay();
 
-    ReplayData replayData = new ReplayData(new ReplayMetadata(), REPLAY_FIRST_BYTES, List.of(), List.of());
-
-    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayData);
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
 
     instance.runReplay(replay);
 
@@ -467,10 +406,11 @@ public class ReplayServiceTest {
   @Test
   public void testEnrich() throws Exception {
     Path path = Paths.get("foo.bar");
-    when(replayFileReader.parseReplay(path)).thenReturn(new ReplayData(new ReplayMetadata(), new byte[]{}, emptyList(), emptyList()));
+    when(replayFileReader.parseReplay(path)).thenReturn(replayDataParser);
 
     instance.enrich(new Replay(), path);
 
-    verify(replayFileReader).parseReplay(path);
+    verify(replayDataParser).getChatMessages();
+    verify(replayDataParser).getGameOptions();
   }
 }

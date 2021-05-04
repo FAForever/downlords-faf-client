@@ -31,6 +31,6 @@ public class ReplayFileReaderImplTest {
     try (InputStream inputStream = new BufferedInputStream(getClass().getResourceAsStream("/replay/test.fafreplay"))) {
       Files.copy(inputStream, tempFile);
     }
-    assertThat(instance.parseReplay(tempFile).getRawData().length, is(197007));
+    assertThat(instance.parseReplay(tempFile).getData().length, is(197007));
   }
 }

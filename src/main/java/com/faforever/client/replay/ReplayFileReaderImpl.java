@@ -1,6 +1,5 @@
 package com.faforever.client.replay;
 
-import com.faforever.commons.replay.ReplayData;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +17,7 @@ public class ReplayFileReaderImpl implements ReplayFileReader {
   private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Override
-  public ReplayData parseReplay(Path path) {
-    return new ReplayDataParser(path, objectMapper).parse();
+  public ReplayDataParser parseReplay(Path path) {
+    return new ReplayDataParser(path, objectMapper);
   }
 }
