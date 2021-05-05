@@ -21,7 +21,6 @@ import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -30,12 +29,14 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
@@ -43,6 +44,8 @@ import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -76,7 +79,6 @@ public class CreateGameController implements Controller<Pane> {
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
-  private final ReportingService reportingService;
   private final FafService fafService;
   private final MapGeneratorService mapGeneratorService;
   private final UiService uiService;
@@ -100,10 +102,13 @@ public class CreateGameController implements Controller<Pane> {
   public Label versionLabel;
   public CheckBox onlyForFriendsCheckBox;
   public Button generateMapButton;
+  public ToggleButton mapFilterButton;
+  public Popup mapFilterPopup;
   @VisibleForTesting
   FilteredList<MapBean> filteredMapBeans;
   private Runnable onCloseButtonClickedListener;
   private PreferenceUpdateListener preferenceUpdateListener;
+  private MapFilterController mapFilterController;
   /**
    * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
    */
@@ -111,20 +116,8 @@ public class CreateGameController implements Controller<Pane> {
 
   public void initialize() {
     JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
-    versionLabel.managedProperty().bind(versionLabel.visibleProperty());
-
-    mapPreviewPane.prefHeightProperty().bind(mapPreviewPane.widthProperty());
-    mapSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue.isEmpty()) {
-        filteredMapBeans.setPredicate(null);
-      } else {
-        filteredMapBeans.setPredicate(mapInfoBean -> mapInfoBean.getDisplayName().toLowerCase().contains(newValue.toLowerCase())
-            || mapInfoBean.getFolderName().toLowerCase().contains(newValue.toLowerCase()));
-      }
-      if (!filteredMapBeans.isEmpty()) {
-        mapListView.getSelectionModel().select(0);
-      }
-    });
+    JavaFxUtil.bindManagedToVisible(versionLabel);
+    JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
     mapSearchTextField.setOnKeyPressed(event -> {
       MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
       int currentMapIndex = selectionModel.getSelectedIndex();
@@ -220,6 +213,20 @@ public class CreateGameController implements Controller<Pane> {
         titleTextField.textProperty().isEmpty()
             .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
     );
+    initMapFilterPopup();
+  }
+
+  private void initMapFilterPopup() {
+    mapFilterPopup = new Popup();
+    mapFilterPopup.setAutoFix(false);
+    mapFilterPopup.setAutoHide(true);
+    mapFilterPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
+
+    mapFilterController = uiService.loadFxml("theme/play/map_filter.fxml");
+    mapFilterController.setMapNameTextField(mapSearchTextField);
+    mapFilterController.getFilterAppliedProperty().addListener(((observable, old, newValue) -> mapFilterButton.setSelected(newValue)));
+    mapFilterController.setFilteredMapList(filteredMapBeans);
+    mapFilterPopup.getContent().setAll(mapFilterController.getRoot());
   }
 
   private void validateTitle(String gameTitle) {
@@ -249,6 +256,11 @@ public class CreateGameController implements Controller<Pane> {
     filteredMapBeans = new FilteredList<>(
         mapService.getInstalledMaps().filtered(mapBean -> mapBean.getType() == Type.SKIRMISH).sorted((o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName()))
     );
+    JavaFxUtil.addListener(filteredMapBeans.predicateProperty(), (observable, oldValue, newValue) -> {
+      if (!filteredMapBeans.isEmpty()) {
+        mapListView.getSelectionModel().select(0);
+      }
+    });
 
     mapListView.setItems(filteredMapBeans);
     mapListView.setCellFactory(param -> new StringListCell<>(MapBean::getDisplayName));
@@ -469,5 +481,15 @@ public class CreateGameController implements Controller<Pane> {
 
   void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
     this.onCloseButtonClickedListener = onCloseButtonClickedListener;
+  }
+
+  public void onMapFilterButtonClicked() {
+    mapFilterButton.setSelected(mapFilterController.getFilterAppliedProperty().getValue());
+    if (mapFilterPopup.isShowing()) {
+      mapFilterPopup.hide();
+    } else {
+      Bounds screenBounds = mapSearchTextField.localToScreen(mapSearchTextField.getBoundsInLocal());
+      mapFilterPopup.show(mapSearchTextField.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMinY());
+    }
   }
 }

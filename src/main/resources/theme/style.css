@@ -357,6 +357,13 @@
   -fx-background: -fx-base;
 }
 
+/***************** Map Filter Window *****************/
+
+.filter-map {
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-base;
+}
+
 /***************** User Info Window *****************/
 
 .user-info-header-area {

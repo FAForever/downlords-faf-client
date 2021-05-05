@@ -15,10 +15,10 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,6 +26,7 @@ import javafx.css.PseudoClass;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,6 +48,8 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -76,9 +79,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private
   NotificationService notificationService;
   @Mock
-  private
-  ReportingService reportingService;
-  @Mock
   private I18n i18n;
   @Mock
   private UiService uiService;
@@ -90,6 +90,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
   private ModManagerController modManagerController;
   @Mock
   private GenerateMapController generateMapController;
+  @Mock
+  private MapFilterController mapFilterController;
 
   private Preferences preferences;
   private CreateGameController instance;
@@ -97,7 +99,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, reportingService, fafService, mapGeneratorService, uiService);
+    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, fafService, mapGeneratorService, uiService);
 
     mapList = FXCollections.observableArrayList();
 
@@ -110,6 +112,9 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
     when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());
     when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
+    when(uiService.loadFxml("theme/play/map_filter.fxml")).thenReturn(mapFilterController);
+    when(mapFilterController.getFilterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
+    when(mapFilterController.getRoot()).thenReturn(new Pane());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
@@ -124,25 +129,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
       }
       return instance;
     });
-  }
-
-  @Test
-  public void testMapSearchTextFieldFilteringEmpty() {
-    instance.mapSearchTextField.setText("Test");
-
-    assertThat(instance.filteredMapBeans.getSource(), empty());
-  }
-
-  @Test
-  public void testMapSearchTextFieldFilteringPopulated() {
-    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
-    mapList.add(MapBuilder.create().defaultValues().folderName("test2").get());
-    mapList.add(MapBuilder.create().defaultValues().displayName("foo").get());
-
-    instance.mapSearchTextField.setText("Test");
-
-    assertThat(instance.filteredMapBeans.get(0).getFolderName(), is("test2"));
-    assertThat(instance.filteredMapBeans.get(1).getDisplayName(), is("Test1"));
   }
 
   @Test
@@ -271,8 +257,7 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService,
-        reportingService, fafService, mapGeneratorService, uiService);
+    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, fafService, mapGeneratorService, uiService);
 
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
@@ -464,5 +449,22 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     verify(mapGeneratorService).getGeneratorStyles();
     verify(generateMapController).setStyles(any());
     verify(generateMapController).setOnCloseButtonClickedListener(any());
+  }
+
+  @Test
+  public void testOnMapFilterButtonClicked() {
+    settingMapFilterPopupForTestEnvironment();
+    runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
+    assertTrue(instance.mapFilterPopup.isShowing());
+
+    runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
+    assertFalse(instance.mapFilterPopup.isShowing());
+  }
+
+  private void settingMapFilterPopupForTestEnvironment() {
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.mapSearchTextField);
+      instance.mapFilterPopup.setOpacity(0.0);
+    });
   }
 }
