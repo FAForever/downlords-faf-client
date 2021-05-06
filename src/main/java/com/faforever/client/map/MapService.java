@@ -316,7 +316,6 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @SneakyThrows(IOException.class)
   @NotNull
-  @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result == null")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
     if (mapGeneratorService.isGeneratedMap(mapName)) {
       Path previewPath = forgedAlliancePreferences.getCustomMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
@@ -360,6 +359,12 @@ public class MapService implements InitializingBean, DisposableBean {
     return mapsByFolderName.containsKey(mapFolderName.toLowerCase());
   }
 
+  public CompletableFuture<String> generateIfNotInstalled(String mapName) {
+    if (isInstalled(mapName)) {
+      return CompletableFuture.completedFuture(mapName);
+    }
+    return mapGeneratorService.generateMap(mapName);
+  }
 
   public CompletableFuture<Void> download(String technicalMapName) {
     URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
@@ -544,7 +549,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     if (mapGeneratorService.isGeneratedMap(folderName)) {
-      return mapGeneratorService.generateMap(folderName).thenRun(() -> {
+      return generateIfNotInstalled(folderName).thenRun(() -> {
       });
     }
 

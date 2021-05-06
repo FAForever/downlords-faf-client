@@ -333,15 +333,20 @@ public class ReplayService {
    * Reads the specified replay file in order to add more information to the specified replay instance.
    */
   public void enrich(Replay replay, Path path) {
-    ReplayDataParser replayData = replayFileReader.parseReplay(path);
-    replay.getChatMessages().setAll(replayData.getChatMessages().stream()
+    ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
+    replay.getChatMessages().setAll(replayDataParser.getChatMessages().stream()
         .map(chatMessage -> new ChatMessage(chatMessage.getTime(), chatMessage.getSender(), chatMessage.getMessage()))
         .collect(Collectors.toList())
     );
-    replay.getGameOptions().setAll(replayData.getGameOptions().stream()
+    replay.getGameOptions().setAll(replayDataParser.getGameOptions().stream()
         .map(gameOption -> new GameOption(gameOption.getKey(), gameOption.getValue()))
         .collect(Collectors.toList())
     );
+    if (replay.getMap() == null) {
+      MapBean map = new MapBean();
+      map.setFolderName(parseMapFolderName(replayDataParser));
+      replay.setMap(map);
+    }
   }
 
 
