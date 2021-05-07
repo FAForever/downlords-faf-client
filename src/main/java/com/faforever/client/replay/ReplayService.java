@@ -333,19 +333,26 @@ public class ReplayService {
    * Reads the specified replay file in order to add more information to the specified replay instance.
    */
   public void enrich(Replay replay, Path path) {
-    ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
-    replay.getChatMessages().setAll(replayDataParser.getChatMessages().stream()
-        .map(chatMessage -> new ChatMessage(chatMessage.getTime(), chatMessage.getSender(), chatMessage.getMessage()))
-        .collect(Collectors.toList())
-    );
-    replay.getGameOptions().setAll(replayDataParser.getGameOptions().stream()
-        .map(gameOption -> new GameOption(gameOption.getKey(), gameOption.getValue()))
-        .collect(Collectors.toList())
-    );
-    if (replay.getMap() == null) {
-      MapBean map = new MapBean();
-      map.setFolderName(parseMapFolderName(replayDataParser));
-      replay.setMap(map);
+    try {
+      ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
+      replay.getChatMessages().setAll(replayDataParser.getChatMessages().stream()
+          .map(chatMessage -> new ChatMessage(chatMessage.getTime(), chatMessage.getSender(), chatMessage.getMessage()))
+          .collect(Collectors.toList())
+      );
+      replay.getGameOptions().setAll(replayDataParser.getGameOptions().stream()
+          .map(gameOption -> new GameOption(gameOption.getKey(), gameOption.getValue()))
+          .collect(Collectors.toList())
+      );
+      if (replay.getMap() == null) {
+        MapBean map = new MapBean();
+        String mapFolderName = parseMapFolderName(replayDataParser);
+        map.setFolderName(mapFolderName);
+        map.setDisplayName(mapFolderName);
+        replay.setMap(map);
+      }
+    } catch (Exception e) {
+      log.warn("Could not read replay file '{}'", path, e);
+      return;
     }
   }
 
@@ -392,37 +399,47 @@ public class ReplayService {
   }
 
   private void runFafReplayFile(Path path) throws IOException {
-    ReplayDataParser replayData = replayFileReader.parseReplay(path);
-    byte[] rawReplayBytes = replayData.getData();
+    try {
+      ReplayDataParser replayData = replayFileReader.parseReplay(path);
+      byte[] rawReplayBytes = replayData.getData();
 
-    Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
+      Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
-    createDirectories(tempSupComReplayFile.getParent());
-    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
+      createDirectories(tempSupComReplayFile.getParent());
+      Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
-    ReplayMetadata replayMetadata = replayData.getMetadata();
-    String gameType = replayMetadata.getFeaturedMod();
-    Integer replayId = replayMetadata.getUid();
-    Map<String, Integer> modVersions = replayMetadata.getFeaturedModVersions();
-    String mapName = parseMapFolderName(replayData);
+      ReplayMetadata replayMetadata = replayData.getMetadata();
+      String gameType = replayMetadata.getFeaturedMod();
+      Integer replayId = replayMetadata.getUid();
+      Map<String, Integer> modVersions = replayMetadata.getFeaturedModVersions();
+      String mapName = parseMapFolderName(replayData);
 
-    Set<String> simMods = parseModUIDs(replayData);
+      Set<String> simMods = parseModUIDs(replayData);
 
-    Integer version = parseSupComVersion(replayData);
+      Integer version = parseSupComVersion(replayData);
 
-    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
+      gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
+    } catch (Exception e) {
+      log.warn("Could not read replay file '{}'", path, e);
+      return;
+    }
   }
 
   private void runSupComReplayFile(Path path) {
-    ReplayDataParser replayData = replayFileReader.parseReplay(path);
+    try {
+      ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
-    Integer version = parseSupComVersion(replayData);
-    String mapName = parseMapFolderName(replayData);
-    String fileName = path.getFileName().toString();
-    String gameType = guessModByFileName(fileName);
-    Set<String> simMods = parseModUIDs(replayData);
+      Integer version = parseSupComVersion(replayData);
+      String mapName = parseMapFolderName(replayData);
+      String fileName = path.getFileName().toString();
+      String gameType = guessModByFileName(fileName);
+      Set<String> simMods = parseModUIDs(replayData);
 
-    gameService.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
+      gameService.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
+    } catch (Exception e) {
+      log.warn("Could not read replay file '{}'", path, e);
+      return;
+    }
   }
 
   @EventListener
