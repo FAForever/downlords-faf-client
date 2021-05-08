@@ -113,6 +113,7 @@ public class GameService implements InitializingBean {
   private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = "\ndebug = {\n" +
       "    enable_debug_facilities = true\n" +
       "}";
+  private static final String OBSERVERS_TEAM = "-1";
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
@@ -860,7 +861,7 @@ public class GameService implements InitializingBean {
     game.setTitle(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
     game.setMapFolderName(gameInfoMessage.getMapname());
     game.setFeaturedMod(gameInfoMessage.getFeaturedMod());
-    game.setNumPlayers(gameInfoMessage.getNumPlayers());
+    game.setNumPlayers(gameInfoMessage.getNumPlayers() - gameInfoMessage.getTeams().getOrDefault(OBSERVERS_TEAM, List.of()).size());
     game.setMaxPlayers(gameInfoMessage.getMaxPlayers());
     Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> game.setStartTime(
         TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
