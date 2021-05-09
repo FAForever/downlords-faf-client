@@ -247,6 +247,7 @@ public class MapDetailController implements Controller<Node> {
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
     review.setPlayer(player);
+    review.setVersion(map.getVersion());
     reviewService.saveMapVersionReview(review, map.getId())
         .thenRun(() -> {
           if (isNew) {

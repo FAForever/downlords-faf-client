@@ -187,6 +187,7 @@ public class ModDetailController implements Controller<Node> {
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
     review.setPlayer(player);
+    review.setVersion(modVersion.getVersion());
     reviewService.saveModVersionReview(review, modVersion.getId())
         .thenRun(() -> {
           if (isNew) {

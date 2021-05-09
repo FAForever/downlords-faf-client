@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -93,11 +94,12 @@ public class ReviewController implements Controller<Pane> {
     displayStarsController.setValue(rating);
     usernameLabel.setText(definiteReview.getPlayer().getUsername());
     reviewTextLabel.setText(definiteReview.getText());
-    if (!definiteReview.getVersion().toString().isBlank()) {
-      if (definiteReview.getVersion() == definiteReview.getLatestVersion()) {
+    ComparableVersion versionReviewed = definiteReview.getVersion();
+    if (versionReviewed != null && !versionReviewed.toString().isBlank()) {
+      if (versionReviewed == definiteReview.getLatestVersion()) {
         versionLabel.setText(i18n.get("review.currentVersion"));
       } else {
-        versionLabel.setText(i18n.get("review.version", definiteReview.getVersion().toString()));
+        versionLabel.setText(i18n.get("review.version", versionReviewed.toString()));
       }
     } else {
       versionLabel.setVisible(false);
