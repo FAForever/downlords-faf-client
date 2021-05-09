@@ -251,7 +251,7 @@ public class ReplayDetailController implements Controller<Node> {
       reviewsController.setReviews(replay.getReviews());
       reviewsController.setOwnReview(replay.getReviews().stream()
           .filter(review -> review.getPlayer().equals(currentPlayer.get()))
-          .findFirst());
+          .findFirst().orElse(null));
 
       // These items are initially empty but will be populated in #onDownloadMoreInfoClicked()
       moreInformationPane.setVisible(false);
@@ -281,7 +281,7 @@ public class ReplayDetailController implements Controller<Node> {
     reviewService.deleteGameReview(review)
         .thenRun(() -> JavaFxUtil.runLater(() -> {
           replay.getReviews().remove(review);
-          reviewsController.setOwnReview(Optional.empty());
+          reviewsController.setOwnReview(null);
         }))
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
@@ -301,7 +301,7 @@ public class ReplayDetailController implements Controller<Node> {
           if (isNew) {
             replay.getReviews().add(review);
           }
-          reviewsController.setOwnReview(Optional.of(review));
+          reviewsController.setOwnReview(review);
         })
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);

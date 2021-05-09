@@ -31,8 +31,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
@@ -151,7 +149,7 @@ public class ModDetailController implements Controller<Node> {
     reviewsController.setReviews(modVersion.getReviews());
     reviewsController.setOwnReview(modVersion.getReviews().stream()
         .filter(review -> review.getPlayer().getId() == player.getId())
-        .findFirst());
+        .findFirst().orElse(null));
   }
 
   private void setUploaderAndAuthor(ModVersion modVersion) {
@@ -172,7 +170,7 @@ public class ModDetailController implements Controller<Node> {
     reviewService.deleteModVersionReview(review)
         .thenRun(() -> JavaFxUtil.runLater(() -> {
           modVersion.getReviews().remove(review);
-          reviewsController.setOwnReview(Optional.empty());
+          reviewsController.setOwnReview(null);
         }))
         .exceptionally(throwable -> {
           log.warn("Review could not be deleted", throwable);
@@ -187,12 +185,14 @@ public class ModDetailController implements Controller<Node> {
     Player player = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
     review.setPlayer(player);
+    review.setVersion(modVersion.getVersion());
+    review.setLatestVersion(modVersion.getVersion());
     reviewService.saveModVersionReview(review, modVersion.getId())
         .thenRun(() -> {
           if (isNew) {
             modVersion.getReviews().add(review);
           }
-          reviewsController.setOwnReview(Optional.of(review));
+          reviewsController.setOwnReview(review);
         })
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);

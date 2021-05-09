@@ -65,7 +65,7 @@ public class ReviewsController implements Controller<Pane> {
   private Consumer<Review> onDeleteReviewListener;
   private ObservableList<Review> reviews;
   private final InvalidationListener onReviewsChangedListener;
-  private Optional<Review> ownReview;
+  private Review ownReview;
   private List<List<Review>> reviewPages;
   private int currentReviewPage;
 
@@ -74,7 +74,6 @@ public class ReviewsController implements Controller<Pane> {
     this.uiService = uiService;
     this.playerService = playerService;
     onReviewsChangedListener = observable -> JavaFxUtil.runLater(this::onReviewsChanged);
-    ownReview = Optional.empty();
   }
 
   public void initialize() {
@@ -107,7 +106,7 @@ public class ReviewsController implements Controller<Pane> {
   public void onCreateReviewButtonClicked() {
     ownReviewRoot.setVisible(true);
     createReviewButton.setVisible(false);
-    ownReviewPaneController.setReview(Optional.empty());
+    ownReviewPaneController.setReview(null);
   }
 
   private void onCancelReview() {
@@ -156,7 +155,7 @@ public class ReviewsController implements Controller<Pane> {
     List<Pane> reviewNodes = reviewsPage.stream()
         .map(review -> {
           ReviewController controller = uiService.loadFxml("theme/vault/review/review.fxml");
-          controller.setReview(Optional.of(review));
+          controller.setReview(review);
           return controller.getRoot();
         })
         .collect(Collectors.toList());
@@ -200,10 +199,10 @@ public class ReviewsController implements Controller<Pane> {
     averageStarsController.setValue(average);
   }
 
-  public void setOwnReview(Optional<Review> ownReview) {
+  public void setOwnReview(Review ownReview) {
     this.ownReview = ownReview;
     JavaFxUtil.runLater(() -> {
-      if (ownReview.isPresent()) {
+      if (ownReview != null) {
         ownReviewPaneController.setReview(ownReview);
         ownReviewRoot.setVisible(true);
         createReviewButton.setVisible(false);

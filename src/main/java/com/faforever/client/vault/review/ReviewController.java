@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -48,13 +49,12 @@ public class ReviewController implements Controller<Pane> {
 
   private Consumer<Review> onSendReviewListener;
   private Consumer<Review> onDeleteReviewListener;
-  private Optional<Review> review;
+  private Review review;
   private Runnable onCancelReviewListener;
 
   public ReviewController(I18n i18n, PlayerService playerService) {
     this.i18n = i18n;
     this.playerService = playerService;
-    review = Optional.empty();
   }
 
   public void initialize() {
@@ -73,10 +73,10 @@ public class ReviewController implements Controller<Pane> {
     deleteButton.setVisible(false);
   }
 
-  public void setReview(Optional<Review> optionalReview) {
+  public void setReview(Review review) {
     JavaFxUtil.assertApplicationThread();
-    this.review = optionalReview;
-    if (!optionalReview.isPresent()) {
+    this.review = review;
+    if (review == null) {
       editReviewPane.setVisible(true);
       displayReviewPane.setVisible(false);
       return;
@@ -84,20 +84,20 @@ public class ReviewController implements Controller<Pane> {
 
     Player currentPlayer = playerService.getCurrentPlayer()
         .orElseThrow(() -> new IllegalStateException("No player is available"));
-    Review definiteReview = optionalReview.get();
 
-    boolean isReviewOwnedByCurrentUser = currentPlayer.equals(definiteReview.getPlayer());
+    boolean isReviewOwnedByCurrentUser = currentPlayer.equals(review.getPlayer());
 
-    int rating = definiteReview.getScore();
+    int rating = review.getScore();
     selectionStarsController.setValue(rating);
     displayStarsController.setValue(rating);
-    usernameLabel.setText(definiteReview.getPlayer().getUsername());
-    reviewTextLabel.setText(definiteReview.getText());
-    if (!definiteReview.getVersion().toString().isBlank()) {
-      if (definiteReview.getVersion() == definiteReview.getLatestVersion()) {
+    usernameLabel.setText(review.getPlayer().getUsername());
+    reviewTextLabel.setText(review.getText());
+    ComparableVersion versionReviewed = review.getVersion();
+    if (versionReviewed != null && !versionReviewed.toString().isBlank()) {
+      if (versionReviewed.compareTo(review.getLatestVersion()) == 0) {
         versionLabel.setText(i18n.get("review.currentVersion"));
       } else {
-        versionLabel.setText(i18n.get("review.version", definiteReview.getVersion().toString()));
+        versionLabel.setText(i18n.get("review.version", versionReviewed.toString()));
       }
     } else {
       versionLabel.setVisible(false);
@@ -115,21 +115,23 @@ public class ReviewController implements Controller<Pane> {
 
   public void onDeleteButtonClicked() {
     Optional.ofNullable(onDeleteReviewListener).ifPresent(listener -> {
-      Assert.state(review.isPresent(), "No review has been set");
-      listener.accept(review.get());
+      Assert.notNull(review, "No review has been set");
+      listener.accept(review);
     });
   }
 
   public void onEditButtonClicked() {
-    Assert.state(review.isPresent(), "No review has been set");
+    Assert.notNull(review, "No review has been set");
 
-    reviewTextArea.setText(review.get().getText());
+    reviewTextArea.setText(review.getText());
     displayReviewPane.setVisible(false);
     editReviewPane.setVisible(true);
   }
 
   public void onSendReview() {
-    Review review = this.review.orElse(new Review());
+    if (review == null) {
+      review = new Review();
+    }
     review.setScore(Math.round(selectionStarsController.getValue()));
     review.setText(reviewTextArea.getText());
     this.onSendReviewListener.accept(review);
@@ -140,7 +142,7 @@ public class ReviewController implements Controller<Pane> {
   }
 
   public void onCancelButtonClicked() {
-    boolean reviewPresent = review.isPresent();
+    boolean reviewPresent = review != null;
     displayReviewPane.setVisible(reviewPresent);
     editReviewPane.setVisible(false);
 

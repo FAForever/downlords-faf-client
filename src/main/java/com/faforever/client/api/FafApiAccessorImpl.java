@@ -670,6 +670,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private <T> T post(String endpointPath, Object request, Class<T> type) {
     authorizedLatch.await();
     ResponseEntity<T> entity = restOperations.postForEntity(endpointPath, request, type);
+    log.debug("Posted {} to {} with type {}", request, endpointPath, type);
     return entity.getBody();
   }
 
