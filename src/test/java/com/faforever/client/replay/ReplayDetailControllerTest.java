@@ -7,6 +7,7 @@ import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -82,6 +83,8 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapService mapService;
   @Mock
+  private MapGeneratorService mapGeneratorService;
+  @Mock
   private PlayerService playerService;
   @Mock
   private ReviewService reviewService;
@@ -127,7 +130,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
         .replayFile(Paths.get("foo.tmp"))
         .get();
 
-    instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, playerService, clientProperties, notificationService, reviewService);
+    instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, mapGeneratorService, playerService, clientProperties, notificationService, reviewService);
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
