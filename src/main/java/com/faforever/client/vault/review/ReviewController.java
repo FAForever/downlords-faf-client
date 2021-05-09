@@ -77,7 +77,7 @@ public class ReviewController implements Controller<Pane> {
   public void setReview(Optional<Review> optionalReview) {
     JavaFxUtil.assertApplicationThread();
     this.review = optionalReview;
-    if (!optionalReview.isPresent()) {
+    if (optionalReview.isEmpty()) {
       editReviewPane.setVisible(true);
       displayReviewPane.setVisible(false);
       return;
@@ -96,7 +96,7 @@ public class ReviewController implements Controller<Pane> {
     reviewTextLabel.setText(definiteReview.getText());
     ComparableVersion versionReviewed = definiteReview.getVersion();
     if (versionReviewed != null && !versionReviewed.toString().isBlank()) {
-      if (versionReviewed == definiteReview.getLatestVersion()) {
+      if (versionReviewed.compareTo(definiteReview.getLatestVersion()) == 0) {
         versionLabel.setText(i18n.get("review.currentVersion"));
       } else {
         versionLabel.setText(i18n.get("review.version", versionReviewed.toString()));

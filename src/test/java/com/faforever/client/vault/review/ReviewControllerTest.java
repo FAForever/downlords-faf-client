@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import javafx.scene.layout.Pane;
+import javafx.beans.property.SimpleFloatProperty;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +17,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class ReviewControllerTest extends AbstractPlainJavaFxTest {
@@ -38,13 +39,10 @@ public class ReviewControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new ReviewController(i18n, playerService);
 
-    when(reviewController.getRoot()).thenReturn(new Pane());
     when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
+    when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
 
-    loadFxml("theme/vault/review/reviews.fxml", param -> {
-      if (param == ReviewController.class) {
-        return reviewController;
-      }
+    loadFxml("theme/vault/review/review.fxml", param -> {
       if (param == StarsController.class) {
         return starsController;
       }
@@ -62,7 +60,7 @@ public class ReviewControllerTest extends AbstractPlainJavaFxTest {
 
     runOnFxThreadAndWait(() -> instance.setReview(Optional.of(review)));
 
-    assertFalse(instance.versionLabel.isVisible());
+    assertTrue(instance.versionLabel.isVisible());
     assertEquals("current", instance.versionLabel.getText());
   }
 

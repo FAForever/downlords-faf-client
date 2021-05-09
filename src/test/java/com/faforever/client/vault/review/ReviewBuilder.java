@@ -21,7 +21,8 @@ public class ReviewBuilder {
 
   public ReviewBuilder defaultValues() {
     player(PlayerBuilder.create("junit").defaultValues().get())
-        .id("test").text("test review");
+        .id("test").text("test review").score(3).version(new ComparableVersion("1"))
+        .latestVersion(new ComparableVersion("1"));
     return this;
   }
 
