@@ -119,7 +119,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).getModSize(modVersion);
     verify(modService).loadThumbnail(modVersion);
-    verify(reviewsController).setOwnReview(Optional.of(review));
+    verify(reviewsController).setOwnReview(review);
   }
 
   @Test

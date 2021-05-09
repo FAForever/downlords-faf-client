@@ -56,7 +56,7 @@ public class ReviewControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.get("review.currentVersion")).thenReturn("current");
     Review review = ReviewBuilder.create().defaultValues().latestVersion(new ComparableVersion(("1"))).version(new ComparableVersion("1")).get();
 
-    runOnFxThreadAndWait(() -> instance.setReview(Optional.of(review)));
+    runOnFxThreadAndWait(() -> instance.setReview(review));
 
     assertTrue(instance.versionLabel.isVisible());
     assertEquals("current", instance.versionLabel.getText());
@@ -66,7 +66,7 @@ public class ReviewControllerTest extends AbstractPlainJavaFxTest {
   public void testSetReviewNoVersion() throws Exception {
     Review review = ReviewBuilder.create().defaultValues().version(null).get();
 
-    runOnFxThreadAndWait(() -> instance.setReview(Optional.of(review)));
+    runOnFxThreadAndWait(() -> instance.setReview(review));
 
     assertFalse(instance.versionLabel.isVisible());
   }

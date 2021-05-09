@@ -195,7 +195,7 @@ public class MapDetailController implements Controller<Node> {
     reviewsController.setReviews(map.getReviews());
     reviewsController.setOwnReview(map.getReviews().stream()
         .filter(review -> review.getPlayer().getId() == player.getId())
-        .findFirst());
+        .findFirst().orElse(null));
 
     mapService.getFileSize(map.getDownloadUrl())
         .thenAccept(mapFileSize -> JavaFxUtil.runLater(() -> {
@@ -232,7 +232,7 @@ public class MapDetailController implements Controller<Node> {
     reviewService.deleteMapVersionReview(review)
         .thenRun(() -> JavaFxUtil.runLater(() -> {
           map.getReviews().remove(review);
-          reviewsController.setOwnReview(Optional.empty());
+          reviewsController.setOwnReview(null);
         }))
         .exceptionally(throwable -> {
           log.warn("Review could not be deleted", throwable);
@@ -248,12 +248,13 @@ public class MapDetailController implements Controller<Node> {
         .orElseThrow(() -> new IllegalStateException("No current player is available"));
     review.setPlayer(player);
     review.setVersion(map.getVersion());
+    review.setLatestVersion(map.getVersion());
     reviewService.saveMapVersionReview(review, map.getId())
         .thenRun(() -> {
           if (isNew) {
             map.getReviews().add(review);
           }
-          reviewsController.setOwnReview(Optional.of(review));
+          reviewsController.setOwnReview(review);
         })
         .exceptionally(throwable -> {
           log.warn("Review could not be saved", throwable);
