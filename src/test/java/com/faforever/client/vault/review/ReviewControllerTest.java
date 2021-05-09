@@ -27,8 +27,6 @@ public class ReviewControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private I18n i18n;
   @Mock
-  private ReviewController reviewController;
-  @Mock
   private PlayerService playerService;
   @Mock
   private StarsController starsController;
