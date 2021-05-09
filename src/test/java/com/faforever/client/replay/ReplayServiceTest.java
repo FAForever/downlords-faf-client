@@ -298,12 +298,12 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    expectedException.expect(FakeTestException.class);
     instance.runReplay(replay);
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
   }
 
   @Test
-  public void testRunFafReplayFileExceptionPropagates() throws Exception {
+  public void testRunFafReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
@@ -311,8 +311,8 @@ public class ReplayServiceTest {
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
 
-    expectedException.expect(FakeTestException.class);
     instance.runReplay(replay);
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
   }
 
   @Test

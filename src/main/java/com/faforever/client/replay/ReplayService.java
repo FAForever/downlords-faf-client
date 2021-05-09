@@ -42,6 +42,7 @@ import com.google.common.net.UrlEscapers;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -238,7 +239,12 @@ public class ReplayService {
 
   public void runReplay(Replay item) {
     if (item.getReplayFile() != null) {
-      runReplayFile(item.getReplayFile());
+      try {
+        runReplayFile(item.getReplayFile());
+      } catch (Exception e) {
+        log.warn("Could not read replay file '{}'", item.getReplayFile(), e);
+        notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
+      }
     } else {
       runOnlineReplay(item.getId());
     }
@@ -371,8 +377,7 @@ public class ReplayService {
         .anyMatch(playerStats -> playerStats.getAfterMean() != null && playerStats.getAfterDeviation() != null);
   }
 
-  @SneakyThrows
-  public void runReplayFile(Path path) {
+  public void runReplayFile(Path path) throws IOException, CompressorException {
     log.debug("Starting replay file: {}", path.toAbsolutePath());
 
     String fileName = path.getFileName().toString();
@@ -385,7 +390,13 @@ public class ReplayService {
 
   private void runOnlineReplay(int replayId) {
     downloadReplay(replayId)
-        .thenAccept(this::runReplayFile)
+        .thenAccept((path) -> {
+          try {
+            runReplayFile(path);
+          } catch (IOException | CompressorException e) {
+            throw new RuntimeException(e);
+          }
+        })
         .exceptionally(throwable -> {
           if (throwable.getCause() instanceof FileNotFoundException) {
             log.warn("Replay not available on server yet", throwable);
@@ -398,48 +409,38 @@ public class ReplayService {
         });
   }
 
-  private void runFafReplayFile(Path path) throws IOException {
-    try {
-      ReplayDataParser replayData = replayFileReader.parseReplay(path);
-      byte[] rawReplayBytes = replayData.getData();
+  private void runFafReplayFile(Path path) throws IOException, CompressorException {
+    ReplayDataParser replayData = replayFileReader.parseReplay(path);
+    byte[] rawReplayBytes = replayData.getData();
 
-      Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
+    Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
-      createDirectories(tempSupComReplayFile.getParent());
-      Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
+    createDirectories(tempSupComReplayFile.getParent());
+    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
-      ReplayMetadata replayMetadata = replayData.getMetadata();
-      String gameType = replayMetadata.getFeaturedMod();
-      Integer replayId = replayMetadata.getUid();
-      Map<String, Integer> modVersions = replayMetadata.getFeaturedModVersions();
-      String mapName = parseMapFolderName(replayData);
+    ReplayMetadata replayMetadata = replayData.getMetadata();
+    String gameType = replayMetadata.getFeaturedMod();
+    Integer replayId = replayMetadata.getUid();
+    Map<String, Integer> modVersions = replayMetadata.getFeaturedModVersions();
+    String mapName = parseMapFolderName(replayData);
 
-      Set<String> simMods = parseModUIDs(replayData);
+    Set<String> simMods = parseModUIDs(replayData);
 
-      Integer version = parseSupComVersion(replayData);
+    Integer version = parseSupComVersion(replayData);
 
-      gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
-    } catch (Exception e) {
-      log.warn("Could not read replay file '{}'", path, e);
-      return;
-    }
+    gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
-  private void runSupComReplayFile(Path path) {
-    try {
-      ReplayDataParser replayData = replayFileReader.parseReplay(path);
+  private void runSupComReplayFile(Path path) throws IOException, CompressorException {
+    ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
-      Integer version = parseSupComVersion(replayData);
-      String mapName = parseMapFolderName(replayData);
-      String fileName = path.getFileName().toString();
-      String gameType = guessModByFileName(fileName);
-      Set<String> simMods = parseModUIDs(replayData);
+    Integer version = parseSupComVersion(replayData);
+    String mapName = parseMapFolderName(replayData);
+    String fileName = path.getFileName().toString();
+    String gameType = guessModByFileName(fileName);
+    Set<String> simMods = parseModUIDs(replayData);
 
-      gameService.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
-    } catch (Exception e) {
-      log.warn("Could not read replay file '{}'", path, e);
-      return;
-    }
+    gameService.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
   }
 
   @EventListener

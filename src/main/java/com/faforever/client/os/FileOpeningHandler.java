@@ -1,13 +1,17 @@
 package com.faforever.client.os;
 
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.install4j.api.launcher.StartupNotification;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.InitializingBean;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -17,13 +21,11 @@ import java.nio.file.Paths;
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
 
   private final ReplayService replayService;
-
-  public FileOpeningHandler(ReplayService replayService) {
-    this.replayService = replayService;
-  }
+  private final NotificationService notificationService;
 
   @Override
   public void afterPropertiesSet() {
@@ -41,7 +43,11 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
   }
 
   private void runReplay(Path filePath) {
-    replayService.runReplayFile(filePath);
+    try {
+      replayService.runReplayFile(filePath);
+    } catch (CompressorException | IOException e) {
+      notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
+    }
   }
 
   @Override
