@@ -140,6 +140,7 @@ public class ReplayService {
     return mapPath.split("/")[2];
   }
 
+  @VisibleForTesting
   static Set<String> parseModUIDs(ReplayDataParser parser) {
     return parser.getMods().values().stream()
         .map(map -> (String) map.getOrDefault("uid", null))
