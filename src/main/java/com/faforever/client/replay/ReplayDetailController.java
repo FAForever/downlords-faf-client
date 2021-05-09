@@ -10,6 +10,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -76,6 +77,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final ReplayService replayService;
   private final RatingService ratingService;
   private final MapService mapService;
+  private final MapGeneratorService mapGeneratorService;
   private final PlayerService playerService;
   private final ClientProperties clientProperties;
   private final NotificationService notificationService;
@@ -168,6 +170,7 @@ public class ReplayDetailController implements Controller<Node> {
     this.replay = replay;
     watchButton.setDisable(false);
     downloadMoreInfoButton.setDisable(false);
+    mapThumbnailImageView.setImage(null);
 
     replayIdField.setText(i18n.get("game.idFormat", replay.getId()));
     titleLabel.setText(replay.getTitle());
@@ -313,6 +316,18 @@ public class ReplayDetailController implements Controller<Node> {
     replayService.downloadReplay(replay.getId())
         .thenAccept(path -> {
           replayService.enrich(replay, path);
+          if (onMapLabel.getText().equals(i18n.get("game.onUnknownMap")) && replay.getMap() != null) {
+            MapBean map = replay.getMap();
+            onMapLabel.setText(i18n.get("game.onMapFormat", map.getFolderName()));
+            Image image = mapService.loadPreview(map.getFolderName(), PreviewSize.LARGE);
+            mapThumbnailImageView.setImage(image);
+            if (mapGeneratorService.isGeneratedMap(map.getFolderName())) {
+              mapService.generateIfNotInstalled(map.getFolderName()).thenAccept(mapName -> JavaFxUtil.runLater(() -> {
+                Image generatedPreview = mapService.loadPreview(map.getFolderName(), PreviewSize.LARGE);
+                mapThumbnailImageView.setImage(generatedPreview);
+              }));
+            }
+          }
           chatTable.setItems(replay.getChatMessages());
           optionsTable.setItems(replay.getGameOptions());
           moreInformationPane.setVisible(true);

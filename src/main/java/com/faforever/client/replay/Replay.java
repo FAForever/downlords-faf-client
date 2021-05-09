@@ -9,6 +9,7 @@ import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GamePlayerStats;
 import com.faforever.commons.api.dto.LeaderboardRatingJournal;
 import com.faforever.commons.api.dto.Validity;
+import com.faforever.commons.replay.ReplayMetadata;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -87,18 +88,18 @@ public class Replay {
     reviewsSummary = new SimpleObjectProperty<>();
   }
 
-  public Replay(LocalReplayInfo replayInfo, Path replayFile, FeaturedMod featuredMod, MapBean mapBean) {
+  public Replay(ReplayMetadata replayMetadata, Path replayFile, FeaturedMod featuredMod, MapBean mapBean) {
     this();
-    id.set(replayInfo.getUid());
-    title.set(StringEscapeUtils.unescapeHtml4(replayInfo.getTitle()));
+    id.set(replayMetadata.getUid());
+    title.set(StringEscapeUtils.unescapeHtml4(replayMetadata.getTitle()));
     replayAvailable.set(true);
-    startTime.set(fromPythonTime(replayInfo.getGameTime() > 0 ? replayInfo.getGameTime() : replayInfo.getLaunchedAt()));
-    endTime.set(fromPythonTime(replayInfo.getGameEnd()));
+    startTime.set(fromPythonTime(replayMetadata.getGameTime() > 0 ? replayMetadata.getGameTime() : replayMetadata.getLaunchedAt()));
+    endTime.set(fromPythonTime(replayMetadata.getGameEnd()));
     this.featuredMod.set(featuredMod);
     map.set(mapBean);
     this.replayFile.set(replayFile);
-    if (replayInfo.getTeams() != null) {
-      teams.putAll(replayInfo.getTeams());
+    if (replayMetadata.getTeams() != null) {
+      teams.putAll(replayMetadata.getTeams());
     }
   }
 
