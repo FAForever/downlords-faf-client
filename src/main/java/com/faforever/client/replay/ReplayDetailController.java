@@ -393,7 +393,7 @@ public class ReplayDetailController implements Controller<Node> {
     if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
-      String reasonText = i18n.getWithDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));
+      String reasonText = i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));
       notRatedReasonLabel.setText(reasonText);
     } else if (!replayService.replayChangedRating(replay)) {
       showRatingChangeButton.setVisible(false);

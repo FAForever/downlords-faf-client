@@ -143,7 +143,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
 
     leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
       Map<String, String> leaderboardItems = new LinkedHashMap<>();
-      leaderboards.forEach(leaderboard -> leaderboardItems.put(i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()), String.valueOf(leaderboard.getId())));
+      leaderboards.forEach(leaderboard -> leaderboardItems.put(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey()), String.valueOf(leaderboard.getId())));
       JavaFxUtil.runLater(() ->
           leaderboardFilterController.setItems(leaderboardItems));
     });

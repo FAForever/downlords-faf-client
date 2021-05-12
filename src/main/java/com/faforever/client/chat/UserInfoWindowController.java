@@ -236,7 +236,7 @@ public class UserInfoWindowController implements Controller<Node> {
       leaderboards.forEach(leaderboard -> {
         LeaderboardRating leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
         if (leaderboardRating != null) {
-          String leaderboardName = i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
+          String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
           ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n");
           ratingNumbers.append(i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard))).append("\n");
         }
@@ -335,7 +335,7 @@ public class UserInfoWindowController implements Controller<Node> {
     JavaFxUtil.runLater(() -> gamesPlayedChart.getData().clear());
     leaderboardService.getEntriesForPlayer(player.getId()).thenAccept(leaderboardEntries -> JavaFxUtil.runLater(() ->
         leaderboardEntries.forEach(leaderboardEntry ->
-            gamesPlayedChart.getData().add(new PieChart.Data(i18n.getWithDefault(leaderboardEntry.getLeaderboard().getTechnicalName(), leaderboardEntry.getLeaderboard().getNameKey()),
+            gamesPlayedChart.getData().add(new PieChart.Data(i18n.getOrDefault(leaderboardEntry.getLeaderboard().getTechnicalName(), leaderboardEntry.getLeaderboard().getNameKey()),
                 leaderboardEntry.getGamesPlayed())))))
         .exceptionally(throwable -> {
           log.warn("Leaderboard entry could not be read for player: " + player.getUsername(), throwable);
@@ -436,7 +436,7 @@ public class UserInfoWindowController implements Controller<Node> {
     return new StringConverter<>() {
       @Override
       public String toString(Leaderboard leaderboard) {
-        return i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
+        return i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
       }
 
       @Override

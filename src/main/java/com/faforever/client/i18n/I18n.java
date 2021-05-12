@@ -103,11 +103,11 @@ public class I18n implements InitializingBean {
     }
   }
 
-  public String getWithDefault(String defaultMessage, String key, Object... args) {
-    return getWithDefault(userSpecificLocale, defaultMessage, key, args);
+  public String getOrDefault(String defaultMessage, String key, Object... args) {
+    return getOrDefault(userSpecificLocale, defaultMessage, key, args);
   }
 
-  public String getWithDefault(Locale locale, String defaultMessage, String key, Object... args) {
+  public String getOrDefault(Locale locale, String defaultMessage, String key, Object... args) {
     try {
       return messageSource.getMessage(key, args, defaultMessage, locale);
     } catch (Exception e) {

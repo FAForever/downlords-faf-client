@@ -84,7 +84,7 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
         i18n, uiService, timeService, playerService, notificationService, leaderboardService);
 
-    when(i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
+    when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
     when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
     when(i18n.number(anyInt())).thenReturn("123");
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
