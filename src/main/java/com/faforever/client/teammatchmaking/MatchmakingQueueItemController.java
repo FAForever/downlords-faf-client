@@ -73,7 +73,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   public void setQueue(MatchmakingQueue queue) {
     this.queue = queue;
-    joinLeaveQueueButton.setText(i18n.get(String.format(QUEUE_I18N_PATTERN, queue.getQueueName())));
+    joinLeaveQueueButton.setText(i18n.getOrDefault(queue.getQueueName(), String.format(QUEUE_I18N_PATTERN, queue.getQueueName())));
 
     playersInQueueLabel.textProperty().bind(createStringBinding(
         () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase(),

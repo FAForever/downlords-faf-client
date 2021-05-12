@@ -31,6 +31,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -90,7 +91,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public Label usernameLabel;
   public Label gameCountLabel;
   public Label leagueLabel;
-  public HBox queueBox;
+  public FlowPane queuePane;
   public GridPane partyMemberPane;
   public VBox preparationArea;
   public ImageView leagueImageView;
@@ -317,12 +318,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     JavaFxUtil.runLater(() -> {
       List<MatchmakingQueue> queues = Collections.synchronizedList(teamMatchmakingService.getMatchmakingQueues());
       synchronized (queues) {
-        queueBox.getChildren().clear();
+        queuePane.getChildren().clear();
         queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
         queues.forEach(queue -> {
           MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
           controller.setQueue(queue);
-          queueBox.getChildren().add(controller.getRoot());
+          queuePane.getChildren().add(controller.getRoot());
         });
       }
     });

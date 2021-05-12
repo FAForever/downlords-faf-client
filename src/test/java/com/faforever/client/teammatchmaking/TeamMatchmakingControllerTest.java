@@ -212,6 +212,6 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     teamMatchmakingService.queuesReadyForUpdateProperty().set(true);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.queueBox.getChildren().size(), is(2));
+    assertThat(instance.queuePane.getChildren().size(), is(2));
   }
 }

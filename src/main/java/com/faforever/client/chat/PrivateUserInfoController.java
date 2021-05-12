@@ -164,7 +164,7 @@ public class PrivateUserInfoController implements Controller<Node> {
       leaderboards.forEach(leaderboard -> {
         LeaderboardRating leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
         if (leaderboardRating != null) {
-          String leaderboardName = i18n.getWithDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
+          String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
           ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n\n");
           ratingNumbers.append(i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard))).append("\n\n");
         }

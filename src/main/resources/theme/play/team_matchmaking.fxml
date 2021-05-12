@@ -5,24 +5,25 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.layout.RowConstraints?>
 <StackPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/11.0.1"
            fx:controller="com.faforever.client.teammatchmaking.TeamMatchmakingController" fx:id="teamMatchmakingRoot">
     <GridPane fx:id="contentPane">
         <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" minWidth="710.0"/>
-            <ColumnConstraints hgrow="ALWAYS" fx:id="column2" />
+            <ColumnConstraints hgrow="ALWAYS" minWidth="710.0"/>
+            <ColumnConstraints hgrow="ALWAYS" fx:id="column2" minWidth="710.0"/>
         </columnConstraints>
         <rowConstraints>
             <RowConstraints vgrow="SOMETIMES" />
@@ -137,7 +138,7 @@
                     </GridPane>
                     <Separator/>
                     <Label fx:id="queueHeadingLabel" styleClass="h1-tmm" text="%teammatchmaking.queueTitle"/>
-                    <HBox fx:id="queueBox" spacing="12.0"/>
+                    <FlowPane fx:id="queuePane" hgap="12.0"/>
                 </children>
                 <padding>
                     <Insets bottom="5.0" left="20.0" right="20.0" top="23.0"/>
@@ -145,6 +146,6 @@
             </VBox>
         </ScrollPane>
         <TabPane fx:id="chatTabPane" styleClass="chat-tab-pane" tabClosingPolicy="UNAVAILABLE"
-                 GridPane.columnIndex="1" GridPane.fillWidth="true" GridPane.rowSpan="2" />
+                 GridPane.columnIndex="1" GridPane.rowSpan="2"/>
     </GridPane>
 </StackPane>

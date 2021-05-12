@@ -291,7 +291,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
     when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(replay)).thenReturn(0.427);
-    when(i18n.getWithDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
+    when(i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
 
     instance.setReplay(replay);
     WaitForAsyncUtils.waitForFxEvents();
