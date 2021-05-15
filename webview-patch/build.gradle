@@ -7,7 +7,7 @@ repositories {
 }
 
 configurations {
-  jar.archiveName = 'webview-patch.jar'
+  jar.archiveFileName = 'webview-patch.jar'
 }
 
 jar {
@@ -17,5 +17,5 @@ jar {
 }
 
 dependencies {
-  compile ("org.javassist:javassist:${project.ext['javassist.version']}")
+  implementation ("org.javassist:javassist:${project.ext['javassist.version']}")
 }

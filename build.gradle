@@ -99,7 +99,7 @@ jar {
   manifest {
     attributes "Main-Class": "com.faforever.client.Main",
         "Implementation-Title": "Downlord's FAF Client",
-        "Implementation-Version": version,
+        "Implementation-Version": archiveVersion,
         "Implementation-Vendor": "Downlord"
   }
 }
@@ -205,68 +205,68 @@ repositories {
 }
 
 dependencies {
-  compile("org.springframework.boot:spring-boot-starter")
-  compile("org.springframework.boot:spring-boot-starter-cache")
-  compile("org.springframework.boot:spring-boot-starter-logging")
-  compile("org.springframework.boot:spring-boot-starter-websocket")
-  compile("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springSecurityOauth2AutoconfigureVersion}")
-  compile("org.springframework:spring-web")
-  compile("org.springframework:spring-websocket")
+  implementation("org.springframework.boot:spring-boot-starter")
+  implementation("org.springframework.boot:spring-boot-starter-cache")
+  implementation("org.springframework.boot:spring-boot-starter-logging")
+  implementation("org.springframework.boot:spring-boot-starter-websocket")
+  implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springSecurityOauth2AutoconfigureVersion}")
+  implementation("org.springframework:spring-web")
+  implementation("org.springframework:spring-websocket")
 
-  compile("com.github.FAForever:faf-java-commons:${fafCommonsVersion}") {
+  implementation("com.github.FAForever:faf-java-commons:${fafCommonsVersion}") {
     exclude module: 'guava'
   }
-  compile("com.google.code.gson:gson:2.8.5")
-  compile("com.google.guava:guava:30.0-jre")
-  compile("org.apache.commons:commons-compress:1.20")
-  compile("net.java.dev.jna:jna:${jnaVersion}")
-  compile("net.java.dev.jna:jna-platform:${jnaVersion}")
-  compile("org.eclipse.jgit:org.eclipse.jgit:5.9.0.202009080501-r")
-  compile("org.jetbrains:annotations:20.1.0")
-  compile("com.neovisionaries:nv-i18n:1.23")
-  compile("com.rometools:rome:1.11.1")
-  compile("org.jsoup:jsoup:1.11.3")
-  compile("com.nativelibs4java:bridj:0.7.0")
-  compile("com.github.luben:zstd-jni:1.4.8-1")
-  compile("com.github.nocatch:nocatch:1.1")
-  compile("org.luaj:luaj-jse:3.0.1")
-  compile("commons-validator:commons-validator:1.6")
-  compile("com.github.micheljung:JJsonRpc:01a7fba5f4")
-  compile("javax.inject:javax.inject:1")
-  compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  compile("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
-  compile("com.github.nsp:JSkills:${jSkillsVersion}")
-  compile("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
-  compile("javax.annotation:javax.annotation-api:1.3.1")
-  compile("com.github.ben-manes.caffeine:caffeine")
-  compile("org.apache.httpcomponents:httpclient")
-  compile("ch.micheljung.fxstage:fxstage:0.7.4")
-  compile("ch.micheljung.waitomo:jfx-waitomo-theme:0.2.0")
-  compile("org.kitteh.irc:client-lib:7.3.0")
+  implementation("com.google.code.gson:gson:2.8.5")
+  implementation("com.google.guava:guava:30.0-jre")
+  implementation("org.apache.commons:commons-compress:1.20")
+  implementation("net.java.dev.jna:jna:${jnaVersion}")
+  implementation("net.java.dev.jna:jna-platform:${jnaVersion}")
+  implementation("org.eclipse.jgit:org.eclipse.jgit:5.9.0.202009080501-r")
+  implementation("org.jetbrains:annotations:20.1.0")
+  implementation("com.neovisionaries:nv-i18n:1.23")
+  implementation("com.rometools:rome:1.11.1")
+  implementation("org.jsoup:jsoup:1.11.3")
+  implementation("com.nativelibs4java:bridj:0.7.0")
+  implementation("com.github.luben:zstd-jni:1.4.8-1")
+  implementation("com.github.nocatch:nocatch:1.1")
+  implementation("org.luaj:luaj-jse:3.0.1")
+  implementation("commons-validator:commons-validator:1.6")
+  implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
+  implementation("javax.inject:javax.inject:1")
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
+  implementation("com.github.nsp:JSkills:${jSkillsVersion}")
+  implementation("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
+  implementation("javax.annotation:javax.annotation-api:1.3.1")
+  implementation("com.github.ben-manes.caffeine:caffeine")
+  implementation("org.apache.httpcomponents:httpclient")
+  implementation("ch.micheljung.fxstage:fxstage:0.7.4")
+  implementation("ch.micheljung.waitomo:jfx-waitomo-theme:0.2.0")
+  implementation("org.kitteh.irc:client-lib:7.3.0")
 
-  compile("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
-  compile("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
-  compile("org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}")
-  compile("org.openjfx:javafx-swing:${javafxVersion}:${javafxPlatform}")
-  compile("org.openjfx:javafx-fxml:${javafxVersion}:${javafxPlatform}")
-  compile("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
-  compile("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
-  compile("com.github.1-alex98:discord-rpc:${discordRpcVersion}")
-  compile("org.controlsfx:controlsfx:${controlsfxVersion}")
-  compile("org.fxmisc.flowless:flowless:${flowlessVersion}")
+  implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-swing:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-fxml:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
+  implementation("com.github.1-alex98:discord-rpc:${discordRpcVersion}")
+  implementation("org.controlsfx:controlsfx:${controlsfxVersion}")
+  implementation("org.fxmisc.flowless:flowless:${flowlessVersion}")
 
-  compile project(":webview-patch")
-  compile("org.javassist:javassist:${project.ext['javassist.version']}")
+  implementation project(":webview-patch")
+  implementation("org.javassist:javassist:${project.ext['javassist.version']}")
 
   provided("com.install4j:install4j-runtime:${install4jRuntimeVersion}")
 
-  testCompile 'junit:junit:4.13'
-  testCompile("org.testfx:testfx-core:4.0.8-alpha") {
+  compileOnly 'junit:junit:4.13'
+  compileOnly("org.testfx:testfx-core:4.0.8-alpha") {
     exclude module: 'guava'
   }
-  testCompile("org.testfx:testfx-junit:4.0.8-alpha")
-  testCompile("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
-  testCompile("org.springframework.boot:spring-boot-starter-test")
+  compileOnly("org.testfx:testfx-junit:4.0.8-alpha")
+  compileOnly("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
+  compileOnly("org.springframework.boot:spring-boot-starter-test")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok")
