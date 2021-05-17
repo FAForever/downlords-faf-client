@@ -15,7 +15,7 @@ buildscript {
 }
 
 plugins {
-  id "com.install4j.gradle" version "9.0.2"
+  id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "4.1.1"
   id 'net.ltgt.apt' version '0.21'
@@ -270,9 +270,9 @@ dependencies {
   compileOnly("org.testfx:testfx-core:4.0.8-alpha") {
     exclude module: 'guava'
   }
-  compileOnly("org.testfx:testfx-junit:4.0.8-alpha")
-  compileOnly("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
-  compileOnly("org.springframework.boot:spring-boot-starter-test")
+  testCompileOnly("org.testfx:testfx-junit:4.0.8-alpha")
+  testCompileOnly("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
+  testCompileOnly("org.springframework.boot:spring-boot-starter-test")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok")
