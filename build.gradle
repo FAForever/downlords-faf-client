@@ -10,7 +10,6 @@ buildscript {
 
   dependencies {
     classpath("gradle.plugin.install4j.install4j:gradle_plugin:7.0.7")
-    classpath("org.springframework.build.gradle:propdeps-plugin:${propdepsVersion}")
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -32,7 +31,6 @@ jacoco {
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'propdeps'
 apply plugin: 'distribution'
 
 
@@ -68,6 +66,14 @@ processResources {
       it.replace('#faf-client.version#', project.version.toString())
     }
   }
+}
+
+configurations {
+    provided
+}
+
+sourceSets {
+    main { compileClasspath += configurations.provided }
 }
 
 configurations {
