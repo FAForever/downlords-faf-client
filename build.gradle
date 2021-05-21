@@ -106,7 +106,7 @@ distributions {
     contents {
       from {
         [
-            configurations.runtime,
+            configurations.runtimeClasspath,
             jar,
             downloadIceAdapter.outputs.files,
             downloadUnixUid.outputs.files,
