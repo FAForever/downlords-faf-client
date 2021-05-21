@@ -19,7 +19,6 @@ plugins {
   id "com.install4j.gradle" version "7.0.7"
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "3.4.3"
-  id 'net.ltgt.apt' version '0.19'
   id 'jacoco'
   id 'com.github.kt3k.coveralls' version "${coverallsGradlePluginVersion}"
 }
