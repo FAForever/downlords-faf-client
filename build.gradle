@@ -4,12 +4,10 @@ import org.gradle.internal.os.OperatingSystem
 buildscript {
   repositories {
     mavenCentral()
-    maven { url 'https://maven.ej-technologies.com/repository' }
     maven { url 'https://repo.spring.io/plugins-release' }
   }
 
   dependencies {
-    classpath("gradle.plugin.install4j.install4j:gradle_plugin:${install4jVersion}")
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
