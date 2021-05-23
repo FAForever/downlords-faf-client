@@ -21,6 +21,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -317,12 +318,14 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private void renderQueues() {
     JavaFxUtil.runLater(() -> {
       List<MatchmakingQueue> queues = Collections.synchronizedList(teamMatchmakingService.getMatchmakingQueues());
+      int queuesPerRow = Math.min(queues.size(), 4);
       synchronized (queues) {
         queuePane.getChildren().clear();
         queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
         queues.forEach(queue -> {
           MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
           controller.setQueue(queue);
+          controller.getRoot().prefWidthProperty().bind(Bindings.createDoubleBinding(() -> queuePane.getWidth() / queuesPerRow - queuePane.getHgap(), queuePane.widthProperty()));
           queuePane.getChildren().add(controller.getRoot());
         });
       }
