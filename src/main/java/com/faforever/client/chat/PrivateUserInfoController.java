@@ -50,6 +50,7 @@ public class PrivateUserInfoController implements Controller<Node> {
   public Label gamesPlayedLabelLabel;
   public Label unlockedAchievementsLabelLabel;
   private ChatChannelUser chatUser;
+  private InvalidationListener gameInvalidationListener;
 
   public PrivateUserInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
                                    EventBus eventBus, ChatUserService chatUserService) {
@@ -122,7 +123,7 @@ public class PrivateUserInfoController implements Controller<Node> {
     JavaFxUtil.addListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
     loadReceiverRatingInformation(player);
 
-    InvalidationListener gameInvalidationListener = observable -> onPlayerGameChanged(player.getGame());
+    gameInvalidationListener = observable -> onPlayerGameChanged(player.getGame());
     JavaFxUtil.addListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
     onPlayerGameChanged(player.getGame());
 
