@@ -41,6 +41,8 @@
                     text="%mod.manager.deselectAll" HBox.hgrow="ALWAYS"/>
             <Button maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false"
                     onAction="#onReloadModsButtonClicked" text="%mod.manager.reload" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="closeButton" maxWidth="1.7976931348623157E308" minWidth="-Infinity" mnemonicParsing="false"
+                    onAction="#onCloseButtonClicked" text="%close" HBox.hgrow="ALWAYS"/>
         </children>
     </HBox>
 
