@@ -26,6 +26,8 @@ public class MapBeanBuilder {
     players(4);
     ranked(true);
     hidden(false);
+    mapPlays(0);
+    versionPlays(0);
     size(MapSize.valueOf(512, 512));
     createTime(LocalDateTime.MIN);
     description("This is a test map");
@@ -81,6 +83,16 @@ public class MapBeanBuilder {
 
   public MapBeanBuilder hidden(boolean hidden) {
     mapBean.setHidden(hidden);
+    return this;
+  }
+
+  public MapBeanBuilder mapPlays(int mapPlays) {
+    mapBean.setMapGamesPlayed(mapPlays);
+    return this;
+  }
+
+  public MapBeanBuilder versionPlays(int versionPlays) {
+    mapBean.setMapVersionGamesPlayed(versionPlays);
     return this;
   }
 

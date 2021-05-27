@@ -80,6 +80,8 @@ public class MapDetailController implements Controller<Node> {
   public Label dateLabel;
   public Label isHiddenLabel;
   public Label isRankedLabel;
+  public Label mapPlaysLabel;
+  public Label versionPlaysLabel;
   public ReviewsController reviewsController;
   public VBox loadingContainer;
   public RowConstraints hideRow;
@@ -173,6 +175,8 @@ public class MapDetailController implements Controller<Node> {
     authorLabel.setText(Optional.ofNullable(map.getAuthor()).orElse(i18n.get("map.unknownAuthor")));
     maxPlayersLabel.setText(i18n.number(map.getPlayers()));
     mapIdLabel.setText(i18n.get("map.id", map.getId()));
+    mapPlaysLabel.setText(i18n.number(map.getMapGamesPlayed()));
+    versionPlaysLabel.setText(i18n.number(map.getMapVersionGamesPlayed()));
 
     MapSize mapSize = map.getSize();
     dimensionsLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));

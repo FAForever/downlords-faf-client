@@ -123,35 +123,35 @@ public class ModVersion {
   }
 
   public static ModVersion fromDto(com.faforever.commons.api.dto.ModVersion dto, Mod parent) {
-    ModVersion modVersionVersion = new ModVersion();
-    modVersionVersion.setVersion(dto.getVersion());
-    modVersionVersion.setId(dto.getId());
-    modVersionVersion.setUid(dto.getUid());
-    modVersionVersion.setModType(ModType.fromDto(dto.getType()));
-    modVersionVersion.setDescription(dto.getDescription());
-    modVersionVersion.setFilename(dto.getFilename());
-    modVersionVersion.setIcon(dto.getIcon());
-    modVersionVersion.setRanked(dto.isRanked());
-    modVersionVersion.setHidden(dto.isHidden());
+    ModVersion modVersion = new ModVersion();
+    modVersion.setVersion(dto.getVersion());
+    modVersion.setId(dto.getId());
+    modVersion.setUid(dto.getUid());
+    modVersion.setModType(ModType.fromDto(dto.getType()));
+    modVersion.setDescription(dto.getDescription());
+    modVersion.setFilename(dto.getFilename());
+    modVersion.setIcon(dto.getIcon());
+    modVersion.setRanked(dto.isRanked());
+    modVersion.setHidden(dto.isHidden());
     if (parent != null) {
-      modVersionVersion.setReviewsSummary(parent.getReviewsSummary());
+      modVersion.setReviewsSummary(parent.getReviewsSummary());
       parent.getVersions().forEach(v -> {
         if (v.getReviews() != null) {
-          v.getReviews().forEach(modVersionReview -> modVersionVersion.getReviews().add(modVersionReview));
+          v.getReviews().forEach(modVersionReview -> modVersion.getReviews().add(modVersionReview));
         }
       });
     }
     Optional.ofNullable(dto.getCreateTime())
-        .ifPresent(offsetDateTime -> modVersionVersion.setCreateTime(offsetDateTime.toLocalDateTime()));
+        .ifPresent(offsetDateTime -> modVersion.setCreateTime(offsetDateTime.toLocalDateTime()));
     Optional.ofNullable(dto.getUpdateTime())
-        .ifPresent(offsetDateTime -> modVersionVersion.setUpdateTime(offsetDateTime.toLocalDateTime()));
-    modVersionVersion.setThumbnailUrl(dto.getThumbnailUrl());
-    modVersionVersion.setDownloadUrl(dto.getDownloadUrl());
+        .ifPresent(offsetDateTime -> modVersion.setUpdateTime(offsetDateTime.toLocalDateTime()));
+    modVersion.setThumbnailUrl(dto.getThumbnailUrl());
+    modVersion.setDownloadUrl(dto.getDownloadUrl());
     Mod mod = Optional.ofNullable(parent)
         .orElseGet(() -> Mod.fromDto(dto.getMod()));
-    modVersionVersion.setMod(mod);
-    Optional.ofNullable(mod.getUploader()).ifPresent(modVersionVersion::setUploader);
-    return modVersionVersion;
+    modVersion.setMod(mod);
+    Optional.ofNullable(mod.getUploader()).ifPresent(modVersion::setUploader);
+    return modVersion;
   }
 
   public static ModVersion fromModDto(com.faforever.commons.api.dto.Mod dto) {

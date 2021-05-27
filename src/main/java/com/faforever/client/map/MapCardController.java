@@ -92,7 +92,7 @@ public class MapCardController implements Controller<Node> {
     thumbnailImageView.setImage(image);
     nameLabel.setText(map.getDisplayName());
     authorLabel.setText(Optional.ofNullable(map.getAuthor()).orElse(i18n.get("map.unknownAuthor")));
-    numberOfPlaysLabel.setText(i18n.number(map.getNumberOfPlays()));
+    numberOfPlaysLabel.setText(i18n.number(map.getMapGamesPlayed()));
 
     MapSize size = map.getSize();
     sizeLabel.setText(i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm()));
