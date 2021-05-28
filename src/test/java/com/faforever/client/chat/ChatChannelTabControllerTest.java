@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
+import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -384,6 +385,16 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
 
     String result = instance.getInlineStyle(playerName);
     assertEquals("", result);
+  }
+
+  @Test
+  public void userColorChangeTest() {
+    ChatChannelUser chatUser = new ChatChannelUser("test", false);
+    chatUser.setColor(Color.AQUA);
+
+    instance.onChatUserColorChange(new ChatUserColorChangeEvent(chatUser));
+
+    assertEquals(Optional.of(Color.AQUA), chatUser.getColor());
   }
 
   @Test
