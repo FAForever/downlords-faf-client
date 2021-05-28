@@ -180,6 +180,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setSpawnCount(spawnCount);
     verify(generateMapTask).setMapSize(mapSize);
+    verify(generateMapTask).setNumTeams(numTeams);
     verify(generateMapTask).setLandDensity(optionMap.get("landDensity"));
     verify(generateMapTask).setMountainDensity(optionMap.get("mountainDensity"));
     verify(generateMapTask).setPlateauDensity(optionMap.get("plateauDensity"));
@@ -200,6 +201,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setSpawnCount(spawnCount);
     verify(generateMapTask).setMapSize(mapSize);
+    verify(generateMapTask).setNumTeams(numTeams);
     verify(generateMapTask).setStyle("TEST");
   }
 
