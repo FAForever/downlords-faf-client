@@ -392,6 +392,8 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     ChatChannelUser chatUser = new ChatChannelUser("test", false);
     chatUser.setColor(Color.AQUA);
 
+    runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
+
     instance.onChatUserColorChange(new ChatUserColorChangeEvent(chatUser));
 
     assertEquals(Optional.of(Color.AQUA), chatUser.getColor());
