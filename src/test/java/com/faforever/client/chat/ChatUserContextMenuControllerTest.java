@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -25,6 +26,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.GroupPermission;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
+import javafx.scene.paint.Color;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -264,6 +266,15 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     instance.onSendPrivateMessageSelected();
 
     verify(eventBus).post(any(InitiatePrivateChatEvent.class));
+  }
+
+  @Test
+  public void testChangePlayerColor() {
+    instance.setChatUser(chatUser);
+
+    instance.colorPicker.setValue(Color.ALICEBLUE);
+
+    verify(eventBus).post(any(ChatUserColorChangeEvent.class));
   }
 
   @Test
