@@ -1,11 +1,13 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.mod.ModVersion.ModType;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
@@ -44,7 +46,8 @@ public class ModManagerController implements Controller<Parent> {
    * Stores what is selected. All UI and SIM mods are in it.
    */
   private final Map<ModVersion, Boolean> modToSelectedMap = new HashMap<>();
-
+  public Button closeButton;
+  private Runnable onCloseButtonClickedListener;
   public ToggleButton uiModsButton;
   public ToggleGroup viewToggleGroup;
   public ToggleButton simModsButton;
@@ -71,6 +74,18 @@ public class ModManagerController implements Controller<Parent> {
     loadActivatedMods();
   }
 
+  public void onCloseButtonClicked() {
+    onCloseButtonClickedListener.run();
+  }
+
+  public void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
+    this.onCloseButtonClickedListener = onCloseButtonClickedListener;
+  }
+
+  public void setCloseable(boolean closeable) {
+    closeButton.setVisible(closeable);
+  }
+
   @Override
   public Parent getRoot() {
     return root;
@@ -78,6 +93,7 @@ public class ModManagerController implements Controller<Parent> {
 
   @Override
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(closeButton);
     modListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     modListView.setCellFactory(modListCellFactory());
 
@@ -86,6 +102,7 @@ public class ModManagerController implements Controller<Parent> {
     loadActivatedMods();
 
     modListView.scrollTo(modListView.getSelectionModel().getSelectedItem());
+    setCloseable(true);
   }
 
   private void loadActivatedMods() {

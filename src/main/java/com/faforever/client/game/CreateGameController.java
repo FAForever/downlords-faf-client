@@ -118,6 +118,7 @@ public class CreateGameController implements Controller<Pane> {
     JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
     JavaFxUtil.bindManagedToVisible(versionLabel);
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
+    modManagerController.setCloseable(false);
     mapSearchTextField.setOnKeyPressed(event -> {
       MultipleSelectionModel<MapBean> selectionModel = mapListView.getSelectionModel();
       int currentMapIndex = selectionModel.getSelectedIndex();

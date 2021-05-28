@@ -117,6 +117,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     ModManagerController modManagerController = uiService.loadFxml("theme/mod_manager.fxml");
     Dialog dialog = uiService.showInDialog(vaultRoot, modManagerController.getRoot(), i18n.get("modVault.modManager"));
     dialog.setOnDialogClosed(event -> modManagerController.apply());
+    modManagerController.setOnCloseButtonClickedListener(dialog::close);
   }
 
   @Override
