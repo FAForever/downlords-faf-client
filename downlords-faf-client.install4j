@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="8.0.8" transformSequenceNumber="8">
   <directoryPresets config="./src/media/appicon" />
-  <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="15" javaMaxVersion="15" allowBetaVM="true">
+  <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="16" allowBetaVM="true">
     <languages>
       <additionalLanguages>
         <language id="zh_CN" />
@@ -660,14 +660,14 @@ return console.askYesNo(message, true);
         <entry location="lib/faf-uid" />
         <entry location="lib/uid" />
       </exclude>
-      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-15.0.1" directDownload="true" />
+      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-16.0.1" directDownload="true" />
     </windows>
     <windowsArchive name="Windows Archive" id="330" installDir="downlords-faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter" />
         <entry location="lib/faf-uid" />
       </exclude>
-      <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-15.0.1" />
+      <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-16.0.1" />
     </windowsArchive>
     <unixArchive name="Unix Archive" id="331" installDir="downlords-faf-client-${compiler:sys.version}">
       <exclude>

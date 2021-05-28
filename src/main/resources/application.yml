@@ -58,8 +58,9 @@ faf-client:
     join-url: https://discord.gg/PfGcWas
 
 spring:
-  profiles:
-    active: ${CLIENT_PROFILE:prod}
+  config:
+    activate:
+      on-profile: ${CLIENT_PROFILE:prod}
   application:
     name: Downlord's FAF Client
   main:
