@@ -16,7 +16,7 @@ jobs:
     environment: deploy
     runs-on: ubuntu-latest
     env:
-      INSTALL4J_DIR: "install4j/install4j8.0.8"
+      INSTALL4J_DIR: "install4j/install4j9.0.2"
 
     steps:
       - uses: actions/checkout@v2
@@ -44,9 +44,9 @@ jobs:
 
       - name: Download Install4j
         run: |
-            mkdir -p "$HOME/install4j"
-            curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_8_0_8.tar.gz -o "$HOME/install4j/install4j8.tar.gz"
-            tar xzf "$HOME/install4j/install4j8.tar.gz" -C "$HOME/install4j"
+          mkdir -p "$HOME/install4j"
+          curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_9_0_2.tar.gz -o "$HOME/install4j/install4j.tar.gz"
+          tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j"
 
       - name: Download Bundled JRE
         run: |
@@ -58,7 +58,7 @@ jobs:
           ./gradlew -Pversion="${{ github.event.inputs.version }}" \
           -PjavafxPlatform=win \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
-          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
+          -Pinstall4jLicense=${{ secrets.INSTALL4J_9_LICENSE }} \
           --info \
           --stacktrace \
           buildInstall4jMediaFiles
@@ -68,7 +68,7 @@ jobs:
           ./gradlew -Pversion="${{ github.event.inputs.version }}" \
           -PjavafxPlatform=linux \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
-          -Pinstall4jLicense=${{ secrets.INSTALL4J_LICENSE }} \
+          -Pinstall4jLicense=${{ secrets.INSTALL4J_9_LICENSE }} \
           --stacktrace \
           buildInstall4jMediaFiles
 
