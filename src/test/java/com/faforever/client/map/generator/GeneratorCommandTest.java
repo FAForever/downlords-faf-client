@@ -22,6 +22,7 @@ public class GeneratorCommandTest {
         .version(new ComparableVersion("1.0.0"))
         .mapSize(512)
         .spawnCount(6)
+        .numTeams(2)
         .generationType(GenerationType.CASUAL);
   }
 
@@ -29,7 +30,7 @@ public class GeneratorCommandTest {
   public void testDefaultSet() {
     assertNotNull(defaultBuilder().build().getCommand());
     assertEquals(defaultBuilder().build().getCommand(), List.of(javaPath, "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
-        "--map-size", "512", "--spawn-count", "6"));
+        "--map-size", "512", "--spawn-count", "6", "--num-teams", "2"));
   }
 
   @Test(expected = IllegalStateException.class)

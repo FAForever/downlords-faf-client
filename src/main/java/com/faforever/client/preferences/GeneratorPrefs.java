@@ -14,6 +14,7 @@ public class GeneratorPrefs {
   private final ObjectProperty<GenerationType> generationType;
   private final StringProperty commandLineArgs;
   private final IntegerProperty spawnCount;
+  private final IntegerProperty numTeams;
   private final StringProperty mapSize;
   private final StringProperty mapStyle;
   private final IntegerProperty waterDensity;
@@ -32,6 +33,7 @@ public class GeneratorPrefs {
   public GeneratorPrefs() {
     commandLineArgs = new SimpleStringProperty("");
     spawnCount = new SimpleIntegerProperty(6);
+    numTeams = new SimpleIntegerProperty(2);
     mapSize = new SimpleStringProperty("10km");
     mapStyle = new SimpleStringProperty("");
     generationType = new SimpleObjectProperty<>(GenerationType.CASUAL);
@@ -71,6 +73,18 @@ public class GeneratorPrefs {
 
   public IntegerProperty spawnCountProperty() {
     return spawnCount;
+  }
+
+  public int getNumTeams() {
+    return numTeams.get();
+  }
+
+  public void setNumTeams(int numTeams) {
+    this.numTeams.set(numTeams);
+  }
+
+  public IntegerProperty numTeamsProperty() {
+    return numTeams;
   }
 
   public String getMapSize() {

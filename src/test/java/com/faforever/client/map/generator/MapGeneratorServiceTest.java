@@ -44,6 +44,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private final ComparableVersion versionNoGeneratorTooNew = new ComparableVersion("3.0.0");
   private final Integer spawnCount = 6;
   private final Integer mapSize = 512;
+  private final Integer numTeams = 2;
   private final Map<String, Float> optionMap = Map.of("landDensity", .5f, "plateauDensity", .25f,
       "mountainDensity", .125f, "rampDensity", .75f, "mexDensity", .325f, "reclaimDensity", .825f);
   private final long numericalSeed = -123456789;
@@ -171,7 +172,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGenerateMapOptionMap() {
     instance.setGeneratorVersion(versionGeneratorPresent);
-    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, optionMap, GenerationType.CASUAL);
+    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, numTeams, optionMap, GenerationType.CASUAL);
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
@@ -179,6 +180,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setSpawnCount(spawnCount);
     verify(generateMapTask).setMapSize(mapSize);
+    verify(generateMapTask).setNumTeams(numTeams);
     verify(generateMapTask).setLandDensity(optionMap.get("landDensity"));
     verify(generateMapTask).setMountainDensity(optionMap.get("mountainDensity"));
     verify(generateMapTask).setPlateauDensity(optionMap.get("plateauDensity"));
@@ -191,7 +193,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGenerateMapStyle() {
     instance.setGeneratorVersion(versionGeneratorPresent);
-    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, "TEST");
+    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, numTeams, "TEST");
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
@@ -199,6 +201,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setSpawnCount(spawnCount);
     verify(generateMapTask).setMapSize(mapSize);
+    verify(generateMapTask).setNumTeams(numTeams);
     verify(generateMapTask).setStyle("TEST");
   }
 

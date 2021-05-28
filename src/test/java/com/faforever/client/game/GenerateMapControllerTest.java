@@ -50,6 +50,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
   public void unbindProperties() {
     preferences.getGenerator().spawnCountProperty().unbind();
     preferences.getGenerator().mapSizeProperty().unbind();
+    preferences.getGenerator().numTeamsProperty().unbind();
     preferences.getGenerator().waterRandomProperty().unbind();
     preferences.getGenerator().plateauRandomProperty().unbind();
     preferences.getGenerator().mountainRandomProperty().unbind();
@@ -101,6 +102,16 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(instance.spawnCountSpinner.getValue().intValue(), 10);
+  }
+
+  @Test
+  public void testSetLastNumTeams() {
+    preferences.getGenerator().setNumTeams(5);
+
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertEquals(instance.numTeamsSpinner.getValue().intValue(), 5);
   }
 
   @Test
@@ -698,7 +709,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     preferences.getGenerator().setMexRandom(true);
     preferences.getGenerator().setReclaimRandom(true);
 
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -709,12 +720,12 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.onGenerateMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapGeneratorService).generateMap(10, 512, new HashMap<>(), GenerationType.CASUAL);
+    verify(mapGeneratorService).generateMap(10, 512, 2, new HashMap<>(), GenerationType.CASUAL);
   }
 
   @Test
   public void testOnGenerateMapSetStyle() {
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -727,12 +738,12 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.onGenerateMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapGeneratorService).generateMap(10, 512, "TEST");
+    verify(mapGeneratorService).generateMap(10, 512, 2, "TEST");
   }
 
   @Test
   public void testOnGenerateMapRandomStyle() {
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -745,12 +756,12 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.onGenerateMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapGeneratorService).generateMap(10, 512, new HashMap<>(), GenerationType.CASUAL);
+    verify(mapGeneratorService).generateMap(10, 512, 2, new HashMap<>(), GenerationType.CASUAL);
   }
 
   @Test
   public void testOnGenerateMapNoStyle() {
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -763,7 +774,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.onGenerateMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapGeneratorService).generateMap(10, 512, new HashMap<>(), GenerationType.CASUAL);
+    verify(mapGeneratorService).generateMap(10, 512, 2, new HashMap<>(), GenerationType.CASUAL);
   }
 
   @Test
