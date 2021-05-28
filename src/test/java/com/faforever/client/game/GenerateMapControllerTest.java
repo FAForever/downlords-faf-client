@@ -725,7 +725,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnGenerateMapSetStyle() {
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
+    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -738,7 +738,7 @@ public class GenerateMapControllerTest extends AbstractPlainJavaFxTest {
     instance.onGenerateMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapGeneratorService).generateMap(10, 512, "TEST");
+    verify(mapGeneratorService).generateMap(10, 512, 2, "TEST");
   }
 
   @Test

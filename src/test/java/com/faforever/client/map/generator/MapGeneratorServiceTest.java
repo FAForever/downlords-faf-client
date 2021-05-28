@@ -193,7 +193,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGenerateMapStyle() {
     instance.setGeneratorVersion(versionGeneratorPresent);
-    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, "TEST");
+    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, numTeams, "TEST");
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);

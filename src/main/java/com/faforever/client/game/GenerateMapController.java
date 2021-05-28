@@ -284,7 +284,7 @@ public class GenerateMapController implements Controller<Pane> {
       int numTeams = numTeamsSpinner.getValue();
       if (mapStyleComboBox.getValue() != null && !MapGeneratorService.GENERATOR_RANDOM_STYLE.equals(mapStyleComboBox.getValue())) {
         String style = mapStyleComboBox.getValue();
-        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, style);
+        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, numTeams, style);
       } else {
         GenerationType generationType = generationTypeComboBox.getValue();
         generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, numTeams, getOptionMap(), generationType);
