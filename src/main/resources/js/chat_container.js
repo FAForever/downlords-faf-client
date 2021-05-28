@@ -103,10 +103,14 @@ function clearUserMessageClasses(user) {
 }
 
 function updateUserMessageDisplay(user, display) {
-  var userMessages = document.getElementsByClassName("chat-section-" + user);
-  for (var i = 0; i < userMessages.length; i++) {
-    userMessages[i].style.display = display;
-  }
+    var userSections = document.getElementsByClassName("chat-section-" + user);
+    for (var i = 0; i < userSections.length; i++) {
+        userSections[i].style.display = display;
+    }
+    var userMessages = document.getElementsByClassName("user-" + user);
+    for (var i = 0; i < userMessages.length; i++) {
+        userMessages[i].style.display = display;
+    }
 }
 
 

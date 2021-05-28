@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
@@ -173,6 +174,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         chatPrefs.getUserToColor().put(lowerUsername, newValue);
         chatUser.setColor(newValue);
       }
+      eventBus.post(new ChatUserColorChangeEvent(chatUser));
     });
 
     removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)

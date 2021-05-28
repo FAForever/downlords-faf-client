@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
+import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.fx.JavaFxUtil;
@@ -175,6 +176,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
                       .orElse(null));
                 }
               }
+              eventBus.post(new ChatUserColorChangeEvent(chatUser));
             });
       }
     }

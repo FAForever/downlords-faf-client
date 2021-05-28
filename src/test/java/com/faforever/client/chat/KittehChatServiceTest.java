@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.net.ConnectionState;
@@ -626,6 +627,15 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
   public void testLeaveChannel() {
     instance.connect();
     instance.leaveChannel(DEFAULT_CHANNEL_NAME);
+  }
+
+  @Test
+  public void testGroupColorChange() {
+    preferences.getChat().getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
+
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(eventBus, times(3)).post(any(ChatUserColorChangeEvent.class));
   }
 
   @Test

@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
+import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -568,6 +569,16 @@ public class ChannelTabController extends AbstractChatTabController {
       updateCssClass(chatUser);
       updateUserMessageColor(chatUser);
       updateChatUserListItemsForCategories(chatUser);
+    }
+  }
+
+  @Subscribe
+  public void onChatUserColorChange(ChatUserColorChangeEvent event) {
+    // We could add a listener on chatChannelUser.colorProperty() but this would result in thousands of mostly idle
+    // listeners which we're trying to avoid.
+    ChatChannelUser chatUser = event.getChatUser();
+    if (chatChannel.getUsers().contains(chatUser)) {
+      updateUserMessageColor(chatUser);
     }
   }
 
