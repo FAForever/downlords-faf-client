@@ -65,9 +65,6 @@ public class GenerateMapController implements Controller<Pane> {
   public Label mapStyleLabel;
   public ComboBox<String> mapStyleComboBox;
   public Spinner<Integer> spawnCountSpinner;
-  private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(IntStream.range(0, 17)
-      .filter(value -> value != 1)
-      .boxed().collect(Collectors.toList()));
   public Spinner<String> mapSizeSpinner;
   public Slider waterSlider;
   public CheckBox waterRandom;
@@ -95,6 +92,9 @@ public class GenerateMapController implements Controller<Pane> {
   public HBox reclaimRandomBox;
   private Runnable onCloseButtonClickedListener;
   private final ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
+  private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(IntStream.range(0, 17)
+      .filter(value -> value != 1)
+      .boxed().collect(Collectors.toList()));
   private final FilteredList<Integer> selectableTeamSizes = new FilteredList<>(validTeamSizes);
   private final ObservableList<Integer> validSpawnCount = FXCollections.observableList(IntStream.range(2, 17)
       .boxed().collect(Collectors.toList()));
@@ -167,27 +167,29 @@ public class GenerateMapController implements Controller<Pane> {
     int numTeamsProperty = generatorPrefs.getNumTeams();
     numTeamsSpinner.setValueFactory(new ListSpinnerValueFactory<>(selectableTeamSizes));
     numTeamsSpinner.valueProperty().addListener((observable) -> {
-      int spawnCount = spawnCountSpinner.getValue();
-      int lastIndex = selectableSpawnCounts.indexOf(spawnCount);
-      selectableSpawnCounts.setPredicate((value) -> {
-        int numTeams = numTeamsSpinner.getValue();
-        return numTeams == 0 || value % numTeams == 0;
-      });
-      int newIndex = selectableSpawnCounts.indexOf(spawnCount);
-      if (newIndex > 0) {
-        int diff = newIndex - lastIndex;
-        if (diff > 0) {
-          spawnCountSpinner.increment(diff);
-        } else {
-          spawnCountSpinner.decrement(-diff);
+      if (spawnCountSpinner.getValue() != null) {
+        int spawnCount = spawnCountSpinner.getValue();
+        int lastIndex = selectableSpawnCounts.indexOf(spawnCount);
+        selectableSpawnCounts.setPredicate((value) -> {
+          int numTeams = numTeamsSpinner.getValue();
+          return numTeams == 0 || value % numTeams == 0;
+        });
+        int newIndex = selectableSpawnCounts.indexOf(spawnCount);
+        if (newIndex > 0) {
+          int diff = newIndex - lastIndex;
+          if (diff > 0) {
+            spawnCountSpinner.increment(diff);
+          } else {
+            spawnCountSpinner.decrement(-diff);
+          }
         }
       }
     });
     generatorPrefs.numTeamsProperty().bind(numTeamsSpinner.valueProperty());
-    int lastIndex = selectableTeamSizes.indexOf(numTeamsProperty);
-    numTeamsSpinner.increment(lastIndex > 0 ? lastIndex : 1);
     numTeamsSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
         .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
+    int lastIndex = selectableTeamSizes.indexOf(numTeamsProperty);
+    numTeamsSpinner.increment(lastIndex >= 0 ? lastIndex : 1);
   }
 
   private void initSpawnCountSpinner() {

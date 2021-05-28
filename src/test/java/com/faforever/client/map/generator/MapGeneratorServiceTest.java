@@ -44,6 +44,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   private final ComparableVersion versionNoGeneratorTooNew = new ComparableVersion("3.0.0");
   private final Integer spawnCount = 6;
   private final Integer mapSize = 512;
+  private final Integer numTeams = 2;
   private final Map<String, Float> optionMap = Map.of("landDensity", .5f, "plateauDensity", .25f,
       "mountainDensity", .125f, "rampDensity", .75f, "mexDensity", .325f, "reclaimDensity", .825f);
   private final long numericalSeed = -123456789;
@@ -171,7 +172,7 @@ public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testGenerateMapOptionMap() {
     instance.setGeneratorVersion(versionGeneratorPresent);
-    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, optionMap, GenerationType.CASUAL);
+    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, numTeams, optionMap, GenerationType.CASUAL);
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
