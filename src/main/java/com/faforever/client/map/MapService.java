@@ -316,7 +316,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @SneakyThrows(IOException.class)
   @NotNull
-  @Cacheable(value = CacheNames.MAP_PREVIEW)
+  @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapGeneratorService.getGeneratedMapPreviewImage())")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
     if (mapGeneratorService.isGeneratedMap(mapName)) {
       Path previewPath = forgedAlliancePreferences.getCustomMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
