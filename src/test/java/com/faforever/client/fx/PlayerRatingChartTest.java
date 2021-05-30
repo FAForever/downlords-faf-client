@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.chat.PlayerRatingChartTooltipController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class PlayerRatingChartTest extends AbstractPlainJavaFxTest {
 
   @Mock
-  private PlayerRatingChartTooltip chartTooltip;
+  private PlayerRatingChartTooltipController chartTooltip;
   @Mock
   private UiService uiService;
 
@@ -48,7 +49,7 @@ public class PlayerRatingChartTest extends AbstractPlainJavaFxTest {
   @Test
   public void testShowCurrentXYWhenMouseMovingOverLine() {
     moveMouseTo(10, 10);
-    verify(chartTooltip).setXY(any(Long.class), any(Integer.class));
+    verify(chartTooltip).setDateAndRating(any(Long.class), any(Integer.class));
     verify(chartTooltip, never()).clear();
   }
 
@@ -56,7 +57,7 @@ public class PlayerRatingChartTest extends AbstractPlainJavaFxTest {
   public void testNoCurrentXYWhenMouseMovingOverWithoutLine() {
     moveMouseTo((int) chartBackground.getWidth() - 5, 5);
     verify(chartTooltip).clear();
-    verify(chartTooltip, never()).setXY(any(Long.class), any(Integer.class));
+    verify(chartTooltip, never()).setDateAndRating(any(Long.class), any(Integer.class));
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})

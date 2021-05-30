@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlayerRatingChartTooltip;
 import com.faforever.client.util.TimeService;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -16,7 +16,7 @@ import java.time.Instant;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class PlayerRatingChartTooltipController implements PlayerRatingChartTooltip {
+public class PlayerRatingChartTooltipController implements Controller<Node> {
 
   private final TimeService timeService;
 
@@ -32,15 +32,13 @@ public class PlayerRatingChartTooltipController implements PlayerRatingChartTool
     return root;
   }
 
-  @Override
-  public void setXY(long dateValueInSec, int rating) {
+  public void setDateAndRating(long dateValueInSec, int rating) {
     JavaFxUtil.runLater(() -> {
       dateLabel.setText(timeService.asDate(Instant.ofEpochSecond(dateValueInSec)));
       ratingLabel.setText(Long.toString(Math.round(rating)));
     });
   }
 
-  @Override
   public void clear() {
     JavaFxUtil.runLater(() -> {
       dateLabel.setText("");

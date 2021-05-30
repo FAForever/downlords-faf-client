@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.chat.PlayerRatingChartTooltipController;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.NamedArg;
@@ -32,7 +33,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
 
   private final Region chartBackground;
   private final Line verticalLine = new Line(0, 0, 0, 0);
-  private PlayerRatingChartTooltip tooltipContainer;
+  private PlayerRatingChartTooltipController tooltipController;
   private Tooltip hoverTooltip;
   private boolean available = true;
 
@@ -64,13 +65,13 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
 
   public void initializeTooltip(UiService uiService) {
     if (available) {
-      this.tooltipContainer = uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml");
+      this.tooltipController = uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml");
       prepareHoverTooltip();
     }
   }
 
   private void prepareHoverTooltip() {
-    hoverTooltip = JavaFxUtil.createCustomTooltip(tooltipContainer.getRoot());
+    hoverTooltip = JavaFxUtil.createCustomTooltip(tooltipController.getRoot());
     hoverTooltip.setAutoFix(false);
     hoverTooltip.setHideDelay(Duration.ZERO);
     hoverTooltip.setShowDelay(Duration.ZERO);
@@ -84,9 +85,9 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
       long dateValueInSec = getDisplayedDateValue(x);
       Double rating = ratingMap.get((int) x);
       if (rating != null && dateValueInSec != Long.MIN_VALUE) {
-        tooltipContainer.setXY(dateValueInSec, rating.intValue());
+        tooltipController.setDateAndRating(dateValueInSec, rating.intValue());
       } else {
-        tooltipContainer.clear();
+        tooltipController.clear();
       }
     }
   }

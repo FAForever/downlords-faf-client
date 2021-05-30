@@ -27,7 +27,7 @@ public class PlayerRatingChartTooltipControllerTest extends AbstractPlainJavaFxT
   @Test
   public void testDisplayedValues() {
     when(timeService.asDate(any())).thenReturn("date");
-    runOnFxThreadAndWait(() -> instance.setXY(10000000, 500));
+    runOnFxThreadAndWait(() -> instance.setDateAndRating(10000000, 500));
     assertEquals("date", instance.dateLabel.getText());
     assertEquals("500", instance.ratingLabel.getText());
 
