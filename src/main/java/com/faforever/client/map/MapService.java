@@ -502,6 +502,9 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<MapBean> updateLatestVersionIfNecessary(MapBean map) {
+    if (isOfficialMap(map) || !preferencesService.getPreferences().getMapAndModAutoUpdate()) {
+      return CompletableFuture.completedFuture(map);
+    }
     return getMapLatestVersion(map).thenCompose(latestMap -> {
       CompletableFuture<Void> downloadFuture;
       if (!isInstalled(latestMap.getFolderName())) {

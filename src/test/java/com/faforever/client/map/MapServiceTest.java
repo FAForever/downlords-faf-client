@@ -54,6 +54,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -289,6 +290,27 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     assertThat(instance.updateLatestVersionIfNecessary(outdatedMap).join(), is(updatedMap));
     assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
     assertThat(checkCustomMapFolderExist(updatedMap), is(true));
+  }
+
+  @Test
+  public void testUpdateMapToLatestVersionIfOfficalMap() throws Exception {
+    MapBean offical = MapBeanBuilder.create().displayName("offical map").folderName("SCMP_001").version(1).get();
+
+    instance.updateLatestVersionIfNecessary(offical);
+
+    verify(fafService, times(0)).getMapLatestVersion(any());
+  }
+
+  @Test
+  public void testUpdateMapToLatestVersionIfAutoUpdateTurnedOff() throws Exception {
+    MapBean map = MapBeanBuilder.create().displayName("none offical map").folderName("bla.v0001").version(1).get();
+    Preferences preferences = new Preferences();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    preferences.setMapAndModAutoUpdate(false);
+
+    instance.updateLatestVersionIfNecessary(map);
+
+    verify(fafService, times(0)).getMapLatestVersion(any());
   }
 
   @Test
