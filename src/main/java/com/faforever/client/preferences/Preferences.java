@@ -4,25 +4,17 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.util.Pair;
 import lombok.Getter;
-
-import java.net.HttpCookie;
-import java.net.URI;
-import java.util.ArrayList;
 
 import static javafx.collections.FXCollections.observableArrayList;
 
@@ -51,7 +43,6 @@ public class Preferences {
   private final ListProperty<Pair<String, SortType>> gameListSorting;
   private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder;
   private final ObjectProperty<UnitDataBaseType> unitDataBaseType;
-  private final MapProperty<URI, ArrayList<HttpCookie>> storedCookies;
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
   private final BooleanProperty advancedIceLogEnabled;
@@ -79,7 +70,6 @@ public class Preferences {
     gameListSorting = new SimpleListProperty<>(observableArrayList());
     vault = new VaultPrefs();
     unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
-    storedCookies = new SimpleMapProperty<>(FXCollections.observableHashMap());
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
     showModdedGames = new SimpleBooleanProperty(true);
     disallowJoinsViaDiscord = new SimpleBooleanProperty();
@@ -201,10 +191,6 @@ public class Preferences {
 
   public ObjectProperty<UnitDataBaseType> unitDataBaseTypeProperty() {
     return unitDataBaseType;
-  }
-
-  public ObservableMap<URI, ArrayList<HttpCookie>> getStoredCookies() {
-    return storedCookies.get();
   }
 
   public boolean isDisallowJoinsViaDiscord() {

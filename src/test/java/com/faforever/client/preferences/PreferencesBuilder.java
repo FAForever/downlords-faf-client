@@ -16,13 +16,9 @@ import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.paint.Color;
 import javafx.util.Pair;
 
-import java.net.HttpCookie;
-import java.net.URI;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class PreferencesBuilder {
 
@@ -82,11 +78,6 @@ public class PreferencesBuilder {
 
   public PreferencesBuilder unitDataBaseType(UnitDataBaseType unitDataBaseType) {
     preferences.setUnitDataBaseType(unitDataBaseType);
-    return this;
-  }
-
-  public PreferencesBuilder storedCookies(Map<URI, ArrayList<HttpCookie>> storedCookies) {
-    preferences.getStoredCookies().putAll(storedCookies);
     return this;
   }
 
