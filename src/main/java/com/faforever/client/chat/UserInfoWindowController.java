@@ -8,6 +8,7 @@ import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlayerRatingChart;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.Leaderboard;
@@ -30,7 +31,6 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.StackedBarChart;
@@ -125,7 +125,7 @@ public class UserInfoWindowController implements Controller<Node> {
   public Pane unlockedAchievementsContainer;
   public NumberAxis yAxis;
   public NumberAxis xAxis;
-  public LineChart<Long, Integer> ratingHistoryChart;
+  public PlayerRatingChart ratingHistoryChart;
   public VBox loadingHistoryPane;
   public ComboBox<TimePeriod> timePeriodComboBox;
   public ComboBox<Leaderboard> ratingTypeComboBox;
@@ -182,6 +182,7 @@ public class UserInfoWindowController implements Controller<Node> {
     });
 
     ratingData = Collections.emptyList();
+    ratingHistoryChart.initializeTooltip(uiService);
   }
 
   public Region getRoot() {
@@ -412,9 +413,9 @@ public class UserInfoWindowController implements Controller<Node> {
   public void plotPlayerRatingGraph() {
     JavaFxUtil.assertApplicationThread();
     OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
-    List<XYChart.Data<Long, Integer>> values = ratingData.stream().sorted(Comparator.comparing(RatingHistoryDataPoint::getInstant))
+    List<XYChart.Data<Double, Double>> values = ratingData.stream().sorted(Comparator.comparing(RatingHistoryDataPoint::getInstant))
         .filter(dataPoint -> dataPoint.getInstant().isAfter(afterDate))
-        .map(dataPoint -> new Data<>(dataPoint.getInstant().toEpochSecond(), RatingUtil.getRating(dataPoint)))
+        .map(dataPoint -> new Data<>((double) dataPoint.getInstant().toEpochSecond(), (double) RatingUtil.getRating(dataPoint)))
         .collect(Collectors.toList());
 
     xAxis.setTickLabelFormatter(ratingLabelFormatter());
@@ -424,7 +425,7 @@ public class UserInfoWindowController implements Controller<Node> {
     }
     xAxis.setTickUnit((xAxis.getUpperBound() - xAxis.getLowerBound()) / 10);
 
-    XYChart.Series<Long, Integer> series = new XYChart.Series<>(observableList(values));
+    XYChart.Series<Double, Double> series = new XYChart.Series<>(observableList(values));
     series.setName(i18n.get("userInfo.ratingOverTime"));
     ratingHistoryChart.setData(FXCollections.observableList(Collections.singletonList(series)));
     loadingHistoryPane.setVisible(false);
