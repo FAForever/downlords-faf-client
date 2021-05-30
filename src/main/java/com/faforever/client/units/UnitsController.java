@@ -21,13 +21,11 @@ import org.springframework.stereotype.Component;
 public class UnitsController extends AbstractViewController<Node> {
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
-  private final CookieService cookieService;
   public WebView unitsRoot;
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     if (Strings.isNullOrEmpty(unitsRoot.getEngine().getLocation())) {
-      cookieService.setUpCookieManger();
       loadUnitDataBase(preferencesService.getPreferences().getUnitDataBaseType());
       JavaFxUtil.addListener(preferencesService.getPreferences().unitDataBaseTypeProperty(), (observable, oldValue, newValue) -> loadUnitDataBase(newValue));
     }
