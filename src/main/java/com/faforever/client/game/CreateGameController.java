@@ -49,11 +49,13 @@ import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -407,26 +409,39 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onCreateButtonClicked() {
-    MapBean selectedMap = mapListView.getSelectionModel().getSelectedItem();
     onCloseButtonClicked();
-    if (mapService.isOfficialMap(selectedMap)) {
-      hostGame(selectedMap);
-    } else {
-      mapService.updateLatestVersionIfNecessary(selectedMap)
-          .exceptionally(throwable -> {
-            log.error("error when updating the map", throwable);
-            hostGame(selectedMap);
-            return null;
-          })
-          .thenAccept(this::hostGame);
-    }
+    hostGameAfterMapAndModUpdate();
   }
 
-  private void hostGame(MapBean map) {
-    Set<String> mods = modManagerController.apply().stream()
+  private void hostGameAfterMapAndModUpdate() {
+    MapBean selectedMap = mapListView.getSelectionModel().getSelectedItem();
+    List<ModVersion> selectedModVersions = modManagerController.getSelectedModVersions();
+
+    mapService.updateLatestVersionIfNecessary(selectedMap)
+        .exceptionally(throwable -> {
+          log.error("Error when updating the map", throwable);
+          return selectedMap;
+        })
+        .thenCombine(modService.updateAndActivateModVersions(selectedModVersions), (mapBean, mods) -> {
+          hostGame(mapBean, getUUIDsFromModVersions(mods));
+          return null;
+        })
+        .exceptionally(throwable -> {
+          log.error("Error when updating selected mods and peparing game", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
+          return null;
+        });
+
+  }
+
+  @NotNull
+  private Set<String> getUUIDsFromModVersions(List<ModVersion> modVersions) {
+    return modVersions.stream()
         .map(ModVersion::getUid)
         .collect(Collectors.toSet());
+  }
 
+  private void hostGame(MapBean map, Set<String> mods) {
     Integer minRating = null;
     Integer maxRating = null;
     boolean enforceRating;

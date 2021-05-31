@@ -148,6 +148,7 @@ public class SettingsController implements Controller<Node> {
   public CheckBox allowReplayWhileInGameCheckBox;
   public Button allowReplayWhileInGameButton;
   public CheckBox debugLogToggle;
+  public CheckBox mapAndModAutoUpdateCheckBox;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -338,6 +339,13 @@ public class SettingsController implements Controller<Node> {
     initNotifyMeOnAtMention();
 
     initGameDataCache();
+
+    initMapAndModAutoUpdate();
+  }
+
+  private void initMapAndModAutoUpdate() {
+    mapAndModAutoUpdateCheckBox.selectedProperty()
+        .bindBidirectional(preferencesService.getPreferences().mapAndModAutoUpdateProperty());
   }
 
   private void initGameDataCache() {

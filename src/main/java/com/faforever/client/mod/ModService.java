@@ -53,6 +53,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -373,7 +374,7 @@ public class ModService implements InitializingBean, DisposableBean {
 
   private void writeModStates(Map<String, Boolean> modStates) throws IOException {
     Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-    String preferencesContent = new String(Files.readAllBytes(preferencesFile), US_ASCII);
+    String preferencesContent = Files.readString(preferencesFile, US_ASCII);
 
     String currentActiveModsContent = null;
     Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
@@ -405,7 +406,7 @@ public class ModService implements InitializingBean, DisposableBean {
       preferencesContent += newActiveModsContentBuilder.toString();
     }
 
-    Files.write(preferencesFile, preferencesContent.getBytes(US_ASCII));
+    Files.writeString(preferencesFile, preferencesContent, US_ASCII);
   }
 
   private void removeMod(Path path) {
@@ -440,5 +441,35 @@ public class ModService implements InitializingBean, DisposableBean {
   @Override
   public void destroy() {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
+  }
+
+  @Async
+  @SneakyThrows
+  public CompletableFuture<List<ModVersion>> updateAndActivateModVersions(final List<ModVersion> selectedModVersions) {
+    if (!preferencesService.getPreferences().getMapAndModAutoUpdate()) {
+      return CompletableFuture.completedFuture(selectedModVersions);
+    }
+
+    final List<ModVersion> newlySelectedMods = new ArrayList<>(selectedModVersions);
+    selectedModVersions.forEach(installedModVersion -> {
+      try {
+        ModVersion modVersionFromApi = getModVersionById(installedModVersion.getUid()).get();
+        ModVersion latestVersion = modVersionFromApi.getMod().getLatestVersion();
+        boolean isLatest = latestVersion.equals(installedModVersion);
+        if (!isLatest) {
+          downloadAndInstallMod(latestVersion.getDownloadUrl()).get();
+          newlySelectedMods.remove(installedModVersion);
+          newlySelectedMods.add(latestVersion);
+        }
+      } catch (Exception e) {
+        log.debug("Failed fetching info about mod from the api.", e);
+      }
+    });
+    overrideActivatedMods(newlySelectedMods);
+    return completedFuture(newlySelectedMods);
+  }
+
+  private CompletableFuture<ModVersion> getModVersionById(String id) {
+    return fafService.getModVersion(id);
   }
 }

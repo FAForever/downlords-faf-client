@@ -154,15 +154,20 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   public List<ModVersion> apply() {
-    List<ModVersion> mods = modToSelectedMap.entrySet().stream()
-        .filter(Entry::getValue)
-        .map(Entry::getKey)
-        .collect(Collectors.toList());
+    List<ModVersion> mods = getSelectedModVersions();
     try {
       modService.overrideActivatedMods(mods);
     } catch (IOException e) {
       log.warn("Activated mods could not be updated", e);
     }
     return mods;
+  }
+
+  @NotNull
+  public List<ModVersion> getSelectedModVersions() {
+    return modToSelectedMap.entrySet().stream()
+        .filter(Entry::getValue)
+        .map(Entry::getKey)
+        .collect(Collectors.toList());
   }
 }

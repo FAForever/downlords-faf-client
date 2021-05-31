@@ -36,6 +36,7 @@ public class Preferences {
   private final VaultPrefs vault;
   private final StringProperty themeName;
   private final BooleanProperty preReleaseCheckEnabled;
+  private final BooleanProperty mapAndModAutoUpdate;
   private final BooleanProperty showPasswordProtectedGames;
   private final BooleanProperty showModdedGames;
   private final ListProperty<String> ignoredNotifications;
@@ -79,6 +80,7 @@ public class Preferences {
     cacheLifeTimeInDays = new SimpleIntegerProperty(30);
     gameDataCacheActivated = new SimpleBooleanProperty(false);
     debugLogEnabled = new SimpleBooleanProperty(false);
+    mapAndModAutoUpdate = new SimpleBooleanProperty(true);
   }
 
   public VaultPrefs getVault() {
@@ -311,5 +313,17 @@ public class Preferences {
 
   public BooleanProperty debugLogEnabledProperty() {
     return debugLogEnabled;
+  }
+
+  public boolean getMapAndModAutoUpdate() {
+    return mapAndModAutoUpdate.get();
+  }
+
+  public void setMapAndModAutoUpdate(boolean mapAndModAutoUpdate) {
+    this.mapAndModAutoUpdate.set(mapAndModAutoUpdate);
+  }
+
+  public BooleanProperty mapAndModAutoUpdateProperty() {
+    return mapAndModAutoUpdate;
   }
 }

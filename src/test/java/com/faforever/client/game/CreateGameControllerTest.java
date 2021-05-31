@@ -34,7 +34,6 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -53,6 +52,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -122,6 +122,8 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(modService.updateAndActivateModVersions(any()))
+        .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
 
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
@@ -292,10 +294,9 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     String uidMod = "junit-mod";
     modVersion.setUid(uidMod);
 
-    when(modManagerController.apply()).thenReturn(Collections.singletonList(modVersion));
+    when(modManagerController.getSelectedModVersions()).thenReturn(List.of(modVersion));
 
     MapBean map = MapBuilder.create().defaultValues().get();
-    when(mapService.isOfficialMap(map)).thenReturn(false);
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
 
@@ -304,8 +305,41 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.setOnCloseButtonClickedListener(mock(Runnable.class));
     instance.onCreateButtonClicked();
 
-    verify(modManagerController).apply();
+    verify(modManagerController).getSelectedModVersions();
     assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(uidMod));
+    assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(map.getFolderName()));
+  }
+
+  @Test
+  public void testCreateGameWithOutdatedMod() {
+    ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
+    ModVersion modVersion = new ModVersion();
+    String uidMod = "outdated-mod";
+    modVersion.setUid(uidMod);
+
+    ModVersion newModVersion = new ModVersion();
+    String newUidMod = "new-mod";
+    newModVersion.setUid(newUidMod);
+
+    List<ModVersion> selectedMods = singletonList(modVersion);
+    when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
+
+    MapBean map = MapBuilder.create().defaultValues().get();
+    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(CompletableFuture.completedFuture(map));
+
+    when(modService.updateAndActivateModVersions(eq(selectedMods)))
+        .thenAnswer(invocation -> completedFuture(List.of(newModVersion)));
+
+    when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
+
+    mapList.add(map);
+    instance.mapListView.getSelectionModel().select(0);
+    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+
+    instance.onCreateButtonClicked();
+
+    verify(modManagerController).getSelectedModVersions();
+    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(newUidMod));
     assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(map.getFolderName()));
   }
 
@@ -340,22 +374,6 @@ public class CreateGameControllerTest extends AbstractPlainJavaFxTest {
     instance.onCreateButtonClicked();
 
     assertThat(captor.getValue().getMap(), is(updatedMap.getFolderName()));
-  }
-
-  @Test
-  public void testCreateGameOnOfficialMap() {
-    ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
-
-    MapBean map = MapBuilder.create().defaultValues().get();
-    when(mapService.isOfficialMap(map)).thenReturn(true);
-    when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
-
-    mapList.add(map);
-    instance.mapListView.getSelectionModel().select(0);
-    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
-    instance.onCreateButtonClicked();
-
-    assertThat(captor.getValue().getMap(), is(map.getFolderName()));
   }
 
   @Test

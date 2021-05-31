@@ -44,18 +44,21 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -403,6 +406,76 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
         .get();
     instance.loadThumbnail(modVersion);
     verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Paths.get("mods")), any());
+  }
+
+  @Test
+  public void testUpdateModsWithUpdatedMod() throws IOException, ExecutionException, InterruptedException {
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
+    Mod mod = new Mod();
+    modVersion.setMod(mod);
+    mod.setLatestVersion(modVersion);
+
+    when(fafService.getModVersion(eq(modVersion.getUid())))
+        .thenReturn(CompletableFuture.completedFuture(modVersion));
+
+    Files.createFile(gamePrefsPath);
+
+
+    List<ModVersion> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+
+    verify(taskService, times(0)).submitTask(any(InstallModTask.class));
+
+    assertThat(modVersions, hasSize(1));
+    assertThat(modVersions.get(0), is(modVersion));
+  }
+
+  @Test
+  public void testUpdateModsWithAutoUpdateTurnedOff() throws IOException, ExecutionException, InterruptedException {
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
+    Preferences preferences = new Preferences();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    preferences.setMapAndModAutoUpdate(false);
+
+    List<ModVersion> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+
+    verify(fafService, times(0)).getModVersion(eq(modVersion.getUid()));
+
+    assertThat(modVersions, hasSize(1));
+    assertThat(modVersions.get(0), is(modVersion));
+  }
+
+  @Test
+  public void testUpdateModsWithOutdatedMod() throws IOException, ExecutionException, InterruptedException {
+    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
+    Mod mod = new Mod();
+    modVersion.setMod(mod);
+    ModVersion newerModVersion = ModVersionBuilder.create()
+        .defaultValues()
+        .id("1223214")
+        .uid("b17b7e58-d46d-4465-895b-ed0887e75dc1")
+        .get();
+    mod.setLatestVersion(newerModVersion);
+
+    when(fafService.getModVersion(eq(modVersion.getUid())))
+        .thenReturn(CompletableFuture.completedFuture(modVersion));
+
+    Files.createFile(gamePrefsPath);
+
+    when(applicationContext.getBean(any(Class.class)))
+        .thenReturn(mock(InstallModTask.class));
+
+    InstallModTask installModTask = mock(InstallModTask.class);
+    when(taskService.submitTask(any(InstallModTask.class)))
+        .thenReturn(installModTask);
+    when(installModTask.getFuture())
+        .thenReturn(CompletableFuture.completedFuture(null));
+
+    List<ModVersion> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+
+    verify(taskService, times(2)).submitTask(any());
+
+    assertThat(modVersions, hasSize(1));
+    assertThat(modVersions.get(0), is(newerModVersion));
   }
 
   private InstallModTask stubInstallModTask() {
