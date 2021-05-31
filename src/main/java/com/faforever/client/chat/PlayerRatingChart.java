@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.PlayerRatingChartTooltipController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +38,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   private boolean available = true;
 
   private boolean valid = false;
-  private final Map<Integer, Double> ratingMap = new HashMap<>(); // key - pixel in chart background
+  private final Map<Integer, Integer> ratingMap = new HashMap<>(); // key - coordinate X of chart background
 
   public PlayerRatingChart(@NamedArg("xAxis") Axis<Double> xAxis, @NamedArg("yAxis") Axis<Double> yAxis) {
     super(xAxis, yAxis);
@@ -82,11 +81,11 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
 
   private void setValues(MouseEvent event) {
     if (valid) {
-      double x = event.getX();
+      int x = (int) event.getX();
       long dateValueInSec = getDisplayedDateValue(x);
-      Double rating = ratingMap.get((int) x);
+      Integer rating = ratingMap.get(x);
       if (rating != null && dateValueInSec != Long.MIN_VALUE) {
-        tooltipController.setDateAndRating(dateValueInSec, rating.intValue());
+        tooltipController.setDateAndRating(dateValueInSec, rating);
       } else {
         tooltipController.clear();
       }
@@ -143,7 +142,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   }
 
   private void putMapRatingValue(int xCoordinate, double rating) {
-    ratingMap.merge(xCoordinate, rating, (oldRating, newRating) -> (oldRating + newRating) / 2);
+    ratingMap.merge(xCoordinate, (int) rating, (currentRating, newRating) -> (currentRating + newRating) / 2); // average
   }
 
   private long getDisplayedDateValue(double displayPosition) {
