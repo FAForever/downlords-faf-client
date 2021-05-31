@@ -35,7 +35,7 @@ public class PlayerRatingChartTooltipController implements Controller<Node> {
   public void setDateAndRating(long dateValueInSec, int rating) {
     JavaFxUtil.runLater(() -> {
       dateLabel.setText(timeService.asDate(Instant.ofEpochSecond(dateValueInSec)));
-      ratingLabel.setText(Long.toString(Math.round(rating)));
+      ratingLabel.setText(Integer.toString(rating));
     });
   }
 

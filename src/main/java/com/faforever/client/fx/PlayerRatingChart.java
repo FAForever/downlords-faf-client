@@ -110,7 +110,10 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   }
 
   private void buildData(List<PathElement> elements) {
-    List<LineTo> lines = elements.stream().filter((e) -> e instanceof LineTo).map((e) -> (LineTo) e).collect(Collectors.toList());
+    List<LineTo> lines = elements.stream()
+        .filter((element) -> element instanceof LineTo)
+        .map((element) -> (LineTo) element)
+        .collect(Collectors.toList());
     if (lines.size() < 2) {
       return;
     }
@@ -118,29 +121,28 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
     for (int i = 0; i < lines.size() - 1; i++) {
       LineTo line1 = lines.get(i);
       LineTo line2 = lines.get(i + 1);
-      int x1 = (int) Math.floor(line1.getX());
-      int x2 = (int) Math.floor(line2.getX());
+      int leftXCoordinate = (int) Math.floor(line1.getX());
+      int rightXCoordinate = (int) Math.floor(line2.getX());
       int rating1 = getDisplayedRatingValue(line1.getY());
       int rating2 = getDisplayedRatingValue(line2.getY());
       if (rating1 == Integer.MIN_VALUE || rating2 == Integer.MIN_VALUE) {
         continue;
       }
-      int distance = x2 - x1;
+      int distance = rightXCoordinate - leftXCoordinate;
       if (distance > 1) {
-        double k = (double) (rating2 - rating1) / distance;
+        double augmentation = (double) (rating2 - rating1) / distance; // augmentation may be positive or negative
         double value = rating1;
-        while (x1 < x2) {
-          putMapRatingValue(++x1, value += k);
+        while (leftXCoordinate < rightXCoordinate) {
+          putMapRatingValue(++leftXCoordinate, value += augmentation);
         }
       } else {
-        putMapRatingValue(x1, rating1);
+        putMapRatingValue(leftXCoordinate, rating1);
       }
     }
   }
 
-  private void putMapRatingValue(int x, double rating) {
-    Double currentRating = ratingMap.get(x);
-    ratingMap.put(x, currentRating != null ? (currentRating + rating) / 2 : rating);
+  private void putMapRatingValue(int xCoordinate, double rating) {
+    ratingMap.merge(xCoordinate, rating, (oldRating, newRating) -> (oldRating + newRating) / 2);
   }
 
   private long getDisplayedDateValue(double displayPosition) {
@@ -154,8 +156,8 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   }
 
   @Override
-  protected void seriesChanged(Change<? extends Series> c) {
-    super.seriesChanged(c);
+  protected void seriesChanged(Change<? extends Series> change) {
+    super.seriesChanged(change);
     valid = false;
   }
 
