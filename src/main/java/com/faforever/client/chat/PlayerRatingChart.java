@@ -38,7 +38,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   private boolean available = true;
 
   private boolean valid = false;
-  private final Map<Integer, Integer> ratingMap = new HashMap<>(); // key - coordinate X of chart background
+  private final Map<Integer, Integer> ratingMap = new HashMap<>(); // key - X coordinate of chart background
 
   public PlayerRatingChart(@NamedArg("xAxis") Axis<Double> xAxis, @NamedArg("yAxis") Axis<Double> yAxis) {
     super(xAxis, yAxis);
