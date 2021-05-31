@@ -2,7 +2,7 @@
   "metadata": {
     "name": "Downlord's FAF Client",
     "lastOpened": 0,
-    "created": 1593976286920
+    "created": 1615155020190
   },
   "iconSets": [
     {
@@ -16882,7 +16882,7 @@
           "ligatures": "user-plus, user2",
           "name": "user-plus",
           "id": 115,
-          "order": 0
+          "order": 115
         },
         {
           "ligatures": "user-minus, user3",
@@ -16996,7 +16996,7 @@
           "ligatures": "search, magnifier",
           "name": "search",
           "id": 134,
-          "order": 0
+          "order": 116
         },
         {
           "ligatures": "zoom-in, magnifier2",

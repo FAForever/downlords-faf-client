@@ -1,20 +1,23 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.IconButtonListCell;
+import com.faforever.client.fx.IconButtonListCell.IconButtonListCellControllerAndItem;
+import com.faforever.client.fx.IconButtonListCellController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.list.NoSelectionModel;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -30,6 +33,7 @@ import java.util.Comparator;
 public class InvitePlayerController implements Controller<Pane> {
 
   private final PlayerService playerService;
+  private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final ObservableList<String> playerList = FXCollections.observableArrayList();
   private final FilteredList<String> filteredPlayerList = new FilteredList<>(playerList, p -> true);
@@ -42,18 +46,18 @@ public class InvitePlayerController implements Controller<Pane> {
 
   @Override
   public void initialize() {
-    playerTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-      playersListView.getSelectionModel().selectFirst();
-    });
+    playerTextField.textProperty().addListener((observable, oldValue, newValue) ->
+        playersListView.getSelectionModel().selectFirst()
+    );
     playerList.setAll(getPlayerNames());
 
     filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> p -> {
-          if (playerService.getCurrentPlayer()
-              .map(Player::getUsername)
-              .map(n -> n.equals(p))
-              .orElse(true)) {
-            return false;
-          }
+      if (playerService.getCurrentPlayer()
+          .map(Player::getUsername)
+          .map(n -> n.equals(p))
+          .orElse(true)) {
+        return false;
+      }
 
           if (playerTextField.getText().isBlank()) {
             return playerService.getPlayerForUsername(p)
@@ -65,9 +69,32 @@ public class InvitePlayerController implements Controller<Pane> {
         }, playerTextField.textProperty()
     ));
 
+    invitedPlayersListView.setSelectionModel(new NoSelectionModel<>());
+    invitedPlayersListView.setCellFactory(param -> new IconButtonListCell<>(this::invitedPlayerListCellConfiguration, uiService));
+
+    playersListView.setSelectionModel(new NoSelectionModel<>());
+    playersListView.setCellFactory(param -> new IconButtonListCell<>(this::playerListCellConfiguration, uiService));
     playersListView.setItems(sortedPlayerList);
     playersListView.getSelectionModel().selectFirst();
     requestFocus();
+  }
+
+  private void invitedPlayerListCellConfiguration(IconButtonListCellControllerAndItem<String> iconButtonListCellControllerAndItem) {
+    IconButtonListCellController iconButtonListCellController = iconButtonListCellControllerAndItem.getIconButtonListCellController();
+    String playerName = iconButtonListCellControllerAndItem.getItem();
+    Button iconButton = iconButtonListCellController.getIconButton();
+    iconButton.setDisable(true);
+    iconButtonListCellController.getIconRegion().getStyleClass().add("added-person");
+    iconButtonListCellController.getLabel().setText(playerName);
+  }
+
+  private void playerListCellConfiguration(IconButtonListCellControllerAndItem<String> iconButtonListCellControllerAndItem) {
+    IconButtonListCellController iconButtonListCellController = iconButtonListCellControllerAndItem.getIconButtonListCellController();
+    String playerName = iconButtonListCellControllerAndItem.getItem();
+    Button iconButton = iconButtonListCellController.getIconButton();
+    iconButton.setOnMouseClicked(event -> invite(playerName));
+    iconButtonListCellController.getIconRegion().getStyleClass().add("add-person");
+    iconButtonListCellController.getLabel().setText(playerName);
   }
 
   public void requestFocus() {
@@ -83,28 +110,8 @@ public class InvitePlayerController implements Controller<Pane> {
     return root;
   }
 
-  public void onInviteButtonClicked(ActionEvent event) {
-    invite();
-  }
-
-  private void invite() {
-    playersListView.getSelectionModel().getSelectedItems().forEach(player -> {
-      teamMatchmakingService.invitePlayer(player);
-      invitedPlayersListView.getItems().add(player);
-    });
-    playerTextField.setText("");
-    JavaFxUtil.runLater(() -> playersListView.getSelectionModel().selectFirst());
-  }
-
-  public void onKeyPressed(KeyEvent keyEvent) {
-    if (keyEvent.getCode() == KeyCode.ENTER) {
-      invite();
-    }
-    if (keyEvent.getCode() == KeyCode.UP) {
-      playersListView.getSelectionModel().selectPrevious();
-    }
-    if (keyEvent.getCode() == KeyCode.DOWN) {
-      playersListView.getSelectionModel().selectNext();
-    }
+  private void invite(String playerName) {
+    teamMatchmakingService.invitePlayer(playerName);
+    invitedPlayersListView.getItems().add(playerName);
   }
 }
