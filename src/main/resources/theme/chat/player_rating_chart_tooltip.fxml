@@ -10,7 +10,7 @@
 
 <Pane fx:id="root" opacity="0.6" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.faforever.client.chat.PlayerRatingChartTooltipController"
-      styleClass="rating-player-chart-tooltip">
+      styleClass="player-rating-chart-tooltip">
     <children>
         <VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
               minWidth="-Infinity" prefWidth="150.0" spacing="5.0">

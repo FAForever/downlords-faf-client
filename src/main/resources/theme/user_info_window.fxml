@@ -23,7 +23,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import com.faforever.client.fx.PlayerRatingChart?>
+<?import com.faforever.client.chat.PlayerRatingChart?>
 <VBox fx:id="userInfoRoot" prefHeight="700.0" prefWidth="900.0" styleClass="user-info-window" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
    <children>
       <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="user-info-header-area">

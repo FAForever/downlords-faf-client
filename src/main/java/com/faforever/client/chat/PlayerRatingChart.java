@@ -1,6 +1,7 @@
-package com.faforever.client.fx;
+package com.faforever.client.chat;
 
 import com.faforever.client.chat.PlayerRatingChartTooltipController;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.theme.UiService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.NamedArg;
@@ -183,7 +184,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   }
 
   @VisibleForTesting
-  Region getChartBackground() {
+  public Region getChartBackground() {
     return chartBackground;
   }
 }
