@@ -25,9 +25,6 @@ public class PlayerRatingChartTooltipController implements Controller<Node> {
   public Label ratingLabel;
 
   @Override
-  public void initialize() {  }
-
-  @Override
   public Node getRoot() {
     return root;
   }
