@@ -171,8 +171,8 @@ public class GenerateMapController implements Controller<Pane> {
         int spawnCount = spawnCountSpinner.getValue();
         int lastIndex = selectableSpawnCounts.indexOf(spawnCount);
         selectableSpawnCounts.setPredicate((value) -> {
-          int numTeams = numTeamsSpinner.getValue();
-          return numTeams == 0 || value % numTeams == 0;
+          Integer numTeams = numTeamsSpinner.getValue();
+          return numTeams == null || numTeams == 0 || value % numTeams == 0;
         });
         int newIndex = selectableSpawnCounts.indexOf(spawnCount);
         if (newIndex > 0) {
@@ -195,6 +195,10 @@ public class GenerateMapController implements Controller<Pane> {
   private void initSpawnCountSpinner() {
     GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     int spawnCountProperty = generatorPrefs.getSpawnCount();
+    selectableSpawnCounts.setPredicate((value) -> {
+      Integer numTeams = numTeamsSpinner.getValue();
+      return numTeams == null || numTeams == 0 || value % numTeams == 0;
+    });
     spawnCountSpinner.setValueFactory(new ListSpinnerValueFactory<>(selectableSpawnCounts));
     generatorPrefs.spawnCountProperty().bind(spawnCountSpinner.valueProperty());
     spawnCountSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
