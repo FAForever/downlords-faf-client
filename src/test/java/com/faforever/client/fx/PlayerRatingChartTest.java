@@ -48,14 +48,14 @@ public class PlayerRatingChartTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSetXYWhenMouseMovingOverLine() {
+  public void testSetDateAndRatingWhenMouseMovingOverLine() {
     moveMouseTo(10, 10);
     verify(chartTooltip).setDateAndRating(any(Long.class), any(Integer.class));
     verify(chartTooltip, never()).clear();
   }
 
   @Test
-  public void testNoXYWhenMouseMovingOverWithoutLine() {
+  public void testClearDataAndRatingWhenMouseMovingOverWithoutLine() {
     moveMouseTo((int) chartBackground.getWidth() - 5, 5);
     verify(chartTooltip).clear();
     verify(chartTooltip, never()).setDateAndRating(any(Long.class), any(Integer.class));

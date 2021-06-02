@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -146,13 +147,15 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
   }
 
   private long getDisplayedDateValue(double displayPosition) {
-    Double value = getXAxis().getValueForDisplay(displayPosition);
-    return value != null ? value.longValue() : Long.MIN_VALUE;
+    return Optional.ofNullable(getXAxis().getValueForDisplay(displayPosition))
+        .map(Double::longValue)
+        .orElse(Long.MIN_VALUE);
   }
 
   private int getDisplayedRatingValue(double displayPosition) {
-    Double value = getYAxis().getValueForDisplay(displayPosition);
-    return value != null ? value.intValue() : Integer.MIN_VALUE;
+    return Optional.ofNullable(getYAxis().getValueForDisplay(displayPosition))
+        .map(Double::intValue)
+        .orElse(Integer.MIN_VALUE);
   }
 
   @Override
