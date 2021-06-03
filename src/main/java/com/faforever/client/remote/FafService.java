@@ -499,6 +499,22 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<Integer> getRecommendedModCount() {
+    int numMods = fafApiAccessor.getRecommendedModCount();
+    return CompletableFuture.completedFuture(numMods);
+  }
+
+  @Async
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
+    Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedModsWithMeta(count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
+        .map(ModVersion::fromModDto)
+        .collect(toList()),
+        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  }
+
+  @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
     List<MapPoolAssignment> poolAssignments = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating);
     List<MapBean> mapVersions = poolAssignments.stream()

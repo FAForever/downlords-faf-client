@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -37,6 +38,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
   private final EventBus eventBus;
 
   private ModDetailController modDetailController;
+  private Integer recommendedShowRoomPageCount;
 
   public ModVaultController(ModService modService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                                UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -54,6 +56,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
 
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("modVault.manageMods"));
+    modService.getRecommendedModCount().thenAccept(numMods -> recommendedShowRoomPageCount = numMods / TOP_ELEMENT_COUNT);
   }
 
   @Override
@@ -67,18 +70,11 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
 
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
-      case SEARCH:
-        currentSupplier = modService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case NEWEST:
-        currentSupplier = modService.getNewestModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case HIGHEST_RATED:
-        currentSupplier = modService.getHighestRatedModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
-      case HIGHEST_RATED_UI:
-        currentSupplier = modService.getHighestRatedUiModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-        break;
+      case SEARCH -> currentSupplier = modService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
+      case NEWEST -> currentSupplier = modService.getNewestModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case HIGHEST_RATED -> currentSupplier = modService.getHighestRatedModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case HIGHEST_RATED_UI -> currentSupplier = modService.getHighestRatedUiModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
+      case RECOMMENDED -> currentSupplier = modService.getRecommendedModsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
 
@@ -91,7 +87,15 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
 
   @Override
   protected List<ShowRoomCategory> getShowRoomCategories() {
+    int recommendedPage;
+    if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
+      recommendedPage = new Random().nextInt(recommendedShowRoomPageCount) + 1;
+    } else {
+      recommendedPage = 1;
+    }
+
     return Arrays.asList(
+        new ShowRoomCategory(() -> modService.getRecommendedModsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage), SearchType.RECOMMENDED, "modVault.recommended"),
         new ShowRoomCategory(() -> modService.getHighestRatedModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "modVault.highestRated"),
         new ShowRoomCategory(() -> modService.getHighestRatedUiModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED_UI, "modVault.highestRatedUiMods"),
         new ShowRoomCategory(() -> modService.getNewestModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "modVault.newestMods")

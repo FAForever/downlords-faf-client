@@ -66,9 +66,9 @@ public interface FafApiAccessor {
 
   List<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId);
 
-  int getRecommendedMapCount();
-
   Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page);
+
+  int getRecommendedMapCount();
 
   Tuple<List<Map>, java.util.Map<String, ?>> getRecommendedMapsWithMeta(int count, int page);
 
@@ -137,6 +137,10 @@ public interface FafApiAccessor {
   Optional<Game> findReplayById(int id);
 
   Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page);
+
+  int getRecommendedModCount();
+
+  Tuple<List<Mod>, java.util.Map<String, ?>> getRecommendedModsWithMeta(int count, int page);
 
   List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating);
 

@@ -162,18 +162,19 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     showRoomGroup.getChildren().clear();
     Object monitorForAddingFutures = new Object();
     List<ShowRoomCategory> showRoomCategories = getShowRoomCategories();
-    AtomicReference<CompletableFuture<?>> loadingEntitiesFutureReference = new AtomicReference<>(CompletableFuture.completedFuture(null));
+    AtomicReference<CompletableFuture<Void>> loadingEntitiesFutureReference = new AtomicReference<>(CompletableFuture.completedFuture(null));
 
     List<VBox> childrenToAdd = showRoomCategories.parallelStream()
         .map(showRoomCategory -> {
           VaultEntityShowRoomController vaultEntityShowRoomController = loadShowRoom(showRoomCategory);
           VBox showRoomRoot = vaultEntityShowRoomController.getRoot();
+          showRoomRoot.managedProperty().bind(showRoomRoot.visibleProperty());
           synchronized (monitorForAddingFutures) {
-            loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(ignored -> showRoomCategory.getEntitySupplier().get())
+            loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(aVoid -> showRoomCategory.getEntitySupplier().get())
                 .thenAccept(result -> {
-                  showRoomRoot.managedProperty().bind(showRoomRoot.visibleProperty());
                   if (result.getFirst().isEmpty()) {
                     showRoomRoot.setVisible(false);
+                    return;
                   }
                   populate(result.getFirst(), vaultEntityShowRoomController.getPane());
                 }));

@@ -297,6 +297,16 @@ public class MockFafApiAccessor implements FafApiAccessor {
     return new Tuple<>(List.of(), Collections.emptyMap());
   }
 
+  public int getRecommendedModCount() {
+    return 0;
+  }
+
+  @Override
+  public Tuple<List<Mod>, java.util.Map<String, ?>> getRecommendedModsWithMeta(int count, int page) {
+    return new Tuple<>(List.of(), Collections.emptyMap());
+  }
+
+
   @Override
   public List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating) {
     return List.of();
