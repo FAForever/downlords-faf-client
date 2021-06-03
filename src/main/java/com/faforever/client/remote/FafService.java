@@ -204,6 +204,22 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<Integer> getRecommendedMapCount() {
+    int numMaps = fafApiAccessor.getRecommendedMapCount();
+    return CompletableFuture.completedFuture(numMaps);
+  }
+
+  @Async
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedMapsWithMeta(count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
+        .map(MapBean::fromMapDto)
+        .collect(toList()),
+        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  }
+
+  @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMapsByIdWithPageCount(List<Integer> mapIdList, int count, int page) {
     Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMapsByIdWithMeta(mapIdList, count, page);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()

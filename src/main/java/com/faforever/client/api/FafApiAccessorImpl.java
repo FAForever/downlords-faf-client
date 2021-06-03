@@ -251,6 +251,23 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         INCLUDE, "gamePlayerStats"));
   }
 
+  public int getRecommendedMapCount() {
+    return getAll(MAP_ENDPOINT, java.util.Map.of(
+        INCLUDE, MAP_INCLUDES,
+        FILTER, rsql(qBuilder()
+            .bool("recommended").isTrue()))).size();
+  }
+
+  @Override
+  public Tuple<List<Map>, java.util.Map<String, ?>> getRecommendedMapsWithMeta(int count, int page) {
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
+        INCLUDE, MAP_INCLUDES,
+        FILTER, rsql(qBuilder()
+            .bool("recommended").isTrue())
+    ));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
+  }
+
   @Override
   @Cacheable(value = CacheNames.MAPS, sync = true)
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
