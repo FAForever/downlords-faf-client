@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<Pane fx:id="root" opacity="0.6" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.chat.PlayerRatingChartTooltipController"
+      styleClass="player-rating-chart-tooltip">
+    <children>
+        <VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+              minWidth="-Infinity" prefWidth="150.0" spacing="5.0">
+            <children>
+                <Label fx:id="dateLabel"/>
+                <HBox>
+                    <children>
+                        <Label text="%player.info.rating">
+                            <padding>
+                                <Insets right="10.0"/>
+                            </padding>
+                        </Label>
+                        <Label fx:id="ratingLabel">
+                            <font>
+                                <Font name="System Bold" size="12.0"/>
+                            </font>
+                        </Label>
+                    </children>
+                </HBox>
+            </children>
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </padding>
+        </VBox>
+    </children>
+</Pane>

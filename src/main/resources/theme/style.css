@@ -1181,3 +1181,9 @@
   -fx-border-color: null;
   -fx-border-width: 0;
 }
+
+/***************** Player rating chart tooltip *****************/
+
+.player-rating-chart-tooltip {
+  -fx-background-color: -fx-base;
+}

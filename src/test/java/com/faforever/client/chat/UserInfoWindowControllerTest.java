@@ -21,6 +21,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.api.dto.AchievementState;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -65,6 +66,8 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private AchievementItemController achievementItemController;
   @Mock
+  private PlayerRatingChartTooltipController playerRatingChartTooltipController;
+  @Mock
   private TimeService timeService;
   @Mock
   private PlayerService playerService;
@@ -89,6 +92,8 @@ public class UserInfoWindowControllerTest extends AbstractPlainJavaFxTest {
     when(i18n.number(anyInt())).thenReturn("123");
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(achievementItemController.getRoot()).thenReturn(new HBox());
+    when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml")).thenReturn(playerRatingChartTooltipController);
+    when(playerRatingChartTooltipController.getRoot()).thenReturn(new Pane());
     when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
     when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
     when(leaderboardService.getEntriesForPlayer(eq(player.getId()))).thenReturn(CompletableFuture.completedFuture(List.of(LeaderboardEntryBuilder.create().defaultValues().get())));
