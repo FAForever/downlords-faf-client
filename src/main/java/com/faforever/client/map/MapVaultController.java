@@ -59,7 +59,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
     super.initialize();
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("management.maps.openButton.label"));
-    mapService.getRecommendedMapCount().thenAccept(numMaps -> recommendedShowRoomPageCount = numMaps / TOP_ELEMENT_COUNT);
+    mapService.getRecommendedMapPageCount(TOP_ELEMENT_COUNT).thenAccept(numPages -> recommendedShowRoomPageCount = numPages);
 
     eventBus.register(this);
   }

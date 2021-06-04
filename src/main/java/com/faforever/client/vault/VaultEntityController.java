@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class VaultEntityController<T> extends AbstractViewController<Node> {
 
-  protected static final int TOP_ELEMENT_COUNT = 7;
+  public static final int TOP_ELEMENT_COUNT = 7;
   protected final UiService uiService;
   protected final NotificationService notificationService;
   protected final I18n i18n;

@@ -252,13 +252,6 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public int getRecommendedMapCount() {
-    return getAll(MAP_ENDPOINT, java.util.Map.of(
-        FILTER, rsql(qBuilder()
-            .bool("recommended").isTrue()))).size();
-  }
-
-  @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getRecommendedMapsWithMeta(int count, int page) {
     JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
         INCLUDE, MAP_INCLUDES,
@@ -494,13 +487,6 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     parameterMap.add(SORT, searchConfig.getSortConfig().toQuery());
     JSONAPIDocument<List<Mod>> jsonApiDoc = getPageWithMeta(MOD_ENDPOINT, count, page, parameterMap);
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
-  }
-
-  @Override
-  public int getRecommendedModCount() {
-    return getAll(MOD_ENDPOINT, java.util.Map.of(
-        FILTER, rsql(qBuilder()
-            .bool("recommended").isTrue()))).size();
   }
 
   @Override

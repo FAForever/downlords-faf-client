@@ -56,7 +56,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
 
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("modVault.manageMods"));
-    modService.getRecommendedModCount().thenAccept(numMods -> recommendedShowRoomPageCount = numMods / TOP_ELEMENT_COUNT);
+    modService.getRecommendedModPageCount(TOP_ELEMENT_COUNT).thenAccept(pageCount -> recommendedShowRoomPageCount = pageCount);
   }
 
   @Override

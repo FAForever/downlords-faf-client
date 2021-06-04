@@ -377,8 +377,8 @@ public class MapService implements InitializingBean, DisposableBean {
     return downloadAndInstallMap(map.getFolderName(), map.getDownloadUrl(), progressProperty, titleProperty);
   }
 
-  public CompletableFuture<Integer> getRecommendedMapCount() {
-    return fafService.getRecommendedMapCount();
+  public CompletableFuture<Integer> getRecommendedMapPageCount(int count) {
+    return fafService.getRecommendedMapPageCount(count);
   }
 
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
