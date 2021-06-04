@@ -82,6 +82,8 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
       return modDetailController;
     }).when(uiService).loadFxml("theme/vault/mod/mod_detail.fxml");
 
+    when(modService.getRecommendedModCount()).thenReturn(CompletableFuture.completedFuture(0));
+
     loadFxml("theme/vault/vault_entity.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {
         return searchController;

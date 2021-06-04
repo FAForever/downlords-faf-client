@@ -14,9 +14,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.update.ClientConfiguration;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -37,7 +35,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -53,7 +50,6 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -202,15 +198,9 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetRecommendedMaps() {
-    ClientConfiguration clientConfiguration = mock(ClientConfiguration.class);
-    List<Integer> recommendedMapIds = Lists.newArrayList(1, 2, 3);
-    when(clientConfiguration.getRecommendedMaps()).thenReturn(recommendedMapIds);
-    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
-    when(fafService.getMapsByIdWithPageCount(recommendedMapIds, 10, 0)).thenReturn(CompletableFuture.completedFuture(null));
-
+    when(fafService.getRecommendedModsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
     instance.getRecommendedMapsWithPageCount(10, 0);
-
-    verify(fafService).getMapsByIdWithPageCount(recommendedMapIds, 10, 0);
+    verify(fafService).getRecommendedMapsWithPageCount(10, 0);
   }
 
   @Test
