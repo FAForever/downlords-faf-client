@@ -198,7 +198,6 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testGetRecommendedMaps() {
-    when(fafService.getRecommendedModsWithPageCount(10, 0)).thenReturn(CompletableFuture.completedFuture(null));
     instance.getRecommendedMapsWithPageCount(10, 0);
     verify(fafService).getRecommendedMapsWithPageCount(10, 0);
   }

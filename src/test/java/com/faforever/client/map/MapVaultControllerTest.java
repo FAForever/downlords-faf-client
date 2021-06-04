@@ -10,7 +10,6 @@ import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.VaultEntityController.SearchType;
@@ -60,19 +59,14 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   private SpecificationController specificationController;
   @Mock
   private ReportingService reportingService;
-  @Mock
-  private ClientConfiguration clientConfiguration;
 
   private MapVaultController instance;
-  private SortConfig sortOrder;
   private SearchConfig standardSearchConfig;
   private MapDetailController mapDetailController;
 
   @Before
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
-    when(clientConfiguration.getRecommendedMaps()).thenReturn(Collections.emptyList());
     when(i18n.get(anyString())).thenReturn("test");
 
     doAnswer(invocation -> {
@@ -84,7 +78,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
     when(mapService.getRecommendedMapCount()).thenReturn(CompletableFuture.completedFuture(0));
 
     instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
-    sortOrder = preferencesService.getPreferences().getVault().getMapSortConfig();
+    SortConfig sortOrder = preferencesService.getPreferences().getVault().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
 
