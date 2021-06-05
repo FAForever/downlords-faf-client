@@ -23,7 +23,7 @@ public class AudioService implements InitializingBean {
   private static final String INFO_SOUND = "theme/sounds/info.mp3";
   private static final String MENTION_SOUND = "theme/sounds/mention.mp3";
   private static final String PRIVATE_MESSAGE_SOUND = "theme/sounds/pm.mp3";
-  private static final long SOUNDS_DELAY = 30000;
+  private static final long SILENCE_PERIOD_AFTER_SOUND = 30000;
 
   private final PreferencesService preferencesService;
   private final AudioClipPlayer audioClipPlayer;
@@ -165,6 +165,6 @@ public class AudioService implements InitializingBean {
       public void run() {
         playSounds = notificationsPrefs.isSoundsEnabled();
       }
-    }, SOUNDS_DELAY);
+    }, SILENCE_PERIOD_AFTER_SOUND);
   }
 }
