@@ -13,6 +13,7 @@ import org.springframework.web.util.UriUtils;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
@@ -46,18 +47,26 @@ public class AssetService {
       return defaultSupplier.get();
     }
 
-    String urlString = url.toString();
-    urlString = urlValidator.isValid(urlString) ? urlString : UriUtils.encodePath(urlString, StandardCharsets.UTF_8);
-    String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
-    Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
-    if (Files.exists(cachePath)) {
-      log.debug("Using cached image: {}", cachePath);
-      return new Image(noCatch(() -> cachePath.toUri().toURL().toExternalForm()), width, height, true, true);
-    }
+    try {
+      String urlString = url.toString();
+      urlString = urlValidator.isValid(urlString) ? urlString : UriUtils.encodePath(urlString, StandardCharsets.UTF_8);
+      String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
+      Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
+      if (Files.exists(cachePath)) {
+        log.debug("Using cached image: {}", cachePath);
+        return new Image(noCatch(() -> cachePath.toUri().toURL().toExternalForm()), width, height, true, true);
+      }
 
-    log.debug("Fetching image {}", url);
-    Image image = new Image(urlString, width, height, true, true, true);
-    JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
-    return image;
+      log.debug("Fetching image {}", url);
+      Image image = new Image(urlString, width, height, true, true, true);
+      JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
+      return image;
+    } catch (InvalidPathException e) {
+      log.warn("Unable to load image due to invalid fileName {}", url, e);
+      if (defaultSupplier == null) {
+        return null;
+      }
+      return defaultSupplier.get();
+    }
   }
 }
