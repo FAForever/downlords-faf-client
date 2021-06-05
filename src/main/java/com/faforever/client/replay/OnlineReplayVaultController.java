@@ -145,7 +145,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
     });
 
     //TODO: Use rating rather than estimated mean with an assumed deviation of 300 when that is available
-    searchController.addRangeFilter("playerStats.beforeMean", i18n.get("game.rating"),
+    searchController.addRangeFilter("playerStats.ratingChanges.meanBefore", i18n.get("game.rating"),
         0, 3000, 100, (value) -> value + 300);
 
     searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
