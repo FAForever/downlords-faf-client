@@ -18,7 +18,6 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
 <GridPane fx:id="createGameRoot" hgap="10.0" styleClass="create-game-root" vgap="10.0"
           xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.game.CreateGameController">
@@ -52,8 +51,6 @@
                        GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                 <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0"
                            promptText="%games.create.minRating" HBox.hgrow="NEVER"/>
-                <Label text="%games.create.minRating"/>
-                <Label text="%games.create.maxRating"/>
                 <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0"
                            promptText="%games.create.maxRating" HBox.hgrow="NEVER"/>
                 <CheckBox fx:id="enforceRankingCheckBox" text="%games.create.enforceRating" HBox.hgrow="NEVER"/>
