@@ -405,8 +405,9 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void onUserJoinedChannel(ChatChannelUser chatUser) {
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(chatUser.getUsername());
-    playerOptional.ifPresentOrElse(player -> associateChatUserWithPlayer(player, chatUser), () -> updateChatUserListItemsForCategories(chatUser));
+    playerService.getPlayerForUsername(chatUser.getUsername())
+        .ifPresentOrElse(player -> associateChatUserWithPlayer(player, chatUser),
+            () -> updateChatUserListItemsForCategories(chatUser));
   }
 
   /**
