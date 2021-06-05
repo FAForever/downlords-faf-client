@@ -9,8 +9,12 @@ import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.testfx.util.WaitForAsyncUtils;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +51,25 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
     instance.afterPropertiesSet();
 
     super.start(stage);
+  }
+
+  @Test
+  public void testNoDoubleSound() throws Exception {
+    instance.playChatMentionSound();
+    instance.playChatMentionSound();
+
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
+  }
+
+  @Test
+  public void testSoundTurnedBackOn() throws Exception {
+    instance.playChatMentionSound();
+
+    WaitForAsyncUtils.sleep(35, TimeUnit.SECONDS);
+
+    instance.playChatMentionSound();
+
+    verify(audioClipPlayer, times(2)).playSound(any(AudioClip.class));
   }
 
   @Test
