@@ -136,7 +136,7 @@ public class GamesTilesContainerController implements Controller<Node> {
   private void addGameCard(Game game) {
     GameTileController gameTileController = uiService.loadFxml("theme/play/game_card.fxml");
     gameTileController.setGame(game);
-    gameTileController.setOnSelectedListener(selection -> selectedGame.set(selection));
+    gameTileController.setOnSelectedListener(selectedGame::set);
 
     Node root = gameTileController.getRoot();
     root.setUserData(game);

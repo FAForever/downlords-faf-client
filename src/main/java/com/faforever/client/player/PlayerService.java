@@ -26,7 +26,9 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -53,31 +56,19 @@ import static com.faforever.client.player.SocialStatus.SELF;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PlayerService implements InitializingBean {
 
-  private final ObservableMap<String, Player> playersByName;
-  private final ObservableMap<Integer, Player> playersById;
-  private final List<Integer> foeList;
-  private final List<Integer> friendList;
-  private final ObjectProperty<Player> currentPlayer;
+  private final ObservableMap<String, Player> playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
+  private final ObservableMap<Integer, Player> playersById = FXCollections.observableHashMap();
+  private final List<Integer> foeList = new ArrayList<>();
+  private final ObservableList<Integer> friendList = FXCollections.observableList(new ArrayList<>());
+  private final ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
+  private final HashMap<Integer, List<Player>> playersByGame = new HashMap<>();
 
   private final FafService fafService;
   private final UserService userService;
   private final EventBus eventBus;
-  private final HashMap<Integer, List<Player>> playersByGame;
-
-  public PlayerService(FafService fafService, UserService userService, EventBus eventBus) {
-    this.fafService = fafService;
-    this.userService = userService;
-    this.eventBus = eventBus;
-
-    playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
-    playersById = FXCollections.observableHashMap();
-    friendList = new ArrayList<>();
-    foeList = new ArrayList<>();
-    currentPlayer = new SimpleObjectProperty<>();
-    playersByGame = new HashMap<>();
-  }
 
   @Override
   public void afterPropertiesSet() {
@@ -101,21 +92,19 @@ public class PlayerService implements InitializingBean {
     Game game = event.getGame();
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (game.getTeams()) {
-      List<String> playersInGame = teams.entrySet().stream()
-          .flatMap(stringListEntry -> stringListEntry.getValue().stream())
-          .collect(Collectors.toList());
-      updateGamePlayers(playersInGame, null);
+      updateGamePlayers(getPlayersNamesOfAllTeams(teams), null);
     }
   }
 
   private void updateGameForPlayersInGame(Game game) {
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (game.getTeams()) {
-      List<String> playersInGame = teams.entrySet().stream()
-          .flatMap(stringListEntry -> stringListEntry.getValue().stream())
-          .collect(Collectors.toList());
-      updateGamePlayers(playersInGame, game);
+      updateGamePlayers(getPlayersNamesOfAllTeams(teams), game);
     }
+  }
+
+  private List<String> getPlayersNamesOfAllTeams(Map<String, List<String>> teams) {
+    return teams.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
   @Subscribe
@@ -212,6 +201,19 @@ public class PlayerService implements InitializingBean {
       }
     }
     updatePlayerChatUsers(player);
+  }
+
+  public boolean areFriendsInGame(Game game) {
+    if (game == null) {
+      return false;
+    }
+    Map<String, List<String>> teams = game.getTeams();
+    synchronized (game.getTeams()) {
+      return getPlayersNamesOfAllTeams(teams).stream().anyMatch(name -> {
+        Player player = playersByName.get(name);
+        return player != null && friendList.contains(player.getId());
+      });
+    }
   }
 
 

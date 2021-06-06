@@ -38,6 +38,7 @@ public class Preferences {
   private final BooleanProperty preReleaseCheckEnabled;
   private final BooleanProperty mapAndModAutoUpdate;
   private final BooleanProperty showPasswordProtectedGames;
+  private final BooleanProperty highlightGamesWithFriends;
   private final BooleanProperty showModdedGames;
   private final ListProperty<String> ignoredNotifications;
   private final StringProperty gamesViewMode;
@@ -81,6 +82,7 @@ public class Preferences {
     gameDataCacheActivated = new SimpleBooleanProperty(false);
     debugLogEnabled = new SimpleBooleanProperty(false);
     mapAndModAutoUpdate = new SimpleBooleanProperty(true);
+    highlightGamesWithFriends = new SimpleBooleanProperty(true);
   }
 
   public VaultPrefs getVault() {
@@ -101,6 +103,10 @@ public class Preferences {
 
   public BooleanProperty showPasswordProtectedGamesProperty() {
     return showPasswordProtectedGames;
+  }
+
+  public BooleanProperty highlightGamesWithFriendsProperty() {
+    return highlightGamesWithFriends;
   }
 
   public BooleanProperty showModdedGamesProperty() {

@@ -75,6 +75,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public CheckBox showModdedGamesCheckBox;
   public CheckBox showPasswordProtectedGamesCheckBox;
+  public CheckBox highlightGamesWithFriends;
   private final ChangeListener<Boolean> filterConditionsChangedListener = (observable, oldValue, newValue) -> updateFilteredItems();
   private GamesTilesContainerController gamesTilesContainerController;
   private final ChangeListener<Game> gameChangeListener;
@@ -114,6 +115,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     JavaFxUtil.bindBidirectional(showModdedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showModdedGamesProperty());
     JavaFxUtil.bindBidirectional(showPasswordProtectedGamesCheckBox.selectedProperty(), preferencesService.getPreferences().showPasswordProtectedGamesProperty());
+    JavaFxUtil.bindBidirectional(highlightGamesWithFriends.selectedProperty(), preferencesService.getPreferences().highlightGamesWithFriendsProperty());
 
     ObservableList<Game> games = gameService.getGames();
     filteredItems = new FilteredList<>(games, getGamePredicate());
