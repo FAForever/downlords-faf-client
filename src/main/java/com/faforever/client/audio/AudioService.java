@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 @Lazy
 @Service
@@ -21,10 +23,12 @@ public class AudioService implements InitializingBean {
   private static final String INFO_SOUND = "theme/sounds/info.mp3";
   private static final String MENTION_SOUND = "theme/sounds/mention.mp3";
   private static final String PRIVATE_MESSAGE_SOUND = "theme/sounds/pm.mp3";
+  private static final long SILENCE_PERIOD_AFTER_SOUND = 30000;
 
   private final PreferencesService preferencesService;
   private final AudioClipPlayer audioClipPlayer;
   private final UiService uiService;
+  private final Timer timer = new Timer(true);
 
   private AudioClip chatMentionSound;
   private AudioClip achievementUnlockedSound;
@@ -43,8 +47,9 @@ public class AudioService implements InitializingBean {
   @Override
   public void afterPropertiesSet() throws IOException {
     notificationsPrefs = preferencesService.getPreferences().getNotification();
-    JavaFxUtil.addListener(notificationsPrefs.soundsEnabledProperty(), (observable, oldValue, newValue) ->
-        playSounds = newValue
+    JavaFxUtil.addListener(notificationsPrefs.soundsEnabledProperty(), (observable, oldValue, newValue) -> {
+          playSounds = newValue;
+        }
     );
     playSounds = notificationsPrefs.isSoundsEnabled();
 
@@ -69,7 +74,7 @@ public class AudioService implements InitializingBean {
     return new AudioClip(uiService.getThemeFileUrl(sound).toString());
   }
 
-  
+
   public void playChatMentionSound() {
     if (!notificationsPrefs.isMentionSoundEnabled()) {
       return;
@@ -77,7 +82,7 @@ public class AudioService implements InitializingBean {
     playSound(chatMentionSound);
   }
 
-  
+
   public void playPrivateMessageSound() {
     if (!notificationsPrefs.isPrivateMessageSoundEnabled()) {
       return;
@@ -85,7 +90,7 @@ public class AudioService implements InitializingBean {
     playSound(privateMessageSound);
   }
 
-  
+
   public void playInfoNotificationSound() {
     if (!notificationsPrefs.isInfoSoundEnabled()) {
       return;
@@ -93,7 +98,7 @@ public class AudioService implements InitializingBean {
     playSound(infoNotificationSound);
   }
 
-  
+
   public void playWarnNotificationSound() {
     if (!notificationsPrefs.isWarnSoundEnabled()) {
       return;
@@ -101,7 +106,7 @@ public class AudioService implements InitializingBean {
     playSound(warnNotificationSound);
   }
 
-  
+
   public void playErrorNotificationSound() {
     if (!notificationsPrefs.isErrorSoundEnabled()) {
       return;
@@ -109,12 +114,12 @@ public class AudioService implements InitializingBean {
     playSound(errorNotificationSound);
   }
 
-  
+
   public void playAchievementUnlockedSound() {
     playSound(achievementUnlockedSound);
   }
 
-  
+
   public void playFriendOnlineSound() {
     if (!notificationsPrefs.isFriendOnlineSoundEnabled()) {
       return;
@@ -123,7 +128,7 @@ public class AudioService implements InitializingBean {
 //    playSound(friendOnlineSound);
   }
 
-  
+
   public void playFriendOfflineSound() {
     if (!notificationsPrefs.isFriendOfflineSoundEnabled()) {
       return;
@@ -132,7 +137,7 @@ public class AudioService implements InitializingBean {
 //    playSound(friendOfflineSound);
   }
 
-  
+
   public void playFriendJoinsGameSound() {
     if (!notificationsPrefs.isFriendJoinsGameSoundEnabled()) {
       return;
@@ -141,7 +146,7 @@ public class AudioService implements InitializingBean {
 //    playSound(friendJoinsGameSound);
   }
 
-  
+
   public void playFriendPlaysGameSound() {
     if (!notificationsPrefs.isFriendPlaysGameSoundEnabled()) {
       return;
@@ -153,6 +158,13 @@ public class AudioService implements InitializingBean {
     if (!playSounds) {
       return;
     }
+    playSounds = false;
     audioClipPlayer.playSound(audioClip);
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        playSounds = notificationsPrefs.isSoundsEnabled();
+      }
+    }, SILENCE_PERIOD_AFTER_SOUND);
   }
 }
