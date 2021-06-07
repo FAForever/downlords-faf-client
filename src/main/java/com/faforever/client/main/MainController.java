@@ -71,7 +71,6 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -108,7 +107,6 @@ public class MainController implements Controller<Node> {
   private final EventBus eventBus;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
-  private final ApplicationEventPublisher applicationEventPublisher;
   private final String mainWindowTitle;
   private final boolean alwaysReloadTabs;
 
@@ -145,7 +143,7 @@ public class MainController implements Controller<Node> {
                         NotificationService notificationService,
                         UiService uiService, EventBus eventBus,
                         GamePathHandler gamePathHandler, PlatformService platformService,
-                        ClientProperties clientProperties, ApplicationEventPublisher applicationEventPublisher, Environment environment) {
+                        ClientProperties clientProperties, Environment environment) {
     this.preferencesService = preferencesService;
     this.i18n = i18n;
     this.notificationService = notificationService;
@@ -153,7 +151,6 @@ public class MainController implements Controller<Node> {
     this.eventBus = eventBus;
     this.gamePathHandler = gamePathHandler;
     this.platformService = platformService;
-    this.applicationEventPublisher = applicationEventPublisher;
     this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
     alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
@@ -251,6 +248,9 @@ public class MainController implements Controller<Node> {
 
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
+    viewCache.invalidateAll();
+    contentPane.getChildren().clear();
+    getView(NavigationItem.CHAT);
     JavaFxUtil.runLater(this::enterLoggedOutState);
   }
 
@@ -435,7 +435,7 @@ public class MainController implements Controller<Node> {
     fxStage.getNonCaptionNodes().setAll(leftMenuPane, rightMenuPane, navigationDropdown);
     fxStage.setTitleBar(mainHeaderPane);
 
-    applicationEventPublisher.publishEvent(new LoggedInEvent());
+    eventBus.post(new LoggedInEvent());
 
     gamePathHandler.detectAndUpdateGamePath();
     openStartTab();

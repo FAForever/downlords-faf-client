@@ -15,6 +15,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.play.PlayController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
@@ -23,6 +24,7 @@ import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
+import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
@@ -44,7 +46,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -96,7 +97,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private ChatController chatController;
   @Mock
-  private ApplicationEventPublisher applicationEventPublisher;
+  private PlayController playController;
   @Mock
   private Environment environment;
   private MainController instance;
@@ -124,7 +125,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 
     instance = new MainController(preferencesService, i18n, notificationService, uiService, eventBus,
-        gamePathHandler, platformService, clientProperties, applicationEventPublisher, environment);
+        gamePathHandler, platformService, clientProperties, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
@@ -135,6 +136,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
     when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
+    when(uiService.loadFxml("theme/play/play.fxml")).thenReturn(playController);
     when(uiService.createScene(any())).thenAnswer(invocation -> new Scene(invocation.getArgument(0)));
 
     loadFxml("theme/main.fxml", clazz -> {
@@ -153,6 +155,16 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     instance.setFxStage(fxStage);
     WaitForAsyncUtils.asyncFx(() -> instance.display());
     WaitForAsyncUtils.waitForFxEvents();
+  }
+
+  @Test
+  public void testLogOutResets() throws Exception {
+    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent("junit", "", 1)));
+    runOnFxThreadAndWait(() -> instance.onNavigateEvent(new NavigateEvent(NavigationItem.PLAY)));
+    runOnFxThreadAndWait(() -> instance.onLoggedOutEvent(new LoggedOutEvent()));
+    runOnFxThreadAndWait(() -> instance.onLoginSuccessEvent(new LoginSuccessEvent("junit", "", 1)));
+    runOnFxThreadAndWait(() -> instance.onNavigateEvent(new NavigateEvent(NavigationItem.PLAY)));
+    verify(uiService, times(2)).loadFxml(NavigationItem.PLAY.getFxmlFile());
   }
 
   @Test
