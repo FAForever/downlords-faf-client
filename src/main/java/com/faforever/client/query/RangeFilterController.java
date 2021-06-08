@@ -4,7 +4,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import com.github.rutledgepaulv.qbuilders.properties.concrete.IntegerProperty;
+import com.github.rutledgepaulv.qbuilders.properties.concrete.DoubleProperty;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -33,13 +34,16 @@ public class RangeFilterController implements FilterNodeController {
   public MenuButton menu;
   public TextField lowValue;
   public TextField highValue;
+
   private String propertyName;
+  private Function<Double, Double> valueTransform;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(menu);
     rangeSlider.setShowTickMarks(true);
     rangeSlider.setShowTickLabels(true);
     rangeSlider.setMinorTickCount(0);
+    valueTransform = (value) -> value;
     lowValue.textProperty().bindBidirectional(rangeSlider.lowValueProperty(), new StringConverter<>() {
       @Override
       public String toString(Number number) {
@@ -90,13 +94,13 @@ public class RangeFilterController implements FilterNodeController {
     List<Condition> conditions = new ArrayList<>();
     if (!lowValue.getText().isBlank() && rangeSlider.getLowValue() > rangeSlider.getMin()) {
       QBuilder qBuilderLow = new QBuilder<>();
-      IntegerProperty propertyLow = qBuilderLow.intNum(propertyName);
-      conditions.add(propertyLow.gte((int) rangeSlider.getLowValue()));
+      DoubleProperty propertyLow = qBuilderLow.doubleNum(propertyName);
+      conditions.add(propertyLow.gte(valueTransform.apply(rangeSlider.getLowValue())));
     }
     if (!highValue.getText().isBlank() && rangeSlider.getHighValue() < rangeSlider.getMax()) {
       QBuilder qBuilderHigh = new QBuilder<>();
-      IntegerProperty propertyHigh = qBuilderHigh.intNum(propertyName);
-      conditions.add(propertyHigh.lte((int) rangeSlider.getHighValue()));
+      DoubleProperty propertyHigh = qBuilderHigh.doubleNum(propertyName);
+      conditions.add(propertyHigh.lte(valueTransform.apply(rangeSlider.getHighValue())));
     }
     if (!conditions.isEmpty()) {
       if (!menu.getStyleClass().contains("query-filter-selected")) {
@@ -148,6 +152,10 @@ public class RangeFilterController implements FilterNodeController {
 
   public void setSnapToTicks(boolean value) {
     rangeSlider.setSnapToTicks(value);
+  }
+
+  public void setValueTransform(Function<Double, Double> valueTransform) {
+    this.valueTransform = valueTransform;
   }
 
   @Override
