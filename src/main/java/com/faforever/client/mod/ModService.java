@@ -327,6 +327,14 @@ public class ModService implements InitializingBean, DisposableBean {
     return fafService.findModsByQueryWithPageCount(searchConfig, count, page);
   }
 
+  public CompletableFuture<Integer> getRecommendedModPageCount(int count) {
+    return fafService.getRecommendedModPageCount(count);
+  }
+
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
+    return fafService.getRecommendedModsWithPageCount(count, page);
+  }
+
   @CacheEvict(value = CacheNames.MODS, allEntries = true)
   public void evictCache() {
     // Nothing to see here

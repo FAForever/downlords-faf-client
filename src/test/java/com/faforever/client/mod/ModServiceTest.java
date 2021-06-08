@@ -486,4 +486,10 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
       }
     };
   }
+
+  @Test
+  public void testGetRecommendedMods() {
+    instance.getRecommendedModsWithPageCount(10, 0);
+    verify(fafService).getRecommendedModsWithPageCount(10, 0);
+  }
 }

@@ -24,7 +24,6 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.junit.Before;
@@ -100,7 +99,6 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
     when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml")).thenReturn(vaultEntityShowRoomController);
     when(vaultEntityShowRoomController.getRoot()).thenReturn(new VBox(), new VBox(), new VBox());
     when(vaultEntityShowRoomController.getLabel()).thenReturn(new Label());
-    when(vaultEntityShowRoomController.getPane()).thenReturn(new FlowPane());
     when(vaultEntityShowRoomController.getMoreButton()).thenReturn(new Button());
     when(i18n.get(anyString())).thenReturn("test");
 

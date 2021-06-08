@@ -252,6 +252,16 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
+  public Tuple<List<Map>, java.util.Map<String, ?>> getRecommendedMapsWithMeta(int count, int page) {
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
+        INCLUDE, MAP_INCLUDES,
+        FILTER, rsql(qBuilder()
+            .bool("recommended").isTrue())
+    ));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
+  }
+
+  @Override
   @Cacheable(value = CacheNames.MAPS, sync = true)
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
     JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta(MAP_STATISTICS_ENDPOINT, count, page, java.util.Map.of(
@@ -476,6 +486,16 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     parameterMap.add(INCLUDE, MOD_INCLUDES);
     parameterMap.add(SORT, searchConfig.getSortConfig().toQuery());
     JSONAPIDocument<List<Mod>> jsonApiDoc = getPageWithMeta(MOD_ENDPOINT, count, page, parameterMap);
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
+  }
+
+  @Override
+  public Tuple<List<Mod>, java.util.Map<String, ?>> getRecommendedModsWithMeta(int count, int page) {
+    JSONAPIDocument<List<Mod>> jsonApiDoc = getPageWithMeta(MOD_ENDPOINT, count, page, java.util.Map.of(
+        INCLUDE, MOD_INCLUDES,
+        FILTER, rsql(qBuilder()
+            .bool("recommended").isTrue())
+    ));
     return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 

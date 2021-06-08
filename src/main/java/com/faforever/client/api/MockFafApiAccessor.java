@@ -134,6 +134,11 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
+  public Tuple<List<Map>, java.util.Map<String, ?>> getRecommendedMapsWithMeta(int count, int page) {
+    return new Tuple<>(List.of(), Collections.emptyMap());
+  }
+
+  @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
     return new Tuple<>(List.of(), Collections.emptyMap());
   }
@@ -287,6 +292,12 @@ public class MockFafApiAccessor implements FafApiAccessor {
   public Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page) {
     return new Tuple<>(List.of(), Collections.emptyMap());
   }
+
+  @Override
+  public Tuple<List<Mod>, java.util.Map<String, ?>> getRecommendedModsWithMeta(int count, int page) {
+    return new Tuple<>(List.of(), Collections.emptyMap());
+  }
+
 
   @Override
   public List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating) {

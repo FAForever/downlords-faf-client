@@ -12,6 +12,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Tuple;
+import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.VaultEntityController.SearchType;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
@@ -81,6 +82,8 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
       when(modDetailController.getRoot()).then(invocation1 -> new Pane());
       return modDetailController;
     }).when(uiService).loadFxml("theme/vault/mod/mod_detail.fxml");
+
+    when(modService.getRecommendedModPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
 
     loadFxml("theme/vault/vault_entity.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {

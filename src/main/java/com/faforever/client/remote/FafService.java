@@ -204,6 +204,22 @@ public class FafService {
   }
 
   @Async
+  public CompletableFuture<Integer> getRecommendedMapPageCount(int count) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedMapsWithMeta(count, 1);
+    return CompletableFuture.completedFuture(((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages"));
+  }
+
+  @Async
+  public CompletableFuture<Tuple<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
+    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedMapsWithMeta(count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
+        .map(MapBean::fromMapDto)
+        .collect(toList()),
+        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  }
+
+  @Async
   public CompletableFuture<Tuple<List<MapBean>, Integer>> getMapsByIdWithPageCount(List<Integer> mapIdList, int count, int page) {
     Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMapsByIdWithMeta(mapIdList, count, page);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
@@ -475,6 +491,22 @@ public class FafService {
   @Async
   public CompletableFuture<Tuple<List<ModVersion>, Integer>> findModsByQueryWithPageCount(SearchConfig query, int count, int page) {
     Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.findModsByQueryWithMeta(query, count, page);
+    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
+        .parallelStream()
+        .map(ModVersion::fromModDto)
+        .collect(toList()),
+        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  }
+
+  @Async
+  public CompletableFuture<Integer> getRecommendedModPageCount(int count) {
+    Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedModsWithMeta(count, 1);
+    return CompletableFuture.completedFuture(((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages"));
+  }
+
+  @Async
+  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
+    Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedModsWithMeta(count, page);
     return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
         .parallelStream()
         .map(ModVersion::fromModDto)

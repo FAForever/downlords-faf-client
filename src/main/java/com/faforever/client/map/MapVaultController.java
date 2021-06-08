@@ -59,13 +59,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
     super.initialize();
     manageVaultButton.setVisible(true);
     manageVaultButton.setText(i18n.get("management.maps.openButton.label"));
-    preferencesService.getRemotePreferencesAsync().thenAccept(clientConfiguration ->
-        recommendedShowRoomPageCount = clientConfiguration.getRecommendedMaps().size() / TOP_ELEMENT_COUNT)
-        .exceptionally(throwable -> {
-          recommendedShowRoomPageCount = null;
-          log.warn("Client Configuration get recommended maps failed", throwable);
-          return null;
-        });
+    mapService.getRecommendedMapPageCount(TOP_ELEMENT_COUNT).thenAccept(numPages -> recommendedShowRoomPageCount = numPages);
 
     eventBus.register(this);
   }
@@ -126,10 +120,9 @@ public class MapVaultController extends VaultEntityController<MapBean> {
 
   @Override
   protected List<ShowRoomCategory> getShowRoomCategories() {
-    Random random = new Random();
     int recommendedPage;
     if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
-      recommendedPage = random.nextInt(recommendedShowRoomPageCount) + 1;
+      recommendedPage = new Random().nextInt(recommendedShowRoomPageCount) + 1;
     } else {
       recommendedPage = 1;
     }

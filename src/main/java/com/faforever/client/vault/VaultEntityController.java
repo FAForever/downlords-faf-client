@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class VaultEntityController<T> extends AbstractViewController<Node> {
 
-  protected static final int TOP_ELEMENT_COUNT = 7;
+  public static final int TOP_ELEMENT_COUNT = 7;
   protected final UiService uiService;
   protected final NotificationService notificationService;
   protected final I18n i18n;
@@ -162,18 +162,19 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     showRoomGroup.getChildren().clear();
     Object monitorForAddingFutures = new Object();
     List<ShowRoomCategory> showRoomCategories = getShowRoomCategories();
-    AtomicReference<CompletableFuture<?>> loadingEntitiesFutureReference = new AtomicReference<>(CompletableFuture.completedFuture(null));
+    AtomicReference<CompletableFuture<Void>> loadingEntitiesFutureReference = new AtomicReference<>(CompletableFuture.completedFuture(null));
 
     List<VBox> childrenToAdd = showRoomCategories.parallelStream()
         .map(showRoomCategory -> {
           VaultEntityShowRoomController vaultEntityShowRoomController = loadShowRoom(showRoomCategory);
           VBox showRoomRoot = vaultEntityShowRoomController.getRoot();
+          showRoomRoot.managedProperty().bind(showRoomRoot.visibleProperty());
           synchronized (monitorForAddingFutures) {
-            loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(ignored -> showRoomCategory.getEntitySupplier().get())
+            loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(aVoid -> showRoomCategory.getEntitySupplier().get())
                 .thenAccept(result -> {
-                  showRoomRoot.managedProperty().bind(showRoomRoot.visibleProperty());
                   if (result.getFirst().isEmpty()) {
                     showRoomRoot.setVisible(false);
+                    return;
                   }
                   populate(result.getFirst(), vaultEntityShowRoomController.getPane());
                 }));
