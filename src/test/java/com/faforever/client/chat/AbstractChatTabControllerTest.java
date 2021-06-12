@@ -155,7 +155,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.setReceiver(receiver);
     when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
-    instance.onSendMessage();
+    runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
     assertThat(instance.messageTextField().getText(), is(isEmptyString()));
@@ -173,7 +173,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     future.completeExceptionally(new FakeTestException());
     when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(future);
 
-    instance.onSendMessage();
+    runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendMessageInBackground(receiver, message);
     assertThat(instance.messageTextField().getText(), is(message));
@@ -188,7 +188,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     instance.setReceiver(receiver);
     when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
-    instance.onSendMessage();
+    runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
     assertThat(instance.messageTextField().getText(), is(isEmptyString()));
@@ -206,7 +206,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     future.completeExceptionally(new FakeTestException());
     when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(future);
 
-    instance.onSendMessage();
+    runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendActionInBackground(receiver, "is happy");
     assertThat(instance.messageTextField().getText(), is(message));
