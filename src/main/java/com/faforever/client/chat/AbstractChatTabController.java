@@ -250,7 +250,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   public void initialize() {
-    mentionPattern = Pattern.compile("\\b(" + Pattern.quote(userService.getUsername()) + ")\\b|[ ]", CASE_INSENSITIVE);
+    mentionPattern = Pattern.compile("\\b(" + Pattern.quote(userService.getUsername()) + ")\\b", CASE_INSENSITIVE);
 
     initChatView();
 
