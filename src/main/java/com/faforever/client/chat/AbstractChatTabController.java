@@ -183,12 +183,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (getRoot() != null
           && getRoot().getTabPane() != null
           && getRoot().getTabPane().isVisible()) {
-        messageTextField().requestFocus();
+        JavaFxUtil.runLater(() -> messageTextField().requestFocus());
       }
     };
     tabPaneFocusedListener = (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
       if (newTabPaneFocus) {
-        messageTextField().requestFocus();
+        JavaFxUtil.runLater(() -> messageTextField().requestFocus());
       }
     };
   }
@@ -317,12 +317,13 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     Clipboard clipboard = Clipboard.getSystemClipboard();
     Image image = clipboard.getImage();
 
-    imageUploadService.uploadImageInBackground(image).thenAccept(url -> {
-      messageTextField.insertText(currentCaretPosition, url);
-      messageTextField.setDisable(false);
-      messageTextField.requestFocus();
-      messageTextField.positionCaret(messageTextField.getLength());
-    }).exceptionally(throwable -> {
+    imageUploadService.uploadImageInBackground(image).thenAccept(url ->
+        JavaFxUtil.runLater(() -> {
+          messageTextField.insertText(currentCaretPosition, url);
+          messageTextField.setDisable(false);
+          messageTextField.requestFocus();
+          messageTextField.positionCaret(messageTextField.getLength());
+        })).exceptionally(throwable -> {
       messageTextField.setDisable(false);
       return null;
     });
@@ -416,17 +417,20 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
-    chatService.sendMessageInBackground(receiver, text).thenAccept(message -> {
-      messageTextField.clear();
-      messageTextField.setDisable(false);
-      messageTextField.requestFocus();
-    }).exceptionally(throwable -> {
+    chatService.sendMessageInBackground(receiver, text).thenAccept(message ->
+        JavaFxUtil.runLater(() -> {
+          messageTextField.clear();
+          messageTextField.setDisable(false);
+          messageTextField.requestFocus();
+        })).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.warn("Message could not be sent: {}", text, throwable);
       notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
 
-      messageTextField.setDisable(false);
-      messageTextField.requestFocus();
+      JavaFxUtil.runLater(() -> {
+        messageTextField.setDisable(false);
+        messageTextField.requestFocus();
+      });
       return null;
     });
   }
@@ -436,16 +440,18 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     chatService.sendActionInBackground(receiver, text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
         .thenAccept(message -> {
-          messageTextField.clear();
-          messageTextField.setDisable(false);
-          messageTextField.requestFocus();
+          JavaFxUtil.runLater(() -> {
+            messageTextField.clear();
+            messageTextField.setDisable(false);
+            messageTextField.requestFocus();
+          });
           onChatMessage(new ChatMessage(userService.getUsername(), Instant.now(), userService.getUsername(), message, true));
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           // TODO onDisplay error to user somehow
           log.warn("Message could not be sent: {}", text, throwable);
-          messageTextField.setDisable(false);
+          JavaFxUtil.runLater(() -> messageTextField.setDisable(false));
           return null;
         });
   }
