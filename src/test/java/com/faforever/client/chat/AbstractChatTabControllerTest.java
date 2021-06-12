@@ -54,7 +54,9 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -330,5 +332,19 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
   public void testChannelNamesTransformedToHyperlinks() {
     String output = instance.replaceChannelNamesWithHyperlinks("Go to #moderation and report a user");
     assertThat(output, is("Go to <a href=\"javascript:void(0);\" onClick=\"java.openChannel('#moderation')\">#moderation</a> and report a user"));
+  }
+
+  @Test
+  public void testMentionPattern() {
+    when(userService.getUsername()).thenReturn("-Box-");
+    runOnFxThreadAndWait(() -> instance.initialize());
+    assertTrue(instance.mentionPattern.matcher("-Box-").find());
+    assertTrue(instance.mentionPattern.matcher("-Box-!").find());
+    assertTrue(instance.mentionPattern.matcher("!-Box-").find());
+    assertTrue(instance.mentionPattern.matcher("Goodbye -Box-").find());
+    assertFalse(instance.mentionPattern.matcher(" ").find());
+    assertFalse(instance.mentionPattern.matcher("").find());
+    assertFalse(instance.mentionPattern.matcher("-Box-h").find());
+    assertFalse(instance.mentionPattern.matcher("h-Box-").find());
   }
 }
