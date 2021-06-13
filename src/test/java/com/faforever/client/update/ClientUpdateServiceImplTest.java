@@ -10,6 +10,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
 import com.faforever.commons.io.Bytes;
+import com.google.common.eventbus.EventBus;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,6 +56,9 @@ public class ClientUpdateServiceImplTest {
   private CheckForUpdateTask checkForUpdateTask;
   @Mock
   private CheckForBetaUpdateTask checkForBetaUpdateTask;
+  @Mock
+  private EventBus eventBus;
+
   private Preferences preferences;
 
   @Before
@@ -75,7 +79,7 @@ public class ClientUpdateServiceImplTest {
     doReturn(CompletableFuture.completedFuture(betaUpdateInfo)).when(checkForBetaUpdateTask).getFuture();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext, preferencesService);
+    instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext, preferencesService, eventBus);
   }
 
   /**
