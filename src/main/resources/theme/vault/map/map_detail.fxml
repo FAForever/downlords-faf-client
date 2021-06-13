@@ -98,17 +98,18 @@
                                           </children>
                                       </VBox>
                                   </VBox>
-                                  <Label fx:id="authorLabel" styleClass="secondary" text="&lt;Author&gt;"
-                                         GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
-                                         GridPane.valignment="TOP"/>
-                                  <Label maxWidth="1.7976931348623157E308" styleClass="secondary" text="%map.version"
-                                         GridPane.columnIndex="2" GridPane.columnSpan="2147483647"
-                                         GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
-                                  <Label fx:id="mapVersionLabel" styleClass="secondary"
-                                         maxWidth="1.7976931348623157E308" minWidth="0.0"
-                                         text="&lt;Version&gt;" wrapText="true" GridPane.columnIndex="3"
-                                         GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
-                                         GridPane.valignment="TOP"/>
+                                  <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1"
+                                        GridPane.columnSpan="3" GridPane.rowIndex="1">
+                                      <children>
+                                          <Label fx:id="authorLabel" styleClass="secondary"
+                                                 text="&lt;Author&gt;"/>
+                                          <Label maxWidth="1.7976931348623157E308" styleClass="secondary"
+                                                 text="%map.version"/>
+                                          <Label fx:id="mapVersionLabel" maxWidth="1.7976931348623157E308"
+                                                 minWidth="0.0" styleClass="secondary" text="&lt;Version&gt;"
+                                                 wrapText="true"/>
+                                      </children>
+                                  </HBox>
                                   <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%map.description"
                                          GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
                                          GridPane.hgrow="ALWAYS" GridPane.rowIndex="5"/>
