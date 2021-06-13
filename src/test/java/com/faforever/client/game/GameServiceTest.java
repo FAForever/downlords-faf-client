@@ -449,6 +449,27 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testCurrentGameEnhancedWithPassword() {
+    preferences.getLastGame().setLastGamePassword("banana");
+    instance.currentGame.set(null);
+
+    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("me")));
+
+    GameInfoMessage gameInfoMessage1 = GameInfoMessageBuilder.create(1)
+        .defaultValues()
+        .host("me")
+        .addTeamMember("1", "me")
+        .passwordProtected(true)
+        .title("Game 1")
+        .get();
+    gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage1);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.currentGame.get().getPassword(), is("banana"));
+
+  }
+
+  @Test
   public void testOnGameInfoMessageSetsCurrentGameIfUserIsInAndStatusOpen() {
     assertThat(instance.getCurrentGame(), nullValue());
 

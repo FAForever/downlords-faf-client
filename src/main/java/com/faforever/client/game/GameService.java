@@ -804,7 +804,7 @@ public class GameService implements InitializingBean {
 
       if (currentPlayerInGame && GameStatus.OPEN == gameInfoMessage.getState()) {
         synchronized (currentGame) {
-          currentGame.set(game);
+          currentGame.set(enhanceWithLastPasswordIfPasswordProtected(game));
         }
       } else if (Objects.equals(currentGame.get(), game) && !currentPlayerInGame) {
         synchronized (currentGame) {
@@ -822,6 +822,15 @@ public class GameService implements InitializingBean {
         platformService.focusWindow(faWindowTitle);
       }
     });
+  }
+
+  private Game enhanceWithLastPasswordIfPasswordProtected(Game game) {
+    if (!game.isPasswordProtected()) {
+      return game;
+    }
+    String lastGamePassword = preferencesService.getPreferences().getLastGame().getLastGamePassword();
+    game.setPassword(lastGamePassword);
+    return game;
   }
 
   private Game createOrUpdateGame(GameInfoMessage gameInfoMessage) {
