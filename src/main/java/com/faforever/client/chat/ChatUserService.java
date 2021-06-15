@@ -156,11 +156,6 @@ public class ChatUserService implements InitializingBean {
   public void associatePlayerToChatUser(ChatChannelUser chatChannelUser, Player player) {
     if (player != null && chatChannelUser.getPlayer().filter(userPlayer -> userPlayer.getUsername().equals(player.getUsername())).isEmpty()) {
       chatChannelUser.setPlayer(player);
-      populateGameImages(chatChannelUser);
-      populateClan(chatChannelUser);
-      populateCountry(chatChannelUser);
-      populateAvatar(chatChannelUser);
-      populateColor(chatChannelUser);
       addListeners(chatChannelUser);
     } else if (player == null) {
       chatChannelUser.removeListeners();
