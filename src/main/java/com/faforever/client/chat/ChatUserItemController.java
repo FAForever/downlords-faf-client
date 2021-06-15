@@ -12,7 +12,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -56,7 +55,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final ChatPrefs chatPrefs;
 
   private final InvalidationListener formatChangeListener;
-  private final WeakInvalidationListener weakFormatInvalidationListener;
+  private final InvalidationListener chatUserPropertyInvalidationListener;
 
   public ImageView playerMapImage;
   public ImageView playerStatusIndicator;
@@ -65,12 +64,10 @@ public class ChatUserItemController implements Controller<Node> {
   public ImageView avatarImageView;
   public Label usernameLabel;
   public MenuButton clanMenu;
-  protected Tooltip statusGameTooltip;
-  protected Tooltip gameInfoTooltip;
-  @VisibleForTesting
-  protected Tooltip countryTooltip;
-  @VisibleForTesting
-  protected Tooltip avatarTooltip;
+  private Tooltip statusGameTooltip;
+  private Tooltip gameInfoTooltip;
+  private Tooltip countryTooltip;
+  private Tooltip avatarTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
   private WeakReference<ChatUserContextMenuController> contextMenuController = null;
@@ -87,9 +84,9 @@ public class ChatUserItemController implements Controller<Node> {
     this.chatPrefs = preferencesService.getPreferences().getChat();
 
     formatChangeListener = observable -> updateFormat();
-    weakFormatInvalidationListener = new WeakInvalidationListener(formatChangeListener);
+    chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
 
-    JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), weakFormatInvalidationListener);
+    JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), new WeakInvalidationListener(formatChangeListener));
   }
 
   private void updateFormat() {
@@ -105,7 +102,7 @@ public class ChatUserItemController implements Controller<Node> {
 
     initializeTooltips();
 
-    weakFormatInvalidationListener.invalidated(chatPrefs.chatFormatProperty());
+    formatChangeListener.invalidated(chatPrefs.chatFormatProperty());
 
     JavaFxUtil.bindManagedToVisible(countryImageView, clanMenu, playerStatusIndicator, playerMapImage);
 
@@ -212,19 +209,21 @@ public class ChatUserItemController implements Controller<Node> {
       return;
     }
 
-    JavaFxUtil.unbind(usernameLabel.textProperty());
-    JavaFxUtil.unbind(usernameLabel.styleProperty());
-    JavaFxUtil.unbind(avatarImageView.imageProperty());
-    JavaFxUtil.unbind(clanMenu.textProperty());
-    JavaFxUtil.unbind(clanMenu.styleProperty());
-    JavaFxUtil.unbind(countryImageView.imageProperty());
-    JavaFxUtil.unbind(playerMapImage.imageProperty());
-    JavaFxUtil.unbind(playerStatusIndicator.imageProperty());
-    JavaFxUtil.unbind(avatarTooltip.textProperty());
-    JavaFxUtil.unbind(countryTooltip.textProperty());
-    JavaFxUtil.unbind(statusGameTooltip.textProperty());
-
     if (this.chatUser != null) {
+      JavaFxUtil.removeListener(this.chatUser.usernameProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.colorProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.avatarProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.clanTagProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.countryFlagProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.countryNameProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.mapImageProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.gameStatusImageProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.statusTooltipTextProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.playerProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.socialStatusProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.clanProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.lastActiveProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.removeListener(this.chatUser.moderatorProperty(), chatUserPropertyInvalidationListener);
       this.chatUser.setDisplayed(false);
     }
 
@@ -232,21 +231,37 @@ public class ChatUserItemController implements Controller<Node> {
 
     if (this.chatUser != null) {
       this.chatUser.setDisplayed(true);
-      JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
-      JavaFxUtil.bind(usernameLabel.styleProperty(), Bindings.createStringBinding(() ->
-              chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse(""),
-          chatUser.colorProperty()));
-      JavaFxUtil.bind(avatarImageView.imageProperty(), this.chatUser.avatarProperty());
-      JavaFxUtil.bind(clanMenu.textProperty(), this.chatUser.clanTagProperty());
-      JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
-      JavaFxUtil.bind(countryTooltip.textProperty(), this.chatUser.countryNameProperty());
-      JavaFxUtil.bind(playerMapImage.imageProperty(), this.chatUser.mapImageProperty());
-      JavaFxUtil.bind(playerStatusIndicator.imageProperty(), this.chatUser.gameStatusImageProperty());
-      JavaFxUtil.bind(statusGameTooltip.textProperty(), this.chatUser.statusTooltipTextProperty());
-      if (this.chatUser.getPlayer().isPresent()) {
-        JavaFxUtil.bind(avatarTooltip.textProperty(), this.chatUser.getPlayer().get().avatarTooltipProperty());
-      }
+      JavaFxUtil.addListener(this.chatUser.usernameProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.colorProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.avatarProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.clanTagProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.countryFlagProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.countryNameProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.mapImageProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.gameStatusImageProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.statusTooltipTextProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.playerProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.socialStatusProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.clanProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.lastActiveProperty(), chatUserPropertyInvalidationListener);
+      JavaFxUtil.addListener(this.chatUser.moderatorProperty(), chatUserPropertyInvalidationListener);
     }
+  }
+
+  private void updateChatUserDisplay() {
+    String styleString = chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse("");
+    String avatarString = chatUser.getPlayer().map(Player::getAvatarTooltip).orElse("");
+    JavaFxUtil.runLater(() -> {
+      usernameLabel.setText(chatUser.getUsername());
+      usernameLabel.setStyle(styleString);
+      avatarImageView.setImage(chatUser.getAvatar().orElse(null));
+      countryImageView.setImage(chatUser.getCountryFlag().orElse(null));
+      countryTooltip.setText(chatUser.getCountryName().orElse(""));
+      playerMapImage.setImage(chatUser.getMapImage().orElse(null));
+      playerStatusIndicator.setImage(chatUser.getGameStatusImage().orElse(null));
+      statusGameTooltip.setText(chatUser.getStatusTooltipText().orElse(""));
+      avatarTooltip.setText(avatarString);
+    });
   }
 
   public void setVisible(boolean visible) {
