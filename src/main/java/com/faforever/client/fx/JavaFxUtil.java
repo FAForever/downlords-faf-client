@@ -274,6 +274,72 @@ public final class JavaFxUtil {
 
   /**
    * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does. Also manually triggers listener after adding.
+   */
+  public static <T> void addAndTriggerListener(ObservableValue<T> observableValue, ChangeListener<? super T> listener) {
+    synchronized (observableValue) {
+      observableValue.addListener(listener);
+      listener.changed(observableValue, null, observableValue.getValue());
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does. Also manually triggers listener after adding.
+   */
+  public static void addAndTriggerListener(Observable observable, InvalidationListener listener) {
+    synchronized (observable) {
+      observable.addListener(listener);
+      listener.invalidated(observable);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does. Also manually triggers listener after adding.
+   */
+  public static <K, V> void addAndTriggerListener(ObservableMap<K, V> observable, MapChangeListener<K, V> listener) {
+    synchronized (observable) {
+      observable.addListener(listener);
+      listener.onChanged(null);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does. Also manually triggers listener after adding.
+   */
+  public static <T> void addAndTriggerListener(ObservableList<T> observable, ListChangeListener<T> listener) {
+    synchronized (observable) {
+      observable.addListener(listener);
+      listener.onChanged(null);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does. Also manually triggers listener after adding.
+   */
+  public static <K, V> void addAndTriggerListener(MapProperty<K, V> mapProperty, MapChangeListener<? super K, ? super V> listener) {
+    synchronized (mapProperty) {
+      mapProperty.addListener(listener);
+      listener.onChanged(null);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
+   * is what this method does. Also manually triggers listener after adding.
+   */
+  public static <T> void addAndTriggerListener(ObservableSet<T> set, SetChangeListener<T> listener) {
+    synchronized (set) {
+      set.addListener(listener);
+      listener.onChanged(null);
+    }
+  }
+
+  /**
+   * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
    * is what this method does.
    */
   public static <T> void addListener(ObservableValue<T> observableValue, ChangeListener<? super T> listener) {
