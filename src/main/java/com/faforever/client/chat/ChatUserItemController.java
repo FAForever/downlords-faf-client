@@ -240,7 +240,7 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addListener(this.chatUser.lastActiveProperty(), weakChatUserGameListener);
     JavaFxUtil.addListener(this.chatUser.mapImageProperty(), weakChatUserGameListener);
     JavaFxUtil.addListener(this.chatUser.gameStatusImageProperty(), weakChatUserGameListener);
-    JavaFxUtil.addListener(this.chatUser.statusTooltipTextProperty(), weakChatUserGameListener);
+    JavaFxUtil.addAndTriggerListener(this.chatUser.statusTooltipTextProperty(), weakChatUserGameListener);
   }
 
   private void updateChatUserDisplay() {
