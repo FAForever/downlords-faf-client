@@ -137,9 +137,10 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
   private String receiver;
-  private Pattern mentionPattern;
   private ChatMessage lastMessage;
   WebEngine engine;
+  @VisibleForTesting
+  Pattern mentionPattern;
 
   @Inject
   // TODO cut dependencies
@@ -250,7 +251,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   public void initialize() {
-    mentionPattern = Pattern.compile("\\b(" + Pattern.quote(userService.getUsername()) + ")\\b", CASE_INSENSITIVE);
+    mentionPattern = Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(userService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
 
     initChatView();
 
@@ -582,7 +583,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     Matcher matcher = mentionPattern.matcher(text);
     if (matcher.find()) {
-      text = matcher.replaceAll("<span class='self'>" + matcher.group(1) + "</span>");
+      text = matcher.replaceAll("<span class='self'>" + matcher.group() + "</span>");
       onMention(chatMessage);
     }
 
