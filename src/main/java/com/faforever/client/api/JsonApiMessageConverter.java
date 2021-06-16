@@ -42,7 +42,7 @@ public class JsonApiMessageConverter extends AbstractHttpMessageConverter<Object
       } else if (clazz.equals(JSONAPIDocument.class)) {
         return resourceConverter.readDocumentCollection(inputStream, Object.class);
       } else {
-        document = resourceConverter.readDocument(inputMessage.getBody(), Object.class);
+        document = resourceConverter.readDocument(inputStream, Object.class);
       }
 
       return document.get();
