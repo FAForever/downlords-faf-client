@@ -548,7 +548,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String decoratedClanTag = "";
     String countryFlagUrl = "";
 
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
     if (playerOptional.isPresent()) {
       Player player = playerOptional.get();
       avatarUrl = player.getAvatarUrl();
@@ -620,7 +620,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       return;
     }
 
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
     String identIconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
 
     if (preferencesService.getPreferences().getNotification().isPrivateMessageToastEnabled()) {
@@ -638,8 +638,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected String getMessageCssClass(String login) {
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(login);
-    if (!playerOptional.isPresent()) {
+    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(login);
+    if (playerOptional.isEmpty()) {
       return CSS_CLASS_CHAT_ONLY;
     }
 

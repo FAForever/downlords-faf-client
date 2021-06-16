@@ -36,7 +36,7 @@ public class FriendOfflineNotifier implements InitializingBean {
   public void onUserOnline(UserOfflineEvent event) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     String username = event.getUsername();
-    playerService.getPlayerForUsername(username).ifPresent(player -> {
+    playerService.getPlayerByNameIfOnline(username).ifPresent(player -> {
       if (player.getSocialStatus() != SocialStatus.FRIEND) {
         return;
       }

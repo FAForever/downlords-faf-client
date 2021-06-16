@@ -319,7 +319,7 @@ public class ChannelTabController extends AbstractChatTabController {
       return;
     }
 
-    if (playerService.getPlayerForUsername(chatMessage.getUsername())
+    if (playerService.getPlayerByNameIfOnline(chatMessage.getUsername())
         .filter(player -> player.getSocialStatus() == FOE)
         .isPresent()) {
       log.debug("Ignored ping from {}", chatMessage.getUsername());
@@ -405,7 +405,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   private void onUserJoinedChannel(ChatChannelUser chatUser) {
-    playerService.getPlayerForUsername(chatUser.getUsername())
+    playerService.getPlayerByNameIfOnline(chatUser.getUsername())
         .ifPresentOrElse(player -> associateChatUserWithPlayer(player, chatUser),
             () -> updateChatUserListItemsForCategories(chatUser));
   }
@@ -535,7 +535,7 @@ public class ChannelTabController extends AbstractChatTabController {
   protected String getInlineStyle(String username) {
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, chatChannel.getName());
 
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(username);
+    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(username);
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";

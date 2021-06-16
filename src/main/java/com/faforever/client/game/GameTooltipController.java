@@ -65,34 +65,31 @@ public class GameTooltipController implements Controller<Node> {
     if (game == null) {
       return;
     }
-    teamChangedListener = change -> createTeams(game.getTeams(), game.getRatingType());
+    teamChangedListener = change -> createTeams();
     lastTeams = game.getTeams();
-    createTeams(game.getTeams(), game.getRatingType());
     weakTeamChangeListener = new WeakInvalidationListener(teamChangedListener);
-    JavaFxUtil.addListener(game.getTeams(), weakTeamChangeListener);
+    JavaFxUtil.addAndTriggerListener(game.getTeams(), weakTeamChangeListener);
     if (showMods) {
       simModsChangedListener = change -> createModsList(game.getSimMods());
       lastSimMods = game.getSimMods();
       createModsList(game.getSimMods());
       weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
-      JavaFxUtil.addListener(game.getSimMods(), weakModChangeListener);
+      JavaFxUtil.addAndTriggerListener(game.getSimMods(), weakModChangeListener);
     } else {
       modsPane.setVisible(false);
     }
   }
 
-  private void createTeams(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType) {
-    JavaFxUtil.runLater(() -> {
-      synchronized (teamsList) {
-        teamsPane.getChildren().clear();
-        TeamCardController.createAndAdd(teamsList, ratingType, playerService, uiService, teamsPane);
-        teamsPane.setPrefColumns(Math.min(teamsList.size(), maxPrefColumns));
-      }
-    });
+  private void createTeams() {
+    TeamCardController.createAndAdd(game, playerService, uiService, teamsPane);
+    JavaFxUtil.runLater(() -> teamsPane.setPrefColumns(Math.min(game.getTeams().size(), maxPrefColumns)));
   }
 
   private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
-    String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
+    String stringSimMods;
+    synchronized (simMods) {
+      stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
+    }
     JavaFxUtil.runLater(() -> {
       if (simMods.isEmpty()) {
         modsPane.setVisible(false);

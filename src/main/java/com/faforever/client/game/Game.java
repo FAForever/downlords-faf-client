@@ -1,8 +1,11 @@
 package com.faforever.client.game;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.util.TimeUtil;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -17,63 +20,82 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class Game {
-  private final StringProperty host;
-  private final StringProperty title;
-  private final StringProperty mapFolderName;
-  private final StringProperty featuredMod;
-  private final IntegerProperty id;
-  private final IntegerProperty numPlayers;
-  private final IntegerProperty maxPlayers;
-  private final DoubleProperty averageRating;
-  private final StringProperty ratingType;
-  private final ObjectProperty<Integer> minRating;
-  private final ObjectProperty<Integer> maxRating;
-  private final BooleanProperty passwordProtected;
-  private final StringProperty password;
-  private final ObjectProperty<GameVisibility> visibility;
-  private final ObjectProperty<GameStatus> status;
-  private final ObjectProperty<VictoryCondition> victoryCondition;
-  private final ObjectProperty<Instant> startTime;
-  private final BooleanProperty enforceRating;
-  private final ObjectProperty<GameType> gameType;
+  public static final String OBSERVERS_TEAM = "-1";
+
+  private final StringProperty host = new SimpleStringProperty();
+  private final StringProperty title = new SimpleStringProperty();
+  private final StringProperty mapFolderName = new SimpleStringProperty();
+  private final StringProperty featuredMod = new SimpleStringProperty();
+  private final IntegerProperty id = new SimpleIntegerProperty();
+  private final IntegerProperty numPlayers = new SimpleIntegerProperty();
+  private final IntegerProperty maxPlayers = new SimpleIntegerProperty();
+  private final DoubleProperty averageRating = new SimpleDoubleProperty();
+  private final StringProperty ratingType = new SimpleStringProperty();
+  private final ObjectProperty<Integer> minRating = new SimpleObjectProperty<>(null);
+  private final ObjectProperty<Integer> maxRating = new SimpleObjectProperty<>(null);
+  private final BooleanProperty passwordProtected = new SimpleBooleanProperty();
+  private final StringProperty password = new SimpleStringProperty();
+  private final ObjectProperty<GameVisibility> visibility = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameStatus> status = new SimpleObjectProperty<>();
+  private final ObjectProperty<VictoryCondition> victoryCondition = new SimpleObjectProperty<>();
+  private final ObjectProperty<Instant> startTime = new SimpleObjectProperty<>();
+  private final BooleanProperty enforceRating = new SimpleBooleanProperty(false);
+  private final ObjectProperty<GameType> gameType = new SimpleObjectProperty<>();
   /**
    * Maps a sim mod's UID to its name.
    */
-  private final MapProperty<String, String> simMods;
-  private final MapProperty<String, List<String>> teams;
+  private final MapProperty<String, String> simMods = new SimpleMapProperty<>(FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()));
+  private final MapProperty<String, List<String>> teams = new SimpleMapProperty<>(FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()));
   /**
    * Maps an index (1,2,3,4...) to a version number. Don't ask me what this index maps to.
    */
-  private final MapProperty<String, Integer> featuredModVersions;
+  private final MapProperty<String, Integer> featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
 
-  public Game() {
-    id = new SimpleIntegerProperty();
-    host = new SimpleStringProperty();
-    title = new SimpleStringProperty();
-    mapFolderName = new SimpleStringProperty();
-    featuredMod = new SimpleStringProperty();
-    numPlayers = new SimpleIntegerProperty();
-    maxPlayers = new SimpleIntegerProperty();
-    averageRating = new SimpleDoubleProperty(0);
-    ratingType = new SimpleStringProperty();
-    minRating = new SimpleObjectProperty<>(null);
-    maxRating = new SimpleObjectProperty<>(null);
-    passwordProtected = new SimpleBooleanProperty();
-    password = new SimpleStringProperty();
-    victoryCondition = new SimpleObjectProperty<>();
-    visibility = new SimpleObjectProperty<>();
-    simMods = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    teams = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    featuredModVersions = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    status = new SimpleObjectProperty<>();
-    startTime = new SimpleObjectProperty<>();
-    enforceRating = new SimpleBooleanProperty(false);
-    gameType = new SimpleObjectProperty<>();
+  private InvalidationListener gameStatusListener;
+  private InvalidationListener hostListener;
+  private InvalidationListener teamsListener;
+
+  public void updateFromLobbyServer(com.faforever.client.remote.domain.GameInfoMessage gameInfoMessage) {
+    setId(gameInfoMessage.getUid());
+    setHost(gameInfoMessage.getHost());
+    setTitle(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
+    setMapFolderName(gameInfoMessage.getMapname());
+    setFeaturedMod(gameInfoMessage.getFeaturedMod());
+    setNumPlayers(gameInfoMessage.getNumPlayers() - gameInfoMessage.getTeams().getOrDefault(OBSERVERS_TEAM, List.of()).size());
+    setMaxPlayers(gameInfoMessage.getMaxPlayers());
+    Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> setStartTime(
+        TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
+    ));
+    setStatus(gameInfoMessage.getState());
+    setPasswordProtected(gameInfoMessage.getPasswordProtected());
+    setGameType(gameInfoMessage.getGameType());
+    setRatingType(gameInfoMessage.getRatingType());
+
+    synchronized (getSimMods()) {
+      getSimMods().clear();
+      if (gameInfoMessage.getSimMods() != null) {
+        getSimMods().putAll(gameInfoMessage.getSimMods());
+      }
+    }
+
+    synchronized (getTeams()) {
+      getTeams().clear();
+      if (gameInfoMessage.getTeams() != null) {
+        getTeams().putAll(gameInfoMessage.getTeams());
+      }
+    }
+
+    setMinRating(gameInfoMessage.getRatingMin());
+    setMaxRating(gameInfoMessage.getRatingMax());
+    setEnforceRating(gameInfoMessage.getEnforceRatingRange());
   }
 
   public String getHost() {
@@ -253,14 +275,16 @@ public class Game {
   }
 
   /**
-   * Returns a map of simulation mod UIDs to the mod's name.
+   * Returns a map of simulation mod UIDs to the mod's name. <strong>Make sure to manually synchronize when iterating
+   * over any of its collection views (e.g. values, entrySet, keySet).</strong> See {@link
+   * java.util.Collections#synchronizedMap(Map)} for details.
    */
   public ObservableMap<String, String> getSimMods() {
     return simMods.get();
   }
 
-  public void setSimMods(ObservableMap<String, String> simMods) {
-    this.simMods.set(simMods);
+  public void setSimMods(Map<String, String> simMods) {
+    this.simMods.set(FXCollections.synchronizedObservableMap(FXCollections.observableMap(simMods)));
   }
 
   public MapProperty<String, String> simModsProperty() {
@@ -268,15 +292,16 @@ public class Game {
   }
 
   /**
-   * Maps team names ("1", "2", ...) to a list of player names. <strong>Make sure to synchronize on the return
-   * value.</strong>
+   * Maps team names ("1", "2", ...) to a list of player names. <strong>Make sure to manually synchronize when iterating
+   * over any of its collection views (e.g. values, entrySet, keySet).</strong> See {@link
+   * java.util.Collections#synchronizedMap(Map)} for details.
    */
   public ObservableMap<String, List<String>> getTeams() {
     return teams.get();
   }
 
-  public void setTeams(ObservableMap<String, List<String>> teams) {
-    this.teams.set(teams);
+  public void setTeams(Map<String, List<String>> teams) {
+    this.teams.set(FXCollections.synchronizedObservableMap(FXCollections.observableMap(teams)));
   }
 
   public MapProperty<String, List<String>> teamsProperty() {
@@ -287,8 +312,8 @@ public class Game {
     return featuredModVersions.get();
   }
 
-  public void setFeaturedModVersions(ObservableMap<String, Integer> featuredModVersions) {
-    this.featuredModVersions.set(featuredModVersions);
+  public void setFeaturedModVersions(Map<String, Integer> featuredModVersions) {
+    this.featuredModVersions.set(FXCollections.observableMap(featuredModVersions));
   }
 
   public MapProperty<String, Integer> featuredModVersionsProperty() {
@@ -352,6 +377,51 @@ public class Game {
 
   public ObjectProperty<Instant> startTimeProperty() {
     return startTime;
+  }
+
+  public void setGameStatusListener(InvalidationListener listener) {
+    if (gameStatusListener != null) {
+      JavaFxUtil.removeListener(status, listener);
+    }
+    gameStatusListener = listener;
+    if (gameStatusListener != null) {
+      JavaFxUtil.addAndTriggerListener(status, listener);
+    }
+  }
+
+  public void setHostListener(InvalidationListener listener) {
+    if (hostListener != null) {
+      JavaFxUtil.removeListener(host, listener);
+    }
+    hostListener = listener;
+    if (hostListener != null) {
+      JavaFxUtil.addAndTriggerListener(host, listener);
+    }
+  }
+
+  public void setTeamsListener(InvalidationListener listener) {
+    if (teamsListener != null) {
+      JavaFxUtil.removeListener(teams, listener);
+    }
+    teamsListener = listener;
+    if (teamsListener != null) {
+      JavaFxUtil.addAndTriggerListener(teams, listener);
+    }
+  }
+
+  public void removeListeners() {
+    if (gameStatusListener != null) {
+      JavaFxUtil.removeListener(status, gameStatusListener);
+    }
+    gameStatusListener = null;
+    if (hostListener != null) {
+      JavaFxUtil.removeListener(host, hostListener);
+    }
+    hostListener = null;
+    if (teamsListener != null) {
+      JavaFxUtil.removeListener(teams, teamsListener);
+    }
+    teamsListener = null;
   }
 
   @Override

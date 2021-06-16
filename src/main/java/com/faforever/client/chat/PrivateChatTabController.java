@@ -111,7 +111,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-    Optional<Player> playerOptional = playerService.getPlayerForUsername(chatMessage.getUsername());
+    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {

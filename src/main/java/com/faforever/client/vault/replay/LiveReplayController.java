@@ -123,10 +123,13 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private ObservableValue<String> modCell(CellDataFeatures<Game, String> param) {
     ObservableMap<String, String> simMods = param.getValue().getSimMods();
     int simModCount = simMods.size();
-    List<String> modNames = simMods.entrySet().stream()
-        .limit(2)
-        .map(Entry::getValue)
-        .collect(Collectors.toList());
+    List<String> modNames;
+    synchronized (simMods) {
+      modNames = simMods.entrySet().stream()
+          .limit(2)
+          .map(Entry::getValue)
+          .collect(Collectors.toList());
+    }
     if (simModCount > 2) {
       return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1));
     }

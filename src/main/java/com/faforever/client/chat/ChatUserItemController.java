@@ -12,6 +12,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -201,9 +202,7 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   public void setChatUser(ChatChannelUser chatUser) {
-    if (this.chatUser != null) {
-      throw new IllegalStateException("Chat User already set");
-    }
+    Assert.checkNotNullIllegalState(this.chatUser, "Chat user is already set");
 
     this.chatUser = chatUser;
 

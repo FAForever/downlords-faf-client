@@ -43,7 +43,7 @@ public class GamesTilesContainerController implements Controller<Node> {
   private final ObjectProperty<Game> selectedGame;
   private Comparator<Node> appliedComparator;
   @VisibleForTesting
-  Map<Integer, Node> uidToGameCard;
+  Map<Integer, Node> gameIdToGameCard;
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
@@ -62,25 +62,24 @@ public class GamesTilesContainerController implements Controller<Node> {
       sortNodes();
     };
 
-    gameListChangeListener = change -> {
-      JavaFxUtil.assertApplicationThread();
-        while (change.next()) {
-          change.getRemoved().forEach(gameInfoBean -> {
-            Node card = uidToGameCard.remove(gameInfoBean.getId());
-            if (card != null) {
-              Tooltip.uninstall(card, tooltip);
-              boolean remove = tiledFlowPane.getChildren().remove(card);
-              if (!remove) {
-                log.error("Tried to remove game tile that did not exist in UI.");
-              }
-            } else {
-              log.error("Tried to remove game tile that did not exist.");
+    gameListChangeListener = change -> JavaFxUtil.runLater(() -> {
+      while (change.next()) {
+        change.getRemoved().forEach(game -> {
+          Node card = gameIdToGameCard.remove(game.getId());
+          if (card != null) {
+            Tooltip.uninstall(card, tooltip);
+            boolean remove = tiledFlowPane.getChildren().remove(card);
+            if (!remove) {
+              log.error("Tried to remove game tile that did not exist in UI.");
             }
-          });
-          change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
-          sortNodes();
-        }
-    };
+          } else {
+            log.error("Tried to remove game tile that did not exist.");
+          }
+        });
+        change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
+        sortNodes();
+      }
+    });
   }
 
   private void sortNodes() {
@@ -110,11 +109,10 @@ public class GamesTilesContainerController implements Controller<Node> {
   void createTiledFlowPane(ObservableList<Game> games, ComboBox<TilesSortingOrder> choseSortingTypeChoiceBox) {
     JavaFxUtil.assertApplicationThread();
     initializeChoiceBox(choseSortingTypeChoiceBox);
-    uidToGameCard = new HashMap<>();
+    gameIdToGameCard = new HashMap<>();
 
-    //No lock is needed here because game updates are always done on the Application thread
-    games.forEach(this::addGameCard);
     JavaFxUtil.addListener(games, new WeakListChangeListener<>(gameListChangeListener));
+    games.forEach(this::addGameCard);
 
     selectFirstGame();
     sortNodes();
@@ -141,7 +139,7 @@ public class GamesTilesContainerController implements Controller<Node> {
     Node root = gameTileController.getRoot();
     root.setUserData(game);
     tiledFlowPane.getChildren().add(root);
-    uidToGameCard.put(game.getId(), root);
+    gameIdToGameCard.put(game.getId(), root);
     
     root.setOnMouseEntered(event -> {
       gameTooltipController.setGame(game);

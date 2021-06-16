@@ -36,7 +36,7 @@ public class InvitePlayerController implements Controller<Pane> {
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final ObservableList<String> playerList = FXCollections.observableArrayList();
-  private final FilteredList<String> filteredPlayerList = new FilteredList<>(playerList, p -> true);
+  private final FilteredList<String> filteredPlayerList = new FilteredList<>(playerList, player -> true);
   private final SortedList<String> sortedPlayerList = new SortedList<>(filteredPlayerList, Comparator.naturalOrder());
 
   public Pane root;
@@ -51,20 +51,20 @@ public class InvitePlayerController implements Controller<Pane> {
     );
     playerList.setAll(getPlayerNames());
 
-    filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> p -> {
+    filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> playerName -> {
       if (playerService.getCurrentPlayer()
           .map(Player::getUsername)
-          .map(n -> n.equals(p))
+          .map(username -> username.equals(playerName))
           .orElse(true)) {
         return false;
       }
 
-          if (playerTextField.getText().isBlank()) {
-            return playerService.getPlayerForUsername(p)
-                .map(player -> player.getSocialStatus() == SocialStatus.FRIEND)
-                .orElse(false);
+      if (playerTextField.getText().isBlank()) {
+        return playerService.getPlayerByNameIfOnline(playerName)
+            .map(player -> player.getSocialStatus() == SocialStatus.FRIEND)
+            .orElse(false);
           } else {
-            return p.toLowerCase().contains(playerTextField.getText().toLowerCase());
+        return playerName.toLowerCase().contains(playerTextField.getText().toLowerCase());
           }
         }, playerTextField.textProperty()
     ));

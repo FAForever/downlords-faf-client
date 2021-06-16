@@ -61,7 +61,7 @@ public class DiscordRichPresenceService implements DisposableBean {
     }
   }
 
-  public void updatePlayedGameTo(Game game, int currentPlayerId, String currentPlayerName) {
+  public void updatePlayedGameTo(Game game) {
     log.debug("Updating discord rich presence game info");
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {

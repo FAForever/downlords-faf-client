@@ -14,7 +14,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -26,12 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-
-import static javafx.beans.binding.Bindings.createObjectBinding;
-import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
 @Slf4j
@@ -56,12 +49,10 @@ public class GameDetailController implements Controller<Pane> {
   public Node joinButton;
   public WatchButtonController watchButtonController;
   private final ReadOnlyObjectWrapper<Game> game;
-  @SuppressWarnings("FieldCanBeLocal")
-  private final InvalidationListener teamsInvalidationListener;
-  @SuppressWarnings("FieldCanBeLocal")
-  private final InvalidationListener gameStatusInvalidationListener;
-  private final WeakInvalidationListener weakTeamListener;
-  private final WeakInvalidationListener weakGameStatusListener;
+  private InvalidationListener teamsInvalidationListener;
+  private InvalidationListener gameStatusInvalidationListener;
+  private InvalidationListener numPlayersInvalidationListener;
+  private InvalidationListener gamePropertiesInvalidationListener;
   private Node watchButton;
 
   @SuppressWarnings("FieldCanBeLocal")
@@ -77,31 +68,20 @@ public class GameDetailController implements Controller<Pane> {
     this.joinGameHelper = joinGameHelper;
 
     game = new ReadOnlyObjectWrapper<>();
-
-    gameStatusInvalidationListener = observable -> onGameStatusChanged();
-    teamsInvalidationListener = observable -> createTeams();
-    weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
-    weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
   }
 
   public void initialize() {
+    watchButton = watchButtonController.getRoot();
+
     JavaFxUtil.addLabelContextMenus(uiService, gameTitleLabel, mapLabel, gameTypeLabel);
+    JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
+        mapImageView, gameTypeLabel);
     gameDetailRoot.parentProperty().addListener(observable -> {
       if (!(gameDetailRoot.getParent() instanceof Pane)) {
         return;
       }
       gameDetailRoot.maxWidthProperty().bind(((Pane) gameDetailRoot.getParent()).widthProperty());
     });
-    watchButton = watchButtonController.getRoot();
-
-    joinButton.managedProperty().bind(joinButton.visibleProperty());
-    watchButton.managedProperty().bind(watchButton.visibleProperty());
-    gameTitleLabel.managedProperty().bind(gameTitleLabel.visibleProperty());
-    hostLabel.managedProperty().bind(hostLabel.visibleProperty());
-    mapLabel.managedProperty().bind(mapLabel.visibleProperty());
-    numberOfPlayersLabel.managedProperty().bind(numberOfPlayersLabel.visibleProperty());
-    mapImageView.managedProperty().bind(mapImageView.visibleProperty());
-    gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
 
     gameTitleLabel.visibleProperty().bind(game.isNotNull());
     hostLabel.visibleProperty().bind(game.isNotNull());
@@ -116,63 +96,80 @@ public class GameDetailController implements Controller<Pane> {
   private void onGameStatusChanged() {
     Game game = this.game.get();
     switch (game.getStatus()) {
-      case PLAYING:
+      case PLAYING -> {
         joinButton.setVisible(false);
         watchButton.setVisible(true);
         watchButtonController.setGame(game);
-        break;
-      case OPEN:
+      }
+      case OPEN -> {
         joinButton.setVisible(true);
         watchButton.setVisible(false);
-        break;
-      case UNKNOWN:
-      case CLOSED:
+      }
+      case UNKNOWN, CLOSED -> {
         joinButton.setVisible(false);
         watchButton.setVisible(false);
-        break;
-      default:
-        throw new ProgrammingError("Uncovered status: " + game.getStatus());
+      }
+      default -> throw new ProgrammingError("Uncovered status: " + game.getStatus());
     }
   }
 
-  public void setGame(Game game) {
-    Optional.ofNullable(this.game.get()).ifPresent(oldGame -> {
-      Optional.ofNullable(weakTeamListener).ifPresent(listener -> oldGame.getTeams().removeListener(listener));
-      Optional.ofNullable(weakGameStatusListener).ifPresent(listener -> oldGame.statusProperty().removeListener(listener));
+  private void onGamePropertyChanged() {
+    Game game = this.game.get();
+    JavaFxUtil.runLater(() -> {
+      gameTitleLabel.setText(game.getTitle());
+      hostLabel.setText(game.getHost());
+      mapLabel.setText(game.getMapFolderName());
+      mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
     });
+  }
+
+  private void onNumPlayersChanged() {
+    Game game = this.game.get();
+    JavaFxUtil.runLater(() -> {
+      numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()));
+    });
+  }
+
+  public void setGame(Game game) {
+    resetListeners();
 
     this.game.set(game);
     if (game == null) {
       return;
     }
 
-    gameTitleLabel.textProperty().bind(game.titleProperty());
-    hostLabel.textProperty().bind(game.hostProperty());
-    mapLabel.textProperty().bind(game.mapFolderNameProperty());
-    numberOfPlayersLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()),
-        game.numPlayersProperty(),
-        game.maxPlayersProperty()
-    ));
-    mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE),
-        game.mapFolderNameProperty()
-    ));
+    WeakInvalidationListener weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
+    WeakInvalidationListener weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
+    WeakInvalidationListener weakGamePropertiesListener = new WeakInvalidationListener(gamePropertiesInvalidationListener);
+    WeakInvalidationListener weakNumPlayersListener = new WeakInvalidationListener(numPlayersInvalidationListener);
 
-    featuredModInvalidationListener = observable -> modService.getFeaturedMod(game.getFeaturedMod())
-        .thenAccept(featuredMod -> JavaFxUtil.runLater(() -> {
-          gameTypeLabel.setText(i18n.get("loading"));
+    JavaFxUtil.addAndTriggerListener(game.featuredModProperty(), new WeakInvalidationListener(featuredModInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(game.getTeams(), weakTeamListener);
+    JavaFxUtil.addAndTriggerListener(game.statusProperty(), weakGameStatusListener);
+    JavaFxUtil.addAndTriggerListener(game.titleProperty(), weakGamePropertiesListener);
+    JavaFxUtil.addListener(game.mapFolderNameProperty(), weakGamePropertiesListener);
+    JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
+    JavaFxUtil.addAndTriggerListener(game.numPlayersProperty(), weakNumPlayersListener);
+    JavaFxUtil.addListener(game.maxPlayersProperty(), weakNumPlayersListener);
+  }
+
+  public void resetListeners() {
+    featuredModInvalidationListener = observable -> onFeaturedModChanged();
+    gameStatusInvalidationListener = observable -> onGameStatusChanged();
+    teamsInvalidationListener = observable -> createTeams();
+    numPlayersInvalidationListener = observable -> onNumPlayersChanged();
+    gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
+  }
+
+  private void onFeaturedModChanged() {
+    modService.getFeaturedMod(game.get().getFeaturedMod())
+        .thenAccept(featuredMod -> {
           String fullName = featuredMod != null ? featuredMod.getDisplayName() : null;
-          gameTypeLabel.setText(StringUtils.defaultString(fullName));
-        }));
-    game.featuredModProperty().addListener(new WeakInvalidationListener(featuredModInvalidationListener));
-    featuredModInvalidationListener.invalidated(game.featuredModProperty());
-
-    JavaFxUtil.addListener(game.getTeams(), weakTeamListener);
-    teamsInvalidationListener.invalidated(game.getTeams());
-
-    JavaFxUtil.addListener(game.statusProperty(), weakGameStatusListener);
-    gameStatusInvalidationListener.invalidated(game.statusProperty());
+          JavaFxUtil.runLater(() -> {
+            gameTypeLabel.setText(i18n.get("loading"));
+            gameTypeLabel.setText(StringUtils.defaultString(fullName));
+          });
+        });
   }
 
   public Game getGame() {
@@ -184,12 +181,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void createTeams() {
-    JavaFxUtil.assertApplicationThread();
-    teamListPane.getChildren().clear();
-    ObservableMap<String, List<String>> teams = game.get().getTeams();
-    synchronized (teams) {
-      TeamCardController.createAndAdd(teams, game.get().getRatingType(), playerService, uiService, teamListPane);
-    }
+    TeamCardController.createAndAdd(game.get(), playerService, uiService, teamListPane);
   }
 
   @Override

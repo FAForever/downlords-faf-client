@@ -4,6 +4,7 @@ import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.game.Game;
+import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.PlayerStatus;
@@ -110,15 +111,16 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
 
-    player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new Game()).get();
+    player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
     chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().player(player).get();
+
+    runOnFxThreadAndWait(() -> instance.setChatUser(chatUser));
   }
 
   @Test
   public void testKickBanContextMenuNotShownForNormalUser() {
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
-    instance.setChatUser(chatUser);
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -131,7 +133,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testKickBanContextMenuNotShownForSelf() {
     player.setSocialStatus(SELF);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.banItem.isVisible());
     assertFalse(instance.kickGameItem.isVisible());
@@ -145,7 +147,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(permissions));
     player.setSocialStatus(FOE);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.banItem.isVisible());
     assertTrue(instance.kickGameItem.isVisible());
@@ -159,7 +161,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(permissions));
     player.setSocialStatus(FOE);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.banItem.isVisible());
     assertFalse(instance.kickGameItem.isVisible());
@@ -169,22 +171,19 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testJoinGameContextMenuNotShownForIdleUser() {
-    instance.setChatUser(chatUser);
     player.setSocialStatus(OTHER);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.joinGameItem.isVisible());
   }
 
   @Test
   public void testJoinGameContextMenuShownForHostingUser() {
-    Game game = new Game();
-    game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
-    game.setStatus(GameStatus.OPEN);
-    game.setHost(player.getUsername());
+    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.HOSTING);
     assertTrue(instance.joinGameItem.isVisible());
@@ -192,14 +191,11 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testJoinGameContextMenuNotShownForMatchmakerPlayer() {
-    Game game = new Game();
-    game.setGameType(GameType.MATCHMAKER);
-    game.setStatus(GameStatus.OPEN);
-    game.setHost(player.getUsername());
+    Game game = GameBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).status(GameStatus.OPEN).host(player.getUsername()).get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.HOSTING);
     assertFalse(instance.joinGameItem.isVisible());
@@ -207,23 +203,20 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInviteContextMenuShownForIdleUser() {
-    instance.setChatUser(chatUser);
     player.setGame(null);
     player.setSocialStatus(OTHER);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.inviteItem.isVisible());
   }
 
   @Test
   public void testInviteContextMenuNotShownForHostingUser() {
-    Game game = new Game();
-    game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
-    game.setStatus(GameStatus.OPEN);
-    game.setHost(player.getUsername());
+    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.HOSTING);
     assertFalse(instance.inviteItem.isVisible());
@@ -231,14 +224,11 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInviteContextMenuNotShownForLobbyingUser() {
-    Game game = new Game();
-    game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
-    game.setStatus(GameStatus.OPEN);
-    game.setHost("otherPlayer");
+    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host("otherPlayer").get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.LOBBYING);
     assertFalse(instance.inviteItem.isVisible());
@@ -253,7 +243,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.PLAYING);
     assertFalse(instance.inviteItem.isVisible());
@@ -261,8 +251,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnSendPrivateMessage() {
-    instance.setChatUser(chatUser);
-
     instance.onSendPrivateMessageSelected();
 
     verify(eventBus).post(any(InitiatePrivateChatEvent.class));
@@ -270,18 +258,17 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testChangePlayerColor() {
-    instance.setChatUser(chatUser);
-
     instance.colorPicker.setValue(Color.ALICEBLUE);
+    WaitForAsyncUtils.waitForFxEvents();
 
     verify(eventBus).post(any(ChatUserColorChangeEvent.class));
   }
 
   @Test
   public void testOnAddFriendWithFoe() {
-    instance.setChatUser(chatUser);
-
     player.setSocialStatus(FOE);
+
+    WaitForAsyncUtils.waitForFxEvents();
 
     instance.onAddFriendSelected();
 
@@ -293,7 +280,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   public void testOnAddFriendWithNeutral() {
     player.setSocialStatus(OTHER);
 
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     instance.onAddFriendSelected();
 
@@ -303,8 +290,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnRemoveFriend() {
-    instance.setChatUser(chatUser);
-
     instance.onRemoveFriendSelected();
 
     verify(playerService).removeFriend(player);
@@ -312,9 +297,9 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnAddFoeWithFriend() {
-    instance.setChatUser(chatUser);
-
     player.setSocialStatus(FRIEND);
+
+    WaitForAsyncUtils.waitForFxEvents();
 
     instance.onAddFoeSelected();
 
@@ -324,9 +309,9 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnAddFoeWithNeutral() {
-    instance.setChatUser(chatUser);
-
     player.setSocialStatus(OTHER);
+
+    WaitForAsyncUtils.waitForFxEvents();
 
     instance.onAddFoeSelected();
 
@@ -336,8 +321,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnRemoveFoe() {
-    instance.setChatUser(chatUser);
-
     instance.onRemoveFoeSelected();
 
     verify(playerService).removeFoe(player);
@@ -345,8 +328,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnWatchGame() {
-    instance.setChatUser(chatUser);
-
+    runOnFxThreadAndWait(() -> player.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get()));
     instance.onWatchGameSelected();
 
     verify(replayService).runLiveReplay(player.getGame().getId());
@@ -354,9 +336,8 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnWatchGameThrowsIoExceptionTriggersNotification() {
-    instance.setChatUser(chatUser);
-
     doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt());
+    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
 
     instance.onWatchGameSelected();
 
@@ -365,8 +346,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnReportChatUser() {
-    instance.setChatUser(chatUser);
-
     instance.onReport();
 
     verify(reportDialogController).setOffender(player);
@@ -377,7 +356,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testOnReportPlayer() {
     chatUser.setPlayer(null);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
 
     instance.onReport();
 
@@ -388,8 +367,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnJoinGame() {
-    instance.setChatUser(chatUser);
-
     instance.onJoinGameSelected();
 
     verify(joinGameHelper).join(any());
@@ -397,8 +374,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnInvite() {
-    instance.setChatUser(chatUser);
-
     instance.onInviteToGameSelected();
 
     verify(teamMatchmakingService).invitePlayer(TEST_USER_NAME);
@@ -406,7 +381,6 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnSelectAvatar() throws Exception {
-    instance.setChatUser(chatUser);
     instance.avatarComboBox.show();
 
     WaitForAsyncUtils.waitForAsyncFx(100_000, () -> instance.avatarComboBox.getSelectionModel().select(2));
@@ -422,7 +396,7 @@ public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testHideUserInfoIfNoPlayer() {
     chatUser.setPlayer(null);
-    instance.setChatUser(chatUser);
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(instance.showUserInfo.isVisible(), is(false));
     assertThat(instance.viewReplaysItem.isVisible(), is(false));
   }

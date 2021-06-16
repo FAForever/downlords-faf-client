@@ -9,6 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Player;
+import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.AchievementState;
@@ -49,8 +50,12 @@ public class PrivateUserInfoController implements Controller<Node> {
   public Node privateUserInfoRoot;
   public Label gamesPlayedLabelLabel;
   public Label unlockedAchievementsLabelLabel;
+
   private ChatChannelUser chatUser;
   private InvalidationListener gameInvalidationListener;
+  private InvalidationListener chatUserPropertiesInvalidationListener;
+  private InvalidationListener playerPropertiesInvalidationListener;
+  private InvalidationListener ratingInvalidationListener;
 
   public PrivateUserInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
                                    EventBus eventBus, ChatUserService chatUserService) {
@@ -77,10 +82,24 @@ public class PrivateUserInfoController implements Controller<Node> {
         gamesPlayedLabelLabel,
         unlockedAchievementsLabelLabel
     );
+    initializeListeners();
     onPlayerGameChanged(null);
   }
 
+  private void initializeListeners() {
+    ratingInvalidationListener = observable -> chatUser.getPlayer().ifPresent(this::loadReceiverRatingInformation);
+    gameInvalidationListener = observable -> chatUser.getPlayer().ifPresent(chatPlayer -> onPlayerGameChanged(chatPlayer.getGame()));
+    playerPropertiesInvalidationListener = observable -> chatUser.getPlayer().ifPresent(chatPlayer -> JavaFxUtil.runLater(() ->
+        gamesPlayedLabel.setText(i18n.number(chatPlayer.getNumberOfGames()))));
+    chatUserPropertiesInvalidationListener = observable -> JavaFxUtil.runLater(() -> {
+      usernameLabel.setText(this.chatUser.getUsername());
+      countryImageView.setImage(this.chatUser.getCountryFlag().orElse(null));
+      countryLabel.setText(this.chatUser.getCountryName().orElse(""));
+    });
+  }
+
   public void setChatUser(@NotNull ChatChannelUser chatUser) {
+    Assert.checkNotNullIllegalState(this.chatUser, "Chat user is already set");
     this.chatUser = chatUser;
     this.chatUser.setDisplayed(true);
     this.chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
@@ -91,9 +110,9 @@ public class PrivateUserInfoController implements Controller<Node> {
       });
       displayChatUserInfo();
     });
-    JavaFxUtil.bind(usernameLabel.textProperty(), this.chatUser.usernameProperty());
-    JavaFxUtil.bind(countryImageView.imageProperty(), this.chatUser.countryFlagProperty());
-    JavaFxUtil.bind(countryLabel.textProperty(), this.chatUser.countryNameProperty());
+    JavaFxUtil.addAndTriggerListener(this.chatUser.usernameProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
+    JavaFxUtil.addListener(this.chatUser.countryFlagProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
+    JavaFxUtil.addListener(this.chatUser.countryNameProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
   }
 
   private void displayChatUserInfo() {
@@ -119,15 +138,9 @@ public class PrivateUserInfoController implements Controller<Node> {
     userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
     userImageView.setVisible(true);
 
-    InvalidationListener ratingInvalidationListener = (observable) -> loadReceiverRatingInformation(player);
-    JavaFxUtil.addListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
-    loadReceiverRatingInformation(player);
-
-    gameInvalidationListener = observable -> onPlayerGameChanged(player.getGame());
-    JavaFxUtil.addListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
-    onPlayerGameChanged(player.getGame());
-
-    JavaFxUtil.bind(gamesPlayedLabel.textProperty(), player.numberOfGamesProperty().asString());
+    JavaFxUtil.addAndTriggerListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(player.numberOfGamesProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
 
     populateUnlockedAchievementsLabel(player);
   }

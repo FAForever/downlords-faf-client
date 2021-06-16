@@ -408,7 +408,7 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void onReport() {
     ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
-    reportDialogController.setGame(replay);
+    reportDialogController.setReplay(replay);
     Scene scene = getRoot().getScene();
     if (scene != null) {
       reportDialogController.setOwnerWindow(scene.getWindow());

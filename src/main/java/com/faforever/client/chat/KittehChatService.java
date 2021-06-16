@@ -497,7 +497,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     synchronized (chatChannelUsersByChannelAndName) {
       String key = mapKey(username, channel);
       if (!chatChannelUsersByChannelAndName.containsKey(key)) {
-        Optional<Player> optionalPlayer = playerService.getPlayerForUsername(username);
+        Optional<Player> optionalPlayer = playerService.getPlayerByNameIfOnline(username);
 
         ChatChannelUser chatChannelUser = new ChatChannelUser(username, isModerator);
         chatChannelUsersByChannelAndName.put(key, chatChannelUser);

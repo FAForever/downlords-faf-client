@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -98,5 +99,14 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(i18n).get("textSeparator");
+  }
+
+  @Test
+  public void testFriendInGameHighlighting() {
+    when(playerService.areFriendsInGame(game)).thenReturn(true);
+
+    runOnFxThreadAndWait(() -> instance.setGame(game));
+
+    assertTrue(instance.getRoot().getPseudoClassStates().contains(GameTileController.FRIEND_IN_GAME_PSEUDO_CLASS));
   }
 }

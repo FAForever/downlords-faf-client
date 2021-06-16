@@ -88,8 +88,8 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     otherPlayer = PlayerBuilder.create("junit2").defaultValues().id(2).get();
     List<Player> playerList = new ArrayList<>();
     playerList.add(player);
-    when(playerService.getPlayerIfOnlineById(2)).thenReturn(Optional.of(otherPlayer));
-    when(playerService.getPlayerIfOnlineById(1)).thenReturn(Optional.of(player));
+    when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
+    when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     ReadOnlyObjectProperty<ConnectionState> state = new SimpleObjectProperty<>();
     when(fafService.connectionStateProperty()).thenReturn(state);
     when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>(player));
@@ -306,7 +306,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testInvitePlayer() {
-    when(playerService.getPlayerForUsername("invitee")).thenReturn(Optional.of(otherPlayer));
+    when(playerService.getPlayerByNameIfOnline("invitee")).thenReturn(Optional.of(otherPlayer));
     instance.currentlyInQueueProperty().set(false);
 
     instance.invitePlayer("invitee");
