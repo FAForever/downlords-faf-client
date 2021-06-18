@@ -30,7 +30,6 @@ import javafx.scene.layout.Pane;
 import javafx.stage.PopupWindow;
 import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -40,7 +39,6 @@ import java.lang.ref.WeakReference;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-// TODO null safety for "player"
 public class ChatUserItemController implements Controller<Node> {
 
   private static final PseudoClass COMPACT = PseudoClass.getPseudoClass("compact");
@@ -202,13 +200,9 @@ public class ChatUserItemController implements Controller<Node> {
     return chatUser;
   }
 
-  public void setChatUser(@Nullable ChatChannelUser chatUser) {
-    if (this.chatUser == chatUser) {
-      return;
-    }
-
+  public void setChatUser(ChatChannelUser chatUser) {
     if (this.chatUser != null) {
-      this.chatUser.setDisplayed(false);
+      throw new IllegalStateException("Chat User already set");
     }
 
     this.chatUser = chatUser;
