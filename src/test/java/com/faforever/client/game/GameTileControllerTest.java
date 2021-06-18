@@ -46,8 +46,6 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService);
-
     game = GameBuilder.create().defaultValues().get();
 
     when(i18n.get(anyString())).thenReturn("test");
@@ -55,8 +53,8 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
 
+    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService);
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
-
     instance.setOnSelectedListener(onSelectedConsumer);
   }
 

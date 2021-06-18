@@ -26,7 +26,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +61,7 @@ public class PlayerService implements InitializingBean {
   private final ObservableMap<String, Player> playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
   private final ObservableMap<Integer, Player> playersById = FXCollections.observableHashMap();
   private final List<Integer> foeList = new ArrayList<>();
-  private final ObservableList<Integer> friendList = FXCollections.observableList(new ArrayList<>());
+  private final List<Integer> friendList = new ArrayList<>();
   private final ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
   private final HashMap<Integer, List<Player>> playersByGame = new HashMap<>();
 
@@ -92,18 +91,18 @@ public class PlayerService implements InitializingBean {
     Game game = event.getGame();
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (game.getTeams()) {
-      updateGamePlayers(getPlayersNamesOfAllTeams(teams), null);
+      updateGamePlayers(getAllPlayerNames(teams), null);
     }
   }
 
   private void updateGameForPlayersInGame(Game game) {
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (game.getTeams()) {
-      updateGamePlayers(getPlayersNamesOfAllTeams(teams), game);
+      updateGamePlayers(getAllPlayerNames(teams), game);
     }
   }
 
-  private List<String> getPlayersNamesOfAllTeams(Map<String, List<String>> teams) {
+  private List<String> getAllPlayerNames(Map<String, List<String>> teams) {
     return teams.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
@@ -138,8 +137,8 @@ public class PlayerService implements InitializingBean {
     Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
   }
 
-  private void updateGamePlayers(List<String> currentPlayers, Game game) {
-    currentPlayers.stream()
+  private void updateGamePlayers(List<String> currentPlayerNames, Game game) {
+    currentPlayerNames.stream()
         .map(this::getPlayerForUsername)
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -153,7 +152,7 @@ public class PlayerService implements InitializingBean {
       List<Player> playersThatLeftTheGame = new ArrayList<>();
       List<Player> previousPlayersFromGame = playersByGame.get(game.getId());
       for (Player player : previousPlayersFromGame) {
-        if (!currentPlayers.contains(player.getUsername())) {
+        if (!currentPlayerNames.contains(player.getUsername())) {
           player.setGame(null);
           playersThatLeftTheGame.add(player);
           updatePlayerChatUsers(player);
@@ -207,12 +206,9 @@ public class PlayerService implements InitializingBean {
     if (game == null) {
       return false;
     }
-    Map<String, List<String>> teams = game.getTeams();
     synchronized (game.getTeams()) {
-      return getPlayersNamesOfAllTeams(teams).stream().anyMatch(name -> {
-        Player player = playersByName.get(name);
-        return player != null && friendList.contains(player.getId());
-      });
+      return getAllPlayerNames(game.getTeams()).stream()
+          .anyMatch(name -> playersByName.containsKey(name) && friendList.contains(playersByName.get(name).getId()));
     }
   }
 

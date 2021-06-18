@@ -4,6 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
@@ -44,6 +45,8 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
+  private PlayerService playerService;
+  @Mock
   private GameTooltipController gameTooltipController;
   @Mock
   private Controller<ImageView> imageViewController;
@@ -51,7 +54,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
 
   @Before
   public void setUp() throws Exception {
-    instance = new GamesTableController(mapService, joinGameHelper, i18n, uiService, preferencesService);
+    instance = new GamesTableController(mapService, joinGameHelper, i18n, uiService, preferencesService, playerService);
     preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);

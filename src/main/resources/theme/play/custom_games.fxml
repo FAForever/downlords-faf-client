@@ -27,7 +27,6 @@
                                               <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" styleClass="create-game-button" text="%games.create" />
                                               <CheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false" text="%games.showPasswordProtectedGames" />
                                               <CheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false" text="%games.showModdedGames" />
-                                              <CheckBox fx:id="highlightGamesWithFriends" mnemonicParsing="false" text="%games.highlightGamesWithFriends" />
                                               <ComboBox fx:id="chooseSortingTypeChoiceBox" />
                                               <Pane />
                                               <HBox alignment="BASELINE_LEFT" />

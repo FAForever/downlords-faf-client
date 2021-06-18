@@ -1178,7 +1178,7 @@
 }
 
 .game-card:friendInGame {
-  -fx-background-color: rgba(42, 253, 53, 0.15);
+  -fx-background-color: FRIEND_IN_GAME_NOT_SELECTED_ITEM;
 }
 
 .table-row-cell {
@@ -1187,11 +1187,11 @@
 }
 
 .table-row-cell:friendInGame {
-  -fx-background-color: rgba(42, 253, 53, 0.15);
+  -fx-background-color: FRIEND_IN_GAME_NOT_SELECTED_ITEM;
 }
 
 .table-row-cell:selected:friendInGame {
-  -fx-background-color: rgba(42, 253, 53, 0.4);
+  -fx-background-color: FRIEND_IN_GAME_SELECTED_ITEM;
 }
 
 /***************** Player rating chart tooltip *****************/

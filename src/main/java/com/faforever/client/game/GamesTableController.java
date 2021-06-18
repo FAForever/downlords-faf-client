@@ -15,7 +15,6 @@ import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -39,7 +38,6 @@ import javafx.scene.image.Image;
 import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -55,7 +53,7 @@ import java.util.stream.Collectors;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
-public class GamesTableController implements Controller<Node>, InitializingBean {
+public class GamesTableController implements Controller<Node> {
 
   private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
@@ -80,13 +78,6 @@ public class GamesTableController implements Controller<Node>, InitializingBean 
   private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> passwordProtectionColumn.setVisible(newValue);
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
-  private BooleanProperty highlightGamesWithFriendsProperty;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    highlightGamesWithFriendsProperty = preferencesService.getPreferences().highlightGamesWithFriendsProperty();
-    JavaFxUtil.addListener(preferencesService.getPreferences().highlightGamesWithFriendsProperty(), (observable, oldValue, newValue) -> gamesTable.refresh());
-  }
 
   public ObjectProperty<Game> selectedGameProperty() {
     return selectedGame;
@@ -226,8 +217,7 @@ public class GamesTableController implements Controller<Node>, InitializingBean 
           pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, false);
         } else {
           setTooltip(tooltip);
-          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS,
-              highlightGamesWithFriendsProperty.get() && playerService.areFriendsInGame(game)
+          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game)
                   && !coopMissionName.isVisible()); // do not highlight games in coop tab
         }
       }
