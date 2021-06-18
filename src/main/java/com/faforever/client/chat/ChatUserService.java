@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.chat.avatar.AvatarService;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.clan.ClanService;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -53,11 +52,10 @@ public class ChatUserService implements InitializingBean {
       chatChannelUser.getPlayer().ifPresent(player -> {
         if (player.getClan() != null) {
           clanService.getClanByTag(player.getClan())
-              .thenAccept(optionalClan -> JavaFxUtil.runLater(() -> {
-                    Clan clan = optionalClan.orElse(null);
-                    chatChannelUser.setClan(clan);
-                  })
-              );
+              .thenAccept(optionalClan -> {
+                Clan clan = optionalClan.orElse(null);
+                chatChannelUser.setClan(clan);
+              });
         } else {
           chatChannelUser.setClan(null);
         }
@@ -77,7 +75,7 @@ public class ChatUserService implements InitializingBean {
             } else {
               avatar = null;
             }
-            JavaFxUtil.runLater(() -> chatChannelUser.setAvatar(avatar));
+            chatChannelUser.setAvatar(avatar);
           });
     } else {
       chatChannelUser.setAvatar(null);
@@ -89,10 +87,8 @@ public class ChatUserService implements InitializingBean {
       chatChannelUser.getPlayer()
           .ifPresent(player -> {
             Optional<Image> countryFlag = countryFlagService.loadCountryFlag(player.getCountry());
-            JavaFxUtil.runLater(() -> {
-              chatChannelUser.setCountryFlag(countryFlag.orElse(null));
-              chatChannelUser.setCountryName(i18n.getCountryNameLocalized(player.getCountry()));
-            });
+            chatChannelUser.setCountryFlag(countryFlag.orElse(null));
+            chatChannelUser.setCountryName(i18n.getCountryNameLocalized(player.getCountry()));
           });
     } else {
       chatChannelUser.setCountryFlag(null);
@@ -152,22 +148,34 @@ public class ChatUserService implements InitializingBean {
     } else {
       mapImage = null;
     }
-    JavaFxUtil.runLater(() -> {
-      chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
-      chatChannelUser.setGameStatusImage(playerStatusImage);
-      chatChannelUser.setMapImage(mapImage);
-    });
+    chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
+    chatChannelUser.setGameStatusImage(playerStatusImage);
+    chatChannelUser.setMapImage(mapImage);
   }
 
   public void associatePlayerToChatUser(ChatChannelUser chatChannelUser, Player player) {
     if (player != null && chatChannelUser.getPlayer().filter(userPlayer -> userPlayer.getUsername().equals(player.getUsername())).isEmpty()) {
       chatChannelUser.setPlayer(player);
-      populateGameImages(chatChannelUser);
-      populateClan(chatChannelUser);
-      populateCountry(chatChannelUser);
-      populateAvatar(chatChannelUser);
-      populateColor(chatChannelUser);
       addListeners(chatChannelUser);
+      chatChannelUser.setDisplayedInvalidationListener(observable -> {
+        if (chatChannelUser.isDisplayed()) {
+          addListeners(chatChannelUser);
+          populateGameImages(chatChannelUser);
+          populateClan(chatChannelUser);
+          populateCountry(chatChannelUser);
+          populateAvatar(chatChannelUser);
+          populateColor(chatChannelUser);
+        } else {
+          removeListeners(chatChannelUser);
+          chatChannelUser.setStatusTooltipText(null);
+          chatChannelUser.setGameStatusImage(null);
+          chatChannelUser.setMapImage(null);
+          chatChannelUser.setCountryFlag(null);
+          chatChannelUser.setCountryName(null);
+          chatChannelUser.setClan(null);
+          chatChannelUser.setAvatar(null);
+        }
+      });
     } else if (player == null) {
       chatChannelUser.removeListeners();
       chatChannelUser.setPlayer(null);
@@ -208,25 +216,14 @@ public class ChatUserService implements InitializingBean {
         populateGameImages(chatChannelUser);
       }
     });
-    chatChannelUser.setDisplayedChangeListener((observable, oldValue, newValue) -> {
-      if (oldValue != newValue) {
-        if (newValue) {
-          populateGameImages(chatChannelUser);
-          populateClan(chatChannelUser);
-          populateCountry(chatChannelUser);
-          populateAvatar(chatChannelUser);
-          populateColor(chatChannelUser);
-        } else {
-          chatChannelUser.setStatusTooltipText(null);
-          chatChannelUser.setGameStatusImage(null);
-          chatChannelUser.setMapImage(null);
-          chatChannelUser.setCountryFlag(null);
-          chatChannelUser.setCountryName(null);
-          chatChannelUser.setClan(null);
-          chatChannelUser.setAvatar(null);
-        }
-      }
-    });
+  }
+
+  private void removeListeners(ChatChannelUser chatChannelUser) {
+    chatChannelUser.setAvatarChangeListener(null);
+    chatChannelUser.setClanTagChangeListener(null);
+    chatChannelUser.setCountryChangeListener(null);
+    chatChannelUser.setSocialStatusChangeListener(null);
+    chatChannelUser.setGameStatusChangeListener(null);
   }
 }
 

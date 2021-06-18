@@ -46,7 +46,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatChannelUserItemControllerTest extends AbstractPlainJavaFxTest {
+public class ChatUserItemControllerTest extends AbstractPlainJavaFxTest {
 
   private ChatUserItemController instance;
   @Mock

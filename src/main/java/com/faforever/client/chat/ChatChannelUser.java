@@ -5,6 +5,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -51,7 +52,7 @@ public class ChatChannelUser {
   private ChangeListener<String> clanTagChangeListener;
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> countryInvalidationListener;
-  private ChangeListener<Boolean> displayedChangeListener;
+  private InvalidationListener displayedChangeListener;
 
   ChatChannelUser(String username, boolean moderator) {
     this.username = new SimpleStringProperty(username);
@@ -280,18 +281,18 @@ public class ChatChannelUser {
     this.displayed.set(displayed);
   }
 
-  public ChangeListener<Boolean> getDisplayedChangeListener() {
+  public InvalidationListener getDisplayedChangeListener() {
     return displayedChangeListener;
   }
 
-  public void setDisplayedChangeListener(ChangeListener<Boolean> listener) {
+  public void setDisplayedInvalidationListener(InvalidationListener listener) {
     if (player.get() != null) {
       if (displayedChangeListener != null) {
         JavaFxUtil.removeListener(displayed, displayedChangeListener);
       }
       displayedChangeListener = listener;
       if (displayedChangeListener != null) {
-        JavaFxUtil.addListener(displayed, displayedChangeListener);
+        JavaFxUtil.addAndTriggerListener(displayed, displayedChangeListener);
       }
     }
   }
@@ -306,7 +307,7 @@ public class ChatChannelUser {
     }
     socialStatusChangeListener = listener;
     if (socialStatusChangeListener != null) {
-      JavaFxUtil.addListener(socialStatus, socialStatusChangeListener);
+      JavaFxUtil.addAndTriggerListener(socialStatus, socialStatusChangeListener);
     }
   }
 
@@ -320,7 +321,7 @@ public class ChatChannelUser {
     }
     gameStatusChangeListener = listener;
     if (gameStatusChangeListener != null) {
-      JavaFxUtil.addListener(gameStatus, gameStatusChangeListener);
+      JavaFxUtil.addAndTriggerListener(gameStatus, gameStatusChangeListener);
     }
   }
 
@@ -334,7 +335,7 @@ public class ChatChannelUser {
     }
     clanTagChangeListener = listener;
     if (clanTagChangeListener != null) {
-      JavaFxUtil.addListener(clanTag, clanTagChangeListener);
+      JavaFxUtil.addAndTriggerListener(clanTag, clanTagChangeListener);
     }
   }
 
@@ -349,7 +350,7 @@ public class ChatChannelUser {
       }
       countryInvalidationListener = listener;
       if (countryInvalidationListener != null) {
-        JavaFxUtil.addListener(player.get().countryProperty(), countryInvalidationListener);
+        JavaFxUtil.addAndTriggerListener(player.get().countryProperty(), countryInvalidationListener);
       }
     }
   }
@@ -365,7 +366,7 @@ public class ChatChannelUser {
       }
       avatarChangeListener = listener;
       if (avatarChangeListener != null) {
-        JavaFxUtil.addListener(player.get().avatarUrlProperty(), avatarChangeListener);
+        JavaFxUtil.addAndTriggerListener(player.get().avatarUrlProperty(), avatarChangeListener);
       }
     }
   }
@@ -392,7 +393,7 @@ public class ChatChannelUser {
       socialStatusChangeListener = null;
     }
     if (displayedChangeListener != null) {
-      JavaFxUtil.addListener(displayed, displayedChangeListener);
+      JavaFxUtil.removeListener(displayed, displayedChangeListener);
       displayedChangeListener = null;
     }
   }
