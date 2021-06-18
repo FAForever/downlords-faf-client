@@ -22,6 +22,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
@@ -195,7 +196,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     ChangeListener<String> clanTagListener = chatUser.getClanTagChangeListener();
     ChangeListener<String> avatarListener = chatUser.getAvatarChangeListener();
     ChangeListener<String> countryListener = chatUser.getCountryInvalidationListener();
-    ChangeListener<Boolean> displayedListener = chatUser.getDisplayedChangeListener();
+    InvalidationListener displayedListener = chatUser.getDisplayedChangeListener();
 
     Player player2 = PlayerBuilder.create("junit2").defaultValues().get();
     instance.associatePlayerToChatUser(chatUser, player2);

@@ -157,6 +157,25 @@ public class ChatUserService implements InitializingBean {
     if (player != null && chatChannelUser.getPlayer().filter(userPlayer -> userPlayer.getUsername().equals(player.getUsername())).isEmpty()) {
       chatChannelUser.setPlayer(player);
       addListeners(chatChannelUser);
+      chatChannelUser.setDisplayedInvalidationListener(observable -> {
+        if (chatChannelUser.isDisplayed()) {
+          addListeners(chatChannelUser);
+          populateGameImages(chatChannelUser);
+          populateClan(chatChannelUser);
+          populateCountry(chatChannelUser);
+          populateAvatar(chatChannelUser);
+          populateColor(chatChannelUser);
+        } else {
+          removeListeners(chatChannelUser);
+          chatChannelUser.setStatusTooltipText(null);
+          chatChannelUser.setGameStatusImage(null);
+          chatChannelUser.setMapImage(null);
+          chatChannelUser.setCountryFlag(null);
+          chatChannelUser.setCountryName(null);
+          chatChannelUser.setClan(null);
+          chatChannelUser.setAvatar(null);
+        }
+      });
     } else if (player == null) {
       chatChannelUser.removeListeners();
       chatChannelUser.setPlayer(null);
@@ -197,25 +216,14 @@ public class ChatUserService implements InitializingBean {
         populateGameImages(chatChannelUser);
       }
     });
-    chatChannelUser.setDisplayedChangeListener((observable, oldValue, newValue) -> {
-      if (oldValue != newValue) {
-        if (newValue) {
-          populateGameImages(chatChannelUser);
-          populateClan(chatChannelUser);
-          populateCountry(chatChannelUser);
-          populateAvatar(chatChannelUser);
-          populateColor(chatChannelUser);
-        } else {
-          chatChannelUser.setStatusTooltipText(null);
-          chatChannelUser.setGameStatusImage(null);
-          chatChannelUser.setMapImage(null);
-          chatChannelUser.setCountryFlag(null);
-          chatChannelUser.setCountryName(null);
-          chatChannelUser.setClan(null);
-          chatChannelUser.setAvatar(null);
-        }
-      }
-    });
+  }
+
+  private void removeListeners(ChatChannelUser chatChannelUser) {
+    chatChannelUser.setAvatarChangeListener(null);
+    chatChannelUser.setClanTagChangeListener(null);
+    chatChannelUser.setCountryChangeListener(null);
+    chatChannelUser.setSocialStatusChangeListener(null);
+    chatChannelUser.setGameStatusChangeListener(null);
   }
 }
 

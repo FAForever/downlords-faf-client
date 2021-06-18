@@ -5,6 +5,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -51,7 +52,7 @@ public class ChatChannelUser {
   private ChangeListener<String> clanTagChangeListener;
   private ChangeListener<String> avatarChangeListener;
   private ChangeListener<String> countryInvalidationListener;
-  private ChangeListener<Boolean> displayedChangeListener;
+  private InvalidationListener displayedChangeListener;
 
   ChatChannelUser(String username, boolean moderator) {
     this.username = new SimpleStringProperty(username);
@@ -280,11 +281,11 @@ public class ChatChannelUser {
     this.displayed.set(displayed);
   }
 
-  public ChangeListener<Boolean> getDisplayedChangeListener() {
+  public InvalidationListener getDisplayedChangeListener() {
     return displayedChangeListener;
   }
 
-  public void setDisplayedChangeListener(ChangeListener<Boolean> listener) {
+  public void setDisplayedInvalidationListener(InvalidationListener listener) {
     if (player.get() != null) {
       if (displayedChangeListener != null) {
         JavaFxUtil.removeListener(displayed, displayedChangeListener);

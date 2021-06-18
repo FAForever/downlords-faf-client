@@ -15,7 +15,6 @@ import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -87,8 +86,6 @@ public class ChatUserItemController implements Controller<Node> {
     formatChangeListener = observable -> updateFormat();
     chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
     chatUserGamePropertyInvalidationListener = observable -> updateChatUserGame();
-
-    JavaFxUtil.addListener(chatPrefs.chatFormatProperty(), new WeakInvalidationListener(formatChangeListener));
   }
 
   private void updateFormat() {
@@ -104,15 +101,14 @@ public class ChatUserItemController implements Controller<Node> {
 
     initializeTooltips();
 
-    formatChangeListener.invalidated(chatPrefs.chatFormatProperty());
-
     JavaFxUtil.bindManagedToVisible(countryImageView, clanMenu, playerStatusIndicator, playerMapImage);
 
-    JavaFxUtil.bind(avatarImageView.visibleProperty(), Bindings.isNotNull(avatarImageView.imageProperty()));
-    JavaFxUtil.bind(countryImageView.visibleProperty(), Bindings.isNotNull(countryImageView.imageProperty()));
-    JavaFxUtil.bind(clanMenu.visibleProperty(), Bindings.isNotEmpty(clanMenu.textProperty()));
-    JavaFxUtil.bind(playerStatusIndicator.visibleProperty(), Bindings.isNotNull(playerStatusIndicator.imageProperty()));
-    JavaFxUtil.bind(playerMapImage.visibleProperty(), Bindings.isNotNull(playerMapImage.imageProperty()));
+    JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
+    JavaFxUtil.bind(countryImageView.visibleProperty(), countryImageView.imageProperty().isNotNull());
+    JavaFxUtil.bind(clanMenu.visibleProperty(), clanMenu.textProperty().isNotEmpty());
+    JavaFxUtil.bind(playerStatusIndicator.visibleProperty(), playerStatusIndicator.imageProperty().isNotNull());
+    JavaFxUtil.bind(playerMapImage.visibleProperty(), playerMapImage.imageProperty().isNotNull());
+    JavaFxUtil.addAndTriggerListener(chatPrefs.chatFormatProperty(), new WeakInvalidationListener(formatChangeListener));
 
     updateFormat();
     addEventHandlersToPlayerMapImage();
