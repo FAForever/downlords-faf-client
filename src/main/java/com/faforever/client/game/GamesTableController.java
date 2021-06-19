@@ -10,6 +10,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
@@ -218,7 +219,7 @@ public class GamesTableController implements Controller<Node> {
         } else {
           setTooltip(tooltip);
           pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game)
-                  && !coopMissionName.isVisible()); // do not highlight games in coop tab
+              && game.getGameType() != GameType.COOP); // do not highlight coop games
         }
       }
     };
