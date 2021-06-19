@@ -8,7 +8,9 @@ import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
@@ -22,6 +24,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.SortEvent;
@@ -53,12 +56,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GamesTableController implements Controller<Node> {
 
+  private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
+
   private final ObjectProperty<Game> selectedGame = new SimpleObjectProperty<>();
   private final MapService mapService;
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
+  private final PlayerService playerService;
   public TableView<Game> gamesTable;
   public TableColumn<Game, Image> mapPreviewColumn;
   public TableColumn<Game, String> gameTitleColumn;
@@ -209,8 +215,11 @@ public class GamesTableController implements Controller<Node> {
         super.updateItem(game, empty);
         if (empty || game == null) {
           setTooltip(null);
+          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, false);
         } else {
           setTooltip(tooltip);
+          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game)
+              && game.getGameType() != GameType.COOP); // do not highlight coop games
         }
       }
     };

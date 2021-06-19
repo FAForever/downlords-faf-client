@@ -2,6 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameAddedEvent;
+import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.GameRemovedEvent;
 import com.faforever.client.game.GameUpdatedEvent;
 import com.faforever.client.remote.FafService;
@@ -13,6 +14,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +24,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -68,19 +71,19 @@ public class PlayerServiceTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testPostConstruct() throws Exception {
+  public void testPostConstruct() {
     verify(fafService).addOnMessageListener(eq(PlayersMessage.class), any(Consumer.class));
     verify(fafService).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
   }
 
   @Test
-  public void testGetPlayerForUsernameUsernameDoesNotExist() throws Exception {
+  public void testGetPlayerForUsernameUsernameDoesNotExist() {
     Optional<Player> player = instance.getPlayerForUsername("junit");
     assertFalse(player.isPresent());
   }
 
   @Test
-  public void testGetPlayerForUsernameUsernameExists() throws Exception {
+  public void testGetPlayerForUsernameUsernameExists() {
     instance.createAndGetPlayerForUsername("junit");
 
     Optional<Player> player = instance.getPlayerForUsername("junit");
@@ -90,7 +93,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testRegisterAndGetPlayerForUsernameDoesNotExist() throws Exception {
+  public void testRegisterAndGetPlayerForUsernameDoesNotExist() {
     Player player = instance.createAndGetPlayerForUsername("junit");
 
     assertNotNull(player);
@@ -98,18 +101,18 @@ public class PlayerServiceTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void testRegisterAndGetPlayerForUsernameNull() throws Exception {
+  public void testRegisterAndGetPlayerForUsernameNull() {
     instance.createAndGetPlayerForUsername(null);
   }
 
   @Test
-  public void testGetPlayerNamesEmpty() throws Exception {
+  public void testGetPlayerNamesEmpty() {
     Set<String> playerNames = instance.getPlayerNames();
     assertThat(playerNames, empty());
   }
 
   @Test
-  public void testGetPlayerNamesSomeInstances() throws Exception {
+  public void testGetPlayerNamesSomeInstances() {
     instance.createAndGetPlayerForUsername("player1");
     instance.createAndGetPlayerForUsername("player2");
 
@@ -120,7 +123,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFriend() throws Exception {
+  public void testAddFriend() {
     Player lisa = instance.createAndGetPlayerForUsername("lisa");
     Player ashley = instance.createAndGetPlayerForUsername("ashley");
 
@@ -135,7 +138,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFriendIsFoe() throws Exception {
+  public void testAddFriendIsFoe() {
     Player player = instance.createAndGetPlayerForUsername("player");
     player.setSocialStatus(FOE);
 
@@ -145,7 +148,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testRemoveFriend() throws Exception {
+  public void testRemoveFriend() {
     Player player1 = instance.createAndGetPlayerForUsername("player1");
     Player player2 = instance.createAndGetPlayerForUsername("player2");
 
@@ -163,7 +166,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFoe() throws Exception {
+  public void testAddFoe() {
     Player player1 = instance.createAndGetPlayerForUsername("player1");
     Player player2 = instance.createAndGetPlayerForUsername("player2");
 
@@ -177,7 +180,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testAddFoeIsFriend() throws Exception {
+  public void testAddFoeIsFriend() {
     Player player = instance.createAndGetPlayerForUsername("player");
     player.setSocialStatus(FRIEND);
 
@@ -187,7 +190,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testRemoveFoe() throws Exception {
+  public void testRemoveFoe() {
     Player player = instance.createAndGetPlayerForUsername("player");
 
     instance.addFriend(player);
@@ -197,7 +200,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testGetCurrentPlayer() throws Exception {
+  public void testGetCurrentPlayer() {
     LoginSuccessEvent event = new LoginSuccessEvent("junit", "", 1);
     instance.onLoginSuccess(event);
 
@@ -208,7 +211,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testGetPlayerByName() throws Exception {
+  public void testGetPlayerByName() {
     instance.getPlayerByName("junit");
 
     verify(fafService).queryPlayerByName("junit");
@@ -221,7 +224,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testEventBusRegistered() throws Exception {
+  public void testEventBusRegistered() {
     verify(eventBus).register(instance);
   }
 
@@ -294,5 +297,30 @@ public class PlayerServiceTest {
 
     assertThat(player1.getGame(), is(nullValue()));
     assertThat(player2.getGame(), is(nullValue()));
+  }
+
+  @Test
+  public void testThereIsFriendInGame() {
+    ObservableMap<String, List<String>> teams = FXCollections.observableMap(Map.of("team1", List.of("player1", "player2")));
+    Game game = GameBuilder.create().defaultValues().teams(teams).get();
+    Player player1 = instance.createAndGetPlayerForUsername("player1");
+    instance.createAndGetPlayerForUsername("player2");
+    instance.addFriend(player1);
+
+    assertTrue(instance.areFriendsInGame(game));
+  }
+
+  @Test
+  public void testNoFriendInGame() {
+    ObservableMap<String, List<String>> teams = FXCollections.observableMap(Map.of("team1", List.of("player1", "player2")));
+    Game game = GameBuilder.create().defaultValues().teams(teams).get();
+    instance.createAndGetPlayerForUsername("player1");
+    instance.createAndGetPlayerForUsername("player2");
+    Player player3 = instance.createAndGetPlayerForUsername("player3");
+    player3.setId(100);
+    instance.addFriend(player3);
+
+    assertFalse(instance.areFriendsInGame(game));
+    assertFalse(instance.areFriendsInGame(null));
   }
 }

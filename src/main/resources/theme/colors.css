@@ -31,4 +31,7 @@
   -card-color: #424242CC;
   -dimmer-color: #21212199;
   -fx-text-color: #fff;
+
+  FRIEND_IN_GAME_NOT_SELECTED_ITEM: rgba(42, 253, 53, 0.1);
+  FRIEND_IN_GAME_SELECTED_ITEM: rgba(42, 253, 53, 0.35);
 }

@@ -27,6 +27,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -53,31 +55,19 @@ import static com.faforever.client.player.SocialStatus.SELF;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PlayerService implements InitializingBean {
 
-  private final ObservableMap<String, Player> playersByName;
-  private final ObservableMap<Integer, Player> playersById;
-  private final List<Integer> foeList;
-  private final List<Integer> friendList;
-  private final ObjectProperty<Player> currentPlayer;
+  private final ObservableMap<String, Player> playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
+  private final ObservableMap<Integer, Player> playersById = FXCollections.observableHashMap();
+  private final List<Integer> foeList = new ArrayList<>();
+  private final List<Integer> friendList = new ArrayList<>();
+  private final ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
+  private final HashMap<Integer, List<Player>> playersByGame = new HashMap<>();
 
   private final FafService fafService;
   private final UserService userService;
   private final EventBus eventBus;
-  private final HashMap<Integer, List<Player>> playersByGame;
-
-  public PlayerService(FafService fafService, UserService userService, EventBus eventBus) {
-    this.fafService = fafService;
-    this.userService = userService;
-    this.eventBus = eventBus;
-
-    playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
-    playersById = FXCollections.observableHashMap();
-    friendList = new ArrayList<>();
-    foeList = new ArrayList<>();
-    currentPlayer = new SimpleObjectProperty<>();
-    playersByGame = new HashMap<>();
-  }
 
   @Override
   public void afterPropertiesSet() {
@@ -101,21 +91,19 @@ public class PlayerService implements InitializingBean {
     Game game = event.getGame();
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (game.getTeams()) {
-      List<String> playersInGame = teams.entrySet().stream()
-          .flatMap(stringListEntry -> stringListEntry.getValue().stream())
-          .collect(Collectors.toList());
-      updateGamePlayers(playersInGame, null);
+      updateGamePlayers(getAllPlayerNames(teams), null);
     }
   }
 
   private void updateGameForPlayersInGame(Game game) {
     ObservableMap<String, List<String>> teams = game.getTeams();
     synchronized (game.getTeams()) {
-      List<String> playersInGame = teams.entrySet().stream()
-          .flatMap(stringListEntry -> stringListEntry.getValue().stream())
-          .collect(Collectors.toList());
-      updateGamePlayers(playersInGame, game);
+      updateGamePlayers(getAllPlayerNames(teams), game);
     }
+  }
+
+  private List<String> getAllPlayerNames(Map<String, List<String>> teams) {
+    return teams.entrySet().stream().flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList());
   }
 
   @Subscribe
@@ -149,8 +137,8 @@ public class PlayerService implements InitializingBean {
     Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
   }
 
-  private void updateGamePlayers(List<String> currentPlayers, Game game) {
-    currentPlayers.stream()
+  private void updateGamePlayers(List<String> currentPlayerNames, Game game) {
+    currentPlayerNames.stream()
         .map(this::getPlayerForUsername)
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -164,7 +152,7 @@ public class PlayerService implements InitializingBean {
       List<Player> playersThatLeftTheGame = new ArrayList<>();
       List<Player> previousPlayersFromGame = playersByGame.get(game.getId());
       for (Player player : previousPlayersFromGame) {
-        if (!currentPlayers.contains(player.getUsername())) {
+        if (!currentPlayerNames.contains(player.getUsername())) {
           player.setGame(null);
           playersThatLeftTheGame.add(player);
           updatePlayerChatUsers(player);
@@ -212,6 +200,16 @@ public class PlayerService implements InitializingBean {
       }
     }
     updatePlayerChatUsers(player);
+  }
+
+  public boolean areFriendsInGame(Game game) {
+    if (game == null) {
+      return false;
+    }
+    synchronized (game.getTeams()) {
+      return getAllPlayerNames(game.getTeams()).stream()
+          .anyMatch(name -> playersByName.containsKey(name) && friendList.contains(playersByName.get(name).getId()));
+    }
   }
 
 

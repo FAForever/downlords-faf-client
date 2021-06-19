@@ -1177,9 +1177,21 @@
   -fx-font-size: 1.2em;
 }
 
+.game-card:friendInGame {
+  -fx-background-color: FRIEND_IN_GAME_NOT_SELECTED_ITEM;
+}
+
 .table-row-cell {
   -fx-border-color: null;
   -fx-border-width: 0;
+}
+
+.table-row-cell:friendInGame {
+  -fx-background-color: FRIEND_IN_GAME_NOT_SELECTED_ITEM;
+}
+
+.table-row-cell:selected:friendInGame {
+  -fx-background-color: FRIEND_IN_GAME_SELECTED_ITEM;
 }
 
 /***************** Player rating chart tooltip *****************/

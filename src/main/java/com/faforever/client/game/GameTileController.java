@@ -11,6 +11,7 @@ import com.faforever.client.player.PlayerService;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.StringBinding;
 import javafx.collections.ObservableMap;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -36,6 +37,8 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Component
 @RequiredArgsConstructor
 public class GameTileController implements Controller<Node> {
+
+  private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
   private final MapService mapService;
   private final I18n i18n;
@@ -109,6 +112,11 @@ public class GameTileController implements Controller<Node> {
     ));
 
     lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
+    setHighlightInTileIfThereAreFriends();
+  }
+
+  private void setHighlightInTileIfThereAreFriends() {
+    getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game));
   }
 
   private String getSimModsLabelContent(ObservableMap<String, String> simMods) {
