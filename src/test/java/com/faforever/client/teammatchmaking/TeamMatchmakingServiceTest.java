@@ -1,8 +1,8 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fa.relay.LobbyMode;
+import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.net.ConnectionState;
@@ -11,11 +11,11 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
 import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue;
-import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.MatchCancelledMessage;
@@ -31,7 +31,6 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,24 +48,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
-  @Mock
-  private FafServerAccessor fafServerAccessor;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -83,27 +77,23 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
   private TaskScheduler taskScheduler;
   @Mock
   private GameService gameService;
-  @Mock
-  private Player player;
-  @Mock
-  private Player otherPlayer;
 
+  private Player player;
+  private Player otherPlayer;
   private TeamMatchmakingService instance;
 
   @Before
   public void setUp() throws Exception {
+    player = PlayerBuilder.create("junit").defaultValues().get();
+    otherPlayer = PlayerBuilder.create("junit2").defaultValues().id(2).get();
     List<Player> playerList = new ArrayList<>();
     playerList.add(player);
-    when(player.getStatus()).thenReturn(PlayerStatus.IDLE);
-    when(player.getId()).thenReturn(1);
-    when(otherPlayer.getId()).thenReturn(2);
-    when(playerService.getPlayersByIds(Collections.singletonList(1))).thenReturn(CompletableFuture.completedFuture(playerList));
+    when(playerService.getPlayerIfOnlineById(2)).thenReturn(Optional.of(otherPlayer));
+    when(playerService.getPlayerIfOnlineById(1)).thenReturn(Optional.of(player));
     ReadOnlyObjectProperty<ConnectionState> state = new SimpleObjectProperty<>();
     when(fafService.connectionStateProperty()).thenReturn(state);
-    ReadOnlyObjectProperty<Player> playerProperty = new SimpleObjectProperty<>();
-    when(playerService.currentPlayerProperty()).thenReturn(playerProperty);
-    when(gameService.getInOthersPartyProperty()).thenReturn(new SimpleBooleanProperty());
-    instance = new TeamMatchmakingService(fafServerAccessor, playerService, notificationService, preferencesService,
+    when(playerService.currentPlayerProperty()).thenReturn(new SimpleObjectProperty<Player>(player));
+    instance = new TeamMatchmakingService(playerService, notificationService, preferencesService,
         fafService, eventBus, i18n, taskScheduler, gameService);
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
@@ -129,7 +119,6 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnInviteMessage() {
-    when(player.getUsername()).thenReturn("dummy");
     PartyInviteMessage message = new PartyInviteMessage();
     message.setSender(1);
 
@@ -141,7 +130,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     verify(notificationService).addNotification(captorPersistent.capture());
     PersistentNotification persistentNotification = captorPersistent.getValue();
     assertThat(persistentNotification.getSeverity(), is(INFO));
-    verify(i18n, times(2)).get("teammatchmaking.notification.invite.message", "dummy");
+    verify(i18n, times(2)).get("teammatchmaking.notification.invite.message", player.getUsername());
   }
 
   @Test
@@ -154,22 +143,20 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
-    assertThat(instance.getPlayersInGame().isEmpty(), is(true));
+    assertThat(instance.partyMembersNotReady(), is(false));
   }
 
   @Test
   public void testOnKickedFromPartyMessageWhenInGame() {
     setPartyMembers();
     setOwnerByName("member2");
-    when(player.getStatus()).thenReturn(PlayerStatus.PLAYING);
+    player.setGame(GameBuilder.create().defaultValues().get());
 
     instance.onPartyKicked(new PartyKickedMessage());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
-    assertThat(instance.getPlayersInGame().size(), is(1));
-    assertThat(instance.getPlayersInGame().contains(player), is(true));
   }
 
   @NotNull
@@ -200,8 +187,6 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testOnPartyInfoMessage() {
-    when(playerService.getOnlinePlayersByIds(List.of(2))).thenReturn(List.of(otherPlayer));
-    when(playerService.getOnlinePlayersByIds(List.of(1, 2))).thenReturn(List.of(player, otherPlayer));
     List<PartyInfoMessage.PartyMember> testMembers = generatePartyMembers(List.of(1, 2));
     PartyInfoMessage message = new PartyInfoMessage();
     message.setMembers(testMembers);
@@ -223,11 +208,10 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     instance.onSearchInfoMessage(message);
 
     verify(gameService, never()).startSearchMatchmaker();
-    verify(gameService, never()).onMatchmakerSearchStopped();
-
+    verify(gameService).onMatchmakerSearchStopped();
 
     MatchmakingQueue testQueue = new MatchmakingQueue();
-    testQueue.setQueueName("testQueue");
+    testQueue.setTechnicalName("testQueue");
     testQueue.setJoined(false);
     instance.getMatchmakingQueues().add(testQueue);
 
@@ -239,8 +223,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(gameService).startSearchMatchmaker();
-    assertThat(instance.getMatchmakingQueues().stream()
-        .filter(queue -> queue.getQueueName().equals("testQueue")).findFirst().get().isJoined(), is(true));
+    assertThat(testQueue.isJoined(), is(true));
   }
 
   @Test
@@ -262,10 +245,10 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     instance.getMatchmakingQueues().clear();
     MatchmakingQueue queue1 = new MatchmakingQueue();
     queue1.setJoined(true);
-    queue1.setQueueName("queue1");
+    queue1.setTechnicalName("queue1");
     MatchmakingQueue queue2 = new MatchmakingQueue();
     queue2.setJoined(true);
-    queue2.setQueueName("queue2");
+    queue2.setTechnicalName("queue2");
     instance.getMatchmakingQueues().addAll(queue1, queue2);
   }
 
@@ -297,36 +280,23 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
   public void testOnMatchmakerInfoMessage() {
     instance.getMatchmakingQueues().clear();
     MatchmakingQueue queue1 = new MatchmakingQueue();
-    queue1.setQueueName("queue1");
+    queue1.setTechnicalName("queue1");
     instance.getMatchmakingQueues().add(queue1);
-    when(fafService.getMatchmakingQueue("queue1")).thenReturn(CompletableFuture.completedFuture(Optional.of(new MatchmakingQueue())));
     when(fafService.getMatchmakingQueue("queue2")).thenReturn(CompletableFuture.completedFuture(Optional.of(new MatchmakingQueue())));
 
-    AtomicInteger propertyChanged = new AtomicInteger(0);
-    instance.queuesReadyForUpdateProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue)
-        propertyChanged.getAndIncrement();
-    });
     instance.onMatchmakerInfo(createMatchmakerInfoMessage());
 
-    verify(fafService).getMatchmakingQueue("queue1");
+    verify(fafService, never()).getMatchmakingQueue("queue1");
     verify(fafService).getMatchmakingQueue("queue2");
     assertThat(instance.getMatchmakingQueues().size(), is(2));
-    assertThat((propertyChanged.get()), is(1));
   }
 
   @NotNull
   private MatchmakerInfoMessage createMatchmakerInfoMessage() {
-    MatchmakerQueue messageQueue1 = mock(MatchmakerQueue.class);
-    when(messageQueue1.getQueueName()).thenReturn("queue1");
-    when(messageQueue1.getQueuePopTime()).thenReturn("2007-12-03T10:15:30+01:00");
-    when(messageQueue1.getTeamSize()).thenReturn(1);
-    when(messageQueue1.getBoundary75s()).thenReturn(List.of());
-    MatchmakerQueue messageQueue2 = mock(MatchmakerQueue.class);
-    when(messageQueue2.getQueueName()).thenReturn("queue2");
-    when(messageQueue2.getQueuePopTime()).thenReturn("2007-12-03T10:15:30+01:00");
-    when(messageQueue2.getTeamSize()).thenReturn(1);
-    when(messageQueue2.getBoundary75s()).thenReturn(List.of());
+    MatchmakerQueue messageQueue1 = new MatchmakerQueue("queue1", "2007-12-03T10:15:30+01:00",
+        1, 0, List.of(), List.of());
+    MatchmakerQueue messageQueue2 = new MatchmakerQueue("queue2", "2007-12-03T10:15:30+01:00",
+        1, 0, List.of(), List.of());
     MatchmakerInfoMessage message = new MatchmakerInfoMessage();
     ObservableList<MatchmakerQueue> queues = FXCollections.observableArrayList();
     queues.addAll(messageQueue1, messageQueue2);
@@ -341,7 +311,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     instance.invitePlayer("invitee");
 
-    verify(fafServerAccessor).inviteToParty(otherPlayer);
+    verify(fafService).inviteToParty(otherPlayer);
 
 
     instance.currentlyInQueueProperty().set(true);
@@ -350,7 +320,6 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
     verify(notificationService).addNotification(captor.capture());
-    verifyNoMoreInteractions(fafServerAccessor);
   }
 
   @Test
@@ -359,7 +328,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     instance.acceptPartyInvite(player);
 
-    verify(fafServerAccessor).acceptPartyInvite(player);
+    verify(fafService).acceptPartyInvite(player);
     verify(eventBus).post(new OpenTeamMatchmakingEvent());
 
 
@@ -371,14 +340,13 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     verify(notificationService).addNotification(captor.capture());
     ImmediateNotification notification = captor.getValue();
     assertThat(notification.getSeverity(), is(WARN));
-    verifyNoMoreInteractions(fafServerAccessor);
   }
 
   @Test
   public void testKickPlayer() {
     instance.kickPlayerFromParty(otherPlayer);
 
-    verify(fafServerAccessor).kickPlayerFromParty(otherPlayer);
+    verify(fafService).kickPlayerFromParty(otherPlayer);
   }
 
   @Test
@@ -387,10 +355,10 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     instance.leaveParty();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(fafServerAccessor).leaveParty();
+    verify(fafService).leaveParty();
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
-    assertThat(instance.getPlayersInGame().isEmpty(), is(true));
+    assertThat(instance.partyMembersNotReady(), is(false));
   }
 
   @Test
@@ -399,7 +367,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     instance.sendFactionSelection(factions);
 
-    verify(fafServerAccessor).setPartyFactions(factions);
+    verify(fafService).setPartyFactions(factions);
   }
 
   @Test
@@ -408,7 +376,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     Boolean success = instance.joinQueue(queue);
 
-    verify(fafServerAccessor).gameMatchmaking(queue, MatchmakingState.START);
+    verify(fafService).updateMatchmakerState(queue, MatchmakingState.START);
     assertThat(success, is(true));
   }
 
@@ -421,7 +389,6 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
     verify(notificationService).addNotification(captor.capture());
-    verifyNoMoreInteractions(fafServerAccessor);
     assertThat(success, is(false));
   }
 
@@ -431,6 +398,6 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
 
     instance.leaveQueue(queue);
 
-    verify(fafServerAccessor).gameMatchmaking(queue, MatchmakingState.STOP);
+    verify(fafService).updateMatchmakerState(queue, MatchmakingState.STOP);
   }
 }

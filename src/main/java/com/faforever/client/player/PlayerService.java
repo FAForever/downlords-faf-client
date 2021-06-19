@@ -315,8 +315,12 @@ public class PlayerService implements InitializingBean {
         .collect(Collectors.toList());
   }
 
+  public Optional<Player> getPlayerIfOnlineById(int playerId) {
+    return Optional.ofNullable(playersById.get(playerId));
+  }
+
   private void onPlayersInfo(PlayersMessage playersMessage) {
-    playersMessage.getPlayers().forEach(dto -> JavaFxUtil.runLater(() -> onPlayerInfo(dto)));
+    playersMessage.getPlayers().forEach(this::onPlayerInfo);
   }
 
   private void onFoeList(SocialMessage socialMessage) {

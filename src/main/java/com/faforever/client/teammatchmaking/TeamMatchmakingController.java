@@ -12,7 +12,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
@@ -20,8 +19,10 @@ import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -30,6 +31,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
@@ -47,17 +49,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
-import static javafx.beans.binding.Bindings.createBooleanBinding;
-import static javafx.beans.binding.Bindings.createObjectBinding;
-import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Component
 @RequiredArgsConstructor
@@ -65,8 +62,8 @@ import static javafx.beans.binding.Bindings.createStringBinding;
 @Slf4j
 public class TeamMatchmakingController extends AbstractViewController<Node> {
 
-  private static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
-  private static final PseudoClass CHAT_AT_BOTTOM_PSEUDO_CLASS = PseudoClass.getPseudoClass("bottom");
+  public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
+  public static final PseudoClass CHAT_AT_BOTTOM_PSEUDO_CLASS = PseudoClass.getPseudoClass("bottom");
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -75,7 +72,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
-  private final FafService fafService;
   private final EventBus eventBus;
 
   public StackPane teamMatchmakingRoot;
@@ -107,61 +103,34 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public ColumnConstraints column2;
   public RowConstraints row2;
   private Player player;
-  private HashMap<Faction, ToggleButton> factionsToButtons;
+  private Map<Faction, ToggleButton> factionsToButtons;
   @VisibleForTesting
   protected MatchmakingChatController matchmakingChatController;
+  private InvalidationListener matchmakingQueuesLabelInvalidationListener;
+  private InvalidationListener playerPropertiesInvalidationListener;
+  private ChangeListener<Player> partyOwnerChangeListener;
 
   @Override
   public void initialize() {
-    eventBus.register(this);
+    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, leagueImageView);
     JavaFxUtil.fixScrollSpeed(scrollPane);
-    initializeDynamicChatPosition();
-    player = playerService.getCurrentPlayer().get();
-    initializeUppercaseText();
-    initializeBindings();
+    eventBus.register(this);
 
-    factionsToButtons = new HashMap<>();
-    factionsToButtons.put(Faction.AEON, aeonButton);
-    factionsToButtons.put(Faction.UEF, uefButton);
-    factionsToButtons.put(Faction.CYBRAN, cybranButton);
-    factionsToButtons.put(Faction.SERAPHIM, seraphimButton);
+    factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton,
+        Faction.CYBRAN, cybranButton, Faction.SERAPHIM, seraphimButton);
+
+    player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Current Player not set"));
+    initializeDynamicChatPosition();
+    initializeUppercaseText();
+    initializeListeners();
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getMatchmaker().getFactions();
     selectFactions(factions);
     teamMatchmakingService.sendFactionSelection(factions);
+    teamMatchmakingService.requestMatchmakerInfo();
 
-    teamMatchmakingService.getParty().getMembers().addListener((Observable o) -> renderPartyMembers());
-    if (teamMatchmakingService.isQueuesReadyForUpdate()) {
-      renderQueues(); // The teamMatchmakingService may already have all queues collected
-    }                 // so we won't get any updates on the following change listener
-    teamMatchmakingService.queuesReadyForUpdateProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        renderQueues();
-      }
-    });
-
-    player.statusProperty().addListener((observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
-      if (newValue != PlayerStatus.IDLE) {
-        teamMatchmakingService.getPlayersInGame().add(player);
-      } else {
-        teamMatchmakingService.getPlayersInGame().remove(player);
-      }
-    }));
-
-    teamMatchmakingService.getParty().getMembers().addListener((InvalidationListener) c -> {
-      refreshingLabel.setVisible(false);
-      selectFactionsBasedOnParty();
-    });
-
-    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), (observable, oldValue, newValue) -> {
-      if (matchmakingChatController != null) {
-        matchmakingChatController.closeChannel();
-      }
-      createChannelTab("#" + newValue.getUsername() + PARTY_CHANNEL_SUFFIX);
-    });
-    createChannelTab("#" + teamMatchmakingService.getParty().getOwner().getUsername() + PARTY_CHANNEL_SUFFIX);
-
-    fafService.requestMatchmakerInfo();
+    // TODO: Use when leagues implemented
+    leagueImageView.setVisible(false);
   }
 
   private void initializeDynamicChatPosition() {
@@ -191,66 +160,104 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     partyHeadingLabel.setText(i18n.get("teammatchmaking.partyTitle").toUpperCase());
     invitePlayerButton.setText(i18n.get("teammatchmaking.invitePlayer").toUpperCase());
     leavePartyButton.setText(i18n.get("teammatchmaking.leaveParty").toUpperCase());
-
-    leagueLabel.textProperty().bind(createStringBinding(() -> i18n.get("leaderboard.divisionName").toUpperCase(),
-        player.leaderboardRatingMapProperty())); // This should actually be a divisionProperty once that is available
-    gameCountLabel.textProperty().bind(createStringBinding(() ->
-        i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase(), player.numberOfGamesProperty()));
-    queueHeadingLabel.textProperty().bind(createStringBinding(() -> {
-      if (teamMatchmakingService.isCurrentlyInQueue())
-        return i18n.get("teammatchmaking.queueTitle.inQueue").toUpperCase();
-      else if (!teamMatchmakingService.getParty().getOwner().equals(player))
-        return i18n.get("teammatchmaking.queueTitle.inParty").toUpperCase();
-      else if (teamMatchmakingService.getPlayersInGame().contains(player))
-        return i18n.get("teammatchmaking.queueTitle.inGame").toUpperCase();
-      else if (!teamMatchmakingService.getPlayersInGame().isEmpty())
-        return i18n.get("teammatchmaking.queueTitle.memberInGame").toUpperCase();
-      else
-        return i18n.get("teammatchmaking.queueTitle").toUpperCase();
-    },  teamMatchmakingService.currentlyInQueueProperty(),
-        teamMatchmakingService.getParty().ownerProperty(),
-        teamMatchmakingService.getPlayersInGame()));
+    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase()); // TODO: replace this with divisionproperty once it is available
+    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase());
   }
 
-  private void initializeBindings() {
-    countryImageView.imageProperty().bind(createObjectBinding(() ->
-        countryFlagService.loadCountryFlag(player.getCountry()).orElse(null), player.countryProperty()));
-    avatarImageView.visibleProperty().bind(player.avatarUrlProperty().isNotNull().and(player.avatarUrlProperty().isNotEmpty()));
-    avatarImageView.imageProperty().bind(createObjectBinding(() -> Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl()), player.avatarUrlProperty()));
-    leagueImageView.setManaged(false);
-    JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView);
-
-    clanLabel.visibleProperty().bind(player.clanProperty().isNotEmpty().and(player.clanProperty().isNotNull()));
-    clanLabel.textProperty().bind(createStringBinding(() ->
-        Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan()), player.clanProperty()));
-    usernameLabel.textProperty().bind(player.usernameProperty());
-    crownLabel.visibleProperty().bind(createBooleanBinding(() ->
-            teamMatchmakingService.getParty().getMembers().size() > 1 && teamMatchmakingService.getParty().getOwner().equals(player),
-        teamMatchmakingService.getParty().ownerProperty(), teamMatchmakingService.getParty().getMembers()));
-
-    invitePlayerButton.disableProperty().bind(createBooleanBinding(
-        () -> teamMatchmakingService.getParty().getOwner().getId() != playerService.getCurrentPlayer().map(Player::getId).orElse(-1),
-        teamMatchmakingService.getParty().ownerProperty(),
-        playerService.currentPlayerProperty()
-    ));
-    leavePartyButton.disableProperty().bind(createBooleanBinding(() -> teamMatchmakingService.getParty().getMembers().size() <= 1, teamMatchmakingService.getParty().getMembers()));
-  }
-
-  private void renderPartyMembers() {
-    playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
-        (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
-    List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
-    partyMemberPane.getChildren().clear();
-    members.removeIf(partyMember -> partyMember.getPlayer().equals(player));
-    for(int i = 0; i < members.size(); i++) {
-      PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
-      controller.setMember(members.get(i));
-      if (members.size() == 1) {
-        partyMemberPane.add(controller.getRoot(), 0, 0, 2, 1);
-      } else {
-        partyMemberPane.add(controller.getRoot(), i % 2, i / 2);
-      }
+  private void setQueueHeadingLabel() {
+    String labelText;
+    if (teamMatchmakingService.isCurrentlyInQueue()) {
+      labelText = i18n.get("teammatchmaking.queueTitle.inQueue").toUpperCase();
+    } else if (!teamMatchmakingService.getParty().getOwner().equals(player)) {
+      labelText = i18n.get("teammatchmaking.queueTitle.inParty").toUpperCase();
+    } else if (player.getStatus() != PlayerStatus.IDLE) {
+      labelText = i18n.get("teammatchmaking.queueTitle.inGame").toUpperCase();
+    } else if (teamMatchmakingService.partyMembersNotReady()) {
+      labelText = i18n.get("teammatchmaking.queueTitle.memberInGame").toUpperCase();
+    } else {
+      labelText = i18n.get("teammatchmaking.queueTitle").toUpperCase();
     }
+    JavaFxUtil.runLater(() -> queueHeadingLabel.setText(labelText));
+  }
+
+  private void initializeListeners() {
+    matchmakingQueuesLabelInvalidationListener = observable -> setQueueHeadingLabel();
+
+    playerPropertiesInvalidationListener = observable -> {
+      Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
+      Image avatarImage = Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl());
+      String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
+      JavaFxUtil.runLater(() -> {
+        countryImageView.setImage(countryFlag);
+        avatarImageView.setImage(avatarImage);
+        clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));
+        clanLabel.setText(clanTag);
+        gameCountLabel.setText(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase());
+        usernameLabel.setText(player.getUsername());
+      });
+    };
+
+    partyOwnerChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
+      leavePartyButton.setDisable(newValue != player);
+      invitePlayerButton.setDisable(newValue != player);
+      setCrownVisibility();
+    });
+
+    addListeners();
+  }
+
+  private void addListeners() {
+    JavaFxUtil.addAndTriggerListener(player.clanProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.avatarUrlProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.countryProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.numberOfGamesProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.usernameProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakChangeListener<>(partyOwnerChangeListener));
+    JavaFxUtil.addListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> setCrownVisibility());
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> renderPartyMembers());
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getMatchmakingQueues(), (InvalidationListener) observable -> renderQueues());
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.currentlyInQueueProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(player.statusProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> {
+      refreshingLabel.setVisible(false);
+      selectFactionsBasedOnParty();
+    });
+
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), (observable, oldValue, newValue) -> {
+      if (matchmakingChatController != null) {
+        matchmakingChatController.closeChannel();
+      }
+      createChannelTab("#" + newValue.getUsername() + PARTY_CHANNEL_SUFFIX);
+    });
+  }
+
+  private void setCrownVisibility() {
+    crownLabel.setVisible(teamMatchmakingService.getParty().getMembers().size() > 1 && teamMatchmakingService.getParty().getOwner().equals(player));
+  }
+
+  private synchronized void renderPartyMembers() {
+    List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
+    members.removeIf(partyMember -> partyMember.getPlayer().equals(player));
+    List<Node> memberCards = members.stream().map(member -> {
+      PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
+      controller.setMember(member);
+      return controller.getRoot();
+    }).collect(Collectors.toList());
+    JavaFxUtil.runLater(() -> {
+      playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
+          (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
+      partyMemberPane.getChildren().clear();
+      int numMemberCards = memberCards.size();
+      for (int i = 0; i < numMemberCards; i++) {
+        if (numMemberCards == 1) {
+          partyMemberPane.add(memberCards.get(i), 0, 0, 2, 1);
+        } else {
+          partyMemberPane.add(memberCards.get(i), i % 2, i / 2);
+        }
+      }
+    });
   }
 
   @Override
@@ -272,6 +279,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     List<Faction> factions = factionsToButtons.entrySet().stream()
         .filter(entry -> entry.getValue().isSelected())
         .map(Map.Entry::getKey)
+        .sorted(Comparator.naturalOrder())
         .collect(Collectors.toList());
     if (factions.isEmpty()) {
       selectFactionsBasedOnParty();
@@ -286,7 +294,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private void selectFactionsBasedOnParty() {
     List<Faction> factions = teamMatchmakingService.getParty().getMembers().stream()
-        .filter(m -> m.getPlayer().getId() == player.getId())
+        .filter(member -> member.getPlayer().getId() == player.getId())
         .findFirst()
         .map(PartyMember::getFactions)
         .orElse(List.of());
@@ -299,9 +307,9 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void createChannelTab(String channelName) {
-    matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
-    matchmakingChatController.setChannel(channelName);
     JavaFxUtil.runLater(() -> {
+      matchmakingChatController = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml");
+      matchmakingChatController.setChannel(channelName);
       chatTabPane.getTabs().clear();
       chatTabPane.getTabs().add(matchmakingChatController.getRoot());
     });
@@ -315,20 +323,16 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     }
   }
 
-  private void renderQueues() {
-    JavaFxUtil.runLater(() -> {
-      List<MatchmakingQueue> queues = Collections.synchronizedList(teamMatchmakingService.getMatchmakingQueues());
-      int queuesPerRow = Math.min(queues.size(), 4);
-      synchronized (queues) {
-        queuePane.getChildren().clear();
-        queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
-        queues.forEach(queue -> {
-          MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
-          controller.setQueue(queue);
-          controller.getRoot().prefWidthProperty().bind(Bindings.createDoubleBinding(() -> queuePane.getWidth() / queuesPerRow - queuePane.getHgap(), queuePane.widthProperty()));
-          queuePane.getChildren().add(controller.getRoot());
-        });
-      }
-    });
+  private synchronized void renderQueues() {
+    List<MatchmakingQueue> queues = new ArrayList<>(teamMatchmakingService.getMatchmakingQueues());
+    queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
+    int queuesPerRow = Math.min(queues.size(), 4);
+    List<VBox> queueCards = queues.stream().map(queue -> {
+      MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
+      controller.setQueue(queue);
+      controller.getRoot().prefWidthProperty().bind(Bindings.createDoubleBinding(() -> queuePane.getWidth() / queuesPerRow - queuePane.getHgap(), queuePane.widthProperty()));
+      return controller.getRoot();
+    }).collect(Collectors.toList());
+    JavaFxUtil.runLater(() -> queuePane.getChildren().setAll(queueCards));
   }
 }

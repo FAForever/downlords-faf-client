@@ -10,16 +10,21 @@ import lombok.Setter;
 
 import java.util.List;
 
+@Getter
+@Setter
 public class MatchmakerInfoMessage extends FafServerMessage {
+  private List<MatchmakerQueue> queues;
+
+  public MatchmakerInfoMessage() {
+    super(FafServerMessageType.MATCHMAKER_INFO);
+  }
 
   @Data
   public static class MatchmakerQueue {
 
     private String queueName;
     private String queuePopTime;
-    @SerializedName("team_size")
     private int teamSize;
-    @SerializedName("num_players")
     private int numPlayers;
 
     // The boundaries indicate the ranges applicable for other searching players,
@@ -39,12 +44,4 @@ public class MatchmakerInfoMessage extends FafServerMessage {
     }
 
   }
-  @Getter
-  @Setter
-  private List<MatchmakerQueue> queues;
-
-  public MatchmakerInfoMessage() {
-    super(FafServerMessageType.MATCHMAKER_INFO);
-  }
-
 }

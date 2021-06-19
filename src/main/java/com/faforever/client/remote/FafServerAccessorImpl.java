@@ -592,7 +592,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Override
   public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
-    writeToServer(new GameMatchmakingMessage(queue.getQueueName(), state));
+    writeToServer(new GameMatchmakingMessage(queue.getTechnicalName(), state));
   }
 
   @Override

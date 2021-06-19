@@ -26,6 +26,7 @@ import com.faforever.client.remote.domain.GameInfoMessage;
 import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.commons.api.dto.Faction;
@@ -192,6 +193,13 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   private void mockStartReplayProcess(Path path, int id) throws IOException {
     when(forgedAllianceService.startReplay(path, id)).thenReturn(process);
+  }
+
+  private void mockMatchmakerChain() {
+    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(fafService.startSearchMatchmaker()).thenReturn(new CompletableFuture<>());
   }
 
   @Test
@@ -606,22 +614,21 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     instance.startSearchMatchmaker();
 
-    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
+    verify(notificationService).addImmediateWarnNotification("game.gameRunning");
   }
 
   @Test
   public void testStopSearchMatchmaker() {
-    instance.getInMatchmakerQueueProperty().set(true);
+    mockMatchmakerChain();
+    instance.startSearchMatchmaker();
+    verify(fafService).startSearchMatchmaker();
     instance.onMatchmakerSearchStopped();
-    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
     verify(fafService).stopSearchMatchmaker();
   }
 
   @Test
   public void testStopSearchMatchmakerNotSearching() {
-    instance.getInMatchmakerQueueProperty().set(false);
     instance.onMatchmakerSearchStopped();
-    assertThat(instance.getInMatchmakerQueueProperty().get(), is(false));
     verify(fafService, never()).stopSearchMatchmaker();
   }
 
@@ -753,23 +760,6 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapname())).thenReturn(completedFuture(null));
     when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    instance.setMatchedQueueRatingType("ladder_1v1");
-    instance.startSearchMatchmaker();
-    verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
-        "ladder_1v1", GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-  }
-
-  @Test
-  public void startSearchMatchmakerNoLaunchRatingTypeNoQueueRatingType() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
-    when(modService.getFeaturedMod(FAF.getTechnicalName()))
-        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    GameLaunchMessage gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().ratingType(null).get();
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(mapService.download(gameLaunchMessage.getMapname())).thenReturn(completedFuture(null));
-    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    instance.setMatchedQueueRatingType(null);
     instance.startSearchMatchmaker();
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
@@ -792,7 +782,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void runWithReplayInMatchmakerQueue() {
-    instance.getInMatchmakerQueueProperty().setValue(true);
+    mockMatchmakerChain();
+    instance.startSearchMatchmaker();
     instance.runWithReplay(null, null, null, null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addImmediateWarnNotification("replay.inQueue");
@@ -800,7 +791,8 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void runWithLiveReplayInMatchmakerQueue() {
-    instance.getInMatchmakerQueueProperty().setValue(true);
+    mockMatchmakerChain();
+    instance.startSearchMatchmaker();
     instance.runWithLiveReplay(null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addImmediateWarnNotification("replay.inQueue");
@@ -808,7 +800,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void runWithReplayInParty() {
-    instance.getInOthersPartyProperty().setValue(true);
+    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().get()));
     instance.runWithReplay(null, null, null, null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addImmediateWarnNotification("replay.inParty");
@@ -816,7 +808,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void runWithLiveReplayInParty() {
-    instance.getInOthersPartyProperty().setValue(true);
+    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().get()));
     instance.runWithLiveReplay(null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addImmediateWarnNotification("replay.inParty");

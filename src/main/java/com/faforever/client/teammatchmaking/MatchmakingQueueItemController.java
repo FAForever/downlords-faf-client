@@ -5,15 +5,21 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -23,11 +29,9 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 
-import static javafx.beans.binding.Bindings.createBooleanBinding;
-import static javafx.beans.binding.Bindings.createStringBinding;
-
 @Slf4j
 @Component
+@RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingQueueItemController implements Controller<VBox> {
 
@@ -50,37 +54,32 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   @VisibleForTesting
   MatchmakingQueue queue;
-
-  public MatchmakingQueueItemController(PlayerService playerService, TeamMatchmakingService teamMatchmakingService, I18n i18n, EventBus eventBus) {
-    this.playerService = playerService;
-    this.teamMatchmakingService = teamMatchmakingService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-  }
+  private InvalidationListener partyPropertyInvalidationListener;
+  private InvalidationListener queueStateInvalidationListener;
+  private InvalidationListener queuePopulationInvalidationListener;
+  private ChangeListener<MatchingStatus> queueMatchStatusChangeListener;
 
   @Override
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
+
+    initializeListeners();
+
     eventBus.register(this);
     joinLeaveQueueButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
     joinLeaveQueueButton.setEllipsisString("");
     mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
   }
 
-  @Override
-  public VBox getRoot() {
-    return queueItemRoot;
-  }
-
-  public void setQueue(MatchmakingQueue queue) {
-    this.queue = queue;
-    joinLeaveQueueButton.setText(i18n.getOrDefault(queue.getQueueName(), String.format(QUEUE_I18N_PATTERN, queue.getQueueName())));
-
-    playersInQueueLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase(),
-        queue.playersInQueueProperty()));
-
-    JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
-    queue.matchingStatusProperty().addListener((observable, oldValue, newValue) -> {
+  private void initializeListeners() {
+    partyPropertyInvalidationListener = observable -> setQueueButtonState();
+    queueStateInvalidationListener = observable -> JavaFxUtil.runLater(() -> {
+      refreshingLabel.setVisible(false);
+      joinLeaveQueueButton.setSelected(queue.isJoined());
+    });
+    queuePopulationInvalidationListener = observable ->
+        JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase()));
+    queueMatchStatusChangeListener = (observable, oldValue, newValue) -> {
       disableMatchStatus();
       if (newValue == null) {
         return;
@@ -91,19 +90,33 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
         case MATCH_CANCELLED -> matchCancelledLabel.setVisible(true);
         default -> log.warn("Unexpected matching status: " + newValue);
       }
-    });
+    };
+  }
 
-    joinLeaveQueueButton.disableProperty().bind(createBooleanBinding(
-        () -> teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
-            || !teamMatchmakingService.getPlayersInGame().isEmpty()
-            || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null)),
-        teamMatchmakingService.getParty().getMembers(), queue.teamSizeProperty(),
-        teamMatchmakingService.getPlayersInGame()
-    ));
-    queue.joinedProperty().addListener(observable -> refreshingLabel.setVisible(false));
-    queue.joinedProperty().addListener(observable -> joinLeaveQueueButton.setSelected(queue.isJoined()));
+  @Override
+  public VBox getRoot() {
+    return queueItemRoot;
+  }
 
+  public void setQueue(MatchmakingQueue queue) {
+    this.queue = queue;
+    joinLeaveQueueButton.setText(i18n.getOrDefault(queue.getTechnicalName(), String.format(QUEUE_I18N_PATTERN, queue.getTechnicalName())));
     setQueuePopTimeUpdater(queue);
+
+    JavaFxUtil.addAndTriggerListener(queue.matchingStatusProperty(), new WeakChangeListener<>(queueMatchStatusChangeListener));
+    JavaFxUtil.addAndTriggerListener(queue.playersInQueueProperty(), new WeakInvalidationListener(queuePopulationInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), new WeakInvalidationListener(partyPropertyInvalidationListener));
+    JavaFxUtil.addListener(queue.teamSizeProperty(), new WeakInvalidationListener(partyPropertyInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(partyPropertyInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(partyPropertyInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(queue.joinedProperty(), new WeakInvalidationListener(queueStateInvalidationListener));
+  }
+
+  private void setQueueButtonState() {
+    boolean disable = teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
+        || teamMatchmakingService.partyMembersNotReady()
+        || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer().orElse(null));
+    JavaFxUtil.runLater(() -> joinLeaveQueueButton.setDisable(disable));
   }
 
   private void setQueuePopTimeUpdater(MatchmakingQueue queue) {
@@ -122,7 +135,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     queuePopTimeUpdater.play();
   }
 
-  public void disableMatchStatus() {
+  private void disableMatchStatus() {
     matchFoundLabel.setVisible(false);
     matchStartingLabel.setVisible(false);
     matchCancelledLabel.setVisible(false);
