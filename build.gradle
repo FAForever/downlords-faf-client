@@ -191,12 +191,9 @@ task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
 }
 
 repositories {
-  jcenter()
+  mavenCentral()
   maven { url "https://jitpack.io" }
   maven { url 'https://maven.ej-technologies.com/repository' }
-  maven { url "https://dl.bintray.com/typesafe/maven-releases" }
-  maven { url "https://maven.teamdev.com/repository/products" }
-  maven { url "https://repo.spring.io/milestone/" }
 }
 
 dependencies {
@@ -223,7 +220,7 @@ dependencies {
   implementation("org.jsoup:jsoup:1.11.3")
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("com.github.luben:zstd-jni:1.4.8-1")
-  implementation("com.github.nocatch:nocatch:1.1")
+  implementation("io.github.micheljung:nocatch:2.0")
   implementation("org.luaj:luaj-jse:3.0.1")
   implementation("commons-validator:commons-validator:1.6")
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
@@ -235,8 +232,8 @@ dependencies {
   implementation("javax.annotation:javax.annotation-api:1.3.1")
   implementation("com.github.ben-manes.caffeine:caffeine")
   implementation("org.apache.httpcomponents:httpclient")
-  implementation("ch.micheljung.fxstage:fxstage:0.7.4")
-  implementation("ch.micheljung.waitomo:jfx-waitomo-theme:0.2.0")
+  implementation("io.github.micheljung:fxstage:0.8.0")
+  implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:7.3.0")
 
   implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
