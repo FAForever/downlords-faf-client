@@ -32,9 +32,11 @@ import com.faforever.client.remote.domain.SearchInfoMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
+import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -48,6 +50,7 @@ import javafx.collections.ObservableSet;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -64,7 +67,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class TeamMatchmakingService {
+public class TeamMatchmakingService implements InitializingBean {
 
   private final PlayerService playerService;
   private final NotificationService notificationService;
@@ -129,6 +132,11 @@ public class TeamMatchmakingService {
     queueJoinInvalidationListener = observable -> currentlyInQueue.set(matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined));
 
     JavaFxUtil.attachListToMap(matchmakingQueues, queueIdToQueue);
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    eventBus.register(this);
   }
 
   @VisibleForTesting
@@ -430,5 +438,10 @@ public class TeamMatchmakingService {
 
   public void requestMatchmakerInfo() {
     fafService.requestMatchmakerInfo();
+  }
+
+  @Subscribe
+  public void onLogOut(LoggedOutEvent event) {
+    queueIdToQueue.clear();
   }
 }
