@@ -29,6 +29,7 @@ import java.util.Optional;
 
 public class Game {
   public static final String OBSERVERS_TEAM = "-1";
+  public static final String NO_TEAM = "1";
 
   private final StringProperty host = new SimpleStringProperty();
   private final StringProperty title = new SimpleStringProperty();

@@ -94,9 +94,9 @@ public class TeamCardController implements Controller<Node> {
     }
 
     String teamTitle;
-    if ("1".equals(team)) {
+    if (Game.NO_TEAM.equals(team)) {
       teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
-    } else if ("-1".equals(team)) {
+    } else if (Game.OBSERVERS_TEAM.equals(team)) {
       teamTitle = i18n.get("game.tooltip.observers");
     } else {
       teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);
