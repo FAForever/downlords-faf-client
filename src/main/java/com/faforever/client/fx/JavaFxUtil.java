@@ -207,7 +207,8 @@ public final class JavaFxUtil {
       synchronized (list) {
         if (change.wasRemoved()) {
           list.remove(change.getValueRemoved());
-        } else if (change.wasAdded()) {
+        }
+        if (change.wasAdded()) {
           list.add(change.getValueAdded());
         }
       }

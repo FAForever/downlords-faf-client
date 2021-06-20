@@ -43,6 +43,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,8 @@ public class TeamMatchmakingService {
   @Getter
   private final Party party;
   @Getter
-  private final ObservableList<MatchmakingQueue> matchmakingQueues = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+  private final ObservableList<MatchmakingQueue> matchmakingQueues = FXCollections.observableArrayList();
+  private final ObservableMap<Integer, MatchmakingQueue> queueIdToQueue = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
   private final ReadOnlyBooleanWrapper partyMembersNotReady;
   private final ObservableSet<Player> playersInGame;
   private final List<ScheduledFuture<?>> leaveQueueTimeouts = new LinkedList<>();
@@ -125,6 +127,8 @@ public class TeamMatchmakingService {
 
     playerService.getCurrentPlayer().ifPresent(player -> initializeParty());
     queueJoinInvalidationListener = observable -> currentlyInQueue.set(matchmakingQueues.stream().anyMatch(MatchmakingQueue::isJoined));
+
+    JavaFxUtil.attachListToMap(matchmakingQueues, queueIdToQueue);
   }
 
   @VisibleForTesting
@@ -139,7 +143,7 @@ public class TeamMatchmakingService {
         .ifPresentOrElse(matchmakingQueue -> updateQueueInfo(matchmakingQueue, messageQueue),
             () -> fafService.getMatchmakingQueue(messageQueue.getQueueName()).thenAccept(matchmakingQueueFromApi ->
                 matchmakingQueueFromApi.ifPresent(apiQueue -> {
-                  matchmakingQueues.add(apiQueue);
+                  queueIdToQueue.put(apiQueue.getQueueId(), apiQueue);
                   apiQueue.joinedProperty().addListener(queueJoinInvalidationListener);
                   updateQueueInfo(apiQueue, messageQueue);
                 })));
