@@ -1,22 +1,20 @@
 package com.faforever.client.game;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.theme.UiService;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
+import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
 
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
-import com.faforever.client.theme.UiService;
-
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
-import javafx.scene.layout.Pane;
+import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
@@ -47,7 +45,7 @@ public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(teamCardController.getRoot()).thenReturn(new Pane());
-    when(playerService.getPlayerForUsername(Mockito.anyString())).thenReturn(Optional.of(new Player("")));
+    when(playerService.getPlayerByNameIfOnline(Mockito.anyString())).thenReturn(Optional.of(new Player("")));
     
     instance = new GameTooltipController(uiService, playerService);
     loadFxml("theme/play/game_tooltip.fxml", clazz -> instance);

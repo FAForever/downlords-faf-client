@@ -405,7 +405,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testStatusToHosting() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host("junit").get();
+    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
     player.setGame(game);
     when(i18n.get("game.gameStatus.hosting")).thenReturn("Hosting");
     instance.associatePlayerToChatUser(chatUser, player);

@@ -102,7 +102,7 @@ public class PrivateUserInfoControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
-    assertEquals(String.valueOf(player.getNumberOfGames()), instance.gamesPlayedLabel.getText());
+    assertEquals("123", instance.gamesPlayedLabel.getText());
     verify(chatUserService).associatePlayerToChatUser(chatChannelUser, player);
     verify(gameDetailController, times(2)).setGame(player.getGame());
     verify(achievementService).getPlayerAchievements(player.getId());
@@ -208,7 +208,7 @@ public class PrivateUserInfoControllerTest extends AbstractPlainJavaFxTest {
     assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
-    assertEquals(String.valueOf(player.getNumberOfGames()), instance.gamesPlayedLabel.getText());
+    assertEquals("123", instance.gamesPlayedLabel.getText());
     verify(chatUserService).associatePlayerToChatUser(chatChannelUser, player);
     verify(gameDetailController, times(3)).setGame(player.getGame());
     verify(achievementService).getPlayerAchievements(player.getId());

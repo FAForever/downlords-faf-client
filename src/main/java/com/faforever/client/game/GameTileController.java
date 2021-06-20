@@ -3,13 +3,13 @@ package com.faforever.client.game;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.google.common.base.Joiner;
-import javafx.beans.binding.StringBinding;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableMap;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -25,20 +25,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static javafx.beans.binding.Bindings.createObjectBinding;
-import static javafx.beans.binding.Bindings.createStringBinding;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
 public class GameTileController implements Controller<Node> {
 
-  private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
+  public static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
   private final MapService mapService;
   private final I18n i18n;
@@ -58,19 +54,43 @@ public class GameTileController implements Controller<Node> {
   private Consumer<Game> onSelectedListener;
   private Game game;
 
+  private InvalidationListener numPlayersInvalidationListener;
+  private InvalidationListener gamePropertiesInvalidationListener;
+
   public void setOnSelectedListener(Consumer<Game> onSelectedListener) {
     this.onSelectedListener = onSelectedListener;
   }
 
   public void initialize() {
-    modsLabel.managedProperty().bind(modsLabel.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(modsLabel, gameTypeLabel, lockIconLabel);
     modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
-    gameTypeLabel.managedProperty().bind(gameTypeLabel.visibleProperty());
-    lockIconLabel.managedProperty().bind(lockIconLabel.visibleProperty());
+
+    numPlayersInvalidationListener = observable -> onNumPlayersChanged();
+    gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
   }
 
   public Node getRoot() {
     return gameCardRoot;
+  }
+
+  private void onGamePropertyChanged() {
+    JavaFxUtil.runLater(() -> {
+      gameTitleLabel.setText(game.getTitle());
+      hostLabel.setText(game.getHost());
+      gameMapLabel.setText(game.getMapFolderName());
+      mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
+      modsLabel.setText(getSimModsLabelContent(game.getSimMods()));
+      lockIconLabel.setVisible(game.isPasswordProtected());
+    });
+  }
+
+  private void onNumPlayersChanged() {
+    boolean friendsInGame = playerService.areFriendsInGame(game);
+    JavaFxUtil.runLater(() -> {
+      numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()));
+      avgRatingLabel.setText(i18n.get("game.avgRating.format", Math.round(game.getAverageRating() / 100.0) * 100.0));
+      getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, friendsInGame);
+    });
   }
 
   public void setGame(Game game) {
@@ -80,50 +100,26 @@ public class GameTileController implements Controller<Node> {
     modService.getFeaturedMod(game.getFeaturedMod())
         .thenAccept(featuredModBean -> JavaFxUtil.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
 
-    gameTitleLabel.textProperty().bind(game.titleProperty());
-    hostLabel.setText(game.getHost());
+    WeakInvalidationListener weakGamePropertiesListener = new WeakInvalidationListener(gamePropertiesInvalidationListener);
+    WeakInvalidationListener weakNumPlayersListener = new WeakInvalidationListener(numPlayersInvalidationListener);
 
-    StringBinding mapNameBinding = createStringBinding(
-        () -> mapService.getMapLocallyFromName(game.getMapFolderName())
-            .map(MapBean::getDisplayName)
-            .orElse(game.getMapFolderName()),
-        game.mapFolderNameProperty());
-
-    JavaFxUtil.bind(gameMapLabel.textProperty(), mapNameBinding);
-
-    numberOfPlayersLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.players.format", game.getNumPlayers(), game.getMaxPlayers()),
-        game.numPlayersProperty(),
-        game.maxPlayersProperty()
-    ));
-
-    avgRatingLabel.textProperty().bind(createStringBinding(
-        () -> i18n.get("game.avgRating.format", Math.round(game.getAverageRating() / 100.0) * 100.0),
-        game.teamsProperty()
-    ));
-
-    ObservableMap<String, String> simMods = game.getSimMods();
-    modsLabel.textProperty().bind(createStringBinding(() -> getSimModsLabelContent(simMods), simMods));
-
-    // TODO display "unknown map" image first since loading may take a while
-    mapImageView.imageProperty().bind(createObjectBinding(
-        () -> mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL),
-        game.mapFolderNameProperty()
-    ));
-
-    lockIconLabel.visibleProperty().bind(game.passwordProtectedProperty());
-    setHighlightInTileIfThereAreFriends();
-  }
-
-  private void setHighlightInTileIfThereAreFriends() {
-    getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game));
+    JavaFxUtil.addListener(game.titleProperty(), weakGamePropertiesListener);
+    JavaFxUtil.addListener(game.mapFolderNameProperty(), weakGamePropertiesListener);
+    JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
+    JavaFxUtil.addListener(game.getSimMods(), weakGamePropertiesListener);
+    JavaFxUtil.addAndTriggerListener(game.passwordProtectedProperty(), weakGamePropertiesListener);
+    JavaFxUtil.addListener(game.numPlayersProperty(), weakNumPlayersListener);
+    JavaFxUtil.addListener(game.maxPlayersProperty(), weakNumPlayersListener);
+    JavaFxUtil.addAndTriggerListener(game.averageRatingProperty(), weakNumPlayersListener);
   }
 
   private String getSimModsLabelContent(ObservableMap<String, String> simMods) {
-    List<String> modNames = simMods.entrySet().stream()
-        .limit(2)
-        .map(Entry::getValue)
-        .collect(Collectors.toList());
+    List<String> modNames;
+    synchronized (simMods) {
+      modNames = simMods.values().stream()
+          .limit(2)
+          .collect(Collectors.toList());
+    }
 
     if (simMods.size() > 2) {
       return i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1);

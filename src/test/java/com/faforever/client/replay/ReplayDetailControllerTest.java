@@ -523,7 +523,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
     instance.setReplay(onlineReplay);
     instance.onReport();
 
-    verify(reportDialogController).setGame(onlineReplay);
+    verify(reportDialogController).setReplay(onlineReplay);
     verify(reportDialogController).show();
   }
 

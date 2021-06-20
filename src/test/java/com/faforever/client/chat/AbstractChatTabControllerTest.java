@@ -293,7 +293,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "somePlayer";
     Player player = new Player(playerName);
     player.setSocialStatus(FRIEND);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(player));
+    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FRIEND.getCssClass());
   }
 
@@ -302,14 +302,14 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "somePlayer";
     Player player = new Player(playerName);
     player.setSocialStatus(FOE);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(player));
+    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FOE.getCssClass());
   }
 
   @Test
   public void getMessageCssClassChatOnly() {
     String playerName = "somePlayer";
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.empty());
+    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.empty());
     assertEquals(instance.getMessageCssClass(playerName), CSS_CLASS_CHAT_ONLY);
   }
 
@@ -318,7 +318,7 @@ public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "junit";
     Player player = new Player(playerName);
     player.setSocialStatus(SELF);
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(player));
+    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
     assertEquals(instance.getMessageCssClass(playerName), SocialStatus.SELF.getCssClass());
   }
 

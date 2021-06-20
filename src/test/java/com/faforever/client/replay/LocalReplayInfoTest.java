@@ -3,8 +3,6 @@ package com.faforever.client.replay;
 import com.faforever.client.game.Game;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,18 +12,18 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 public class LocalReplayInfoTest {
-  private static String host = "Test";
-  private static int uid = 1234;
-  private static String title = "Test Game";
-  private static String mapname = "test_map";
-  private static GameStatus state = GameStatus.CLOSED;
-  private static VictoryCondition gameType = VictoryCondition.DEMORALIZATION;
-  private static String featuredMod = "faf";
-  private static int maxPlayers = 6;
-  private static int numPlayers = 4;
-  private static ObservableMap<String, String> simMods = FXCollections.observableMap(Map.of("test", "simtest"));
-  private static ObservableMap<String, List<String>> teams = FXCollections.observableMap(Map.of("Army 1", List.of("P1", "P2"),"Army 2", List.of("P3", "P4")));;
-  private static ObservableMap<String, Integer> featuredModVersions = FXCollections.observableMap(Map.of("faf", 1));
+  private static final String host = "Test";
+  private static final int uid = 1234;
+  private static final String title = "Test Game";
+  private static final String mapname = "test_map";
+  private static final GameStatus state = GameStatus.CLOSED;
+  private static final VictoryCondition gameType = VictoryCondition.DEMORALIZATION;
+  private static final String featuredMod = "faf";
+  private static final int maxPlayers = 6;
+  private static final int numPlayers = 4;
+  private static final Map<String, String> simMods = Map.of("test", "simtest");
+  private static final Map<String, List<String>> teams = Map.of("Army 1", List.of("P1", "P2"), "Army 2", List.of("P3", "P4"));
+  private static final Map<String, Integer> featuredModVersions = Map.of("faf", 1);
 
   private LocalReplayInfo instance;
   private Game game;

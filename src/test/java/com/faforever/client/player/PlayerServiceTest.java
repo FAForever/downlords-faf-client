@@ -1,10 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.game.Game;
-import com.faforever.client.game.GameAddedEvent;
 import com.faforever.client.game.GameBuilder;
-import com.faforever.client.game.GameRemovedEvent;
-import com.faforever.client.game.GameUpdatedEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.PlayersMessage;
@@ -22,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.util.ReflectionUtils;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,13 +31,15 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -78,7 +77,7 @@ public class PlayerServiceTest {
 
   @Test
   public void testGetPlayerForUsernameUsernameDoesNotExist() {
-    Optional<Player> player = instance.getPlayerForUsername("junit");
+    Optional<Player> player = instance.getPlayerByNameIfOnline("junit");
     assertFalse(player.isPresent());
   }
 
@@ -86,7 +85,7 @@ public class PlayerServiceTest {
   public void testGetPlayerForUsernameUsernameExists() {
     instance.createAndGetPlayerForUsername("junit");
 
-    Optional<Player> player = instance.getPlayerForUsername("junit");
+    Optional<Player> player = instance.getPlayerByNameIfOnline("junit");
 
     assertTrue(player.isPresent());
     assertEquals("junit", player.get().getUsername());
@@ -133,8 +132,8 @@ public class PlayerServiceTest {
     verify(fafService).addFriend(lisa);
     verify(fafService).addFriend(ashley);
 
-    assertTrue("Property 'friend' was not set to true", lisa.getSocialStatus() == FRIEND);
-    assertTrue("Property 'friend' was not set to true", ashley.getSocialStatus() == FRIEND);
+    assertSame("Property 'friend' was not set to true", lisa.getSocialStatus(), FRIEND);
+    assertSame("Property 'friend' was not set to true", ashley.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -144,7 +143,7 @@ public class PlayerServiceTest {
 
     instance.addFriend(player);
 
-    assertFalse("Property 'foe' is still true", player.getSocialStatus() == FOE);
+    assertNotSame("Property 'foe' is still true", player.getSocialStatus(), FOE);
   }
 
   @Test
@@ -161,8 +160,8 @@ public class PlayerServiceTest {
     instance.removeFriend(player1);
     verify(fafService).removeFriend(player1);
 
-    assertFalse("Property 'friend' was not set to false", player1.getSocialStatus() == FRIEND);
-    assertTrue("Property 'friend' was not set to true", player2.getSocialStatus() == FRIEND);
+    assertNotSame("Property 'friend' was not set to false", player1.getSocialStatus(), FRIEND);
+    assertSame("Property 'friend' was not set to true", player2.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -175,8 +174,8 @@ public class PlayerServiceTest {
 
     verify(fafService).addFoe(player1);
     verify(fafService).addFoe(player2);
-    assertTrue("Property 'foe' was not set to true", player1.getSocialStatus() == FOE);
-    assertTrue("Property 'foe' was not set to true", player2.getSocialStatus() == FOE);
+    assertSame("Property 'foe' was not set to true", player1.getSocialStatus(), FOE);
+    assertSame("Property 'foe' was not set to true", player2.getSocialStatus(), FOE);
   }
 
   @Test
@@ -186,7 +185,7 @@ public class PlayerServiceTest {
 
     instance.addFoe(player);
 
-    assertFalse("Property 'friend' is still true", player.getSocialStatus() == FRIEND);
+    assertNotSame("Property 'friend' is still true", player.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -196,7 +195,7 @@ public class PlayerServiceTest {
     instance.addFriend(player);
     instance.removeFriend(player);
 
-    assertFalse("Property 'friend' was not set to false", player.getSocialStatus() == FRIEND);
+    assertNotSame("Property 'friend' was not set to false", player.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -229,21 +228,21 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void onGameRemoved() {
-    Game game = new Game();
-    ObservableMap<String, List<String>> teams = game.getTeams();
-    teams.put("1", Collections.singletonList("JUnit1"));
-    teams.put("2", Collections.singletonList("JUnit2"));
+  public void testGameRemovedFromPlayerIfGameClosed() {
+    Map<String, List<String>> teams = Map.of("1", List.of("JUnit1"), "2", List.of("JUnit2"));
+    Game game = GameBuilder.create().defaultValues().teams(teams).get();
 
     Player player1 = instance.createAndGetPlayerForUsername("JUnit1");
     Player player2 = instance.createAndGetPlayerForUsername("JUnit2");
 
-    instance.onGameAdded(new GameAddedEvent(game));
+    instance.updatePlayersInGame(game);
 
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
 
-    instance.onGameRemoved(new GameRemovedEvent(game));
+    game.setStatus(GameStatus.CLOSED);
+
+    instance.updatePlayersInGame(game);
 
     assertThat(player1.getGame(), is(nullValue()));
     assertThat(player2.getGame(), is(nullValue()));
@@ -251,52 +250,23 @@ public class PlayerServiceTest {
 
   @Test
   public void testPlayerLeftOpenGame() {
-    Game game = new Game();
-    game.setStatus(GameStatus.OPEN);
-    ObservableMap<String, List<String>> teams = game.getTeams();
-    teams.put("1", Collections.singletonList("JUnit1"));
-    teams.put("2", Collections.singletonList("JUnit2"));
+    Map<String, List<String>> teams = new HashMap<>(Map.of("1", List.of("JUnit1"), "2", List.of("JUnit2")));
+    Game game = GameBuilder.create().defaultValues().teams(teams).get();
 
     Player player1 = instance.createAndGetPlayerForUsername("JUnit1");
     Player player2 = instance.createAndGetPlayerForUsername("JUnit2");
-    game.setHost("JUnit2");
 
-    instance.onGameAdded(new GameAddedEvent(game));
+    instance.updatePlayersInGame(game);
 
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
 
     teams.remove("1");
 
-    instance.onGameUpdated(new GameUpdatedEvent(game));
+    instance.updatePlayersInGame(game);
 
     assertThat(player1.getGame(), is(nullValue()));
     assertThat(player2.getGame(), is(game));
-  }
-
-  @Test
-  public void testGameRemovedFromPlayerIfGameClosed() {
-    Game game = new Game();
-    game.setStatus(GameStatus.OPEN);
-    ObservableMap<String, List<String>> teams = game.getTeams();
-    teams.put("1", Collections.singletonList("JUnit1"));
-    teams.put("2", Collections.singletonList("JUnit2"));
-
-    Player player1 = instance.createAndGetPlayerForUsername("JUnit1");
-    Player player2 = instance.createAndGetPlayerForUsername("JUnit2");
-    game.setHost("JUnit2");
-
-    instance.onGameAdded(new GameAddedEvent(game));
-
-    assertThat(player1.getGame(), is(game));
-    assertThat(player2.getGame(), is(game));
-
-    game.setStatus(GameStatus.CLOSED);
-
-    instance.onGameUpdated(new GameUpdatedEvent(game));
-
-    assertThat(player1.getGame(), is(nullValue()));
-    assertThat(player2.getGame(), is(nullValue()));
   }
 
   @Test
@@ -322,5 +292,27 @@ public class PlayerServiceTest {
 
     assertFalse(instance.areFriendsInGame(game));
     assertFalse(instance.areFriendsInGame(null));
+  }
+
+  @Test
+  public void testCurrentPlayerInGame() {
+    String playerName = "junit";
+    LoginSuccessEvent event = new LoginSuccessEvent(playerName, "", 1);
+    instance.onLoginSuccess(event);
+
+    Game game = GameBuilder.create().defaultValues().teams(Map.of("1", List.of(playerName))).get();
+
+    assertTrue(instance.isCurrentPlayerInGame(game));
+  }
+
+  @Test
+  public void testCurrentPlayerNotInGame() {
+    String playerName = "junit";
+    LoginSuccessEvent event = new LoginSuccessEvent(playerName, "", 1);
+    instance.onLoginSuccess(event);
+
+    Game game = GameBuilder.create().defaultValues().teams(Map.of("1", List.of("other"))).get();
+
+    assertFalse(instance.isCurrentPlayerInGame(game));
   }
 }

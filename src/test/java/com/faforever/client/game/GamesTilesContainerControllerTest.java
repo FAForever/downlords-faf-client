@@ -160,6 +160,6 @@ public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
     });
     createdTiledFlowPaneCountDown.await();
 
-    assertEquals(instance.uidToGameCard.get(game2.getId()), instance.tiledFlowPane.getChildren().get(0));
+    assertEquals(instance.gameIdToGameCard.get(game2.getId()), instance.tiledFlowPane.getChildren().get(0));
   }
 }

@@ -2,11 +2,12 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.chat.avatar.AvatarService;
-import com.faforever.client.game.Game;
+import com.faforever.client.game.GameBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.teammatchmaking.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
@@ -72,7 +73,9 @@ public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
     assertFalse(instance.playerStatusImageView.isVisible());
     assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
 
-    runOnFxThreadAndWait(() -> owner.setGame(new Game()));
+    owner.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
+    WaitForAsyncUtils.waitForFxEvents();
+
     assertTrue(instance.playerStatusImageView.isVisible());
     assertTrue(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
 

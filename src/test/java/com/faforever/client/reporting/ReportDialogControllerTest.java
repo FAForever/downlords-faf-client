@@ -182,7 +182,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testSetGame() {
-    instance.setGame(replay);
+    instance.setReplay(replay);
     assertEquals(String.valueOf(replay.getId()), instance.gameId.getText());
   }
 }

@@ -10,7 +10,6 @@ import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
-import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -20,10 +19,10 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,24 +45,24 @@ public class TeamCardController implements Controller<Node> {
   /**
    * Creates a new {@link TeamCardController} and adds its root to the specified {@code teamsPane}.
    *
-   * @param teamsList a mapping of team name (e.g. "2") to a list of player names that are in that team
-   * @param ratingType the type of rating used for the game sent from the server
+   * @param game the game to create teams from
    * @param playerService the service to use to look up players by name
    */
-  static void createAndAdd(ObservableMap<? extends String, ? extends List<String>> teamsList, String ratingType, PlayerService playerService, UiService uiService, Pane teamsPane) {
-    JavaFxUtil.assertApplicationThread();
-    for (Map.Entry<? extends String, ? extends List<String>> entry : teamsList.entrySet()) {
-      List<Player> players = entry.getValue().stream()
-          .map(playerService::getPlayerForUsername)
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .collect(Collectors.toList());
+  static void createAndAdd(Game game, PlayerService playerService, UiService uiService, Pane teamsPane) {
+    List<Node> teamCardPanes = new ArrayList<>();
+    synchronized (game.getTeams()) {
+      for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
+        List<Player> players = entry.getValue().stream()
+            .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
+            .collect(Collectors.toList());
 
-      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-      teamCardController.setPlayersInTeam(entry.getKey(), players,
-          player -> RatingUtil.getLeaderboardRating(player, ratingType), null, RatingPrecision.ROUNDED);
-      teamsPane.getChildren().add(teamCardController.getRoot());
+        TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+        teamCardController.setPlayersInTeam(entry.getKey(), players,
+            player -> RatingUtil.getLeaderboardRating(player, game.getRatingType()), null, RatingPrecision.ROUNDED);
+        teamCardPanes.add(teamCardController.getRoot());
+      }
     }
+    JavaFxUtil.runLater(() -> teamsPane.getChildren().setAll(teamCardPanes));
   }
 
   public void setPlayersInTeam(String team, List<Player> playerList, Function<Player, Integer> ratingProvider, Function<Player, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
@@ -95,9 +94,9 @@ public class TeamCardController implements Controller<Node> {
     }
 
     String teamTitle;
-    if ("1".equals(team)) {
+    if (Game.NO_TEAM.equals(team)) {
       teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
-    } else if ("-1".equals(team)) {
+    } else if (Game.OBSERVERS_TEAM.equals(team)) {
       teamTitle = i18n.get("game.tooltip.observers");
     } else {
       teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);

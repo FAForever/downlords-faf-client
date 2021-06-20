@@ -95,7 +95,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
     playerName = "testUser";
     Player player = new Player(playerName);
 
-    when(playerService.getPlayerForUsername(playerName)).thenReturn(Optional.of(player));
+    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
     when(userService.getUsername()).thenReturn(playerName);
     when(timeService.asShortTime(any())).thenReturn("");
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));

@@ -26,7 +26,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
@@ -57,9 +56,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   @SuppressWarnings("WeakerAccess")
   public GameDetailController gameDetailController;
-  private GamesTableController gamesTableController;
 
-  public GridPane gamesGridPane;
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
   public ToggleButton toggleGameDetailPaneButton;
@@ -76,7 +73,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public CheckBox showModdedGamesCheckBox;
   public CheckBox showPasswordProtectedGamesCheckBox;
   private final ChangeListener<Boolean> filterConditionsChangedListener = (observable, oldValue, newValue) -> updateFilteredItems();
-  private GamesTilesContainerController gamesTilesContainerController;
   private final ChangeListener<Game> gameChangeListener;
 
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
@@ -209,7 +205,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   public void onTableButtonClicked() {
-    gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
+    GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
     gamesTableController.selectedGameProperty().addListener((observable, oldValue, newValue) -> setSelectedGame(newValue));
     gamesTableController.initializeGameTable(filteredItems);
 
@@ -227,7 +223,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   public void onTilesButtonClicked() {
-    gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
+    GamesTilesContainerController gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), new WeakChangeListener<>(gameChangeListener));
 
     Node root = gamesTilesContainerController.getRoot();

@@ -251,7 +251,7 @@ public class TeamMatchmakingService {
   }
 
   public void onPartyInvite(PartyInviteMessage message) {
-    playerService.getPlayerIfOnlineById(message.getSender())
+    playerService.getPlayerByIdIfOnline(message.getSender())
         .ifPresentOrElse(player -> {
           ActionCallback callback = event -> this.acceptPartyInvite(player);
 
@@ -312,7 +312,7 @@ public class TeamMatchmakingService {
       return;
     }
 
-    playerService.getPlayerForUsername(player).ifPresent(fafService::inviteToParty);
+    playerService.getPlayerByNameIfOnline(player).ifPresent(fafService::inviteToParty);
   }
 
   public void kickPlayerFromParty(Player player) {
@@ -381,7 +381,7 @@ public class TeamMatchmakingService {
   }
 
   private synchronized void setOwnerFromInfoMessage(PartyInfoMessage message) {
-    playerService.getPlayerIfOnlineById(message.getOwner()).ifPresent(player -> {
+    playerService.getPlayerByIdIfOnline(message.getOwner()).ifPresent(player -> {
       party.setOwner(player);
       eventBus.post(new PartyOwnerChangedEvent(player));
     });
@@ -408,7 +408,7 @@ public class TeamMatchmakingService {
   }
 
   private PartyMember createPartyMemberFromOnlinePLayers(PartyInfoMessage.PartyMember member) {
-    return playerService.getPlayerIfOnlineById(member.getPlayer())
+    return playerService.getPlayerByIdIfOnline(member.getPlayer())
         .map(player -> new PartyMember(player, member.getFactions()))
         .orElseGet(() -> {
           log.warn("Could not find party member {}", member.getPlayer());

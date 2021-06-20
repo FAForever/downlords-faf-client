@@ -6,6 +6,7 @@ import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -15,6 +16,7 @@ import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameType;
@@ -24,12 +26,13 @@ import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.alert.Alert;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
+import com.faforever.client.util.Assert;
 import com.faforever.client.util.ClipboardUtil;
 import com.faforever.commons.api.dto.GroupPermission;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -42,6 +45,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -50,6 +54,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URL;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
@@ -61,6 +66,7 @@ import static java.util.Locale.US;
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
+@RequiredArgsConstructor
 public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private final PreferencesService preferencesService;
@@ -99,33 +105,45 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem kickGameItem;
   public MenuItem kickLobbyItem;
 
-  @SuppressWarnings("FieldCanBeLocal")
-  private ChangeListener<Player> playerChangeListener;
-
-  public ChatUserContextMenuController(PreferencesService preferencesService,
-                                       PlayerService playerService, ReplayService replayService,
-                                       NotificationService notificationService, I18n i18n, EventBus eventBus,
-                                       JoinGameHelper joinGameHelper, AvatarService avatarService, UiService uiService,
-                                       ModeratorService moderatorService, TeamMatchmakingService teamMatchmakingService) {
-    this.preferencesService = preferencesService;
-    this.playerService = playerService;
-    this.replayService = replayService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.joinGameHelper = joinGameHelper;
-    this.avatarService = avatarService;
-    this.uiService = uiService;
-    this.moderatorService = moderatorService;
-    this.teamMatchmakingService = teamMatchmakingService;
-  }
+  private InvalidationListener chatUserPropertyInvalidationListener;
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
     avatarComboBox.setCellFactory(param -> avatarCell());
     avatarComboBox.setButtonCell(avatarCell());
-    removeCustomColorButton.managedProperty().bind(removeCustomColorButton.visibleProperty());
 
     avatarPickerMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() -> !avatarComboBox.getItems().isEmpty(), avatarComboBox.getItems()));
+    initializeListeners();
+  }
+
+  private void initializeListeners() {
+    chatUserPropertyInvalidationListener = observable -> {
+      Optional<Player> optionalPlayer = chatUser.getPlayer();
+      optionalPlayer.ifPresent(player ->
+          moderatorService.getPermissions().thenAccept(permissions -> setModeratorOptions(permissions, player)));
+      SocialStatus socialStatus = chatUser.getSocialStatus().orElse(null);
+      PlayerStatus playerStatus = chatUser.getGameStatus().orElse(null);
+      Game game = optionalPlayer.map(Player::getGame).orElse(null);
+      if (socialStatus == SELF && optionalPlayer.isPresent()) {
+        loadAvailableAvatars(optionalPlayer.get());
+      }
+      JavaFxUtil.runLater(() -> {
+        showUserInfo.setVisible(optionalPlayer.isPresent());
+        viewReplaysItem.setVisible(optionalPlayer.isPresent());
+        sendPrivateMessageItem.setVisible(socialStatus != SELF);
+        addFriendItem.setVisible(socialStatus != FRIEND && socialStatus != SELF);
+        removeFriendItem.setVisible(socialStatus == FRIEND);
+        addFoeItem.setVisible(socialStatus != FOE && socialStatus != SELF);
+        removeFoeItem.setVisible(socialStatus == FOE);
+        reportItem.setVisible(socialStatus != SELF);
+
+        joinGameItem.setVisible(socialStatus != SELF
+            && (playerStatus == PlayerStatus.LOBBYING || playerStatus == PlayerStatus.HOSTING)
+            && game != null && game.getGameType() != GameType.MATCHMAKER);
+        watchGameItem.setVisible(playerStatus == PlayerStatus.PLAYING);
+        inviteItem.setVisible(socialStatus != SELF && playerStatus == PlayerStatus.IDLE);
+      });
+    };
   }
 
   @NotNull
@@ -146,9 +164,9 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void setChatUser(ChatChannelUser chatUser) {
+    Assert.checkNotNullIllegalState(this.chatUser, "Chat User already set");
+
     this.chatUser = chatUser;
-    showUserInfo.visibleProperty().bind(chatUser.playerProperty().isNotNull());
-    viewReplaysItem.visibleProperty().bind(chatUser.playerProperty().isNotNull());
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
@@ -181,45 +199,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
         .and(colorPicker.valueProperty().isNotNull()));
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
 
-
-    playerChangeListener = (observable, oldValue, newValue) -> {
-      if (newValue == null) {
-        return;
-      }
-
-      if (newValue.getSocialStatus() == SELF) {
-        loadAvailableAvatars(newValue);
-      }
-
-      moderatorService.getPermissions()
-          .thenAccept(permissions -> setModeratorOptions(permissions, newValue));
-
-      sendPrivateMessageItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
-      addFriendItem.visibleProperty().bind(
-          newValue.socialStatusProperty().isNotEqualTo(FRIEND).and(newValue.socialStatusProperty().isNotEqualTo(SELF))
-      );
-      removeFriendItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FRIEND));
-      addFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(FOE).and(newValue.socialStatusProperty().isNotEqualTo(SELF)));
-      removeFoeItem.visibleProperty().bind(newValue.socialStatusProperty().isEqualTo(FOE));
-      reportItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF));
-
-      joinGameItem.visibleProperty().bind(newValue.socialStatusProperty().isNotEqualTo(SELF)
-          .and(newValue.statusProperty().isEqualTo(PlayerStatus.LOBBYING)
-              .or(newValue.statusProperty().isEqualTo(PlayerStatus.HOSTING)))
-          .and(Bindings.createBooleanBinding(() -> {
-                return newValue.getGame() != null
-                    && newValue.getGame().getGameType() != GameType.MATCHMAKER;
-              }, newValue.gameProperty())
-          ));
-      watchGameItem.visibleProperty().bind(newValue.statusProperty().isEqualTo(PlayerStatus.PLAYING));
-      inviteItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-              newValue.socialStatusProperty().get() != SELF &&
-              newValue.statusProperty().get() == PlayerStatus.IDLE,
-          newValue.statusProperty()));
-
-    };
-    JavaFxUtil.addListener(chatUser.playerProperty(), new WeakChangeListener<>(playerChangeListener));
-    playerChangeListener.changed(chatUser.playerProperty(), null, chatUser.getPlayer().orElse(null));
+    WeakInvalidationListener weakChatUserPropertyListener = new WeakInvalidationListener(chatUserPropertyInvalidationListener);
+    JavaFxUtil.addListener(chatUser.playerProperty(), weakChatUserPropertyListener);
+    JavaFxUtil.addListener(chatUser.socialStatusProperty(), weakChatUserPropertyListener);
+    JavaFxUtil.addAndTriggerListener(chatUser.gameStatusProperty(), weakChatUserPropertyListener);
 
     socialSeparator.visibleProperty().bind(addFriendItem.visibleProperty().or(
         removeFriendItem.visibleProperty().or(
@@ -227,14 +210,16 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
                 removeFoeItem.visibleProperty()))));
   }
 
-  private void setModeratorOptions(Set<String> permissions, Player newValue) {
-    boolean notSelf = !newValue.getSocialStatus().equals(SELF);
+  private void setModeratorOptions(Set<String> permissions, Player player) {
+    boolean notSelf = !player.getSocialStatus().equals(SELF);
 
-    kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
-    kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
-    banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
-    broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
-    moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible() || broadcastMessage.isVisible());
+    JavaFxUtil.runLater(() -> {
+      kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+      kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+      banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
+      broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
+      moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible() || broadcastMessage.isVisible());
+    });
   }
 
   private void loadAvailableAvatars(Player player) {

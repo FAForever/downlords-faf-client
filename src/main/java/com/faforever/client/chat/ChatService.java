@@ -17,10 +17,6 @@ public interface ChatService {
 
   CompletableFuture<String> sendMessageInBackground(String target, String message);
 
-  /**
-   * Gets the list of chat users for the given channel as soon as it is available. <p> <strong>IMPORTANT:</strong> All
-   * operations on the returned list must be synchronized, even iteration. Use the map as monitor. </p>
-   */
   ChatChannel getOrCreateChannel(String channelName);
 
   ChatChannelUser getOrCreateChatUser(String username, String channel);

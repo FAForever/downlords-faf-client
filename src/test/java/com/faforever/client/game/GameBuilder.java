@@ -4,9 +4,10 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.VictoryCondition;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 public class GameBuilder {
   private final Game game = new Game();
@@ -133,17 +134,17 @@ public class GameBuilder {
     return this;
   }
 
-  public GameBuilder simMods(ObservableMap simMods) {
+  public GameBuilder simMods(Map<String, String> simMods) {
     game.setSimMods(simMods);
     return this;
   }
 
-  public GameBuilder teams(ObservableMap teams) {
+  public GameBuilder teams(Map<String, List<String>> teams) {
     game.setTeams(teams);
     return this;
   }
 
-  public GameBuilder featuredModVersions(ObservableMap featuredModVersions) {
+  public GameBuilder featuredModVersions(Map<String, Integer> featuredModVersions) {
     game.setFeaturedModVersions(featuredModVersions);
     return this;
   }

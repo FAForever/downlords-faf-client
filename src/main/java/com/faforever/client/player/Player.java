@@ -6,7 +6,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.remote.domain.GameStatus;
-import javafx.beans.binding.Bindings;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
@@ -19,6 +19,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,56 +34,49 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 /**
  * Represents a player with username, clan, country, friend/foe flag and so on.
  */
+@NoArgsConstructor
 public class Player {
 
-  private final IntegerProperty id;
-  private final StringProperty username;
-  private final StringProperty clan;
-  private final StringProperty country;
-  private final StringProperty avatarUrl;
-  private final StringProperty avatarTooltip;
-  private final ObjectProperty<SocialStatus> socialStatus;
-  private final MapProperty<String, LeaderboardRating> leaderboardRatings;
-  private final ObjectProperty<Game> game;
-  private final ObjectProperty<PlayerStatus> status;
-  private final ObservableSet<ChatChannelUser> chatChannelUsers;
-  private final IntegerProperty numberOfGames;
-  private final ObjectProperty<Instant> idleSince;
-  private final ObservableList<NameRecord> names;
-
-  public Player(com.faforever.client.remote.domain.Player player) {
-    this();
-
-    username.set(player.getLogin());
-    clan.set(player.getClan());
-    country.set(player.getCountry());
-
-    if (player.getAvatar() != null) {
-      avatarTooltip.set(player.getAvatar().getTooltip());
-      avatarUrl.set(player.getAvatar().getUrl());
-    }
-  }
-
-  private Player() {
-    id = new SimpleIntegerProperty();
-    username = new SimpleStringProperty();
-    clan = new SimpleStringProperty();
-    country = new SimpleStringProperty();
-    avatarUrl = new SimpleStringProperty();
-    avatarTooltip = new SimpleStringProperty();
-    leaderboardRatings = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
-    status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
-    chatChannelUsers = FXCollections.observableSet();
-    game = new SimpleObjectProperty<>();
-    numberOfGames = new SimpleIntegerProperty();
-    socialStatus = new SimpleObjectProperty<>(OTHER);
-    idleSince = new SimpleObjectProperty<>(Instant.now());
-    names = FXCollections.observableArrayList();
-  }
+  private final IntegerProperty id = new SimpleIntegerProperty();
+  private final StringProperty username = new SimpleStringProperty();
+  private final StringProperty clan = new SimpleStringProperty();
+  private final StringProperty country = new SimpleStringProperty();
+  private final StringProperty avatarUrl = new SimpleStringProperty();
+  private final StringProperty avatarTooltip = new SimpleStringProperty();
+  private final ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
+  private final MapProperty<String, LeaderboardRating> leaderboardRatings = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
+  private final ObjectProperty<Game> game = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerStatus> status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
+  private final ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
+  private final IntegerProperty numberOfGames = new SimpleIntegerProperty();
+  private final ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>(Instant.now());
+  private final ObservableList<NameRecord> names = FXCollections.observableArrayList();
+  private final InvalidationListener gameStatusListener = observable -> updateGameStatus();
 
   public Player(String username) {
     this();
-    this.username.set(username);
+    setUsername(username);
+  }
+
+  private void updateGameStatus() {
+    Game game = getGame();
+    if (game != null) {
+      GameStatus gameStatus = game.getStatus();
+      if (gameStatus == GameStatus.OPEN) {
+        if (game.getHost().equalsIgnoreCase(username.get())) {
+          status.set(PlayerStatus.HOSTING);
+        } else {
+          status.set(PlayerStatus.LOBBYING);
+        }
+      } else if (gameStatus == GameStatus.PLAYING) {
+        status.set(PlayerStatus.PLAYING);
+      } else {
+        setGame(null);
+        status.set(PlayerStatus.IDLE);
+      }
+    } else {
+      status.set(PlayerStatus.IDLE);
+    }
   }
 
   public static Player fromDto(com.faforever.commons.api.dto.Player dto) {
@@ -249,25 +243,15 @@ public class Player {
   }
 
   public void setGame(Game game) {
-    this.game.set(game);
-    if (game == null) {
-      status.unbind();
+    Game currentGame = this.game.get();
+    if ((game == null || game.getStatus() == GameStatus.CLOSED) && currentGame != null) {
+      currentGame.removeListeners();
+      this.game.set(null);
       status.set(PlayerStatus.IDLE);
-    } else {
-      status.bind(Bindings.createObjectBinding(() -> {
-        if (getGame() == null) {
-          return PlayerStatus.IDLE;
-        }
-        if (getGame().getStatus() == GameStatus.OPEN) {
-          if (getGame().getHost().equalsIgnoreCase(username.get())) {
-            return PlayerStatus.HOSTING;
-          }
-          return PlayerStatus.LOBBYING;
-        } else if (getGame().getStatus() == GameStatus.CLOSED) {
-          return PlayerStatus.IDLE;
-        }
-        return PlayerStatus.PLAYING;
-      }, game.statusProperty()));
+    } else if (game != null) {
+      this.game.set(game);
+      game.setGameStatusListener(gameStatusListener);
+      game.setHostListener(gameStatusListener);
     }
   }
 
@@ -291,10 +275,12 @@ public class Player {
     return chatChannelUsers;
   }
 
-  public void updateFromDto(com.faforever.client.remote.domain.Player player) {
+  public void updateFromLobbyServer(com.faforever.client.remote.domain.Player player) {
+    setUsername(player.getLogin());
     setId(player.getId());
     setClan(player.getClan());
     setCountry(player.getCountry());
+    setNumberOfGames(player.getNumberOfGames());
 
     if (player.getRatings() != null) {
       Map<String, LeaderboardRating> ratingMap = new HashMap<>();
@@ -302,7 +288,6 @@ public class Player {
       setLeaderboardRatings(ratingMap);
     }
 
-    setNumberOfGames(player.getNumberOfGames());
     if (player.getAvatar() != null) {
       setAvatarUrl(player.getAvatar().getUrl());
       setAvatarTooltip(player.getAvatar().getTooltip());

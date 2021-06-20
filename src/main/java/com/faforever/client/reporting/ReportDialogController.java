@@ -211,10 +211,10 @@ public class ReportDialogController implements Controller<Node> {
     offender.setText(username);
   }
 
-  public void setGame(Replay game) {
-    TextFields.bindAutoCompletion(offender, game.getTeams().entrySet().stream().flatMap(entry -> entry.getValue().stream())
+  public void setReplay(Replay replay) {
+    TextFields.bindAutoCompletion(offender, replay.getTeams().values().stream().flatMap(Collection::stream)
         .collect(Collectors.toList()));
-    gameId.setText(String.valueOf(game.getId()));
+    gameId.setText(String.valueOf(replay.getId()));
   }
 
   public void setAutoCompleteWithOnlinePlayers() {
