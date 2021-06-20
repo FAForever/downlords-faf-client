@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -416,7 +417,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
     mod.setLatestVersion(modVersion);
 
     when(fafService.getModVersion(eq(modVersion.getUid())))
-        .thenReturn(CompletableFuture.completedFuture(modVersion));
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(modVersion)));
 
     Files.createFile(gamePrefsPath);
 
@@ -457,7 +458,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
     mod.setLatestVersion(newerModVersion);
 
     when(fafService.getModVersion(eq(modVersion.getUid())))
-        .thenReturn(CompletableFuture.completedFuture(modVersion));
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(modVersion)));
 
     Files.createFile(gamePrefsPath);
 

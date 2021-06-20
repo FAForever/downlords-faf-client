@@ -187,8 +187,8 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<com.faforever.client.mod.ModVersion> getModVersion(String uid) {
-    return CompletableFuture.completedFuture(com.faforever.client.mod.ModVersion.fromDto(fafApiAccessor.getModVersion(uid), null));
+  public CompletableFuture<Optional<com.faforever.client.mod.ModVersion>> getModVersion(String uid) {
+    return CompletableFuture.completedFuture(fafApiAccessor.getModVersion(uid).map(modVersion -> ModVersion.fromDto(modVersion, null)));
   }
 
   public void reconnect() {

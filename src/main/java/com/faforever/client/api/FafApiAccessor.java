@@ -88,7 +88,7 @@ public interface FafApiAccessor {
 
   void changePassword(String username, String currentPasswordHash, String newPasswordHash) throws IOException;
 
-  ModVersion getModVersion(String uid);
+  Optional<ModVersion> getModVersion(String uid);
 
   List<com.faforever.commons.api.dto.FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
 

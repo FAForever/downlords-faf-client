@@ -115,6 +115,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
       "mapVersion.map.versions.reviews.player";
   private static final String MOD_INCLUDES = "latestVersion,reviewsSummary,versions,versions.reviews," +
       "versions.reviews.player";
+  private static final String MOD_VERSION_INCLUDES = "mod,mod.latestVersion,mod.versions,mod.versions.reviews," +
+      "mod.versions.reviews.player,mod.reviewsSummary,mod.uploader";
   private static final String LEADERBOARD_ENTRY_INCLUDES = "player,leaderboard";
   private static final String COOP_RESULT_INCLUDES = "game.playerStats.player";
   private static final String PLAYER_INCLUDES = "names";
@@ -338,10 +340,15 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public ModVersion getModVersion(String uid) {
-    return (ModVersion) getMany(MOD_VERSION_ENDPOINT, 1,
-        java.util.Map.of(FILTER, rsql(qBuilder().string("uid").eq(uid)), INCLUDE, "mod,mod.latestVersion,mod.versions,mod.uploader")
-    ).get(0);
+  public Optional<ModVersion> getModVersion(String uid) {
+    List<ModVersion> modVersions = getMany(MOD_VERSION_ENDPOINT, 1,
+        java.util.Map.of(FILTER, rsql(qBuilder().string("uid").eq(uid)), INCLUDE, MOD_VERSION_INCLUDES)
+    );
+    if (modVersions.size() == 1) {
+      return Optional.of(modVersions.get(0));
+    } else {
+      return Optional.empty();
+    }
   }
 
   @Override

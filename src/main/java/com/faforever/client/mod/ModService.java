@@ -170,7 +170,10 @@ public class ModService implements InitializingBean, DisposableBean {
   @SneakyThrows
   public CompletableFuture<Void> downloadAndInstallMod(String uid) {
     return fafService.getModVersion(uid)
-        .thenCompose(mod -> downloadAndInstallMod(mod, null, null))
+        .thenCompose(potentialModVersion -> {
+          ModVersion modVersion = potentialModVersion.orElseThrow(() -> new IllegalArgumentException("Mod could not be found"));
+          return downloadAndInstallMod(modVersion, null, null);
+        })
         .exceptionally(throwable -> {
           log.warn("Sim mod could not be installed", throwable);
           return null;
@@ -251,7 +254,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<Tuple<List<ModVersion>, Integer>> getNewestModsWithPageCount(int count, int page) {
-    return findByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), count,  page);
+    return findByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), count, page);
   }
 
   @NotNull
@@ -461,13 +464,17 @@ public class ModService implements InitializingBean, DisposableBean {
     final List<ModVersion> newlySelectedMods = new ArrayList<>(selectedModVersions);
     selectedModVersions.forEach(installedModVersion -> {
       try {
-        ModVersion modVersionFromApi = getModVersionById(installedModVersion.getUid()).get();
-        ModVersion latestVersion = modVersionFromApi.getMod().getLatestVersion();
-        boolean isLatest = latestVersion.equals(installedModVersion);
-        if (!isLatest) {
-          downloadAndInstallMod(latestVersion.getDownloadUrl()).get();
-          newlySelectedMods.remove(installedModVersion);
-          newlySelectedMods.add(latestVersion);
+        Optional<ModVersion> modVersionFromApi = getModVersionById(installedModVersion.getUid()).get();
+        if (modVersionFromApi.isPresent()) {
+          ModVersion latestVersion = modVersionFromApi.get().getMod().getLatestVersion();
+          boolean isLatest = latestVersion.equals(installedModVersion);
+          if (!isLatest) {
+            downloadAndInstallMod(latestVersion.getDownloadUrl()).get();
+            newlySelectedMods.remove(installedModVersion);
+            newlySelectedMods.add(latestVersion);
+          }
+        } else {
+          log.info("Could not find mod '{}' '{}'", installedModVersion.getDisplayName(), installedModVersion.getUid());
         }
       } catch (Exception e) {
         log.debug("Failed fetching info about mod from the api.", e);
@@ -477,7 +484,7 @@ public class ModService implements InitializingBean, DisposableBean {
     return completedFuture(newlySelectedMods);
   }
 
-  private CompletableFuture<ModVersion> getModVersionById(String id) {
+  private CompletableFuture<Optional<ModVersion>> getModVersionById(String id) {
     return fafService.getModVersion(id);
   }
 }

@@ -174,8 +174,8 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public ModVersion getModVersion(String uid) {
-    return null;
+  public Optional<ModVersion> getModVersion(String uid) {
+    return Optional.empty();
   }
 
   @Override

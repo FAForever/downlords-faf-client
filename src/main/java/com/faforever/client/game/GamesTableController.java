@@ -112,8 +112,7 @@ public class GamesTableController implements Controller<Node> {
     applyLastSorting(gamesTable);
     gamesTable.setOnSort(this::onColumnSorted);
 
-    JavaFxUtil.addListener(sortedList, (Observable observable) -> selectFirstGame());
-    selectFirstGame();
+    JavaFxUtil.addAndTriggerListener((Observable) sortedList, observable -> selectFirstGame());
 
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
