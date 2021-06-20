@@ -198,7 +198,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     };
 
     partyOwnerChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
-      leavePartyButton.setDisable(newValue != player);
+      leavePartyButton.setDisable(newValue == player);
       invitePlayerButton.setDisable(newValue != player);
       setCrownVisibility();
     });
