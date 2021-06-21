@@ -2,6 +2,7 @@ package com.faforever.client.vault.replay;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.ReplayService;
@@ -67,8 +68,10 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void allowWatch() {
-    watchButton.setText(i18n.get("game.watch"));
-    watchButton.setDisable(false);
+    JavaFxUtil.runLater(() -> {
+      watchButton.setText(i18n.get("game.watch"));
+      watchButton.setDisable(false);
+    });
   }
 
   private void onFinished() {
@@ -81,8 +84,10 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void updateWatchButtonTimer() {
-    watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(getWatchDelayTime())));
-    watchButton.setDisable(true);
+    JavaFxUtil.runLater(() -> {
+      watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(getWatchDelayTime())));
+      watchButton.setDisable(true);
+    });
   }
 
   private java.time.Duration getWatchDelayTime() {

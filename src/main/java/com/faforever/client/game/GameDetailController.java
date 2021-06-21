@@ -97,18 +97,20 @@ public class GameDetailController implements Controller<Pane> {
     Game game = getGame();
     switch (game.getStatus()) {
       case PLAYING -> {
-        joinButton.setVisible(false);
-        watchButton.setVisible(true);
+        JavaFxUtil.runLater(() -> {
+          joinButton.setVisible(false);
+          watchButton.setVisible(true);
+        });
         watchButtonController.setGame(game);
       }
-      case OPEN -> {
+      case OPEN -> JavaFxUtil.runLater(() -> {
         joinButton.setVisible(true);
         watchButton.setVisible(false);
-      }
-      case UNKNOWN, CLOSED -> {
+      });
+      case UNKNOWN, CLOSED -> JavaFxUtil.runLater(() -> {
         joinButton.setVisible(false);
         watchButton.setVisible(false);
-      }
+      });
       default -> throw new ProgrammingError("Uncovered status: " + game.getStatus());
     }
   }
@@ -125,9 +127,8 @@ public class GameDetailController implements Controller<Pane> {
 
   private void onNumPlayersChanged() {
     Game game = getGame();
-    JavaFxUtil.runLater(() -> {
-      numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()));
-    });
+    JavaFxUtil.runLater(() ->
+        numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())));
   }
 
   public void setGame(Game game) {

@@ -7,6 +7,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.util.Assert;
 import com.google.common.base.Joiner;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -22,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Objects;
@@ -94,7 +94,7 @@ public class GameTileController implements Controller<Node> {
   }
 
   public void setGame(Game game) {
-    Assert.isNull(this.game, "Game has already been set");
+    Assert.checkNotNullIllegalState(this.game, "Game has already been set");
     this.game = game;
 
     modService.getFeaturedMod(game.getFeaturedMod())

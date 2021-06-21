@@ -76,7 +76,7 @@ public class GameTooltipController implements Controller<Node> {
       weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
       JavaFxUtil.addAndTriggerListener(game.getSimMods(), weakModChangeListener);
     } else {
-      modsPane.setVisible(false);
+      JavaFxUtil.runLater(() -> modsPane.setVisible(false));
     }
   }
 
