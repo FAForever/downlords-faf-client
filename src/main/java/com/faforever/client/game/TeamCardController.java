@@ -50,16 +50,21 @@ public class TeamCardController implements Controller<Node> {
    */
   static void createAndAdd(Game game, PlayerService playerService, UiService uiService, Pane teamsPane) {
     List<Node> teamCardPanes = new ArrayList<>();
-    synchronized (game.getTeams()) {
-      for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
-        List<Player> players = entry.getValue().stream()
-            .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
-            .collect(Collectors.toList());
+    if (game != null) {
+      synchronized (game.getTeams()) {
+        for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
+          String team = entry.getKey();
+          if (team != null) {
+            List<Player> players = entry.getValue().stream()
+                .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
+                .collect(Collectors.toList());
 
-        TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-        teamCardController.setPlayersInTeam(entry.getKey(), players,
-            player -> RatingUtil.getLeaderboardRating(player, game.getRatingType()), null, RatingPrecision.ROUNDED);
-        teamCardPanes.add(teamCardController.getRoot());
+            TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+            teamCardController.setPlayersInTeam(team, players,
+                player -> RatingUtil.getLeaderboardRating(player, game.getRatingType()), null, RatingPrecision.ROUNDED);
+            teamCardPanes.add(teamCardController.getRoot());
+          }
+        }
       }
     }
     JavaFxUtil.runLater(() -> teamsPane.getChildren().setAll(teamCardPanes));

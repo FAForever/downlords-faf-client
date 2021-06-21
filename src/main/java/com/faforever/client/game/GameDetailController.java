@@ -94,7 +94,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGameStatusChanged() {
-    Game game = this.game.get();
+    Game game = getGame();
     switch (game.getStatus()) {
       case PLAYING -> {
         joinButton.setVisible(false);
@@ -114,7 +114,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGamePropertyChanged() {
-    Game game = this.game.get();
+    Game game = getGame();
     JavaFxUtil.runLater(() -> {
       gameTitleLabel.setText(game.getTitle());
       hostLabel.setText(game.getHost());
@@ -124,7 +124,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onNumPlayersChanged() {
-    Game game = this.game.get();
+    Game game = getGame();
     JavaFxUtil.runLater(() -> {
       numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()));
     });
@@ -181,7 +181,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void createTeams() {
-    TeamCardController.createAndAdd(game.get(), playerService, uiService, teamListPane);
+    TeamCardController.createAndAdd(getGame(), playerService, uiService, teamListPane);
   }
 
   @Override
@@ -190,6 +190,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void onJoinButtonClicked(ActionEvent event) {
-    joinGameHelper.join(game.get());
+    joinGameHelper.join(getGame());
   }
 }

@@ -14,7 +14,6 @@ import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -112,8 +111,6 @@ public class GamesTableController implements Controller<Node> {
     applyLastSorting(gamesTable);
     gamesTable.setOnSort(this::onColumnSorted);
 
-    JavaFxUtil.addAndTriggerListener((Observable) sortedList, observable -> selectFirstGame());
-
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
 
@@ -200,13 +197,6 @@ public class GamesTableController implements Controller<Node> {
       return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.size() - 1));
     }
     return new SimpleStringProperty(Joiner.on(i18n.get("textSeparator")).join(modNames));
-  }
-
-  private void selectFirstGame() {
-    TableView.TableViewSelectionModel<Game> selectionModel = gamesTable.getSelectionModel();
-    if (selectionModel.getSelectedItem() == null && !gamesTable.getItems().isEmpty()) {
-      JavaFxUtil.runLater(() -> selectionModel.select(0));
-    }
   }
 
   @NotNull
