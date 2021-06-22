@@ -48,12 +48,12 @@ public class GameDetailController implements Controller<Pane> {
   public Label gameTitleLabel;
   public Node joinButton;
   public WatchButtonController watchButtonController;
+  public Node watchButton;
   private final ReadOnlyObjectWrapper<Game> game;
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
   private InvalidationListener numPlayersInvalidationListener;
   private InvalidationListener gamePropertiesInvalidationListener;
-  private Node watchButton;
 
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener featuredModInvalidationListener;
@@ -82,13 +82,6 @@ public class GameDetailController implements Controller<Pane> {
       }
       gameDetailRoot.maxWidthProperty().bind(((Pane) gameDetailRoot.getParent()).widthProperty());
     });
-
-    gameTitleLabel.visibleProperty().bind(game.isNotNull());
-    hostLabel.visibleProperty().bind(game.isNotNull());
-    mapLabel.visibleProperty().bind(game.isNotNull());
-    numberOfPlayersLabel.visibleProperty().bind(game.isNotNull());
-    mapImageView.visibleProperty().bind(game.isNotNull());
-    gameTypeLabel.visibleProperty().bind(game.isNotNull());
 
     setGame(null);
   }
@@ -142,8 +135,23 @@ public class GameDetailController implements Controller<Pane> {
 
     this.game.set(game);
     if (game == null) {
+      gameTitleLabel.setVisible(false);
+      hostLabel.setVisible(false);
+      mapLabel.setVisible(false);
+      numberOfPlayersLabel.setVisible(false);
+      mapImageView.setVisible(false);
+      gameTypeLabel.setVisible(false);
+      joinButton.setVisible(false);
       return;
     }
+
+    gameTitleLabel.setVisible(true);
+    hostLabel.setVisible(true);
+    mapLabel.setVisible(true);
+    numberOfPlayersLabel.setVisible(true);
+    mapImageView.setVisible(true);
+    gameTypeLabel.setVisible(true);
+    joinButton.setVisible(true);
 
     WeakInvalidationListener weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
     WeakInvalidationListener weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
