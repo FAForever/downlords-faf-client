@@ -95,40 +95,46 @@ public class GameDetailController implements Controller<Pane> {
 
   private void onGameStatusChanged() {
     Game game = getGame();
-    switch (game.getStatus()) {
-      case PLAYING -> {
-        JavaFxUtil.runLater(() -> {
-          joinButton.setVisible(false);
-          watchButton.setVisible(true);
+    if (game != null) {
+      switch (game.getStatus()) {
+        case PLAYING -> {
+          JavaFxUtil.runLater(() -> {
+            joinButton.setVisible(false);
+            watchButton.setVisible(true);
+          });
+          watchButtonController.setGame(game);
+        }
+        case OPEN -> JavaFxUtil.runLater(() -> {
+          joinButton.setVisible(true);
+          watchButton.setVisible(false);
         });
-        watchButtonController.setGame(game);
+        case UNKNOWN, CLOSED -> JavaFxUtil.runLater(() -> {
+          joinButton.setVisible(false);
+          watchButton.setVisible(false);
+        });
+        default -> throw new ProgrammingError("Uncovered status: " + game.getStatus());
       }
-      case OPEN -> JavaFxUtil.runLater(() -> {
-        joinButton.setVisible(true);
-        watchButton.setVisible(false);
-      });
-      case UNKNOWN, CLOSED -> JavaFxUtil.runLater(() -> {
-        joinButton.setVisible(false);
-        watchButton.setVisible(false);
-      });
-      default -> throw new ProgrammingError("Uncovered status: " + game.getStatus());
     }
   }
 
   private void onGamePropertyChanged() {
     Game game = getGame();
-    JavaFxUtil.runLater(() -> {
-      gameTitleLabel.setText(game.getTitle());
-      hostLabel.setText(game.getHost());
-      mapLabel.setText(game.getMapFolderName());
-      mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
-    });
+    if (game != null) {
+      JavaFxUtil.runLater(() -> {
+        gameTitleLabel.setText(game.getTitle());
+        hostLabel.setText(game.getHost());
+        mapLabel.setText(game.getMapFolderName());
+        mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
+      });
+    }
   }
 
   private void onNumPlayersChanged() {
     Game game = getGame();
-    JavaFxUtil.runLater(() ->
-        numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())));
+    if (game != null) {
+      JavaFxUtil.runLater(() ->
+          numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())));
+    }
   }
 
   public void setGame(Game game) {
