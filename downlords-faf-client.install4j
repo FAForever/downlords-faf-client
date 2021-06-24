@@ -2,6 +2,19 @@
 <install4j version="8.0.8" transformSequenceNumber="8">
   <directoryPresets config="./src/media/appicon" />
   <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="15" javaMaxVersion="15" allowBetaVM="true">
+    <languages>
+      <additionalLanguages>
+        <language id="zh_CN" />
+        <language id="zh_TW" />
+        <language id="cs" />
+        <language id="fr" />
+        <language id="de" />
+        <language id="it" />
+        <language id="pl" />
+        <language id="ru" />
+        <language id="es" />
+      </additionalLanguages>
+    </languages>
     <searchSequence empty="true" />
   </application>
   <files>
