@@ -105,7 +105,7 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testNoDoubleSound() throws Exception {
+  public void testNoDoubleSound() {
     instance.playChatMentionSound();
     instance.playChatMentionSound();
 
@@ -113,7 +113,7 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSoundTurnedBackOn() throws Exception {
+  public void testSoundTurnedBackOn() {
     instance.playChatMentionSound();
 
     WaitForAsyncUtils.sleep(35, TimeUnit.SECONDS);
@@ -124,56 +124,56 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testPlayChatMentionSound() throws Exception {
+  public void testPlayChatMentionSound() {
     instance.playChatMentionSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayPrivateMessageSound() throws Exception {
+  public void testPlayPrivateMessageSound() {
     instance.playPrivateMessageSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayInfoNotificationSound() throws Exception {
+  public void testPlayInfoNotificationSound() {
     instance.playInfoNotificationSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayWarnNotificationSound() throws Exception {
+  public void testPlayWarnNotificationSound() {
     instance.playWarnNotificationSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayFriendOfflineSound() throws Exception {
+  public void testPlayFriendOfflineSound() {
     instance.playFriendOfflineSound();
 
     verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayFriendOnlineSound() throws Exception {
+  public void testPlayFriendOnlineSound() {
     instance.playFriendOnlineSound();
 
     verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayFriendPlaysGameSound() throws Exception {
+  public void testPlayFriendPlaysGameSound() {
     instance.playFriendPlaysGameSound();
 
     verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayFriendJoinsGamSound() throws Exception {
+  public void testPlayFriendJoinsGamSound() {
     instance.playFriendJoinsGameSound();
 
     verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
