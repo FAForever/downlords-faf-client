@@ -151,7 +151,8 @@ public class AudioService implements InitializingBean {
     if (!notificationsPrefs.isFriendPlaysGameSoundEnabled()) {
       return;
     }
-    playSound(friendPlaysGameSound);
+    // FIXME implement
+//    playSound(friendPlaysGameSound);
   }
 
   private void playSound(AudioClip audioClip) {
