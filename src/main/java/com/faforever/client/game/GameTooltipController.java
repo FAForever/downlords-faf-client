@@ -19,8 +19,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
@@ -33,14 +31,8 @@ public class GameTooltipController implements Controller<Node> {
   public TilePane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
-  private ObservableMap<String, List<String>> lastTeams;
-  private ObservableMap<String, String> lastSimMods;
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener teamChangedListener;
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener simModsChangedListener;
-  private WeakInvalidationListener weakTeamChangeListener;
-  private WeakInvalidationListener weakModChangeListener;
+  private InvalidationListener teamInvalidationListener;
+  private InvalidationListener simModsInvalidationListener;
   private int maxPrefColumns;
   private Game game;
   private boolean showMods;
@@ -52,12 +44,6 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   public void setGame(Game game) {
-    if (lastTeams != null && weakTeamChangeListener != null) {
-      lastTeams.removeListener(weakTeamChangeListener);
-    }
-    if (showMods && lastSimMods != null && weakModChangeListener != null) {
-      lastSimMods.removeListener(weakModChangeListener);
-    }
     this.game = game;
   }
 
@@ -65,19 +51,20 @@ public class GameTooltipController implements Controller<Node> {
     if (game == null) {
       return;
     }
-    teamChangedListener = change -> createTeams();
-    lastTeams = game.getTeams();
-    weakTeamChangeListener = new WeakInvalidationListener(teamChangedListener);
-    JavaFxUtil.addAndTriggerListener(game.getTeams(), weakTeamChangeListener);
+    resetListeners();
+    WeakInvalidationListener weakTeamInvalidationListener = new WeakInvalidationListener(teamInvalidationListener);
+    JavaFxUtil.addAndTriggerListener(game.getTeams(), weakTeamInvalidationListener);
     if (showMods) {
-      simModsChangedListener = change -> createModsList(game.getSimMods());
-      lastSimMods = game.getSimMods();
-      createModsList(game.getSimMods());
-      weakModChangeListener = new WeakInvalidationListener(simModsChangedListener);
-      JavaFxUtil.addAndTriggerListener(game.getSimMods(), weakModChangeListener);
+      WeakInvalidationListener weakModInvalidationListener = new WeakInvalidationListener(simModsInvalidationListener);
+      JavaFxUtil.addAndTriggerListener(game.getSimMods(), weakModInvalidationListener);
     } else {
       JavaFxUtil.runLater(() -> modsPane.setVisible(false));
     }
+  }
+
+  private void resetListeners() {
+    teamInvalidationListener = change -> createTeams();
+    simModsInvalidationListener = change -> createModsList(game.getSimMods());
   }
 
   private void createTeams() {

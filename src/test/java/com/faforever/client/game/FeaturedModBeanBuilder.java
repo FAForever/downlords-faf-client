@@ -31,4 +31,14 @@ public class FeaturedModBeanBuilder {
     featuredMod.setTechnicalName(technicalName);
     return this;
   }
+
+  public FeaturedModBeanBuilder displayName(String displayName) {
+    featuredMod.setDisplayName(displayName);
+    return this;
+  }
+
+  public FeaturedModBeanBuilder description(String description) {
+    featuredMod.setDescription(description);
+    return this;
+  }
 }

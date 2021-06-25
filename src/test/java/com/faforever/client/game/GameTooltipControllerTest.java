@@ -30,11 +30,6 @@ public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
   private PlayerService playerService;
   
   @Mock
-  private PlayerCardTooltipController playerCardTooltipController;
-  @Mock
-  private RatingChangeLabelController ratingChangeLabelController;
-  
-  @Mock
   private Game game;
   
   @Mock
