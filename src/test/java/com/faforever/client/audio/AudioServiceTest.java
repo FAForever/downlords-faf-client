@@ -1,5 +1,6 @@
 package com.faforever.client.audio;
 
+import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
@@ -14,6 +15,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,11 +32,13 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private UiService uiService;
 
+  private Preferences preferences;
+
   @Override
   public void start(Stage stage) throws Exception {
     instance = new AudioService(preferencesService, audioClipPlayer, uiService);
 
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
+    preferences = PreferencesBuilder.create().defaultValues()
         .notificationsPrefs()
         .soundsEnabled(true)
         .privateMessageSoundEnabled(true)
@@ -42,6 +46,10 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
         .infoSoundEnabled(true)
         .warnSoundEnabled(true)
         .errorSoundEnabled(true)
+        .friendJoinsGameSoundEnabled(true)
+        .friendOnlineSoundEnabled(true)
+        .friendPlaysGameSoundEnabled(true)
+        .friendOfflineSoundEnabled(true)
         .then()
         .get();
 
@@ -54,7 +62,50 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testNoDoubleSound() throws Exception {
+  public void testNoSoundsWhenOff() {
+    NotificationsPrefs notificationsPrefs = preferences.getNotification();
+    notificationsPrefs.setSoundsEnabled(false);
+    instance.playChatMentionSound();
+    instance.playPrivateMessageSound();
+    instance.playInfoNotificationSound();
+    instance.playAchievementUnlockedSound();
+    instance.playErrorNotificationSound();
+    instance.playWarnNotificationSound();
+    instance.playFriendJoinsGameSound();
+    instance.playFriendOnlineSound();
+    instance.playFriendOfflineSound();
+    instance.playFriendPlaysGameSound();
+    instance.playInfoNotificationSound();
+    verify(audioClipPlayer, never()).playSound(any());
+  }
+
+  @Test
+  public void testNoSoundsWhenIndividuallyOff() {
+    NotificationsPrefs notificationsPrefs = preferences.getNotification();
+    notificationsPrefs.setFriendJoinsGameSoundEnabled(false);
+    notificationsPrefs.setErrorSoundEnabled(false);
+    notificationsPrefs.setInfoSoundEnabled(false);
+    notificationsPrefs.setWarnSoundEnabled(false);
+    notificationsPrefs.setMentionSoundEnabled(false);
+    notificationsPrefs.setFriendOfflineSoundEnabled(false);
+    notificationsPrefs.setFriendOnlineSoundEnabled(false);
+    notificationsPrefs.setFriendPlaysGameSoundEnabled(false);
+    notificationsPrefs.setPrivateMessageSoundEnabled(false);
+    instance.playChatMentionSound();
+    instance.playPrivateMessageSound();
+    instance.playInfoNotificationSound();
+    instance.playErrorNotificationSound();
+    instance.playWarnNotificationSound();
+    instance.playFriendJoinsGameSound();
+    instance.playFriendOnlineSound();
+    instance.playFriendOfflineSound();
+    instance.playFriendPlaysGameSound();
+    instance.playInfoNotificationSound();
+    verify(audioClipPlayer, never()).playSound(any());
+  }
+
+  @Test
+  public void testNoDoubleSound() {
     instance.playChatMentionSound();
     instance.playChatMentionSound();
 
@@ -62,7 +113,7 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testSoundTurnedBackOn() throws Exception {
+  public void testSoundTurnedBackOn() {
     instance.playChatMentionSound();
 
     WaitForAsyncUtils.sleep(35, TimeUnit.SECONDS);
@@ -73,37 +124,58 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testPlayChatMentionSound() throws Exception {
+  public void testPlayChatMentionSound() {
     instance.playChatMentionSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayPrivateMessageSound() throws Exception {
+  public void testPlayPrivateMessageSound() {
     instance.playPrivateMessageSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayInfoNotificationSound() throws Exception {
+  public void testPlayInfoNotificationSound() {
     instance.playInfoNotificationSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayWarnNotificationSound() throws Exception {
+  public void testPlayWarnNotificationSound() {
     instance.playWarnNotificationSound();
 
     verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
-  public void testPlayErrorNotificationSound() throws Exception {
-    instance.playErrorNotificationSound();
+  public void testPlayFriendOfflineSound() {
+    instance.playFriendOfflineSound();
 
-    verify(audioClipPlayer).playSound(any(AudioClip.class));
+    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
+  }
+
+  @Test
+  public void testPlayFriendOnlineSound() {
+    instance.playFriendOnlineSound();
+
+    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
+  }
+
+  @Test
+  public void testPlayFriendPlaysGameSound() {
+    instance.playFriendPlaysGameSound();
+
+    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
+  }
+
+  @Test
+  public void testPlayFriendJoinsGamSound() {
+    instance.playFriendJoinsGameSound();
+
+    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
   }
 }
