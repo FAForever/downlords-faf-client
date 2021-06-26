@@ -100,18 +100,19 @@
                                             </VBox>
                                         </VBox>
                                         <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1"
-                                        GridPane.columnSpan="3" GridPane.rowIndex="1">
-                                      <children>
-                                          <Label fx:id="authorLabel" styleClass="secondary"
-                                                 text="&lt;Author&gt;"/>
+                                              GridPane.columnSpan="3" GridPane.rowIndex="1">
+                                            <children>
+                                                <Label fx:id="authorLabel" styleClass="secondary"
+                                                       text="&lt;Author&gt;"/>
 
-                                        <Label maxWidth="1.7976931348623157E308" styleClass="secondary"
-                                               text="%map.version" />
-                                        <Label fx:id="mapVersionLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
-                                               styleClass="secondary" text="&lt;Version&gt;" wrapText="true"
-                                               />
-                                      </children>
-                                  </HBox>
+                                                <Label maxWidth="1.7976931348623157E308" styleClass="secondary"
+                                                       text="%map.version"/>
+                                                <Label fx:id="mapVersionLabel" maxWidth="1.7976931348623157E308"
+                                                       minWidth="0.0"
+                                                       styleClass="secondary" text="&lt;Version&gt;" wrapText="true"
+                                                />
+                                            </children>
+                                        </HBox>
                                         <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%map.description"
                                                GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
                                                GridPane.hgrow="ALWAYS" GridPane.rowIndex="6"/>
@@ -139,36 +140,41 @@
                                                         mnemonicParsing="false" onAction="#hideMap" text="%map.hide"/>
                                             </children>
                                         </HBox>
-                                        <Label fx:id="mapPlaysLabel" styleClass="secondary" text="&lt;Map Plays&gt;"
-                                               GridPane.columnIndex="1" GridPane.rowIndex="3">
-                                            <graphic>
-                                                <Region styleClass="icon,plays-icon"/>
-                                            </graphic>
-                                        </Label>
-                                        <Label fx:id="VersionPlaysLabel" styleClass="secondary" text="&lt;Version Plays"
-                                               GridPane.columnIndex="2" GridPane.rowIndex="3">
-                                            <graphic>
-                                                <Region styleClass="icon,plays-icon"/>
-                                            </graphic>
-                                        </Label>
+                                        <HBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="10.0"
+                                              GridPane.columnSpan="4">
+                                            <Label text="%map.all"/>
+                                            <Label fx:id="mapPlaysLabel" styleClass="secondary"
+                                                   text="&lt;Map Plays&gt;">
+                                                <graphic>
+                                                    <Region styleClass="icon,plays-icon"/>
+                                                </graphic>
+                                            </Label>
+                                            <Label text="%map.current"/>
+                                            <Label fx:id="versionPlaysLabel" styleClass="secondary"
+                                                   text="&lt;Version Plays&gt;">
+                                                <graphic>
+                                                    <Region styleClass="icon,plays-icon"/>
+                                                </graphic>
+                                            </Label>
+                                        </HBox>
                                     </children>
-                              <VBox.margin>
-                                  <Insets/>
-                              </VBox.margin>
-                          </GridPane>
+                                    <VBox.margin>
+                                        <Insets/>
+                                    </VBox.margin>
+                                </GridPane>
                                 <Separator layoutX="10.0" layoutY="251.0" maxWidth="1.7976931348623157E308"/>
-                          <VBox alignment="TOP_CENTER" maxWidth="640.0">
-                              <children>
-                                  <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
-                              </children>
-                          </VBox>
-                      </children>
-                      <padding>
-                          <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-                      </padding>
-                  </VBox>
-              </content>
-          </ScrollPane>
+                                <VBox alignment="TOP_CENTER" maxWidth="640.0">
+                                    <children>
+                                        <fx:include fx:id="reviews" source="../review/reviews.fxml"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                            <padding>
+                                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+                            </padding>
+                        </VBox>
+                    </content>
+                </ScrollPane>
                 <Button cancelButton="true" focusTraversable="false" onAction="#onCloseButtonClicked"
                         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <graphic>
@@ -179,7 +185,7 @@
                         <String fx:value="close-button"/>
                     </styleClass>
                 </Button>
-      </children>
-    </AnchorPane>
-  </children>
+            </children>
+        </AnchorPane>
+    </children>
 </AnchorPane>
