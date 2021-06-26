@@ -8,7 +8,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -54,8 +53,6 @@ public class GameDetailController implements Controller<Pane> {
   private InvalidationListener gameStatusInvalidationListener;
   private InvalidationListener numPlayersInvalidationListener;
   private InvalidationListener gamePropertiesInvalidationListener;
-
-  @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener featuredModInvalidationListener;
 
   public GameDetailController(I18n i18n, MapService mapService, ModService modService, PlayerService playerService,
@@ -87,7 +84,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGameStatusChanged() {
-    Game game = getGame();
+    Game game = this.game.get();
     if (game != null) {
       switch (game.getStatus()) {
         case PLAYING -> {
@@ -105,13 +102,12 @@ public class GameDetailController implements Controller<Pane> {
           joinButton.setVisible(false);
           watchButton.setVisible(false);
         });
-        default -> throw new ProgrammingError("Uncovered status: " + game.getStatus());
       }
     }
   }
 
   private void onGamePropertyChanged() {
-    Game game = getGame();
+    Game game = this.game.get();
     if (game != null) {
       JavaFxUtil.runLater(() -> {
         gameTitleLabel.setText(game.getTitle());
@@ -123,7 +119,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onNumPlayersChanged() {
-    Game game = getGame();
+    Game game = this.game.get();
     if (game != null) {
       JavaFxUtil.runLater(() ->
           numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())));
@@ -181,14 +177,9 @@ public class GameDetailController implements Controller<Pane> {
         .thenAccept(featuredMod -> {
           String fullName = featuredMod != null ? featuredMod.getDisplayName() : null;
           JavaFxUtil.runLater(() -> {
-            gameTypeLabel.setText(i18n.get("loading"));
             gameTypeLabel.setText(StringUtils.defaultString(fullName));
           });
         });
-  }
-
-  public Game getGame() {
-    return game.get();
   }
 
   public ReadOnlyObjectProperty<Game> gameProperty() {
@@ -196,7 +187,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void createTeams() {
-    TeamCardController.createAndAdd(getGame(), playerService, uiService, teamListPane);
+    TeamCardController.createAndAdd(game.get(), playerService, uiService, teamListPane);
   }
 
   @Override
@@ -205,6 +196,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void onJoinButtonClicked(ActionEvent event) {
-    joinGameHelper.join(getGame());
+    joinGameHelper.join(game.get());
   }
 }
