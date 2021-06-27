@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
-import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.commons.api.dto.VictoryCondition;
 import javafx.collections.FXCollections;
 
 import java.time.Instant;

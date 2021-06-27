@@ -6,9 +6,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,7 +36,7 @@ import static com.faforever.commons.io.Bytes.formatSize;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ImgurUploadTask extends CompletableTask<String> implements InitializingBean {
 
-  private final Gson gson;
+  private final ObjectMapper objectMapper;
 
   private final I18n i18n;
   private final ClientProperties clientProperties;
@@ -48,12 +47,12 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
   private String clientId;
 
   @Inject
-  public ImgurUploadTask(I18n i18n, ClientProperties clientProperties) {
+  public ImgurUploadTask(I18n i18n, ClientProperties clientProperties, ObjectMapper objectMapper) {
     super(Priority.HIGH);
-    gson = new GsonBuilder().create();
 
     this.i18n = i18n;
     this.clientProperties = clientProperties;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -78,7 +77,7 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
     );
 
     String dataImage = BaseEncoding.base64().encode(byteArrayOutputStream.toByteArray());
-    String data = URLEncoder.encode("image", "UTF-8") + "=" + URLEncoder.encode(dataImage, "UTF-8");
+    String data = URLEncoder.encode("image", StandardCharsets.UTF_8) + "=" + URLEncoder.encode(dataImage, StandardCharsets.UTF_8);
 
     URL url = new URL(baseUrl);
     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -112,7 +111,7 @@ public class ImgurUploadTask extends CompletableTask<String> implements Initiali
       }
     }
 
-    ImgurRestResponse imgurRestResponse = gson.fromJson(stringBuilder.toString(), ImgurRestResponse.class);
+    ImgurRestResponse imgurRestResponse = objectMapper.readValue(stringBuilder.toString(), ImgurRestResponse.class);
 
     if (!imgurRestResponse.success) {
       throw new RuntimeException("Image upload failed, status code: " + imgurRestResponse.status);

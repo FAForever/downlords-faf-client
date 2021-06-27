@@ -1,24 +1,8 @@
 package com.faforever.client.remote.domain;
 
-import java.util.Arrays;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum MatchmakingState {
-  START("start"), STOP("stop");
-
-  private final String string;
-
-  MatchmakingState(String string) {
-    this.string = string;
-  }
-
-  public static MatchmakingState fromString(String string) {
-    return Arrays.stream(MatchmakingState.values())
-        .filter(s -> s.getString().equals(string))
-        .findFirst()
-        .orElse(null);
-  }
-
-  public String getString() {
-    return string;
-  }
+  @JsonProperty("start") START,
+  @JsonProperty("stop") STOP
 }

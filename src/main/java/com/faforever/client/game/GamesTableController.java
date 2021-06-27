@@ -22,6 +22,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -35,7 +36,6 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -162,7 +162,7 @@ public class GamesTableController implements Controller<Node> {
   private void applyLastSorting(TableView<Game> gamesTable) {
     final Map<String, SortType> lookup = new HashMap<>();
     final ObservableList<TableColumn<Game, ?>> sortOrder = gamesTable.getSortOrder();
-    preferencesService.getPreferences().getGameListSorting().forEach(sorting -> lookup.put(sorting.getKey(), sorting.getValue()));
+    preferencesService.getPreferences().getGameTableSorting().forEach(lookup::put);
     sortOrder.clear();
     gamesTable.getColumns().forEach(gameTableColumn -> {
       if (lookup.containsKey(gameTableColumn.getId())) {
@@ -173,12 +173,12 @@ public class GamesTableController implements Controller<Node> {
   }
 
   private void onColumnSorted(@NotNull SortEvent<TableView<Game>> event) {
-    List<Pair<String, SortType>> sorters = event.getSource().getSortOrder()
-        .stream()
-        .map(column -> new Pair<>(column.getId(), column.getSortType()))
-        .collect(Collectors.toList());
+    ObservableMap<String, SortType> gameListSorting = preferencesService.getPreferences().getGameTableSorting();
 
-    preferencesService.getPreferences().getGameListSorting().setAll(sorters);
+    gameListSorting.clear();
+    event.getSource().getSortOrder()
+        .forEach(column -> gameListSorting.put(column.getId(), column.getSortType()));
+
     preferencesService.storeInBackground();
   }
 

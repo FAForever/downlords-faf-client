@@ -4,5 +4,5 @@ import lombok.Value;
 
 @Value
 public class DiscordSpectateSecret{
-  private int gameId;
+  int gameId;
 }

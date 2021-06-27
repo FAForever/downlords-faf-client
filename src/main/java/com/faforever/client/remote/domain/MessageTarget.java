@@ -1,33 +1,12 @@
 package com.faforever.client.remote.domain;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 
+@Getter
 public enum MessageTarget {
-  GAME("game"),
-  CONNECTIVITY("connectivity"),
-  CLIENT(null);
-
-  private static final Map<String, MessageTarget> fromString;
-
-  static {
-    fromString = new HashMap<>();
-    for (MessageTarget messageTarget : values()) {
-      fromString.put(messageTarget.string, messageTarget);
-    }
-  }
-
-  private String string;
-
-  MessageTarget(String string) {
-    this.string = string;
-  }
-
-  public static MessageTarget fromString(String string) {
-    return fromString.get(string);
-  }
-
-  public String getString() {
-    return string;
-  }
+  @JsonProperty("game") GAME,
+  @JsonProperty("client") @JsonEnumDefaultValue CLIENT,
+  @JsonProperty("lobby") LOBBY
 }

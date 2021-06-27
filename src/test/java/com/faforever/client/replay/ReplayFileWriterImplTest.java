@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.commons.replay.ReplayMetadata;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,6 @@ public class ReplayFileWriterImplTest extends ServiceTest {
   private ClientProperties.Replay replay;
 
   private ReplayFileWriterImpl instance;
-  private LocalReplayInfo replayInfo;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -65,7 +65,7 @@ public class ReplayFileWriterImplTest extends ServiceTest {
   @Test
   public void writeReplayData() throws Exception {
     when(replayData.toByteArray()).thenReturn(replayBytes);
-    replayInfo = new LocalReplayInfo();
+    ReplayMetadata replayInfo = new ReplayMetadata();
     replayInfo.setUid(UID);
     replayInfo.setRecorder(RECORDER);
     instance.writeReplayDataToFile(replayData, replayInfo);

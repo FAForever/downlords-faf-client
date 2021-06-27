@@ -16,7 +16,8 @@ import java.nio.file.Path;
 @Slf4j
 public class ReplayFileReaderImpl implements ReplayFileReader {
 
-  private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+  private final ObjectMapper objectMapper = new ObjectMapper()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Override
   public ReplayDataParser parseReplay(Path path) throws IOException, CompressorException {

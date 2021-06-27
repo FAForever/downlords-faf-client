@@ -11,8 +11,8 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.PlayerInfo;
-import com.faforever.client.remote.domain.PlayersMessage;
-import com.faforever.client.remote.domain.SocialMessage;
+import com.faforever.client.remote.domain.inbound.faf.PlayerInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,7 +63,7 @@ public class PlayerService implements InitializingBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    fafService.addOnMessageListener(PlayersMessage.class, this::onPlayersInfo);
+    fafService.addOnMessageListener(PlayerInfoMessage.class, this::onPlayersInfo);
     fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
   }
 
@@ -256,8 +256,8 @@ public class PlayerService implements InitializingBean {
     return Optional.ofNullable(playersByName.get(playerName));
   }
 
-  private void onPlayersInfo(PlayersMessage playersMessage) {
-    playersMessage.getPlayers().forEach(this::onPlayerInfo);
+  private void onPlayersInfo(PlayerInfoMessage playerInfoMessage) {
+    playerInfoMessage.getPlayers().forEach(this::onPlayerInfo);
   }
 
   private void onFoeList(SocialMessage socialMessage) {

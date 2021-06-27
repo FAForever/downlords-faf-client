@@ -1,8 +1,8 @@
 package com.faforever.client.remote.domain;
 
 public enum PeriodType {
-  SECOND(),
-  DAY(),
-  WEEK(),
-  MONTH()
+  SECOND,
+  DAY,
+  WEEK,
+  MONTH
 }

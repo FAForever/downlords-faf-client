@@ -7,7 +7,6 @@ import com.faforever.client.clan.Clan;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
-import com.faforever.client.fa.relay.GpgGameMessage;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.leaderboard.LeaderboardEntry;
@@ -16,14 +15,15 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
-import com.faforever.client.remote.domain.GameEndedMessage;
-import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.IceMessage;
-import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
-import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.remote.domain.inbound.InboundMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
+import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
+import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
+import com.faforever.client.remote.domain.outbound.gpg.GameEndedMessage;
+import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
+import com.faforever.client.remote.domain.outbound.gpg.IceMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.reporting.ModerationReport;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
@@ -82,11 +82,11 @@ public class FafService {
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
 
-  public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
+  public <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
     fafServerAccessor.addOnMessageListener(type, listener);
   }
 
-  public <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
+  public <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
     fafServerAccessor.removeOnMessageListener(type, listener);
   }
 
@@ -118,7 +118,7 @@ public class FafService {
     fafServerAccessor.requestMatchmakerInfo();
   }
 
-  public void sendGpgGameMessage(GpgGameMessage message) {
+  public void sendGpgMessage(GpgOutboundMessage message) {
     fafServerAccessor.sendGpgMessage(message);
   }
 

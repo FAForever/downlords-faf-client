@@ -5,8 +5,8 @@ import com.faforever.client.game.GameBuilder;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.PlayerInfo;
-import com.faforever.client.remote.domain.PlayersMessage;
-import com.faforever.client.remote.domain.SocialMessage;
+import com.faforever.client.remote.domain.inbound.faf.PlayerInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
@@ -76,7 +76,7 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testPostConstruct() {
-    verify(fafService).addOnMessageListener(eq(PlayersMessage.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(PlayerInfoMessage.class), any(Consumer.class));
     verify(fafService).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
   }
 

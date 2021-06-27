@@ -7,7 +7,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
-import com.faforever.client.remote.UpdatedAchievementsMessage;
+import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

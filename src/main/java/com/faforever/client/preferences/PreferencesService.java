@@ -4,22 +4,36 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.preferences.gson.ColorTypeAdapter;
-import com.faforever.client.preferences.gson.ExcludeFieldsWithExcludeAnnotationStrategy;
-import com.faforever.client.preferences.gson.PathTypeAdapter;
-import com.faforever.client.preferences.gson.PropertyTypeAdapter;
-import com.faforever.client.remote.gson.FactionTypeAdapter;
+import com.faforever.client.serialization.ColorMixin;
+import com.faforever.client.serialization.FactionMixin;
+import com.faforever.client.serialization.PathDeserializer;
+import com.faforever.client.serialization.PathSerializer;
+import com.faforever.client.serialization.SimpleListPropertyInstantiator;
+import com.faforever.client.serialization.SimpleMapPropertyInstantiator;
+import com.faforever.client.serialization.SimpleSetPropertyInstantiator;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.api.dto.Faction;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
 import com.github.nocatch.NoCatchException;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
-import javafx.beans.property.Property;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.SetProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SimpleSetProperty;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -130,11 +144,8 @@ public class PreferencesService implements InitializingBean {
   }
 
   private final Path preferencesFilePath;
-  private final Gson gson;
-  /**
-   * @see #storeInBackground()
-   */
-  private final Timer timer;
+  private final ObjectMapper objectMapper;
+  private final Timer storePreferencesTimer;
   private final Collection<WeakReference<PreferenceUpdateListener>> updateListeners;
   private final ClientProperties clientProperties;
   private ClientConfiguration clientConfiguration;
@@ -146,17 +157,30 @@ public class PreferencesService implements InitializingBean {
     this.clientProperties = clientProperties;
     updateListeners = new ArrayList<>();
     this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
-    timer = new Timer("PrefTimer", true);
-    gson = new GsonBuilder()
-        .setPrettyPrinting()
-        .addDeserializationExclusionStrategy(new ExcludeFieldsWithExcludeAnnotationStrategy())
-        .addSerializationExclusionStrategy(new ExcludeFieldsWithExcludeAnnotationStrategy())
-        .registerTypeHierarchyAdapter(Property.class, PropertyTypeAdapter.INSTANCE)
-        .registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.INSTANCE)
-        .registerTypeAdapter(Color.class, new ColorTypeAdapter())
-        .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
-        .registerTypeAdapter(ObservableMap.class, FactionTypeAdapter.INSTANCE)
-        .create();
+    storePreferencesTimer = new Timer("PrefTimer", true);
+    objectMapper = new ObjectMapper()
+        .setSerializationInclusion(Include.NON_EMPTY)
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .addMixIn(Color.class, ColorMixin.class)
+        .addMixIn(Faction.class, FactionMixin.class);
+
+    TypeFactory typeFactory = objectMapper.getTypeFactory();
+
+    Module preferencesModule = new SimpleModule()
+        .addSerializer(Path.class, new PathSerializer())
+        .addDeserializer(Path.class, new PathDeserializer())
+        .addValueInstantiator(SimpleMapProperty.class, new SimpleMapPropertyInstantiator(objectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleMapProperty.class)))
+        .addValueInstantiator(SimpleListProperty.class, new SimpleListPropertyInstantiator(objectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleListProperty.class)))
+        .addValueInstantiator(SimpleSetProperty.class, new SimpleSetPropertyInstantiator(objectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleSetProperty.class)))
+        .addAbstractTypeMapping(ObservableMap.class, SimpleMapProperty.class)
+        .addAbstractTypeMapping(ObservableList.class, SimpleListProperty.class)
+        .addAbstractTypeMapping(ObservableSet.class, SimpleSetProperty.class)
+        .addAbstractTypeMapping(MapProperty.class, SimpleMapProperty.class)
+        .addAbstractTypeMapping(ListProperty.class, SimpleListProperty.class)
+        .addAbstractTypeMapping(SetProperty.class, SimpleSetProperty.class);
+
+    objectMapper.registerModule(preferencesModule);
   }
 
   public Path getPreferencesDirectory() {
@@ -192,10 +216,6 @@ public class PreferencesService implements InitializingBean {
    * migrations.
    */
   private void migratePreferences(Preferences preferences) {
-    if (preferences.getForgedAlliance().getPath() != null) {
-      preferences.getForgedAlliance().setInstallationPath(preferences.getForgedAlliance().getPath());
-      preferences.getForgedAlliance().setPath(null);
-    }
     storeInBackground();
   }
 
@@ -251,7 +271,7 @@ public class PreferencesService implements InitializingBean {
 
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
       log.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
-      preferences = gson.fromJson(reader, Preferences.class);
+      preferences = objectMapper.readValue(reader, Preferences.class);
       migratePreferences(preferences);
     } catch (Exception e) {
       log.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
@@ -300,7 +320,7 @@ public class PreferencesService implements InitializingBean {
 
     try (Writer writer = Files.newBufferedWriter(preferencesFilePath, CHARSET)) {
       log.debug("Writing preferences file {}", preferencesFilePath.toAbsolutePath());
-      gson.toJson(preferences, writer);
+      objectMapper.writeValue(writer, preferences);
     } catch (IOException e) {
       log.warn("Preferences file " + preferencesFilePath.toAbsolutePath() + " could not be written", e);
     }
@@ -336,7 +356,7 @@ public class PreferencesService implements InitializingBean {
       }
     };
 
-    timer.schedule(storeInBackgroundTask, STORE_DELAY);
+    storePreferencesTimer.schedule(storeInBackgroundTask, STORE_DELAY);
   }
 
   /**
@@ -470,7 +490,7 @@ public class PreferencesService implements InitializingBean {
     urlConnection.setConnectTimeout((int) clientProperties.getClientConfigConnectTimeout().toMillis());
 
     try (Reader reader = new InputStreamReader(urlConnection.getInputStream(), StandardCharsets.UTF_8)) {
-      clientConfiguration = gson.fromJson(reader, ClientConfiguration.class);
+      clientConfiguration = objectMapper.readValue(reader, ClientConfiguration.class);
       return clientConfiguration;
     }
   }

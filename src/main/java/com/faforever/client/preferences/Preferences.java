@@ -4,19 +4,22 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
-import javafx.util.Pair;
 import lombok.Getter;
 
 import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.collections.FXCollections.observableHashMap;
 
 public class Preferences {
 
@@ -41,7 +44,7 @@ public class Preferences {
   private final BooleanProperty showModdedGames;
   private final ListProperty<String> ignoredNotifications;
   private final StringProperty gamesViewMode;
-  private final ListProperty<Pair<String, SortType>> gameListSorting;
+  private final MapProperty<String, SortType> gameTableSorting;
   private final ObjectProperty<TilesSortingOrder> gameTileSortingOrder;
   private final ObjectProperty<UnitDataBaseType> unitDataBaseType;
   private final BooleanProperty disallowJoinsViaDiscord;
@@ -68,7 +71,7 @@ public class Preferences {
     gamesViewMode = new SimpleStringProperty();
     news = new NewsPrefs();
     developer = new DeveloperPrefs();
-    gameListSorting = new SimpleListProperty<>(observableArrayList());
+    gameTableSorting = new SimpleMapProperty<>(observableHashMap());
     vault = new VaultPrefs();
     unitDataBaseType = new SimpleObjectProperty<>(UnitDataBaseType.SPOOKY);
     showPasswordProtectedGames = new SimpleBooleanProperty(true);
@@ -179,8 +182,8 @@ public class Preferences {
     return developer;
   }
 
-  public ObservableList<Pair<String, SortType>> getGameListSorting() {
-    return gameListSorting.get();
+  public ObservableMap<String, SortType> getGameTableSorting() {
+    return gameTableSorting.get();
   }
 
   public UnitDataBaseType getUnitDataBaseType() {

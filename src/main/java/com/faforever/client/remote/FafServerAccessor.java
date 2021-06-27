@@ -1,16 +1,17 @@
 package com.faforever.client.remote;
 
-import com.faforever.client.fa.relay.GpgGameMessage;
+
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.Avatar;
-import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
-import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.ServerMessage;
+import com.faforever.client.remote.domain.inbound.InboundMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
+import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
+import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
+import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.commons.api.dto.Faction;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -26,10 +27,10 @@ import java.util.function.Consumer;
 public interface FafServerAccessor {
 
   @SuppressWarnings("unchecked")
-  <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener);
+  <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener);
 
   @SuppressWarnings("unchecked")
-  <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener);
+  <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener);
 
   ConnectionState getConnectionState();
 
@@ -55,7 +56,7 @@ public interface FafServerAccessor {
 
   void stopSearchMatchmaker();
 
-  void sendGpgMessage(GpgGameMessage message);
+  void sendGpgMessage(GpgOutboundMessage message);
 
   void removeFriend(int playerId);
 

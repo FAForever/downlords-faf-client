@@ -2,8 +2,7 @@ package com.faforever.client.discord;
 
 
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordEventHandlers;
 import net.arikia.dev.drpc.DiscordRPC;
@@ -17,10 +16,12 @@ import org.springframework.stereotype.Component;
 public class DiscordEventHandler extends DiscordEventHandlers {
   private final ApplicationEventPublisher applicationEventPublisher;
   private final NotificationService notificationService;
+  private final ObjectMapper objectMapper;
 
-  public DiscordEventHandler(ApplicationEventPublisher applicationEventPublisher, NotificationService notificationService) {
+  public DiscordEventHandler(ApplicationEventPublisher applicationEventPublisher, NotificationService notificationService, ObjectMapper objectMapper) {
     this.applicationEventPublisher = applicationEventPublisher;
     this.notificationService = notificationService;
+    this.objectMapper = objectMapper;
     ready = this::onDiscordReady;
     disconnected = this::onDisconnected;
     errored = this::onError;
@@ -34,22 +35,22 @@ public class DiscordEventHandler extends DiscordEventHandlers {
   }
 
   private void onJoinGame(String joinSecret) {
-    DiscordJoinSecret discordJoinSecret = new Gson().fromJson(joinSecret, DiscordJoinSecret.class);
     try {
+      DiscordJoinSecret discordJoinSecret = objectMapper.readValue(joinSecret, DiscordJoinSecret.class);
       applicationEventPublisher.publishEvent(new DiscordJoinEvent(discordJoinSecret.getGameId()));
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
-      notificationService.addImmediateErrorNotification(e, "game.couldNotJoin", discordJoinSecret.getGameId());
+      notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");
     }
   }
 
   private void onSpectate(String spectateSecret) {
-    DiscordSpectateSecret discordSpectateSecret = new Gson().fromJson(spectateSecret, DiscordSpectateSecret.class);
     try {
+      DiscordSpectateSecret discordSpectateSecret = objectMapper.readValue(spectateSecret, DiscordSpectateSecret.class);
       applicationEventPublisher.publishEvent(new DiscordSpectateEvent(discordSpectateSecret.getGameId()));
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
-      notificationService.addImmediateErrorNotification(e, "replay.couldNotOpen", discordSpectateSecret.getGameId());
+      notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");
     }
   }
 

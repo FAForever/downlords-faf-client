@@ -2,8 +2,8 @@ package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
-import com.faforever.client.fa.CloseGameEvent;
 import com.faforever.client.fa.ForgedAllianceService;
+import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
@@ -28,10 +28,10 @@ import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.ReconnectTimerService;
-import com.faforever.client.remote.domain.GameInfoMessage;
-import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.LoginMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
+import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
@@ -550,8 +550,6 @@ public class GameService implements InitializingBean {
         .thenCompose(aVoid -> fafService.startSearchMatchmaker())
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
             .thenRun(() -> {
-              gameLaunchMessage.setArgs(new ArrayList<>(gameLaunchMessage.getArgs()));
-
               gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
               gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());

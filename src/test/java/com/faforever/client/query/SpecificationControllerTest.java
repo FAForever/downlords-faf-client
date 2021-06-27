@@ -2,7 +2,7 @@ package com.faforever.client.query;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.query.SearchablePropertyMappings.Property;
-import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.client.test.UITest;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.api.dto.Game;

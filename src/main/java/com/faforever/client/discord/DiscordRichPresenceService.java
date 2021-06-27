@@ -5,7 +5,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRichPresence;
@@ -35,13 +35,16 @@ public class DiscordRichPresenceService implements DisposableBean {
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
   private final Timer timer;
+  private final ObjectMapper objectMapper;
 
 
   public DiscordRichPresenceService(PlayerService playerService, DiscordEventHandler discordEventHandler,
-                                    ClientProperties clientProperties, PreferencesService preferencesService) {
+                                    ClientProperties clientProperties, PreferencesService preferencesService,
+                                    ObjectMapper objectMapper) {
     this.playerService = playerService;
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
+    this.objectMapper = objectMapper;
     this.timer = new Timer("Discord RPC", true);
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
@@ -82,11 +85,11 @@ public class DiscordRichPresenceService implements DisposableBean {
       String joinSecret = null;
       String spectateSecret = null;
       if (game.getStatus() == GameStatus.OPEN && !preferencesService.getPreferences().isDisallowJoinsViaDiscord()) {
-        joinSecret = new Gson().toJson(new DiscordJoinSecret(game.getId()));
+        joinSecret = objectMapper.writeValueAsString(new DiscordJoinSecret(game.getId()));
       }
 
       if (game.getStatus() == GameStatus.PLAYING && game.getStartTime() != null && game.getStartTime().isAfter(Instant.now().plus(5, ChronoUnit.MINUTES))) {
-        spectateSecret = new Gson().toJson(new DiscordSpectateSecret(game.getId()));
+        spectateSecret = objectMapper.writeValueAsString(new DiscordSpectateSecret(game.getId()));
       }
 
       discordRichPresence.setSecrets(joinSecret, spectateSecret);

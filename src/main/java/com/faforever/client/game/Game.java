@@ -3,8 +3,9 @@ package com.faforever.client.game;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
-import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
 import com.faforever.client.util.TimeUtil;
+import com.faforever.commons.api.dto.VictoryCondition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -65,7 +66,7 @@ public class Game {
   private InvalidationListener hostListener;
   private InvalidationListener teamsListener;
 
-  public void updateFromLobbyServer(com.faforever.client.remote.domain.GameInfoMessage gameInfoMessage) {
+  public void updateFromLobbyServer(GameInfoMessage gameInfoMessage) {
     setId(gameInfoMessage.getUid());
     setHost(gameInfoMessage.getHost());
     setTitle(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
