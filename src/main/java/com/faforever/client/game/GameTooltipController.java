@@ -8,7 +8,6 @@ import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -18,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
@@ -38,7 +39,8 @@ public class GameTooltipController implements Controller<Node> {
   private boolean showMods;
 
   public void initialize() {
-    modsPane.managedProperty().bind(modsPane.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(modsPane);
+    modsPane.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     maxPrefColumns = teamsPane.getPrefColumns();
     showMods = true;
   }
@@ -53,10 +55,10 @@ public class GameTooltipController implements Controller<Node> {
     }
     resetListeners();
     WeakInvalidationListener weakTeamInvalidationListener = new WeakInvalidationListener(teamInvalidationListener);
-    JavaFxUtil.addAndTriggerListener(game.getTeams(), weakTeamInvalidationListener);
+    JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamInvalidationListener);
     if (showMods) {
       WeakInvalidationListener weakModInvalidationListener = new WeakInvalidationListener(simModsInvalidationListener);
-      JavaFxUtil.addAndTriggerListener(game.getSimMods(), weakModInvalidationListener);
+      JavaFxUtil.addAndTriggerListener(game.simModsProperty(), weakModInvalidationListener);
     } else {
       JavaFxUtil.runLater(() -> modsPane.setVisible(false));
     }
@@ -74,20 +76,9 @@ public class GameTooltipController implements Controller<Node> {
     }
   }
 
-  private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
-    String stringSimMods;
-    synchronized (simMods) {
-      stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
-    }
-    JavaFxUtil.runLater(() -> {
-      if (simMods.isEmpty()) {
-        modsPane.setVisible(false);
-        return;
-      }
-
-      modsLabel.setText(stringSimMods);
-      modsPane.setVisible(true);
-    });
+  private void createModsList(Map<? extends String, ? extends String> simMods) {
+    String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
+    JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
   }
 
   public void setShowMods(boolean showMods) {

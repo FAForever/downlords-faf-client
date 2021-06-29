@@ -11,7 +11,6 @@ import com.faforever.client.util.Assert;
 import com.google.common.base.Joiner;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.collections.ObservableMap;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -25,6 +24,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -106,20 +106,17 @@ public class GameTileController implements Controller<Node> {
     JavaFxUtil.addListener(game.titleProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.mapFolderNameProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
-    JavaFxUtil.addListener(game.getSimMods(), weakGamePropertiesListener);
+    JavaFxUtil.addListener(game.simModsProperty(), weakGamePropertiesListener);
     JavaFxUtil.addAndTriggerListener(game.passwordProtectedProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.numPlayersProperty(), weakNumPlayersListener);
     JavaFxUtil.addListener(game.maxPlayersProperty(), weakNumPlayersListener);
     JavaFxUtil.addAndTriggerListener(game.averageRatingProperty(), weakNumPlayersListener);
   }
 
-  private String getSimModsLabelContent(ObservableMap<String, String> simMods) {
-    List<String> modNames;
-    synchronized (simMods) {
-      modNames = simMods.values().stream()
-          .limit(2)
-          .collect(Collectors.toList());
-    }
+  private String getSimModsLabelContent(Map<String, String> simMods) {
+    List<String> modNames = simMods.values().stream()
+        .limit(2)
+        .collect(Collectors.toList());
 
     if (simMods.size() > 2) {
       return i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1);

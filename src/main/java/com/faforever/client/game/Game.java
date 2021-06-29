@@ -23,6 +23,7 @@ import javafx.collections.ObservableMap;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,8 +54,8 @@ public class Game {
   /**
    * Maps a sim mod's UID to its name.
    */
-  private final MapProperty<String, String> simMods = new SimpleMapProperty<>(FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()));
-  private final MapProperty<String, List<String>> teams = new SimpleMapProperty<>(FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()));
+  private final ObjectProperty<Map<String, String>> simMods = new SimpleObjectProperty<>(Map.of());
+  private final ObjectProperty<Map<String, List<String>>> teams = new SimpleObjectProperty<>(Map.of());
   /**
    * Maps an index (1,2,3,4...) to a version number. Don't ask me what this index maps to.
    */
@@ -79,21 +80,8 @@ public class Game {
     setPasswordProtected(gameInfoMessage.getPasswordProtected());
     setGameType(gameInfoMessage.getGameType());
     setRatingType(gameInfoMessage.getRatingType());
-
-    synchronized (getSimMods()) {
-      getSimMods().clear();
-      if (gameInfoMessage.getSimMods() != null) {
-        getSimMods().putAll(gameInfoMessage.getSimMods());
-      }
-    }
-
-    synchronized (getTeams()) {
-      getTeams().clear();
-      if (gameInfoMessage.getTeams() != null) {
-        getTeams().putAll(gameInfoMessage.getTeams());
-      }
-    }
-
+    setSimMods(gameInfoMessage.getSimMods());
+    setTeams(gameInfoMessage.getTeams());
     setMinRating(gameInfoMessage.getRatingMin());
     setMaxRating(gameInfoMessage.getRatingMax());
     setEnforceRating(gameInfoMessage.getEnforceRatingRange());
@@ -276,36 +264,32 @@ public class Game {
   }
 
   /**
-   * Returns a map of simulation mod UIDs to the mod's name. <strong>Make sure to manually synchronize when iterating
-   * over any of its collection views (e.g. values, entrySet, keySet).</strong> See {@link
-   * java.util.Collections#synchronizedMap(Map)} for details.
+   * Returns an unmodifiable map of simulation mod UIDs to the mod's name
    */
-  public ObservableMap<String, String> getSimMods() {
+  public Map<String, String> getSimMods() {
     return simMods.get();
   }
 
   public void setSimMods(Map<String, String> simMods) {
-    this.simMods.set(FXCollections.synchronizedObservableMap(FXCollections.observableMap(simMods)));
+    this.simMods.set(Collections.unmodifiableMap(simMods));
   }
 
-  public MapProperty<String, String> simModsProperty() {
+  public ObjectProperty<Map<String, String>> simModsProperty() {
     return simMods;
   }
 
   /**
-   * Maps team names ("1", "2", ...) to a list of player names. <strong>Make sure to manually synchronize when iterating
-   * over any of its collection views (e.g. values, entrySet, keySet).</strong> See {@link
-   * java.util.Collections#synchronizedMap(Map)} for details.
+   * Returns an unmodifiable map that maps team names ("1", "2", ...) to a list of player names.
    */
-  public ObservableMap<String, List<String>> getTeams() {
+  public Map<String, List<String>> getTeams() {
     return teams.get();
   }
 
   public void setTeams(Map<String, List<String>> teams) {
-    this.teams.set(FXCollections.synchronizedObservableMap(FXCollections.observableMap(teams)));
+    this.teams.set(Collections.unmodifiableMap(teams));
   }
 
-  public MapProperty<String, List<String>> teamsProperty() {
+  public ObjectProperty<Map<String, List<String>>> teamsProperty() {
     return teams;
   }
 

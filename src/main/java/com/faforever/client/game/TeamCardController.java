@@ -51,19 +51,17 @@ public class TeamCardController implements Controller<Node> {
   static void createAndAdd(Game game, PlayerService playerService, UiService uiService, Pane teamsPane) {
     List<Node> teamCardPanes = new ArrayList<>();
     if (game != null) {
-      synchronized (game.getTeams()) {
-        for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
-          String team = entry.getKey();
-          if (team != null) {
-            List<Player> players = entry.getValue().stream()
-                .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
-                .collect(Collectors.toList());
+      for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
+        String team = entry.getKey();
+        if (team != null) {
+          List<Player> players = entry.getValue().stream()
+              .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
+              .collect(Collectors.toList());
 
-            TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-            teamCardController.setPlayersInTeam(team, players,
-                player -> RatingUtil.getLeaderboardRating(player, game.getRatingType()), null, RatingPrecision.ROUNDED);
-            teamCardPanes.add(teamCardController.getRoot());
-          }
+          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+          teamCardController.setPlayersInTeam(team, players,
+              player -> RatingUtil.getLeaderboardRating(player, game.getRatingType()), null, RatingPrecision.ROUNDED);
+          teamCardPanes.add(teamCardController.getRoot());
         }
       }
     }
@@ -99,12 +97,16 @@ public class TeamCardController implements Controller<Node> {
     }
 
     String teamTitle;
-    if (Game.NO_TEAM.equals(team)) {
-      teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
-    } else if (Game.OBSERVERS_TEAM.equals(team)) {
-      teamTitle = i18n.get("game.tooltip.observers");
+    if (team != null) {
+      if (Game.NO_TEAM.equals(team)) {
+        teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
+      } else if (Game.OBSERVERS_TEAM.equals(team)) {
+        teamTitle = i18n.get("game.tooltip.observers");
+      } else {
+        teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);
+      }
     } else {
-      teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);
+      teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
     }
     teamNameLabel.setText(teamTitle);
   }

@@ -152,12 +152,10 @@ public class PlayerService implements InitializingBean {
   }
 
   public List<Player> getAllPlayersInGame(Game game) {
-    synchronized (game.getTeams()) {
-      return game.getTeams().values().stream()
-          .flatMap(Collection::stream)
-          .flatMap(playerName -> getPlayerByNameIfOnline(playerName).stream())
-          .collect(Collectors.toList());
-    }
+    return game.getTeams().values().stream()
+        .flatMap(Collection::stream)
+        .flatMap(playerName -> getPlayerByNameIfOnline(playerName).stream())
+        .collect(Collectors.toList());
   }
 
   public boolean isCurrentPlayerInGame(Game game) {

@@ -190,7 +190,7 @@ public class GameService implements InitializingBean {
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.synchronizedObservableList(FXCollections.observableList(new ArrayList<>(),
-        item -> new Observable[]{item.statusProperty(), item.getTeams()}
+        item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
     ));
     forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
     inMatchmakerQueue = false;
@@ -333,46 +333,43 @@ public class GameService implements InitializingBean {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
-    synchronized (game.getSimMods()) {
-      Set<String> simModUIds = game.getSimMods().keySet();
+    Set<String> simModUIds = game.getSimMods().keySet();
+    return modService.getFeaturedMod(game.getFeaturedMod())
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, featuredModVersions, simModUIds))
+        .thenAccept(aVoid -> {
+          try {
+            modService.enableSimMods(simModUIds);
+          } catch (IOException e) {
+            log.warn("SimMods could not be enabled", e);
+          }
+        })
+        .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
+        .thenCompose(aVoid -> fafService.requestJoinGame(game.getId(), password))
+        .thenAccept(gameLaunchMessage -> {
+          synchronized (currentGame) {
+            // Store password in case we rehost
+            game.setPassword(password);
+            currentGame.set(game);
+          }
 
-      return modService.getFeaturedMod(game.getFeaturedMod())
-          .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, featuredModVersions, simModUIds))
-          .thenAccept(aVoid -> {
-            try {
-              modService.enableSimMods(simModUIds);
-            } catch (IOException e) {
-              log.warn("SimMods could not be enabled", e);
-            }
-          })
-          .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
-          .thenCompose(aVoid -> fafService.requestJoinGame(game.getId(), password))
-          .thenAccept(gameLaunchMessage -> {
-            synchronized (currentGame) {
-              // Store password in case we rehost
-              game.setPassword(password);
-              currentGame.set(game);
-            }
+          String ratingType = gameLaunchMessage.getRatingType();
+          if (ratingType == null) {
+            log.warn("Rating type not in gameLaunchMessage using game rating type");
+            ratingType = game.getRatingType();
+          }
 
-            String ratingType = gameLaunchMessage.getRatingType();
-            if (ratingType == null) {
-              log.warn("Rating type not in gameLaunchMessage using game rating type");
-              ratingType = game.getRatingType();
-            }
+          if (ratingType == null) {
+            log.warn("Rating type not in game using default");
+            ratingType = DEFAULT_RATING_TYPE;
+          }
 
-            if (ratingType == null) {
-              log.warn("Rating type not in game using default");
-              ratingType = DEFAULT_RATING_TYPE;
-            }
-
-            startGame(gameLaunchMessage, null, ratingType);
-          })
-          .exceptionally(throwable -> {
-            log.warn("Game could not be joined", throwable);
-            notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
-            return null;
-          });
-    }
+          startGame(gameLaunchMessage, null, ratingType);
+        })
+        .exceptionally(throwable -> {
+          log.warn("Game could not be joined", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          return null;
+        });
   }
 
   private CompletableFuture<Void> downloadMapIfNecessary(String mapFolderName) {
@@ -491,26 +488,24 @@ public class GameService implements InitializingBean {
     Game game = getByUid(gameId);
 
     Map<String, Integer> modVersions = game.getFeaturedModVersions();
-    synchronized (game.getSimMods()) {
-      Set<String> simModUids = game.getSimMods().keySet();
+    Set<String> simModUids = game.getSimMods().keySet();
 
-      return modService.getFeaturedMod(gameType)
-          .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, modVersions, simModUids))
-          .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
-          .thenRun(() -> noCatch(() -> {
-            Process processCreated = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
-            if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
-              return;
-            }
-            this.process = processCreated;
-            setGameRunning(true);
-            spawnTerminationListener(this.process);
-          }))
-          .exceptionally(throwable -> {
-            notifyCantPlayReplay(gameId, throwable);
-            return null;
-          });
-    }
+    return modService.getFeaturedMod(gameType)
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, modVersions, simModUids))
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
+        .thenRun(() -> noCatch(() -> {
+          Process processCreated = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
+          if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
+            return;
+          }
+          this.process = processCreated;
+          setGameRunning(true);
+          spawnTerminationListener(this.process);
+        }))
+        .exceptionally(throwable -> {
+          notifyCantPlayReplay(gameId, throwable);
+          return null;
+        });
   }
 
   @NotNull
@@ -720,17 +715,15 @@ public class GameService implements InitializingBean {
     synchronized (currentGame) {
       Game game = currentGame.get();
 
-      synchronized (game.getSimMods()) {
-        modService.getFeaturedMod(game.getFeaturedMod())
-            .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
-                game.getTitle(),
-                game.getPassword(),
-                featuredModBean,
-                game.getMapFolderName(),
-                new HashSet<>(game.getSimMods().values()),
-                GameVisibility.PUBLIC,
-                game.getMinRating(), game.getMaxRating(), game.getEnforceRating())));
-      }
+      modService.getFeaturedMod(game.getFeaturedMod())
+          .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
+              game.getTitle(),
+              game.getPassword(),
+              featuredModBean,
+              game.getMapFolderName(),
+              new HashSet<>(game.getSimMods().values()),
+              GameVisibility.PUBLIC,
+              game.getMinRating(), game.getMaxRating(), game.getEnforceRating())));
     }
   }
 
