@@ -5,10 +5,12 @@ import com.faforever.client.remote.domain.GameStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class GameInfoMessageBuilder {
 
-  private GameInfoMessage gameInfoMessage;
+  private final GameInfoMessage gameInfoMessage;
 
   private GameInfoMessageBuilder(Integer uid) {
     gameInfoMessage = new GameInfoMessage();
@@ -28,6 +30,7 @@ public class GameInfoMessageBuilder {
     gameInfoMessage.setState(GameStatus.OPEN);
     gameInfoMessage.setTitle("Test preferences");
     gameInfoMessage.setTeams(new HashMap<>());
+    gameInfoMessage.setSimMods(new HashMap<>());
     gameInfoMessage.setPasswordProtected(false);
     gameInfoMessage.setEnforceRatingRange(false);
     gameInfoMessage.setRatingMax(3000);
@@ -40,6 +43,7 @@ public class GameInfoMessageBuilder {
   }
 
   public GameInfoMessageBuilder addTeamMember(String team, String playerName) {
+    Map<String, List<String>> newTeams = new HashMap<>();
     if (!gameInfoMessage.getTeams().containsKey(team)) {
       gameInfoMessage.getTeams().put(team, new ArrayList<>());
     }

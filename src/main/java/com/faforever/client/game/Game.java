@@ -271,7 +271,11 @@ public class Game {
   }
 
   public void setSimMods(Map<String, String> simMods) {
-    this.simMods.set(Collections.unmodifiableMap(simMods));
+    if (simMods == null) {
+      this.simMods.set(Map.of());
+    } else {
+      this.simMods.set(Collections.unmodifiableMap(simMods));
+    }
   }
 
   public ObjectProperty<Map<String, String>> simModsProperty() {
@@ -286,7 +290,11 @@ public class Game {
   }
 
   public void setTeams(Map<String, List<String>> teams) {
-    this.teams.set(Collections.unmodifiableMap(teams));
+    if (teams == null) {
+      this.teams.set(Map.of());
+    } else {
+      this.teams.set(Collections.unmodifiableMap(teams));
+    }
   }
 
   public ObjectProperty<Map<String, List<String>>> teamsProperty() {
