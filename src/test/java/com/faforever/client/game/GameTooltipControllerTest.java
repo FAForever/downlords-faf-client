@@ -4,8 +4,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Pane;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +12,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.hamcrest.core.Is.is;
@@ -48,17 +49,19 @@ public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
   
   @Test
   public void testSetGame() {
-    ObservableMap<String, String> simMods = FXCollections.observableHashMap();
+    Map<String, String> simMods = new HashMap<>();
     when(game.getSimMods()).thenReturn(simMods);
-    ObservableMap<String, List<String>> teams = FXCollections.observableHashMap();
+    when(game.simModsProperty()).thenReturn(new SimpleObjectProperty<>(simMods));
+    Map<String, List<String>> teams = new HashMap<>();
     when(game.getTeams()).thenReturn(teams);
-    
+    when(game.teamsProperty()).thenReturn(new SimpleObjectProperty<>(teams));
+
     instance.setGame(game);
     instance.displayGame();
     WaitForAsyncUtils.waitForFxEvents();
     assertFalse(instance.modsPane.isVisible());
     assertThat(instance.teamsPane.getPrefColumns(), is(0));
-    
+
     teams.put("team1", List.of("Bob"));
     instance.setGame(game);
     instance.displayGame();
