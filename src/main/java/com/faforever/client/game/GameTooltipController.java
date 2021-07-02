@@ -68,8 +68,10 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   private void createTeams() {
-    TeamCardController.createAndAdd(game, playerService, uiService, teamsPane);
-    JavaFxUtil.runLater(() -> teamsPane.setPrefColumns(Math.min(game.getTeams().size(), maxPrefColumns)));
+    if (game != null) {
+      TeamCardController.createAndAdd(game, playerService, uiService, teamsPane);
+      JavaFxUtil.runLater(() -> teamsPane.setPrefColumns(Math.min(game.getTeams().size(), maxPrefColumns)));
+    }
   }
 
   private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
