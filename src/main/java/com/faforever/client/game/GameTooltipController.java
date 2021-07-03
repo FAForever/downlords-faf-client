@@ -18,8 +18,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
@@ -65,8 +63,8 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   private void resetListeners() {
-    teamInvalidationListener = change -> createTeams();
-    simModsInvalidationListener = change -> createModsList(game.getSimMods());
+    teamInvalidationListener = observable -> createTeams();
+    simModsInvalidationListener = observable -> createModsList();
   }
 
   private void createTeams() {
@@ -76,9 +74,11 @@ public class GameTooltipController implements Controller<Node> {
     }
   }
 
-  private void createModsList(Map<? extends String, ? extends String> simMods) {
-    String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
-    JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
+  private void createModsList() {
+    if (game != null) {
+      String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(game.getSimMods().values());
+      JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
+    }
   }
 
   public void setShowMods(boolean showMods) {
