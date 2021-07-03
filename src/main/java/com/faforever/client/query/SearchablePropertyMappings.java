@@ -47,8 +47,7 @@ public class SearchablePropertyMappings {
       .put("displayName", new Property("map.name", true))
       .put("author.login", new Property("map.author", false))
 
-      .put("statistics.plays", new Property("map.playCount", false))
-      .put("statistics.downloads", new Property("map.numberOfDownloads", false))
+      .put("gamesPlayed", new Property("map.playCount", false))
 
       .put("latestVersion.createTime", new Property("map.uploadedDateTime", false))
       .put("latestVersion.updateTime", new Property("map.updatedDateTime", false))
