@@ -31,9 +31,9 @@ public class MapBean implements Comparable<MapBean> {
 
   private final StringProperty folderName;
   private final StringProperty displayName;
-  private final IntegerProperty numberOfPlays;
+  private final IntegerProperty mapGamesPlayed;
+  private final IntegerProperty mapVersionGamesPlayed;
   private final StringProperty description;
-  private final IntegerProperty downloads;
   private final IntegerProperty players;
   private final ObjectProperty<MapSize> size;
   private final ObjectProperty<ComparableVersion> version;
@@ -54,8 +54,8 @@ public class MapBean implements Comparable<MapBean> {
     displayName = new SimpleStringProperty();
     folderName = new SimpleStringProperty();
     description = new SimpleStringProperty();
-    numberOfPlays = new SimpleIntegerProperty(0);
-    downloads = new SimpleIntegerProperty();
+    mapGamesPlayed = new SimpleIntegerProperty(0);
+    mapVersionGamesPlayed = new SimpleIntegerProperty(0);
     players = new SimpleIntegerProperty();
     size = new SimpleObjectProperty<>();
     version = new SimpleObjectProperty<>();
@@ -72,33 +72,21 @@ public class MapBean implements Comparable<MapBean> {
     ranked = new SimpleBooleanProperty();
   }
 
-  public static MapBean fromMapDto(com.faforever.commons.api.dto.Map map) {
-    MapVersion mapVersion = map.getLatestVersion();
+  public static MapBean fromMapDto(com.faforever.commons.api.dto.Map dto) {
+    MapVersion mapVersion = dto.getLatestVersion();
 
     MapBean mapBean = new MapBean();
-    Optional.ofNullable(map.getAuthor()).ifPresent(author -> mapBean.setAuthor(author.getLogin()));
-    mapBean.setDescription(mapVersion.getDescription());
-    mapBean.setDisplayName(map.getDisplayName());
-    mapBean.setFolderName(mapVersion.getFolderName());
-    mapBean.setSize(MapSize.valueOf(mapVersion.getWidth(), mapVersion.getHeight()));
-    mapBean.setDownloads(map.getStatistics().getDownloads());
-    mapBean.setId(mapVersion.getId());
-    mapBean.setPlayers(mapVersion.getMaxPlayers());
-    mapBean.setVersion(mapVersion.getVersion());
-    mapBean.setDownloadUrl(mapVersion.getDownloadUrl());
-    mapBean.setSmallThumbnailUrl(mapVersion.getThumbnailUrlSmall());
-    mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
-    mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
-    mapBean.setNumberOfPlays(map.getStatistics().getPlays());
-    mapBean.setRanked(mapVersion.isRanked());
-    mapBean.setHidden(mapVersion.isHidden());
-    mapBean.setReviewsSummary(ReviewsSummary.fromDto(map.getMapReviewsSummary()));
-    map.getVersions().forEach(v -> {
+    Optional.ofNullable(dto.getAuthor()).ifPresent(author -> mapBean.setAuthor(author.getLogin()));
+    mapBean.setDisplayName(dto.getDisplayName());
+    mapBean.setMapGamesPlayed(dto.getGamesPlayed());
+    setPropertiesFromMapVersion(mapVersion, mapBean);
+    mapBean.setReviewsSummary(ReviewsSummary.fromDto(dto.getMapReviewsSummary()));
+    dto.getVersions().forEach(v -> {
       if (v.getReviews() != null) {
         v.getReviews().forEach(mapVersionReview -> {
           Review review = Review.fromDto(mapVersionReview);
-          review.setVersion(mapVersion.getVersion());
-          review.setLatestVersion(map.getLatestVersion().getVersion());
+          review.setVersion(v.getVersion());
+          review.setLatestVersion(dto.getLatestVersion().getVersion());
           mapBean.getReviews().add(review);
         });
       }
@@ -109,19 +97,9 @@ public class MapBean implements Comparable<MapBean> {
   public static MapBean fromMapVersionDto(com.faforever.commons.api.dto.MapVersion mapVersion) {
     MapBean mapBean = new MapBean();
     Optional.ofNullable(mapVersion.getMap().getAuthor()).ifPresent(author -> mapBean.setAuthor(author.getLogin()));
-    mapBean.setDescription(mapVersion.getDescription());
     mapBean.setDisplayName(mapVersion.getMap().getDisplayName());
-    mapBean.setFolderName(mapVersion.getFolderName());
-    mapBean.setSize(MapSize.valueOf(mapVersion.getWidth(), mapVersion.getHeight()));
-    mapBean.setDownloads(mapVersion.getMap().getStatistics().getDownloads());
-    mapBean.setId(mapVersion.getId());
-    mapBean.setPlayers(mapVersion.getMaxPlayers());
-    mapBean.setVersion(mapVersion.getVersion());
-    mapBean.setDownloadUrl(mapVersion.getDownloadUrl());
-    mapBean.setSmallThumbnailUrl(mapVersion.getThumbnailUrlSmall());
-    mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
-    mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
-    mapBean.setNumberOfPlays(mapVersion.getMap().getStatistics().getPlays());
+    mapBean.setMapGamesPlayed(mapVersion.getMap().getGamesPlayed());
+    setPropertiesFromMapVersion(mapVersion, mapBean);
     mapBean.setReviewsSummary(ReviewsSummary.fromDto(mapVersion.getMap().getMapReviewsSummary()));
     mapVersion.getMap().getVersions().forEach(v -> {
       if (v.getReviews() != null) {
@@ -133,9 +111,23 @@ public class MapBean implements Comparable<MapBean> {
         });
       }
     });
+    return mapBean;
+  }
+
+  private static void setPropertiesFromMapVersion(MapVersion mapVersion, MapBean mapBean) {
+    mapBean.setDescription(mapVersion.getDescription());
+    mapBean.setFolderName(mapVersion.getFolderName());
+    mapBean.setSize(MapSize.valueOf(mapVersion.getWidth(), mapVersion.getHeight()));
+    mapBean.setId(mapVersion.getId());
+    mapBean.setPlayers(mapVersion.getMaxPlayers());
+    mapBean.setVersion(mapVersion.getVersion());
+    mapBean.setDownloadUrl(mapVersion.getDownloadUrl());
+    mapBean.setSmallThumbnailUrl(mapVersion.getThumbnailUrlSmall());
+    mapBean.setLargeThumbnailUrl(mapVersion.getThumbnailUrlLarge());
+    mapBean.setCreateTime(mapVersion.getCreateTime().toLocalDateTime());
+    mapBean.setMapVersionGamesPlayed(mapVersion.getGamesPlayed());
     mapBean.setHidden(mapVersion.isHidden());
     mapBean.setRanked(mapVersion.isRanked());
-    return mapBean;
   }
 
   public static MapBean fromNeroxisGeneratedMapParams(NeroxisGeneratorParams mapParams) {
@@ -145,7 +137,6 @@ public class MapBean implements Comparable<MapBean> {
     mapBean.setDisplayName(String.format("neroxis_map_generator_%s_mapSize=%dkm_spawns=%d", mapParams.getVersion(), (int) (mapParams.getSize() / 51.2), mapParams.getSpawns()));
     mapBean.setFolderName(mapBean.getDisplayName());
     mapBean.setSize(MapSize.valueOf(mapParams.getSize(), mapParams.getSize()));
-    mapBean.setDownloads(0);
     mapBean.setId(mapBean.getDisplayName());
     mapBean.setPlayers(mapParams.getSpawns());
     mapBean.setVersion(new ComparableVersion("1"));
@@ -195,28 +186,28 @@ public class MapBean implements Comparable<MapBean> {
     return description;
   }
 
-  public int getNumberOfPlays() {
-    return numberOfPlays.get();
+  public int getMapGamesPlayed() {
+    return mapGamesPlayed.get();
   }
 
-  public void setNumberOfPlays(int plays) {
-    this.numberOfPlays.set(plays);
+  public void setMapGamesPlayed(int plays) {
+    this.mapGamesPlayed.set(plays);
   }
 
-  public IntegerProperty numberOfPlaysProperty() {
-    return numberOfPlays;
+  public IntegerProperty mapGamesPlayedProperty() {
+    return mapGamesPlayed;
   }
 
-  public int getDownloads() {
-    return downloads.get();
+  public int getMapVersionGamesPlayed() {
+    return mapVersionGamesPlayed.get();
   }
 
-  public void setDownloads(int downloads) {
-    this.downloads.set(downloads);
+  public void setMapVersionGamesPlayed(int plays) {
+    this.mapVersionGamesPlayed.set(plays);
   }
 
-  public IntegerProperty downloadsProperty() {
-    return downloads;
+  public IntegerProperty mapVersionGamesPlayedProperty() {
+    return mapVersionGamesPlayed;
   }
 
   public MapSize getSize() {

@@ -21,7 +21,7 @@ public class VaultPrefs {
 
   public VaultPrefs() {
     onlineReplaySortConfig = new SimpleObjectProperty<>(new SortConfig("startTime", SortOrder.DESC));
-    mapSortConfig = new SimpleObjectProperty<>(new SortConfig("statistics.plays", SortOrder.DESC));
+    mapSortConfig = new SimpleObjectProperty<>(new SortConfig("gamesPlayed", SortOrder.DESC));
     modVaultConfig = new SimpleObjectProperty<>(new SortConfig("latestVersion.createTime", SortOrder.DESC));
     savedReplayQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
     savedMapQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());

@@ -37,8 +37,7 @@ public class SortableProperties {
       .put("displayName", "map.name")
       .put("author.login", "map.author")
 
-      .put("statistics.plays", "map.playCount")
-      .put("statistics.downloads", "map.numberOfDownloads")
+      .put("gamesPlayed", "map.playCount")
 
       .put("latestVersion.createTime", "map.uploadedDateTime")
       .put("latestVersion.updateTime", "map.updatedDateTime")

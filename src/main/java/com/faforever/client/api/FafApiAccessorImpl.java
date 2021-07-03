@@ -23,7 +23,6 @@ import com.faforever.commons.api.dto.LeaderboardEntry;
 import com.faforever.commons.api.dto.LeaderboardRatingJournal;
 import com.faforever.commons.api.dto.Map;
 import com.faforever.commons.api.dto.MapPoolAssignment;
-import com.faforever.commons.api.dto.MapStatistics;
 import com.faforever.commons.api.dto.MapVersion;
 import com.faforever.commons.api.dto.MapVersionReview;
 import com.faforever.commons.api.dto.MatchmakerQueue;
@@ -94,7 +93,6 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private static final String REPLAY_ENDPOINT = "/data/game";
   private static final String MAP_ENDPOINT = "/data/map";
   private static final String MAP_VERSION_ENDPOINT = "/data/mapVersion";
-  private static final String MAP_STATISTICS_ENDPOINT = "/data/mapStatistics";
   private static final String MOD_ENDPOINT = "/data/mod";
   private static final String MOD_VERSION_ENDPOINT = "/data/modVersion";
   private static final String ACHIEVEMENT_ENDPOINT = "/data/achievement";
@@ -104,14 +102,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private static final String TOURNAMENT_LIST_ENDPOINT = "/challonge/v1/tournaments.json";
   private static final String REPLAY_INCLUDES = "featuredMod,playerStats,playerStats.player,playerStats.ratingChanges,reviews," +
       "reviews.player,mapVersion,mapVersion.map,reviewsSummary";
-  private static final String MAP_INCLUDES = "latestVersion,author,statistics,reviewsSummary," +
+  private static final String MAP_INCLUDES = "latestVersion,author,reviewsSummary," +
       "versions.reviews,versions.reviews.player";
-  private static final String MAP_VERSION_INCLUDES = "map,map.latestVersion,map.author,map.statistics," +
+  private static final String MAP_VERSION_INCLUDES = "map,map.latestVersion,map.author," +
       "map.reviewsSummary,map.versions.reviews,map.versions.reviews.player";
-  private static final String MAP_STATISTICS_INCLUDES = "map,map.statistics,map.latestVersion,map.author," +
-      "map.versions.reviews,map.versions.reviews.player,map.reviewsSummary";
   private static final String MATCHMAKER_POOL_INCLUDES = "mapVersion,mapVersion.map,mapVersion.map.latestVersion," +
-      "mapVersion.map.author,mapVersion.map.statistics,mapVersion.map.reviewsSummary,mapVersion.map.versions.reviews," +
+      "mapVersion.map.author,mapVersion.map.reviewsSummary,mapVersion.map.versions.reviews," +
       "mapVersion.map.versions.reviews.player";
   private static final String MOD_INCLUDES = "latestVersion,reviewsSummary,versions,versions.reviews," +
       "versions.reviews.player";
@@ -266,18 +262,18 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.MAPS, sync = true)
   public Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page) {
-    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta(MAP_STATISTICS_ENDPOINT, count, page, java.util.Map.of(
-        INCLUDE, MAP_STATISTICS_INCLUDES,
-        SORT, "-plays"));
-    return new Tuple<>(jsonApiDoc.get().stream().map(MapStatistics::getMap).collect(Collectors.toList()), jsonApiDoc.getMeta());
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
+        INCLUDE, MAP_INCLUDES,
+        SORT, "-gamesPlayed"));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
   public Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page) {
-    JSONAPIDocument<List<MapStatistics>> jsonApiDoc = getPageWithMeta(MAP_STATISTICS_ENDPOINT, count, page, java.util.Map.of(
-        INCLUDE, MAP_STATISTICS_INCLUDES,
-        SORT, "-map.reviewsSummary.lowerBound"));
-    return new Tuple<>(jsonApiDoc.get().stream().map(MapStatistics::getMap).collect(Collectors.toList()), jsonApiDoc.getMeta());
+    JSONAPIDocument<List<Map>> jsonApiDoc = getPageWithMeta(MAP_ENDPOINT, count, page, java.util.Map.of(
+        INCLUDE, MAP_INCLUDES,
+        SORT, "-reviewsSummary.lowerBound"));
+    return new Tuple<>(jsonApiDoc.get(), jsonApiDoc.getMeta());
   }
 
   @Override
@@ -551,7 +547,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public List<TutorialCategory> getTutorialCategories() {
     return getAll("/data/tutorialCategory",
         java.util.Map.of(INCLUDE, "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion," +
-            "tutorials.mapVersion.map.author,tutorials.mapVersion.map.statistics"));
+            "tutorials.mapVersion.map.author"));
   }
 
   @Override
