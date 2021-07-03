@@ -50,10 +50,10 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   public void displayGame() {
+    resetListeners();
     if (game == null) {
       return;
     }
-    resetListeners();
     WeakInvalidationListener weakTeamInvalidationListener = new WeakInvalidationListener(teamInvalidationListener);
     JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamInvalidationListener);
     if (showMods) {
