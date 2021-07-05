@@ -22,7 +22,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -185,14 +184,12 @@ public class GamesTableController implements Controller<Node> {
 
   @NotNull
   private ObservableValue<String> modCell(CellDataFeatures<Game, String> param) {
-    ObservableMap<String, String> simMods = param.getValue().getSimMods();
+    Map<String, String> simMods = param.getValue().getSimMods();
     int simModCount = simMods.size();
     List<String> modNames;
-    synchronized (simMods) {
       modNames = simMods.values().stream()
           .limit(2)
           .collect(Collectors.toList());
-    }
     if (simModCount > 2) {
       return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.size() - 1));
     }

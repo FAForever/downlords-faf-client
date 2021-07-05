@@ -238,26 +238,28 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private synchronized void renderPartyMembers() {
-    List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
-    members.removeIf(partyMember -> partyMember.getPlayer().equals(player));
-    List<Node> memberCards = members.stream().map(member -> {
-      PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
-      controller.setMember(member);
-      return controller.getRoot();
-    }).collect(Collectors.toList());
-    JavaFxUtil.runLater(() -> {
-      playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
-          (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
-      partyMemberPane.getChildren().clear();
-      int numMemberCards = memberCards.size();
-      for (int i = 0; i < numMemberCards; i++) {
-        if (numMemberCards == 1) {
-          partyMemberPane.add(memberCards.get(i), 0, 0, 2, 1);
-        } else {
-          partyMemberPane.add(memberCards.get(i), i % 2, i / 2);
+    if (player != null) {
+      List<PartyMember> members = new ArrayList<>(teamMatchmakingService.getParty().getMembers());
+      members.removeIf(partyMember -> player.equals(partyMember.getPlayer()));
+      List<Node> memberCards = members.stream().map(member -> {
+        PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
+        controller.setMember(member);
+        return controller.getRoot();
+      }).collect(Collectors.toList());
+      JavaFxUtil.runLater(() -> {
+        playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
+            (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
+        partyMemberPane.getChildren().clear();
+        int numMemberCards = memberCards.size();
+        for (int i = 0; i < numMemberCards; i++) {
+          if (numMemberCards == 1) {
+            partyMemberPane.add(memberCards.get(i), 0, 0, 2, 1);
+          } else {
+            partyMemberPane.add(memberCards.get(i), i % 2, i / 2);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   @Override

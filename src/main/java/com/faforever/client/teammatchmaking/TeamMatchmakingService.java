@@ -338,25 +338,25 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   private void initializeParty() {
-    Player currentPlayer = playerService.getCurrentPlayer().orElse(null);
+    playerService.getCurrentPlayer().ifPresent(player -> {
+      PartyMember newPartyMember = new PartyMember(player);
+      party.getMembers().stream()
+          .filter(partyMember -> Objects.equals(partyMember.getPlayer(), player))
+          .findFirst()
+          .ifPresent(partyMember -> {
+            newPartyMember.setFactions(partyMember.getFactions());
+            sendFactionSelection(partyMember.getFactions());
+          });
 
-    PartyMember newPartyMember = new PartyMember(currentPlayer);
-    party.getMembers().stream()
-        .filter(partyMember -> partyMember.getPlayer().equals(currentPlayer))
-        .findFirst()
-        .ifPresent(partyMember -> {
-          newPartyMember.setFactions(partyMember.getFactions());
-          sendFactionSelection(partyMember.getFactions());
-        });
-
-    party.setOwner(currentPlayer);
-    eventBus.post(new PartyOwnerChangedEvent(currentPlayer));
-    party.getMembers().forEach(partyMember -> partyMember.setGameStatusChangeListener(null));
-    party.setMembers(List.of(newPartyMember));
-    playersInGame.clear();
-    if (currentPlayer != null && !Objects.equals(currentPlayer.getStatus(), PlayerStatus.IDLE)) {
-      playersInGame.add(currentPlayer);
-    }
+      party.setOwner(player);
+      eventBus.post(new PartyOwnerChangedEvent(player));
+      party.getMembers().forEach(partyMember -> partyMember.setGameStatusChangeListener(null));
+      party.setMembers(List.of(newPartyMember));
+      playersInGame.clear();
+      if (!Objects.equals(player.getStatus(), PlayerStatus.IDLE)) {
+        playersInGame.add(player);
+      }
+    });
   }
 
   public void readyParty() {

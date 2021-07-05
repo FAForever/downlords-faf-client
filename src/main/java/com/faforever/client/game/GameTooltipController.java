@@ -8,7 +8,6 @@ import com.faforever.client.theme.UiService;
 import com.google.common.base.Joiner;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -38,7 +37,8 @@ public class GameTooltipController implements Controller<Node> {
   private boolean showMods;
 
   public void initialize() {
-    modsPane.managedProperty().bind(modsPane.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(modsPane);
+    modsPane.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
     maxPrefColumns = teamsPane.getPrefColumns();
     showMods = true;
   }
@@ -48,23 +48,23 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   public void displayGame() {
+    resetListeners();
     if (game == null) {
       return;
     }
-    resetListeners();
     WeakInvalidationListener weakTeamInvalidationListener = new WeakInvalidationListener(teamInvalidationListener);
-    JavaFxUtil.addAndTriggerListener(game.getTeams(), weakTeamInvalidationListener);
+    JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamInvalidationListener);
     if (showMods) {
       WeakInvalidationListener weakModInvalidationListener = new WeakInvalidationListener(simModsInvalidationListener);
-      JavaFxUtil.addAndTriggerListener(game.getSimMods(), weakModInvalidationListener);
+      JavaFxUtil.addAndTriggerListener(game.simModsProperty(), weakModInvalidationListener);
     } else {
       JavaFxUtil.runLater(() -> modsPane.setVisible(false));
     }
   }
 
   private void resetListeners() {
-    teamInvalidationListener = change -> createTeams();
-    simModsInvalidationListener = change -> createModsList(game.getSimMods());
+    teamInvalidationListener = observable -> createTeams();
+    simModsInvalidationListener = observable -> createModsList();
   }
 
   private void createTeams() {
@@ -74,20 +74,11 @@ public class GameTooltipController implements Controller<Node> {
     }
   }
 
-  private void createModsList(ObservableMap<? extends String, ? extends String> simMods) {
-    String stringSimMods;
-    synchronized (simMods) {
-      stringSimMods = Joiner.on(System.getProperty("line.separator")).join(simMods.values());
+  private void createModsList() {
+    if (game != null) {
+      String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(game.getSimMods().values());
+      JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
     }
-    JavaFxUtil.runLater(() -> {
-      if (simMods.isEmpty()) {
-        modsPane.setVisible(false);
-        return;
-      }
-
-      modsLabel.setText(stringSimMods);
-      modsPane.setVisible(true);
-    });
   }
 
   public void setShowMods(boolean showMods) {

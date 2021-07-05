@@ -25,12 +25,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
 
+@Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
@@ -83,6 +85,10 @@ public class PartyMemberItemController implements Controller<Node> {
   public void setMember(PartyMember member) {
     Assert.checkNotNullIllegalState(player, "Party member already set");
     player = member.getPlayer();
+    if (player == null) {
+      log.info("Player of party member is null");
+      return;
+    }
 
     // TODO: replace this with divisionproperty once it is available
     leagueImageView.setVisible(false);
