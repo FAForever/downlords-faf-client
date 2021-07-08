@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
@@ -250,7 +251,11 @@ public class MainController implements Controller<Node> {
   public void onLoggedOutEvent(LoggedOutEvent event) {
     viewCache.invalidateAll();
     contentPane.getChildren().clear();
-    getView(NavigationItem.CHAT);
+    JavaFxUtil.runLater(this::enterLoggedOutState);
+  }
+
+  @Subscribe
+  public void onSessionExpiredEvent(SessionExpiredEvent event) {
     JavaFxUtil.runLater(this::enterLoggedOutState);
   }
 
@@ -367,7 +372,6 @@ public class MainController implements Controller<Node> {
 
     LoginController loginController = uiService.loadFxml("theme/login.fxml");
     fxStage.setContent(loginController.getRoot());
-    loginController.display();
 
     fxStage.getNonCaptionNodes().clear();
   }

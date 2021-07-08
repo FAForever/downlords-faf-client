@@ -19,7 +19,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -258,7 +257,7 @@ public class ReplayService {
       throw new RuntimeException("There's no game with ID: " + gameId);
     }
     /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
-    String playerName = playerService.getCurrentPlayer().map(Player::getUsername).orElse("Unknown");
+    String playerName = playerService.getCurrentPlayer().getUsername();
 
     URI uri = UriComponentsBuilder.newInstance()
         .scheme(FAF_LIFE_PROTOCOL)

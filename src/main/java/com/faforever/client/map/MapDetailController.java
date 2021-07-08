@@ -129,8 +129,7 @@ public class MapDetailController implements Controller<Node> {
   }
 
   private void renewAuthorControls() {
-    Optional<Player> currentPlayer = playerService.getCurrentPlayer();
-    Player player = currentPlayer.orElseThrow(() -> new IllegalStateException("Player must be set in vault"));
+    Player player = playerService.getCurrentPlayer();
     boolean viewerIsAuthor = map.getAuthor() != null && String.valueOf(player.getUsername()).equals(map.getAuthor());
     unrankButton.setVisible(viewerIsAuthor && map.isRanked());
     hideButton.setVisible(viewerIsAuthor && !map.isHidden());
@@ -187,7 +186,7 @@ public class MapDetailController implements Controller<Node> {
     boolean mapInstalled = mapService.isInstalled(map.getFolderName());
     setInstalled(mapInstalled);
 
-    Player player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("No user is logged in"));
+    Player player = playerService.getCurrentPlayer();
 
     reviewsController.setCanWriteReview(false);
     mapService.hasPlayedMap(player.getId(), map.getId())
@@ -248,8 +247,7 @@ public class MapDetailController implements Controller<Node> {
   @VisibleForTesting
   void onSendReview(Review review) {
     boolean isNew = review.getId() == null;
-    Player player = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("No current player is available"));
+    Player player = playerService.getCurrentPlayer();
     review.setPlayer(player);
     review.setVersion(map.getVersion());
     review.setLatestVersion(map.getVersion());

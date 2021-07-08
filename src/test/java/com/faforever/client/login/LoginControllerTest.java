@@ -1,15 +1,17 @@
 package com.faforever.client.login;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.config.ClientProperties.Website;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.update.ClientConfiguration;
-import com.faforever.client.update.ClientConfiguration.Endpoints;
-import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
+import com.faforever.client.update.ClientConfigurationBuilder;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
@@ -17,34 +19,36 @@ import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Answers;
 import org.mockito.Mock;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
-import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends AbstractPlainJavaFxTest {
-  public static final String LOGIN_WITH_EMAIL_WARNING_KEY = "login.withEmailWarning";
 
   private LoginController instance;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private NotificationService notificationService;
   @Mock
   private UserService userService;
   @Mock
@@ -53,90 +57,131 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   @Mock
   private ClientUpdateService clientUpdateService;
+  @Mock
+  private WebViewConfigurer webViewConfigurer;
 
   private ClientProperties clientProperties;
+  private Preferences preferences;
 
   @Before
   public void setUp() throws Exception {
     clientProperties = new ClientProperties();
+    preferences = PreferencesBuilder.create().defaultValues().get();
 
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
-    when(i18n.get(LOGIN_WITH_EMAIL_WARNING_KEY)).thenReturn(LOGIN_WITH_EMAIL_WARNING_KEY);
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(userService.getHydraUrl()).thenReturn("google.com");
 
-    instance = new LoginController(userService, preferencesService, platformService, clientProperties, i18n, clientUpdateService);
-
-    Website website = clientProperties.getWebsite();
-    website.setCreateAccountUrl("create");
-    website.setForgotPasswordUrl("forgot");
+    instance = new LoginController(userService, preferencesService, notificationService, platformService, clientProperties, i18n, clientUpdateService, webViewConfigurer);
 
     loadFxml("theme/login.fxml", param -> instance);
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
   }
 
   @Test
-  public void testLoginNotCalledWhenNoUsernameAndPasswordSet() throws Exception {
-    instance.display();
-
-    verify(userService, never()).login(anyString(), anyString(), anyBoolean());
-  }
-
-  @Test
-  public void testLoginButtonClicked() throws Exception {
-    instance.usernameInput.setText("JUnit");
-    instance.passwordInput.setText("password");
-    instance.autoLoginCheckBox.setSelected(true);
-
-    when(userService.login(anyString(), anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(null));
-
-    instance.onLoginButtonClicked();
-
-    verify(userService).login("JUnit", "password", true);
-  }
-
-  @Test
-  public void testCreateAccountButtton() throws Exception {
-    instance.createNewAccountClicked();
-
-    verify(platformService).showDocument("create");
-  }
-
-  @Test
-  public void testForgotPasswordButtton() throws Exception {
-    instance.forgotLoginClicked();
-
-    verify(platformService).showDocument("forgot");
-  }
-
-  @Test
-  public void testUsernameEmailWarning() {
-    instance.usernameInput.setText("test@example.com");
-    instance.passwordInput.setText("foo");
-    instance.loginButton.fire();
-    verify(i18n).get(LOGIN_WITH_EMAIL_WARNING_KEY);
-    verifyZeroInteractions(userService);
-    assertThat(instance.loginErrorLabel.isVisible(), is(true));
-    assertThat(instance.loginErrorLabel.getText(), is(LOGIN_WITH_EMAIL_WARNING_KEY));
+  public void testLoginWithRefreshToken() {
+    clientProperties.setUseRemotePreferences(true);
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    String refreshToken = "asd";
+    preferences.getLogin().setRefreshToken(refreshToken);
+    runOnFxThreadAndWait(() -> instance.initialize());
+    verify(userService).loginWithRefreshToken(refreshToken);
+    assertTrue(instance.loginProgressPane.isVisible());
+    assertFalse(instance.loginFormPane.isVisible());
   }
 
   @Test
   public void testLoginSucceeds() {
-    instance.usernameInput.setText("test");
-    instance.passwordInput.setText("foo");
-    instance.autoLoginCheckBox.setSelected(true);
-    when(userService.login(eq("test"), eq("foo"), eq(true))).thenReturn(CompletableFuture.completedFuture(null));
-    instance.loginButton.fire();
-    assertThat(instance.loginErrorLabel.isVisible(), is(false));
+    String state = "abc";
+    String code = "asda";
+    when(userService.getState()).thenReturn(state);
+    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load(String.format("?code=%s&state=%s", code, state)));
+    verify(userService).login(code);
+    assertTrue(instance.loginProgressPane.isVisible());
+    assertFalse(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginFailsWrongState() {
+    String state = "abc";
+    String wrongState = "xyz";
+    String code = "asda";
+    when(userService.getState()).thenReturn(state);
+    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load(String.format("?code=%s&state=%s", code, wrongState)));
+    verify(userService, never()).login(code);
+    verify(userService).getState();
+    verify(userService).getHydraUrl();
+    assertEquals(userService.getHydraUrl(), instance.loginWebView.getEngine().getLocation());
+    verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.badState"));
+  }
+
+  @Test
+  public void testLoginFails() {
+    String state = "abc";
+    String code = "asda";
+    when(userService.getState()).thenReturn(state);
+    when(userService.login(code)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load(String.format("?code=%s&state=%s", code, state)));
+    verify(userService).login(code);
+    verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginRefreshFailsBadToken() {
+    clientProperties.setUseRemotePreferences(true);
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    String refreshToken = "asd";
+    preferences.getLogin().setRefreshToken(refreshToken);
+    when(userService.loginWithRefreshToken(refreshToken)).thenReturn(CompletableFuture.failedFuture(
+        new CompletionException(HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "", HttpHeaders.EMPTY, new byte[]{}, null))));
+    runOnFxThreadAndWait(() -> instance.initialize());
+    verify(userService).loginWithRefreshToken(refreshToken);
+    verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginRefreshFailsUnauthorized() {
+    clientProperties.setUseRemotePreferences(true);
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    String refreshToken = "asd";
+    preferences.getLogin().setRefreshToken(refreshToken);
+    when(userService.loginWithRefreshToken(refreshToken)).thenReturn(CompletableFuture.failedFuture(
+        new CompletionException(HttpClientErrorException.create(HttpStatus.UNAUTHORIZED, "", HttpHeaders.EMPTY, new byte[]{}, null))));
+    runOnFxThreadAndWait(() -> instance.initialize());
+    verify(userService).loginWithRefreshToken(refreshToken);
+    verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginRefreshFails() {
+    clientProperties.setUseRemotePreferences(true);
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    String refreshToken = "asd";
+    preferences.getLogin().setRefreshToken(refreshToken);
+    when(userService.loginWithRefreshToken(refreshToken)).thenReturn(CompletableFuture.failedFuture(new CompletionException(new Exception())));
+    runOnFxThreadAndWait(() -> instance.initialize());
+    verify(userService).loginWithRefreshToken(refreshToken);
+    verify(notificationService).addImmediateErrorNotification(any(), anyString());
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
   }
 
   @Test
   public void testInitializeWithNoMandatoryUpdate() throws Exception {
     UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
-    ClientConfiguration clientConfiguration = new ClientConfiguration();
-    ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
-    ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
-    clientConfiguration.setLatestRelease(releaseInfo);
-    clientConfiguration.setEndpoints(Collections.singletonList(endpoints));
+    ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
+        .defaultValues()
+        .latestRelease()
+        .minimumVersion("2.1.2")
+        .then()
+        .get();
 
-    releaseInfo.setMinimumVersion("2.1.2");
     VersionTest.setCurrentVersion("2.2.0");
 
     when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
@@ -161,13 +206,13 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   @Test
   public void testInitializeWithMandatoryUpdate() throws Exception {
     UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
-    ClientConfiguration clientConfiguration = new ClientConfiguration();
-    ClientConfiguration.ReleaseInfo releaseInfo = new ReleaseInfo();
-    ClientConfiguration.Endpoints endpoints = mock(Endpoints.class, Answers.RETURNS_DEEP_STUBS);
-    clientConfiguration.setLatestRelease(releaseInfo);
-    clientConfiguration.setEndpoints(Collections.singletonList(endpoints));
+    ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
+        .defaultValues()
+        .latestRelease()
+        .minimumVersion("2.1.2")
+        .then()
+        .get();
 
-    releaseInfo.setMinimumVersion("2.1.2");
     VersionTest.setCurrentVersion("1.2.0");
 
     when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
@@ -206,27 +251,15 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  public void testOnLoginErrorIsRemoved() throws Exception {
-    instance.loginErrorLabel.setVisible(true);
-    when(userService.login(eq("username"), eq("password"), anyBoolean())).thenReturn(CompletableFuture.completedFuture(null));
-    instance.usernameInput.setText("username");
-    instance.passwordInput.setText("password");
-    instance.onLoginButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
+  public void testSeeServerStatus() {
+    clientProperties.setStatusPageUrl(null);
+    instance.seeServerStatus();
 
-    assertFalse(instance.loginErrorLabel.isVisible());
-  }
+    verify(platformService, never()).showDocument(anyString());
 
-  @Test
-  public void testWarningOnLoginWithEmail() throws Exception {
-    instance.loginErrorLabel.setVisible(false);
-    instance.usernameInput.setText("username@example.com");
-    instance.passwordInput.setText("password");
-    instance.onLoginButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
+    clientProperties.setStatusPageUrl("");
+    instance.seeServerStatus();
 
-    verifyZeroInteractions(userService);
-    verify(i18n).get("login.withEmailWarning");
-    assertTrue(instance.loginErrorLabel.isVisible());
+    verify(platformService).showDocument(anyString());
   }
 }

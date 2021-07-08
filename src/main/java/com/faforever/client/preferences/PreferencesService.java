@@ -287,7 +287,7 @@ public class PreferencesService implements InitializingBean {
     return preferences;
   }
 
-  public void store() {
+  private void store() {
     Path parent = preferencesFilePath.getParent();
     try {
       if (!Files.exists(parent)) {

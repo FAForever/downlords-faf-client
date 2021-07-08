@@ -4,9 +4,11 @@ import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
@@ -14,8 +16,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
-
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,25 +35,30 @@ public class UserButtonControllerTest extends AbstractPlainJavaFxTest {
   private ReportDialogController reportDialogController;
   @Mock
   private UserInfoWindowController userInfoWindowController;
+  @Mock
+  private UserService userService;
+  @Mock
+  private PreferencesService preferencesService;
 
   private UserButtonController instance;
   private Player player;
 
   @Before
   public void setUp() throws Exception {
-    instance = new UserButtonController(eventBus, playerService, uiService);
+    instance = new UserButtonController(eventBus, playerService, uiService, userService, preferencesService);
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(userInfoWindowController);
 
     player = PlayerBuilder.create(TEST_USER_NAME).defaultValues().get();
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
+    when(userService.getUsername()).thenReturn(TEST_USER_NAME);
 
     loadFxml("theme/user_button.fxml", clazz -> instance);
   }
 
   @Test
   public void testOnLoginSuccess() {
-    instance.onLoginSuccessEvent(new LoginSuccessEvent(TEST_USER_NAME, "", 0));
+    instance.onLoginSuccessEvent(new LoginSuccessEvent());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(TEST_USER_NAME, instance.userMenuButtonRoot.getText());

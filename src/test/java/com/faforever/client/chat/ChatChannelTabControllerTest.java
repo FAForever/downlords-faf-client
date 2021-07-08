@@ -165,7 +165,6 @@ public class ChatChannelTabControllerTest extends AbstractPlainJavaFxTest {
     String playerName = "junit";
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(playerName).defaultValues().moderator(true).get();
 
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.empty());
     when(chatService.getOrCreateChatUser(playerName, defaultChatChannel.getName())).thenReturn(chatUser);
 
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));

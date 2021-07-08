@@ -30,7 +30,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -42,12 +44,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -76,6 +81,8 @@ public class FafApiAccessorImplTest {
   private JsonApiMessageConverter jsonApiMessageConverter;
   @Mock
   private JsonApiErrorHandler jsonApiErrorHandler;
+  @Mock
+  private OAuthTokenInterceptor oAuthTokenInterceptor;
 
   @Before
   public void setUp() throws Exception {
@@ -85,11 +92,12 @@ public class FafApiAccessorImplTest {
     when(restTemplateBuilder.additionalMessageConverters(any(JsonApiMessageConverter.class))).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.rootUri(any())).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.errorHandler(any())).thenReturn(restTemplateBuilder);
-    when(restTemplateBuilder.configure(any(OAuth2RestTemplate.class))).thenReturn(restOperations);
+    when(restTemplateBuilder.interceptors(any(ClientHttpRequestInterceptor.class))).thenReturn(restTemplateBuilder);
+    when(restTemplateBuilder.build()).thenReturn(restOperations);
 
-    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter, jsonApiErrorHandler);
+    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter, jsonApiErrorHandler, oAuthTokenInterceptor);
     instance.afterPropertiesSet();
-    instance.authorize(123, "junit", "42");
+    instance.authorize();
   }
 
   @Test
@@ -376,5 +384,12 @@ public class FafApiAccessorImplTest {
     assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.empty()));
     String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
     verify(restOperations).getForObject(contains(parameters), eq(List.class));
+  }
+
+  @Test
+  public void testSessionExpired() {
+    instance.onSessionExpiredEvent(new SessionExpiredEvent());
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> WaitForAsyncUtils.waitForAsync(1000, () -> instance.verifyUser()));
+    assertEquals(TimeoutException.class, exception.getCause().getClass());
   }
 }

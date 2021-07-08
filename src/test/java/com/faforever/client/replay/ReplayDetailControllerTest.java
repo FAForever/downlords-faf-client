@@ -48,7 +48,6 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -134,7 +133,7 @@ public class ReplayDetailControllerTest extends AbstractPlainJavaFxTest {
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("junit").defaultValues().get());
     when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBuilder.create("junit").defaultValues().get())));
     when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(12));
     when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);

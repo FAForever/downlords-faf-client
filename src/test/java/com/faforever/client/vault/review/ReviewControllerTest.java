@@ -1,7 +1,7 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.beans.property.SimpleFloatProperty;
@@ -9,8 +9,6 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -37,7 +35,7 @@ public class ReviewControllerTest extends AbstractPlainJavaFxTest {
   public void setUp() throws Exception {
     instance = new ReviewController(i18n, playerService);
 
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(new Player("junit")));
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("junit").defaultValues().get());
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
 
     loadFxml("theme/vault/review/review.fxml", param -> {

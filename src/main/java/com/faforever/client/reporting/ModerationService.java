@@ -20,7 +20,7 @@ public class ModerationService {
   private final PlayerService playerService;
 
   public CompletableFuture<List<ModerationReport>> getModerationReports() {
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
+    Player currentPlayer = playerService.getCurrentPlayer();
     return fafService.getAllModerationReports(currentPlayer.getId());
   }
 

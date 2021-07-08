@@ -114,7 +114,7 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   private void setPartyOwnerProperties() {
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Current Player not set"));
+    Player currentPlayer = playerService.getCurrentPlayer();
     Player owner = teamMatchmakingService.getParty().getOwner();
     JavaFxUtil.runLater(() -> {
       crownLabel.setVisible(owner == player);

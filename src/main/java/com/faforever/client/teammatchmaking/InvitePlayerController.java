@@ -5,7 +5,6 @@ import com.faforever.client.fx.IconButtonListCell;
 import com.faforever.client.fx.IconButtonListCell.IconButtonListCellControllerAndItem;
 import com.faforever.client.fx.IconButtonListCellController;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
@@ -52,10 +51,7 @@ public class InvitePlayerController implements Controller<Pane> {
     playerList.setAll(getPlayerNames());
 
     filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> playerName -> {
-      if (playerService.getCurrentPlayer()
-          .map(Player::getUsername)
-          .map(username -> username.equals(playerName))
-          .orElse(true)) {
+      if (playerService.getCurrentPlayer().getUsername().equals(playerName)) {
         return false;
       }
 

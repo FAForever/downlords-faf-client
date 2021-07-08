@@ -107,7 +107,7 @@ public class UserInfoWindowController implements Controller<Node> {
   public PieChart gamesPlayedChart;
   public PieChart techBuiltChart;
   public PieChart unitsBuiltChart;
-  public StackedBarChart factionsChart;
+  public StackedBarChart<String, Integer> factionsChart;
   public Label gamesPlayedLabel;
   public HBox ratingsBox;
   public Label ratingsLabels;
@@ -304,7 +304,7 @@ public class UserInfoWindowController implements Controller<Node> {
     lossSeries.getData().add(new XYChart.Data<>("UEF", uefPlays - uefWins));
     lossSeries.getData().add(new XYChart.Data<>("Seraphim", seraphimPlays - seraphimWins));
 
-    JavaFxUtil.runLater(() -> factionsChart.getData().addAll(winsSeries, lossSeries));
+    JavaFxUtil.runLater(() -> factionsChart.getData().addAll(List.of(winsSeries, lossSeries)));
   }
 
   private void plotUnitsByCategoriesChart(Map<String, PlayerEvent> playerEvents) {

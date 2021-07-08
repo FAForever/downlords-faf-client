@@ -119,7 +119,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     factionsToButtons = Map.of(Faction.UEF, uefButton, Faction.AEON, aeonButton,
         Faction.CYBRAN, cybranButton, Faction.SERAPHIM, seraphimButton);
 
-    player = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Current Player not set"));
+    player = playerService.getCurrentPlayer();
     initializeDynamicChatPosition();
     initializeUppercaseText();
     initializeListeners();

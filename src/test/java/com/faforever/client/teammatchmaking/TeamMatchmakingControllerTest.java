@@ -32,7 +32,6 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
 import static com.faforever.client.teammatchmaking.TeamMatchmakingController.CHAT_AT_BOTTOM_PSEUDO_CLASS;
@@ -94,7 +93,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
     when(teamMatchmakingService.getMatchmakingQueues()).thenReturn(matchmakingQueues);
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
     when(i18n.get(anyString())).thenReturn("");
     when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> {
       MatchmakingChatController controller = mock(MatchmakingChatController.class);

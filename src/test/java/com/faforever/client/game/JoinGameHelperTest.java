@@ -66,7 +66,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
 
     instance = new JoinGameHelper(i18n, playerService, gameService, preferencesService, notificationService, reportingService, uiService, eventBus);
 
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.ofNullable(currentPlayer));
+    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 
     when(uiService.loadFxml("theme/enter_password.fxml")).thenReturn(enterPasswordController);
 

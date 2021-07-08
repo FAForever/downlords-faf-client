@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -61,7 +60,7 @@ public class AchievementServiceTest {
     instance = new AchievementService(fafService, playerService, assetService);
     Player player = new Player("abc");
     player.setId(PLAYER_ID);
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
 
     instance.afterPropertiesSet();
   }

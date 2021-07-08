@@ -37,6 +37,7 @@ import static com.faforever.client.config.CacheNames.MATCHMAKER_QUEUES;
 import static com.faforever.client.config.CacheNames.MODS;
 import static com.faforever.client.config.CacheNames.MOD_THUMBNAIL;
 import static com.faforever.client.config.CacheNames.NEWS;
+import static com.faforever.client.config.CacheNames.PERMISSION;
 import static com.faforever.client.config.CacheNames.RATING_HISTORY;
 import static com.faforever.client.config.CacheNames.STATISTICS;
 import static com.faforever.client.config.CacheNames.THEME_IMAGES;
@@ -56,6 +57,7 @@ public class CacheConfig extends CachingConfigurerSupport {
     simpleCacheManager.setCaches(Arrays.asList(
         new CaffeineCache(STATISTICS, newBuilder().maximumSize(10).expireAfterWrite(20, MINUTES).build()),
         new CaffeineCache(ACHIEVEMENTS, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(PERMISSION, newBuilder().build()),
         new CaffeineCache(MODS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MAPS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MAP_GENERATOR, newBuilder().expireAfterWrite(10, MINUTES).build()),

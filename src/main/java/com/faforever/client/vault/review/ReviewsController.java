@@ -120,8 +120,7 @@ public class ReviewsController implements Controller<Pane> {
   public void setReviews(ObservableList<Review> reviews) {
     this.reviews = reviews.sorted(Comparator.comparing(Review::getVersion).reversed());
 
-    Player currentPlayer = playerService.getCurrentPlayer()
-        .orElseThrow(() -> new IllegalStateException("No current player available"));
+    Player currentPlayer = playerService.getCurrentPlayer();
 
     JavaFxUtil.addListener(this.reviews, onReviewsChangedListener);
     FilteredList<Review> onlyOtherNonEmptyReviews = this.reviews

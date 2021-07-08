@@ -62,7 +62,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
 
     when(i18n.get("report.noReports")).thenReturn("noReports");
 
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(player));
+    when(playerService.getCurrentPlayer()).thenReturn(player);
     when(playerService.getPlayerByName(player.getUsername())).thenReturn(CompletableFuture.completedFuture(Optional.of(player)));
     when(replayService.findById(replay.getId())).thenReturn(CompletableFuture.completedFuture(Optional.of(replay)));
     when(moderationService.getModerationReports()).thenReturn(CompletableFuture.completedFuture(List.of()));

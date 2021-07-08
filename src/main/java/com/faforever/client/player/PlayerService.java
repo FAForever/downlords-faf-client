@@ -6,22 +6,18 @@ import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
-import com.faforever.client.player.event.CurrentPlayerInfo;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.GameType;
+import com.faforever.client.remote.domain.PlayerInfo;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
 import com.faforever.client.user.UserService;
-import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.Assert;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
@@ -55,10 +51,9 @@ import static com.faforever.client.player.SocialStatus.SELF;
 public class PlayerService implements InitializingBean {
 
   private final ObservableMap<String, Player> playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
-  private final ObservableMap<Integer, Player> playersById = FXCollections.observableHashMap();
+  private final ObservableMap<Integer, Player> playersById = FXCollections.observableMap(new ConcurrentHashMap<>());
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
-  private final ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
   private final Map<Integer, List<Player>> playersByGame = new HashMap<>();
 
   private final FafService fafService;
@@ -96,16 +91,8 @@ public class PlayerService implements InitializingBean {
   }
 
   @Subscribe
-  public void onLoginSuccess(LoginSuccessEvent event) {
-    Player player = createAndGetPlayerForUsername(event.getUsername());
-    player.setId(event.getUserId());
-    currentPlayer.set(player);
-    player.setIdleSince(Instant.now());
-  }
-
-  @Subscribe
   public void onAvatarChanged(AvatarChangedEvent event) {
-    Player player = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
+    Player player = getCurrentPlayer();
 
     AvatarBean avatar = event.getAvatar();
     if (avatar == null) {
@@ -160,10 +147,8 @@ public class PlayerService implements InitializingBean {
 
   public boolean isCurrentPlayerInGame(Game game) {
     // TODO the following can be removed as soon as the server tells us which game a player is in.
-    // We may receive game info before we receive our player info
-    return getCurrentPlayer()
-        .map(player -> getAllPlayersInGame(game).stream().anyMatch(gamePlayer -> gamePlayer == player))
-        .orElse(false);
+    Player player = getCurrentPlayer();
+    return getAllPlayersInGame(game).stream().anyMatch(player::equals);
   }
 
   public boolean isOnline(Integer playerId) {
@@ -174,23 +159,39 @@ public class PlayerService implements InitializingBean {
    * Gets a player for the given username. A new player is created and registered if it does not yet exist.
    */
   @VisibleForTesting
-  Player createAndGetPlayerForUsername(@NotNull String username) {
-    Assert.checkNullArgument(username, "username must not be null");
+  void createOrUpdatePlayerForPlayerInfo(@NotNull PlayerInfo playerInfo) {
+    Assert.checkNullArgument(playerInfo, "playerInfo must not be null");
 
-    synchronized (playersByName) {
-      if (!playersByName.containsKey(username)) {
-        Player player = new Player(username);
-        JavaFxUtil.addListener(player.idProperty(), (observable, oldValue, newValue) -> {
-          synchronized (playersById) {
-            playersById.remove(oldValue.intValue());
-            playersById.put(newValue.intValue(), player);
-          }
-        });
-        playersByName.put(username, player);
+    Player player;
+    if (!playersByName.containsKey(playerInfo.getLogin())) {
+      player = Player.fromPlayerInfo(playerInfo);
+      int playerId = player.getId();
+      playersById.put(playerId, player);
+      JavaFxUtil.addListener(player.idProperty(), (observable, oldValue, newValue) -> {
+        playersById.remove(oldValue.intValue());
+        playersById.put(newValue.intValue(), player);
+      });
+      if (userService.getUsername().equals(player.getUsername())) {
+        player.setSocialStatus(SELF);
+      } else {
+        if (friendList.contains(playerId)) {
+          player.setSocialStatus(FRIEND);
+        } else if (foeList.contains(playerId)) {
+          player.setSocialStatus(FOE);
+        } else {
+          player.setSocialStatus(OTHER);
+        }
+      }
+      playersByName.put(player.getUsername(), player);
+      eventBus.post(new PlayerOnlineEvent(player));
+    } else {
+      player = playersByName.get(playerInfo.getLogin());
+      synchronized (player) {
+        player.updateFromPlayerInfo(playerInfo);
       }
     }
 
-    return playersByName.get(username);
+    player.setIdleSince(Instant.now());
   }
 
   public Set<String> getPlayerNames() {
@@ -231,12 +232,12 @@ public class PlayerService implements InitializingBean {
     fafService.removeFoe(player);
   }
 
-  public Optional<Player> getCurrentPlayer() {
-    return Optional.ofNullable(currentPlayer.get());
-  }
-
-  public ReadOnlyObjectProperty<Player> currentPlayerProperty() {
-    return currentPlayer;
+  public Player getCurrentPlayer() {
+    Assert.checkNullIllegalState(userService.getOwnPlayerInfo(), "Own player not set");
+    if (!playersByName.containsKey(userService.getUsername())) {
+      createOrUpdatePlayerForPlayerInfo(userService.getOwnPlayerInfo());
+    }
+    return playersByName.get(userService.getUsername());
   }
 
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
@@ -248,15 +249,11 @@ public class PlayerService implements InitializingBean {
   }
 
   public Optional<Player> getPlayerByIdIfOnline(int playerId) {
-    synchronized (playersById) {
-      return Optional.ofNullable(playersById.get(playerId));
-    }
+    return Optional.ofNullable(playersById.get(playerId));
   }
 
   public Optional<Player> getPlayerByNameIfOnline(String playerName) {
-    synchronized (playersByName) {
-      return Optional.ofNullable(playersByName.get(playerName));
-    }
+    return Optional.ofNullable(playersByName.get(playerName));
   }
 
   private void onPlayersInfo(PlayersMessage playersMessage) {
@@ -280,35 +277,15 @@ public class PlayerService implements InitializingBean {
     socialList.clear();
     socialList.addAll(newValues);
 
-    synchronized (playersById) {
-      for (Integer userId : socialList) {
-        Player player = playersById.get(userId);
-        if (player != null) {
-          player.setSocialStatus(socialStatus);
-        }
+    for (Integer userId : socialList) {
+      Player player = playersById.get(userId);
+      if (player != null) {
+        player.setSocialStatus(socialStatus);
       }
     }
   }
 
-  private void onPlayerInfo(com.faforever.client.remote.domain.Player dto) {
-    if (dto.getLogin().equalsIgnoreCase(userService.getUsername())) {
-      Player player = getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
-      player.updateFromLobbyServer(dto);
-      player.setSocialStatus(SELF);
-      eventBus.post(new CurrentPlayerInfo(player));
-    } else {
-      Player player = createAndGetPlayerForUsername(dto.getLogin());
-
-      if (friendList.contains(dto.getId())) {
-        player.setSocialStatus(FRIEND);
-      } else if (foeList.contains(dto.getId())) {
-        player.setSocialStatus(FOE);
-      } else {
-        player.setSocialStatus(OTHER);
-      }
-
-      player.updateFromLobbyServer(dto);
-      eventBus.post(new PlayerOnlineEvent(player));
-    }
+  private void onPlayerInfo(PlayerInfo dto) {
+    createOrUpdatePlayerForPlayerInfo(dto);
   }
 }

@@ -510,7 +510,7 @@ public class GameService implements InitializingBean {
 
   @NotNull
   private Player getCurrentPlayer() {
-    return playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
+    return playerService.getCurrentPlayer();
   }
 
   public ObservableList<Game> getGames() {
@@ -819,7 +819,7 @@ public class GameService implements InitializingBean {
 
   @Subscribe
   public void onPartyOwnerChangedEvent(PartyOwnerChangedEvent event) {
-    playerService.getCurrentPlayer().ifPresent(player -> inOthersParty = player != event.getNewOwner());
+    inOthersParty = !Objects.equals(playerService.getCurrentPlayer(), event.getNewOwner());
   }
 
   public void launchTutorial(MapBean mapVersion, String technicalMapName) {

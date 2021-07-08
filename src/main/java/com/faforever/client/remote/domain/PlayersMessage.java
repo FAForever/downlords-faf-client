@@ -4,17 +4,17 @@ import java.util.List;
 
 public class PlayersMessage extends FafServerMessage {
 
-  private List<Player> players;
+  private List<PlayerInfo> players;
 
   public PlayersMessage() {
     super(FafServerMessageType.PLAYER_INFO);
   }
 
-  public List<Player> getPlayers() {
+  public List<PlayerInfo> getPlayers() {
     return players;
   }
 
-  public void setPlayers(List<Player> players) {
-    this.players = players;
+  public void setPlayers(List<PlayerInfo> playerInfos) {
+    this.players = playerInfos;
   }
 }

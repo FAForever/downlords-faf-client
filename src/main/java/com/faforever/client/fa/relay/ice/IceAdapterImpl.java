@@ -156,8 +156,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       int adapterPort = SocketUtils.findAvailableTcpPort();
       int gpgPort = SocketUtils.findAvailableTcpPort();
 
-      Player currentPlayer = playerService.getCurrentPlayer()
-          .orElseThrow(() -> new IllegalStateException("Player has not been set"));
+      Player currentPlayer = playerService.getCurrentPlayer();
 
       Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
 

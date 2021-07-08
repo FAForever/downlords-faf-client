@@ -16,6 +16,7 @@ import com.faforever.client.remote.domain.FafServerMessage;
 import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.NoticeMessage;
+import com.faforever.client.remote.domain.PlayerInfo;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.SessionMessage;
 import com.faforever.client.remote.io.QDataInputStream;
@@ -23,7 +24,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
 import com.google.common.eventbus.EventBus;
-import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.junit.After;
@@ -52,7 +52,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -118,8 +117,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, reportingService, taskScheduler, eventBus, reconnectTimerService, clientProperties);
     instance.afterPropertiesSet();
     LoginPrefs loginPrefs = new LoginPrefs();
-    loginPrefs.setUsername("junit");
-    loginPrefs.setPassword("password");
+    loginPrefs.setRefreshToken("junit");
 
     when(preferencesService.getFafDataDirectory()).thenReturn(faDirectory.getRoot().toPath());
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
@@ -160,11 +158,10 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   @Test
   public void testConnectAndLogIn() throws Exception {
     int playerUid = 123;
-    String username = "JunitUser";
-    String password = "JunitPassword";
+    String token = "abc";
     long sessionId = 456;
 
-    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn(username, password).toCompletableFuture();
+    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogin(token).toCompletableFuture();
 
     String initSessionJSON = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
 
@@ -176,23 +173,23 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
     String loginClientJSON = messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(loginClientJSON, containsString(ClientMessageType.LOGIN.getString()));
-    assertThat(loginClientJSON, containsString(username));
-    assertThat(loginClientJSON, containsString(Hashing.sha256().hashString(password, UTF_8).toString()));
+    assertThat(loginClientJSON, containsString(ClientMessageType.OAUTH_LOGIN.getString()));
+    assertThat(loginClientJSON, containsString(token));
     assertThat(loginClientJSON, containsString(String.valueOf(sessionId)));
     assertThat(loginClientJSON, containsString("encrypteduidstring"));
 
     LoginMessage loginServerMessage = new LoginMessage();
-    loginServerMessage.setId(playerUid);
-    loginServerMessage.setLogin(username);
+    PlayerInfo me = new PlayerInfo(playerUid, "Junit", null, null, null, null, null, null);
+
+    loginServerMessage.setMe(me);
 
     sendFromServer(loginServerMessage);
 
     LoginMessage result = loginFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(result.getMessageType(), is(FafServerMessageType.WELCOME));
-    assertThat(result.getId(), is(playerUid));
-    assertThat(result.getLogin(), is(username));
+    assertThat(result.getMe().getId(), is(playerUid));
+    assertThat(result.getMe().getLogin(), is("Junit"));
 
     instance.disconnect();
   }
@@ -206,7 +203,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   }
 
   private void connectAndLogIn() throws Exception {
-    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn("JUnit", "JUnitPassword").toCompletableFuture();
+    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogin("JUnit").toCompletableFuture();
 
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
@@ -217,8 +214,10 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     assertNotNull(messagesReceivedByFafServer.poll(TIMEOUT, TIMEOUT_UNIT));
 
     LoginMessage loginServerMessage = new LoginMessage();
-    loginServerMessage.setId(123);
-    loginServerMessage.setLogin("JUnitUser");
+
+    PlayerInfo me = new PlayerInfo(123, "Junit", null, null, null, null, null, null);
+
+    loginServerMessage.setMe(me);
 
     sendFromServer(loginServerMessage);
 

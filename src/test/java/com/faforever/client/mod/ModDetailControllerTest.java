@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
@@ -84,7 +83,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get("modVault.details.author", modVersion.getMod().getAuthor())).thenReturn(modVersion.getMod().getAuthor());
     when(i18n.get("modVault.details.uploader", modVersion.getMod().getUploader())).thenReturn(modVersion.getMod().getUploader());
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(currentPlayer));
+    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
       if (clazz == ReviewsController.class) {

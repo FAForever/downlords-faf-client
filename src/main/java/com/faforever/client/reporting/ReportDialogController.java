@@ -97,7 +97,7 @@ public class ReportDialogController implements Controller<Node> {
   }
 
   public void onReportButtonClicked() {
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player must be set"));
+    Player currentPlayer = playerService.getCurrentPlayer();
     ModerationReport report = new ModerationReport();
     report.setReporter(currentPlayer);
     report.setReportDescription(reportDescription.getText());

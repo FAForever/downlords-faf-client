@@ -21,6 +21,7 @@ public enum FafServerMessageType implements ServerMessageType {
   NOTICE("notice", NoticeMessage.class),
   ICE_SERVERS("ice_servers", IceServersServerMessage.class),
   AVATAR("avatar", AvatarMessage.class),
+  IRC_PASSWORD("irc_password", IrcPasswordServerMessage.class),
   PARTY_UPDATE("update_party", PartyInfoMessage.class),
   PARTY_INVITE("party_invite", PartyInviteMessage.class),
   PARTY_KICKED("kicked_from_party", PartyKickedMessage.class),

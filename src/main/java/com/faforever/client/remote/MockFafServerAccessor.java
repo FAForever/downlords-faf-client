@@ -19,7 +19,7 @@ import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.Player;
+import com.faforever.client.remote.domain.PlayerInfo;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.ServerMessage;
 import com.faforever.client.task.CompletableTask;
@@ -89,28 +89,28 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
+  public ConnectionState getConnectionState() {
+    return connectionState.get();
+  }
+
+  @Override
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
     return connectionState;
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogIn(String username, String password) {
+  public CompletableFuture<LoginMessage> connectAndLogin(String token) {
     return taskService.submitTask(new CompletableTask<LoginMessage>(HIGH) {
       @Override
       protected LoginMessage call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
 
-        Player player = new Player();
-        player.setId(4812);
-        player.setLogin(USER_NAME);
-        player.setClan("ABC");
-        player.setCountry("A1");
-        player.setNumberOfGames(330);
+        PlayerInfo playerInfo = new PlayerInfo(4812, USER_NAME, null, null, null, 330, new HashMap<>(), new HashMap<>());
 
         PlayersMessage playersMessage = new PlayersMessage();
-        playersMessage.setPlayers(singletonList(player));
+        playersMessage.setPlayers(singletonList(playerInfo));
 
-        eventBus.post(new LoginSuccessEvent(username, password, player.getId()));
+        eventBus.post(new LoginSuccessEvent());
 
         messageListeners.getOrDefault(playersMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(playersMessage));
 
@@ -165,8 +165,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
         );
 
         LoginMessage sessionInfo = new LoginMessage();
-        sessionInfo.setId(123);
-        sessionInfo.setLogin(USER_NAME);
+        PlayerInfo me = new PlayerInfo(123, USER_NAME, null, null, null, 0, null, null);
+        sessionInfo.setMe(me);
         return sessionInfo;
       }
     }).getFuture();

@@ -39,6 +39,7 @@ public class GameTooltipController implements Controller<Node> {
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(modsPane);
     modsPane.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
+    modsLabel.setText("");
     maxPrefColumns = teamsPane.getPrefColumns();
     showMods = true;
   }
@@ -57,8 +58,6 @@ public class GameTooltipController implements Controller<Node> {
     if (showMods) {
       WeakInvalidationListener weakModInvalidationListener = new WeakInvalidationListener(simModsInvalidationListener);
       JavaFxUtil.addAndTriggerListener(game.simModsProperty(), weakModInvalidationListener);
-    } else {
-      JavaFxUtil.runLater(() -> modsPane.setVisible(false));
     }
   }
 
@@ -78,6 +77,8 @@ public class GameTooltipController implements Controller<Node> {
     if (game != null) {
       String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(game.getSimMods().values());
       JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
+    } else {
+      modsLabel.setText("");
     }
   }
 

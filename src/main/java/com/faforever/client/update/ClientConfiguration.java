@@ -11,10 +11,9 @@ import java.util.List;
  * A representation of a config file read from the faf server on start up. The file on the server allows to dynamically change settings in the client remotely.
  */
 public class ClientConfiguration {
-  ReleaseInfo latestRelease;
-  List<Integer> recommendedMaps;
-  List<Endpoints> endpoints;
-  GitHubRepo gitHubRepo;
+  private ReleaseInfo latestRelease;
+  private List<ServerEndpoints> endpoints;
+  private GitHubRepo gitHubRepo;
 
   @Data
   public static class GitHubRepo {
@@ -25,34 +24,35 @@ public class ClientConfiguration {
   }
 
   @Data
-  public static class Endpoints {
-    String name;
-    SocketEndpoint lobby;
-    SocketEndpoint irc;
-    SocketEndpoint liveReplay;
-    UrlEndpoint api;
+  public static class ServerEndpoints {
+    private String name;
+    private SocketEndpoint lobby;
+    private SocketEndpoint irc;
+    private SocketEndpoint liveReplay;
+    private UrlEndpoint api;
+    private UrlEndpoint oauth;
   }
 
   @Data
   public static class SocketEndpoint {
-    String host;
-    int port;
+    private String host;
+    private int port;
   }
 
   @Data
   public static class UrlEndpoint {
-    String url;
+    private String url;
   }
 
   @Data
   public static class ReleaseInfo {
-    String version;
-    String minimumVersion;
-    URL windowsUrl;
-    URL linuxUrl;
-    URL macUrl;
-    boolean mandatory;
-    String message;
-    URL releaseNotesUrl;
+    private String version;
+    private String minimumVersion;
+    private URL windowsUrl;
+    private URL linuxUrl;
+    private URL macUrl;
+    private boolean mandatory;
+    private String message;
+    private URL releaseNotesUrl;
   }
 }

@@ -102,7 +102,7 @@ public class ChatController extends AbstractViewController<Node> {
 
   private void removeTab(String playerOrChannelName) {
     JavaFxUtil.assertApplicationThread();
-    AbstractChatTabController controller = nameToChatTabController.get(playerOrChannelName);
+    AbstractChatTabController controller = nameToChatTabController.remove(playerOrChannelName);
     if (controller != null) {
       tabPane.getTabs().remove(controller.getRoot());
     }
@@ -250,7 +250,7 @@ public class ChatController extends AbstractViewController<Node> {
 
   private void onChatUserLeftChannel(ChatChannelUser chatUser, String channelName) {
     if (isCurrentUser(chatUser)) {
-      AbstractChatTabController chatTab = nameToChatTabController.get(channelName);
+      AbstractChatTabController chatTab = nameToChatTabController.remove(channelName);
       if (chatTab != null) {
         JavaFxUtil.runLater(() -> tabPane.getTabs().remove(chatTab.getRoot()));
       }
@@ -272,7 +272,7 @@ public class ChatController extends AbstractViewController<Node> {
   }
 
   private boolean isCurrentUser(ChatChannelUser chatUser) {
-    return chatUser.getUsername().equalsIgnoreCase(userService.getUsername());
+    return userService.getOwnUser() != null && chatUser.getUsername().equalsIgnoreCase(userService.getUsername());
   }
 
   @Override

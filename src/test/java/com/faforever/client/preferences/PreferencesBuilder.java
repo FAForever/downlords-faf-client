@@ -442,18 +442,8 @@ public class PreferencesBuilder {
   public class LoginPrefsBuilder extends SubPreferencesBuilder {
     private final LoginPrefs loginPrefs = preferences.getLogin();
 
-    public LoginPrefsBuilder username(String username) {
-      loginPrefs.setUsername(username);
-      return this;
-    }
-
-    public LoginPrefsBuilder password(String password) {
-      loginPrefs.setPassword(password);
-      return this;
-    }
-
-    public LoginPrefsBuilder autoLogin(boolean autoLogin) {
-      loginPrefs.setAutoLogin(autoLogin);
+    public LoginPrefsBuilder refreshToken(String refreshToken) {
+      loginPrefs.setRefreshToken(refreshToken);
       return this;
     }
   }

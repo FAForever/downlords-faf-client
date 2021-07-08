@@ -51,7 +51,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -160,7 +159,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayService.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
-    when(playerService.getCurrentPlayer()).thenReturn(Optional.of(junitPlayer));
+    when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
 
     doAnswer(invocation -> {
       try {
@@ -799,7 +798,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void runWithReplayInParty() {
-    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().get()));
+    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().id(100).get()));
     instance.runWithReplay(null, null, null, null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addImmediateWarnNotification("replay.inParty");
@@ -807,7 +806,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void runWithLiveReplayInParty() {
-    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().get()));
+    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().id(100).get()));
     instance.runWithLiveReplay(null, null, null, null);
     WaitForAsyncUtils.waitForFxEvents();
     verify(notificationService).addImmediateWarnNotification("replay.inParty");

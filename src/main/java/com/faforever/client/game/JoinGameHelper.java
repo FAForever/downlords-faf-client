@@ -55,7 +55,7 @@ public class JoinGameHelper {
   }
 
   public void join(Game game, String password, boolean ignoreRating) {
-    Player currentPlayer = playerService.getCurrentPlayer().orElseThrow(() -> new IllegalStateException("Player has not been set"));
+    Player currentPlayer = playerService.getCurrentPlayer();
     int playerRating = RatingUtil.getRoundedLeaderboardRating(currentPlayer, game.getRatingType());
 
     if (!preferencesService.isGamePathValid()) {

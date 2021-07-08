@@ -6,6 +6,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.remote.domain.PlayerInfo;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
@@ -86,6 +87,12 @@ public class Player {
     if (dto.getNames() != null) {
       player.getNames().addAll(dto.getNames().stream().map(NameRecord::fromDto).collect(Collectors.toList()));
     }
+    return player;
+  }
+
+  public static Player fromPlayerInfo(PlayerInfo dto) {
+    Player player = new Player(dto.getLogin());
+    player.updateFromPlayerInfo(dto);
     return player;
   }
 
@@ -275,22 +282,22 @@ public class Player {
     return chatChannelUsers;
   }
 
-  public void updateFromLobbyServer(com.faforever.client.remote.domain.Player player) {
-    setUsername(player.getLogin());
-    setId(player.getId());
-    setClan(player.getClan());
-    setCountry(player.getCountry());
-    setNumberOfGames(player.getNumberOfGames());
+  public void updateFromPlayerInfo(PlayerInfo playerInfo) {
+    setUsername(playerInfo.getLogin());
+    setId(playerInfo.getId());
+    setClan(playerInfo.getClan());
+    setCountry(playerInfo.getCountry());
+    setNumberOfGames(playerInfo.getNumberOfGames());
 
-    if (player.getRatings() != null) {
+    if (playerInfo.getRatings() != null) {
       Map<String, LeaderboardRating> ratingMap = new HashMap<>();
-      player.getRatings().forEach((key, value) -> ratingMap.put(key, LeaderboardRating.fromDto(value)));
+      playerInfo.getRatings().forEach((key, value) -> ratingMap.put(key, LeaderboardRating.fromDto(value)));
       setLeaderboardRatings(ratingMap);
     }
 
-    if (player.getAvatar() != null) {
-      setAvatarUrl(player.getAvatar().getUrl());
-      setAvatarTooltip(player.getAvatar().getTooltip());
+    if (playerInfo.getAvatar() != null) {
+      setAvatarUrl(playerInfo.getAvatar().getUrl());
+      setAvatarTooltip(playerInfo.getAvatar().getTooltip());
     }
   }
 }
