@@ -319,7 +319,7 @@ public class UserServiceTest extends ServiceTest {
     instance.onLogoutRequestEvent(new LogOutRequestEvent());
 
     LoginPrefs loginPrefs = preferences.getLogin();
-    assertFalse(loginPrefs.isRememberMe());
+    assertFalse(loginPrefs.getRememberMe());
     assertNull(loginPrefs.getRefreshToken());
     verify(preferencesService).storeInBackground();
     verify(fafService).disconnect();

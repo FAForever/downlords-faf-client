@@ -118,7 +118,7 @@ public class TokenService implements InitializingBean {
   public String getRefreshToken() {
     if (tokenCache != null
         && tokenCache.getRefreshToken() != null
-        && preferencesService.getPreferences().getLogin().isRememberMe()) {
+        && preferencesService.getPreferences().getLogin().getRememberMe()) {
       return tokenCache.getRefreshToken().getValue();
     } else {
       return null;

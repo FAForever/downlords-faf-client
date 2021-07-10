@@ -25,7 +25,7 @@ public class LoginPrefs {
     return refreshToken;
   }
 
-  public boolean isRememberMe() {
+  public boolean getRememberMe() {
     return rememberMe.get();
   }
 
