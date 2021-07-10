@@ -110,6 +110,9 @@ public class TokenService implements InitializingBean {
     if (tokenCache == null) {
       throw new LoginFailedException("Could not login with provided parameters");
     }
+
+    preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
+    preferencesService.storeInBackground();
   }
 
   public String getRefreshToken() {

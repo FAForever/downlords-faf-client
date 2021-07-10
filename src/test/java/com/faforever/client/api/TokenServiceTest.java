@@ -145,6 +145,7 @@ public class TokenServiceTest extends AbstractPlainJavaFxTest {
     instance.loginWithAuthorizationCode("abc");
 
     assertEquals("qwe", instance.getRefreshToken());
+    assertEquals("qwe", preferences.getLogin().getRefreshToken());
   }
 
   @Test
@@ -157,5 +158,6 @@ public class TokenServiceTest extends AbstractPlainJavaFxTest {
     instance.loginWithAuthorizationCode("abc");
 
     assertNull(instance.getRefreshToken());
+    assertNull(preferences.getLogin().getRefreshToken());
   }
 }
