@@ -17,17 +17,17 @@ import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.util.Pair;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +52,7 @@ public class GamesTableControllerTest extends AbstractPlainJavaFxTest {
   private Controller<ImageView> imageViewController;
   private Preferences preferences;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new GamesTableController(mapService, joinGameHelper, i18n, uiService, preferencesService, playerService);
     preferences = PreferencesBuilder.create().defaultValues().get();

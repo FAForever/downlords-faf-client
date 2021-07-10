@@ -3,12 +3,12 @@ package com.faforever.client.chat;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TimeService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -22,7 +22,7 @@ public class PlayerRatingChartTooltipControllerTest extends AbstractPlainJavaFxT
 
   private PlayerRatingChartTooltipController instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new PlayerRatingChartTooltipController(timeService, i18n);
     loadFxml("theme/chat/player_rating_chart_tooltip.fxml", clazz -> instance);

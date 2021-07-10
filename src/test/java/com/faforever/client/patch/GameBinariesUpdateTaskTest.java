@@ -6,30 +6,31 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class GameBinariesUpdateTaskTest {
-  @Rule
-  public TemporaryFolder faDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder fafBinDirectory = new TemporaryFolder();
+  @TempDir
+  public Path faDirectory;
+  @TempDir
+  public Path fafBinDirectory;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -39,14 +40,14 @@ public class GameBinariesUpdateTaskTest {
 
   private GameBinariesUpdateTaskImpl instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
     instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService, platformService, new ClientProperties());
 
-    Path faPath = faDirectory.getRoot().toPath();
-    java.nio.file.Files.createDirectories(faPath.resolve("bin"));
+    Path faPath = faDirectory;
+    Files.createDirectories(faPath.resolve("bin"));
 
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
@@ -54,19 +55,19 @@ public class GameBinariesUpdateTaskTest {
         .then()
         .get();
 
-    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
+    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory);
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testNoVersionThrowsException() throws Exception {
-    instance.call();
+    assertThrows(IllegalStateException.class, () -> instance.call());
   }
 
   @Test
   public void testCopyGameFilesToFafBinDirectory() throws Exception {
-    Path fafBinPath = fafBinDirectory.getRoot().toPath();
-    Path faBinPath = faDirectory.getRoot().toPath().resolve("bin");
+    Path fafBinPath = fafBinDirectory;
+    Path faBinPath = Files.createDirectories(faDirectory.resolve("bin"));
 
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
       createFileWithSize(faBinPath.resolve(fileName), 1024);
@@ -75,7 +76,7 @@ public class GameBinariesUpdateTaskTest {
 
     instance.copyGameFilesToFafBinDirectory();
 
-    List<Path> resultFiles = java.nio.file.Files.list(fafBinPath).collect(Collectors.toList());
+    List<Path> resultFiles = Files.list(fafBinPath).filter(file -> !file.toFile().isDirectory()).collect(Collectors.toList());
 
     // Expected all files except splash.png to be copied
     assertThat(resultFiles.size(), is(GameBinariesUpdateTaskImpl.BINARIES_TO_COPY.size()));
@@ -86,12 +87,13 @@ public class GameBinariesUpdateTaskTest {
 
   @Test
   public void testUnixExecutableBitIsSet() throws Exception {
-    Path faExePath = fafBinDirectory.newFile("ForgedAlliance.exe").toPath();
+    Path faExePath = Files.createFile(fafBinDirectory.resolve("ForgedAlliance.exe"));
     instance.downloadFafExeIfNecessary(faExePath);
     Mockito.verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }
 
   private void createFileWithSize(Path file, int size) throws IOException {
+    Files.createFile(file);
     try (RandomAccessFile randomAccessFile = new RandomAccessFile(file.toFile(), "rw")) {
       randomAccessFile.setLength(size);
     }

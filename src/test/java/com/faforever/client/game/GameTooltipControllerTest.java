@@ -6,8 +6,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
@@ -37,7 +37,7 @@ public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
   private TeamCardController teamCardController;
   private GameTooltipController instance;
   
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(teamCardController.getRoot()).thenReturn(new Pane());

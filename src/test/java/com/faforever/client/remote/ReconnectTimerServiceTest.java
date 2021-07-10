@@ -1,15 +1,16 @@
 package com.faforever.client.remote;
 
-import org.junit.Before;
-import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ReconnectTimerServiceTest {
 
   private ReconnectTimerService instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ReconnectTimerService();
   }

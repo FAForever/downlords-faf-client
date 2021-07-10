@@ -2,24 +2,24 @@ package com.faforever.client.chat.avatar;
 
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AvatarServiceImplTest {
 
-  @Rule
-  public TemporaryFolder cacheFolder = new TemporaryFolder();
+  @TempDir
+  public Path cacheFolder;
 
   @Mock
   private FafService fafService;
@@ -27,7 +27,7 @@ public class AvatarServiceImplTest {
   private AssetService assetService;
 
   private AvatarServiceImpl instance;
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new AvatarServiceImpl(fafService, assetService);
   }

@@ -2,13 +2,14 @@ package com.faforever.client.remote.gson;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -19,7 +20,7 @@ public class LocalDateDeserializerTest {
   private Type typeOfT;
   private JsonDeserializationContext context;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = LocalDateDeserializer.INSTANCE;
 
@@ -37,8 +38,8 @@ public class LocalDateDeserializerTest {
     assertEquals(LocalDate.parse("2015-07-01"), localDate);
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testDeserializeThrowsNpe() {
-    instance.deserialize(json, typeOfT, context);
+    assertThrows(NullPointerException.class, () -> instance.deserialize(json, typeOfT, context));
   }
 }

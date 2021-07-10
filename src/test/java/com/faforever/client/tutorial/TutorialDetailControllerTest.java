@@ -8,13 +8,13 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.image.Image;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +29,7 @@ public class TutorialDetailControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TutorialService tutorialService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new TutorialDetailController(i18n, mapService, webViewConfigurer, tutorialService);
     loadFxml("theme/tutorial_detail.fxml", clazz -> instance);

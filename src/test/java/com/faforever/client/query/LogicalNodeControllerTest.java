@@ -5,15 +5,15 @@ import com.faforever.client.query.LogicalNodeController.LogicalOperator;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,7 +27,7 @@ public class LogicalNodeControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private SpecificationController specificationController;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new LogicalNodeController(i18n);
 

@@ -5,8 +5,8 @@ import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +31,7 @@ public class RemovableMapCellControllerTest extends AbstractPlainJavaFxTest {
 
   private RemovableMapCellController instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     when(mapService.isCustomMap(officialMap)).thenReturn(false);
     when(mapService.isCustomMap(customMap)).thenReturn(true);

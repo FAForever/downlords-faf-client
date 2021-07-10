@@ -4,35 +4,35 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DownloadMapGeneratorTaskTest extends AbstractPlainJavaFxTest {
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder downloadDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder sourceDirectory = new TemporaryFolder();
+  @TempDir
+  public Path downloadDirectory;
+  @TempDir
+  public Path sourceDirectory;
 
   private DownloadMapGeneratorTask instance;
 
@@ -43,31 +43,31 @@ public class DownloadMapGeneratorTaskTest extends AbstractPlainJavaFxTest {
   @Mock
   private MapGeneratorService mapGeneratorService;
 
-  @Before
-  public void setUp() throws Exception {
-    File generatorFile = sourceDirectory.newFile("NeroxisGenMock.jar");
+  private ClientProperties clientProperties;
 
-    ClientProperties clientProperties = new ClientProperties();
-    clientProperties.getMapGenerator().setDownloadUrlFormat(generatorFile.toURI().toURL().toString() + "%1$s");
+  @BeforeEach
+  public void setUp() throws Exception {
+    clientProperties = new ClientProperties();
+
     instance = new DownloadMapGeneratorTask(mapGeneratorService, clientProperties, i18n, platformService);
   }
 
   @Test
   public void testCallWithoutVersionThrowsException() throws Exception {
-    expectedException.expect(NullPointerException.class);
-    expectedException.expectMessage(startsWith("Version hasn't been set."));
-
-    instance.call();
+    assertEquals("Version hasn't been set.", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 
+  @Disabled("junit 5 does not yet support having multiple temp directories see https://github.com/junit-team/junit5/issues/1967")
   @Test
   public void testCall() throws Exception {
     instance.setVersion("");//mock version to prevent a subdirectory with the name of the version
-    when(mapGeneratorService.getGeneratorExecutablePath()).thenReturn(downloadDirectory.getRoot().toPath());
+    when(mapGeneratorService.getGeneratorExecutablePath()).thenReturn(downloadDirectory);
 
+    File generatorFile = Files.createFile(sourceDirectory.resolve("NeroxisGenMock.jar")).toFile();
+    clientProperties.getMapGenerator().setDownloadUrlFormat(generatorFile.toURI().toURL() + "%1$s");
     instance.call();
 
-    assertThat(Arrays.asList(Objects.requireNonNull(downloadDirectory.getRoot().listFiles())), contains(downloadDirectory.getRoot().toPath().resolve(String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, "")).toFile()));
+    assertThat(List.of(Objects.requireNonNull(Files.list(downloadDirectory))), contains(downloadDirectory.resolve(String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, "")).toFile()));
     verify(platformService).setUnixExecutableAndWritableBits(any());
   }
 }

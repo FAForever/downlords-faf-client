@@ -10,10 +10,9 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 
 import java.nio.file.Path;
@@ -21,7 +20,7 @@ import java.util.concurrent.ExecutorService;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.timeout;
@@ -31,8 +30,8 @@ import static org.mockito.Mockito.when;
 
 public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
 
-  @Rule
-  public TemporaryFolder modFolder = new TemporaryFolder();
+  @TempDir
+  public Path modFolder;
 
   private ModUploadController instance;
 
@@ -60,7 +59,7 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private FafService fafService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ModUploadController(modService, executorService, notificationService, reportingService, i18n, platformService, cLientProperties, eventBus);
 
@@ -83,10 +82,9 @@ public class ModUploadControllerTest extends AbstractPlainJavaFxTest {
   public void testSetModPath() {
     when(modService.extractModInfo(any())).thenReturn(new ModVersion());
 
-    Path modPath = modFolder.getRoot().toPath();
-    instance.setModPath(modPath);
+    instance.setModPath(modFolder);
 
-    verify(modService, timeout(3000)).extractModInfo(modPath);
+    verify(modService, timeout(3000)).extractModInfo(modFolder);
   }
 
   @Test

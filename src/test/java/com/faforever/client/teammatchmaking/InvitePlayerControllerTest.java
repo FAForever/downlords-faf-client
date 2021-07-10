@@ -4,8 +4,8 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class InvitePlayerControllerTest extends AbstractPlainJavaFxTest {
 
   private InvitePlayerController instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     when(playerService.getPlayerNames())
         .thenReturn(Set.of("axel12", "TrustTheFall", "nInPrisonForWhat", "Sheikah"));

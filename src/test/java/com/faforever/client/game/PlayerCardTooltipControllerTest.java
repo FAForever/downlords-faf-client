@@ -8,8 +8,8 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -25,7 +25,7 @@ public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
 
   private PlayerCardTooltipController instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new PlayerCardTooltipController(countryFlagService, i18n);
     loadFxml("theme/player_card_tooltip.fxml", clazz -> instance);

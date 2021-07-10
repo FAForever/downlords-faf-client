@@ -8,8 +8,8 @@ import com.faforever.commons.api.dto.AchievementType;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static com.faforever.client.theme.UiService.DEFAULT_ACHIEVEMENT_IMAGE;
@@ -17,7 +17,8 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
@@ -30,7 +31,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private AchievementService achievementService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new AchievementItemController(i18n, achievementService);
     when(i18n.number(anyInt())).thenAnswer(invocation -> String.format("%d", (int) invocation.getArgument(0)));
@@ -86,12 +87,12 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.progressBar.getProgress(), is(0.0));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testSetPlayerAchievementWithUnsetAchievementThrowsIse() throws Exception {
-    instance.setPlayerAchievement(new PlayerAchievement());
+    assertThrows(IllegalStateException.class, () -> instance.setPlayerAchievement(new PlayerAchievement()));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testSetPlayerAchievementIdDoesntMatch() throws Exception {
     instance.setAchievementDefinition(AchievementDefinitionBuilder.create().defaultValues().get());
 
@@ -99,7 +100,7 @@ public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
         .achievementId("foobar")
         .get();
 
-    instance.setPlayerAchievement(playerAchievement);
+    assertThrows(IllegalStateException.class, () -> instance.setPlayerAchievement(playerAchievement));
   }
 
   @Test

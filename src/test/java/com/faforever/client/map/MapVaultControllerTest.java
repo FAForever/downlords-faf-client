@@ -19,8 +19,8 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -64,7 +64,7 @@ public class MapVaultControllerTest extends AbstractPlainJavaFxTest {
   private SearchConfig standardSearchConfig;
   private MapDetailController mapDetailController;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(i18n.get(anyString())).thenReturn("test");

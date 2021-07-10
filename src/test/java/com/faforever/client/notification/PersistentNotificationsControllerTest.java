@@ -6,15 +6,15 @@ import com.faforever.client.theme.UiService;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -32,7 +32,7 @@ public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTe
   @Mock
   private UiService uiService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new PersistentNotificationsController(notificationService, audioService, uiService);
     instance.persistentNotificationsRoot = new Pane();

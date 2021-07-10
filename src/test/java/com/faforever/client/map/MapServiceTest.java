@@ -19,34 +19,33 @@ import com.google.common.eventbus.EventBus;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
+import org.hamcrest.core.IsInstanceOf;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.luaj.vm2.LuaError;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.FileSystemUtils;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -56,14 +55,12 @@ import static org.mockito.Mockito.when;
 
 public class MapServiceTest extends AbstractPlainJavaFxTest {
 
-  @Rule
-  public TemporaryFolder cacheDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder customMapsDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder gameDirectory = new TemporaryFolder();
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
+  @TempDir
+  public Path cacheDirectory;
+  @TempDir
+  public Path customMapsDirectory;
+  @TempDir
+  public Path gameDirectory;
 
   private MapService instance;
   private Path mapsDirectory;
@@ -89,7 +86,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   @Mock
   private EventBus eventBus;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
@@ -97,12 +94,12 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .customMapsDirectory(customMapsDirectory.getRoot().toPath())
-        .installationPath(gameDirectory.getRoot().toPath())
+        .customMapsDirectory(customMapsDirectory)
+        .installationPath(gameDirectory)
         .then()
         .get();
 
-    mapsDirectory = gameDirectory.newFolder("maps").toPath();
+    mapsDirectory = Files.createDirectories(gameDirectory.resolve("maps"));
     when(preferencesService.getPreferences()).thenReturn(preferences);
     instance = new MapService(preferencesService, taskService, applicationContext,
         fafService, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService);
@@ -145,21 +142,15 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testReadMapOfNonFolderThrowsException() {
-    expectedException.expect(MapLoadException.class);
-    expectedException.expectMessage(startsWith("Not a folder"));
-
-    instance.readMap(mapsDirectory.resolve("something"));
+    assertThat(assertThrows(MapLoadException.class, () -> instance.readMap(mapsDirectory.resolve("something"))).getMessage(), containsString("Not a folder"));
   }
 
   @Test
   public void testReadMapInvalidMap() throws Exception {
     Path corruptMap = Files.createDirectory(mapsDirectory.resolve("corruptMap"));
-    Files.write(corruptMap.resolve("corruptMap_scenario.lua"), "{\"This is invalid\", \"}".getBytes(UTF_8));
+    Files.writeString(corruptMap.resolve("corruptMap_scenario.lua"), "{\"This is invalid\", \"}");
 
-    expectedException.expect(MapLoadException.class);
-    expectedException.expectCause(instanceOf(LuaError.class));
-
-    instance.readMap(corruptMap);
+    assertThat(assertThrows(MapLoadException.class, () -> instance.readMap(corruptMap)).getCause(), IsInstanceOf.instanceOf(LuaError.class));
   }
 
   @Test
@@ -329,7 +320,7 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
   private void copyMapsToCustomMapsDirectory(MapBean... maps) throws Exception {
     for (MapBean map : maps) {
       String folder = map.getFolderName();
-      Path mapPath = customMapsDirectory.newFolder(folder).toPath();
+      Path mapPath = Files.createDirectories(customMapsDirectory.resolve(folder));
       FileSystemUtils.copyRecursively(
           Paths.get(getClass().getResource("/maps/" + folder).toURI()),
           mapPath
@@ -338,8 +329,8 @@ public class MapServiceTest extends AbstractPlainJavaFxTest {
     }
   }
 
-  private boolean checkCustomMapFolderExist(MapBean map) {
-    return Arrays.stream(customMapsDirectory.getRoot().listFiles())
-        .anyMatch(file -> file.getName().equals(map.getFolderName()) && file.isDirectory());
+  private boolean checkCustomMapFolderExist(MapBean map) throws IOException {
+    return Files.list(customMapsDirectory)
+        .anyMatch(path -> path.getFileName().toString().equals(map.getFolderName()) && path.toFile().isDirectory());
   }
 }

@@ -1,11 +1,9 @@
 package com.faforever.client.map;
 
 import com.faforever.commons.io.ByteCopier;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.io.ClassPathResource;
@@ -17,24 +15,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 public class UninstallMapTaskTest {
 
   private static final ClassPathResource THETA_PASSAGE = new ClassPathResource("/maps/theta_passage_5.v0001.zip");
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder mapsDirectory = new TemporaryFolder();
+  @TempDir
+  public Path mapsDirectory;
 
   @Mock
   private MapService mapService;
 
   private com.faforever.client.map.UninstallMapTask instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
@@ -43,10 +41,7 @@ public class UninstallMapTaskTest {
 
   @Test
   public void testCallWithoutMapThrowsException() throws Exception {
-    expectedException.expectMessage("map");
-    expectedException.expect(NullPointerException.class);
-
-    instance.call();
+    assertEquals("map has not been set", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 
   @Test
@@ -55,7 +50,7 @@ public class UninstallMapTaskTest {
 
     MapBean map = MapBeanBuilder.create().uid("b2cde810-15d0-4bfa-af6a-ec2d6ecd561b").get();
 
-    Path mapPath = mapsDirectory.getRoot().toPath().resolve("theta_passage_5.v0001");
+    Path mapPath = mapsDirectory.resolve("theta_passage_5.v0001");
     when(mapService.getPathForMap(map)).thenReturn(mapPath);
 
     instance.setMap(map);
@@ -65,8 +60,7 @@ public class UninstallMapTaskTest {
   }
 
   private void copyMap(String directoryName, ClassPathResource classPathResource) throws IOException {
-    Path targetDir = mapsDirectory.getRoot().toPath().resolve(directoryName);
-    Files.createDirectories(targetDir);
+    Path targetDir = Files.createDirectories(mapsDirectory.resolve(directoryName));
 
     try (InputStream inputStream = classPathResource.getInputStream();
          OutputStream outputStream = Files.newOutputStream(targetDir.resolve("map_info.lua"))) {

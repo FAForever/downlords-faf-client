@@ -21,8 +21,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.vault.VaultEntityController.TOP_ELEMENT_COUNT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class VaultEntityControllerTest extends AbstractPlainJavaFxTest {
@@ -88,7 +88,7 @@ public class VaultEntityControllerTest extends AbstractPlainJavaFxTest {
         (int) Math.ceil((double) elements.size() / pageSize)));
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     showRoomRoot = new VBox();
     showRoomLabel = new Label();

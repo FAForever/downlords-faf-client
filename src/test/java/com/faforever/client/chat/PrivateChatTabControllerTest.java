@@ -20,11 +20,11 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
@@ -33,14 +33,14 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   @Mock
@@ -81,7 +81,7 @@ public class PrivateChatTabControllerTest extends AbstractPlainJavaFxTest {
   private PrivateChatTabController instance;
   private String playerName;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException, ExecutionException, InterruptedException {
     PreferencesService preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.afterPropertiesSet();

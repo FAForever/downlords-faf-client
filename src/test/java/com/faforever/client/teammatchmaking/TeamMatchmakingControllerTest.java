@@ -25,8 +25,8 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
@@ -38,8 +38,8 @@ import static com.faforever.client.teammatchmaking.TeamMatchmakingController.CHA
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -74,7 +74,7 @@ public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
   private Party party;
   private ObservableList<MatchmakingQueue> matchmakingQueues;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     party = PartyBuilder.create().defaultValues().get();
     player = party.getOwner();

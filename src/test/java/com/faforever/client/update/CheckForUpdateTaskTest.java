@@ -7,10 +7,10 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -25,7 +25,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @Slf4j
 public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
@@ -43,7 +43,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
   private CountDownLatch terminateLatch;
   private ClientProperties clientProperties;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     clientProperties = new ClientProperties();
     instance = new CheckForUpdateTask(i18n, preferencesService);
@@ -51,14 +51,14 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
     terminateLatch = new CountDownLatch(1);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     IOUtils.closeQuietly(fakeConfigServerSocket);
     terminateLatch.countDown();
   }
 
   @Test
-  @Ignore("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
+  @Disabled("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
   public void testIsNewer() throws Exception {
     startFakeConfigServer();
     int port = fakeConfigServerSocket.getLocalPort();
@@ -107,7 +107,7 @@ public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
    * There is no newer version on the server.
    */
   @Test
-  @Ignore("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
+  @Disabled("For unknown reasons, Travis throws a SocketException probably when trying to connect to the fake server")
   public void testGetUpdateIsCurrent() throws Exception {
     startFakeConfigServer();
     int port = fakeConfigServerSocket.getLocalPort();

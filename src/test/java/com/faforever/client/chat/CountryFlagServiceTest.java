@@ -1,31 +1,32 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.i18n.I18n;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Locale;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.intThat;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
-public class CountryFlagServiceTest {
+@ExtendWith(MockitoExtension.class)
+public class CountryFlagServiceTest extends AbstractPlainJavaFxTest {
 
   private CountryFlagService service;
 
   @Mock
   private I18n i18n;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(i18n.getCountryNameLocalized(anyString())).thenReturn(""); //Default result to avoid nullPointers
     service = new CountryFlagService(i18n);

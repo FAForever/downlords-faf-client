@@ -3,14 +3,14 @@ package com.faforever.client.notification;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -22,7 +22,7 @@ public class NotificationServiceTest {
   @Mock
   private ReportingService reportingService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new NotificationService(reportingService);
   }

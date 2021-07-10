@@ -3,8 +3,7 @@ package com.faforever.client.fx;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
@@ -25,8 +24,8 @@ public class JavaFxUtilTest extends AbstractPlainJavaFxTest {
     Path fromString = PATH_STRING_CONVERTER.fromString(path.toString());
     String toString = PATH_STRING_CONVERTER.toString(path);
 
-    Assert.assertThat(fromString, is(path));
-    Assert.assertThat(toString, is(path.toAbsolutePath().toString()));
+    assertThat(fromString, is(path));
+    assertThat(toString, is(path.toAbsolutePath().toString()));
   }
 
   @Test

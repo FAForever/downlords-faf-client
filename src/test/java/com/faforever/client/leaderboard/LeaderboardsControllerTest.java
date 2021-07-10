@@ -3,8 +3,8 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.Arrays;
@@ -12,10 +12,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.leaderboard.LeaderboardEntryBuilder.create;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -47,7 +47,7 @@ public class LeaderboardsControllerTest extends AbstractPlainJavaFxTest {
       create().defaultValues().username("Tex").get()
   );
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     when(leaderboardService.getLeaderboards())
         .thenReturn(CompletableFuture.completedFuture(List.of(leaderboardGlobal, leaderboard1v1)));

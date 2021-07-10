@@ -20,13 +20,12 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
@@ -63,7 +62,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ModServiceTest extends AbstractPlainJavaFxTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
@@ -73,12 +72,12 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
 
-  @Rule
-  public TemporaryFolder modsDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder faDataDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder corruptedModsDirectory = new TemporaryFolder();
+  @TempDir
+  public Path modsDirectory;
+  @TempDir
+  public Path faDataDirectory;
+  @TempDir
+  public Path corruptedModsDirectory;
 
   @Mock
   private PreferencesService preferencesService;
@@ -101,13 +100,13 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   private Path gamePrefsPath;
   private Path blackopsSupportPath;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    gamePrefsPath = faDataDirectory.getRoot().toPath().resolve("game.prefs");
+    gamePrefsPath = faDataDirectory.resolve("game.prefs");
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
         .preferencesFile(gamePrefsPath)
-        .modsDirectory(modsDirectory.getRoot().toPath())
+        .modsDirectory(modsDirectory)
         .then()
         .get();
 
@@ -127,8 +126,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
   }
 
   private Path copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
-    Path targetDir = modsDirectory.getRoot().toPath().resolve(directoryName);
-    Files.createDirectories(targetDir);
+    Path targetDir = Files.createDirectories(modsDirectory.resolve(directoryName));
 
     try (InputStream inputStream = classPathResource.getInputStream();
          OutputStream outputStream = Files.newOutputStream(targetDir.resolve("mod_info.lua"))) {
@@ -318,7 +316,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
     assertThat(modVersion.getVersion(), is(new ComparableVersion("8")));
     assertThat(modVersion.getUploader(), is("Lt_hawkeye"));
     assertThat(modVersion.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
-    assertThat(modVersion.getImagePath(), is(modsDirectory.getRoot().toPath().resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
+    assertThat(modVersion.getImagePath(), is(modsDirectory.resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
     assertThat(modVersion.getSelectable(), is(true));
     assertThat(modVersion.getId(), is(nullValue()));
     assertThat(modVersion.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
@@ -343,7 +341,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testLoadInstalledModWithoutModInfo() throws Exception {
-    Files.createDirectories(modsDirectory.getRoot().toPath().resolve("foobar"));
+    Files.createDirectories(modsDirectory.resolve("foobar"));
 
     assertThat(instance.getInstalledModVersions().size(), is(1));
 
@@ -375,7 +373,7 @@ public class ModServiceTest extends AbstractPlainJavaFxTest {
 
     Path actual = instance.getPathForMod(instance.getInstalledModVersions().get(0));
 
-    Path expected = modsDirectory.getRoot().toPath().resolve(BLACK_OPS_UNLEASHED_DIRECTORY_NAME);
+    Path expected = modsDirectory.resolve(BLACK_OPS_UNLEASHED_DIRECTORY_NAME);
     assertThat(actual, is(expected));
   }
 

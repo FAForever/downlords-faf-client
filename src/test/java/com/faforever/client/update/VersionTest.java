@@ -1,22 +1,23 @@
 package com.faforever.client.update;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VersionTest {
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void shouldFailOnNullFromVersion() {
-    Version.shouldUpdate(null, "v1.0.0");
+    assertThrows(NullPointerException.class, () -> Version.shouldUpdate(null, "v1.0.0"));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void shouldFailOnNullToVersion() {
-    Version.shouldUpdate("v1.0.0", null);
+    assertThrows(NullPointerException.class, () -> Version.shouldUpdate("v1.0.0", null));
   }
 
   @Test
@@ -45,9 +46,9 @@ public class VersionTest {
     assertFalse(Version.shouldUpdate("1.1.7", "xyz"));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void shouldFailIfToVersionIsNotSemver() {
-    assertFalse(Version.shouldUpdate("xyz", "1.1.5"));
+    assertThrows(IllegalArgumentException.class, () -> assertFalse(Version.shouldUpdate("xyz", "1.1.5")));
   }
 
   @Test

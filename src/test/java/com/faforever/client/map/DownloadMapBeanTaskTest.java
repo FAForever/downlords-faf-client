@@ -5,28 +5,27 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder customMapsDirectory = new TemporaryFolder();
+  @TempDir
+  public Path customMapsDirectory;
 
   private DownloadMapTask instance;
 
@@ -36,11 +35,11 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
 
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .customMapsDirectory(customMapsDirectory.getRoot().toPath())
+        .customMapsDirectory(customMapsDirectory)
         .then()
         .get();
 
@@ -52,20 +51,14 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
 
   @Test
   public void testCallWithoutMapUrlThrowsException() throws Exception {
-    expectedException.expectMessage("mapUrl");
-    expectedException.expect(NullPointerException.class);
-
     instance.setFolderName("");
-    instance.call();
+    assertEquals("mapUrl has not been set", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 
   @Test
   public void testCallWithoutFolderNameThrowsException() throws Exception {
-    expectedException.expectMessage("folderName");
-    expectedException.expect(NullPointerException.class);
-
     instance.setMapUrl(new URL("http://www.example.com"));
-    instance.call();
+    assertEquals("folderName has not been set", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 
   @Test
@@ -74,6 +67,6 @@ public class DownloadMapBeanTaskTest extends AbstractPlainJavaFxTest {
     instance.setFolderName("");
     instance.call();
 
-    assertTrue(Files.exists(customMapsDirectory.getRoot().toPath().resolve("theta_passage_5.v0001").resolve("theta_passage_5_scenario.lua")));
+    assertTrue(Files.exists(customMapsDirectory.resolve("theta_passage_5.v0001").resolve("theta_passage_5_scenario.lua")));
   }
 }

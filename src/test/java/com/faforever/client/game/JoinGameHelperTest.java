@@ -12,8 +12,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -56,7 +56,7 @@ public class JoinGameHelperTest extends AbstractPlainJavaFxTest {
 
   private Game game;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     Player currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
     game = GameBuilder.create().defaultValues()

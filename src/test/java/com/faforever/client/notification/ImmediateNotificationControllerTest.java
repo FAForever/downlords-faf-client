@@ -4,24 +4,24 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ImmediateNotificationControllerTest extends AbstractPlainJavaFxTest {
 
   private ImmediateNotificationController instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ImmediateNotificationController();
     loadFxml("theme/immediate_notification.fxml", clazz -> instance);

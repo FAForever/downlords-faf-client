@@ -5,8 +5,8 @@ import com.google.common.eventbus.EventBus;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import org.bridj.Platform;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.nio.file.Path;
@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PreferencesServiceTest {
 
@@ -29,7 +29,7 @@ public class PreferencesServiceTest {
   @Mock
   private ClientProperties clientProperties;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new PreferencesService(clientProperties);
   }

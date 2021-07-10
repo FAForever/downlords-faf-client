@@ -6,16 +6,16 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.beans.property.SimpleFloatProperty;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class ReviewControllerTest extends AbstractPlainJavaFxTest {
@@ -31,7 +31,7 @@ public class ReviewControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private StarController starController;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ReviewController(i18n, playerService);
 

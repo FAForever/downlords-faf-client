@@ -12,8 +12,8 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -41,7 +41,7 @@ public class BrowserCallbackTest extends AbstractPlainJavaFxTest {
   @Mock
   private NotificationService notificationService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
     Vault vault = new Vault();

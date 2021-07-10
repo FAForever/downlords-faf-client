@@ -9,11 +9,11 @@ import com.faforever.client.util.RatingUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TeamCardControllerTest extends AbstractPlainJavaFxTest {
   private TeamCardController instance;
   @Mock
@@ -41,7 +41,7 @@ public class TeamCardControllerTest extends AbstractPlainJavaFxTest {
   private ObservableMap<String, List<PlayerStats>> teams;
   private PlayerStats playerStats;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     instance = new TeamCardController(uiService, i18n);
     playerList = new ArrayList<>();

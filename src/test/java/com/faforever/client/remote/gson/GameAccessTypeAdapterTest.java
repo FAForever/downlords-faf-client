@@ -3,11 +3,11 @@ package com.faforever.client.remote.gson;
 import com.faforever.client.remote.domain.GameAccess;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,7 +16,7 @@ public class GameAccessTypeAdapterTest {
 
   private GameAccessTypeAdapter instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = GameAccessTypeAdapter.INSTANCE;
   }
@@ -54,7 +54,7 @@ public class GameAccessTypeAdapterTest {
 
     GameAccess gameAccess = instance.read(in);
 
-    Assert.assertNull(gameAccess);
+    assertNull(gameAccess);
   }
 
   @Test
@@ -64,6 +64,6 @@ public class GameAccessTypeAdapterTest {
 
     GameAccess gameAccess = instance.read(in);
 
-    Assert.assertNull(gameAccess);
+    assertNull(gameAccess);
   }
 }

@@ -11,32 +11,33 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
-import org.testfx.framework.junit.ApplicationTest;
+import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
 import static com.github.nocatch.NoCatch.noCatch;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+//TODO figure out best way to refactor so that tests don't have to be lenient due to unnecessary stubbings spam
 @Slf4j
 public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
 
   private final Pane root;
   private Scene scene;
   private Stage stage;
-  private final List<Throwable> exceptionsCaught = new ArrayList<>();
 
   public AbstractPlainJavaFxTest() {
     root = new Pane();

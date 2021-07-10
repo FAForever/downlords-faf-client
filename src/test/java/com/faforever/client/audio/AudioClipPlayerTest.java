@@ -1,14 +1,14 @@
 package com.faforever.client.audio;
 
 import javafx.scene.media.AudioClip;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AudioClipPlayerTest {
 
   private AudioClipPlayer instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new AudioClipPlayer();
   }

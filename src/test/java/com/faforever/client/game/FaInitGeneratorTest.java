@@ -6,10 +6,9 @@ import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.mod.MountInfo;
 import org.hamcrest.CoreMatchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -21,22 +20,22 @@ import java.util.HashSet;
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class FaInitGeneratorTest {
-  @Rule
-  public TemporaryFolder mountBaseDir = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder fafBinDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder faDirectory = new TemporaryFolder();
+  @TempDir
+  public Path mountBaseDir;
+  @TempDir
+  public Path fafBinDirectory;
+  @TempDir
+  public Path faDirectory;
   private FaInitGenerator instance;
   @Mock
   private PreferencesService preferencesService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
@@ -44,17 +43,17 @@ public class FaInitGeneratorTest {
 
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .installationPath(faDirectory.getRoot().toPath())
+        .installationPath(faDirectory)
         .then()
         .get();
 
-    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory.getRoot().toPath());
+    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory);
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 
   @Test
   public void testGenerateInitFile() throws Exception {
-    Path mountBasePath = this.mountBaseDir.getRoot().toPath();
+    Path mountBasePath = this.mountBaseDir;
     List<MountInfo> mountPaths = Arrays.asList(
         new MountInfo(mountBasePath, Paths.get("foobar"), "/foobar"),
         new MountInfo(mountBasePath, Paths.get("gamedata/effects.nxt"), "/effects")
@@ -62,7 +61,7 @@ public class FaInitGeneratorTest {
 
     instance.generateInitFile(mountPaths, new HashSet<>(Arrays.asList("/schook", "/labwars")));
 
-    Path targetFile = fafBinDirectory.getRoot().toPath().resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
+    Path targetFile = fafBinDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
     assertTrue(Files.exists(targetFile));
 
     String fileContent = new String(Files.readAllBytes(targetFile), UTF_8);

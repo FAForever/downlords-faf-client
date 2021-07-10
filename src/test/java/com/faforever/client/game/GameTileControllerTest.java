@@ -8,8 +8,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.scene.input.MouseButton;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -45,7 +45,7 @@ public class GameTileControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private Consumer<Game> onSelectedConsumer;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     game = GameBuilder.create().defaultValues().get();
 

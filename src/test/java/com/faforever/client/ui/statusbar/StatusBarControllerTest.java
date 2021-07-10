@@ -9,15 +9,15 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +34,7 @@ public class StatusBarControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TaskService taskService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new StatusBarController(fafService, i18n, chatService, taskService);
 

@@ -2,11 +2,11 @@ package com.faforever.client.leaderboard;
 
 
 import com.faforever.client.remote.FafService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,12 +16,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LeaderboardServiceImplTest {
 
   private static final int PLAYER_ID = 123;
@@ -32,7 +32,7 @@ public class LeaderboardServiceImplTest {
 
   private Leaderboard leaderboard;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     leaderboard = LeaderboardBuilder.create().defaultValues().get();
 

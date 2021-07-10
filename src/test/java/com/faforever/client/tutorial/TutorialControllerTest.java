@@ -5,16 +5,16 @@ import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +31,7 @@ public class TutorialControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TutorialListItemController tutorialListItemController;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new TutorialController(tutorialService, uiService);
     loadFxml("theme/tutorial.fxml", clazz -> {

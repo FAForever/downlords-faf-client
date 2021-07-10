@@ -11,8 +11,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.LiveReplayController;
 import javafx.collections.FXCollections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -41,7 +41,7 @@ public class LiveReplayControllerTest extends AbstractPlainJavaFxTest {
   private final Game livingGame = GameBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get();
   private final List<Game> games = List.of(openedGame, livingGame);
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     Mockito.when(gameService.getGames()).thenReturn(FXCollections.observableArrayList(games));
 

@@ -12,8 +12,8 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -31,12 +31,12 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -55,7 +55,7 @@ public class PlayerServiceTest {
   private PlayerInfo playerInfo1;
   private PlayerInfo playerInfo2;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     when(userService.getOwnPlayerInfo()).thenReturn(new PlayerInfo(1, "junit", null, null, null, 0, null, null));
@@ -92,9 +92,9 @@ public class PlayerServiceTest {
     assertEquals("junit2", player.getUsername());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testRegisterAndGetPlayerForUsernameNull() {
-    instance.createOrUpdatePlayerForPlayerInfo(null);
+    assertThrows(IllegalArgumentException.class, () -> instance.createOrUpdatePlayerForPlayerInfo(null));
   }
 
   @Test
@@ -137,8 +137,8 @@ public class PlayerServiceTest {
     verify(fafService).addFriend(lisa);
     verify(fafService).addFriend(ashley);
 
-    assertSame("Social Status Property not set to 'friend'", lisa.getSocialStatus(), FRIEND);
-    assertSame("Social Status Property not set to 'friend'", ashley.getSocialStatus(), FRIEND);
+    assertSame(lisa.getSocialStatus(), FRIEND);
+    assertSame(ashley.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -149,7 +149,7 @@ public class PlayerServiceTest {
 
     instance.addFriend(player);
 
-    assertNotSame("Social Status Property is still 'foe'", player.getSocialStatus(), FOE);
+    assertNotSame(player.getSocialStatus(), FOE);
   }
 
   @Test
@@ -166,8 +166,8 @@ public class PlayerServiceTest {
     instance.removeFriend(player1);
     verify(fafService).removeFriend(player1);
 
-    assertNotSame("Property 'friend' was not set to false", player1.getSocialStatus(), FRIEND);
-    assertSame("Property 'friend' was not set to true", player2.getSocialStatus(), FRIEND);
+    assertNotSame(player1.getSocialStatus(), FRIEND);
+    assertSame(player2.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -180,8 +180,8 @@ public class PlayerServiceTest {
 
     verify(fafService).addFoe(player1);
     verify(fafService).addFoe(player2);
-    assertSame("Social Status Property not set to 'foe'", player1.getSocialStatus(), FOE);
-    assertSame("Social Status Property not set to 'foe'", player2.getSocialStatus(), FOE);
+    assertSame(player1.getSocialStatus(), FOE);
+    assertSame(player2.getSocialStatus(), FOE);
   }
 
   @Test
@@ -191,7 +191,7 @@ public class PlayerServiceTest {
 
     instance.addFoe(player);
 
-    assertNotSame("Social Status Property is still 'friend'", player.getSocialStatus(), FRIEND);
+    assertNotSame(player.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -201,7 +201,7 @@ public class PlayerServiceTest {
     instance.addFriend(player);
     instance.removeFriend(player);
 
-    assertNotSame("Property 'friend' was not set to false", player.getSocialStatus(), FRIEND);
+    assertNotSame(player.getSocialStatus(), FRIEND);
   }
 
   @Test
@@ -212,13 +212,11 @@ public class PlayerServiceTest {
     assertThat(currentPlayer.getId(), is(1));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testGetCurrentPlayerNull() {
     when(userService.getOwnPlayerInfo()).thenReturn(null);
 
-    Player currentPlayer = instance.getCurrentPlayer();
-
-    assertNull(currentPlayer);
+    assertThrows(IllegalStateException.class, () -> instance.getCurrentPlayer());
   }
 
   @Test

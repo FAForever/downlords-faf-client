@@ -1,8 +1,8 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.remote.FafService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -16,7 +16,7 @@ public class CoopServiceTest {
   @Mock
   private FafService fafService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 

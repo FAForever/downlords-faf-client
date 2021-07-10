@@ -7,15 +7,15 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.base.Stopwatch;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import static org.mockito.Mockito.mock;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
 public class FafClientApplicationTest extends AbstractPlainJavaFxTest {
 
