@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Value
@@ -19,11 +18,6 @@ public class UpdatePartyMessage extends FafInboundMessage {
   @Value
   public static class PartyMember {
     Integer player;
-    List<String> factions;
-
-    // jackson deserializes factions based on name, faction ids are used here
-    public List<Faction> getFactions() {
-      return factions.stream().map(Faction::fromString).collect(Collectors.toList());
-    }
+    List<Faction> factions;
   }
 }

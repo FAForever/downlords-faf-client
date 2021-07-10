@@ -38,6 +38,7 @@ import com.faforever.client.remote.domain.inbound.faf.SearchInfoMessage;
 import com.faforever.client.remote.domain.inbound.faf.SessionMessage;
 import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.remote.domain.inbound.faf.UpdatePartyMessage;
+import com.faforever.client.remote.domain.inbound.faf.UpdatePartyMessage.PartyMember;
 import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
 import com.faforever.client.remote.domain.inbound.gpg.ConnectToPeerMessage;
 import com.faforever.client.remote.domain.inbound.gpg.DisconnectFromPeerMessage;
@@ -854,7 +855,7 @@ public class ServerAccessorImplTest extends UITest {
 
   @Test
   public void testOnUpdatePartyMessage() throws InterruptedException, JsonProcessingException {
-    UpdatePartyMessage updatePartyMessage = new UpdatePartyMessage(1, List.of());
+    UpdatePartyMessage updatePartyMessage = new UpdatePartyMessage(1, List.of(new PartyMember(123, List.of(Faction.UEF, Faction.CYBRAN, Faction.AEON, Faction.SERAPHIM))));
 
     sendFromServer(updatePartyMessage);
     messageReceivedLatch.await(TIMEOUT, TIMEOUT_UNIT);
@@ -864,7 +865,7 @@ public class ServerAccessorImplTest extends UITest {
         {
           "command" : "update_party",
           "owner" : 1,
-          "members" : [ ],
+          "members" : [{"player":123,"factions":["uef","cybran","aeon","seraphim"]} ],
           "target" : null
         }""");
 
