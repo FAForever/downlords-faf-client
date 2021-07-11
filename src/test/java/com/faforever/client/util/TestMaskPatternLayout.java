@@ -1,8 +1,8 @@
 package com.faforever.client.util;
 
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -15,7 +15,7 @@ public class TestMaskPatternLayout {
 
   private MaskPatternLayout instance;
 
-  @Before
+  @BeforeEach
   public void set() {
     instance = new MaskPatternLayout();
   }
