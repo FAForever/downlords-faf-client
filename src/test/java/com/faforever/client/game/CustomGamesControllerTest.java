@@ -135,15 +135,19 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
     instance.showModdedGamesCheckBox.setSelected(false);
     instance.showModdedGamesCheckBox.setSelected(true);
     instance.showPasswordProtectedGamesCheckBox.setSelected(true);
+    WaitForAsyncUtils.waitForFxEvents();
     assertEquals(4, instance.filteredItems.size());
 
     instance.showModdedGamesCheckBox.setSelected(false);
+    WaitForAsyncUtils.waitForFxEvents();
     assertEquals(2, instance.filteredItems.size());
 
     instance.showPasswordProtectedGamesCheckBox.setSelected(false);
+    WaitForAsyncUtils.waitForFxEvents();
     assertEquals(1, instance.filteredItems.size());
 
     instance.showModdedGamesCheckBox.setSelected(true);
+    WaitForAsyncUtils.waitForFxEvents();
     assertEquals(2, instance.filteredItems.size());
   }
 
