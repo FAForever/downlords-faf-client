@@ -130,7 +130,7 @@ public class CustomGamesControllerTest extends AbstractPlainJavaFxTest {
 
     ObservableList<Game> games = FXCollections.observableArrayList();
     games.addAll(game, gameWithMod, gameWithPW, gameWithModAndPW, ladderGame, matchmakerGame);
-    instance.setFilteredList(games);
+    runOnFxThreadAndWait(() -> instance.setFilteredList(games));
 
     instance.showModdedGamesCheckBox.setSelected(false);
     instance.showModdedGamesCheckBox.setSelected(true);
