@@ -1,14 +1,13 @@
 package com.faforever.client.util;
 
-import static org.junit.Assert.assertEquals;
+import com.faforever.client.test.FakeTestException;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
-import org.junit.Test;
-
-import com.faforever.client.test.FakeTestException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConcurrentUtilTest {
   

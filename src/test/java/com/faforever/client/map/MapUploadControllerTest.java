@@ -7,14 +7,14 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.concurrent.ExecutorService;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class MapUploadControllerTest extends AbstractPlainJavaFxTest {
@@ -39,7 +39,7 @@ public class MapUploadControllerTest extends AbstractPlainJavaFxTest {
   private ClientProperties clientProperties;
 
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new MapUploadController(mapService, executorService, notificationService, reportingService, platformService, i18n, eventBus, clientProperties);
     loadFxml("theme/vault/map/map_upload.fxml", param -> instance);

@@ -4,13 +4,13 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TextField;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 
 public class SavedQueriesControllerTest extends AbstractPlainJavaFxTest {
@@ -21,7 +21,7 @@ public class SavedQueriesControllerTest extends AbstractPlainJavaFxTest {
   private SearchController searchController;
   private TextField queryTextField;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new SavedQueriesController();
     savedQueries.put("name", "test");

@@ -3,13 +3,13 @@ package com.faforever.client.replay;
 import com.faforever.client.game.Game;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LocalReplayInfoTest {
   private static final String host = "Test";
@@ -28,7 +28,7 @@ public class LocalReplayInfoTest {
   private LocalReplayInfo instance;
   private Game game;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     game = new Game();
     game.setHost(host);

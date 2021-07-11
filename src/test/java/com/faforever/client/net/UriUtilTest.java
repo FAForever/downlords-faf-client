@@ -1,9 +1,10 @@
 package com.faforever.client.net;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.faforever.client.test.IsUtilityClassMatcher.isUtilityClass;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class UriUtilTest {
 
@@ -12,9 +13,9 @@ public class UriUtilTest {
     UriUtil.fromString("http://localhost");
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testFromStringInvalid() throws Exception {
-    UriUtil.fromString("^");
+    assertThrows(RuntimeException.class, () -> UriUtil.fromString("^"));
   }
 
   @Test

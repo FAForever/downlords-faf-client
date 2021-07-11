@@ -6,15 +6,15 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.TextField;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
 
 import static com.faforever.client.map.MapBeanBuilder.create;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MapFilterControllerTest extends AbstractPlainJavaFxTest {
 
@@ -29,7 +29,7 @@ public class MapFilterControllerTest extends AbstractPlainJavaFxTest {
       create().folderName("map4.v001").displayName("map4").players(4).size(MapSize.valueOf(512, 512)).get()
   );
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     instance = new MapFilterController();
     loadFxml("theme/play/map_filter.fxml", clazz -> instance);

@@ -7,17 +7,17 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
 import static com.faforever.client.game.PlayerStatus.IDLE;
 import static com.faforever.client.game.PlayerStatus.LOBBYING;
 import static com.faforever.client.game.PlayerStatus.PLAYING;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
@@ -34,7 +34,7 @@ public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
   private UserFilterController instance;
   private Player player;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new UserFilterController(i18n, flagService);
     instance.channelTabController = channelTabController;

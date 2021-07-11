@@ -8,9 +8,9 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.animation.Timeline;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.time.Instant;
@@ -35,7 +35,7 @@ public class WatchButtonControllerTest extends AbstractPlainJavaFxTest {
   private WatchButtonController instance;
   private Game game;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ClientProperties properties = new ClientProperties();
     properties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
@@ -87,7 +87,7 @@ public class WatchButtonControllerTest extends AbstractPlainJavaFxTest {
     runOnFxThreadAndWait(()-> instance.watchButton.fire());
   }
 
-  @After
+  @AfterEach
   public void stopTimer() {
     Timeline timeline = instance.getDelayTimeline();
     if (timeline != null) {

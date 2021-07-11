@@ -5,14 +5,14 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class IceAdapterImplTest {
 
   @Mock
@@ -30,7 +30,7 @@ public class IceAdapterImplTest {
   @Mock
   private PreferencesService preferencesService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new IceAdapterImpl(applicationContext, clientProperties, playerService, eventBus, fafService, preferencesService);
   }

@@ -24,11 +24,9 @@ import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -48,11 +46,12 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -95,12 +94,10 @@ public class ReplayServiceTest {
   private static final String TEST_MAP_PATH_GENERATED = "/maps/neroxis_map_generator_1.0.0_ABcd/neroxis_map_generator_1.0.0_ABcd_scenario.lua";
   private static final String TEST_MAP_NAME_GENERATED = "neroxis_map_generator_1.0.0_ABcd";
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder replayDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder cacheDirectory = new TemporaryFolder();
+  @TempDir
+  public Path replayDirectory;
+  @TempDir
+  public Path cacheDirectory;
   private ReplayService instance;
   @Mock
   private I18n i18n;
@@ -139,7 +136,7 @@ public class ReplayServiceTest {
   @Mock
   private ReplayDataParser replayDataParser;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
 
@@ -161,9 +158,10 @@ public class ReplayServiceTest {
     when(replayDataParser.getMods()).thenReturn(Map.of());
     when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH);
     when(replayDataParser.getReplayPatchFieldId()).thenReturn(TEST_VERSION_STRING);
-    when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath());
-    when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(replayDirectory.getRoot().toPath().resolve("corrupt"));
-    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
+    when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory);
+    Path corruptDirectory = Files.createDirectories(replayDirectory.resolve("corrupt"));
+    when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(corruptDirectory);
+    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory);
     doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 
@@ -184,9 +182,8 @@ public class ReplayServiceTest {
 
   @Test
   public void testParseBadFolderNameThrowsException() throws Exception {
-    expectedException.expect(IllegalArgumentException.class);
     when(replayDataParser.getMap()).thenReturn(BAD_MAP_PATH);
-    ReplayService.parseMapFolderName(replayDataParser);
+    assertThrows(IllegalArgumentException.class, () -> ReplayService.parseMapFolderName(replayDataParser));
   }
 
   @Test
@@ -205,8 +202,8 @@ public class ReplayServiceTest {
 
   @Test
   public void testGetLocalReplaysMovesCorruptFiles() throws Exception {
-    Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
-    Path file2 = replayDirectory.newFile("replay2.fafreplay").toPath();
+    Path file1 = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+    Path file2 = Files.createFile(replayDirectory.resolve("replay2.fafreplay"));
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file1);
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file2);
@@ -227,7 +224,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testLoadLocalReplays() throws Exception {
-    Path file1 = replayDirectory.newFile("replay.fafreplay").toPath();
+    Path file1 = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
@@ -247,7 +244,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunFafReplayFile() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
@@ -260,7 +257,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunFafReplayFileGeneratedMap() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
@@ -276,7 +273,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunScFaReplayFile() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
 
     Replay replay = new Replay();
     replay.setReplayFile(replayFile);
@@ -291,7 +288,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunReplayFileExceptionTriggersNotification() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
@@ -304,7 +301,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunFafReplayFileExceptionTriggersNotification() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
@@ -334,7 +331,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunFafOnlineReplay() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.fafreplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
@@ -360,7 +357,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunScFaOnlineReplay() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
@@ -379,7 +376,7 @@ public class ReplayServiceTest {
 
   @Test
   public void testRunScFaOnlineReplayExceptionTriggersNotification() throws Exception {
-    Path replayFile = replayDirectory.newFile("replay.scfareplay").toPath();
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);

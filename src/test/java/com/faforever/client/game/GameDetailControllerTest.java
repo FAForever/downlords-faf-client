@@ -11,8 +11,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.scene.control.Button;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +48,7 @@ public class GameDetailControllerTest extends AbstractPlainJavaFxTest {
   private Game game;
 
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     game = GameBuilder.create().defaultValues().get();
     when(watchButtonController.getRoot()).thenReturn(new Button());

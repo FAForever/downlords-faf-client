@@ -15,8 +15,8 @@ import com.faforever.client.vault.review.StarsController;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -26,9 +26,9 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
@@ -66,7 +66,7 @@ public class MapCardControllerTest extends AbstractPlainJavaFxTest {
   private ObservableList<MapBean> installedMaps;
   private MapBean mapBean;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {
     }));

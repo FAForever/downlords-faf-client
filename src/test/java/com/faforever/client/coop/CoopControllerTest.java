@@ -17,14 +17,14 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
@@ -33,15 +33,15 @@ import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CoopControllerTest extends AbstractPlainJavaFxTest {
-  @Rule
-  public TemporaryFolder cacheDirectory = new TemporaryFolder();
+  @TempDir
+  public Path cacheDirectory;
   private CoopController instance;
   @Mock
   private CoopService coopService;
@@ -69,7 +69,7 @@ public class CoopControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private TimeService timeService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, reportingService,
         mapService, uiService, timeService, webViewConfigurer, modService);

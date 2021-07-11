@@ -43,9 +43,9 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hamcrest.CoreMatchers;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
@@ -54,10 +54,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -113,7 +113,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     return false;
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getTrueSkill()
@@ -208,6 +208,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.persistentNotificationsPopup.isShowing(), is(true));
   }
 
+  @Disabled("Causes a core dump locally on windows at least")
   @Test
   public void testOnSettingsItemSelected() throws Exception {
     fakeLogin();
@@ -220,7 +221,7 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
-  @Ignore("Needs UI for testing")
+  @Disabled("Needs UI for testing")
   public void testOnChoseGameDirectory() throws Exception {
   }
 
@@ -253,11 +254,8 @@ public class MainControllerTest extends AbstractPlainJavaFxTest {
 
   }
 
-  @Ignore
+  @Disabled("Test fails in certain 2 Screen setups and on github actions")
   @Test
-  /**
-   * Test fails in certain 2 Screen setups and on github actions
-   */
   public void testWindowOutsideScreensGetsCentered() throws Exception {
     Rectangle2D visualBounds = Screen.getPrimary().getBounds();
     preferences.getMainWindow().setY(visualBounds.getMaxY() + 1);

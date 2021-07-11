@@ -3,22 +3,22 @@ package com.faforever.client.player;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.remote.domain.GameStatus;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PlayerTest {
   private Player instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new Player("junit");
   }

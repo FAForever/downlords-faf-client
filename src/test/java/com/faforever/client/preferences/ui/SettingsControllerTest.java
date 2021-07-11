@@ -24,8 +24,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -40,7 +40,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -77,7 +77,7 @@ public class SettingsControllerTest extends AbstractPlainJavaFxTest {
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferenceService.getPreferences()).thenReturn(preferences);

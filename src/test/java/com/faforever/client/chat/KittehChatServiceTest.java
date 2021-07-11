@@ -22,9 +22,9 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.MapChangeListener;
 import javafx.scene.paint.Color;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
 import org.kitteh.irc.client.library.defaults.DefaultClient;
@@ -73,9 +73,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -133,7 +133,7 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
   private DefaultClient client;
   private Preferences preferences;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     ClientProperties clientProperties = new ClientProperties();
@@ -203,7 +203,7 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
     verify(fafService).addOnMessageListener(eq(SocialMessage.class), socialMessageListenerCaptor.capture());
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     instance.destroy();
   }

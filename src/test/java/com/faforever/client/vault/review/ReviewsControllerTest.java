@@ -6,13 +6,13 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 public class ReviewsControllerTest extends AbstractPlainJavaFxTest {
@@ -32,7 +32,7 @@ public class ReviewsControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private StarController starController;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ReviewsController(i18n, uiService, playerService);
 

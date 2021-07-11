@@ -3,13 +3,12 @@ package com.faforever.client.i18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 import java.io.IOException;
@@ -21,22 +20,22 @@ import java.util.Locale;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class I18nTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public Path temporaryFolder;
 
   private I18n instance;
 
   @Mock
   private PreferencesService preferencesService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .localizationPrefs()
@@ -45,7 +44,8 @@ public class I18nTest {
         .get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(preferencesService.getLanguagesDirectory()).thenReturn(temporaryFolder.newFolder("languages").toPath());
+    Path languageDirectory = Files.createDirectories(temporaryFolder.resolve("languages"));
+    when(preferencesService.getLanguagesDirectory()).thenReturn(languageDirectory);
 
     ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
     messageSource.setBasenames("classpath:i18n/messages");

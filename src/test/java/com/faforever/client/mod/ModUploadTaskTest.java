@@ -4,29 +4,29 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsArrayWithSize.emptyArray;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ModUploadTaskTest extends AbstractPlainJavaFxTest{
 
-  @Rule
-  public TemporaryFolder tempFolder = new TemporaryFolder();
+  @TempDir
+  public Path tempFolder;
   private ModUploadTask instance;
   @Mock
   private PreferencesService preferencesService;
@@ -35,28 +35,29 @@ public class ModUploadTaskTest extends AbstractPlainJavaFxTest{
   @Mock
   private I18n i18n;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ModUploadTask(preferencesService, fafService, i18n);
 
-    when(preferencesService.getCacheDirectory()).thenReturn(tempFolder.getRoot().toPath().resolve("cache"));
+    Path cacheDirectory = Files.createDirectories(tempFolder.resolve("cache"));
+    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory);
     when(i18n.get(any())).thenReturn("");
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testModPathNull() throws Exception {
-    instance.call();
+    assertThrows(NullPointerException.class, () -> instance.call());
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testProgressListenerNull() throws Exception {
     instance.setModPath(Paths.get("."));
-    instance.call();
+    assertThrows(NullPointerException.class, () -> instance.call());
   }
 
   @Test
   public void testCall() throws Exception {
-    instance.setModPath(tempFolder.newFolder("test-mod").toPath());
+    instance.setModPath(Files.createDirectories(tempFolder.resolve("test-mod")));
 
     instance.call();
 

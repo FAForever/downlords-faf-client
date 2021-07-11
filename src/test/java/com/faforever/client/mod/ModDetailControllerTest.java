@@ -21,18 +21,18 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -73,7 +73,7 @@ public class ModDetailControllerTest extends AbstractPlainJavaFxTest {
   private Player currentPlayer;
   private ModVersion modVersion;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
     modVersion = ModVersionBuilder.create().defaultValues().mod(ModBuilder.create().defaultValues().get()).get();

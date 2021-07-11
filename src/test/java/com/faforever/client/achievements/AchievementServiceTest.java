@@ -5,17 +5,16 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.PlayerAchievement;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -29,23 +28,22 @@ import static com.faforever.client.achievements.AchievementService.AchievementSt
 import static com.faforever.client.achievements.AchievementService.AchievementState.REVEALED;
 import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class AchievementServiceTest {
+@ExtendWith(MockitoExtension.class)
+public class AchievementServiceTest extends AbstractPlainJavaFxTest {
 
   private static final int PLAYER_ID = 123;
 
-  @Rule
-  public TemporaryFolder preferencesDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder cacheDirectory = new TemporaryFolder();
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
+  @TempDir
+  public Path preferencesDirectory;
+  @TempDir
+  public Path cacheDirectory;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -55,7 +53,7 @@ public class AchievementServiceTest {
   @Mock
   private AssetService assetService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new AchievementService(fafService, playerService, assetService);
     Player player = new Player("abc");
@@ -91,9 +89,9 @@ public class AchievementServiceTest {
     verify(fafService).getAchievementDefinitions();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testGetHiddenThrowsUnsupportedOperationException() throws Exception {
-    instance.getImage(null, HIDDEN);
+    assertThrows(UnsupportedOperationException.class, () -> instance.getImage(null, HIDDEN));
   }
 
   @Test

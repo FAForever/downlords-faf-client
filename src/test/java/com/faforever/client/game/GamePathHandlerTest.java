@@ -6,8 +6,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -15,8 +15,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 
 public class GamePathHandlerTest {
@@ -28,7 +28,7 @@ public class GamePathHandlerTest {
   private I18n i18n;
   private GamePathHandler instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     PreferencesService preferenceService = new PreferencesService(new ClientProperties());

@@ -10,8 +10,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -39,7 +39,7 @@ public class PartyMemberContextMenuControllerTest extends AbstractPlainJavaFxTes
   private PartyMemberContextMenuController instance;
   private Player player;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new PartyMemberContextMenuController(clientProperties, playerService,
         eventBus, uiService, platformService);

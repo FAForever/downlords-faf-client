@@ -2,18 +2,18 @@ package com.faforever.client.notification;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.hamcrest.CoreMatchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
 public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTest {
@@ -23,7 +23,7 @@ public class PersistentNotificationControllerTest extends AbstractPlainJavaFxTes
   @Mock
   private NotificationService notificationService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new PersistentNotificationController(notificationService);
 

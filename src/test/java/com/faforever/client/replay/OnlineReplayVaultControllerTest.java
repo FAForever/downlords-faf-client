@@ -26,8 +26,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -83,7 +83,7 @@ public class OnlineReplayVaultControllerTest extends AbstractPlainJavaFxTest {
   private SearchConfig standardSearchConfig;
   private final Replay testReplay = new Replay();
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     when(replayDetailController.getRoot()).thenReturn(new Pane());
 

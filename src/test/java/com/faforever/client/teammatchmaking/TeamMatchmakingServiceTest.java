@@ -35,8 +35,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.scheduling.TaskScheduler;
@@ -82,7 +82,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
   private Player otherPlayer;
   private TeamMatchmakingService instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     player = PlayerBuilder.create("junit").defaultValues().get();
     otherPlayer = PlayerBuilder.create("junit2").defaultValues().id(2).get();

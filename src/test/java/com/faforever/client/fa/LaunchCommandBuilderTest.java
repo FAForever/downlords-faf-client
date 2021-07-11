@@ -1,16 +1,17 @@
 package com.faforever.client.fa;
 
 import com.faforever.commons.api.dto.Faction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class LaunchCommandBuilderTest {
 
@@ -27,9 +28,9 @@ public class LaunchCommandBuilderTest {
     assertNotNull(defaultBuilder().build());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testExecutableNullThrowsException() throws Exception {
-    defaultBuilder().executable(null).build();
+    assertThrows(IllegalStateException.class, () -> defaultBuilder().executable(null).build());
   }
 
   @Test
@@ -52,9 +53,9 @@ public class LaunchCommandBuilderTest {
     defaultBuilder().country(null).build();
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testUsernameNullNotAllowedIfUidSet() throws Exception {
-    defaultBuilder().uid(123).username(null).build();
+    assertThrows(IllegalStateException.class, () -> defaultBuilder().uid(123).username(null).build());
   }
 
   @Test

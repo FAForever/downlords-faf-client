@@ -4,24 +4,17 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GenerateMapTaskTest {
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder customMapsDirectory = new TemporaryFolder();
-
   private GenerateMapTask instance;
 
   @Mock
@@ -33,16 +26,13 @@ public class GenerateMapTaskTest {
   @Mock
   private I18n i18n;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new GenerateMapTask(preferencesService, notificationService, i18n, eventBus);
   }
 
   @Test
   public void testCallWithoutVersionThrowsException() throws Exception {
-    expectedException.expect(NullPointerException.class);
-    expectedException.expectMessage(startsWith("Version hasn't been set"));
-
-    instance.call();
+    assertEquals("Version hasn't been set.", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 }

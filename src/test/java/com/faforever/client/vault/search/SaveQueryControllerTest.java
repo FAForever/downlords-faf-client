@@ -3,17 +3,17 @@ package com.faforever.client.vault.search;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SaveQueryControllerTest extends AbstractPlainJavaFxTest {
 
   private final ObservableMap<String, String> savedQueries = FXCollections.observableHashMap();
   private SaveQueryController instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new SaveQueryController();
     instance.setQueries(savedQueries);

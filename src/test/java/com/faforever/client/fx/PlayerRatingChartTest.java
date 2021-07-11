@@ -12,8 +12,8 @@ import javafx.scene.chart.XYChart.Data;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public class PlayerRatingChartTest extends AbstractPlainJavaFxTest {
   private PlayerRatingChart instance;
   private Region chartBackground;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml")).thenReturn(chartTooltip);
     when(chartTooltip.getRoot()).thenReturn(new Pane());

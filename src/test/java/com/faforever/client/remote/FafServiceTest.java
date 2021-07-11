@@ -9,8 +9,8 @@ import com.faforever.commons.api.dto.MapVersionReview;
 import com.faforever.commons.api.dto.ModVersionReview;
 import com.faforever.commons.api.dto.Player;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -21,7 +21,7 @@ import java.util.Optional;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,7 +36,7 @@ public class FafServiceTest {
   @Mock
   private FafApiAccessor fafApiAccessor;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     instance = new FafService(fafServerAccessor, fafApiAccessor, eventBus);

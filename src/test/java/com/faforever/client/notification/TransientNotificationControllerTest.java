@@ -7,28 +7,24 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.faforever.client.fx.MouseEvents.generateClick;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest {
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
   private TransientNotificationController instance;
 
-
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     PreferencesService preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.afterPropertiesSet();
@@ -51,14 +47,13 @@ public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest
 
   @Test
   public void testGetRoot() throws Exception {
-    Assert.assertThat(instance.getRoot(), is(instance.transientNotificationRoot));
-    Assert.assertThat(instance.getRoot().getParent(), is(nullValue()));
+    assertThat(instance.getRoot(), is(instance.transientNotificationRoot));
+    assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
   @Test
   public void testOnRightClick() throws Exception {
-    expectedException.expectMessage("timeline");
-    instance.onClicked(generateClick(MouseButton.SECONDARY, 1));
+    assertEquals("timeline has not been set", assertThrows(Exception.class, () -> instance.onClicked(generateClick(MouseButton.SECONDARY, 1))).getMessage());
   }
 
   @Test

@@ -8,38 +8,39 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
 import com.faforever.commons.io.Bytes;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ClientUpdateServiceImplTest {
+@ExtendWith(MockitoExtension.class)
+public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
 
   private ClientUpdateServiceImpl instance;
 
-  @Rule
-  public TemporaryFolder fafBinDirectory = new TemporaryFolder();
+  @TempDir
+  public Path fafBinDirectory;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -61,7 +62,7 @@ public class ClientUpdateServiceImplTest {
 
   private Preferences preferences;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
     UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
@@ -126,10 +127,10 @@ public class ClientUpdateServiceImplTest {
 
   @Test
   public void testUnixExecutableBitIsSet() throws Exception {
-    Path faExePath = fafBinDirectory.newFile("ForgedAlliance.exe").toPath();
+    Path faExePath = Files.createFile(fafBinDirectory.resolve("ForgedAlliance.exe"));
     try {
       instance.install(faExePath);
-    } catch (InstallerExecutionException e) {}
+    } catch (InstallerExecutionException ignored) {}
     verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }
 }

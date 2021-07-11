@@ -5,11 +5,11 @@ import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.scene.paint.Color;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 public class ChatCategoryContextMenuControllerTest extends AbstractPlainJavaFxTest {
@@ -22,7 +22,7 @@ public class ChatCategoryContextMenuControllerTest extends AbstractPlainJavaFxTe
   private ChatCategoryContextMenuController instance;
   private ChatUserCategory chatUserCategory;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ChatCategoryContextMenuController(preferencesService);
 

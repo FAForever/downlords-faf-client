@@ -5,59 +5,57 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 public class InstallModTaskTest extends AbstractPlainJavaFxTest {
 
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
-  @Rule
-  public TemporaryFolder cacheDirectory = new TemporaryFolder();
-  @Rule
-  public TemporaryFolder modsDirectory = new TemporaryFolder();
+  @TempDir
+  public Path tempDirectory;
+  public Path cacheDirectory;
+  public Path modsDirectory;
   private InstallModTask instance;
   @Mock
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
+    cacheDirectory = Files.createDirectories(tempDirectory.resolve("cache"));
+    modsDirectory = Files.createDirectories(tempDirectory.resolve("mods"));
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .modsDirectory(modsDirectory.getRoot().toPath())
+        .modsDirectory(modsDirectory)
         .then()
         .get();
 
     instance = new InstallModTask(preferencesService, i18n);
 
-    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory.getRoot().toPath());
+    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory);
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 
   @Test
   public void testCallThrowsExceptionWhenUrlIsNotSet() throws Exception {
-    expectedException.expectMessage("url");
-    instance.call();
+    assertEquals("url has not been set", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 
   @Test
   public void testCall() throws Exception {
-    Path modTargetDirectory = modsDirectory.getRoot().toPath().resolve("SuicideConfirmation");
+    Path modTargetDirectory = Files.createDirectories(modsDirectory.resolve("SuicideConfirmation"));
     Path fileThatShouldBeDeletedByInstall = modTargetDirectory.resolve("fileThatShouldBeDeletedByInstall.file");
-    Files.createDirectory(modTargetDirectory);
     Files.createFile(fileThatShouldBeDeletedByInstall);
 
     instance.setUrl(getClass().getResource("/mods/Suicide Confirmation.v0003.zip"));

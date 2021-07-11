@@ -9,14 +9,14 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +31,7 @@ public class TransientNotificationsControllerTest extends AbstractPlainJavaFxTes
   private UiService uiService;
   private NotificationsPrefs notificationPrefs;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new TransientNotificationsController(uiService, preferencesService);
 

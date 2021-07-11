@@ -13,8 +13,8 @@ import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.collect.ImmutableMap;
 import javafx.collections.FXCollections;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.io.IOException;
@@ -26,7 +26,8 @@ import java.util.Optional;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
@@ -36,7 +37,7 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
   private I18n i18n;
   private QBuilder qBuilder;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     instance = new SpecificationController(i18n);
 
@@ -110,9 +111,9 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
     testWithParams(ComparisonOperator.NIN, "name", "Test", "name=out=(\"Test\")");
   }
 
-  @Test(expected = ProgrammingError.class)
+  @Test
   public void testStringGreaterThan() {
-    testWithParams(ComparisonOperator.GT, "name", "Test", null);
+    assertThrows(ProgrammingError.class, () -> testWithParams(ComparisonOperator.GT, "name", "Test", null));
   }
 
   @Test
@@ -135,9 +136,9 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
     testWithParams(ComparisonOperator.NIN, "victoryCondition", VictoryCondition.SANDBOX.name(), "victoryCondition=out=(\"SANDBOX\")");
   }
 
-  @Test(expected = ProgrammingError.class)
+  @Test
   public void testEnumGreaterThan() {
-    testWithParams(ComparisonOperator.GT, "name", "Test", null);
+    assertThrows(ProgrammingError.class, () -> testWithParams(ComparisonOperator.GT, "name", "Test", null));
   }
 
   @Test
@@ -180,9 +181,9 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
     testWithParams(ComparisonOperator.NIN, "mapVersion.width", 128, "mapVersion.width=out=(\"128\")");
   }
 
-  @Test(expected = ProgrammingError.class)
+  @Test
   public void testNumberRegularExpression() {
-    testWithParams(ComparisonOperator.RE, "mapVersion.width", 128, null);
+    assertThrows(ProgrammingError.class, () -> testWithParams(ComparisonOperator.RE, "mapVersion.width", 128, null));
   }
 
   @Test
@@ -205,9 +206,9 @@ public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
     testWithParams(ComparisonOperator.NE, "mapVersion.ranked", false, "mapVersion.ranked==\"true\"");
   }
 
-  @Test(expected = ProgrammingError.class)
+  @Test
   public void testBooleanLassThan() {
-    testWithParams(ComparisonOperator.LT, "mapVersion.ranked", false, null);
+    assertThrows(ProgrammingError.class, () -> testWithParams(ComparisonOperator.LT, "mapVersion.ranked", false, null));
   }
 
   @Test

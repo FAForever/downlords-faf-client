@@ -1,17 +1,12 @@
 package com.faforever.client.util;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ReflectionUtilTest {
-
-
-  @Rule
-  public ExpectedException exceptionGrabber = ExpectedException.none();
 
   @Test
   public void testGetDeclaredFieldPublic() throws NoSuchFieldException {
@@ -22,15 +17,12 @@ public class ReflectionUtilTest {
 
   @Test
   public void testGetDeclaredFieldPrivate() throws NoSuchFieldException {
-    exceptionGrabber.expect(NoSuchFieldException.class);
-    ReflectionUtil.getDeclaredField("private", TestClass.class);
+    assertThrows(NoSuchFieldException.class, () -> ReflectionUtil.getDeclaredField("private", TestClass.class));
   }
 
   @Test
   public void testGetDeclaredFieldException() throws NoSuchFieldException {
-
-    exceptionGrabber.expect(NoSuchFieldException.class);
-    ReflectionUtil.getDeclaredField("NoneExisting", TestClass.class);
+    assertThrows(NoSuchFieldException.class, () -> ReflectionUtil.getDeclaredField("NoneExisting", TestClass.class));
   }
 
 

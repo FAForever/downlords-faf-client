@@ -33,12 +33,12 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import org.bridj.Platform;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
@@ -51,12 +51,12 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -65,8 +65,8 @@ import static org.mockito.Mockito.when;
 public class AbstractChatTabControllerTest extends AbstractPlainJavaFxTest {
 
   private static final long TIMEOUT = 5000;
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
+  @TempDir
+  public Path tempDir;
   @Mock
   private ChatService chatService;
   @Mock

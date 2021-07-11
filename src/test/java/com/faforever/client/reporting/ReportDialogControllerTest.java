@@ -12,8 +12,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.util.HashMap;
@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,7 +50,7 @@ public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
   private Player player;
   private Replay replay;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     player = PlayerBuilder.create("junit").defaultValues().get();
     replay = ReplayBuilder.create().defaultValues()

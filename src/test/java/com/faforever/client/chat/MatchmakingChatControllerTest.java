@@ -17,8 +17,8 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
@@ -72,7 +72,7 @@ public class MatchmakingChatControllerTest extends AbstractPlainJavaFxTest {
 
   private MatchmakingChatController instance;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);

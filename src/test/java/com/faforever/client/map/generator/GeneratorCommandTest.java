@@ -2,15 +2,16 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.map.generator.GeneratorCommand.GeneratorCommandBuilder;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GeneratorCommandTest {
 
@@ -33,19 +34,19 @@ public class GeneratorCommandTest {
         "--map-size", "512", "--spawn-count", "6", "--num-teams", "2"));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testFilePathNullThrowsException() {
-    defaultBuilder().generatorExecutableFile(null).build().getCommand();
+    assertThrows(IllegalStateException.class, () -> defaultBuilder().generatorExecutableFile(null).build().getCommand());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testMapSizeNullThrowsException() {
-    defaultBuilder().mapSize(null).build().getCommand();
+    assertThrows(IllegalStateException.class, () -> defaultBuilder().mapSize(null).build().getCommand());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testSpawnCountNullThrowsException() {
-    defaultBuilder().spawnCount(null).build().getCommand();
+    assertThrows(IllegalStateException.class, () -> defaultBuilder().spawnCount(null).build().getCommand());
   }
 
   @Test

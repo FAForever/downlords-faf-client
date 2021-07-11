@@ -6,8 +6,8 @@ import com.faforever.client.test.AbstractPlainJavaFxTest;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
@@ -15,7 +15,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.io.IOException;
 import java.util.Collections;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +27,7 @@ public class ModManagerControllerTest extends AbstractPlainJavaFxTest {
   private ModVersion modSIM;
   private ModVersion modUI;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new ModManagerController(modService);
 

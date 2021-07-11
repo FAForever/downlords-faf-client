@@ -26,15 +26,14 @@ import com.faforever.client.test.FakeTestException;
 import com.google.common.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -43,6 +42,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -58,13 +58,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @Slf4j
 public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
 
@@ -72,8 +72,8 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
-  @Rule
-  public TemporaryFolder faDirectory = new TemporaryFolder();
+  @TempDir
+  public Path faDirectory;
 
   @Mock
   private PreferencesService preferencesService;
@@ -102,7 +102,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
   private BlockingQueue<String> messagesReceivedByFafServer;
   private CountDownLatch serverToClientReadyLatch;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     serverToClientReadyLatch = new CountDownLatch(1);
     messagesReceivedByFafServer = new ArrayBlockingQueue<>(10);
@@ -119,7 +119,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setRefreshToken("junit");
 
-    when(preferencesService.getFafDataDirectory()).thenReturn(faDirectory.getRoot().toPath());
+    when(preferencesService.getFafDataDirectory()).thenReturn(faDirectory);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
   }
 
@@ -149,7 +149,7 @@ public class ServerAccessorImplTest extends AbstractPlainJavaFxTest {
     });
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     IOUtils.closeQuietly(fafLobbyServerSocket);
     IOUtils.closeQuietly(localToServerSocket);

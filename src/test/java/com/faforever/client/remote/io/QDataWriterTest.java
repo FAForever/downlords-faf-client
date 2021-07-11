@@ -1,21 +1,22 @@
 package com.faforever.client.remote.io;
 
 import com.google.common.primitives.Bytes;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class QDataWriterTest {
 
   private QDataWriter instance;
   private ByteArrayOutputStream outputStream;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     outputStream = new ByteArrayOutputStream();
     instance = new QDataWriter(outputStream);
@@ -32,9 +33,9 @@ public class QDataWriterTest {
     assertArrayEquals(expected, outputStream.toByteArray());
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testWritePartial() throws Exception {
-    instance.write((char[]) null, 0, 0);
+    assertThrows(NullPointerException.class, () -> instance.write((char[]) null, 0, 0));
   }
 
   @Test

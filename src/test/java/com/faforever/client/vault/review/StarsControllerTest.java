@@ -1,13 +1,13 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.test.AbstractPlainJavaFxTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class StarsControllerTest extends AbstractPlainJavaFxTest {
   private StarsController instance;
@@ -15,7 +15,7 @@ public class StarsControllerTest extends AbstractPlainJavaFxTest {
   @Mock
   private StarController starController;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new StarsController();
 

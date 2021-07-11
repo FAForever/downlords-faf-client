@@ -19,8 +19,8 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -65,7 +65,7 @@ public class ModVaultControllerTest extends AbstractPlainJavaFxTest {
   private Preferences preferences;
   private ModDetailController modDetailController;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     preferences = PreferencesBuilder.create().defaultValues().get();
 

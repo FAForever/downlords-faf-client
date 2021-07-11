@@ -1,17 +1,18 @@
 package com.faforever.client.game;
 
-import org.junit.Before;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class GameTest {
 
   private Game one;
   private Game two;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     one = new Game();
     two = new Game();

@@ -3,15 +3,15 @@ package com.faforever.client.stats;
 import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.leaderboard.LeaderboardBuilder;
 import com.faforever.client.remote.FafService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class StatisticsServiceTest {
 
   @Mock
@@ -20,7 +20,7 @@ public class StatisticsServiceTest {
   private StatisticsService instance;
   private Leaderboard leaderboard;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     leaderboard = LeaderboardBuilder.create().defaultValues().get();
     instance = new StatisticsService(fafService);

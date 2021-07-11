@@ -2,17 +2,18 @@ package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import org.junit.rules.TemporaryFolder;
 import org.springframework.util.FileSystemUtils;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class StubDownloadMapTask extends DownloadMapTask {
 
-  private final TemporaryFolder customMapsDirectory;
+  private final Path customMapsDirectory;
   public MapBean mapToDownload;
 
-  public StubDownloadMapTask(PreferencesService preferencesService, I18n i18n, TemporaryFolder customMapsDirectory) {
+  public StubDownloadMapTask(PreferencesService preferencesService, I18n i18n, Path customMapsDirectory) {
     super(preferencesService, i18n);
     this.customMapsDirectory = customMapsDirectory;
   }
@@ -31,7 +32,7 @@ public class StubDownloadMapTask extends DownloadMapTask {
     String folder = mapToDownload.getFolderName();
       FileSystemUtils.copyRecursively(
           Paths.get(getClass().getResource("/maps/" + folder).toURI()),
-          customMapsDirectory.newFolder(folder).toPath()
+          Files.createDirectories(customMapsDirectory.resolve(folder))
       );
   }
 }

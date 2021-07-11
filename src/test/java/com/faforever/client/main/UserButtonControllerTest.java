@@ -12,12 +12,12 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +43,7 @@ public class UserButtonControllerTest extends AbstractPlainJavaFxTest {
   private UserButtonController instance;
   private Player player;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     instance = new UserButtonController(eventBus, playerService, uiService, userService, preferencesService);
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
