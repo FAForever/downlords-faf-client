@@ -85,6 +85,7 @@ public class LoginController implements Controller<Pane> {
 
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;
+  private CompletableFuture<Void> resetPageFuture;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane, loginWebView,
@@ -99,6 +100,8 @@ public class LoginController implements Controller<Pane> {
     serverStatusButton.setVisible(clientProperties.getStatusPageUrl() != null);
     rememberMeCheckBox.setSelected(loginPrefs.isRememberMe());
     loginPrefs.rememberMeProperty().bindBidirectional(rememberMeCheckBox.selectedProperty());
+
+    resetPageFuture = new CompletableFuture<>();
 
     // fallback values if configuration is not read from remote
     populateEndpointFields();
@@ -174,60 +177,91 @@ public class LoginController implements Controller<Pane> {
     }
 
     webViewConfigurer.configureWebView(loginWebView);
-    loginWebView.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
-      List<NameValuePair> params;
 
+    loginWebView.getEngine().getLoadWorker().runningProperty().addListener(((observable, oldValue, newValue) -> {
+      if (!newValue) {
+        resetPageFuture.complete(null);
+      }
+    }));
+
+    loginWebView.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
+      String location = newValue;
+
+      List<NameValuePair> params;
       try {
         params = URLEncodedUtils.parse(new URI(newValue), StandardCharsets.UTF_8);
       } catch (URISyntaxException e) {
-        log.error("Could not load webpage url", e);
+        log.warn("Could not parse webpage url: {}", newValue, e);
+        reloadLogin();
+        notificationService.addImmediateErrorNotification(e, "login.error");
         return;
       }
 
-      String code = params.stream().filter(param -> param.getName().equals("code"))
-          .map(NameValuePair::getValue)
-          .findFirst()
-          .orElse(null);
+      if (params.stream().anyMatch(param -> param.getName().equals("error"))) {
+        String error = params.stream().filter(param -> param.getName().equals("error"))
+            .findFirst().map(NameValuePair::getValue).orElse(null);
+        String errorDescription = params.stream().filter(param -> param.getName().equals("error_description"))
+            .findFirst().map(NameValuePair::getValue).orElse(null);
+        log.warn("Error during login error: url {}; error {}; {}", newValue, error, errorDescription);
+        reloadLogin();
+        notificationService.addImmediateErrorNotification(new RuntimeException("Error during login"), "login.error", error, errorDescription);
+        return;
+      }
+
       String reportedState = params.stream().filter(param -> param.getName().equals("state"))
           .map(NameValuePair::getValue)
           .findFirst()
           .orElse(null);
 
-      if (code == null || reportedState == null) {
-        return;
+      String code = params.stream().filter(param -> param.getName().equals("code"))
+          .map(NameValuePair::getValue)
+          .findFirst()
+          .orElse(null);
+
+      if (reportedState != null) {
+
+        String userServiceState = userService.getState();
+        if (!userServiceState.equals(reportedState)) {
+          log.warn("Reported state does not match there is something fishy going on. Saved State `{}`, Returned State `{}`, Location `{}`", userServiceState, reportedState, newValue);
+          reloadLogin();
+          notificationService.addImmediateErrorNotification(new IllegalStateException("State returned by user service does not match initial state"), "login.badState");
+          return;
+        }
+
+        if (code != null) {
+          location = location.replace(code, "*****");
+
+          initializeFuture.join();
+
+          Server server = clientProperties.getServer();
+          server.setHost(serverHostField.getText());
+          server.setPort(Integer.parseInt(serverPortField.getText()));
+
+          Replay replay = clientProperties.getReplay();
+          replay.setRemoteHost(replayServerHostField.getText());
+          replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
+
+          Irc irc = clientProperties.getIrc();
+          irc.setHost(ircServerHostField.getText());
+          irc.setPort(Integer.parseInt(ircServerPortField.getText()));
+
+          clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
+          clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
+
+          loginWithCode(code);
+        }
       }
-      String state = userService.getState();
 
-      if (!state.equals(reportedState)) {
-        log.warn("Reported state does not match there is something fishy");
-        loginWebView.getEngine().load(userService.getHydraUrl());
-        notificationService.addImmediateErrorNotification(new IllegalStateException("State returned by user service does not match initial state"), "login.badState");
-        return;
-      }
-
-      initializeFuture.join();
-
-      Server server = clientProperties.getServer();
-      server.setHost(serverHostField.getText());
-      server.setPort(Integer.parseInt(serverPortField.getText()));
-
-      Replay replay = clientProperties.getReplay();
-      replay.setRemoteHost(replayServerHostField.getText());
-      replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
-
-      Irc irc = clientProperties.getIrc();
-      irc.setHost(ircServerHostField.getText());
-      irc.setPort(Integer.parseInt(ircServerPortField.getText()));
-
-      clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
-      clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
-
-      if (!loginWebView.isVisible()) {
-        return;
-      }
-
-      loginWithCode(code);
+      log.debug("login web view visited {}", location);
     });
+  }
+
+  private void reloadLogin() {
+    resetPageFuture = new CompletableFuture<>();
+    resetPageFuture.thenAccept(aVoid -> JavaFxUtil.runLater(() -> loginWebView.getEngine().load(userService.getHydraUrl())));
+    if (!loginWebView.getEngine().getLoadWorker().isRunning()) {
+      resetPageFuture.complete(null);
+    }
   }
 
   private void showClientOutdatedPane(String minimumVersion) {
@@ -260,7 +294,8 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void onDownloadUpdateButtonClicked() {
-    downloadUpdateButton.setOnAction(event -> { });
+    downloadUpdateButton.setOnAction(event -> {
+    });
     log.info("Downloading update");
     updateInfoFuture
         .thenAccept(updateInfo -> {

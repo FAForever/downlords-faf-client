@@ -40,7 +40,7 @@ import java.util.concurrent.CompletionException;
 public class UserService implements InitializingBean, DisposableBean {
 
   private final ObjectProperty<MeResult> ownUser = new SimpleObjectProperty<>();
-  private final ObjectProperty<PlayerInfo> ownPlayer = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerInfo> ownPlayerInfo = new SimpleObjectProperty<>();
 
   private final ClientProperties clientProperties;
   private final FafService fafService;
@@ -118,7 +118,7 @@ public class UserService implements InitializingBean, DisposableBean {
             log.error("Player id from server `{}` does not match player id from api `{}`", loginMessage.getMe().getId(), getUserId());
             throw new IllegalStateException("Player id returned by server does not match player id from api");
           }
-          ownPlayer.set(loginMessage.getMe());
+          ownPlayerInfo.set(loginMessage.getMe());
           return null;
         });
   }
@@ -145,6 +145,7 @@ public class UserService implements InitializingBean, DisposableBean {
     preferencesService.storeInBackground();
     fafService.disconnect();
     ownUser.set(null);
+    ownPlayerInfo.set(null);
     eventBus.post(new LoggedOutEvent());
   }
 
@@ -168,6 +169,6 @@ public class UserService implements InitializingBean, DisposableBean {
   }
 
   public PlayerInfo getOwnPlayerInfo() {
-    return ownPlayer.get();
+    return ownPlayerInfo.get();
   }
 }

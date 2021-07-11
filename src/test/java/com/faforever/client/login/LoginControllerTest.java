@@ -29,11 +29,11 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -129,6 +129,15 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
   }
 
   @Test
+  public void testLoginError() {
+    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load("?error=abc&error_description=def"));
+    verify(userService, never()).login(anyString());
+    verify(userService).getHydraUrl();
+    assertEquals(userService.getHydraUrl(), instance.loginWebView.getEngine().getLocation());
+    verify(notificationService).addImmediateErrorNotification(any(RuntimeException.class), eq("login.error"), eq("abc"), eq("def"));
+  }
+
+  @Test
   public void testLoginRefreshFailsBadToken() {
     clientProperties.setUseRemotePreferences(true);
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
@@ -193,8 +202,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
 
-    instance.initialize();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.loginErrorLabel.isVisible(), is(false));
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
@@ -224,8 +232,7 @@ public class LoginControllerTest extends AbstractPlainJavaFxTest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
 
-    instance.initialize();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.loginErrorLabel.isVisible(), is(true));
     assertThat(instance.downloadUpdateButton.isVisible(), is(true));
