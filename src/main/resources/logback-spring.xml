@@ -39,11 +39,10 @@
 	<!-- Advanced ICE logs -->
 	<appender name="FILE_ICE_ADVANCED"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<encoder
-			class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>
-				%msg%n
-			</Pattern>
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.faforever.client.util.MaskPatternLayout">
+				<pattern> %msg%n </pattern>
+			</layout>
 		</encoder>
 		<file>${ICE_ADVANCED_LOG:-${java.io.tmpdir:-/tmp}/advanced_ice.log}</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -61,11 +60,10 @@
 	<!-- Map Generator Logs -->
 	<appender name="FILE_MAP_GENERATOR"
 			  class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<encoder
-				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>
-				%msg%n
-			</Pattern>
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.faforever.client.util.MaskPatternLayout">
+				<pattern> %msg%n </pattern>
+			</layout>
 		</encoder>
 		<file>${MAP_GENERATOR_LOG:-${java.io.tmpdir:-/tmp}/map_generator.log}</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -83,11 +81,10 @@
 	<!-- Chat Service Logs -->
 	<appender name="FILE_IRC"
 			  class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<encoder
-				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<Pattern>
-				%msg%n
-			</Pattern>
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="com.faforever.client.util.MaskPatternLayout">
+				<pattern> %msg%n </pattern>
+			</layout>
 		</encoder>
 		<file>${IRC_LOG:-${java.io.tmpdir:-/tmp}/irc.log}</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">

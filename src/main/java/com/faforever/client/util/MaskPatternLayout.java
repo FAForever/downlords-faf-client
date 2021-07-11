@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.regex.Pattern;
 
 public class MaskPatternLayout extends PatternLayout {
   private final String userProfile;
@@ -28,10 +29,10 @@ public class MaskPatternLayout extends PatternLayout {
     return maskMessage(super.doLayout(event));
   }
 
-  private String maskMessage(String message) {
+  public String maskMessage(String message) {
     return message
-        .replace(userProfile, "%USER_PROFILE%")
-        .replace(machineName, "%CPU_NAME%")
-        .replace(user, "%USER%");
+        .replaceAll("(?i)" + Pattern.quote(userProfile), "%USER_PROFILE%")
+        .replaceAll("(?i)" + Pattern.quote(machineName), "%CPU_NAME%")
+        .replaceAll("(?i)" + Pattern.quote(user), "%USER%");
   }
 }

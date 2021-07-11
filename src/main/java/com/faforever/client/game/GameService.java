@@ -36,6 +36,7 @@ import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.annotations.VisibleForTesting;
@@ -140,6 +141,7 @@ public class GameService implements InitializingBean {
   private final ReconnectTimerService reconnectTimerService;
   private final ObservableList<Game> games;
   private final String faWindowTitle;
+  private final MaskPatternLayout logMasker;
 
   private Process process;
   private boolean rehostRequested;
@@ -185,6 +187,7 @@ public class GameService implements InitializingBean {
     this.replayServer = replayServer;
     this.reconnectTimerService = reconnectTimerService;
 
+    logMasker = new MaskPatternLayout();
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
     gameIdToGame = FXCollections.observableMap(new ConcurrentHashMap<>());
     gameRunning = new SimpleBooleanProperty();
@@ -686,8 +689,17 @@ public class GameService implements InitializingBean {
         rehostRequested = false;
         int exitCode = process.waitFor();
         log.info("Forged Alliance terminated with exit code {}", exitCode);
+        Optional<Path> logFile = preferencesService.getMostRecentGameLogFile();
+
+        logFile.ifPresent(file -> {
+          try {
+            Files.writeString(file, logMasker.maskMessage(Files.readString(file)));
+          } catch (IOException e) {
+            log.warn("Could not open log file", e);
+          }
+        });
+
         if (exitCode != 0) {
-          Optional<Path> logFile = preferencesService.getMostRecentGameLogFile();
           notificationService.addImmediateErrorNotification(new RuntimeException(String.format("Forged Alliance Crashed with exit code %d. " +
                   "See %s for more information", exitCode, logFile.map(Path::getFileName).map(Path::toString).orElse(""))),
               "game.crash", logFile.map(Path::toString).orElse(""));
