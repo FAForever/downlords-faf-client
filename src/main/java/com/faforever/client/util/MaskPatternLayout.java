@@ -12,11 +12,7 @@ public class MaskPatternLayout extends PatternLayout {
   private final String user;
 
   public MaskPatternLayout() {
-    if (org.bridj.Platform.isWindows()) {
-      userProfile = System.getenv("USERPROFILE");
-    } else {
-      userProfile = System.getProperty("user.home");
-    }
+    userProfile = System.getProperty("user.home");
     user = System.getProperty("user.name");
     String machineName;
     try {
@@ -34,8 +30,8 @@ public class MaskPatternLayout extends PatternLayout {
 
   private String maskMessage(String message) {
     return message
-        .replace(userProfile, "{USER_PROFILE}")
-        .replace(machineName, "{DEVICE_NAME}")
-        .replace(user, "{USER}");
+        .replace(userProfile, "%USER_PROFILE%")
+        .replace(machineName, "%CPU_NAME%")
+        .replace(user, "%USER%");
   }
 }
