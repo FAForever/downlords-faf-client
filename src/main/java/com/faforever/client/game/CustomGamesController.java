@@ -162,7 +162,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private void updateFilteredItems() {
     preferencesService.storeInBackground();
-    filteredItems.setPredicate(getGamePredicate());
+    JavaFxUtil.runLater(() -> filteredItems.setPredicate(getGamePredicate()));
   }
 
   private Predicate<Game> getGamePredicate() {
@@ -240,11 +240,5 @@ public class CustomGamesController extends AbstractViewController<Node> {
   @VisibleForTesting
   void setFilteredList(ObservableList<Game> games) {
     filteredItems = new FilteredList<>(games, s -> true);
-  }
-
-  @Override
-  public void onHide() {
-    // Hide all games to free up memory
-    filteredItems.setPredicate(game -> false);
   }
 }
