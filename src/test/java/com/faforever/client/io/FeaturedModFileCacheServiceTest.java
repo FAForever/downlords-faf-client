@@ -5,7 +5,6 @@ import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -26,8 +25,8 @@ import static org.mockito.Mockito.when;
 public class FeaturedModFileCacheServiceTest {
 
   @TempDir
+  public Path tempDirectory;
   public Path cacheDirectory;
-  @TempDir
   public Path targetDirectory;
   @Mock
   private PreferencesService preferenceService;
@@ -35,13 +34,14 @@ public class FeaturedModFileCacheServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    cacheDirectory = Files.createDirectories(tempDirectory.resolve("cache"));
+    targetDirectory = Files.createDirectories(tempDirectory.resolve("target"));
     Preferences preferences = PreferencesBuilder.create().defaultValues().gameDataCacheActivated(true).get();
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(preferenceService.getFeaturedModCachePath()).thenReturn(cacheDirectory);
     instance = new FeaturedModFileCacheService(preferenceService);
   }
 
-  @Disabled("junit 5 does not yet support having multiple temp directories see https://github.com/junit-team/junit5/issues/1967")
   @Test
   public void testMoveFeaturedModFileFromCacheWithExistingOldFile() throws IOException {
     final FeaturedModFile featuredModFile = new FeaturedModFile();
@@ -53,12 +53,12 @@ public class FeaturedModFileCacheServiceTest {
     final String group = "gamedata";
     featuredModFile.setGroup(group);
 
-    final Path groupFolderInTarget = Files.createDirectory(targetDirectory.resolve(group));
+    final Path groupFolderInTarget = Files.createDirectories(targetDirectory.resolve(group));
     final Path targetPath = Files.createFile(groupFolderInTarget.resolve(fileName));
     Files.writeString(targetPath, "old file");
     final String hashOldFile = instance.readHashFromFile(targetPath);
 
-    final Path groupFolderInCache = Files.createDirectory(cacheDirectory.resolve(group));
+    final Path groupFolderInCache = Files.createDirectories(cacheDirectory.resolve(group));
     final Path cachePathNewFile = groupFolderInCache.resolve(fakeHashOfNewFile);
     Files.createFile(cachePathNewFile);
     Files.writeString(cachePathNewFile, "newly downloaded or cached file");

@@ -30,8 +30,8 @@ import static org.mockito.Mockito.when;
 public class DownloadMapGeneratorTaskTest extends AbstractPlainJavaFxTest {
 
   @TempDir
+  public Path tempDirectory;
   public Path downloadDirectory;
-  @TempDir
   public Path sourceDirectory;
 
   private DownloadMapGeneratorTask instance;
@@ -48,6 +48,8 @@ public class DownloadMapGeneratorTaskTest extends AbstractPlainJavaFxTest {
   @BeforeEach
   public void setUp() throws Exception {
     clientProperties = new ClientProperties();
+    downloadDirectory = Files.createDirectories(tempDirectory.resolve("download"));
+    sourceDirectory = Files.createDirectories(tempDirectory.resolve("source"));
 
     instance = new DownloadMapGeneratorTask(mapGeneratorService, clientProperties, i18n, platformService);
   }
@@ -57,7 +59,7 @@ public class DownloadMapGeneratorTaskTest extends AbstractPlainJavaFxTest {
     assertEquals("Version hasn't been set.", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 
-  @Disabled("junit 5 does not yet support having multiple temp directories see https://github.com/junit-team/junit5/issues/1967")
+  @Disabled("Cannot delete the temp directory")
   @Test
   public void testCall() throws Exception {
     instance.setVersion("");//mock version to prevent a subdirectory with the name of the version

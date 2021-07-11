@@ -6,7 +6,6 @@ import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.AbstractPlainJavaFxTest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
@@ -23,8 +22,8 @@ import static org.mockito.Mockito.when;
 public class InstallModTaskTest extends AbstractPlainJavaFxTest {
 
   @TempDir
+  public Path tempDirectory;
   public Path cacheDirectory;
-  @TempDir
   public Path modsDirectory;
   private InstallModTask instance;
   @Mock
@@ -34,6 +33,8 @@ public class InstallModTaskTest extends AbstractPlainJavaFxTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    cacheDirectory = Files.createDirectories(tempDirectory.resolve("cache"));
+    modsDirectory = Files.createDirectories(tempDirectory.resolve("mods"));
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
         .modsDirectory(modsDirectory)
@@ -51,12 +52,10 @@ public class InstallModTaskTest extends AbstractPlainJavaFxTest {
     assertEquals("url has not been set", assertThrows(NullPointerException.class, () -> instance.call()).getMessage());
   }
 
-  @Disabled("junit 5 does not yet support having multiple temp directories see https://github.com/junit-team/junit5/issues/1967")
   @Test
   public void testCall() throws Exception {
     Path modTargetDirectory = Files.createDirectories(modsDirectory.resolve("SuicideConfirmation"));
     Path fileThatShouldBeDeletedByInstall = modTargetDirectory.resolve("fileThatShouldBeDeletedByInstall.file");
-    Files.createDirectory(modTargetDirectory);
     Files.createFile(fileThatShouldBeDeletedByInstall);
 
     instance.setUrl(getClass().getResource("/mods/Suicide Confirmation.v0003.zip"));
