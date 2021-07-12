@@ -1,7 +1,6 @@
 package com.faforever.client.remote.domain.outbound.faf;
 
 import com.faforever.client.remote.domain.MatchmakingState;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 

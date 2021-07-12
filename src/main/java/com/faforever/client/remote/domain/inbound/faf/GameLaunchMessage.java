@@ -2,7 +2,6 @@ package com.faforever.client.remote.domain.inbound.faf;
 
 import com.faforever.client.remote.domain.LobbyMode;
 import com.faforever.commons.api.dto.Faction;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 

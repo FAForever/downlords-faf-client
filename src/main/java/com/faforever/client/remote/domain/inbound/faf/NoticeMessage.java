@@ -2,7 +2,6 @@ package com.faforever.client.remote.domain.inbound.faf;
 
 import com.faforever.client.notification.Severity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 

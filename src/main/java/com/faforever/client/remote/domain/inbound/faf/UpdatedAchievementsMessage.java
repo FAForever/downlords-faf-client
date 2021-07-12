@@ -1,7 +1,6 @@
 package com.faforever.client.remote.domain.inbound.faf;
 
 import com.faforever.client.remote.UpdatedAchievement;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 

@@ -1,6 +1,6 @@
 package com.faforever.client.remote.domain.inbound.faf;
 
-import lombok.Builder;
+
 
 
 public class PartyKickedMessage extends FafInboundMessage {
