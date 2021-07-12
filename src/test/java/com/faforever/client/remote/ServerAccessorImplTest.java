@@ -51,7 +51,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.teammatchmaking.MatchmakingQueueBuilder;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.api.dto.Faction;
