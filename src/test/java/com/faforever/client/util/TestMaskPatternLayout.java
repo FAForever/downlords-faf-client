@@ -1,6 +1,7 @@
 package com.faforever.client.util;
 
 
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
-public class TestMaskPatternLayout {
+public class TestMaskPatternLayout extends ServiceTest {
 
   private MaskPatternLayout instance;
 
