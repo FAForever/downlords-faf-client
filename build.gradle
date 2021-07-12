@@ -317,10 +317,10 @@ dependencies {
   testImplementation("junit-addons:junit-addons:1.4")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.projectlombok:lombok")
-  compileOnly("org.projectlombok:lombok")
-  testCompileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+  testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+  compileOnly("org.projectlombok:lombok:${lombokVersion}")
+  testCompileOnly("org.projectlombok:lombok:${lombokVersion}")
 
   codacy("com.github.codacy:codacy-coverage-reporter:-SNAPSHOT")
 }
