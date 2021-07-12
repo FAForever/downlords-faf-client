@@ -43,7 +43,6 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -114,7 +113,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
         eventBus.post(new LoginSuccessEvent());
 
-        messageListeners.getOrDefault(playerInfoMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(playerInfoMessage));
+        messageListeners.getOrDefault(playerInfoMessage.getClass(), List.of()).forEach(consumer -> consumer.accept(playerInfoMessage));
 
         timer.schedule(new TimerTask() {
           @Override
@@ -124,7 +123,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
             updatedAchievement.setNewlyUnlocked(true);
             UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage(List.of(updatedAchievement));
 
-            messageListeners.getOrDefault(updatedAchievementsMessage.getClass(), Collections.emptyList()).forEach(consumer -> consumer.accept(updatedAchievementsMessage));
+            messageListeners.getOrDefault(updatedAchievementsMessage.getClass(), List.of()).forEach(consumer -> consumer.accept(updatedAchievementsMessage));
           }
         }, 7000);
 
@@ -139,7 +138,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
         );
 
         gameInfoMessages.forEach(gameInfoMessage ->
-            messageListeners.getOrDefault(gameInfoMessage.getClass(), Collections.emptyList())
+            messageListeners.getOrDefault(gameInfoMessage.getClass(), List.of())
                 .forEach(consumer -> consumer.accept(gameInfoMessage)));
 
         notificationService.addNotification(
@@ -285,7 +284,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public CompletableFuture<List<IceServer>> getIceServers() {
-    return CompletableFuture.completedFuture(Collections.emptyList());
+    return CompletableFuture.completedFuture(List.of());
   }
 
   @Override
