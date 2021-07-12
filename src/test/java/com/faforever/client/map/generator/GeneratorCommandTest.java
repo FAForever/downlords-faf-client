@@ -1,6 +1,7 @@
 package com.faforever.client.map.generator;
 
 import com.faforever.client.map.generator.GeneratorCommand.GeneratorCommandBuilder;
+import com.faforever.client.test.ServiceTest;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class GeneratorCommandTest {
+public class GeneratorCommandTest extends ServiceTest {
 
   private static final String javaPath = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
 

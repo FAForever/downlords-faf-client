@@ -7,6 +7,7 @@ import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.PlayerInfo;
 import com.faforever.client.remote.domain.PlayersMessage;
 import com.faforever.client.remote.domain.SocialMessage;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
@@ -42,7 +43,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PlayerServiceTest {
+public class PlayerServiceTest extends ServiceTest {
 
   @Mock
   private FafService fafService;

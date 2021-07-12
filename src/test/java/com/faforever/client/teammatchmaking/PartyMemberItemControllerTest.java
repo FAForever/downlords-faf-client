@@ -10,7 +10,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.teammatchmaking.PartyBuilder.PartyMemberBuilder;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PartyMemberItemControllerTest extends AbstractPlainJavaFxTest {
+public class PartyMemberItemControllerTest extends UITest {
 
   @Mock
   private CountryFlagService countryFlagService;

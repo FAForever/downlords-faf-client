@@ -1,6 +1,7 @@
 package com.faforever.client.replay;
 
 
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -13,7 +14,7 @@ import java.nio.file.Path;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class ReplayFileReaderImplTest {
+public class ReplayFileReaderImplTest extends ServiceTest {
 
   @TempDir
   public Path temporaryFolder;

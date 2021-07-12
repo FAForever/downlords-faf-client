@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.mod.ModVersion.ModType;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import org.hamcrest.Matchers;
@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ModManagerControllerTest extends AbstractPlainJavaFxTest {
+public class ModManagerControllerTest extends UITest {
 
   private ModManagerController instance;
   @Mock

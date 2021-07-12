@@ -2,7 +2,7 @@ package com.faforever.client.achievements;
 
 import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.AchievementType;
 import com.faforever.commons.api.dto.PlayerAchievement;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
-public class AchievementItemControllerTest extends AbstractPlainJavaFxTest {
+public class AchievementItemControllerTest extends UITest {
 
   private AchievementItemController instance;
 

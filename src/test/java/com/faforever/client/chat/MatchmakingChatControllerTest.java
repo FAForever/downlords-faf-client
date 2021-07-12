@@ -11,7 +11,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class MatchmakingChatControllerTest extends AbstractPlainJavaFxTest {
+public class MatchmakingChatControllerTest extends UITest {
 
   @Mock
   private ChatService chatService;

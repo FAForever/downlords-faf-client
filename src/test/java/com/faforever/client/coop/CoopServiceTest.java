@@ -1,6 +1,7 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.remote.FafService;
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -9,7 +10,7 @@ import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.verify;
 
 
-public class CoopServiceTest {
+public class CoopServiceTest extends ServiceTest {
 
   private CoopService instance;
 

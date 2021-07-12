@@ -22,7 +22,7 @@ import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.GroupPermission;
 import com.google.common.collect.Sets;
@@ -58,7 +58,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatUserContextMenuControllerTest extends AbstractPlainJavaFxTest {
+public class ChatUserContextMenuControllerTest extends UITest {
   private static final String TEST_USER_NAME = "junit";
 
   @Mock

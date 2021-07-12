@@ -6,8 +6,8 @@ import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TokenServiceTest extends AbstractPlainJavaFxTest {
+public class TokenServiceTest extends ServiceTest {
   private TokenService instance;
 
   @Mock

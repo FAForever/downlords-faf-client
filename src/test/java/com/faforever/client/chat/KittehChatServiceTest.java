@@ -16,7 +16,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.SocialMessage;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
@@ -53,7 +53,6 @@ import org.kitteh.irc.client.library.event.user.UserQuitEvent;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.InetAddress;
 import java.util.Collections;
@@ -85,7 +84,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
+public class KittehChatServiceTest extends ServiceTest {
 
   private static final String CHAT_USER_NAME = "junit";
   private static final String CHAT_PASSWORD = "123";
@@ -271,7 +270,7 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testUserToColorChangeSaved() {
     preferences.getChat().getUserToColor().put(user1.getNick(), Color.ALICEBLUE);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(preferencesService).storeInBackground();
   }
 
@@ -286,7 +285,7 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
     join(defaultChannel, user2);
 
     preferences.getChat().getGroupToColor().put(ChatUserCategory.FRIEND, Color.ALICEBLUE);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(preferencesService).storeInBackground();
     assertEquals(Color.ALICEBLUE, defaultChatUser1.getColor().get());
     assertTrue(defaultChatUser2.getColor().isEmpty());
@@ -303,7 +302,7 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
     join(defaultChannel, user2);
 
     preferences.getChat().getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(preferencesService).storeInBackground();
     assertEquals(Color.ALICEBLUE, defaultChatUser1.getColor().get());
     assertTrue(defaultChatUser2.getColor().isEmpty());
@@ -317,7 +316,7 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
     join(defaultChannel, user2);
 
     preferences.getChat().getGroupToColor().put(ChatUserCategory.OTHER, Color.ALICEBLUE);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(preferencesService).storeInBackground();
   }
 
@@ -635,7 +634,7 @@ public class KittehChatServiceTest extends AbstractPlainJavaFxTest {
   public void testGroupColorChange() {
     preferences.getChat().getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
 
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(eventBus, times(3)).post(any(ChatUserColorChangeEvent.class));
   }

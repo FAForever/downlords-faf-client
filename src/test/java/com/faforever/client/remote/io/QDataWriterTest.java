@@ -1,5 +1,6 @@
 package com.faforever.client.remote.io;
 
+import com.faforever.client.test.ServiceTest;
 import com.google.common.primitives.Bytes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class QDataWriterTest {
+public class QDataWriterTest extends ServiceTest {
 
   private QDataWriter instance;
   private ByteArrayOutputStream outputStream;

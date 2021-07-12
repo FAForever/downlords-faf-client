@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.game.Game;
 import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class LocalReplayInfoTest {
+public class LocalReplayInfoTest extends ServiceTest {
   private static final String host = "Test";
   private static final int uid = 1234;
   private static final String title = "Test Game";

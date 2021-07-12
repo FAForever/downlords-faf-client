@@ -5,7 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -21,7 +21,7 @@ import static org.hamcrest.core.IsNot.not;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class StatusBarControllerTest extends AbstractPlainJavaFxTest {
+public class StatusBarControllerTest extends UITest {
   private StatusBarController instance;
   private ObjectProperty<ConnectionState> connectionStateProperty;
 

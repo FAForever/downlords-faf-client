@@ -1,7 +1,7 @@
 package com.faforever.client.query;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DateRangeFilterControllerTest extends AbstractPlainJavaFxTest {
+public class DateRangeFilterControllerTest extends UITest {
 
   private final String propertyName = "testProp";
   private final LocalDate before = LocalDate.now();

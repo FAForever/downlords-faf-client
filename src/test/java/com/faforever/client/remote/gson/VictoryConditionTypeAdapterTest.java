@@ -1,6 +1,7 @@
 package com.faforever.client.remote.gson;
 
 import com.faforever.client.remote.domain.VictoryCondition;
+import com.faforever.client.test.ServiceTest;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +12,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class VictoryConditionTypeAdapterTest {
+public class VictoryConditionTypeAdapterTest extends ServiceTest {
 
   private VictoryConditionTypeAdapter instance;
 

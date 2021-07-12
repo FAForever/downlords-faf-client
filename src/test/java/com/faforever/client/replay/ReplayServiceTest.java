@@ -17,6 +17,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -65,7 +66,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-public class ReplayServiceTest {
+public class ReplayServiceTest extends ServiceTest {
   /**
    * First 64 bytes of a SCFAReplay file with version 3599. ASCII representation:
    * <pre>

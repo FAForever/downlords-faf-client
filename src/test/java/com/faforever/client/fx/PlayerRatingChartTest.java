@@ -2,7 +2,7 @@ package com.faforever.client.fx;
 
 import com.faforever.client.chat.PlayerRatingChart;
 import com.faforever.client.chat.PlayerRatingChartTooltipController;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
 import javafx.scene.chart.Axis;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Slf4j
-public class PlayerRatingChartTest extends AbstractPlainJavaFxTest {
+public class PlayerRatingChartTest extends UITest {
 
   @Mock
   private PlayerRatingChartTooltipController chartTooltip;

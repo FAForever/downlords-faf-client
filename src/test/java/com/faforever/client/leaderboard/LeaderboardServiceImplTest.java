@@ -2,11 +2,10 @@ package com.faforever.client.leaderboard;
 
 
 import com.faforever.client.remote.FafService;
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,8 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class LeaderboardServiceImplTest {
+public class LeaderboardServiceImplTest extends ServiceTest {
 
   private static final int PLAYER_ID = 123;
   @Mock

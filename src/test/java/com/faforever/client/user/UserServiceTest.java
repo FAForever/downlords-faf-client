@@ -16,6 +16,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.PlayerInfo;
 import com.faforever.client.test.FakeTestException;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -43,7 +44,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UserServiceTest {
+public class UserServiceTest extends ServiceTest {
 
   public static final String BASE_URL = "hydra";
   public static final String CLIENT_ID = "test";

@@ -2,7 +2,7 @@ package com.faforever.client.main;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -11,7 +11,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-public class StartTabChooseControllerTest extends AbstractPlainJavaFxTest {
+public class StartTabChooseControllerTest extends UITest {
 
   @Mock
   private I18n i18n;

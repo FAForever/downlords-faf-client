@@ -1,19 +1,17 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.remote.FafService;
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class ReviewServiceTest {
+public class ReviewServiceTest extends ServiceTest {
   private ReviewService instance;
 
   @Mock

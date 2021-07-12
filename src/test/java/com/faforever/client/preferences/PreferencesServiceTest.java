@@ -1,6 +1,7 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
@@ -18,7 +19,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PreferencesServiceTest {
+public class PreferencesServiceTest extends ServiceTest {
 
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
 

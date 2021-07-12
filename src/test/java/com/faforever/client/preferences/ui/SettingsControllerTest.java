@@ -13,7 +13,7 @@ import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.settings.LanguageItemController;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientUpdateService;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class SettingsControllerTest extends AbstractPlainJavaFxTest {
+public class SettingsControllerTest extends UITest {
   private static final Theme FIRST_THEME = new Theme("First", "none", 1, "1");
   private static final Theme SECOND_THEME = new Theme("Second", "none", 1, "1");
 

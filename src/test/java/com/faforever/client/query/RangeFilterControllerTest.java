@@ -1,7 +1,7 @@
 package com.faforever.client.query;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.properties.concrete.DoubleProperty;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RangeFilterControllerTest extends AbstractPlainJavaFxTest {
+public class RangeFilterControllerTest extends UITest {
 
   private final String propertyName = "testProp";
   private final double max = 100;

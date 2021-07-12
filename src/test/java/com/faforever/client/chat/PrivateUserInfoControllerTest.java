@@ -10,7 +10,7 @@ import com.faforever.client.leaderboard.LeaderboardRatingBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PrivateUserInfoControllerTest extends AbstractPlainJavaFxTest {
+public class PrivateUserInfoControllerTest extends UITest {
 
   @Mock
   private I18n i18n;

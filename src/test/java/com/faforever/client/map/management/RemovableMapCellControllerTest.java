@@ -4,7 +4,7 @@ import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -17,7 +17,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RemovableMapCellControllerTest extends AbstractPlainJavaFxTest {
+public class RemovableMapCellControllerTest extends UITest {
 
   @Mock
   private MapService mapService;

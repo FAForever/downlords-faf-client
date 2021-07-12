@@ -3,7 +3,7 @@ package com.faforever.client.vault.review;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.beans.property.SimpleFloatProperty;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class ReviewControllerTest extends AbstractPlainJavaFxTest {
+public class ReviewControllerTest extends UITest {
 
   private ReviewController instance;
 

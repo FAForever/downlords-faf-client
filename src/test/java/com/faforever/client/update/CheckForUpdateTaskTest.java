@@ -3,7 +3,7 @@ package com.faforever.client.update;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
@@ -28,7 +28,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @Slf4j
-public class CheckForUpdateTaskTest extends AbstractPlainJavaFxTest {
+public class CheckForUpdateTaskTest extends ServiceTest {
 
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 

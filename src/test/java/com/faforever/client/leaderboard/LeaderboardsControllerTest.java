@@ -2,7 +2,7 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class LeaderboardsControllerTest extends AbstractPlainJavaFxTest {
+public class LeaderboardsControllerTest extends UITest {
 
   private LeaderboardsController instance;
 

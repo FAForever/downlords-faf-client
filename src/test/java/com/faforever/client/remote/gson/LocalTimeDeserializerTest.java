@@ -1,5 +1,6 @@
 package com.faforever.client.remote.gson;
 
+import com.faforever.client.test.ServiceTest;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class LocalTimeDeserializerTest {
+public class LocalTimeDeserializerTest extends ServiceTest {
 
   private LocalTimeDeserializer instance;
   private JsonElement json;

@@ -8,7 +8,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.replay.ReplayBuilder;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
@@ -29,7 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ReportDialogControllerTest extends AbstractPlainJavaFxTest {
+public class ReportDialogControllerTest extends UITest {
   private ReportDialogController instance;
 
   @Mock

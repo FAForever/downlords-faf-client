@@ -7,7 +7,7 @@ import com.faforever.client.game.Game;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-public class PartyMemberContextMenuControllerTest extends AbstractPlainJavaFxTest {
+public class PartyMemberContextMenuControllerTest extends UITest {
   private static final String TEST_USER_NAME = "junit";
   
   @Mock

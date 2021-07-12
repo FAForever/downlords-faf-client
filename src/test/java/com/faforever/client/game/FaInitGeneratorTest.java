@@ -4,6 +4,7 @@ import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.mod.MountInfo;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class FaInitGeneratorTest {
+public class FaInitGeneratorTest extends ServiceTest {
   @TempDir
   public Path mountBaseDir;
   @TempDir

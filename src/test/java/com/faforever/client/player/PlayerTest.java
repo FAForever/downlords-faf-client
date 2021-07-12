@@ -3,10 +3,9 @@ package com.faforever.client.player;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,8 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 
-@ExtendWith(MockitoExtension.class)
-public class PlayerTest {
+public class PlayerTest extends ServiceTest {
   private Player instance;
 
   @BeforeEach

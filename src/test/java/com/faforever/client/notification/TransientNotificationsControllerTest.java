@@ -5,7 +5,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ToastPosition;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Pane;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TransientNotificationsControllerTest extends AbstractPlainJavaFxTest {
+public class TransientNotificationsControllerTest extends UITest {
 
   private TransientNotificationsController instance;
 

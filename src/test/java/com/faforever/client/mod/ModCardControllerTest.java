@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ModCardControllerTest extends AbstractPlainJavaFxTest {
+public class ModCardControllerTest extends UITest {
 
   @Mock
   public ModService modService;

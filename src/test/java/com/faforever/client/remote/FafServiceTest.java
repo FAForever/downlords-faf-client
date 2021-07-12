@@ -3,6 +3,7 @@ package com.faforever.client.remote;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.chat.avatar.AvatarBean;
 import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.vault.review.Review;
 import com.faforever.commons.api.dto.GameReview;
 import com.faforever.commons.api.dto.MapVersionReview;
@@ -26,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class FafServiceTest {
+public class FafServiceTest extends ServiceTest {
 
   private FafService instance;
   @Mock

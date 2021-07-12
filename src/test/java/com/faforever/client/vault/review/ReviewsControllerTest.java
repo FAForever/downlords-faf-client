@@ -3,7 +3,7 @@ package com.faforever.client.vault.review;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
-public class ReviewsControllerTest extends AbstractPlainJavaFxTest {
+public class ReviewsControllerTest extends UITest {
 
   private ReviewsController instance;
 

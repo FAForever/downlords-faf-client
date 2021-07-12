@@ -5,7 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
 
-public class PlayerCardTooltipControllerTest extends AbstractPlainJavaFxTest {
+public class PlayerCardTooltipControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock

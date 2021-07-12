@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -10,9 +10,7 @@ import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collection;
@@ -28,8 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class AutoCompletionHelperTest extends AbstractPlainJavaFxTest {
+public class AutoCompletionHelperTest extends UITest {
 
   private static final long TIMEOUT = 5000;
 

@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Pane;
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class GameTooltipControllerTest extends AbstractPlainJavaFxTest {
+public class GameTooltipControllerTest extends UITest {
 
   @Mock
   private UiService uiService;

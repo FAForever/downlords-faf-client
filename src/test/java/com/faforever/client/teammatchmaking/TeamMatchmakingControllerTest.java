@@ -14,7 +14,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.teammatchmaking.PartyBuilder.PartyMemberBuilder;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TeamMatchmakingControllerTest extends AbstractPlainJavaFxTest {
+public class TeamMatchmakingControllerTest extends UITest {
 
   @Mock
   private CountryFlagService countryFlagService;

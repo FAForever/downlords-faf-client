@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.mod.ModVersionBuilder;
 import com.faforever.client.reporting.ModerationReportBuilder;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.Event;
 import com.faforever.commons.api.dto.Game;
@@ -20,12 +21,9 @@ import com.faforever.commons.api.dto.PlayerEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,11 +60,7 @@ import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class FafApiAccessorImplTest {
-
-  @TempDir
-  public Path preferencesDirectory;
+public class FafApiAccessorImplTest extends ServiceTest {
 
   private FafApiAccessorImpl instance;
 

@@ -7,6 +7,7 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
 import com.faforever.client.remote.UpdatedAchievementsMessage;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.AchievementType;
 import javafx.scene.image.Image;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-public class AchievementUnlockedNotifierTest {
+public class AchievementUnlockedNotifierTest extends ServiceTest {
   @Mock
   private AchievementUnlockedNotifier instance;
   @Mock

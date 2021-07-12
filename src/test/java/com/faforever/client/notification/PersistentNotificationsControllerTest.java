@@ -1,7 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PersistentNotificationsControllerTest extends AbstractPlainJavaFxTest {
+public class PersistentNotificationsControllerTest extends UITest {
 
   private PersistentNotificationsController instance;
 

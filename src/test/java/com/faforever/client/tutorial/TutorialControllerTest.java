@@ -2,7 +2,7 @@ package com.faforever.client.tutorial;
 
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TutorialControllerTest extends AbstractPlainJavaFxTest {
+public class TutorialControllerTest extends UITest {
   private TutorialController instance;
   @Mock
   private UiService uiService;

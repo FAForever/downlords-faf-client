@@ -33,13 +33,13 @@ import static com.github.nocatch.NoCatch.noCatch;
 @MockitoSettings(strictness = Strictness.LENIENT)
 //TODO figure out best way to refactor so that tests don't have to be lenient due to unnecessary stubbings spam
 @Slf4j
-public abstract class AbstractPlainJavaFxTest extends ApplicationTest {
+public abstract class UITest extends ApplicationTest {
 
   private final Pane root;
   private Scene scene;
   private Stage stage;
 
-  public AbstractPlainJavaFxTest() {
+  public UITest() {
     root = new Pane();
     Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
       log.error("Unresolved Throwable in none junit thread, please resolve even if test does not fail", e);

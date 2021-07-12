@@ -27,7 +27,7 @@ import com.faforever.client.remote.domain.GameLaunchMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
@@ -37,13 +37,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.util.ReflectionUtils;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -90,8 +87,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class GameServiceTest extends AbstractPlainJavaFxTest {
+public class GameServiceTest extends ServiceTest {
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
@@ -427,7 +423,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     ));
 
     gameInfoMessageListenerCaptor.getValue().accept(multiGameInfoMessage);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getGames(), hasSize(2));
   }
@@ -441,7 +437,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     GameInfoMessage gameInfoMessage2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage2);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getGames(), containsInAnyOrder(
         allOf(
@@ -470,7 +466,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
         .title("Game 1")
         .get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage1);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.currentGame.get().getPassword(), is("banana"));
 
@@ -486,7 +482,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
         .state(OPEN)
         .addTeamMember("1", "PlayerName").get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getCurrentGame(), notNullValue());
     assertThat(instance.getCurrentGame().getId(), is(1234));
@@ -524,7 +520,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     GameInfoMessage gameInfoMessage = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     CountDownLatch changeLatch = new CountDownLatch(1);
     Game game = instance.getGames().iterator().next();
@@ -548,7 +544,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
 
     gameInfoMessage = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
     gameInfoMessageListenerCaptor.getValue().accept(gameInfoMessage);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getGames(), empty());
   }
@@ -681,7 +677,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     game.setStatus(PLAYING);
     game.setStatus(CLOSED);
 
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(notificationService).addNotification(any(PersistentNotification.class));
   }
 
@@ -783,7 +779,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     mockMatchmakerChain();
     instance.startSearchMatchmaker();
     instance.runWithReplay(null, null, null, null, null, null, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(notificationService).addImmediateWarnNotification("replay.inQueue");
   }
 
@@ -792,7 +788,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
     mockMatchmakerChain();
     instance.startSearchMatchmaker();
     instance.runWithLiveReplay(null, null, null, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(notificationService).addImmediateWarnNotification("replay.inQueue");
   }
 
@@ -800,7 +796,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   public void runWithReplayInParty() {
     instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().id(100).get()));
     instance.runWithReplay(null, null, null, null, null, null, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(notificationService).addImmediateWarnNotification("replay.inParty");
   }
 
@@ -808,7 +804,7 @@ public class GameServiceTest extends AbstractPlainJavaFxTest {
   public void runWithLiveReplayInParty() {
     instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBuilder.create("notMe").defaultValues().id(100).get()));
     instance.runWithLiveReplay(null, null, null, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
     verify(notificationService).addImmediateWarnNotification("replay.inParty");
   }
 

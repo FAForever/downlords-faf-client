@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-public class UninstallMapTaskTest {
+public class UninstallMapTaskTest extends ServiceTest {
 
   private static final ClassPathResource THETA_PASSAGE = new ClassPathResource("/maps/theta_passage_5.v0001.zip");
 

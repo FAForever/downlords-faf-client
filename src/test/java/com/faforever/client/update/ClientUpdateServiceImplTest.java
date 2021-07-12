@@ -8,17 +8,15 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
 import com.faforever.commons.io.Bytes;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
 import java.net.URL;
@@ -34,8 +32,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class ClientUpdateServiceImplTest extends AbstractPlainJavaFxTest {
+public class ClientUpdateServiceImplTest extends ServiceTest {
 
   private ClientUpdateServiceImpl instance;
 

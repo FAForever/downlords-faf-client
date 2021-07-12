@@ -6,7 +6,7 @@ import com.faforever.client.leaderboard.LeaderboardRatingMapBuilder;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class UserFilterControllerTest extends AbstractPlainJavaFxTest {
+public class UserFilterControllerTest extends UITest {
 
   @Mock
   private ChannelTabController channelTabController;

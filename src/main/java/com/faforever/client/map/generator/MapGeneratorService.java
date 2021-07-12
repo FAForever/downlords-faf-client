@@ -56,7 +56,6 @@ public class MapGeneratorService implements InitializingBean {
   @Getter
   private final Path generatorExecutablePath;
   private final ApplicationContext applicationContext;
-  private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
 
@@ -71,7 +70,6 @@ public class MapGeneratorService implements InitializingBean {
 
   public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService, TaskService taskService, ClientProperties clientProperties) {
     this.applicationContext = applicationContext;
-    this.preferencesService = preferencesService;
     this.taskService = taskService;
 
     generatorExecutablePath = preferencesService.getFafDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
@@ -84,11 +82,11 @@ public class MapGeneratorService implements InitializingBean {
       }
     }
 
-    customMapsDirectory = this.preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
 
     try {
       generatedMapPreviewImage = new Image(new ClassPathResource("/images/generatedMapIcon.png").getURL().toString(), true);
-    } catch (IOException e) {
+    } catch (IOException | NoClassDefFoundError | ExceptionInInitializerError e) {
       log.error("Could not load generated map preview image.", e);
     }
   }

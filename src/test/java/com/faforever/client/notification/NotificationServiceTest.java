@@ -1,6 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.test.ServiceTest;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class NotificationServiceTest {
+public class NotificationServiceTest extends ServiceTest {
 
   private NotificationService instance;
 

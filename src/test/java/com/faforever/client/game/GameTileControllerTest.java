@@ -5,7 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import javafx.scene.input.MouseButton;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GameTileControllerTest extends AbstractPlainJavaFxTest {
+public class GameTileControllerTest extends UITest {
 
   @Mock
   private ModService modService;

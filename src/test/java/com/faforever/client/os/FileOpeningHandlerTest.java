@@ -2,12 +2,11 @@ package com.faforever.client.os;
 
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.test.ServiceTest;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;
 
@@ -16,8 +15,7 @@ import java.nio.file.Paths;
 
 import static org.mockito.Mockito.verify;
 
-@ExtendWith(MockitoExtension.class)
-public class FileOpeningHandlerTest {
+public class FileOpeningHandlerTest extends ServiceTest {
 
   @Mock
   private ReplayService replayService;

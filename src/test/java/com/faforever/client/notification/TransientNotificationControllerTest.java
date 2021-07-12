@@ -3,7 +3,7 @@ package com.faforever.client.notification;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.notification.Action.ActionCallback;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TransientNotificationControllerTest extends AbstractPlainJavaFxTest {
+public class TransientNotificationControllerTest extends UITest {
 
   private TransientNotificationController instance;
 

@@ -5,16 +5,13 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -35,15 +32,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class AchievementServiceTest extends AbstractPlainJavaFxTest {
+public class AchievementServiceTest extends ServiceTest {
 
   private static final int PLAYER_ID = 123;
 
-  @TempDir
-  public Path preferencesDirectory;
-  @TempDir
-  public Path cacheDirectory;
   @Mock
   private PlayerService playerService;
   @Mock

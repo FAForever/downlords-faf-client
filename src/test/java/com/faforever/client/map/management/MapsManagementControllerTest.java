@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
 
-public class MapsManagementControllerTest extends AbstractPlainJavaFxTest {
+public class MapsManagementControllerTest extends UITest {
 
   @Mock
   private MapService mapService;

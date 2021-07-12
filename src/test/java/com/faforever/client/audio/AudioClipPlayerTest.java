@@ -1,10 +1,11 @@
 package com.faforever.client.audio;
 
+import com.faforever.client.test.ServiceTest;
 import javafx.scene.media.AudioClip;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class AudioClipPlayerTest {
+public class AudioClipPlayerTest extends ServiceTest {
 
   private AudioClipPlayer instance;
 

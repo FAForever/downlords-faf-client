@@ -27,7 +27,7 @@ import com.faforever.client.remote.domain.PartyKickedMessage;
 import com.faforever.client.remote.domain.SearchInfoMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.scheduling.TaskScheduler;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +58,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
+public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Mock
   private PlayerService playerService;
@@ -137,7 +136,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     setOwnerByName("member2");
 
     instance.onPartyKicked(new PartyKickedMessage());
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
@@ -151,7 +150,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     player.setGame(GameBuilder.create().defaultValues().get());
 
     instance.onPartyKicked(new PartyKickedMessage());
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
@@ -177,7 +176,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     message.setMembers(testMembers);
 
     instance.onPartyInfo(message);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
@@ -191,7 +190,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     message.setOwner(2);
 
     instance.onPartyInfo(message);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertThat(instance.getParty().getMembers().size(), is(2));
     assertThat(instance.getParty().getOwner(), is(otherPlayer));
@@ -218,7 +217,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
     message2.setState(MatchmakingState.START);
 
     instance.onSearchInfoMessage(message2);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(gameService).startSearchMatchmaker();
     assertThat(testQueue.isJoined(), is(true));
@@ -351,7 +350,7 @@ public class TeamMatchmakingServiceTest extends AbstractPlainJavaFxTest {
   public void testLeaveParty() {
 
     instance.leaveParty();
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(fafService).leaveParty();
     assertThat(instance.getParty().getMembers().size(), is(1));

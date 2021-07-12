@@ -2,24 +2,20 @@ package com.faforever.client.chat.avatar;
 
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URL;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class AvatarServiceImplTest {
-
-  @TempDir
-  public Path cacheFolder;
+public class AvatarServiceImplTest extends ServiceTest {
 
   @Mock
   private FafService fafService;

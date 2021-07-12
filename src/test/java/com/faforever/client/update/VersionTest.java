@@ -1,5 +1,6 @@
 package com.faforever.client.update;
 
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -8,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class VersionTest {
+public class VersionTest extends ServiceTest {
 
   @Test
   public void shouldFailOnNullFromVersion() {

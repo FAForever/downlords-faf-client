@@ -1,12 +1,13 @@
 package com.faforever.client.util;
 
 
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestRatingUtil {
+public class TestRatingUtil extends ServiceTest {
   @Test
   public void roundingDownWorks() {
     assertThat(RatingUtil.roundRatingToNextLowest100(99.99), is(0));

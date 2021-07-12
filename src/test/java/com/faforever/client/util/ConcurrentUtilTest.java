@@ -1,6 +1,7 @@
 package com.faforever.client.util;
 
 import com.faforever.client.test.FakeTestException;
+import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
@@ -9,7 +10,7 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ConcurrentUtilTest {
+public class ConcurrentUtilTest extends ServiceTest {
   
   @Test
   public void testUnwrapIfCompletionException() throws InterruptedException, ExecutionException {

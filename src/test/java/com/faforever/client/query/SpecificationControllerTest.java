@@ -3,7 +3,7 @@ package com.faforever.client.query;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.query.SearchablePropertyMappings.Property;
 import com.faforever.client.remote.domain.VictoryCondition;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.api.dto.Game;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
@@ -30,7 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-public class SpecificationControllerTest extends AbstractPlainJavaFxTest {
+public class SpecificationControllerTest extends UITest {
   private SpecificationController instance;
 
   @Mock

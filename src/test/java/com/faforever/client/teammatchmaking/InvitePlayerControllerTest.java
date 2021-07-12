@@ -2,7 +2,7 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 
-public class InvitePlayerControllerTest extends AbstractPlainJavaFxTest {
+public class InvitePlayerControllerTest extends UITest {
 
   @Mock
   private PlayerService playerService;

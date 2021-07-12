@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.Faction;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class LaunchCommandBuilderTest {
+public class LaunchCommandBuilderTest extends ServiceTest {
 
   private static LaunchCommandBuilder defaultBuilder() {
     return LaunchCommandBuilder.create()

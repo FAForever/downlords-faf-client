@@ -6,7 +6,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.LiveReplayController;
@@ -22,7 +22,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-public class LiveReplayControllerTest extends AbstractPlainJavaFxTest {
+public class LiveReplayControllerTest extends UITest {
 
   @Mock
   private GameService gameService;

@@ -5,7 +5,7 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
-public class GamesTilesContainerControllerTest extends AbstractPlainJavaFxTest {
+public class GamesTilesContainerControllerTest extends UITest {
 
   @Mock
   private GameTileController gameTileController;

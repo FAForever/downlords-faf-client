@@ -11,6 +11,7 @@ import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class FriendJoinedGameNotifierTest {
+public class FriendJoinedGameNotifierTest extends ServiceTest {
   private FriendJoinedGameNotifier instance;
   @Mock
   private NotificationService notificationService;

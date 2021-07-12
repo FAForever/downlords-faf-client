@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.animation.Timeline;
@@ -21,7 +21,7 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-public class WatchButtonControllerTest extends AbstractPlainJavaFxTest {
+public class WatchButtonControllerTest extends UITest {
 
   private static final int WATCH_DELAY = 10; // in seconds;
 

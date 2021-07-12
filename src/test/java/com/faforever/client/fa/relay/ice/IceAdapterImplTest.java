@@ -4,16 +4,14 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
+import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
-@ExtendWith(MockitoExtension.class)
-public class IceAdapterImplTest {
+public class IceAdapterImplTest extends ServiceTest {
 
   @Mock
   private IceAdapterImpl instance;

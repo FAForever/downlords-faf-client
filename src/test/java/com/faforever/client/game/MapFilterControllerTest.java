@@ -2,7 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapSize;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.TextField;
@@ -16,7 +16,7 @@ import static com.faforever.client.map.MapBeanBuilder.create;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MapFilterControllerTest extends AbstractPlainJavaFxTest {
+public class MapFilterControllerTest extends UITest {
 
   private MapFilterController instance;
   private TextField mapNameTextField;

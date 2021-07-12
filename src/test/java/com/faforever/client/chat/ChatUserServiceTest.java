@@ -19,7 +19,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
@@ -30,7 +30,6 @@ import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -53,7 +52,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
+public class ChatUserServiceTest extends ServiceTest {
 
   private ChatUserService instance;
   @Mock
@@ -113,7 +112,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testPlayerIsNull() {
     instance.associatePlayerToChatUser(chatUser, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, never()).getClanByTag(anyString());
     verify(countryFlagService, never()).loadCountryFlag(anyString());
@@ -132,7 +131,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testChatUserNotDisplayed() {
     chatUser.setDisplayed(false);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, never()).getClanByTag(anyString());
     verify(countryFlagService, never()).loadCountryFlag(anyString());
@@ -152,7 +151,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     chatUser.setDisplayed(false);
     instance.associatePlayerToChatUser(chatUser, player);
     chatUser.setDisplayed(true);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, times(2)).getClanByTag(anyString());
     verify(countryFlagService, times(2)).loadCountryFlag(anyString());
@@ -169,9 +168,9 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testChatUserDisplayedToNotDisplayed() {
     chatUser.setDisplayed(true);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
     chatUser.setDisplayed(false);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, times(3)).getClanByTag(anyString());
     verify(countryFlagService, times(3)).loadCountryFlag(anyString());
@@ -189,7 +188,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testListenersRemovedOnSecondAssociation() {
     Player player1 = PlayerBuilder.create("junit1").defaultValues().get();
     instance.associatePlayerToChatUser(chatUser, player1);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     ChangeListener<PlayerStatus> gameStatusListener = chatUser.getGameStatusChangeListener();
     ChangeListener<SocialStatus> socialStatusListener = chatUser.getSocialStatusChangeListener();
@@ -200,7 +199,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
 
     Player player2 = PlayerBuilder.create("junit2").defaultValues().get();
     instance.associatePlayerToChatUser(chatUser, player2);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertNotEquals(gameStatusListener, chatUser.getGameStatusChangeListener());
     assertNotEquals(socialStatusListener, chatUser.getSocialStatusChangeListener());
@@ -213,7 +212,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testListenersRemovedOnNullAssociation() {
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertNotNull(chatUser.getGameStatusChangeListener());
     assertNotNull(chatUser.getSocialStatusChangeListener());
@@ -223,7 +222,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     assertNotNull(chatUser.getDisplayedChangeListener());
 
     instance.associatePlayerToChatUser(chatUser, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertNull(chatUser.getGameStatusChangeListener());
     assertNull(chatUser.getSocialStatusChangeListener());
@@ -237,7 +236,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testClanNotNull() {
     player.setClan(testClan.getTag());
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, times(3)).getClanByTag(testClan.getTag());
     assertEquals(chatUser.getClan().orElse(null), testClan);
@@ -252,7 +251,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setClan(testClan.getTag());
     instance.associatePlayerToChatUser(chatUser, player);
     player.setClan(newClan.getTag());
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, times(3)).getClanByTag(testClan.getTag());
     verify(clanService, times(1)).getClanByTag(newClan.getTag());
@@ -265,7 +264,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setClan(testClan.getTag());
     instance.associatePlayerToChatUser(chatUser, player);
     player.setClan(testClan.getTag());
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, times(3)).getClanByTag(testClan.getTag());
     assertEquals(chatUser.getClan().orElse(null), testClan);
@@ -276,7 +275,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testClanNull() {
     player.setClan(null);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(clanService, never()).getClanByTag(anyString());
     assertTrue(chatUser.getClan().isEmpty());
@@ -287,7 +286,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testAvatarNotNull() {
     player.setAvatar(avatar);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(avatarService, times(3)).loadAvatar(Objects.requireNonNull(avatar.getUrl()).toExternalForm());
     assertTrue(chatUser.getAvatar().isPresent());
@@ -299,7 +298,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     instance.associatePlayerToChatUser(chatUser, player);
     String newUrl = new URL("http://awesome.png").toExternalForm();
     player.setAvatarUrl(newUrl);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(avatarService, times(3)).loadAvatar(Objects.requireNonNull(avatar.getUrl()).toExternalForm());
     verify(avatarService).loadAvatar(newUrl);
@@ -311,7 +310,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setAvatar(avatar);
     instance.associatePlayerToChatUser(chatUser, player);
     player.setAvatarUrl(Objects.requireNonNull(avatar.getUrl()).toExternalForm());
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(avatarService, times(3)).loadAvatar(avatar.getUrl().toExternalForm());
     assertTrue(chatUser.getAvatar().isPresent());
@@ -321,7 +320,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testAvatarNull() {
     player.setAvatar(null);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(avatarService, never()).loadAvatar(anyString());
     assertTrue(chatUser.getAvatar().isEmpty());
@@ -331,7 +330,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testCountryNotNull() {
     player.setCountry("US");
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(countryFlagService, times(3)).loadCountryFlag("US");
     assertTrue(chatUser.getCountryFlag().isPresent());
@@ -345,7 +344,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setCountry("US");
     instance.associatePlayerToChatUser(chatUser, player);
     player.setCountry("DE");
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(countryFlagService, times(3)).loadCountryFlag("US");
     verify(countryFlagService).loadCountryFlag("DE");
@@ -358,7 +357,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setCountry("US");
     instance.associatePlayerToChatUser(chatUser, player);
     player.setCountry("US");
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(countryFlagService, times(3)).loadCountryFlag("US");
     assertTrue(chatUser.getCountryFlag().isPresent());
@@ -369,7 +368,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testCountryNull() {
     player.setCountry(null);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(countryFlagService).loadCountryFlag(null);
     assertTrue(chatUser.getCountryFlag().isEmpty());
@@ -381,7 +380,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setGame(null);
     when(i18n.get("game.gameStatus.none")).thenReturn("None");
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(uiService, never()).getThemeImage(anyString());
     assertFalse(chatUser.getMapImage().isPresent());
@@ -395,7 +394,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setGame(game);
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(uiService, times(3)).getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
     assertTrue(chatUser.getMapImage().isPresent());
@@ -409,7 +408,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setGame(game);
     when(i18n.get("game.gameStatus.hosting")).thenReturn("Hosting");
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(uiService, times(3)).getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
     assertTrue(chatUser.getMapImage().isPresent());
@@ -423,7 +422,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setGame(game);
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(uiService, times(3)).getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
     assertTrue(chatUser.getMapImage().isPresent());
@@ -439,7 +438,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.associatePlayerToChatUser(chatUser, player);
     game.setStatus(GameStatus.PLAYING);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(uiService, times(3)).getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
     verify(uiService).getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
@@ -455,7 +454,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);
     game.setStatus(GameStatus.OPEN);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     verify(uiService, times(3)).getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
     assertTrue(chatUser.getMapImage().isPresent());
@@ -466,7 +465,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   @Test
   public void testUserColorNotSet() {
     instance.associatePlayerToChatUser(chatUser, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertTrue(chatUser.getColor().isEmpty());
   }
@@ -475,7 +474,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
   public void testUserColorSetNoPlayer() {
     preferences.getChat().setUserToColor(FXCollections.observableMap(Map.of("junit", Color.AQUA)));
     instance.associatePlayerToChatUser(chatUser, null);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertTrue(chatUser.getColor().isPresent());
     assertEquals(chatUser.getColor().get(), Color.AQUA);
@@ -486,7 +485,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     preferences.getChat().setGroupToColor(FXCollections.observableMap(Map.of(ChatUserCategory.FRIEND, Color.AQUA)));
     player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertTrue(chatUser.getColor().isPresent());
     assertEquals(chatUser.getColor().get(), Color.AQUA);
@@ -498,7 +497,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
     player.setSocialStatus(SocialStatus.OTHER);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertFalse(chatUser.getColor().isPresent());
   }
@@ -509,7 +508,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
     player.setSocialStatus(SocialStatus.FRIEND);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertTrue(chatUser.getColor().isPresent());
     assertEquals(chatUser.getColor().get(), Color.AQUA);
@@ -521,7 +520,7 @@ public class ChatUserServiceTest extends AbstractPlainJavaFxTest {
     chatUser.setModerator(true);
     player.setSocialStatus(SocialStatus.FRIEND);
     instance.associatePlayerToChatUser(chatUser, player);
-    WaitForAsyncUtils.waitForFxEvents();
+
 
     assertTrue(chatUser.getColor().isPresent());
     assertEquals(chatUser.getColor().get(), Color.RED);

@@ -80,6 +80,9 @@ test {
   testLogging {
     events("failed")
   }
+  systemProperties = [
+          'junit.jupiter.execution.parallel.enabled': true
+  ]
 }
 
 configurations {

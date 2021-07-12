@@ -1,6 +1,6 @@
 package com.faforever.client.query;
 
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.properties.concrete.StringProperty;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
-public class ToggleFilterControllerTest extends AbstractPlainJavaFxTest {
+public class ToggleFilterControllerTest extends UITest {
 
   private final String propertyName = "testProp";
   private final String value = "test";

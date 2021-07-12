@@ -1,20 +1,18 @@
 package com.faforever.client.config;
 
 import com.faforever.client.config.JacksonConfig.UrlDeserializer;
+import com.faforever.client.test.ServiceTest;
 import com.fasterxml.jackson.core.JsonParser;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.net.URL;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(MockitoExtension.class)
-public class JacksonConfigTest {
+public class JacksonConfigTest extends ServiceTest {
 
   @Mock
   JsonParser parser;

@@ -3,21 +3,18 @@ package com.faforever.client.config;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.legacy.UidService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.google.common.base.Stopwatch;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import static org.mockito.Mockito.mock;
 
-@ExtendWith(MockitoExtension.class)
 @Slf4j
-public class FafClientApplicationTest extends AbstractPlainJavaFxTest {
+public class FafClientApplicationTest extends UITest {
 
   @Test
   public void testDoesItSmoke() throws Exception {

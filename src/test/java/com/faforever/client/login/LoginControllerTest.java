@@ -8,8 +8,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
 import com.faforever.client.test.FakeTestException;
+import com.faforever.client.test.UITest;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfigurationBuilder;
 import com.faforever.client.update.ClientUpdateService;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LoginControllerTest extends AbstractPlainJavaFxTest {
+public class LoginControllerTest extends UITest {
 
   private LoginController instance;
   @Mock

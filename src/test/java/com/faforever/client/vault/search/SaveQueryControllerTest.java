@@ -1,6 +1,6 @@
 package com.faforever.client.vault.search;
 
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SaveQueryControllerTest extends AbstractPlainJavaFxTest {
+public class SaveQueryControllerTest extends UITest {
 
   private final ObservableMap<String, String> savedQueries = FXCollections.observableHashMap();
   private SaveQueryController instance;

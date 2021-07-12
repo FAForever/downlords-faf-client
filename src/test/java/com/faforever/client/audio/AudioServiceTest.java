@@ -4,10 +4,10 @@ import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.media.AudioClip;
-import javafx.stage.Stage;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-public class AudioServiceTest extends AbstractPlainJavaFxTest {
+public class AudioServiceTest extends ServiceTest {
 
   private AudioService instance;
 
@@ -34,8 +34,8 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
 
   private Preferences preferences;
 
-  @Override
-  public void start(Stage stage) throws Exception {
+  @BeforeEach
+  public void setUp() throws Exception {
     instance = new AudioService(preferencesService, audioClipPlayer, uiService);
 
     preferences = PreferencesBuilder.create().defaultValues()
@@ -57,8 +57,6 @@ public class AudioServiceTest extends AbstractPlainJavaFxTest {
     when(uiService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(UiService.MENTION_SOUND));
 
     instance.afterPropertiesSet();
-
-    super.start(stage);
   }
 
   @Test

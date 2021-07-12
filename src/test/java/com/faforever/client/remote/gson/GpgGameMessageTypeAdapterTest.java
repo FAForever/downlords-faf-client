@@ -1,6 +1,7 @@
 package com.faforever.client.remote.gson;
 
 import com.faforever.client.fa.relay.GpgClientCommand;
+import com.faforever.client.test.ServiceTest;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class GpgGameMessageTypeAdapterTest {
+public class GpgGameMessageTypeAdapterTest extends ServiceTest {
 
   private GpgClientMessageTypeAdapter instance;
 

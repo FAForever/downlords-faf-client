@@ -7,15 +7,13 @@ import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.ServiceTest;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
 import java.nio.file.Files;
@@ -35,8 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-public class MapGeneratorServiceTest extends AbstractPlainJavaFxTest {
+public class MapGeneratorServiceTest extends ServiceTest {
 
   private final ComparableVersion versionGeneratorPresent = new ComparableVersion("2.0.0");
   private final ComparableVersion versionNoGeneratorPresent = new ComparableVersion("1.0.0");

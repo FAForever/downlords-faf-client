@@ -1,11 +1,12 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.test.ServiceTest;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ColorGeneratorUtilTest {
+public class ColorGeneratorUtilTest extends ServiceTest {
 
   @Test
   public void testGenerateRandomHexColorRandomness() {

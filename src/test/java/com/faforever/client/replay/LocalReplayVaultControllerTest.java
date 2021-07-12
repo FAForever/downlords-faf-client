@@ -8,7 +8,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.test.AbstractPlainJavaFxTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
 import javafx.scene.layout.Pane;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LocalReplayVaultControllerTest extends AbstractPlainJavaFxTest {
+public class LocalReplayVaultControllerTest extends UITest {
 
   private LocalReplayVaultController instance;
   @Mock
