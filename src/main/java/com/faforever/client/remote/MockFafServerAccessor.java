@@ -55,7 +55,6 @@ import java.util.function.Consumer;
 import static com.faforever.client.remote.domain.GameAccess.PASSWORD;
 import static com.faforever.client.remote.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
-import static java.util.Collections.emptyList;
 
 @Lazy
 @Component
@@ -279,7 +278,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public List<Avatar> getAvailableAvatars() {
-    return emptyList();
+    return List.of();
   }
 
   @Override
