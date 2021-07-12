@@ -102,7 +102,7 @@ public class PreferencesService implements InitializingBean {
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
     FEATURED_MOD_CACHE_PATH = CACHE_DIRECTORY.resolve(FEATURED_MOD_CACHE_SUB_FOLDER);
 
-    System.setProperty("logging.file.name", PreferencesService.FAF_DATA_DIRECTORY
+    System.setProperty("LOG_FILE", PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
         .resolve("client.log")
         .toString());
