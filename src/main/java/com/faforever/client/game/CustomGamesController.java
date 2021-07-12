@@ -113,7 +113,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     ObservableList<Game> games = gameService.getGames();
     filteredItems = new FilteredList<>(games, getGamePredicate());
-    updateFilteredItems();
 
     JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
     JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
@@ -157,7 +156,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
     if (navigateEvent instanceof HostGameEvent) {
       onCreateGame(((HostGameEvent) navigateEvent).getMapFolderName());
     }
-    updateFilteredItems();
   }
 
   private void updateFilteredItems() {
