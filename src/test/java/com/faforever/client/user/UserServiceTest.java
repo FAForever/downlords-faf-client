@@ -13,8 +13,8 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.LoginMessage;
 import com.faforever.client.remote.domain.PlayerInfo;
+import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.event.LogOutRequestEvent;
@@ -73,9 +73,8 @@ public class UserServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    validLoginMessage = new LoginMessage();
-    PlayerInfo me = new PlayerInfo(1, "junit", null, null, null, null, null, null);
-    validLoginMessage.setMe(me);
+    PlayerInfo me = new PlayerInfo(1, "junit", null, null, null, 0, null, null);
+    validLoginMessage = new LoginMessage(me);
     meResult = new MeResult();
     meResult.setUserName("junit");
     meResult.setUserId("1");
@@ -218,9 +217,8 @@ public class UserServiceTest extends ServiceTest {
 
   @Test
   public void testLoginWrongUserFromServer() {
-    LoginMessage invalidLoginMessage = new LoginMessage();
     PlayerInfo notMe = new PlayerInfo(100, "notMe", null, null, null, null, null, null);
-    invalidLoginMessage.setMe(notMe);
+    LoginMessage invalidLoginMessage = new LoginMessage(notMe);
     when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafService.getCurrentUser()).thenReturn(CompletableFuture.completedFuture(meResult));
     when(fafService.connectToServer(anyString())).thenReturn(CompletableFuture.completedFuture(invalidLoginMessage));
@@ -252,10 +250,9 @@ public class UserServiceTest extends ServiceTest {
     otherResult.setUserName("junit2");
     otherResult.setUserId("2");
     when(fafService.getCurrentUser()).thenReturn(CompletableFuture.completedFuture(otherResult));
-    LoginMessage newLoginMessage = new LoginMessage();
-    PlayerInfo me = new PlayerInfo(2, "junit2", null, null, null, null, null, null);
-    newLoginMessage.setMe(me);
-    when(fafService.connectToServer(anyString())).thenReturn(CompletableFuture.completedFuture(newLoginMessage));
+    PlayerInfo me = new PlayerInfo(2, "junit2", null, null, null, 0, null, null);
+    LoginMessage loginMessage = new LoginMessage(me);
+    when(fafService.connectToServer(anyString())).thenReturn(CompletableFuture.completedFuture(loginMessage));
 
     instance.login("abc").join();
 
@@ -322,7 +319,7 @@ public class UserServiceTest extends ServiceTest {
     instance.onLogoutRequestEvent(new LogOutRequestEvent());
 
     LoginPrefs loginPrefs = preferences.getLogin();
-    assertFalse(loginPrefs.isRememberMe());
+    assertFalse(loginPrefs.getRememberMe());
     assertNull(loginPrefs.getRefreshToken());
     verify(preferencesService).storeInBackground();
     verify(fafService).disconnect();

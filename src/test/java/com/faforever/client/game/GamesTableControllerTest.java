@@ -16,7 +16,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import javafx.util.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -140,7 +139,7 @@ public class GamesTableControllerTest extends UITest {
 
   @Test
   public void testKeepsSorting() {
-    preferences.getGameListSorting().setAll(new Pair<>("hostColumn", SortType.DESCENDING));
+    preferences.getGameTableSorting().put("hostColumn", SortType.DESCENDING);
 
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
@@ -157,7 +156,7 @@ public class GamesTableControllerTest extends UITest {
 
   @Test
   public void testSortingUpdatesPreferences() {
-    assertThat(preferencesService.getPreferences().getGameListSorting(), hasSize(0));
+    assertThat(preferencesService.getPreferences().getGameTableSorting().entrySet(), hasSize(0));
 
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
@@ -170,10 +169,10 @@ public class GamesTableControllerTest extends UITest {
     });
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(preferencesService.getPreferences().getGameListSorting(), hasSize(1));
+    assertThat(preferencesService.getPreferences().getGameTableSorting().entrySet(), hasSize(1));
     assertThat(
-        preferencesService.getPreferences().getGameListSorting().get(0),
-        equalTo(new Pair<>("passwordProtectionColumn", SortType.ASCENDING))
+        preferencesService.getPreferences().getGameTableSorting().get("passwordProtectionColumn"),
+        equalTo(SortType.ASCENDING)
     );
   }
 }

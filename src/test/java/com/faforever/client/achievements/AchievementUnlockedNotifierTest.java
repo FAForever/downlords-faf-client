@@ -6,7 +6,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.UpdatedAchievement;
-import com.faforever.client.remote.UpdatedAchievementsMessage;
+import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.AchievementType;
@@ -18,7 +18,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -98,11 +98,10 @@ public class AchievementUnlockedNotifierTest extends ServiceTest {
     when(i18n.get("achievement.unlockedTitle")).thenReturn("Achievement unlocked");
     when(achievementService.getImage(achievementDefinition, REVEALED)).thenReturn(mock(Image.class));
 
-    UpdatedAchievementsMessage message = new UpdatedAchievementsMessage();
     UpdatedAchievement updatedAchievement = new UpdatedAchievement();
     updatedAchievement.setNewlyUnlocked(newlyUnlocked);
     updatedAchievement.setAchievementId("1234");
-    message.setUpdatedAchievements(Collections.singletonList(updatedAchievement));
+    UpdatedAchievementsMessage message = new UpdatedAchievementsMessage(List.of(updatedAchievement));
 
     listenerCaptor.getValue().accept(message);
   }

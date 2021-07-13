@@ -1,31 +1,9 @@
 package com.faforever.client.game;
 
-import java.util.HashMap;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum GameVisibility {
-  PUBLIC("public"),
-  PRIVATE("friends");
-
-  private static final HashMap<String, GameVisibility> fromString;
-
-  static {
-    fromString = new HashMap<>();
-    for (GameVisibility gameVisibility : values()) {
-      fromString.put(gameVisibility.string, gameVisibility);
-    }
-  }
-
-  private String string;
-
-  GameVisibility(String string) {
-    this.string = string;
-  }
-
-  public String getString() {
-    return string;
-  }
-
-  public static GameVisibility fromString(String string) {
-    return fromString.get(string);
-  }
+  @JsonProperty("public") @JsonEnumDefaultValue PUBLIC,
+  @JsonProperty("friends") PRIVATE
 }

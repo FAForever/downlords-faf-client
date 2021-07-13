@@ -4,11 +4,7 @@ import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
-import com.faforever.client.fa.CloseGameEvent;
-import com.faforever.client.fa.relay.GpgClientMessageSerializer;
-import com.faforever.client.fa.relay.GpgGameMessage;
-import com.faforever.client.fa.relay.GpgServerMessageType;
-import com.faforever.client.fa.relay.LobbyMode;
+import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -23,80 +19,63 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.MatchmakerInfoClientMessage;
-import com.faforever.client.remote.domain.AcceptPartyInviteMessage;
-import com.faforever.client.remote.domain.AddFoeMessage;
-import com.faforever.client.remote.domain.AddFriendMessage;
-import com.faforever.client.remote.domain.AuthenticationFailedMessage;
 import com.faforever.client.remote.domain.Avatar;
-import com.faforever.client.remote.domain.AvatarMessage;
-import com.faforever.client.remote.domain.BanPlayerMessage;
-import com.faforever.client.remote.domain.ClientMessage;
-import com.faforever.client.remote.domain.ClientMessageType;
-import com.faforever.client.remote.domain.ClosePlayersFAMessage;
-import com.faforever.client.remote.domain.ClosePlayersLobbyMessage;
-import com.faforever.client.remote.domain.FafServerMessageType;
 import com.faforever.client.remote.domain.GameAccess;
-import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.GameMatchmakingMessage;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
-import com.faforever.client.remote.domain.HostGameMessage;
-import com.faforever.client.remote.domain.IceServersServerMessage;
-import com.faforever.client.remote.domain.IceServersServerMessage.IceServer;
-import com.faforever.client.remote.domain.InitSessionMessage;
-import com.faforever.client.remote.domain.InviteToPartyMessage;
-import com.faforever.client.remote.domain.IrcPasswordServerMessage;
-import com.faforever.client.remote.domain.JoinGameMessage;
-import com.faforever.client.remote.domain.KickPlayerFromPartyMessage;
-import com.faforever.client.remote.domain.LeavePartyMessage;
-import com.faforever.client.remote.domain.ListIceServersMessage;
-import com.faforever.client.remote.domain.ListPersonalAvatarsMessage;
-import com.faforever.client.remote.domain.LoginMessage;
-import com.faforever.client.remote.domain.LoginOauthClientMessage;
-import com.faforever.client.remote.domain.MakeBroadcastMessage;
+import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
+import com.faforever.client.remote.domain.outbound.faf.LoginOauthClientMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.MessageTarget;
-import com.faforever.client.remote.domain.NoticeMessage;
 import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.PingMessage;
-import com.faforever.client.remote.domain.RatingRange;
-import com.faforever.client.remote.domain.ReadyPartyMessage;
-import com.faforever.client.remote.domain.RemoveFoeMessage;
-import com.faforever.client.remote.domain.RemoveFriendMessage;
-import com.faforever.client.remote.domain.RestoreGameSessionMessage;
-import com.faforever.client.remote.domain.SelectAvatarMessage;
 import com.faforever.client.remote.domain.SerializableMessage;
 import com.faforever.client.remote.domain.ServerCommand;
-import com.faforever.client.remote.domain.ServerMessage;
-import com.faforever.client.remote.domain.SessionMessage;
-import com.faforever.client.remote.domain.SetPartyFactionsMessage;
-import com.faforever.client.remote.domain.UnreadyPartyMessage;
-import com.faforever.client.remote.domain.VictoryCondition;
-import com.faforever.client.remote.gson.ClientMessageTypeTypeAdapter;
-import com.faforever.client.remote.gson.FactionTypeAdapter;
-import com.faforever.client.remote.gson.GameAccessTypeAdapter;
-import com.faforever.client.remote.gson.GameStateTypeAdapter;
-import com.faforever.client.remote.gson.GameTypeTypeAdapter;
-import com.faforever.client.remote.gson.GpgServerMessageTypeTypeAdapter;
-import com.faforever.client.remote.gson.LobbyModeTypeAdapter;
-import com.faforever.client.remote.gson.MatchmakingStateTypeAdapter;
-import com.faforever.client.remote.gson.MessageTargetTypeAdapter;
-import com.faforever.client.remote.gson.RatingRangeTypeAdapter;
-import com.faforever.client.remote.gson.ServerMessageTypeAdapter;
-import com.faforever.client.remote.gson.ServerMessageTypeTypeAdapter;
-import com.faforever.client.remote.gson.VictoryConditionTypeAdapter;
+import com.faforever.client.remote.domain.inbound.InboundMessage;
+import com.faforever.client.remote.domain.inbound.faf.AuthenticationFailedMessage;
+import com.faforever.client.remote.domain.inbound.faf.AvatarMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
+import com.faforever.client.remote.domain.inbound.faf.IceServersMessage;
+import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
+import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
+import com.faforever.client.remote.domain.inbound.faf.NoticeMessage;
+import com.faforever.client.remote.domain.inbound.faf.SessionMessage;
+import com.faforever.client.remote.domain.inbound.gpg.GpgInboundMessage;
+import com.faforever.client.remote.domain.outbound.faf.AcceptPartyInviteMessage;
+import com.faforever.client.remote.domain.outbound.faf.AddFoeMessage;
+import com.faforever.client.remote.domain.outbound.faf.AddFriendMessage;
+import com.faforever.client.remote.domain.outbound.faf.BanPlayerMessage;
+import com.faforever.client.remote.domain.outbound.faf.ClosePlayersFAMessage;
+import com.faforever.client.remote.domain.outbound.faf.ClosePlayersLobbyMessage;
+import com.faforever.client.remote.domain.outbound.faf.GameMatchmakingMessage;
+import com.faforever.client.remote.domain.outbound.faf.HostGameMessage;
+import com.faforever.client.remote.domain.outbound.faf.InitSessionMessage;
+import com.faforever.client.remote.domain.outbound.faf.InviteToPartyMessage;
+import com.faforever.client.remote.domain.outbound.faf.JoinGameMessage;
+import com.faforever.client.remote.domain.outbound.faf.KickPlayerFromPartyMessage;
+import com.faforever.client.remote.domain.outbound.faf.LeavePartyMessage;
+import com.faforever.client.remote.domain.outbound.faf.ListIceServersMessage;
+import com.faforever.client.remote.domain.outbound.faf.ListPersonalAvatarsMessage;
+import com.faforever.client.remote.domain.outbound.faf.MakeBroadcastMessage;
+import com.faforever.client.remote.domain.outbound.faf.MatchmakerInfoOutboundMessage;
+import com.faforever.client.remote.domain.outbound.faf.PingMessage;
+import com.faforever.client.remote.domain.outbound.faf.PongMessage;
+import com.faforever.client.remote.domain.outbound.faf.ReadyPartyMessage;
+import com.faforever.client.remote.domain.outbound.faf.RemoveFoeMessage;
+import com.faforever.client.remote.domain.outbound.faf.RemoveFriendMessage;
+import com.faforever.client.remote.domain.outbound.faf.RestoreGameSessionMessage;
+import com.faforever.client.remote.domain.outbound.faf.SelectAvatarMessage;
+import com.faforever.client.remote.domain.outbound.faf.SetPartyFactionsMessage;
+import com.faforever.client.remote.domain.outbound.faf.UnreadyPartyMessage;
+import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.update.Version;
 import com.faforever.commons.api.dto.Faction;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.github.nocatch.NoCatch;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -105,6 +84,7 @@ import javafx.concurrent.Task;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
@@ -141,23 +121,12 @@ import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
 public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor,
     InitializingBean, DisposableBean {
 
-  private final Gson gson = new GsonBuilder()
-      .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-      .registerTypeAdapter(VictoryCondition.class, VictoryConditionTypeAdapter.INSTANCE)
-      .registerTypeAdapter(GameStatus.class, GameStateTypeAdapter.INSTANCE)
-      .registerTypeAdapter(GameAccess.class, GameAccessTypeAdapter.INSTANCE)
-      .registerTypeAdapter(GameType.class, GameTypeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(ClientMessageType.class, ClientMessageTypeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(FafServerMessageType.class, ServerMessageTypeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(GpgServerMessageType.class, GpgServerMessageTypeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(MessageTarget.class, MessageTargetTypeAdapter.INSTANCE)
-      .registerTypeAdapter(ServerMessage.class, ServerMessageTypeAdapter.INSTANCE)
-      .registerTypeAdapter(RatingRange.class, RatingRangeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(Faction.class, FactionTypeAdapter.INSTANCE)
-      .registerTypeAdapter(LobbyMode.class, LobbyModeTypeAdapter.INSTANCE)
-      .registerTypeAdapter(MatchmakingState.class, MatchmakingStateTypeAdapter.INSTANCE)
-      .create();
-  private final HashMap<Class<? extends ServerMessage>, Collection<Consumer<ServerMessage>>> messageListeners = new HashMap<>();
+  private final ObjectMapper objectMapper = new ObjectMapper()
+      .addMixIn(Faction.class, FactionMixin.class)
+      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
+  private final HashMap<Class<? extends InboundMessage>, Collection<Consumer<InboundMessage>>> messageListeners = new HashMap<>();
 
   private final PreferencesService preferencesService;
   private final UidService uidService;
@@ -168,7 +137,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private final EventBus eventBus;
   private final ReconnectTimerService reconnectTimerService;
 
-  @org.jetbrains.annotations.NotNull
+  @NotNull
   private final ClientProperties clientProperties;
   private Task<Void> fafConnectionTask;
   private ServerWriter serverWriter;
@@ -186,8 +155,8 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     avatarsFuture.complete(avatarMessage.getAvatarList());
   }
 
-  private void onIceServersMessage(IceServersServerMessage iceServersServerMessage) {
-    iceServersFuture.complete(iceServersServerMessage.getIceServers());
+  private void onIceServersMessage(IceServersMessage iceServersMessage) {
+    iceServersFuture.complete(iceServersMessage.getIceServers());
   }
 
   private void onNotice(NoticeMessage noticeMessage) {
@@ -212,15 +181,15 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
+  public <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
     if (!messageListeners.containsKey(type)) {
       messageListeners.put(type, new LinkedList<>());
     }
-    messageListeners.get(type).add((Consumer<ServerMessage>) listener);
+    messageListeners.get(type).add((Consumer<InboundMessage>) listener);
   }
 
   @Override
-  public <T extends ServerMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
+  public <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
     messageListeners.get(type).remove(listener);
   }
 
@@ -371,7 +340,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Override
   public void requestMatchmakerInfo() {
-    writeToServer(new MatchmakerInfoClientMessage());
+    writeToServer(new MatchmakerInfoOutboundMessage());
   }
 
   @Override
@@ -393,7 +362,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public void sendGpgMessage(GpgGameMessage message) {
+  public void sendGpgMessage(GpgOutboundMessage message) {
     writeToServer(message);
   }
 
@@ -453,16 +422,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   private ServerWriter createServerWriter(OutputStream outputStream) {
-    ServerWriter serverWriter = new ServerWriter(outputStream);
-    serverWriter.registerMessageSerializer(new ClientMessageSerializer(), ClientMessage.class);
-    serverWriter.registerMessageSerializer(new StringSerializer(), String.class);
-    serverWriter.registerMessageSerializer(new GpgClientMessageSerializer(), GpgGameMessage.class);
-    return serverWriter;
+    return new ServerWriter(outputStream, objectMapper);
   }
 
   private void writeToServer(SerializableMessage message) {
-    final CompletableFuture loginFuture = this.loginFuture;
-    if (message instanceof GpgGameMessage && loginFuture != null && !loginFuture.isDone()) {
+    final CompletableFuture<LoginMessage> loginFuture = this.loginFuture;
+    if (message instanceof GpgInboundMessage && loginFuture != null && !loginFuture.isDone()) {
       log.warn("GPGNetMessage discarded due to not being logged in");
       return;
     }
@@ -481,36 +446,31 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   private void dispatchServerMessage(ServerCommand serverCommand) {
     switch (serverCommand) {
-      case PING:
+      case PING -> {
         log.debug("Server PINGed");
         onServerPing();
-        break;
-
-      case PONG:
-        log.debug("Server PONGed");
-        break;
-
-      default:
-        log.warn("Unknown server response: {}", serverCommand);
+      }
+      case PONG -> log.debug("Server PONGed");
+      default -> log.warn("Unknown server response: {}", serverCommand);
     }
   }
 
   private void parseServerObject(String jsonString) {
     try {
-      ServerMessage serverMessage = gson.fromJson(jsonString, ServerMessage.class);
-      if (serverMessage == null) {
+      InboundMessage inboundMessage = objectMapper.readValue(jsonString, InboundMessage.class);
+      if (inboundMessage == null) {
         log.debug("Discarding unimplemented server message: {}", jsonString);
         return;
       }
 
-      Class<?> messageClass = serverMessage.getClass();
+      Class<?> messageClass = inboundMessage.getClass();
       while (messageClass != Object.class) {
         messageListeners.getOrDefault(messageClass, Collections.emptyList())
-            .forEach(consumer -> consumer.accept(serverMessage));
+            .forEach(consumer -> consumer.accept(inboundMessage));
         messageClass = messageClass.getSuperclass();
       }
 
-    } catch (JsonSyntaxException e) {
+    } catch (JsonProcessingException e) {
       log.warn("Could not deserialize message: " + jsonString, e);
     }
   }
@@ -577,7 +537,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     if (fafServerSocket == null || !fafServerSocket.isConnected() || serverWriter == null) {
       return;
     }
-    writeToServer(PingMessage.INSTANCE);
+    writeToServer(new PingMessage());
   }
 
   @Override
@@ -589,7 +549,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
     addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
     addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
-    addOnMessageListener(IceServersServerMessage.class, this::onIceServersMessage);
+    addOnMessageListener(IceServersMessage.class, this::onIceServersMessage);
   }
 
 

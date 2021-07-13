@@ -98,7 +98,7 @@ public class LoginController implements Controller<Pane> {
     loginErrorLabel.setVisible(false);
     serverConfigPane.setVisible(false);
     serverStatusButton.setVisible(clientProperties.getStatusPageUrl() != null);
-    rememberMeCheckBox.setSelected(loginPrefs.isRememberMe());
+    rememberMeCheckBox.setSelected(loginPrefs.getRememberMe());
     loginPrefs.rememberMeProperty().bindBidirectional(rememberMeCheckBox.selectedProperty());
 
     resetPageFuture = new CompletableFuture<>();

@@ -1,6 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
 
 public interface OnGameAddedListener {
 

@@ -3,7 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.remote.domain.IrcPasswordServerMessage;
+import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoginSuccessEvent;

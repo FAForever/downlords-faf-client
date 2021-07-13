@@ -7,9 +7,9 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.primitives.Bytes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +59,7 @@ public class ReplayServerImpl implements ReplayServer {
   private final ReplayFileWriter replayFileWriter;
   private final ClientUpdateService clientUpdateService;
 
-  private LocalReplayInfo replayInfo;
+  private ReplayMetadata replayInfo;
   private ServerSocket serverSocket;
   private boolean stoppedGracefully;
 
@@ -118,7 +118,7 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   private void initReplayInfo(int uid) {
-    replayInfo = new LocalReplayInfo();
+    replayInfo = new ReplayMetadata();
     replayInfo.setUid(uid);
     replayInfo.setLaunchedAt(pythonTime());
     replayInfo.setVersionInfo(new HashMap<>());
@@ -172,10 +172,21 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   private void finishReplayInfo(Game game) {
-    replayInfo.updateFromGameInfoBean(game);
+    replayInfo.setHost(game.getHost());
+    replayInfo.setUid(game.getId());
+    replayInfo.setTitle(game.getTitle());
+    replayInfo.setMapname(game.getMapFolderName());
+    replayInfo.setVictoryCondition(game.getVictoryCondition());
+    replayInfo.setFeaturedMod(game.getFeaturedMod());
+    replayInfo.setMaxPlayers(game.getMaxPlayers());
+    replayInfo.setNumPlayers(game.getNumPlayers());
+    replayInfo.setSimMods(game.getSimMods());
+    replayInfo.setTeams(game.getTeams());
+    replayInfo.setFeaturedModVersions(game.getFeaturedModVersions());
     replayInfo.setGameEnd(pythonTime());
     replayInfo.setRecorder(userService.getUsername());
-    replayInfo.setState(GameStatus.CLOSED);
+    // TODO: Use enum when setter is fixed in java commons
+    replayInfo.setState("closed");
     replayInfo.setComplete(true);
   }
 }

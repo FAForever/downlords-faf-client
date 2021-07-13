@@ -14,8 +14,8 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.IrcPasswordServerMessage;
-import com.faforever.client.remote.domain.SocialMessage;
+import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
+import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.google.common.collect.ImmutableSortedSet;
@@ -55,7 +55,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 
 import java.net.InetAddress;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -261,8 +260,7 @@ public class KittehChatServiceTest extends ServiceTest {
         new DefaultActor(client, "server"),
         client.getServerInfo()));
 
-    SocialMessage socialMessage = new SocialMessage();
-    socialMessage.setChannels(Collections.emptyList());
+    SocialMessage socialMessage = new SocialMessage(List.of(), List.of(), List.of());
 
     socialMessageListenerCaptor.getValue().accept(socialMessage);
   }
@@ -624,8 +622,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testLeaveChannel() {
-    IrcPasswordServerMessage event = new IrcPasswordServerMessage();
-    event.setPassword("abc");
+    IrcPasswordServerMessage event = new IrcPasswordServerMessage("abc");
     instance.onIrcPassword(event);
     instance.leaveChannel(DEFAULT_CHANNEL_NAME);
   }

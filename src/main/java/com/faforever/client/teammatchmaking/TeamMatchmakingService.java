@@ -1,6 +1,5 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.PlayerStatus;
@@ -17,17 +16,18 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.MatchCancelledMessage;
-import com.faforever.client.remote.domain.MatchFoundMessage;
+import com.faforever.client.remote.domain.LobbyMode;
 import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PartyInfoMessage;
-import com.faforever.client.remote.domain.PartyInviteMessage;
-import com.faforever.client.remote.domain.PartyKickedMessage;
-import com.faforever.client.remote.domain.SearchInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchCancelledMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchFoundMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchmakerInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchmakerInfoMessage.MatchmakerQueue;
+import com.faforever.client.remote.domain.inbound.faf.PartyInviteMessage;
+import com.faforever.client.remote.domain.inbound.faf.PartyKickedMessage;
+import com.faforever.client.remote.domain.inbound.faf.SearchInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.UpdatePartyMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
@@ -102,7 +102,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
     fafService.addOnMessageListener(PartyInviteMessage.class, this::onPartyInvite);
     fafService.addOnMessageListener(PartyKickedMessage.class, this::onPartyKicked);
-    fafService.addOnMessageListener(PartyInfoMessage.class, this::onPartyInfo);
+    fafService.addOnMessageListener(UpdatePartyMessage.class, this::onPartyInfo);
     fafService.addOnMessageListener(SearchInfoMessage.class, this::onSearchInfoMessage);
     fafService.addOnMessageListener(MatchFoundMessage.class, this::onMatchFoundMessage);
     fafService.addOnMessageListener(MatchCancelledMessage.class, this::onMatchCancelledMessage);
@@ -240,7 +240,7 @@ public class TeamMatchmakingService implements InitializingBean {
         () -> JavaFxUtil.runLater(() -> queue.setJoined(false)), Instant.now().plus(Duration.ofSeconds(5))));
   }
 
-  public void onPartyInfo(PartyInfoMessage message) {
+  public void onPartyInfo(UpdatePartyMessage message) {
     Player currentPlayer = playerService.getCurrentPlayer();
     if (message.getMembers().stream().noneMatch(partyMember -> partyMember.getPlayer() == currentPlayer.getId())) {
       initializeParty();
@@ -374,19 +374,19 @@ public class TeamMatchmakingService implements InitializingBean {
     return currentlyInQueue;
   }
 
-  private synchronized void setPartyFromInfoMessage(PartyInfoMessage message) {
+  private synchronized void setPartyFromInfoMessage(UpdatePartyMessage message) {
     setOwnerFromInfoMessage(message);
     setMembersFromInfoMessage(message);
   }
 
-  private synchronized void setOwnerFromInfoMessage(PartyInfoMessage message) {
+  private synchronized void setOwnerFromInfoMessage(UpdatePartyMessage message) {
     playerService.getPlayerByIdIfOnline(message.getOwner()).ifPresent(player -> {
       party.setOwner(player);
       eventBus.post(new PartyOwnerChangedEvent(player));
     });
   }
 
-  private synchronized void setMembersFromInfoMessage(PartyInfoMessage message) {
+  private synchronized void setMembersFromInfoMessage(UpdatePartyMessage message) {
     playersInGame.clear();
     List<PartyMember> members = message.getMembers().stream()
         .map(this::createPartyMemberFromOnlinePLayers)
@@ -406,7 +406,7 @@ public class TeamMatchmakingService implements InitializingBean {
     }
   }
 
-  private PartyMember createPartyMemberFromOnlinePLayers(PartyInfoMessage.PartyMember member) {
+  private PartyMember createPartyMemberFromOnlinePLayers(UpdatePartyMessage.PartyMember member) {
     return playerService.getPlayerByIdIfOnline(member.getPlayer())
         .map(player -> new PartyMember(player, member.getFactions()))
         .orElseGet(() -> {

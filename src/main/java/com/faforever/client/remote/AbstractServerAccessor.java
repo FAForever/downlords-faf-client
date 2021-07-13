@@ -1,7 +1,7 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.remote.domain.FafServerMessage;
+import com.faforever.client.remote.domain.inbound.faf.FafInboundMessage;
 import com.faforever.client.remote.io.QDataInputStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
@@ -22,10 +22,12 @@ public abstract class AbstractServerAccessor implements DisposableBean {
   private QDataInputStream dataInput;
 
   /**
-   * Reads data received from the server and dispatches it. So far, there are two types of data sent by the server: <ol>
+   * Reads data received from the server and dispatches it. So far, there are two types of data sent by the server:
+   * <ol>
    * <li><strong>Server messages</strong> are simple words like ACK or PING, followed by some bytes..</li>
-   * <li><strong>Objects</strong> are JSON-encoded objects like preferences or player information. Those are converted into a
-   * {@link FafServerMessage}</li> </ol> I'm not yet happy with those terms, so any suggestions are welcome.
+   * <li><strong>Objects</strong> are JSON-encoded objects like preferences or player information. Those are converted
+   * into a
+   * {@link FafInboundMessage}</li> </ol> I'm not yet happy with those terms, so any suggestions are welcome.
    */
   protected void blockingReadServer(Socket socket) throws IOException {
     JavaFxUtil.assertBackgroundThread();

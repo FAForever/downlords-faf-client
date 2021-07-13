@@ -1,7 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.fa.relay.LobbyMode;
 import com.faforever.client.game.GameBuilder;
+import com.faforever.client.game.GameLaunchMessageTestBuilder;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
@@ -14,17 +14,18 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage;
-import com.faforever.client.rankedmatch.MatchmakerInfoMessage.MatchmakerQueue;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.GameLaunchMessage;
-import com.faforever.client.remote.domain.MatchCancelledMessage;
-import com.faforever.client.remote.domain.MatchFoundMessage;
+import com.faforever.client.remote.domain.LobbyMode;
 import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PartyInfoMessage;
-import com.faforever.client.remote.domain.PartyInviteMessage;
-import com.faforever.client.remote.domain.PartyKickedMessage;
-import com.faforever.client.remote.domain.SearchInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchCancelledMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchFoundMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchmakerInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchmakerInfoMessage.MatchmakerQueue;
+import com.faforever.client.remote.domain.inbound.faf.PartyInviteMessage;
+import com.faforever.client.remote.domain.inbound.faf.PartyKickedMessage;
+import com.faforever.client.remote.domain.inbound.faf.SearchInfoMessage;
+import com.faforever.client.remote.domain.inbound.faf.UpdatePartyMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.test.ServiceTest;
@@ -43,7 +44,6 @@ import org.springframework.scheduling.TaskScheduler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -116,8 +116,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testOnInviteMessage() {
-    PartyInviteMessage message = new PartyInviteMessage();
-    message.setSender(1);
+    PartyInviteMessage message = new PartyInviteMessage(1);
 
     instance.onPartyInvite(message);
 
@@ -157,12 +156,10 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   }
 
   @NotNull
-  private List<PartyInfoMessage.PartyMember> generatePartyMembers(List<Integer> idList) {
-    List<PartyInfoMessage.PartyMember> testMembers = FXCollections.observableArrayList();
+  private List<UpdatePartyMessage.PartyMember> generatePartyMembers(List<Integer> idList) {
+    List<UpdatePartyMessage.PartyMember> testMembers = FXCollections.observableArrayList();
     idList.forEach(id -> {
-      PartyInfoMessage.PartyMember member = new PartyInfoMessage.PartyMember();
-      member.setPlayer(id);
-      member.setFactions(Collections.emptyList());
+      UpdatePartyMessage.PartyMember member = new UpdatePartyMessage.PartyMember(id, List.of());
       testMembers.add(member);
     });
 
@@ -171,9 +168,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testOnPartyInfoMessagePlayerNotInParty() {
-    List<PartyInfoMessage.PartyMember> testMembers = generatePartyMembers(List.of(2));
-    PartyInfoMessage message = new PartyInfoMessage();
-    message.setMembers(testMembers);
+    List<UpdatePartyMessage.PartyMember> testMembers = generatePartyMembers(List.of(2));
+    UpdatePartyMessage message = new UpdatePartyMessage(player.getId(), testMembers);
 
     instance.onPartyInfo(message);
 
@@ -184,10 +180,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testOnPartyInfoMessage() {
-    List<PartyInfoMessage.PartyMember> testMembers = generatePartyMembers(List.of(1, 2));
-    PartyInfoMessage message = new PartyInfoMessage();
-    message.setMembers(testMembers);
-    message.setOwner(2);
+    List<UpdatePartyMessage.PartyMember> testMembers = generatePartyMembers(List.of(1, 2));
+    UpdatePartyMessage message = new UpdatePartyMessage(2, testMembers);
 
     instance.onPartyInfo(message);
 
@@ -198,9 +192,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testOnSearchInfoMessage() {
-    SearchInfoMessage message = new SearchInfoMessage();
-    message.setQueueName("notExistingQueue");
-    message.setState(MatchmakingState.START);
+    SearchInfoMessage message = new SearchInfoMessage("notExistingQueue", MatchmakingState.START);
 
     instance.onSearchInfoMessage(message);
 
@@ -212,9 +204,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     testQueue.setJoined(false);
     instance.getMatchmakingQueues().add(testQueue);
 
-    SearchInfoMessage message2 = new SearchInfoMessage();
-    message2.setQueueName("testQueue");
-    message2.setState(MatchmakingState.START);
+    SearchInfoMessage message2 = new SearchInfoMessage("testQueue", MatchmakingState.START);
 
     instance.onSearchInfoMessage(message2);
 
@@ -226,8 +216,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testOnMatchFoundMessage() {
     setTwoQueues();
-    MatchFoundMessage message = new MatchFoundMessage();
-    message.setQueueName("queue1");
+    MatchFoundMessage message = new MatchFoundMessage("queue1");
 
     instance.onMatchFoundMessage(message);
 
@@ -263,8 +252,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testOnGameLaunchMessage() {
     testOnMatchFoundMessage();
-    GameLaunchMessage message = new GameLaunchMessage();
-    message.setInitMode(LobbyMode.AUTO_LOBBY);
+    GameLaunchMessage message = GameLaunchMessageTestBuilder.create().defaultValues().initMode(LobbyMode.AUTO_LOBBY).get();
 
     instance.onGameLaunchMessage(message);
 
@@ -294,11 +282,9 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
         1, 0, List.of(), List.of());
     MatchmakerQueue messageQueue2 = new MatchmakerQueue("queue2", "2007-12-03T10:15:30+01:00",
         1, 0, List.of(), List.of());
-    MatchmakerInfoMessage message = new MatchmakerInfoMessage();
     ObservableList<MatchmakerQueue> queues = FXCollections.observableArrayList();
     queues.addAll(messageQueue1, messageQueue2);
-    message.setQueues(queues);
-    return message;
+    return new MatchmakerInfoMessage(queues);
   }
 
   @Test

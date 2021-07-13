@@ -14,11 +14,11 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.paint.Color;
-import javafx.util.Pair;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class PreferencesBuilder {
 
@@ -66,8 +66,9 @@ public class PreferencesBuilder {
     return this;
   }
 
-  public PreferencesBuilder gameListSorting(Pair<String, SortType> gameListSorting) {
-    preferences.getGameListSorting().setAll(gameListSorting);
+  public PreferencesBuilder gameListSorting(Map<String, SortType> gameListSorting) {
+    preferences.getGameTableSorting().clear();
+    preferences.getGameTableSorting().putAll(gameListSorting);
     return this;
   }
 
@@ -254,11 +255,6 @@ public class PreferencesBuilder {
 
   public class ForgedAlliancePrefsBuilder extends SubPreferencesBuilder {
     private final ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
-
-    public ForgedAlliancePrefsBuilder path(Path path) {
-      forgedAlliancePrefs.setPath(path);
-      return this;
-    }
 
     public ForgedAlliancePrefsBuilder installationPath(Path installationPath) {
       forgedAlliancePrefs.setInstallationPath(installationPath);
