@@ -52,6 +52,7 @@ public class UserService implements InitializingBean, DisposableBean {
 
   @Getter
   private String state;
+  private CompletableFuture<Void> loginFuture;
 
   public String getHydraUrl() {
     state = RandomStringUtils.randomAlphanumeric(50, 100);
@@ -63,23 +64,31 @@ public class UserService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<Void> login(String code) {
-    return CompletableFuture.runAsync(() -> tokenService.loginWithAuthorizationCode(code))
-        .whenComplete((aVoid, throwable) -> {
-          if (throwable != null) {
-            log.warn("Could not log into the user service with code", throwable);
-          }
-        })
-        .thenCompose(aVoid -> loginToServices());
+    if (loginFuture == null || loginFuture.isDone()) {
+      log.info("Logging in with authorization code");
+      loginFuture = CompletableFuture.runAsync(() -> tokenService.loginWithAuthorizationCode(code))
+          .whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+              log.warn("Could not log into the user service with code", throwable);
+            }
+          })
+          .thenCompose(aVoid -> loginToServices());
+    }
+    return loginFuture;
   }
 
   public CompletableFuture<Void> loginWithRefreshToken(String refreshToken) {
-    return CompletableFuture.runAsync(() -> tokenService.loginWithRefreshToken(refreshToken))
-        .whenComplete((aVoid, throwable) -> {
-          if (throwable != null) {
-            log.info("Could not log into the user service with refresh token", throwable);
-          }
-        })
-        .thenCompose(aVoid -> loginToServices());
+    if (loginFuture == null || loginFuture.isDone()) {
+      log.info("Logging in with refresh token");
+      loginFuture = CompletableFuture.runAsync(() -> tokenService.loginWithRefreshToken(refreshToken))
+          .whenComplete((aVoid, throwable) -> {
+            if (throwable != null) {
+              log.info("Could not log into the user service with refresh token", throwable);
+            }
+          })
+          .thenCompose(aVoid -> loginToServices());
+    }
+    return loginFuture;
   }
 
   private CompletableFuture<Void> loginToServices() {

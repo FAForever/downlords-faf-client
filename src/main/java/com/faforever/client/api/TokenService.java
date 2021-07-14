@@ -56,8 +56,10 @@ public class TokenService implements InitializingBean {
 
         return tokenCache.getValue();
       } catch (Exception e) {
-        log.debug("Could not login with token", e);
+        log.info("Could not login with token", e);
         tokenCache = null;
+        preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
+        preferencesService.storeInBackground();
         eventBus.post(new SessionExpiredEvent());
         return null;
       }
@@ -106,6 +108,9 @@ public class TokenService implements InitializingBean {
         request,
         OAuth2AccessToken.class
     );
+
+    preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
+    preferencesService.storeInBackground();
 
     if (tokenCache == null) {
       throw new LoginFailedException("Could not login with provided parameters");
