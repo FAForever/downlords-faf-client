@@ -113,7 +113,7 @@ public class TimeService {
   private Locale getCurrentTimeLocale() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     if (chatPrefs.getTimeFormat().equals(TimeInfo.AUTO)) {
-      return Locale.getDefault();
+      return i18n.getUserSpecificLocale();
     }
     return preferencesService.getPreferences().getChat().getTimeFormat().getUsedLocale();
 
@@ -122,7 +122,7 @@ public class TimeService {
   private Locale getCurrentDateLocale() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     if (chatPrefs.getDateFormat().equals(DateInfo.AUTO)) {
-      return Locale.getDefault();
+      return i18n.getUserSpecificLocale();
     }
     return preferencesService.getPreferences().getChat().getDateFormat().getUsedLocale();
 

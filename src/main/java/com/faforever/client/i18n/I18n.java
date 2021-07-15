@@ -43,6 +43,7 @@ public class I18n implements InitializingBean {
     Locale locale = preferencesService.getPreferences().getLocalization().getLanguage();
     if (locale != null) {
       userSpecificLocale = new Locale(locale.getLanguage(), locale.getCountry());
+      Locale.setDefault(userSpecificLocale);
     } else {
       userSpecificLocale = Locale.getDefault();
     }
