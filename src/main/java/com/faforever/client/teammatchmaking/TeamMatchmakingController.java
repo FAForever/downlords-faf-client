@@ -320,7 +320,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   @Subscribe
   public void onChatMessage(ChatMessageEvent event) {
     ChatMessage message = event.getMessage();
-    if (message.getSource().equals(matchmakingChatController.getReceiver())) {
+    if (matchmakingChatController != null && message.getSource().equals(matchmakingChatController.getReceiver())) {
       JavaFxUtil.runLater(() -> matchmakingChatController.onChatMessage(message));
     }
   }
