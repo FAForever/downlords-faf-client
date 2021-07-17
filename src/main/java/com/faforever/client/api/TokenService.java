@@ -44,7 +44,7 @@ public class TokenService implements InitializingBean {
   }
 
   @SneakyThrows
-  public String getRefreshedTokenValue() {
+  public synchronized String getRefreshedTokenValue() {
     if (tokenCache != null) {
       try {
         if (tokenCache.isExpired()) {
