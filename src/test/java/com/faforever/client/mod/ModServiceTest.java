@@ -73,8 +73,6 @@ public class ModServiceTest extends UITest {
   public Path modsDirectory;
   @TempDir
   public Path faDataDirectory;
-  @TempDir
-  public Path corruptedModsDirectory;
 
   @Mock
   private PreferencesService preferencesService;
@@ -95,7 +93,6 @@ public class ModServiceTest extends UITest {
 
   private ModService instance;
   private Path gamePrefsPath;
-  private Path blackopsSupportPath;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -118,11 +115,11 @@ public class ModServiceTest extends UITest {
       return completableTask;
     });
 
-    blackopsSupportPath = copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
+    copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
     instance.afterPropertiesSet();
   }
 
-  private Path copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
+  private void copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
     Path targetDir = Files.createDirectories(modsDirectory.resolve(directoryName));
 
     try (InputStream inputStream = classPathResource.getInputStream();
@@ -131,7 +128,6 @@ public class ModServiceTest extends UITest {
           .to(outputStream)
           .copy();
     }
-    return targetDir;
   }
 
   @Test

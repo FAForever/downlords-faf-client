@@ -154,7 +154,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public void loadInstalledMods() {
-    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory, entry -> Files.isDirectory(entry))) {
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(modsDirectory, Files::isDirectory)) {
       for (Path path : directoryStream) {
         addMod(path);
       }
@@ -426,7 +426,6 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private void addMod(Path path) {
-    log.debug("Adding mod: {}", path);
     try {
       ModVersion modVersion = extractModInfo(path);
       pathToMod.put(path, modVersion);

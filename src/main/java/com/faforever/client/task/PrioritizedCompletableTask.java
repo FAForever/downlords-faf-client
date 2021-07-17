@@ -5,7 +5,7 @@ import javafx.concurrent.Worker;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.RunnableFuture;
 
-public interface PrioritizedCompletableTask<V> extends Comparable<CompletableTask>, Worker<V>, RunnableFuture<V> {
+public interface PrioritizedCompletableTask<V> extends Comparable<CompletableTask<V>>, Worker<V>, RunnableFuture<V> {
 
   V getValue();
 
