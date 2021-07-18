@@ -35,9 +35,9 @@ tasks.withType(Test) {
   String CHECK_MARK = "\u2713";
   String NEUTRAL_FACE = "\u0CA0_\u0CA0";
   String X_MARK = "\u274C";
+  String indent = '    ';
 
   afterTest { descriptor, result ->
-    String indent = '    '
     if (result.failedTestCount > 0) {
       String exceptions = result.getException().toString().split("\\n").join("\n" + indent)
 
@@ -132,9 +132,6 @@ jacocoTestReport {
 
 test {
   useJUnitPlatform()
-  testLogging {
-    events()
-  }
   systemProperties = [
           'junit.jupiter.execution.parallel.enabled': true
   ]
