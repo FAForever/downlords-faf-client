@@ -39,7 +39,7 @@ tasks.withType(Test) {
   afterTest { descriptor, result ->
     String indent = '    '
     if (result.failedTestCount > 0) {
-      out.println(ANSI_BOLD_WHITE + descriptor.suite.name + ANSI_RESET)
+      out.println(ANSI_BOLD_WHITE + descriptor.parent.name + ANSI_RESET)
       out.println(indent + ANSI_RED + X_MARK + ANSI_RESET + " " + descriptor.name);
       String exceptions = result.getException().toString()
       out.println(indent + exceptions.split("\\n").join("\n" + indent))
