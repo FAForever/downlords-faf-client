@@ -39,6 +39,7 @@ tasks.withType(Test) {
   afterTest { descriptor, result ->
     String indent = '    '
     if (result.failedTestCount > 0) {
+      out.println("")
       out.println(ANSI_BOLD_WHITE + descriptor.parent.name + ANSI_RESET)
       out.println(indent + ANSI_RED + X_MARK + ANSI_RESET + " " + descriptor.name);
       String exceptions = result.getException().toString()
@@ -47,10 +48,6 @@ tasks.withType(Test) {
   }
 
   afterSuite { desc, result ->
-    if (desc.parent != null && desc.className != null) {
-      out.println("")
-    }
-
     if (!desc.parent) { // will match the outermost suite
       def failStyle = ANSI_RED
       def skipStyle = ANSI_YELLOW
