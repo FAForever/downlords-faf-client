@@ -27,7 +27,6 @@ import static com.faforever.client.achievements.AchievementService.AchievementSt
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -62,7 +61,6 @@ public class AchievementServiceTest extends ServiceTest {
     instance.getPlayerAchievements(PLAYER_ID);
     verify(fafService).addOnMessageListener(ArgumentMatchers.any(), ArgumentMatchers.any());
     verifyNoMoreInteractions(fafService);
-    assertFalse(true);
   }
 
   @Test
@@ -75,20 +73,17 @@ public class AchievementServiceTest extends ServiceTest {
     assertThat(playerAchievements, hasSize(2));
     assertThat(playerAchievements, is(achievements));
     verify(fafService).getPlayerAchievements(PLAYER_ID);
-    assertFalse(true);
   }
 
   @Test
   public void testGetAchievementDefinitions() throws Exception {
     instance.getAchievementDefinitions();
     verify(fafService).getAchievementDefinitions();
-    assertFalse(true);
   }
 
   @Test
   public void testGetHiddenThrowsUnsupportedOperationException() throws Exception {
     assertThrows(UnsupportedOperationException.class, () -> instance.getImage(null, HIDDEN));
-    assertFalse(true);
   }
 
   @Test
