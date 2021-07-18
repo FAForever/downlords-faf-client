@@ -36,25 +36,11 @@ tasks.withType(Test) {
   String NEUTRAL_FACE = "\u0CA0_\u0CA0";
   String X_MARK = "\u274C";
 
-  beforeSuite { suite ->
-    if (suite.name.startsWith("Test Run") || suite.name.startsWith("Gradle Worker")) return
-
-    if (suite.parent != null && suite.className != null) {
-      out.println(ANSI_BOLD_WHITE + suite.name + ANSI_RESET)
-    }
-
-  }
   afterTest { descriptor, result ->
     String indent = '    '
-    def indicator = ANSI_WHITE
-
-    if (result.failedTestCount > 0) indicator = ANSI_RED + X_MARK
-    else if (result.skippedTestCount > 0) indicator = ANSI_YELLOW + NEUTRAL_FACE
-    else indicator = ANSI_GREEN + CHECK_MARK
-
-    out.println(indent + indicator + ANSI_RESET + " " + descriptor.name);
-
     if (result.failedTestCount > 0) {
+      out.println(ANSI_BOLD_WHITE + descriptor.suite.name + ANSI_RESET)
+      out.println(indent + ANSI_RED + X_MARK + ANSI_RESET + " " + descriptor.name);
       String exceptions = result.getException().toString()
       out.println(indent + exceptions.split("\\n").join("\n" + indent))
     }
@@ -62,10 +48,8 @@ tasks.withType(Test) {
 
   afterSuite { desc, result ->
     if (desc.parent != null && desc.className != null) {
-
       out.println("")
     }
-
 
     if (!desc.parent) { // will match the outermost suite
       def failStyle = ANSI_RED
