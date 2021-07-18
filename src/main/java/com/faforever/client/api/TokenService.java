@@ -70,7 +70,7 @@ public class TokenService implements InitializingBean {
     }
   }
 
-  public void loginWithAuthorizationCode(String code) {
+  public synchronized void loginWithAuthorizationCode(String code) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
@@ -85,7 +85,7 @@ public class TokenService implements InitializingBean {
     retrieveToken(headers, map, oauth);
   }
 
-  public void loginWithRefreshToken(String refreshToken) {
+  public synchronized void loginWithRefreshToken(String refreshToken) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
