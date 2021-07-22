@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class TeamCardController implements Controller<Node> {
   private final UiService uiService;
   private final I18n i18n;
@@ -103,7 +105,12 @@ public class TeamCardController implements Controller<Node> {
       } else if (Game.OBSERVERS_TEAM.equals(team)) {
         teamTitle = i18n.get("game.tooltip.observers");
       } else {
-        teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);
+        try {
+          teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);
+        } catch (NumberFormatException e) {
+          teamTitle = "";
+          log.warn("Received unknown team in server message: team `{}`", team);
+        }
       }
     } else {
       teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
