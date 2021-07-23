@@ -10,6 +10,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.hash.Hashing;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,7 +64,7 @@ public class MockChatService implements ChatService, InitializingBean {
 
   @Subscribe
   public void onIrcPassword(IrcPasswordServerMessage event) {
-    password = event.getPassword();
+    password = Hashing.md5().hashString(event.getPassword(), StandardCharsets.UTF_8).toString();
     connect();
   }
 

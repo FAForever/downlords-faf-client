@@ -24,6 +24,7 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.hash.Hashing;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -66,6 +67,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -213,7 +215,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Subscribe
   public void onIrcPassword(IrcPasswordServerMessage event) {
-    password = event.getPassword();
+    password = Hashing.md5().hashString(event.getPassword(), StandardCharsets.UTF_8).toString();
     if (connectionState.get() == ConnectionState.DISCONNECTED) {
       connect();
     }
