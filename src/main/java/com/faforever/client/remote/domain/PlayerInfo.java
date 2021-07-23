@@ -15,7 +15,10 @@ public class PlayerInfo {
   String clan;
   Avatar avatar;
   String country;
-  Integer numberOfGames;
   Map<String, String> league;
   Map<String, LeaderboardRating> ratings;
+
+  public int getNumberOfGames() {
+    return ratings.values().stream().mapToInt(LeaderboardRating::getNumberOfGames).sum();
+  }
 }

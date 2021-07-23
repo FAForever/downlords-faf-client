@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -73,7 +74,7 @@ public class UserServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    PlayerInfo me = new PlayerInfo(1, "junit", null, null, null, 0, null, null);
+    PlayerInfo me = new PlayerInfo(1, "junit", null, null, null, new HashMap<>(), new HashMap<>());
     validLoginMessage = new LoginMessage(me);
     meResult = new MeResult();
     meResult.setUserName("junit");
@@ -217,7 +218,7 @@ public class UserServiceTest extends ServiceTest {
 
   @Test
   public void testLoginWrongUserFromServer() {
-    PlayerInfo notMe = new PlayerInfo(100, "notMe", null, null, null, null, null, null);
+    PlayerInfo notMe = new PlayerInfo(100, "notMe", null, null, null, new HashMap<>(), new HashMap<>());
     LoginMessage invalidLoginMessage = new LoginMessage(notMe);
     when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafService.getCurrentUser()).thenReturn(CompletableFuture.completedFuture(meResult));
@@ -250,7 +251,7 @@ public class UserServiceTest extends ServiceTest {
     otherResult.setUserName("junit2");
     otherResult.setUserId("2");
     when(fafService.getCurrentUser()).thenReturn(CompletableFuture.completedFuture(otherResult));
-    PlayerInfo me = new PlayerInfo(2, "junit2", null, null, null, 0, null, null);
+    PlayerInfo me = new PlayerInfo(2, "junit2", null, null, null, new HashMap<>(), new HashMap<>());
     LoginMessage loginMessage = new LoginMessage(me);
     when(fafService.connectToServer(anyString())).thenReturn(CompletableFuture.completedFuture(loginMessage));
 

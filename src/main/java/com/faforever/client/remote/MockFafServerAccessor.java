@@ -106,7 +106,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
       protected LoginMessage call() throws Exception {
         updateTitle(i18n.get("login.progress.message"));
 
-        PlayerInfo playerInfo = new PlayerInfo(4812, USER_NAME, null, null, null, 330, new HashMap<>(), new HashMap<>());
+        PlayerInfo playerInfo = new PlayerInfo(4812, USER_NAME, null, null, null, new HashMap<>(), new HashMap<>());
 
         PlayerInfoMessage playerInfoMessage = new PlayerInfoMessage(List.of(playerInfo));
 
@@ -163,7 +163,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
             )
         );
 
-        PlayerInfo me = new PlayerInfo(123, USER_NAME, null, null, null, 0, null, null);
+        PlayerInfo me = new PlayerInfo(123, USER_NAME, null, null, null, new HashMap<>(), new HashMap<>());
         return new LoginMessage(me);
       }
     }).getFuture();

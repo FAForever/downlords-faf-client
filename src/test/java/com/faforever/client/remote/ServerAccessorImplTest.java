@@ -83,6 +83,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -245,7 +246,7 @@ public class ServerAccessorImplTest extends UITest {
         "auth"
     );
 
-    PlayerInfo me = new PlayerInfo(playerUid, "Junit", null, null, null, 0, null, null);
+    PlayerInfo me = new PlayerInfo(playerUid, "Junit", null, null, null, new HashMap<>(), new HashMap<>());
     LoginMessage loginServerMessage = new LoginMessage(me);
 
     sendFromServer(loginServerMessage);
