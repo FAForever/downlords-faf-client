@@ -4,7 +4,9 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
@@ -37,6 +39,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s";
 
+  private final FafService fafService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
@@ -54,7 +57,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   @VisibleForTesting
   MatchmakingQueue queue;
-  private InvalidationListener partyPropertyInvalidationListener;
+  private InvalidationListener queueButtonStateInvalidationListener;
   private InvalidationListener queueStateInvalidationListener;
   private InvalidationListener queuePopulationInvalidationListener;
   private ChangeListener<MatchingStatus> queueMatchStatusChangeListener;
@@ -72,7 +75,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   }
 
   private void initializeListeners() {
-    partyPropertyInvalidationListener = observable -> setQueueButtonState();
+    queueButtonStateInvalidationListener = observable -> setQueueButtonState();
     queueStateInvalidationListener = observable -> JavaFxUtil.runLater(() -> {
       refreshingLabel.setVisible(false);
       joinLeaveQueueButton.setSelected(queue.isJoined());
@@ -105,15 +108,17 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
     JavaFxUtil.addAndTriggerListener(queue.matchingStatusProperty(), new WeakChangeListener<>(queueMatchStatusChangeListener));
     JavaFxUtil.addAndTriggerListener(queue.playersInQueueProperty(), new WeakInvalidationListener(queuePopulationInvalidationListener));
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), new WeakInvalidationListener(partyPropertyInvalidationListener));
-    JavaFxUtil.addListener(queue.teamSizeProperty(), new WeakInvalidationListener(partyPropertyInvalidationListener));
-    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(partyPropertyInvalidationListener));
-    JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(partyPropertyInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addListener(queue.teamSizeProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addListener(fafService.connectionStateProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addAndTriggerListener(queue.joinedProperty(), new WeakInvalidationListener(queueStateInvalidationListener));
   }
 
   private void setQueueButtonState() {
-    boolean disable = teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
+    boolean disable = fafService.getLobbyConnectionState() != ConnectionState.CONNECTED
+        || teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
         || teamMatchmakingService.partyMembersNotReady()
         || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer());
     JavaFxUtil.runLater(() -> joinLeaveQueueButton.setDisable(disable));

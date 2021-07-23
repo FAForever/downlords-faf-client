@@ -2,9 +2,11 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
@@ -26,6 +28,8 @@ import static org.mockito.Mockito.when;
 
 public class MatchmakingQueueItemControllerTest extends UITest {
 
+  @Mock
+  private FafService fafService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -53,8 +57,9 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
     when(playerService.getCurrentPlayer()).thenReturn(player);
+    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.CONNECTED);
 
-    instance = new MatchmakingQueueItemController(playerService, teamMatchmakingService, i18n, eventBus);
+    instance = new MatchmakingQueueItemController(fafService, playerService, teamMatchmakingService, i18n, eventBus);
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
     loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml", clazz -> instance);

@@ -74,12 +74,13 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   private void createModsList() {
+    String stringSimMods;
     if (game != null) {
-      String stringSimMods = Joiner.on(System.getProperty("line.separator")).join(game.getSimMods().values());
-      JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
+      stringSimMods = Joiner.on(System.getProperty("line.separator")).join(game.getSimMods().values());
     } else {
-      modsLabel.setText("");
+      stringSimMods = "";
     }
+    JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
   }
 
   public void setShowMods(boolean showMods) {
