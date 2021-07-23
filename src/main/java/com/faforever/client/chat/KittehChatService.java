@@ -58,6 +58,7 @@ import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
 import org.kitteh.irc.client.library.event.user.PrivateNoticeEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
+import org.kitteh.irc.client.library.event.user.WhoisEvent;
 import org.kitteh.irc.client.library.feature.auth.NickServ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,6 +119,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @VisibleForTesting
   DefaultClient client;
   private NickServ nickServ;
+  private String username;
   private String password;
   /**
    * A list of channels the server wants us to join.
@@ -215,6 +217,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Subscribe
   public void onIrcPassword(IrcPasswordServerMessage event) {
+    username = userService.getUsername();
     password = Hashing.md5().hashString(event.getPassword(), StandardCharsets.UTF_8).toString();
     if (connectionState.get() == ConnectionState.DISCONNECTED) {
       connect();
@@ -340,13 +343,22 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Handler
+  private void onWhoIs(WhoisEvent event) {
+    if (event.getWhoisData().getRealName().map(realName -> username.equals(realName)).orElse(false)) {
+      nickServ.startAuthentication();
+    }
+  }
+
+  @Handler
   private void onNotice(PrivateNoticeEvent event) {
     String message = event.getMessage();
 
-    if (message.contains("choose a different nick")) {
-      nickServ.startAuthentication();
-    } else if (message.contains("isn't registered")) {
+    if (message.contains("isn't registered")) {
       client.sendMessage("NickServ", String.format("register %s %s@users.faforever.com", password, client.getNick()));
+    } else if (message.contains("you are now recognized")) {
+      client.sendMessage("NickServ", String.format("recover %s", username));
+    } else if (message.contains("You have regained control")) {
+      client.setNick(username);
     }
   }
 
@@ -391,7 +403,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       return;
     }
     ircLog.debug("User '{}' left channel: {}", username, channelName);
-    if (userService.getUsername().equalsIgnoreCase(username)) {
+    if (client.getNick().equalsIgnoreCase(username)) {
       synchronized (channels) {
         channels.remove(channelName);
       }
@@ -427,8 +439,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void connect() {
-    String username = userService.getUsername();
-
     Irc irc = clientProperties.getIrc();
     this.defaultChannelName = irc.getDefaultChannel();
 
@@ -455,7 +465,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     client.getEventManager().registerEventListener(this);
     client.getActorTracker().setQueryChannelInformation(false);
     client.connect();
-
   }
 
   @Override
@@ -466,7 +475,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public CompletableFuture<String> sendMessageInBackground(String target, String message) {
-    eventBus.post(new ChatMessageEvent(new ChatMessage(target, Instant.now(), userService.getUsername(), message)));
+    eventBus.post(new ChatMessageEvent(new ChatMessage(target, Instant.now(), client.getNick(), message)));
     return CompletableFuture.supplyAsync(() -> {
       client.sendMessage(target, message);
       return message;
