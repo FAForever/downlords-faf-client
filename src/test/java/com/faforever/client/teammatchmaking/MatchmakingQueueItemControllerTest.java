@@ -12,6 +12,7 @@ import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 
     instance = new MatchmakingQueueItemController(fafService, playerService, teamMatchmakingService, i18n, eventBus);
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
