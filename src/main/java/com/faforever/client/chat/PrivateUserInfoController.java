@@ -54,7 +54,6 @@ public class PrivateUserInfoController implements Controller<Node> {
   private ChatChannelUser chatUser;
   private InvalidationListener gameInvalidationListener;
   private InvalidationListener chatUserPropertiesInvalidationListener;
-  private InvalidationListener playerPropertiesInvalidationListener;
   private InvalidationListener ratingInvalidationListener;
 
   public PrivateUserInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
@@ -89,8 +88,6 @@ public class PrivateUserInfoController implements Controller<Node> {
   private void initializeListeners() {
     ratingInvalidationListener = observable -> chatUser.getPlayer().ifPresent(this::loadReceiverRatingInformation);
     gameInvalidationListener = observable -> chatUser.getPlayer().ifPresent(chatPlayer -> onPlayerGameChanged(chatPlayer.getGame()));
-    playerPropertiesInvalidationListener = observable -> chatUser.getPlayer().ifPresent(chatPlayer -> JavaFxUtil.runLater(() ->
-        gamesPlayedLabel.setText(i18n.number(chatPlayer.getNumberOfGames()))));
     chatUserPropertiesInvalidationListener = observable -> JavaFxUtil.runLater(() -> {
       usernameLabel.setText(this.chatUser.getUsername());
       countryImageView.setImage(this.chatUser.getCountryFlag().orElse(null));
@@ -140,7 +137,6 @@ public class PrivateUserInfoController implements Controller<Node> {
 
     JavaFxUtil.addAndTriggerListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
     JavaFxUtil.addAndTriggerListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
-    JavaFxUtil.addAndTriggerListener(player.numberOfGamesProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
 
     populateUnlockedAchievementsLabel(player);
   }
@@ -186,6 +182,7 @@ public class PrivateUserInfoController implements Controller<Node> {
       JavaFxUtil.runLater(() -> {
         ratingsLabels.setText(ratingNames.toString());
         ratingsValues.setText(ratingNumbers.toString());
+        gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
       });
     });
   }
