@@ -1,4 +1,4 @@
-package com.faforever.client.chat.avatar;
+package com.faforever.client.avatar;
 
 import com.faforever.client.remote.domain.Avatar;
 import javafx.beans.property.ObjectProperty;

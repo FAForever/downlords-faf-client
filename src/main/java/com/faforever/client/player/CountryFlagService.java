@@ -1,4 +1,4 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.i18n.I18n;
 import javafx.scene.image.Image;

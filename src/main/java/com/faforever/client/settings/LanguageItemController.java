@@ -1,8 +1,8 @@
 package com.faforever.client.settings;
 
-import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.CountryFlagService;
 import com.google.common.base.Strings;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;

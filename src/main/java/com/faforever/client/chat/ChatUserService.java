@@ -1,12 +1,13 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;

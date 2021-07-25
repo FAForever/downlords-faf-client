@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-
-
 <Pane fx:id="root" opacity="0.6" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.faforever.client.chat.PlayerRatingChartTooltipController"
+      fx:controller="com.faforever.client.player.PlayerRatingChartTooltipController"
       styleClass="player-rating-chart-tooltip">
     <children>
         <VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"

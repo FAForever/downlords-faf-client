@@ -1,7 +1,7 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.chat.PlayerRatingChart;
-import com.faforever.client.chat.PlayerRatingChartTooltipController;
+import com.faforever.client.player.PlayerRatingChart;
+import com.faforever.client.player.PlayerRatingChartTooltipController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;

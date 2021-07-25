@@ -7,6 +7,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
@@ -66,7 +67,7 @@ public class ChatChannelTabControllerTest extends UITest {
   private static final String CHANNEL_NAME = "#testChannel";
 
   private ChannelTabController instance;
-  private UserFilterController userFilterController;
+  private ChatUserFilterController chatUserFilterController;
 
   @Mock
   private ChatService chatService;
@@ -114,17 +115,17 @@ public class ChatChannelTabControllerTest extends UITest {
         notificationService, reportingService,
         uiService, eventBus, webViewConfigurer, countryFlagService,
         platformService, chatUserService);
-    userFilterController = new UserFilterController(i18n, countryFlagService);
+    chatUserFilterController = new ChatUserFilterController(i18n, countryFlagService);
 
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
     preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(userService.getUsername()).thenReturn(USER_NAME);
-    when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(userFilterController);
+    when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(chatUserFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatCategoryItemController);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
-    loadFxml("theme/chat/user_filter.fxml", clazz -> userFilterController);
+    loadFxml("theme/chat/user_filter.fxml", clazz -> chatUserFilterController);
     loadFxml("theme/chat/channel_tab.fxml", clazz -> instance);
 
     TabPane tabPane = new TabPane();

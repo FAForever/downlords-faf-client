@@ -1,6 +1,8 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
@@ -8,7 +10,6 @@ import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.player.Player;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
@@ -31,7 +32,7 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class PrivateUserInfoController implements Controller<Node> {
+public class PrivatePlayerInfoController implements Controller<Node> {
   private final I18n i18n;
   private final AchievementService achievementService;
   private final LeaderboardService leaderboardService;
@@ -56,8 +57,8 @@ public class PrivateUserInfoController implements Controller<Node> {
   private InvalidationListener chatUserPropertiesInvalidationListener;
   private InvalidationListener ratingInvalidationListener;
 
-  public PrivateUserInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
-                                   EventBus eventBus, ChatUserService chatUserService) {
+  public PrivatePlayerInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
+                                     EventBus eventBus, ChatUserService chatUserService) {
     this.i18n = i18n;
     this.achievementService = achievementService;
     this.leaderboardService = leaderboardService;

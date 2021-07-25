@@ -36,7 +36,7 @@ public class FriendOnlineNotifier implements InitializingBean {
   }
 
   @Subscribe
-  public void onUserOnline(PlayerOnlineEvent event) {
+  public void onPlayerOnline(PlayerOnlineEvent event) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     Player player = event.getPlayer();
 

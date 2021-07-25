@@ -1,4 +1,4 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;

@@ -1,6 +1,6 @@
-package com.faforever.client.chat.avatar.event;
+package com.faforever.client.avatar.event;
 
-import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.avatar.AvatarBean;
 import org.jetbrains.annotations.Nullable;
 
 public class AvatarChangedEvent {

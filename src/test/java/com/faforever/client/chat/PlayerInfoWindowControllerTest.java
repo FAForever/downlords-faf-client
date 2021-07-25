@@ -5,15 +5,18 @@ import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.PlayerAchievementBuilder;
 import com.faforever.client.domain.RatingHistoryDataPoint;
-import com.faforever.client.events.EventService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.leaderboard.LeaderboardBuilder;
 import com.faforever.client.leaderboard.LeaderboardEntryBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.CountryFlagService;
+import com.faforever.client.player.EventService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
+import com.faforever.client.player.PlayerInfoWindowController;
+import com.faforever.client.player.PlayerRatingChartTooltipController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.UITest;
@@ -47,9 +50,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UserInfoWindowControllerTest extends UITest {
+public class PlayerInfoWindowControllerTest extends UITest {
 
-  private UserInfoWindowController instance;
+  private PlayerInfoWindowController instance;
 
   @Mock
   private CountryFlagService countryFlagService;
@@ -84,7 +87,7 @@ public class UserInfoWindowControllerTest extends UITest {
     leaderboard = LeaderboardBuilder.create().defaultValues().get();
     player = PlayerBuilder.create("junit").defaultValues().get();
 
-    instance = new UserInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
+    instance = new PlayerInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
         i18n, uiService, timeService, playerService, notificationService, leaderboardService);
 
     when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());

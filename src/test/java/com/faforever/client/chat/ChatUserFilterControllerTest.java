@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardRatingMapBuilder;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.remote.domain.GameStatus;
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-public class UserFilterControllerTest extends UITest {
+public class ChatUserFilterControllerTest extends UITest {
 
   @Mock
   private ChannelTabController channelTabController;
@@ -31,12 +32,12 @@ public class UserFilterControllerTest extends UITest {
 
 
   private ChatChannelUser chatChannelUser;
-  private UserFilterController instance;
+  private ChatUserFilterController instance;
   private Player player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new UserFilterController(i18n, flagService);
+    instance = new ChatUserFilterController(i18n, flagService);
     instance.channelTabController = channelTabController;
 
     player = PlayerBuilder.create("junit").defaultValues().get();

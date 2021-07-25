@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.avatar.AvatarBean;
+import com.faforever.client.avatar.AvatarBean;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;

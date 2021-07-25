@@ -1,8 +1,8 @@
 package com.faforever.client.main;
 
-import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportDialogController;
@@ -48,13 +48,13 @@ public class UserButtonController implements Controller<Node> {
   }
 
   public void onShowProfile(ActionEvent event) {
-    UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
-    userInfoWindowController.setPlayer(playerService.getCurrentPlayer());
+    PlayerInfoWindowController playerInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
+    playerInfoWindowController.setPlayer(playerService.getCurrentPlayer());
     Scene scene = userMenuButtonRoot.getScene();
     if (scene != null) {
-      userInfoWindowController.setOwnerWindow(scene.getWindow());
+      playerInfoWindowController.setOwnerWindow(scene.getWindow());
     }
-    userInfoWindowController.show();
+    playerInfoWindowController.show();
   }
 
   public void onReport(ActionEvent event) {

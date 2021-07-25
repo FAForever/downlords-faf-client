@@ -9,10 +9,10 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerOfflineEvent;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.player.UserOfflineEvent;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
@@ -413,7 +413,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     }
     // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (defaultChannelName.equals(channelName)) {
-      eventBus.post(new UserOfflineEvent(username));
+      eventBus.post(new PlayerOfflineEvent(username));
     }
   }
 

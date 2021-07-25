@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.avatar.AvatarBean;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -15,6 +15,7 @@ import com.faforever.client.moderator.BanDialogController;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
@@ -247,10 +248,10 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onShowUserInfoSelected() {
-    UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
-    userInfoWindowController.setPlayer(chatUser.getPlayer().orElseThrow(() -> new IllegalStateException("No player for chat user: " + chatUser)));
-    userInfoWindowController.setOwnerWindow(chatUserContextMenuRoot.getOwnerWindow());
-    userInfoWindowController.show();
+    PlayerInfoWindowController playerInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
+    playerInfoWindowController.setPlayer(chatUser.getPlayer().orElseThrow(() -> new IllegalStateException("No player for chat user: " + chatUser)));
+    playerInfoWindowController.setOwnerWindow(chatUserContextMenuRoot.getOwnerWindow());
+    playerInfoWindowController.show();
   }
 
   public void onSendPrivateMessageSelected() {

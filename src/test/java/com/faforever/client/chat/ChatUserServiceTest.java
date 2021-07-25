@@ -1,8 +1,8 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.chat.avatar.AvatarBeanBuilder;
-import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.avatar.AvatarBean;
+import com.faforever.client.avatar.AvatarBeanBuilder;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.clan.ClanBuilder;
 import com.faforever.client.clan.ClanService;
@@ -12,6 +12,7 @@ import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;

@@ -1,11 +1,10 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.domain.RatingHistoryDataPoint;
-import com.faforever.client.events.EventService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.OffsetDateTimeCell;
@@ -14,9 +13,6 @@ import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.NameRecord;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
@@ -68,27 +64,27 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
-import static com.faforever.client.events.EventService.EVENT_AEON_PLAYS;
-import static com.faforever.client.events.EventService.EVENT_AEON_WINS;
-import static com.faforever.client.events.EventService.EVENT_BUILT_AIR_UNITS;
-import static com.faforever.client.events.EventService.EVENT_BUILT_LAND_UNITS;
-import static com.faforever.client.events.EventService.EVENT_BUILT_NAVAL_UNITS;
-import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_1_UNITS;
-import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_2_UNITS;
-import static com.faforever.client.events.EventService.EVENT_BUILT_TECH_3_UNITS;
-import static com.faforever.client.events.EventService.EVENT_CYBRAN_PLAYS;
-import static com.faforever.client.events.EventService.EVENT_CYBRAN_WINS;
-import static com.faforever.client.events.EventService.EVENT_SERAPHIM_PLAYS;
-import static com.faforever.client.events.EventService.EVENT_SERAPHIM_WINS;
-import static com.faforever.client.events.EventService.EVENT_UEF_PLAYS;
-import static com.faforever.client.events.EventService.EVENT_UEF_WINS;
+import static com.faforever.client.player.EventService.EVENT_AEON_PLAYS;
+import static com.faforever.client.player.EventService.EVENT_AEON_WINS;
+import static com.faforever.client.player.EventService.EVENT_BUILT_AIR_UNITS;
+import static com.faforever.client.player.EventService.EVENT_BUILT_LAND_UNITS;
+import static com.faforever.client.player.EventService.EVENT_BUILT_NAVAL_UNITS;
+import static com.faforever.client.player.EventService.EVENT_BUILT_TECH_1_UNITS;
+import static com.faforever.client.player.EventService.EVENT_BUILT_TECH_2_UNITS;
+import static com.faforever.client.player.EventService.EVENT_BUILT_TECH_3_UNITS;
+import static com.faforever.client.player.EventService.EVENT_CYBRAN_PLAYS;
+import static com.faforever.client.player.EventService.EVENT_CYBRAN_WINS;
+import static com.faforever.client.player.EventService.EVENT_SERAPHIM_PLAYS;
+import static com.faforever.client.player.EventService.EVENT_SERAPHIM_WINS;
+import static com.faforever.client.player.EventService.EVENT_UEF_PLAYS;
+import static com.faforever.client.player.EventService.EVENT_UEF_WINS;
 import static javafx.collections.FXCollections.observableList;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class UserInfoWindowController implements Controller<Node> {
+public class PlayerInfoWindowController implements Controller<Node> {
 
   private final StatisticsService statisticsService;
   private final CountryFlagService countryFlagService;

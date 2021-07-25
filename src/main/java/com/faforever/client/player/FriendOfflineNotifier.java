@@ -33,7 +33,7 @@ public class FriendOfflineNotifier implements InitializingBean {
   }
 
   @Subscribe
-  public void onUserOnline(UserOfflineEvent event) {
+  public void onPlayerOffline(PlayerOfflineEvent event) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     String username = event.getUsername();
     playerService.getPlayerByNameIfOnline(username).ifPresent(player -> {

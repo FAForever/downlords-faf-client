@@ -6,8 +6,10 @@ import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
@@ -68,7 +70,7 @@ public class PrivateChatTabControllerTest extends UITest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
-  private PrivateUserInfoController privateUserInfoController;
+  private PrivatePlayerInfoController privatePlayerInfoController;
   @Mock
   private GameDetailController gameDetailController;
   @Mock
@@ -104,8 +106,8 @@ public class PrivateChatTabControllerTest extends UITest {
     tabPane.setSkin(new TabPaneSkin(tabPane));
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
-      if (clazz == PrivateUserInfoController.class) {
-        return privateUserInfoController;
+      if (clazz == PrivatePlayerInfoController.class) {
+        return privatePlayerInfoController;
       }
       if (clazz == GameDetailController.class) {
         return gameDetailController;

@@ -10,6 +10,7 @@ import com.faforever.client.leaderboard.LeaderboardRatingBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
+import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PrivateUserInfoControllerTest extends UITest {
+public class PrivatePlayerInfoControllerTest extends UITest {
 
   @Mock
   private I18n i18n;
@@ -50,7 +51,7 @@ public class PrivateUserInfoControllerTest extends UITest {
   private WatchButtonController watchButtonController;
 
 
-  private PrivateUserInfoController instance;
+  private PrivatePlayerInfoController instance;
   private Player player;
   private ChatChannelUser chatChannelUser;
   private Leaderboard leaderboard;
@@ -69,7 +70,7 @@ public class PrivateUserInfoControllerTest extends UITest {
     when(i18n.get(eq("chat.privateMessage.achievements.unlockedFormat"), any(), any())).thenReturn("0/0");
     when(i18n.number(anyInt())).thenReturn("123");
 
-    instance = new PrivateUserInfoController(i18n, achievementService,
+    instance = new PrivatePlayerInfoController(i18n, achievementService,
         leaderboardService, eventBus, chatUserService);
 
     loadFxml("theme/chat/private_user_info.fxml", clazz -> {
