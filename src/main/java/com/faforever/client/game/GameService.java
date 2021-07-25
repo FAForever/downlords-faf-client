@@ -699,7 +699,7 @@ public class GameService implements InitializingBean {
 
         if (exitCode != 0) {
           notificationService.addImmediateErrorNotification(new RuntimeException(String.format("Forged Alliance Crashed with exit code %d. " +
-                  "See %s for more information", exitCode, logFile.map(Path::getFileName).map(Path::toString).orElse(""))),
+                  "See %s for more information", exitCode, logFile.map(Path::toString).orElse(""))),
               "game.crash", logFile.map(Path::toString).orElse(""));
         }
 
