@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -9,6 +8,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
@@ -74,15 +75,16 @@ public class PrivateChatTabControllerTest extends UITest {
   private WatchButtonController watchButtonController;
   @Mock
   private ChatUserService chatUserService;
+  @Mock
+  private PreferencesService preferencesService;
 
   private PrivateChatTabController instance;
   private String playerName;
 
   @BeforeEach
   public void setUp() throws IOException, ExecutionException, InterruptedException {
-    PreferencesService preferencesService = new PreferencesService(new ClientProperties());
-    preferencesService.afterPropertiesSet();
-    preferencesService.getPreferences().getNotification().setPrivateMessageToastEnabled(true);
+    Preferences preferences = PreferencesBuilder.create().defaultValues().notificationsPrefs().privateMessageToastEnabled(true).then().get();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
         i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,

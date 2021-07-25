@@ -1,7 +1,7 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.notification.Action.ActionCallback;
+import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import javafx.scene.image.Image;
@@ -9,6 +9,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import static com.faforever.client.fx.MouseEvents.generateClick;
 import static org.hamcrest.CoreMatchers.is;
@@ -22,12 +23,14 @@ import static org.mockito.Mockito.when;
 
 public class TransientNotificationControllerTest extends UITest {
 
+  @Mock
+  PreferencesService preferencesService;
+
   private TransientNotificationController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    PreferencesService preferencesService = new PreferencesService(new ClientProperties());
-    preferencesService.afterPropertiesSet();
+    when(preferencesService.getPreferences()).thenReturn(PreferencesBuilder.create().defaultValues().get());
     instance = new TransientNotificationController(preferencesService);
 
     loadFxml("theme/transient_notification.fxml", clazz -> instance);
