@@ -49,7 +49,6 @@ public class Player {
   private final ObjectProperty<Game> game = new SimpleObjectProperty<>();
   private final ObjectProperty<PlayerStatus> status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
   private final ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
-  private final IntegerProperty numberOfGames = new SimpleIntegerProperty();
   private final ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>(Instant.now());
   private final ObservableList<NameRecord> names = FXCollections.observableArrayList();
   private final InvalidationListener gameStatusListener = observable -> updateGameStatus();
@@ -125,15 +124,7 @@ public class Player {
   }
 
   public int getNumberOfGames() {
-    return numberOfGames.get();
-  }
-
-  public void setNumberOfGames(int numberOfGames) {
-    this.numberOfGames.set(numberOfGames);
-  }
-
-  public IntegerProperty numberOfGamesProperty() {
-    return numberOfGames;
+    return leaderboardRatings.values().stream().mapToInt(LeaderboardRating::getNumberOfGames).sum();
   }
 
   @Override
@@ -287,7 +278,6 @@ public class Player {
     setId(playerInfo.getId());
     setClan(playerInfo.getClan());
     setCountry(playerInfo.getCountry());
-    setNumberOfGames(playerInfo.getNumberOfGames());
 
     if (playerInfo.getRatings() != null) {
       Map<String, LeaderboardRating> ratingMap = new HashMap<>();

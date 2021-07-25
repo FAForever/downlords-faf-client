@@ -59,10 +59,10 @@ public class PlayerServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    when(userService.getOwnPlayerInfo()).thenReturn(new PlayerInfo(1, "junit", null, null, null, 0, null, null));
+    when(userService.getOwnPlayerInfo()).thenReturn(new PlayerInfo(1, "junit", null, null, null, new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");
-    playerInfo1 = new PlayerInfo(2, "junit2", null, null, null, 0, null, null);
-    playerInfo2 = new PlayerInfo(3, "junit3", null, null, null, 0, null, null);
+    playerInfo1 = new PlayerInfo(2, "junit2", null, null, null, new HashMap<>(), new HashMap<>());
+    playerInfo2 = new PlayerInfo(3, "junit3", null, null, null, new HashMap<>(), new HashMap<>());
 
     instance = new PlayerService(fafService, userService, eventBus);
 
@@ -106,9 +106,9 @@ public class PlayerServiceTest extends ServiceTest {
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
-    instance.createOrUpdatePlayerForPlayerInfo(new PlayerInfo(2, "junit2", "ABC", null, "DE", 100, null, null));
+    instance.createOrUpdatePlayerForPlayerInfo(new PlayerInfo(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()));
 
-    assertEquals(100, player.getNumberOfGames());
+    assertEquals(0, player.getNumberOfGames());
     assertEquals("ABC", player.getClan());
     assertEquals("DE", player.getCountry());
   }

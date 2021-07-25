@@ -141,7 +141,7 @@ public class PartyMemberItemController implements Controller<Node> {
     JavaFxUtil.addAndTriggerListener(player.clanProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.avatarUrlProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.countryProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.numberOfGamesProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.usernameProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addAndTriggerListener(player.statusProperty(), new WeakInvalidationListener(playerStatusInvalidationListener));
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(partyOwnerInvalidationListener));

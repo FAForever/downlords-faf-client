@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.util.HashMap;
+
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.PLAYING_PSEUDO_CLASS;
 import static org.hamcrest.CoreMatchers.is;
@@ -111,8 +113,8 @@ public class PartyMemberItemControllerTest extends UITest {
     owner.setCountry("DE");
     owner.setAvatarUrl("");
     owner.setClan("");
-    owner.setNumberOfGames(10);
     owner.setUsername("player");
+    owner.setLeaderboardRatings(new HashMap<>());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.usernameLabel.getText(), is(owner.getUsername()));
