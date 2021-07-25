@@ -29,6 +29,12 @@ faf-client:
   forged-alliance:
     exe-url: https://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
 
+  oauth:
+    base-url: http://localhost:4444
+    scopes: openid offline public_profile upload_map upload_mod lobby
+    client-id: faf-java-client
+    redirect-url: http://localhost
+
 logging:
   level:
     com.faforever.client.chat.KittehChatService: off

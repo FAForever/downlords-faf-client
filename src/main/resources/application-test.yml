@@ -28,7 +28,7 @@ faf-client:
 
   oauth:
     base-url: https://hydra.test.faforever.com
-    scopes: openid offline public_profile read_events read_achievements upload_map upload_mod
+    scopes: openid offline public_profile upload_map upload_mod lobby
     client-id: faf-java-client
     redirect-url: http://localhost
 
