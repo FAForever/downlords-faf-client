@@ -122,6 +122,7 @@ public class CreateGameControllerTest extends UITest {
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(modService.updateAndActivateModVersions(any()))
         .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
 
@@ -139,7 +140,7 @@ public class CreateGameControllerTest extends UITest {
     assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
     instance.onlyForFriendsCheckBox.setSelected(false);
     assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
-    verify(preferencesService, times(2)).storeInBackground();
+    verify(preferencesService, times(3)).storeInBackground();
   }
 
   @Test
@@ -224,6 +225,7 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testButtonBindingIfNotConnected() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
+    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -235,6 +237,7 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testButtonBindingIfNotConnecting() {
     when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
+    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.CONNECTING);
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -445,7 +448,7 @@ public class CreateGameControllerTest extends UITest {
   public void testPasswordIsSaved() {
     instance.passwordTextField.setText("1234");
     assertEquals(preferences.getLastGame().getLastGamePassword(), "1234");
-    verify(preferencesService).storeInBackground();
+    verify(preferencesService, times(2)).storeInBackground();
   }
 
   @Test

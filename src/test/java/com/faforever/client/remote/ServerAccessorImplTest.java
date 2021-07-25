@@ -1,5 +1,6 @@
 package com.faforever.client.remote;
 
+import com.faforever.client.api.TokenService;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.game.GameInfoMessageTestBuilder;
@@ -119,6 +120,8 @@ public class ServerAccessorImplTest extends UITest {
   @Mock
   private NotificationService notificationService;
   @Mock
+  private TokenService tokenService;
+  @Mock
   private I18n i18n;
   @Mock
   private ReportingService reportingService;
@@ -140,9 +143,11 @@ public class ServerAccessorImplTest extends UITest {
   private InboundMessage receivedMessage;
   private ClientProperties clientProperties;
   private ObjectMapper objectMapper;
+  private String token = "abc";
 
   @BeforeEach
   public void setUp() throws Exception {
+    when(tokenService.getRefreshedTokenValue()).thenReturn(token);
     serverToClientReadyLatch = new CountDownLatch(1);
     messagesReceivedByFafServer = new ArrayBlockingQueue<>(10);
     objectMapper = new ObjectMapper()
@@ -158,7 +163,7 @@ public class ServerAccessorImplTest extends UITest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, reportingService, taskScheduler, eventBus, reconnectTimerService, clientProperties);
+    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, tokenService, reportingService, taskScheduler, eventBus, reconnectTimerService, clientProperties);
     instance.afterPropertiesSet();
     instance.addOnMessageListener(InboundMessage.class, inboundMessage -> {
       receivedMessage = inboundMessage;
@@ -222,10 +227,9 @@ public class ServerAccessorImplTest extends UITest {
 
   private void connectAndLogIn() throws Exception {
     int playerUid = 123;
-    String token = "abc";
     long sessionId = 456;
 
-    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogin(token).toCompletableFuture();
+    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogin().toCompletableFuture();
 
     assertMessageContainsComponents("downlords-faf-client",
         "version",
@@ -777,7 +781,7 @@ public class ServerAccessorImplTest extends UITest {
   public void testOnAuthenticationFailed() throws InterruptedException, JsonProcessingException {
     AuthenticationFailedMessage authenticationFailedMessage = new AuthenticationFailedMessage("boo");
 
-    instance.connectAndLogin("a");
+    instance.connectAndLogin();
     sendFromServer(authenticationFailedMessage);
     messageReceivedLatch.await(TIMEOUT, TIMEOUT_UNIT);
     assertThat(receivedMessage, is(authenticationFailedMessage));

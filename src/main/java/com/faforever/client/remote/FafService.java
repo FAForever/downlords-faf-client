@@ -123,8 +123,8 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<LoginMessage> connectToServer(String token) {
-    return fafServerAccessor.connectAndLogin(token);
+  public CompletableFuture<LoginMessage> connectToServer() {
+    return fafServerAccessor.connectAndLogin();
   }
 
   public void authorizeApi() {

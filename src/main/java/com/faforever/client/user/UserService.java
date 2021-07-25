@@ -117,7 +117,7 @@ public class UserService implements InitializingBean, DisposableBean {
     if (lobbyConnectionState == ConnectionState.CONNECTED || lobbyConnectionState == ConnectionState.CONNECTING) {
       return CompletableFuture.completedFuture(null);
     }
-    return fafService.connectToServer(tokenService.getRefreshedTokenValue())
+    return fafService.connectToServer()
         .handle((loginMessage, throwable) -> {
           if (throwable != null) {
             log.error("Could not log into the server", throwable);

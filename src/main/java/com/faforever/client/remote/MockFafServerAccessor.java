@@ -100,7 +100,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogin(String token) {
+  public CompletableFuture<LoginMessage> connectAndLogin() {
     return taskService.submitTask(new CompletableTask<LoginMessage>(HIGH) {
       @Override
       protected LoginMessage call() throws Exception {

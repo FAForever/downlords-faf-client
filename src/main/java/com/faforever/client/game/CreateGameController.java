@@ -16,6 +16,7 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.mod.ModVersion;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferenceUpdateListener;
@@ -25,7 +26,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import javafx.beans.binding.Bindings;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
@@ -111,6 +113,7 @@ public class CreateGameController implements Controller<Pane> {
   private Runnable onCloseButtonClickedListener;
   private PreferenceUpdateListener preferenceUpdateListener;
   private MapFilterController mapFilterController;
+  private InvalidationListener createButtonStateListener;
   /**
    * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
    */
@@ -139,6 +142,8 @@ public class CreateGameController implements Controller<Pane> {
       selectionModel.select(newMapIndex);
       mapListView.scrollTo(newMapIndex);
     });
+
+    createButtonStateListener = observable -> setCreateGameButtonState();
 
     Function<FeaturedMod, String> isDefaultModString = mod ->
         Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
@@ -188,35 +193,41 @@ public class CreateGameController implements Controller<Pane> {
     selectLastMap();
     setLastGameTitle();
     initPassword();
-    titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addAndTriggerListener(titleTextField.textProperty(), (observable, oldValue, newValue) -> {
       preferencesService.getPreferences().getLastGame().setLastGameTitle(newValue);
       preferencesService.storeInBackground();
       validateTitle(newValue);
     });
-    validateTitle(titleTextField.getText());
 
-    createGameButton.textProperty().bind(Bindings.createStringBinding(() -> {
-      switch (fafService.connectionStateProperty().get()) {
-        case DISCONNECTED:
-          return i18n.get("game.create.disconnected");
-        case CONNECTING:
-          return i18n.get("game.create.connecting");
-        default:
-          break;
-      }
-      if (Strings.isNullOrEmpty(titleTextField.getText())) {
-        return i18n.get("game.create.titleMissing");
-      } else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
-        return i18n.get("game.create.featuredModMissing");
-      }
-      return i18n.get("game.create.create");
-    }, titleTextField.textProperty(), featuredModListView.getSelectionModel().selectedItemProperty(), fafService.connectionStateProperty()));
+    JavaFxUtil.addAndTriggerListener(fafService.connectionStateProperty(), new WeakInvalidationListener(createButtonStateListener));
+    JavaFxUtil.addListener(titleTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
+    JavaFxUtil.addListener(featuredModListView.getSelectionModel().selectedItemProperty(), new WeakInvalidationListener(createButtonStateListener));
 
-    createGameButton.disableProperty().bind(
-        titleTextField.textProperty().isEmpty()
-            .or(featuredModListView.getSelectionModel().selectedItemProperty().isNull().or(fafService.connectionStateProperty().isNotEqualTo(CONNECTED)))
-    );
     initMapFilterPopup();
+  }
+
+  private void setCreateGameButtonState() {
+    boolean disable = titleTextField.getText().isEmpty()
+        || featuredModListView.getSelectionModel().getSelectedItem() == null
+        || fafService.getLobbyConnectionState() != CONNECTED;
+
+    ConnectionState lobbyConnectionState = fafService.getLobbyConnectionState();
+    String createGameButtonText = switch (lobbyConnectionState) {
+      case DISCONNECTED -> i18n.get("game.create.disconnected");
+      case CONNECTING -> i18n.get("game.create.connecting");
+      case CONNECTED -> {
+        if (Strings.isNullOrEmpty(titleTextField.getText())) {
+          yield i18n.get("game.create.titleMissing");
+        } else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
+          yield i18n.get("game.create.featuredModMissing");
+        } else {
+          yield i18n.get("game.create.create");
+        }
+      }
+    };
+
+    JavaFxUtil.runLater(() -> createGameButton.setDisable(disable));
+    JavaFxUtil.runLater(() -> createGameButton.setText(createGameButtonText));
   }
 
   private void initMapFilterPopup() {

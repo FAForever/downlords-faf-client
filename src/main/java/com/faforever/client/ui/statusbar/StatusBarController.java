@@ -57,21 +57,21 @@ public class StatusBarController implements Controller<Node> {
 
     JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
       switch (newValue) {
-        case DISCONNECTED:
+        case DISCONNECTED -> {
           fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
           fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
           fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, true);
-          break;
-        case CONNECTING:
+        }
+        case CONNECTING -> {
           fafConnectionButton.setText(i18n.get("statusBar.fafConnecting"));
           fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
           fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
-          break;
-        case CONNECTED:
+        }
+        case CONNECTED -> {
           fafConnectionButton.setText(i18n.get("statusBar.fafConnected"));
           fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, true);
           fafConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
-          break;
+        }
       }
     }));
 
@@ -79,17 +79,15 @@ public class StatusBarController implements Controller<Node> {
       chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, false);
       chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, false);
       switch (newValue) {
-        case DISCONNECTED:
+        case DISCONNECTED -> {
           chatConnectionButton.setText(i18n.get("statusBar.chatDisconnected"));
           chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS, true);
-          break;
-        case CONNECTING:
-          chatConnectionButton.setText(i18n.get("statusBar.chatConnecting"));
-          break;
-        case CONNECTED:
+        }
+        case CONNECTING -> chatConnectionButton.setText(i18n.get("statusBar.chatConnecting"));
+        case CONNECTED -> {
           chatConnectionButton.setText(i18n.get("statusBar.chatConnected"));
           chatConnectionStatusIcon.pseudoClassStateChanged(CONNECTIVITY_CONNECTED_PSEUDO_CLASS, true);
-          break;
+        }
       }
     }));
 

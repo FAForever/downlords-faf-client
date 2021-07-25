@@ -1,11 +1,11 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.FafClientApplication;
+import com.faforever.client.api.TokenService;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.UidService;
@@ -21,8 +21,6 @@ import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
-import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
-import com.faforever.client.remote.domain.outbound.faf.LoginOauthClientMessage;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.remote.domain.SerializableMessage;
@@ -33,6 +31,7 @@ import com.faforever.client.remote.domain.inbound.faf.AvatarMessage;
 import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
 import com.faforever.client.remote.domain.inbound.faf.IceServersMessage;
 import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
+import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.remote.domain.inbound.faf.NoticeMessage;
 import com.faforever.client.remote.domain.inbound.faf.SessionMessage;
@@ -52,6 +51,7 @@ import com.faforever.client.remote.domain.outbound.faf.KickPlayerFromPartyMessag
 import com.faforever.client.remote.domain.outbound.faf.LeavePartyMessage;
 import com.faforever.client.remote.domain.outbound.faf.ListIceServersMessage;
 import com.faforever.client.remote.domain.outbound.faf.ListPersonalAvatarsMessage;
+import com.faforever.client.remote.domain.outbound.faf.LoginOauthClientMessage;
 import com.faforever.client.remote.domain.outbound.faf.MakeBroadcastMessage;
 import com.faforever.client.remote.domain.outbound.faf.MatchmakerInfoOutboundMessage;
 import com.faforever.client.remote.domain.outbound.faf.PingMessage;
@@ -79,6 +79,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 import lombok.RequiredArgsConstructor;
@@ -132,6 +133,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private final UidService uidService;
   private final NotificationService notificationService;
   private final I18n i18n;
+  private final TokenService tokenService;
   private final ReportingService reportingService;
   private final TaskScheduler taskScheduler;
   private final EventBus eventBus;
@@ -145,8 +147,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
   private final ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
-  private String token;
-  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>();
+  private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>();
   private Socket fafServerSocket;
   private CompletableFuture<List<Avatar>> avatarsFuture;
   private CompletableFuture<List<IceServer>> iceServersFuture;
@@ -200,14 +201,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Override
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
-    return connectionState;
+    return connectionState.getReadOnlyProperty();
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogin(String token) {
+  public CompletableFuture<LoginMessage> connectAndLogin() {
     sessionFuture = new CompletableFuture<>();
     loginFuture = new CompletableFuture<>();
-    this.token = token;
 
     // TODO extract class?
     fafConnectionTask = new Task<>() {
@@ -220,7 +220,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
           int serverPort = server.getPort();
 
           log.info("Trying to connect to FAF server at {}:{}", serverHost, serverPort);
-          JavaFxUtil.runLater(() -> connectionState.set(ConnectionState.CONNECTING));
+          connectionState.set(ConnectionState.CONNECTING);
 
           try (Socket fafServerSocket = new Socket(serverHost, serverPort);
                OutputStream outputStream = fafServerSocket.getOutputStream()) {
@@ -233,12 +233,12 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
             writeToServer(new InitSessionMessage(Version.getCurrentVersion()));
 
             log.info("FAF server connection established");
-            JavaFxUtil.runLater(() -> connectionState.set(ConnectionState.CONNECTED));
+            connectionState.set(ConnectionState.CONNECTED);
             reconnectTimerService.resetConnectionFailures();
 
             blockingReadServer(fafServerSocket);
           } catch (IOException e) {
-            JavaFxUtil.runLater(() -> connectionState.set(ConnectionState.DISCONNECTED));
+            connectionState.set(ConnectionState.DISCONNECTED);
             if (isCancelled()) {
               log.debug("Connection to FAF server has been closed");
             } else {
@@ -500,13 +500,13 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     log.info("FAF session initiated, session ID: {}", sessionMessage.getSession());
     this.sessionId.set(sessionMessage.getSession());
     sessionFuture.complete(sessionMessage);
-    logIn(token);
+    logIn();
   }
 
-  private void logIn(String token) {
+  private void logIn() {
     try {
       String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
-      writeToServer(new LoginOauthClientMessage(token, sessionId.get(), uniqueId));
+      writeToServer(new LoginOauthClientMessage(tokenService.getRefreshedTokenValue(), sessionId.get(), uniqueId));
     } catch (IOException e) {
       onUIDNotExecuted(e);
     }
