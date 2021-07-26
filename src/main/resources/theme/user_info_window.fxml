@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.faforever.client.player.PlayerRatingChart?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.chart.StackedBarChart?>
@@ -23,8 +23,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import com.faforever.client.chat.PlayerRatingChart?>
-<VBox fx:id="userInfoRoot" prefHeight="700.0" prefWidth="900.0" styleClass="user-info-window" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.UserInfoWindowController">
+<VBox fx:id="userInfoRoot" prefHeight="700.0" prefWidth="900.0" styleClass="user-info-window" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.player.PlayerInfoWindowController">
    <children>
       <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="user-info-header-area">
          <children>

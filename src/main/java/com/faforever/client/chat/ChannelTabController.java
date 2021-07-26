@@ -8,6 +8,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
@@ -128,7 +129,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private ChatChannel chatChannel;
   private final InvalidationListener channelTopicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
   private Popup filterUserPopup;
-  private UserFilterController userFilterController;
+  private ChatUserFilterController chatUserFilterController;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
 
   // TODO cut dependencies
@@ -251,7 +252,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public void initialize() {
     super.initialize();
 
-    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> userFilterController.filterUsers());
+    userSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> chatUserFilterController.filterUsers());
 
     channelTabScrollPaneVBox.setMinWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
@@ -352,10 +353,10 @@ public class ChannelTabController extends AbstractChatTabController {
     filterUserPopup.setAutoHide(true);
     filterUserPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
 
-    userFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
-    userFilterController.setChannelController(this);
-    userFilterController.filterAppliedProperty().addListener(((observable, oldValue, newValue) -> advancedUserFilter.setSelected(newValue)));
-    filterUserPopup.getContent().setAll(userFilterController.getRoot());
+    chatUserFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
+    chatUserFilterController.setChannelController(this);
+    chatUserFilterController.filterAppliedProperty().addListener(((observable, oldValue, newValue) -> advancedUserFilter.setSelected(newValue)));
+    filterUserPopup.getContent().setAll(chatUserFilterController.getRoot());
   }
 
   private void updateUserMessageColor(ChatChannelUser chatUser) {
@@ -514,7 +515,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   public void onAdvancedUserFilter(ActionEvent actionEvent) {
-    advancedUserFilter.setSelected(userFilterController.isFilterApplied());
+    advancedUserFilter.setSelected(chatUserFilterController.isFilterApplied());
     if (filterUserPopup.isShowing()) {
       filterUserPopup.hide();
       return;

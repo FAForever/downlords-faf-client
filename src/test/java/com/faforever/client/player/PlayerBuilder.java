@@ -1,7 +1,7 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.chat.avatar.AvatarBeanBuilder;
+import com.faforever.client.avatar.AvatarBean;
+import com.faforever.client.avatar.AvatarBeanBuilder;
 import com.faforever.client.clan.ClanBuilder;
 import com.faforever.client.game.Game;
 import com.faforever.client.leaderboard.LeaderboardRating;

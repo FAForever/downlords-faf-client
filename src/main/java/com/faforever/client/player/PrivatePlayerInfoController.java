@@ -1,6 +1,8 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
@@ -8,7 +10,6 @@ import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.player.Player;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
@@ -26,12 +27,10 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.CompletableFuture;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class PrivateUserInfoController implements Controller<Node> {
+public class PrivatePlayerInfoController implements Controller<Node> {
   private final I18n i18n;
   private final AchievementService achievementService;
   private final LeaderboardService leaderboardService;
@@ -56,8 +55,8 @@ public class PrivateUserInfoController implements Controller<Node> {
   private InvalidationListener chatUserPropertiesInvalidationListener;
   private InvalidationListener ratingInvalidationListener;
 
-  public PrivateUserInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
-                                   EventBus eventBus, ChatUserService chatUserService) {
+  public PrivatePlayerInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
+                                     EventBus eventBus, ChatUserService chatUserService) {
     this.i18n = i18n;
     this.achievementService = achievementService;
     this.leaderboardService = leaderboardService;
@@ -81,13 +80,15 @@ public class PrivateUserInfoController implements Controller<Node> {
         gamesPlayedLabelLabel,
         unlockedAchievementsLabelLabel
     );
-    initializeListeners();
     onPlayerGameChanged(null);
   }
 
-  private void initializeListeners() {
+  private void initializePlayerListeners() {
     ratingInvalidationListener = observable -> chatUser.getPlayer().ifPresent(this::loadReceiverRatingInformation);
     gameInvalidationListener = observable -> chatUser.getPlayer().ifPresent(chatPlayer -> onPlayerGameChanged(chatPlayer.getGame()));
+  }
+
+  private void initializeChatUserListeners() {
     chatUserPropertiesInvalidationListener = observable -> JavaFxUtil.runLater(() -> {
       usernameLabel.setText(this.chatUser.getUsername());
       countryImageView.setImage(this.chatUser.getCountryFlag().orElse(null));
@@ -97,16 +98,10 @@ public class PrivateUserInfoController implements Controller<Node> {
 
   public void setChatUser(@NotNull ChatChannelUser chatUser) {
     Assert.checkNotNullIllegalState(this.chatUser, "Chat user is already set");
+    initializeChatUserListeners();
     this.chatUser = chatUser;
     this.chatUser.setDisplayed(true);
-    this.chatUser.getPlayer().ifPresentOrElse(this::displayPlayerInfo, () -> {
-      this.chatUser.playerProperty().addListener((observable, oldValue, newValue) -> {
-        if (newValue != null) {
-          displayPlayerInfo(newValue);
-        }
-      });
-      displayChatUserInfo();
-    });
+    JavaFxUtil.addAndTriggerListener(this.chatUser.playerProperty(), (observable) -> displayPlayerInfo());
     JavaFxUtil.addAndTriggerListener(this.chatUser.usernameProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
     JavaFxUtil.addListener(this.chatUser.countryFlagProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
     JavaFxUtil.addListener(this.chatUser.countryNameProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
@@ -128,21 +123,23 @@ public class PrivateUserInfoController implements Controller<Node> {
     unlockedAchievementsLabelLabel.setVisible(visible);
   }
 
-  private void displayPlayerInfo(Player player) {
-    chatUserService.associatePlayerToChatUser(chatUser, player);
-    setPlayerInfoVisible(true);
+  private void displayPlayerInfo() {
+    initializePlayerListeners();
+    chatUser.getPlayer().ifPresentOrElse(player -> {
+      setPlayerInfoVisible(true);
 
-    userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
-    userImageView.setVisible(true);
+      userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
+      userImageView.setVisible(true);
 
-    JavaFxUtil.addAndTriggerListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
-    JavaFxUtil.addAndTriggerListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
+      JavaFxUtil.addAndTriggerListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
+      JavaFxUtil.addAndTriggerListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
 
-    populateUnlockedAchievementsLabel(player);
+      populateUnlockedAchievementsLabel(player);
+    }, this::displayChatUserInfo);
   }
 
-  private CompletableFuture<CompletableFuture<Void>> populateUnlockedAchievementsLabel(Player player) {
-    return achievementService.getAchievementDefinitions()
+  private void populateUnlockedAchievementsLabel(Player player) {
+    achievementService.getAchievementDefinitions()
         .thenApply(achievementDefinitions -> {
           int totalAchievements = achievementDefinitions.size();
           return achievementService.getPlayerAchievements(player.getId())

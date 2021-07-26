@@ -1,12 +1,12 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.chat.InitiatePrivateChatEvent;
-import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.player.Player;
+import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ClipboardUtil;
@@ -85,10 +85,10 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
 
 
   public void onShowUserInfoSelected() {
-    UserInfoWindowController userInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
-    userInfoWindowController.setPlayer(player);
-    userInfoWindowController.setOwnerWindow(partyMemberContextMenuRoot.getOwnerWindow());
-    userInfoWindowController.show();
+    PlayerInfoWindowController playerInfoWindowController = uiService.loadFxml("theme/user_info_window.fxml");
+    playerInfoWindowController.setPlayer(player);
+    playerInfoWindowController.setOwnerWindow(partyMemberContextMenuRoot.getOwnerWindow());
+    playerInfoWindowController.show();
   }
 
   public void onSendPrivateMessageSelected() {

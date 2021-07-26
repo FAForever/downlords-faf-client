@@ -1,7 +1,7 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.avatar.AvatarBean;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameBuilder;

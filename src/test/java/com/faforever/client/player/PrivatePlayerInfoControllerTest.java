@@ -1,6 +1,9 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatChannelUserBuilder;
+import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -8,8 +11,6 @@ import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.leaderboard.LeaderboardBuilder;
 import com.faforever.client.leaderboard.LeaderboardRatingBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.test.UITest;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PrivateUserInfoControllerTest extends UITest {
+public class PrivatePlayerInfoControllerTest extends UITest {
 
   @Mock
   private I18n i18n;
@@ -50,7 +51,7 @@ public class PrivateUserInfoControllerTest extends UITest {
   private WatchButtonController watchButtonController;
 
 
-  private PrivateUserInfoController instance;
+  private PrivatePlayerInfoController instance;
   private Player player;
   private ChatChannelUser chatChannelUser;
   private Leaderboard leaderboard;
@@ -69,7 +70,7 @@ public class PrivateUserInfoControllerTest extends UITest {
     when(i18n.get(eq("chat.privateMessage.achievements.unlockedFormat"), any(), any())).thenReturn("0/0");
     when(i18n.number(anyInt())).thenReturn("123");
 
-    instance = new PrivateUserInfoController(i18n, achievementService,
+    instance = new PrivatePlayerInfoController(i18n, achievementService,
         leaderboardService, eventBus, chatUserService);
 
     loadFxml("theme/chat/private_user_info.fxml", clazz -> {
@@ -103,7 +104,6 @@ public class PrivateUserInfoControllerTest extends UITest {
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
     assertEquals("123", instance.gamesPlayedLabel.getText());
-    verify(chatUserService).associatePlayerToChatUser(chatChannelUser, player);
     verify(gameDetailController, times(2)).setGame(player.getGame());
     verify(achievementService).getPlayerAchievements(player.getId());
   }
@@ -209,7 +209,6 @@ public class PrivateUserInfoControllerTest extends UITest {
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
     assertEquals("123", instance.gamesPlayedLabel.getText());
-    verify(chatUserService).associatePlayerToChatUser(chatChannelUser, player);
     verify(gameDetailController, times(3)).setGame(player.getGame());
     verify(achievementService).getPlayerAchievements(player.getId());
   }

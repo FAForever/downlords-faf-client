@@ -1,9 +1,9 @@
 package com.faforever.client.player;
 
-public class UserOfflineEvent {
+public class PlayerOfflineEvent {
   private final String username;
 
-  public UserOfflineEvent(String username) {
+  public PlayerOfflineEvent(String username) {
     this.username = username;
   }
 

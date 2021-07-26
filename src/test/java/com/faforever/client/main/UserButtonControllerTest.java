@@ -1,8 +1,8 @@
 package com.faforever.client.main;
 
-import com.faforever.client.chat.UserInfoWindowController;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
+import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportDialogController;
@@ -34,7 +34,7 @@ public class UserButtonControllerTest extends UITest {
   @Mock
   private ReportDialogController reportDialogController;
   @Mock
-  private UserInfoWindowController userInfoWindowController;
+  private PlayerInfoWindowController playerInfoWindowController;
   @Mock
   private UserService userService;
   @Mock
@@ -47,7 +47,7 @@ public class UserButtonControllerTest extends UITest {
   public void setUp() throws Exception {
     instance = new UserButtonController(eventBus, playerService, uiService, userService, preferencesService);
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
-    when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(userInfoWindowController);
+    when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(playerInfoWindowController);
 
     player = PlayerBuilder.create(TEST_USER_NAME).defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
@@ -73,8 +73,8 @@ public class UserButtonControllerTest extends UITest {
   public void testShowProfile() {
     instance.onShowProfile(null);
 
-    verify(userInfoWindowController).setPlayer(player);
-    verify(userInfoWindowController).show();
+    verify(playerInfoWindowController).setPlayer(player);
+    verify(playerInfoWindowController).show();
   }
 
   @Test

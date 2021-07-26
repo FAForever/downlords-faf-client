@@ -1,7 +1,7 @@
 package com.faforever.client.player;
 
-import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
+import com.faforever.client.avatar.AvatarBean;
+import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;

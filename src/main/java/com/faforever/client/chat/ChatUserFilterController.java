@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,7 +28,7 @@ import static com.faforever.client.game.PlayerStatus.PLAYING;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class UserFilterController implements Controller<Node> {
+public class ChatUserFilterController implements Controller<Node> {
 
   private final I18n i18n;
   private final CountryFlagService flagService;
@@ -48,7 +49,7 @@ public class UserFilterController implements Controller<Node> {
 
   List<String> currentSelectedCountries;
 
-  public UserFilterController(I18n i18n, CountryFlagService flagService) {
+  public ChatUserFilterController(I18n i18n, CountryFlagService flagService) {
     this.i18n = i18n;
     this.flagService = flagService;
     this.filterApplied = new SimpleBooleanProperty(false);

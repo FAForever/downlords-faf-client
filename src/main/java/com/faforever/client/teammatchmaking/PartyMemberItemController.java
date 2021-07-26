@@ -1,11 +1,11 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.chat.CountryFlagService;
-import com.faforever.client.chat.avatar.AvatarService;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;

@@ -1,8 +1,8 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.chat.avatar.AvatarBean;
-import com.faforever.client.chat.avatar.event.AvatarChangedEvent;
+import com.faforever.client.avatar.AvatarBean;
+import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.clan.Clan;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;

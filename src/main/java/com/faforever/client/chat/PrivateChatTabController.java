@@ -6,8 +6,10 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -38,7 +40,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public Tab privateChatTabRoot;
   public WebView messagesWebView;
   public TextInputControl messageTextField;
-  public PrivateUserInfoController privateUserInfoController;
+  public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
 
   private boolean userOffline;
@@ -82,7 +84,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     privateChatTabRoot.setText(username);
 
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username, false);
-    privateUserInfoController.setChatUser(chatUser);
+    privatePlayerInfoController.setChatUser(chatUser);
   }
 
   public void initialize() {

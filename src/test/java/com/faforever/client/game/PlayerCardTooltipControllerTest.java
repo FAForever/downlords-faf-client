@@ -1,7 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.chat.CountryFlagService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;

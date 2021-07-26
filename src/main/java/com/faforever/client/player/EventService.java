@@ -1,4 +1,4 @@
-package com.faforever.client.events;
+package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.commons.api.dto.PlayerEvent;
