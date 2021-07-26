@@ -150,7 +150,6 @@ public class UserService implements InitializingBean, DisposableBean {
     log.info("Logging out");
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     loginPrefs.setRefreshToken(null);
-    loginPrefs.setRememberMe(false);
     preferencesService.storeInBackground();
     fafService.disconnect();
     ownUser.set(null);

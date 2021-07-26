@@ -32,7 +32,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -320,7 +319,6 @@ public class UserServiceTest extends ServiceTest {
     instance.onLogoutRequestEvent(new LogOutRequestEvent());
 
     LoginPrefs loginPrefs = preferences.getLogin();
-    assertFalse(loginPrefs.getRememberMe());
     assertNull(loginPrefs.getRefreshToken());
     verify(preferencesService).storeInBackground();
     verify(fafService).disconnect();
