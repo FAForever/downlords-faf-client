@@ -1,6 +1,9 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatChannelUserBuilder;
+import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
@@ -8,9 +11,6 @@ import com.faforever.client.leaderboard.Leaderboard;
 import com.faforever.client.leaderboard.LeaderboardBuilder;
 import com.faforever.client.leaderboard.LeaderboardRatingBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
-import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;

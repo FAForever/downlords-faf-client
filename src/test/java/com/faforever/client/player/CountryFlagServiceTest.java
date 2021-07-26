@@ -1,7 +1,6 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementDefinitionBuilder;
 import com.faforever.client.achievements.AchievementItemController;
@@ -11,13 +11,6 @@ import com.faforever.client.leaderboard.LeaderboardBuilder;
 import com.faforever.client.leaderboard.LeaderboardEntryBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.EventService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
-import com.faforever.client.player.PlayerInfoWindowController;
-import com.faforever.client.player.PlayerRatingChartTooltipController;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.stats.StatisticsService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;

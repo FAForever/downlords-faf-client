@@ -1,7 +1,6 @@
-package com.faforever.client.chat;
+package com.faforever.client.player;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerRatingChartTooltipController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import org.junit.jupiter.api.BeforeEach;
