@@ -761,8 +761,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    List<T> objects = restOperations.getForObject(uriComponents.toUriString(), List.class);
-    log.debug("Retrieved {} from {} with parameters {}", objects, endpointPath, params);
+    String url = uriComponents.toUriString();
+    List<T> objects = restOperations.getForObject(url, List.class);
+    log.debug("Retrieved {} from {}", objects, url);
     return objects;
   }
 
@@ -775,8 +776,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    List<T> objects = restOperations.getForObject(uriComponents.toUriString(), List.class);
-    log.debug("Retrieved {} from {} with parameters {}", objects, endpointPath, params);
+    String url = uriComponents.toUriString();
+    List<T> objects = restOperations.getForObject(url, List.class);
+    log.debug("Retrieved {} from {}", objects, url);
     return objects;
   }
 
@@ -790,11 +792,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .build();
 
     authorizedLatch.await();
-    JSONAPIDocument<List<T>> objects = restOperations.getForObject(uriComponents.toUriString(), JSONAPIDocument.class);
+    String url = uriComponents.toUriString();
+    JSONAPIDocument<List<T>> objects = restOperations.getForObject(url, JSONAPIDocument.class);
     if (objects != null) {
-      log.debug("Retrieved {} from {} with parameters {} with meta {}", objects.get(), endpointPath, params, objects.getMeta());
+      log.debug("Retrieved {} from {}", objects.get(), url);
     } else {
-      log.warn("Retrieved nothing from {} with parameters {}", endpointPath, params);
+      log.warn("Retrieved nothing from {}", url);
     }
     return objects;
   }
