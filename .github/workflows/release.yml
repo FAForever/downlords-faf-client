@@ -14,7 +14,7 @@ jobs:
   release:
 
     environment: deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     env:
       INSTALL4J_DIR: "install4j/install4j9.0.2"
 

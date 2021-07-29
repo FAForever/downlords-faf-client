@@ -4,7 +4,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -92,7 +91,6 @@ public class LeaderboardsControllerTest extends UITest {
     assertEquals("Sheikah", instance.ratingTable.getSelectionModel().getSelectedItem().getUsername());
   }
 
-  @Disabled("Randomly failing for some reason")
   @Test
   public void testFilterByNamePlayerPartialMatch() {
     showLeaderboard(leaderboardGlobal);
