@@ -64,7 +64,7 @@ public interface FafServerAccessor {
 
   void selectAvatar(URL url);
 
-  List<Avatar> getAvailableAvatars();
+  CompletableFuture<List<Avatar>> getAvailableAvatars();
 
   void banPlayer(int playerId, int duration, PeriodType periodType, String reason);
 

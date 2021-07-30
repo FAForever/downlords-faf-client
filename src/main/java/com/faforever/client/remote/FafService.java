@@ -270,9 +270,8 @@ public class FafService {
 
   @Async
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
-    return CompletableFuture.completedFuture(fafServerAccessor.getAvailableAvatars().stream()
-        .map(AvatarBean::fromAvatar)
-        .collect(Collectors.toList()));
+    return fafServerAccessor.getAvailableAvatars().thenApply(avatars ->
+        avatars.stream().map(AvatarBean::fromAvatar).collect(Collectors.toList()));
   }
 
   @Async

@@ -73,7 +73,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.github.nocatch.NoCatch;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
@@ -109,7 +108,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
@@ -401,10 +399,10 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
 
   @Override
   @Cacheable(value = CacheNames.AVAILABLE_AVATARS, sync = true)
-  public List<Avatar> getAvailableAvatars() {
+  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
     avatarsFuture = new CompletableFuture<>();
     writeToServer(new ListPersonalAvatarsMessage());
-    return NoCatch.noCatch(() -> avatarsFuture.get(10, TimeUnit.SECONDS));
+    return avatarsFuture;
   }
 
   @Override

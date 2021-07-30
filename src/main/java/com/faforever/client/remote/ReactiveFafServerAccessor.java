@@ -30,6 +30,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -50,7 +51,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Slf4j
 @RequiredArgsConstructor
 @Primary
-public class ReactiveFafServerAccessor implements FafServerAccessor {
+public class ReactiveFafServerAccessor implements FafServerAccessor, InitializingBean {
 
   private final HashMap<Class<? extends InboundMessage>, Collection<Consumer<InboundMessage>>> messageListeners = new HashMap<>();
 
@@ -63,6 +64,11 @@ public class ReactiveFafServerAccessor implements FafServerAccessor {
   private final TokenService tokenService;
 
   private FafLobbyClient lobbyClient;
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+
+  }
 
   @Override
   public <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
@@ -89,6 +95,7 @@ public class ReactiveFafServerAccessor implements FafServerAccessor {
 
   @Override
   public CompletableFuture<LoginMessage> connectAndLogIn() {
+    objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     connectionState.setValue(ConnectionState.CONNECTING);
 
     FafLobbyClient.Config config = new Config(
@@ -100,13 +107,13 @@ public class ReactiveFafServerAccessor implements FafServerAccessor {
         1024 * 1024,
         false
     );
-    lobbyClient = new FafLobbyClient(config, objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES));
+    lobbyClient = new FafLobbyClient(config, objectMapper);
 
     // Emulate the legacy server messages for backwards compatibility
     lobbyClient.getEvents()
         .flatMap(message -> {
           try {
-            return Mono.just(objectMapper.readValue(objectMapper.writeValueAsString(message), InboundMessage.class));
+            return Mono.just(objectMapper.convertValue(message, InboundMessage.class));
           } catch (Exception e) {
             log.error("Failed to map jackson message: {}", message);
             // swallow the error and keep the Flux alive
@@ -219,9 +226,8 @@ public class ReactiveFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public List<Avatar> getAvailableAvatars() {
-    // Not implemented
-    return List.of();
+  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
+    return CompletableFuture.completedFuture(List.of());
   }
 
   @Override
