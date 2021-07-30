@@ -28,17 +28,17 @@ import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.remote.ReconnectTimerService;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
-import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -223,8 +223,8 @@ public class GameService implements InitializingBean {
 
     eventBus.register(this);
 
-    fafService.addOnMessageListener(GameInfoMessage.class, this::onGameInfo);
-    fafService.addOnMessageListener(LoginMessage.class, message -> onLoggedIn());
+    fafService.addOnMessageListener(GameInfo.class, this::onGameInfo);
+    fafService.addOnMessageListener(LoginSuccessResponse.class, message -> onLoggedIn());
 
     JavaFxUtil.addListener(
         fafService.connectionStateProperty(),
@@ -302,11 +302,7 @@ public class GameService implements InitializingBean {
         .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchMessage -> {
 
-          String ratingType = gameLaunchMessage.getRatingType();
-          if (ratingType == null) {
-            log.warn("Rating type not in gameLaunchMessage using default");
-            ratingType = DEFAULT_RATING_TYPE;
-          }
+          String ratingType = gameLaunchMessage.getLeaderboard();
 
           startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
         });
@@ -355,16 +351,7 @@ public class GameService implements InitializingBean {
             currentGame.set(game);
           }
 
-          String ratingType = gameLaunchMessage.getRatingType();
-          if (ratingType == null) {
-            log.warn("Rating type not in gameLaunchMessage using game rating type");
-            ratingType = game.getRatingType();
-          }
-
-          if (ratingType == null) {
-            log.warn("Rating type not in game using default");
-            ratingType = DEFAULT_RATING_TYPE;
-          }
+          String ratingType = gameLaunchMessage.getLeaderboard();
 
           startGame(gameLaunchMessage, null, ratingType);
         })
@@ -551,18 +538,13 @@ public class GameService implements InitializingBean {
     return modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafService.startSearchMatchmaker())
-        .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapname())
+        .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
             .thenRun(() -> {
               gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
               gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
 
-              String ratingType = gameLaunchMessage.getRatingType();
-
-              if (ratingType == null) {
-                log.warn("Rating type not in game launch message using default");
-                ratingType = DEFAULT_RATING_TYPE;
-              }
+              String ratingType = gameLaunchMessage.getLeaderboard();
 
               startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
             }))
@@ -620,7 +602,7 @@ public class GameService implements InitializingBean {
    * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
    * (mod/map download, connectivity check etc.)
    */
-  private void startGame(GameLaunchMessage gameLaunchMessage, Faction faction, String ratingType) {
+  private void startGame(GameLaunchResponse gameLaunchMessage, Faction faction, String ratingType) {
     if (isRunning()) {
       log.warn("Forged Alliance is already running, not starting game");
       return;
@@ -755,7 +737,7 @@ public class GameService implements InitializingBean {
     }
   }
 
-  private void onGameInfo(GameInfoMessage gameInfoMessage) {
+  private void onGameInfo(GameInfo gameInfoMessage) {
     if (gameInfoMessage.getGames() != null) {
       gameInfoMessage.getGames().forEach(this::onGameInfo);
       return;

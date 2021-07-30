@@ -4,9 +4,9 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.PlayerAchievement;
+import com.faforever.commons.lobby.UpdatedAchievementsInfo;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -94,7 +94,7 @@ public class AchievementService implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() {
-    fafService.addOnMessageListener(UpdatedAchievementsMessage.class, updatedAchievementsMessage -> reloadAchievements());
+    fafService.addOnMessageListener(UpdatedAchievementsInfo.class, updatedAchievementsMessage -> reloadAchievements());
   }
 
   public enum AchievementState {

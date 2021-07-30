@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 
@@ -19,7 +20,7 @@ public class MatchmakerInfoMessage extends FafInboundMessage {
   public static class MatchmakerQueue {
 
     String queueName;
-    String queuePopTime;
+    OffsetDateTime queuePopTime;
     int teamSize;
     int numPlayers;
 

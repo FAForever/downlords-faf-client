@@ -11,8 +11,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.GameAccess;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.LobbyMode;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
@@ -30,6 +28,8 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -277,8 +277,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public List<Avatar> getAvailableAvatars() {
-    return List.of();
+  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
+    return CompletableFuture.completedFuture(List.of());
   }
 
   @Override

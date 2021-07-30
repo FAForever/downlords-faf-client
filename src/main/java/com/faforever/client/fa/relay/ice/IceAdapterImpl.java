@@ -6,23 +6,22 @@ import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
-import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.LobbyMode;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
 import com.faforever.client.remote.domain.inbound.faf.IceServersMessage;
-import com.faforever.client.remote.domain.inbound.gpg.ConnectToPeerMessage;
-import com.faforever.client.remote.domain.inbound.gpg.DisconnectFromPeerMessage;
-import com.faforever.client.remote.domain.inbound.gpg.GpgHostGameMessage;
-import com.faforever.client.remote.domain.inbound.gpg.GpgJoinGameMessage;
-import com.faforever.client.remote.domain.inbound.gpg.IceInboundMessage;
 import com.faforever.client.remote.domain.outbound.gpg.GameFullMessage;
 import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
 import com.faforever.client.remote.domain.outbound.gpg.RehostMessage;
+import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
+import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
+import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.HostGameGpgCommand;
+import com.faforever.commons.lobby.IceMsgGpgCommand;
+import com.faforever.commons.lobby.JoinGameGpgCommand;
+import com.faforever.commons.lobby.LobbyMode;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -82,12 +81,12 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    fafService.addOnMessageListener(GpgJoinGameMessage.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
-    fafService.addOnMessageListener(GpgHostGameMessage.class, message -> iceAdapterProxy.hostGame(message.getMap()));
-    fafService.addOnMessageListener(ConnectToPeerMessage.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
-    fafService.addOnMessageListener(GameLaunchMessage.class, this::updateLobbyModeFromGameInfo);
-    fafService.addOnMessageListener(DisconnectFromPeerMessage.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
-    fafService.addOnMessageListener(IceInboundMessage.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
+    fafService.addOnMessageListener(JoinGameGpgCommand.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
+    fafService.addOnMessageListener(HostGameGpgCommand.class, message -> iceAdapterProxy.hostGame(message.getMap()));
+    fafService.addOnMessageListener(ConnectToPeerGpgCommand.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
+    fafService.addOnMessageListener(GameLaunchResponse.class, this::updateLobbyModeFromGameInfo);
+    fafService.addOnMessageListener(DisconnectFromPeerGpgCommand.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
+    fafService.addOnMessageListener(IceMsgGpgCommand.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
   }
 
   /**
@@ -288,18 +287,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     );
   }
 
-  private void updateLobbyModeFromGameInfo(GameLaunchMessage gameLaunchMessage) {
+  private void updateLobbyModeFromGameInfo(GameLaunchResponse gameLaunchMessage) {
     // TODO: Replace with game type. Needs https://github.com/FAForever/server/issues/685
-    if (gameLaunchMessage.getInitMode() != null) {
-      lobbyInitMode = gameLaunchMessage.getInitMode();
-      return;
-    }
-
-    if (KnownFeaturedMod.LADDER_1V1.getTechnicalName().equals(gameLaunchMessage.getMod())) {
-      lobbyInitMode = LobbyMode.AUTO_LOBBY;
-    } else {
-      lobbyInitMode = LobbyMode.DEFAULT_LOBBY;
-    }
+    lobbyInitMode = gameLaunchMessage.getLobbyMode();
   }
 
   @Override

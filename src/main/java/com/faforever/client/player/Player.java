@@ -5,8 +5,7 @@ import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.leaderboard.LeaderboardRating;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.PlayerInfo;
+import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
@@ -89,7 +88,7 @@ public class Player {
     return player;
   }
 
-  public static Player fromPlayerInfo(PlayerInfo dto) {
+  public static Player fromPlayerInfo(com.faforever.commons.lobby.Player dto) {
     Player player = new Player(dto.getLogin());
     player.updateFromPlayerInfo(dto);
     return player;
@@ -273,21 +272,19 @@ public class Player {
     return chatChannelUsers;
   }
 
-  public void updateFromPlayerInfo(PlayerInfo playerInfo) {
+  public void updateFromPlayerInfo(com.faforever.commons.lobby.Player playerInfo) {
     setUsername(playerInfo.getLogin());
     setId(playerInfo.getId());
     setClan(playerInfo.getClan());
     setCountry(playerInfo.getCountry());
 
-    if (playerInfo.getRatings() != null) {
-      Map<String, LeaderboardRating> ratingMap = new HashMap<>();
-      playerInfo.getRatings().forEach((key, value) -> ratingMap.put(key, LeaderboardRating.fromDto(value)));
-      setLeaderboardRatings(ratingMap);
-    }
+    Map<String, LeaderboardRating> ratingMap = new HashMap<>();
+    playerInfo.getRatings().forEach((key, value) -> ratingMap.put(key, LeaderboardRating.fromDto(value)));
+    setLeaderboardRatings(ratingMap);
 
     if (playerInfo.getAvatar() != null) {
       setAvatarUrl(playerInfo.getAvatar().getUrl());
-      setAvatarTooltip(playerInfo.getAvatar().getTooltip());
+      setAvatarTooltip(playerInfo.getAvatar().getDescription());
     }
   }
 }

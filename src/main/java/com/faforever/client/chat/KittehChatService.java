@@ -16,11 +16,12 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
-import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
+import com.faforever.commons.lobby.IrcPasswordInfo;
+import com.faforever.commons.lobby.Player.LeaderboardRating;
+import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -134,7 +135,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    fafService.addOnMessageListener(SocialMessage.class, this::onSocialMessage);
+    fafService.addOnMessageListener(SocialInfo.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
         case DISCONNECTED, CONNECTING -> onDisconnected();
@@ -216,7 +217,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Subscribe
-  public void onIrcPassword(IrcPasswordServerMessage event) {
+  public void onIrcPassword(IrcPasswordInfo event) {
     username = userService.getUsername();
     password = Hashing.md5().hashString(event.getPassword(), StandardCharsets.UTF_8).toString();
     if (connectionState.get() == ConnectionState.DISCONNECTED) {
@@ -248,7 +249,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   public void onConnect(ClientNegotiationCompleteEvent event) {
     connectionState.set(ConnectionState.CONNECTED);
-    if (userService.getOwnPlayerInfo().getNumberOfGames() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
+    if (userService.getOwnPlayer().getRatings().values().stream().mapToInt(LeaderboardRating::getNumberOfGames).sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
       joinChannel(NEWBIE_CHANNEL_NAME);
     }
   }
@@ -427,8 +428,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     connectionState.set(ConnectionState.DISCONNECTED);
   }
 
-  private void onSocialMessage(SocialMessage socialMessage) {
-    if (!autoChannelsJoined && socialMessage.getChannels() != null) {
+  private void onSocialMessage(SocialInfo socialMessage) {
+    if (!autoChannelsJoined) {
       this.autoChannels = new ArrayList<>(socialMessage.getChannels());
       autoChannels.remove(defaultChannelName);
       autoChannels.add(0, defaultChannelName);

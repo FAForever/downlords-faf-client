@@ -1,6 +1,6 @@
 package com.faforever.client.preferences;
 
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.ObservableList;

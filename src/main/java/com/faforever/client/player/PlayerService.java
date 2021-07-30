@@ -8,13 +8,11 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.Game;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
-import com.faforever.client.remote.domain.PlayerInfo;
-import com.faforever.client.remote.domain.inbound.faf.PlayerInfoMessage;
-import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -63,8 +61,8 @@ public class PlayerService implements InitializingBean {
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    fafService.addOnMessageListener(PlayerInfoMessage.class, this::onPlayersInfo);
-    fafService.addOnMessageListener(SocialMessage.class, this::onFoeList);
+    fafService.addOnMessageListener(com.faforever.commons.lobby.PlayerInfo.class, this::onPlayersInfo);
+    fafService.addOnMessageListener(SocialInfo.class, this::onSocialMessage);
   }
 
   public void updatePlayersInGame(Game game) {
@@ -159,7 +157,7 @@ public class PlayerService implements InitializingBean {
    * Gets a player for the given username. A new player is created and registered if it does not yet exist.
    */
   @VisibleForTesting
-  void createOrUpdatePlayerForPlayerInfo(@NotNull PlayerInfo playerInfo) {
+  void createOrUpdatePlayerForPlayerInfo(@NotNull com.faforever.commons.lobby.Player playerInfo) {
     Assert.checkNullArgument(playerInfo, "playerInfo must not be null");
 
     Player player;
@@ -233,9 +231,9 @@ public class PlayerService implements InitializingBean {
   }
 
   public Player getCurrentPlayer() {
-    Assert.checkNullIllegalState(userService.getOwnPlayerInfo(), "Own player not set");
+    Assert.checkNullIllegalState(userService.getOwnPlayer(), "Own player not set");
     if (!playersByName.containsKey(userService.getUsername())) {
-      createOrUpdatePlayerForPlayerInfo(userService.getOwnPlayerInfo());
+      createOrUpdatePlayerForPlayerInfo(userService.getOwnPlayer());
     }
     return playersByName.get(userService.getUsername());
   }
@@ -256,13 +254,13 @@ public class PlayerService implements InitializingBean {
     return Optional.ofNullable(playersByName.get(playerName));
   }
 
-  private void onPlayersInfo(PlayerInfoMessage playerInfoMessage) {
+  private void onPlayersInfo(com.faforever.commons.lobby.PlayerInfo playerInfoMessage) {
     playerInfoMessage.getPlayers().forEach(this::onPlayerInfo);
   }
 
-  private void onFoeList(SocialMessage socialMessage) {
-    Optional.ofNullable(socialMessage.getFoes()).ifPresent(this::onFoeList);
-    Optional.ofNullable(socialMessage.getFriends()).ifPresent(this::onFriendList);
+  private void onSocialMessage(SocialInfo socialMessage) {
+    onFoeList(socialMessage.getFoes());
+    onFriendList(socialMessage.getFriends());
   }
 
   private void onFoeList(List<Integer> foes) {
@@ -285,7 +283,7 @@ public class PlayerService implements InitializingBean {
     }
   }
 
-  private void onPlayerInfo(PlayerInfo dto) {
+  private void onPlayerInfo(com.faforever.commons.lobby.Player dto) {
     createOrUpdatePlayerForPlayerInfo(dto);
   }
 }

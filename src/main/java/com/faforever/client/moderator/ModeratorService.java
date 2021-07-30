@@ -1,7 +1,6 @@
 package com.faforever.client.moderator;
 
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +22,6 @@ public class ModeratorService {
           cachedPermissions = permissions;
           return permissions;
         });
-  }
-
-  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
-    fafService.banPlayer(playerId, duration, periodType, reason);
   }
 
   public void closePlayersGame(int playerId) {

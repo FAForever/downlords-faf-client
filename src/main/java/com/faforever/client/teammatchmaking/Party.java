@@ -2,7 +2,7 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.Player;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

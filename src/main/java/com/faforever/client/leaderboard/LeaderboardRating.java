@@ -1,5 +1,6 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.commons.lobby.Player;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
@@ -7,7 +8,6 @@ import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Represents a leaderboard rating
@@ -25,11 +25,11 @@ public class LeaderboardRating {
     numberOfGames = new SimpleIntegerProperty();
   }
 
-  public static LeaderboardRating fromDto(com.faforever.client.remote.domain.LeaderboardRating dto) {
+  public static LeaderboardRating fromDto(Player.LeaderboardRating dto) {
     LeaderboardRating leaderboardRating = new LeaderboardRating();
-    leaderboardRating.setNumberOfGames(Optional.ofNullable(dto.getNumberOfGames()).orElse(0));
-    leaderboardRating.setMean(Optional.ofNullable(dto.getRating()).map(rating -> rating[0]).orElse(0f));
-    leaderboardRating.setDeviation(Optional.ofNullable(dto.getRating()).map(rating -> rating[1]).orElse(0f));
+    leaderboardRating.setNumberOfGames(dto.getNumberOfGames());
+    leaderboardRating.setMean(dto.getRating().get(0));
+    leaderboardRating.setDeviation(dto.getRating().get(1));
     return leaderboardRating;
   }
 

@@ -14,10 +14,10 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.MapChangeListener;
@@ -622,7 +622,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testLeaveChannel() {
-    IrcPasswordServerMessage event = new IrcPasswordServerMessage("abc");
+    IrcPasswordInfo event = new IrcPasswordInfo("abc");
     instance.onIrcPassword(event);
     instance.leaveChannel(DEFAULT_CHANNEL_NAME);
   }

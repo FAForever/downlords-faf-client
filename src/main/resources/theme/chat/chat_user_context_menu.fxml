@@ -56,7 +56,6 @@
                 visible="false"/>
       <MenuItem fx:id="kickLobbyItem" mnemonicParsing="false" onAction="#onKickLobby" text="%chat.userContext.kickLobby"
                 visible="false"/>
-      <MenuItem fx:id="banItem" mnemonicParsing="false" onAction="#onBan" visible="false" text="%chat.userContext.ban"/>
       <MenuItem fx:id="broadcastMessage" mnemonicParsing="false" onAction="#onBroadcastMessage" visible="false"
                 text="%chat.userContext.broadcast"/>
       <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false">

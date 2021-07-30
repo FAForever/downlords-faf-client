@@ -4,7 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.game.Game;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.GameStatus;
+import com.faforever.commons.lobby.GameStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordRPC;

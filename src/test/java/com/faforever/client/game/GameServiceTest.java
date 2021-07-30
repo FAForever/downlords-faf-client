@@ -30,6 +30,7 @@ import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.GameLaunchResponse;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
@@ -57,10 +58,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
-import static com.faforever.client.remote.domain.GameStatus.CLOSED;
-import static com.faforever.client.remote.domain.GameStatus.OPEN;
-import static com.faforever.client.remote.domain.GameStatus.PLAYING;
 import static com.faforever.commons.api.dto.Faction.CYBRAN;
+import static com.faforever.commons.lobby.GameStatus.CLOSED;
+import static com.faforever.commons.lobby.GameStatus.OPEN;
+import static com.faforever.commons.lobby.GameStatus.PLAYING;
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -667,7 +668,7 @@ public class GameServiceTest extends ServiceTest {
   @Test
   public void testCurrentGameEndedBehaviour() {
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
-    Game game = GameBuilder.create().defaultValues().id(123).status(PLAYING).teams(Map.of("1", List.of(junitPlayer.getUsername()))).get();
+    Game game = GameBuilder.create().defaultValues().id(123L).status(PLAYING).teams(Map.of("1", List.of(junitPlayer.getUsername()))).get();
     junitPlayer.setGame(game);
 
     instance.currentGame.set(game);
@@ -693,7 +694,7 @@ public class GameServiceTest extends ServiceTest {
   public void testGameHost() throws IOException {
     when(preferencesService.isGamePathValid()).thenReturn(true);
     NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchMessage gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().get();
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().get();
     when(gameUpdater.update(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())).thenReturn(completedFuture(null));
     when(mapService.download(newGameInfo.getMap())).thenReturn(completedFuture(null));
     when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));

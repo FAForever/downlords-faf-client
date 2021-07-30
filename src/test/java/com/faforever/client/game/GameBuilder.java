@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
 import com.faforever.commons.api.dto.VictoryCondition;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
 import javafx.collections.FXCollections;
 
 import java.time.Instant;
@@ -29,7 +29,7 @@ public class GameBuilder {
     status(GameStatus.OPEN);
     title("Title");
     teams(FXCollections.emptyObservableMap());
-    id(1);
+    id(1L);
     minRating(800);
     maxRating(1300);
     startTime(Instant.now());
@@ -59,7 +59,7 @@ public class GameBuilder {
     return this;
   }
 
-  public GameBuilder id(int id) {
+  public GameBuilder id(Long id) {
     game.setId(id);
     return this;
   }

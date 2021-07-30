@@ -12,11 +12,11 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.PlayerInfo;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.commons.api.dto.MeResult;
+import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.ObjectProperty;
@@ -40,7 +40,7 @@ import java.util.concurrent.CompletionException;
 public class UserService implements InitializingBean, DisposableBean {
 
   private final ObjectProperty<MeResult> ownUser = new SimpleObjectProperty<>();
-  private final ObjectProperty<PlayerInfo> ownPlayerInfo = new SimpleObjectProperty<>();
+  private final ObjectProperty<Player> ownPlayer = new SimpleObjectProperty<>();
 
   private final ClientProperties clientProperties;
   private final FafService fafService;
@@ -127,7 +127,7 @@ public class UserService implements InitializingBean, DisposableBean {
             log.error("Player id from server `{}` does not match player id from api `{}`", loginMessage.getMe().getId(), getUserId());
             throw new IllegalStateException("Player id returned by server does not match player id from api");
           }
-          ownPlayerInfo.set(loginMessage.getMe());
+          ownPlayer.set(loginMessage.getMe());
           return null;
         });
   }
@@ -153,7 +153,7 @@ public class UserService implements InitializingBean, DisposableBean {
     preferencesService.storeInBackground();
     fafService.disconnect();
     ownUser.set(null);
-    ownPlayerInfo.set(null);
+    ownPlayer.set(null);
     eventBus.post(new LoggedOutEvent());
   }
 
@@ -176,7 +176,7 @@ public class UserService implements InitializingBean, DisposableBean {
     return ownUser.get();
   }
 
-  public PlayerInfo getOwnPlayerInfo() {
-    return ownPlayerInfo.get();
+  public Player getOwnPlayer() {
+    return ownPlayer.get();
   }
 }

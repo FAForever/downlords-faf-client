@@ -6,9 +6,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.UpdatedAchievement;
-import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.lobby.UpdatedAchievementsInfo;
+import com.faforever.commons.lobby.UpdatedAchievementsInfo.UpdatedAchievement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -31,10 +31,10 @@ public class AchievementUnlockedNotifier implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() {
-    fafService.addOnMessageListener(UpdatedAchievementsMessage.class, this::onUpdatedAchievementsMessage);
+    fafService.addOnMessageListener(UpdatedAchievementsInfo.class, this::onUpdatedAchievementsMessage);
   }
 
-  private void onUpdatedAchievementsMessage(UpdatedAchievementsMessage message) {
+  private void onUpdatedAchievementsMessage(UpdatedAchievementsInfo message) {
     message.getUpdatedAchievements().stream()
         .filter(UpdatedAchievement::getNewlyUnlocked)
         .forEachOrdered(updatedAchievement -> achievementService.getAchievementDefinition(updatedAchievement.getAchievementId())

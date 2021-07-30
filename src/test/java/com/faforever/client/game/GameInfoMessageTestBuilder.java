@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

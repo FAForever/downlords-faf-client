@@ -16,11 +16,7 @@ import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.inbound.InboundMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
 import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
-import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.remote.domain.outbound.gpg.GameEndedMessage;
 import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
 import com.faforever.client.remote.domain.outbound.gpg.IceMessage;
@@ -35,7 +31,6 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.CoopResult;
-import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReview;
@@ -49,6 +44,10 @@ import com.faforever.commons.api.dto.ModVersionReview;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.io.ByteCountListener;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.ServerMessage;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
@@ -78,19 +77,15 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class FafService {
 
-  private final FafServerAccessor fafServerAccessor;
+  private final LobbyServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
 
-  public <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
-    fafServerAccessor.addOnMessageListener(type, listener);
+  public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
+    fafServerAccessor.addEventListener(type, listener);
   }
 
-  public <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
-    fafServerAccessor.removeOnMessageListener(type, listener);
-  }
-
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
     return fafServerAccessor.requestHostGame(newGameInfo);
   }
 
@@ -102,11 +97,11 @@ public class FafService {
     return fafServerAccessor.connectionStateProperty();
   }
 
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
+  public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+  public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
     return fafServerAccessor.startSearchMatchmaker();
   }
 
@@ -123,7 +118,7 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<LoginMessage> connectToServer() {
+  public CompletableFuture<LoginSuccessResponse> connectToServer() {
     return fafServerAccessor.connectAndLogIn();
   }
 
@@ -662,11 +657,6 @@ public class FafService {
     mapVersion.setId(map.getId());
     fafApiAccessor.updateMapVersion(id, mapVersion);
     return CompletableFuture.completedFuture(null);
-  }
-
-  @Async
-  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
-    fafServerAccessor.banPlayer(playerId, duration, periodType, reason);
   }
 
   @Async
