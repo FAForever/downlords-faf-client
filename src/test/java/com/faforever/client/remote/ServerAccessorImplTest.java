@@ -230,7 +230,7 @@ public class ServerAccessorImplTest extends UITest {
     int playerUid = 123;
     long sessionId = 456;
 
-    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogin().toCompletableFuture();
+    CompletableFuture<LoginMessage> loginFuture = instance.connectAndLogIn().toCompletableFuture();
 
     assertMessageContainsComponents("downlords-faf-client",
         "version",
@@ -782,7 +782,7 @@ public class ServerAccessorImplTest extends UITest {
   public void testOnAuthenticationFailed() throws InterruptedException, JsonProcessingException {
     AuthenticationFailedMessage authenticationFailedMessage = new AuthenticationFailedMessage("boo");
 
-    instance.connectAndLogin();
+    instance.connectAndLogIn();
     sendFromServer(authenticationFailedMessage);
     messageReceivedLatch.await(TIMEOUT, TIMEOUT_UNIT);
     assertThat(receivedMessage, is(authenticationFailedMessage));

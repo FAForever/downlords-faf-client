@@ -124,7 +124,7 @@ public class FafService {
 
   @Async
   public CompletableFuture<LoginMessage> connectToServer() {
-    return fafServerAccessor.connectAndLogin();
+    return fafServerAccessor.connectAndLogIn();
   }
 
   public void authorizeApi() {

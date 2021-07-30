@@ -144,7 +144,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private Task<Void> fafConnectionTask;
   private ServerWriter serverWriter;
   private volatile CompletableFuture<LoginMessage> loginFuture;
-  private CompletableFuture<SessionMessage> sessionFuture;
   private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
   private final ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
   private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>();
@@ -205,8 +204,7 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogin() {
-    sessionFuture = new CompletableFuture<>();
+  public CompletableFuture<LoginMessage> connectAndLogIn() {
     loginFuture = new CompletableFuture<>();
 
     // TODO extract class?
@@ -499,7 +497,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   private void onSessionInitiated(SessionMessage sessionMessage) {
     log.info("FAF session initiated, session ID: {}", sessionMessage.getSession());
     this.sessionId.set(sessionMessage.getSession());
-    sessionFuture.complete(sessionMessage);
     logIn();
   }
 

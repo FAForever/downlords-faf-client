@@ -260,7 +260,6 @@ dependencies {
   implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:${springSecurityOauth2AutoconfigureVersion}")
   implementation("org.springframework:spring-web")
   implementation("org.springframework:spring-websocket")
-  compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 
   implementation("com.github.FAForever:faf-java-commons:${fafCommonsVersion}") {
     exclude module: 'guava'
@@ -282,6 +281,7 @@ dependencies {
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
   implementation("javax.inject:javax.inject:1")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
   implementation("com.github.nsp:JSkills:${jSkillsVersion}")
   implementation("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")

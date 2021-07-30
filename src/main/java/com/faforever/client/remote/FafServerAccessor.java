@@ -36,7 +36,7 @@ public interface FafServerAccessor {
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletableFuture<LoginMessage> connectAndLogin();
+  CompletableFuture<LoginMessage> connectAndLogIn();
 
   CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
 
