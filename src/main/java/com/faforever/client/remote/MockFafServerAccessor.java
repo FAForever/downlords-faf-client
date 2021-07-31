@@ -1,35 +1,27 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.FafClientApplication;
-import com.faforever.client.game.GameVisibility;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
-import com.faforever.client.remote.domain.Avatar;
-import com.faforever.client.remote.domain.GameAccess;
-import com.faforever.client.remote.domain.LobbyMode;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.PlayerInfo;
-import com.faforever.client.remote.domain.inbound.InboundMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
-import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
-import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
-import com.faforever.client.remote.domain.inbound.faf.PlayerInfoMessage;
-import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
-import com.faforever.client.user.event.LoginSuccessEvent;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.GameAccess;
+import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.IceServer;
+import com.faforever.commons.lobby.LobbyMode;
+import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.Player.Avatar;
+import com.faforever.commons.lobby.ServerMessage;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -41,19 +33,13 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static com.faforever.client.remote.domain.GameAccess.PASSWORD;
-import static com.faforever.client.remote.domain.GameAccess.PUBLIC;
 import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 
 @Lazy
@@ -66,7 +52,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   private static final String USER_NAME = "MockUser";
   private final Timer timer = new Timer("LobbyServerAccessorTimer", true);
-  private final HashMap<Class<? extends InboundMessage>, Collection<Consumer<InboundMessage>>> messageListeners = new HashMap<>();
 
   private final TaskService taskService;
   private final NotificationService notificationService;
@@ -77,16 +62,8 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
-    if (!messageListeners.containsKey(type)) {
-      messageListeners.put(type, new LinkedList<>());
-    }
-    messageListeners.get(type).add((Consumer<InboundMessage>) listener);
-  }
+  public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
 
-  @Override
-  public <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
-    messageListeners.get(type).remove(listener);
   }
 
   @Override
@@ -100,99 +77,34 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<LoginMessage> connectAndLogIn() {
-    return taskService.submitTask(new CompletableTask<LoginMessage>(HIGH) {
-      @Override
-      protected LoginMessage call() throws Exception {
-        updateTitle(i18n.get("login.progress.message"));
-
-        PlayerInfo playerInfo = new PlayerInfo(4812, USER_NAME, null, null, null, new HashMap<>(), new HashMap<>());
-
-        PlayerInfoMessage playerInfoMessage = new PlayerInfoMessage(List.of(playerInfo));
-
-        eventBus.post(new LoginSuccessEvent());
-
-        messageListeners.getOrDefault(playerInfoMessage.getClass(), List.of()).forEach(consumer -> consumer.accept(playerInfoMessage));
-
-        timer.schedule(new TimerTask() {
-          @Override
-          public void run() {
-            UpdatedAchievement updatedAchievement = new UpdatedAchievement();
-            updatedAchievement.setAchievementId("50260d04-90ff-45c8-816b-4ad8d7b97ecd");
-            updatedAchievement.setNewlyUnlocked(true);
-            UpdatedAchievementsMessage updatedAchievementsMessage = new UpdatedAchievementsMessage(List.of(updatedAchievement));
-
-            messageListeners.getOrDefault(updatedAchievementsMessage.getClass(), List.of()).forEach(consumer -> consumer.accept(updatedAchievementsMessage));
-          }
-        }, 7000);
-
-        List<GameInfoMessage> gameInfoMessages = Arrays.asList(
-            createGameInfo(1, "Mock game 500 - 800", PUBLIC, "faf", "scmp_010", 1, 6, "Mock user"),
-            createGameInfo(2, "Mock game 500+", PUBLIC, "faf", "scmp_011", 2, 6, "Mock user"),
-            createGameInfo(3, "Mock game +500", PUBLIC, "faf", "scmp_012", 3, 6, "Mock user"),
-            createGameInfo(4, "Mock game <1000", PUBLIC, "faf", "scmp_013", 4, 6, "Mock user"),
-            createGameInfo(5, "Mock game >1000", PUBLIC, "faf", "scmp_014", 5, 6, "Mock user"),
-            createGameInfo(6, "Mock game ~600", PASSWORD, "faf", "scmp_015", 6, 6, "Mock user"),
-            createGameInfo(7, "Mock game 7", PASSWORD, "faf", "scmp_016", 7, 6, "Mock user")
-        );
-
-        gameInfoMessages.forEach(gameInfoMessage ->
-            messageListeners.getOrDefault(gameInfoMessage.getClass(), List.of())
-                .forEach(consumer -> consumer.accept(gameInfoMessage)));
-
-        notificationService.addNotification(
-            new PersistentNotification(
-                "How about a long-running (7s) mock task?",
-                Severity.INFO,
-                Arrays.asList(
-                    new Action("Execute", event ->
-                        taskService.submitTask(new CompletableTask<Void>(HIGH) {
-                          @Override
-                          protected Void call() throws Exception {
-                            updateTitle("Mock task");
-                            Thread.sleep(2000);
-                            for (int i = 0; i < 5; i++) {
-                              updateProgress(i, 5);
-                              Thread.sleep(1000);
-                            }
-                            return null;
-                          }
-                        })),
-                    new Action("Nope")
-                )
-            )
-        );
-
-        PlayerInfo me = new PlayerInfo(123, USER_NAME, null, null, null, new HashMap<>(), new HashMap<>());
-        return new LoginMessage(me);
-      }
-    }).getFuture();
+  public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
+    return CompletableFuture.completedFuture(null);
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
-    return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
+  public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
+    return taskService.submitTask(new CompletableTask<GameLaunchResponse>(HIGH) {
       @Override
-      protected GameLaunchMessage call() throws Exception {
+      protected GameLaunchResponse call() throws Exception {
         updateTitle("Hosting game");
 
-        return new GameLaunchMessage(List.of("/ratingcolor d8d8d8d8", "/numgames 1234"), 1234, "faf",
-            "", "", 0, 0, null,
-            null, LobbyMode.DEFAULT_LOBBY, "");
+        return new GameLaunchResponse(1234, "", "faf", LobbyMode.DEFAULT_LOBBY, "",
+            List.of("/ratingcolor d8d8d8d8", "/numgames 1234"), "", null,
+             null, null, null);
       }
     }).getFuture();
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    return taskService.submitTask(new CompletableTask<GameLaunchMessage>(HIGH) {
+  public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
+    return taskService.submitTask(new CompletableTask<GameLaunchResponse>(HIGH) {
       @Override
-      protected GameLaunchMessage call() throws Exception {
+      protected GameLaunchResponse call() throws Exception {
         updateTitle("Joining game");
 
-        return new GameLaunchMessage(List.of("/ratingcolor d8d8d8d8", "/numgames 1234"), 1234, "faf",
-            "", "", 0, 0, null,
-            null, LobbyMode.DEFAULT_LOBBY, "");
+        return new GameLaunchResponse(1234, "", "faf", LobbyMode.DEFAULT_LOBBY, "",
+            List.of("/ratingcolor d8d8d8d8", "/numgames 1234"), "", null,
+            null, null, null);
       }
     }).getFuture();
   }
@@ -223,11 +135,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+  public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
     log.debug("Starting matchmaker game");
-    GameLaunchMessage gameLaunchMessage = new GameLaunchMessage(List.of("/ratingcolor d8d8d8d8", "/numgames 1234"), 1234, "faf",
-        "", "", 0, 0, null,
-        null, LobbyMode.DEFAULT_LOBBY, "");
+    GameLaunchResponse gameLaunchMessage = new GameLaunchResponse(1234, "", "faf", LobbyMode.DEFAULT_LOBBY, "",
+        List.of("/ratingcolor d8d8d8d8", "/numgames 1234"), "", null,
+        null, null, null);
     return CompletableFuture.completedFuture(gameLaunchMessage);
   }
 
@@ -237,7 +149,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void sendGpgMessage(GpgOutboundMessage message) {
+  public void sendGpgMessage(GpgGameOutboundMessage message) {
 
   }
 
@@ -277,12 +189,12 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
+  public CompletableFuture<Collection<Avatar>> getAvailableAvatars() {
     return CompletableFuture.completedFuture(List.of());
   }
 
   @Override
-  public CompletableFuture<List<IceServer>> getIceServers() {
+  public CompletableFuture<Collection<IceServer>> getIceServers() {
     return CompletableFuture.completedFuture(List.of());
   }
 
@@ -337,9 +249,9 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
 
-  private GameInfoMessage createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
-    return new GameInfoMessage(host, false, GameVisibility.PUBLIC, GameStatus.OPEN, numPlayers, Map.of(),
-        featuredMod, uid, maxPlayers, "", Map.of(), "", 0.0, "", null, null, false,
-        GameType.CUSTOM, List.of());
+  private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
+    return new GameInfo(uid, "", "", GameType.CUSTOM, maxPlayers, numPlayers, "public", false,
+        GameStatus.OPEN, "faf", "", Map.of(), "", "", 0.0, Map.of(), null, null, false,
+        List.of());
   }
 }

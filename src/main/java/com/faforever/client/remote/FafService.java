@@ -16,10 +16,6 @@ import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
 import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
-import com.faforever.client.remote.domain.outbound.gpg.GameEndedMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
-import com.faforever.client.remote.domain.outbound.gpg.IceMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.reporting.ModerationReport;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
@@ -46,6 +42,9 @@ import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.GpgGameOutboundMessage.GameStateMessage;
+import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.faforever.commons.lobby.ServerMessage;
 import com.google.common.eventbus.EventBus;
@@ -77,7 +76,7 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class FafService {
 
-  private final LobbyServerAccessor fafServerAccessor;
+  private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
 
@@ -113,7 +112,7 @@ public class FafService {
     fafServerAccessor.requestMatchmakerInfo();
   }
 
-  public void sendGpgMessage(GpgOutboundMessage message) {
+  public void sendGpgMessage(GpgGameOutboundMessage message) {
     fafServerAccessor.sendGpgMessage(message);
   }
 
@@ -148,7 +147,7 @@ public class FafService {
 
   @Async
   public void notifyGameEnded() {
-    fafServerAccessor.sendGpgMessage(new GameEndedMessage());
+    fafServerAccessor.sendGpgMessage(new GameStateMessage("Ended"));
   }
 
   @Async
@@ -491,7 +490,7 @@ public class FafService {
         .map(Replay::fromDto));
   }
 
-  public CompletableFuture<List<IceServer>> getIceServers() {
+  public CompletableFuture<Collection<IceServer>> getIceServers() {
     return fafServerAccessor.getIceServers();
   }
 
@@ -604,8 +603,9 @@ public class FafService {
         .map(MapBean::fromMapVersionDto);
   }
 
+  //TODO: Double check this is correct
   public void sendIceMessage(int remotePlayerId, Object message) {
-    fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
+    fafServerAccessor.sendGpgMessage(new GpgGameOutboundMessage("IceMsg", List.of(remotePlayerId, message), "game"));
   }
 
   @Async

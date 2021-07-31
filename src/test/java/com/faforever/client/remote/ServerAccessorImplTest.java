@@ -16,16 +16,13 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.LobbyMode;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.PlayerInfo;
 import com.faforever.client.remote.domain.RatingRange;
 import com.faforever.client.remote.domain.inbound.InboundMessage;
 import com.faforever.client.remote.domain.inbound.faf.AuthenticationFailedMessage;
 import com.faforever.client.remote.domain.inbound.faf.AvatarMessage;
 import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
 import com.faforever.client.remote.domain.inbound.faf.IceServersMessage;
 import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.remote.domain.inbound.faf.MatchCancelledMessage;
@@ -34,7 +31,6 @@ import com.faforever.client.remote.domain.inbound.faf.MatchmakerInfoMessage;
 import com.faforever.client.remote.domain.inbound.faf.NoticeMessage;
 import com.faforever.client.remote.domain.inbound.faf.PartyInviteMessage;
 import com.faforever.client.remote.domain.inbound.faf.PartyKickedMessage;
-import com.faforever.client.remote.domain.inbound.faf.PlayerInfoMessage;
 import com.faforever.client.remote.domain.inbound.faf.SearchInfoMessage;
 import com.faforever.client.remote.domain.inbound.faf.SessionMessage;
 import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
@@ -46,19 +42,20 @@ import com.faforever.client.remote.domain.inbound.gpg.DisconnectFromPeerMessage;
 import com.faforever.client.remote.domain.inbound.gpg.GpgHostGameMessage;
 import com.faforever.client.remote.domain.inbound.gpg.GpgJoinGameMessage;
 import com.faforever.client.remote.domain.inbound.gpg.IceInboundMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
-import com.faforever.client.remote.io.QDataInputStream;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.teammatchmaking.MatchmakingQueueBuilder;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.FafLobbyClient;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.LobbyMode;
+import com.faforever.commons.lobby.PlayerInfo;
+import com.faforever.commons.lobby.ServerMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.common.eventbus.EventBus;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -136,13 +133,13 @@ public class ServerAccessorImplTest extends UITest {
   private FafServerAccessorImpl instance;
   private ServerSocket fafLobbyServerSocket;
   private Socket localToServerSocket;
-  private ServerWriter serverToClientWriter;
   private boolean stopped;
   private BlockingQueue<String> messagesReceivedByFafServer;
   private CountDownLatch serverToClientReadyLatch;
   private CountDownLatch messageReceivedLatch;
-  private InboundMessage receivedMessage;
+  private ServerMessage receivedMessage;
   private ClientProperties clientProperties;
+  private FafLobbyClient lobbyClient;
   private ObjectMapper objectMapper;
   private String token = "abc";
 
@@ -152,8 +149,6 @@ public class ServerAccessorImplTest extends UITest {
     serverToClientReadyLatch = new CountDownLatch(1);
     messagesReceivedByFafServer = new ArrayBlockingQueue<>(10);
     objectMapper = new ObjectMapper()
-        .addMixIn(Faction.class, FactionMixin.class)
-        .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
 
@@ -164,10 +159,11 @@ public class ServerAccessorImplTest extends UITest {
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(fafLobbyServerSocket.getLocalPort());
 
-    instance = new FafServerAccessorImpl(preferencesService, uidService, notificationService, i18n, tokenService, reportingService, taskScheduler, eventBus, reconnectTimerService, clientProperties);
+    instance = new FafServerAccessorImpl(notificationService, i18n, taskScheduler, clientProperties, preferencesService, uidService,
+        tokenService, eventBus, objectMapper);
     instance.afterPropertiesSet();
-    instance.addOnMessageListener(InboundMessage.class, inboundMessage -> {
-      receivedMessage = inboundMessage;
+    instance.addEventListener(ServerMessage.class, serverMessage -> {
+      receivedMessage = serverMessage;
       messageReceivedLatch.countDown();
     });
     LoginPrefs loginPrefs = new LoginPrefs();
@@ -192,7 +188,6 @@ public class ServerAccessorImplTest extends UITest {
       try (Socket socket = fafLobbyServerSocket.accept()) {
         localToServerSocket = socket;
         QDataInputStream qDataInputStream = new QDataInputStream(new DataInputStream(socket.getInputStream()));
-        serverToClientWriter = new ServerWriter(socket.getOutputStream(), objectMapper);
 
         serverToClientReadyLatch.countDown();
 
@@ -440,7 +435,7 @@ public class ServerAccessorImplTest extends UITest {
 
   @Test
   public void testSendGpgMessage() {
-    instance.sendGpgMessage(new GpgOutboundMessage("Test", List.of("arg1", "arg2")));
+    instance.sendGpgMessage(new GpgGameOutboundMessage("Test", List.of("arg1", "arg2"), "game"));
 
     assertMessageContainsComponents("command",
         "args",

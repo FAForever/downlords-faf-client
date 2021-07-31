@@ -11,15 +11,13 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.inbound.faf.IceServersMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GameFullMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
-import com.faforever.client.remote.domain.outbound.gpg.RehostMessage;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
 import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
+import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.lobby.LobbyMode;
 import com.google.common.collect.Lists;
@@ -44,6 +42,7 @@ import java.lang.reflect.Proxy;
 import java.net.ConnectException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -96,9 +95,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
    * value where value can can be a string or list of strings
    */
   @SneakyThrows
-  private List<Map<String, Object>> toIceServers(List<IceServersMessage.IceServer> iceServers) {
+  private List<Map<String, Object>> toIceServers(Collection<IceServer> iceServers) {
     List<Map<String, Object>> result = new LinkedList<>();
-    for (IceServersMessage.IceServer iceServer : iceServers) {
+    for (IceServer iceServer : iceServers) {
       Map<String, Object> map = new HashMap<>();
       List<String> urls = new LinkedList<>();
       if (iceServer.getUrl() != null && !iceServer.getUrl().equals("null")) {
@@ -129,14 +128,14 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Subscribe
   public void onGpgGameMessage(GpgOutboundMessageEvent event) {
-    GpgOutboundMessage gpgMessage = event.getGpgMessage();
+    GpgGameOutboundMessage gpgMessage = event.getGpgMessage();
     String command = gpgMessage.getCommand();
 
-    if (command.equals(RehostMessage.COMMAND)) {
+    if (command.equals("Rehost")) {
       eventBus.post(new RehostRequestEvent());
       return;
     }
-    if (command.equals(GameFullMessage.COMMAND)) {
+    if (command.equals("GameFull")) {
       eventBus.post(new GameFullEvent());
       return;
     }

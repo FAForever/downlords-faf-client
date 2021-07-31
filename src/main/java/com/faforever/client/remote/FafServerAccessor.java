@@ -4,19 +4,20 @@ package com.faforever.client.remote;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
-import com.faforever.client.remote.domain.Avatar;
 import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.inbound.InboundMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
-import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
-import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.IceServer;
+import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.Player.Avatar;
+import com.faforever.commons.lobby.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -27,20 +28,17 @@ import java.util.function.Consumer;
 public interface FafServerAccessor {
 
   @SuppressWarnings("unchecked")
-  <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener);
-
-  @SuppressWarnings("unchecked")
-  <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener);
+  <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener);
 
   ConnectionState getConnectionState();
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
-  CompletableFuture<LoginMessage> connectAndLogIn();
+  CompletableFuture<LoginSuccessResponse> connectAndLogIn();
 
-  CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo);
+  CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo);
 
-  CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password);
+  CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password);
 
   void disconnect();
 
@@ -52,11 +50,11 @@ public interface FafServerAccessor {
 
   void requestMatchmakerInfo();
 
-  CompletableFuture<GameLaunchMessage> startSearchMatchmaker();
+  CompletableFuture<GameLaunchResponse> startSearchMatchmaker();
 
   void stopSearchMatchmaker();
 
-  void sendGpgMessage(GpgOutboundMessage message);
+  void sendGpgMessage(GpgGameOutboundMessage message);
 
   void removeFriend(int playerId);
 
@@ -64,7 +62,7 @@ public interface FafServerAccessor {
 
   void selectAvatar(URL url);
 
-  CompletableFuture<List<Avatar>> getAvailableAvatars();
+  CompletableFuture<Collection<Avatar>> getAvailableAvatars();
 
   void banPlayer(int playerId, int duration, PeriodType periodType, String reason);
 
@@ -74,7 +72,7 @@ public interface FafServerAccessor {
 
   void broadcastMessage(String message);
 
-  CompletableFuture<List<IceServer>> getIceServers();
+  CompletableFuture<Collection<IceServer>> getIceServers();
 
   void restoreGameSession(int id);
 

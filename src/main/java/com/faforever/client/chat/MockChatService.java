@@ -3,11 +3,11 @@ package com.faforever.client.chat;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.Hashing;
@@ -63,7 +63,7 @@ public class MockChatService implements ChatService, InitializingBean {
   }
 
   @Subscribe
-  public void onIrcPassword(IrcPasswordServerMessage event) {
+  public void onIrcPassword(IrcPasswordInfo event) {
     password = Hashing.md5().hashString(event.getPassword(), StandardCharsets.UTF_8).toString();
     connect();
   }
