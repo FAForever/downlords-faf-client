@@ -2,7 +2,7 @@ package com.faforever.client.api;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
-import com.faforever.client.login.LoginFailedException;
+import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
@@ -131,7 +131,7 @@ public class TokenServiceTest extends ServiceTest {
   public void testTokenIsNull() {
     when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(null);
 
-    assertThrows(LoginFailedException.class, () -> instance.loginWithAuthorizationCode("abc"));
+    assertThrows(TokenRetrievalException.class, () -> instance.loginWithAuthorizationCode("abc"));
   }
 
   @Test

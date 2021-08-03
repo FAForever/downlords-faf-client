@@ -225,53 +225,7 @@ public class GameServiceTest extends ServiceTest {
     verify(replayService).start(eq(game.getId()), any());
 
     verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, asList(), gameLaunchMessage.getLeaderboard(),
-        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-  }
-
-  @Test
-  public void testJoinGameNoLaunchNoGameRatingType() throws Exception {
-    Game game = GameBuilder.create().defaultValues().ratingType(null).get();
-
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().ratingType(null).get();
-
-    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
-    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
-    when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-
-    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
-
-    assertNull(future.get(TIMEOUT, TIME_UNIT));
-    verify(mapService, never()).download(any());
-    verify(replayService).start(eq(game.getId()), any());
-
-    verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, asList(), GameService.DEFAULT_RATING_TYPE,
-        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-  }
-
-  @Test
-  public void testJoinGameNoLaunchRatingType() throws Exception {
-    Game game = GameBuilder.create().defaultValues().get();
-
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().ratingType(null).get();
-
-    mockGlobalStartGameProcess(gameLaunchMessage.getUid());
-    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
-    when(fafService.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-
-    CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
-
-    assertNull(future.get(TIMEOUT, TIME_UNIT));
-    verify(mapService, never()).download(any());
-    verify(replayService).start(eq(game.getId()), any());
-
-    verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, asList(), game.getRatingType(),
+        gameLaunchMessage.getUid(), null, List.of(), gameLaunchMessage.getLeaderboard(),
         GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
 
@@ -687,20 +641,6 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGameHostNoGameLaunchRatingType() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
-    NewGameInfo newGameInfo = NewGameInfoBuilder.create().defaultValues().get();
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().ratingType(null).get();
-    when(gameUpdater.update(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())).thenReturn(completedFuture(null));
-    when(mapService.download(newGameInfo.getMap())).thenReturn(completedFuture(null));
-    when(fafService.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
-    instance.hostGame(newGameInfo);
-    verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, List.of(), GameService.DEFAULT_RATING_TYPE,
-        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-  }
-
-  @Test
   public void runWithLiveReplayIfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
     instance.runWithLiveReplay(null, null, null, null);
@@ -727,21 +667,6 @@ public class GameServiceTest extends ServiceTest {
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
         gameLaunchMessage.getLeaderboard(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-  }
-
-  @Test
-  public void startSearchMatchmakerNoLaunchRatingType() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
-    when(modService.getFeaturedMod(FAF.getTechnicalName()))
-        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().ratingType(null).get();
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    instance.startSearchMatchmaker();
-    verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
-        GameService.DEFAULT_RATING_TYPE, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
 
   @Test

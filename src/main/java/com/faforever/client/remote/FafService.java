@@ -66,7 +66,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -260,7 +259,7 @@ public class FafService {
   @Async
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
     return fafServerAccessor.getAvailableAvatars().thenApply(avatars ->
-        avatars.stream().map(AvatarBean::fromAvatar).collect(Collectors.toList()));
+        avatars.stream().map(AvatarBean::fromAvatar).collect(toList()));
   }
 
   @Async
@@ -296,7 +295,7 @@ public class FafService {
             && gamePlayerStats.getMeanAfter() != null
             && gamePlayerStats.getDeviationAfter() != null)
         .map(entry -> new RatingHistoryDataPoint(entry.getGamePlayerStats().getScoreTime(), entry.getMeanAfter(), entry.getDeviationAfter()))
-        .collect(Collectors.toList()));
+        .collect(toList()));
   }
 
   @Async
@@ -304,7 +303,7 @@ public class FafService {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
         .sorted(Comparator.comparingInt(com.faforever.commons.api.dto.FeaturedMod::getOrder))
         .map(FeaturedMod::fromFeaturedMod)
-        .collect(Collectors.toList()));
+        .collect(toList()));
   }
 
   @Async
@@ -527,13 +526,13 @@ public class FafService {
         .distinct()
         .filter(Objects::nonNull)
         .map(MapBean::fromMapVersionDto)
-        .collect(Collectors.toList());
+        .collect(toList());
     mapVersions.addAll(poolAssignments.stream()
         .map(MapPoolAssignment::getMapParams)
         .filter(mapParams -> mapParams instanceof NeroxisGeneratorParams)
         .distinct()
         .map(mapParams -> MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapParams))
-        .collect(Collectors.toList()));
+        .collect(toList()));
     mapVersions.sort(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER));
     return paginateResult(count, page, mapVersions);
   }
@@ -672,7 +671,7 @@ public class FafService {
   public CompletableFuture<List<TutorialCategory>> getTutorialCategories() {
     return CompletableFuture.completedFuture(fafApiAccessor.getTutorialCategories().stream()
         .map(TutorialCategory::fromDto)
-        .collect(Collectors.toList())
+        .collect(toList())
     );
   }
 }

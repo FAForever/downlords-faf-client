@@ -94,7 +94,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem inviteItem;
   public MenuItem reportItem;
   public SeparatorMenuItem moderatorActionSeparator;
-  public MenuItem banItem;
   public MenuItem broadcastMessage;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
@@ -214,9 +213,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     JavaFxUtil.runLater(() -> {
       kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
       kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
-      banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
       broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
-      moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible() || broadcastMessage.isVisible());
+      moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || broadcastMessage.isVisible());
     });
   }
 

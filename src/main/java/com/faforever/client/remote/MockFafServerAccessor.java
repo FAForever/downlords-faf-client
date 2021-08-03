@@ -9,12 +9,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.commons.lobby.Faction;
-import com.faforever.commons.lobby.GameAccess;
-import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
-import com.faforever.commons.lobby.GameStatus;
-import com.faforever.commons.lobby.GameType;
-import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.LobbyMode;
@@ -35,7 +30,6 @@ import org.springframework.stereotype.Component;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -231,12 +225,5 @@ public class MockFafServerAccessor implements FafServerAccessor {
   @Override
   public void setPartyFactions(List<Faction> factions) {
 
-  }
-
-
-  private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
-    return new GameInfo(uid, "", "", GameType.CUSTOM, maxPlayers, numPlayers, GameVisibility.PUBLIC, false,
-        GameStatus.OPEN, "faf", "", Map.of(), "", "", 0.0, Map.of(), null, null, false,
-        List.of());
   }
 }

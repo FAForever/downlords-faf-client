@@ -31,6 +31,7 @@ public class GameLaunchMessageTestBuilder {
     mod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     args();
     ratingType("global");
+    initMode(LobbyMode.DEFAULT_LOBBY);
     return this;
   }
 

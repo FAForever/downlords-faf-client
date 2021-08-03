@@ -32,6 +32,7 @@ import com.faforever.commons.lobby.IceMsgGpgCommand;
 import com.faforever.commons.lobby.IceServerListResponse;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.lobby.LobbyMode;
+import com.faforever.commons.lobby.LoginException;
 import com.faforever.commons.lobby.LoginFailedResponse;
 import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.faforever.commons.lobby.MatchmakerInfo;
@@ -65,7 +66,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
@@ -90,6 +90,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -98,6 +99,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -129,12 +133,11 @@ public class ServerAccessorImplTest extends ServiceTest {
   private EventBus eventBus;
 
   private FafServerAccessorImpl instance;
-  private CountDownLatch serverToClientReadyLatch;
   private CountDownLatch messageReceivedByClientLatch;
   private ServerMessage receivedMessage;
   private ObjectMapper objectMapper;
   private final String token = "abc";
-  private final Sinks.Many<String> serverReceivedSink = Sinks.many().multicast().directBestEffort();
+  private final Sinks.Many<String> serverReceivedSink = Sinks.many().replay().latest();
   private final Flux<String> serverMessagesReceived = serverReceivedSink.asFlux();
   private final Sinks.Many<String> serverSentSink = Sinks.many().unicast().onBackpressureBuffer();
   private DisposableServer disposableServer;
@@ -142,7 +145,6 @@ public class ServerAccessorImplTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     when(tokenService.getRefreshedTokenValue()).thenReturn(token);
-    serverToClientReadyLatch = new CountDownLatch(1);
     objectMapper = new ObjectMapper()
         .registerModule(new KotlinModule())
         .registerModule(new JavaTimeModule())
@@ -181,7 +183,7 @@ public class ServerAccessorImplTest extends ServiceTest {
         .doOnConnection(connection -> {
           log.info("New Client connected to server");
           connection.addHandler(new LineEncoder(LineSeparator.UNIX)) // TODO: This is not working. Raise a bug ticket! Workaround below
-              .addHandler(new LineBasedFrameDecoder(1024*1024));
+              .addHandler(new LineBasedFrameDecoder(1024 * 1024));
         })
         .doOnBound(disposableServer -> log.info("Fake server listening at {} on port {}", disposableServer.host(), disposableServer.port()))
         .noSSL()
@@ -189,9 +191,9 @@ public class ServerAccessorImplTest extends ServiceTest {
         .handle((inbound, outbound) -> {
           Mono<Void> inboundMono = inbound.receive()
               .asString(StandardCharsets.UTF_8)
-              .map(message -> {
+              .doOnNext(message -> {
                 log.info("Received message at server {}", message);
-                return serverReceivedSink.tryEmitNext(message);
+                log.info("Emit Result is {}", serverReceivedSink.tryEmitNext(message));
               })
               .then();
 
@@ -203,19 +205,20 @@ public class ServerAccessorImplTest extends ServiceTest {
           return inboundMono.mergeWith(outboundMono);
         })
         .bindNow();
-
-    serverToClientReadyLatch.countDown();
   }
 
   @SneakyThrows
-  private Mono<Void> assertMessageContainsComponents(String... values) {
-    return serverMessagesReceived.next().doOnNext(json -> {
-      assertThat(json, containsString("command"));
-      for (String string : values) {
-        assertThat(json, containsString(string));
-      }
-    })
-    .then();
+  private void assertMessageContainsComponents(String command, String... values) {
+    serverMessagesReceived.filter(message -> message.contains(command)).next()
+        .switchIfEmpty(Mono.just(""))
+        .doOnNext(json -> {
+          assertThat(json, containsString("command"));
+          for (String string : values) {
+            assertThat(json, containsString(string));
+          }
+        })
+        .then()
+        .block(Duration.ofSeconds(10));
   }
 
   @AfterEach
@@ -230,26 +233,25 @@ public class ServerAccessorImplTest extends ServiceTest {
 
     CompletableFuture<LoginSuccessResponse> loginFuture = instance.connectAndLogIn();
 
-    assertMessageContainsComponents(
+    assertMessageContainsComponents("ask_session",
         "downlords-faf-client",
         "version",
         "user_agent",
-        Version.getCurrentVersion(),
-        "ask_session"
-    ).block();
+        Version.getCurrentVersion()
+    );
 
     SessionResponse sessionMessage = new SessionResponse(sessionId);
     sendFromServer(sessionMessage);
 
     assertMessageContainsComponents(
+        "auth",
         token,
         String.valueOf(sessionId),
         "encrypteduidstring",
         "token",
         "session",
-        "unique_id",
-        "auth"
-    ).block();
+        "unique_id"
+    );
 
     com.faforever.commons.lobby.Player me = new com.faforever.commons.lobby.Player(playerUid, "Junit", null, null, "", new HashMap<>(), new HashMap<>());
     LoginSuccessResponse loginServerMessage = new LoginSuccessResponse(me);
@@ -267,7 +269,6 @@ public class ServerAccessorImplTest extends ServiceTest {
    */
   @SneakyThrows
   private void sendFromServer(ServerMessage fafServerMessage) {
-    serverToClientReadyLatch.await();
     messageReceivedByClientLatch = new CountDownLatch(1);
     serverSentSink.tryEmitNext(objectMapper.writeValueAsString(fafServerMessage));
   }
@@ -336,7 +337,11 @@ public class ServerAccessorImplTest extends ServiceTest {
         .ratingMin(0)
         .get();
 
-    Mono<Void> assertMono = assertMessageContainsComponents("access",
+    instance.requestHostGame(newGameInfo);
+
+    assertMessageContainsComponents(
+        "game_host",
+        "access",
         "mapname",
         "title",
         "options",
@@ -347,7 +352,6 @@ public class ServerAccessorImplTest extends ServiceTest {
         "rating_min",
         "rating_max",
         "enforce_rating_range",
-        "game_host",
         "password",
         newGameInfo.getMap(),
         newGameInfo.getTitle(),
@@ -358,285 +362,253 @@ public class ServerAccessorImplTest extends ServiceTest {
         String.valueOf(newGameInfo.getRatingMin()),
         "true"
     );
-
-    instance.requestHostGame(newGameInfo);
-
-    assertMono.block(Duration.ofSeconds(10));
   }
 
   @Test
   public void testRequestJoinGame() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "uid",
-        "password",
-        "game_join",
-        "pass",
-        String.valueOf(1)
-    );
 
     instance.requestJoinGame(1, "pass");
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "game_join",
+        "uid",
+        "password",
+        "pass",
+        String.valueOf(1)
+    );
   }
 
   @Test
   public void testAddFriend() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "friend",
-        "social_add",
-        String.valueOf(1)
-    );
 
     instance.addFriend(1);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "social_add",
+        "friend",
+        String.valueOf(1)
+    );
   }
 
   @Test
   public void testAddFoe() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "foe",
-        "social_add",
-        String.valueOf(1)
-    );
 
     instance.addFoe(1);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "social_add",
+        "foe",
+        String.valueOf(1)
+    );
   }
 
   @Test
   public void testRemoveFriend() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "friend",
-        "social_remove",
-        String.valueOf(1)
-    );
 
     instance.removeFriend(1);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "social_remove",
+        "friend",
+        String.valueOf(1)
+    );
   }
 
   @Test
   public void testRemoveFoe() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "foe",
-        "social_remove",
-        String.valueOf(1)
-    );
 
     instance.removeFoe(1);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "social_remove",
+        "foe",
+        String.valueOf(1)
+    );
   }
 
   @Test
   public void testRequestMatchmakerInfo() {
-    Mono<Void> assertMono = assertMessageContainsComponents("matchmaker_info");
 
     instance.requestMatchmakerInfo();
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents("matchmaker_info");
   }
 
   @Test
   public void testSendGpgMessage() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "command",
-        "args",
-        "Test",
-        "arg1",
-        "arg2");
 
     instance.sendGpgMessage(new GpgGameOutboundMessage("Test", List.of("arg1", "arg2"), MessageTarget.GAME));
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "Test",
+        "args",
+        "arg1",
+        "arg2");
   }
 
   @Test
   public void testClosePlayersGame() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "user_id",
-        "admin",
-        "action",
-        String.valueOf(1));
 
     instance.closePlayersGame(1);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "admin",
+        "user_id",
+        "action",
+        String.valueOf(1));
   }
 
   @Test
   public void testClosePlayersLobby() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "user_id",
-        "admin",
-        "action",
-        String.valueOf(1));
 
     instance.closePlayersLobby(1);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "admin",
+        "user_id",
+        "action",
+        String.valueOf(1));
   }
 
   @Test
   public void testBroadcastMessage() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "message",
-        "admin",
-        "action",
-        "Test");
 
     instance.broadcastMessage("Test");
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "admin",
+        "message",
+        "action",
+        "Test");
   }
 
   @Test
   public void testGetAvailableAvatars() throws Exception {
-    Mono<Void> assertMono = assertMessageContainsComponents(
+
+    instance.getAvailableAvatars();
+
+    assertMessageContainsComponents(
         "avatar",
         "list_avatar",
         "action"
     );
-
-    instance.getAvailableAvatars();
-
-    assertMono.block(Duration.ofSeconds(10));
   }
 
   @Test
   public void testGetIceServers() throws Exception {
-    Mono<Void> assertMono = assertMessageContainsComponents("ice_servers");
 
     instance.getIceServers();
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents("ice_servers");
   }
 
   @Test
   public void testRestoreGameSession() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "game_id",
-        "restore_game_session",
-        String.valueOf(1));
 
     instance.restoreGameSession(1);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "restore_game_session",
+        "game_id",
+        String.valueOf(1));
   }
 
   @Test
   public void testGameMatchmaking() {
     MatchmakingQueue queue = MatchmakingQueueBuilder.create().defaultValues().get();
 
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "queue_name",
-        "state",
-        "game_matchmaking",
-        queue.getTechnicalName(),
-        "start");
-
     instance.gameMatchmaking(queue, MatchmakerState.START);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "game_matchmaking",
+        "queue_name",
+        "state",
+        queue.getTechnicalName(),
+        "start");
   }
 
   @Test
   public void testInviteToParty() {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
 
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "recipient_id",
-        "invite_to_party",
-        String.valueOf(player.getId()));
-
     instance.inviteToParty(player);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "invite_to_party",
+        "recipient_id",
+        String.valueOf(player.getId()));
   }
 
   @Test
   public void testAcceptPartyInvite() {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
 
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "sender_id",
-        "accept_party_invite",
-        String.valueOf(player.getId()));
-
     instance.acceptPartyInvite(player);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "accept_party_invite",
+        "sender_id",
+        String.valueOf(player.getId()));
   }
 
   @Test
   public void testKickPlayerFromParty() {
     Player player = PlayerBuilder.create("junit").defaultValues().get();
 
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "kicked_player_id",
-        "kick_player_from_party",
-        String.valueOf(player.getId()));
-
     instance.kickPlayerFromParty(player);
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "kick_player_from_party",
+        "kicked_player_id",
+        String.valueOf(player.getId()));
   }
 
   @Test
   public void testReadyParty() {
-    Mono<Void> assertMono = assertMessageContainsComponents("ready_party");
 
     instance.readyParty();
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents("ready_party");
   }
 
   @Test
   public void testUnreadyParty() {
-    Mono<Void> assertMono = assertMessageContainsComponents("unready_party");
 
     instance.unreadyParty();
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents("unready_party");
   }
 
   @Test
   public void testLeaveParty() {
-    Mono<Void> assertMono = assertMessageContainsComponents("leave_party");
 
     instance.leaveParty();
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents("leave_party");
   }
 
   @Test
   public void testSetPartyFactions() {
-    Mono<Void> assertMono = assertMessageContainsComponents(
-        "factions",
-        "set_party_factions",
-        "aeon", "uef", "cybran", "seraphim");
 
     instance.setPartyFactions(List.of(Faction.AEON, Faction.UEF, Faction.CYBRAN, Faction.SERAPHIM));
 
-    assertMono.block(Duration.ofSeconds(10));
+    assertMessageContainsComponents(
+        "set_party_factions",
+        "factions",
+        "aeon", "uef", "cybran", "seraphim");
   }
 
   @Test
   public void testSelectAvatar() throws MalformedURLException {
     URL url = new URL("http://google.com");
 
-    Mono<Void> assertMono = assertMessageContainsComponents(
+    instance.selectAvatar(url);
+
+    assertMessageContainsComponents(
         "avatar",
         "action",
         url.toString()
     );
-
-    instance.selectAvatar(url);
-
-    assertMono.block(Duration.ofSeconds(10));
   }
 
   @Test
@@ -646,7 +618,7 @@ public class ServerAccessorImplTest extends ServiceTest {
         .get();
 
     sendFromServer(gameInfoMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(gameInfoMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -687,7 +659,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
     instance.startSearchMatchmaker();
     sendFromServer(gameLaunchMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(gameLaunchMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -715,7 +687,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     PlayerInfo playerInfoMessage = new PlayerInfo(List.of());
 
     sendFromServer(playerInfoMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(playerInfoMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -732,7 +704,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     MatchmakerInfo matchmakerInfoMessage = new MatchmakerInfo(List.of());
 
     sendFromServer(matchmakerInfoMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(matchmakerInfoMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -749,7 +721,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     MatchmakerMatchFoundResponse matchFoundMessage = new MatchmakerMatchFoundResponse("test");
 
     sendFromServer(matchFoundMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(matchFoundMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -766,7 +738,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     MatchmakerMatchCancelledResponse matchCancelledMessage = new MatchmakerMatchCancelledResponse();
 
     sendFromServer(matchCancelledMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage.getClass(), equalTo(matchCancelledMessage.getClass()));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -779,10 +751,10 @@ public class ServerAccessorImplTest extends ServiceTest {
 
   @Test
   public void testOnSocialMessage() throws InterruptedException, JsonProcessingException {
-    SocialInfo socialMessage = new SocialInfo(List.of("aeolus"), List.of("aeolus"), List.of(123, 124), List.of(456, 457),  0);
+    SocialInfo socialMessage = new SocialInfo(List.of("aeolus"), List.of("aeolus"), List.of(123, 124), List.of(456, 457), 0);
 
     sendFromServer(socialMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(socialMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -797,16 +769,14 @@ public class ServerAccessorImplTest extends ServiceTest {
     assertThat(parsedMessage, equalTo(socialMessage));
   }
 
-  //Causes an infinite loop on github actions
-  @Disabled
   @Test
-  public void testOnAuthenticationFailed() throws InterruptedException, JsonProcessingException {
+  public void testOnAuthenticationFailed() throws Exception {
     LoginFailedResponse authenticationFailedMessage = new LoginFailedResponse("boo");
 
-    instance.connectAndLogIn();
+    CompletableFuture<LoginSuccessResponse> loginFuture = instance.connectAndLogIn();
     sendFromServer(authenticationFailedMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
-    assertThat(receivedMessage, is(authenticationFailedMessage));
+    Exception exception = assertThrows(ExecutionException.class, () -> loginFuture.get(TIMEOUT, TIMEOUT_UNIT));
+    assertEquals(LoginException.class, exception.getCause().getClass());
 
     ServerMessage parsedMessage = parseServerString("""
         {
@@ -822,7 +792,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     UpdatedAchievementsInfo updatedAchievementsMessage = new UpdatedAchievementsInfo(List.of());
 
     sendFromServer(updatedAchievementsMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(updatedAchievementsMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -840,7 +810,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
     instance.getIceServers();
     sendFromServer(iceServersMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(iceServersMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -859,7 +829,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
     instance.getAvailableAvatars();
     sendFromServer(avatarMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(avatarMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -876,7 +846,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     PartyInfo updatePartyMessage = new PartyInfo(1, List.of(new PartyMember(123, List.of(Faction.UEF, Faction.CYBRAN, Faction.AEON, Faction.SERAPHIM))));
 
     sendFromServer(updatePartyMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(updatePartyMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -894,7 +864,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     PartyInvite partyInviteMessage = new PartyInvite(1);
 
     sendFromServer(partyInviteMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(partyInviteMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -911,7 +881,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     PartyKick partyKickedMessage = new PartyKick();
 
     sendFromServer(partyKickedMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage.getClass(), equalTo(partyKickedMessage.getClass()));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -927,7 +897,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     SearchInfo searchInfoMessage = new SearchInfo("test", MatchmakerState.START);
 
     sendFromServer(searchInfoMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(searchInfoMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -945,7 +915,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     HostGameGpgCommand gpgHostGameMessage = new HostGameGpgCommand(MessageTarget.GAME, List.of("test"));
 
     sendFromServer(gpgHostGameMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(gpgHostGameMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -963,7 +933,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     JoinGameGpgCommand gpgJoinGameMessage = new JoinGameGpgCommand(MessageTarget.GAME, List.of("test", 1));
 
     sendFromServer(gpgJoinGameMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(gpgJoinGameMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -981,7 +951,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     ConnectToPeerGpgCommand connectToPeerMessage = new ConnectToPeerGpgCommand(MessageTarget.GAME, List.of("test", 1, true));
 
     sendFromServer(connectToPeerMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(connectToPeerMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -999,7 +969,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     IceMsgGpgCommand iceServerMessage = new IceMsgGpgCommand(MessageTarget.GAME, List.of(1, 3));
 
     sendFromServer(iceServerMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(iceServerMessage));
 
     ServerMessage parsedMessage = parseServerString("""
@@ -1017,7 +987,7 @@ public class ServerAccessorImplTest extends ServiceTest {
     DisconnectFromPeerGpgCommand disconnectFromPeerMessage = new DisconnectFromPeerGpgCommand(MessageTarget.GAME, List.of(1));
 
     sendFromServer(disconnectFromPeerMessage);
-    messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT);
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(disconnectFromPeerMessage));
 
     ServerMessage parsedMessage = parseServerString("""

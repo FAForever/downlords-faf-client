@@ -118,54 +118,37 @@ public class ChatUserContextMenuControllerTest extends UITest {
   }
 
   @Test
-  public void testKickBanContextMenuNotShownForNormalUser() {
+  public void testKickContextMenuNotShownForNormalUser() {
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.banItem.isVisible());
     assertFalse(instance.kickGameItem.isVisible());
     assertFalse(instance.kickLobbyItem.isVisible());
     assertFalse(instance.moderatorActionSeparator.isVisible());
   }
 
   @Test
-  public void testKickBanContextMenuNotShownForSelf() {
+  public void testKickContextMenuNotShownForSelf() {
     player.setSocialStatus(SELF);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.banItem.isVisible());
     assertFalse(instance.kickGameItem.isVisible());
     assertFalse(instance.kickLobbyItem.isVisible());
     assertFalse(instance.moderatorActionSeparator.isVisible());
   }
 
   @Test
-  public void testKickContextMenuShownForMod() {
+  public void testKickContextMenuShownForModWithKickPermissions() {
     Set<String> permissions = Sets.newHashSet(GroupPermission.ADMIN_KICK_SERVER);
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(permissions));
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.banItem.isVisible());
     assertTrue(instance.kickGameItem.isVisible());
     assertTrue(instance.kickLobbyItem.isVisible());
-    assertTrue(instance.moderatorActionSeparator.isVisible());
-  }
-
-  @Test
-  public void testBanContextMenuShownForMod() {
-    Set<String> permissions = Sets.newHashSet(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN);
-    when(moderatorService.getPermissions())
-        .thenReturn(CompletableFuture.completedFuture(permissions));
-    player.setSocialStatus(FOE);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.banItem.isVisible());
-    assertFalse(instance.kickGameItem.isVisible());
-    assertFalse(instance.kickLobbyItem.isVisible());
     assertTrue(instance.moderatorActionSeparator.isVisible());
   }
 

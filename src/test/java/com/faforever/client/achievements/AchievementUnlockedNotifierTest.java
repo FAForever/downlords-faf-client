@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static com.faforever.client.achievements.AchievementService.AchievementState.REVEALED;
-import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -66,7 +64,7 @@ public class AchievementUnlockedNotifierTest extends ServiceTest {
     AchievementDefinition achievementDefinition = new AchievementDefinition();
     achievementDefinition.setType(AchievementType.STANDARD);
     achievementDefinition.setName("Test Achievement");
-    when(achievementService.getImage(achievementDefinition, UNLOCKED)).thenReturn(mock(Image.class));
+    when(achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED)).thenReturn(mock(Image.class));
 
     triggerUpdatedAchievementsMessage(achievementDefinition, true);
 
@@ -97,7 +95,7 @@ public class AchievementUnlockedNotifierTest extends ServiceTest {
     when(achievementService.getAchievementDefinition("1234")).thenReturn(CompletableFuture.completedFuture(achievementDefinition));
 
     when(i18n.get("achievement.unlockedTitle")).thenReturn("Achievement unlocked");
-    when(achievementService.getImage(achievementDefinition, REVEALED)).thenReturn(mock(Image.class));
+    when(achievementService.getImage(achievementDefinition, AchievementState.REVEALED)).thenReturn(mock(Image.class));
 
     UpdatedAchievement updatedAchievement = new UpdatedAchievement("1234", AchievementState.UNLOCKED, 0, newlyUnlocked);
     UpdatedAchievementsInfo message = new UpdatedAchievementsInfo(List.of(updatedAchievement));

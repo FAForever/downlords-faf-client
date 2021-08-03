@@ -2,7 +2,7 @@ package com.faforever.client.api;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
-import com.faforever.client.login.LoginFailedException;
+import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.google.common.eventbus.EventBus;
@@ -113,7 +113,7 @@ public class TokenService implements InitializingBean {
     preferencesService.storeInBackground();
 
     if (tokenCache == null) {
-      throw new LoginFailedException("Could not login with provided parameters");
+      throw new TokenRetrievalException("Could not login with provided parameters");
     }
 
     preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
