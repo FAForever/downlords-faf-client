@@ -6,6 +6,7 @@ import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.GameVisibility;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;

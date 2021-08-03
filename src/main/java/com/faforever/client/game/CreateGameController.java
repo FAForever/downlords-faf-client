@@ -24,6 +24,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
+import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.beans.InvalidationListener;

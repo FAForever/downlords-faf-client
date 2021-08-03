@@ -102,7 +102,7 @@ public class TokenService implements InitializingBean {
 
   private void retrieveToken(HttpHeaders headers, MultiValueMap<String, String> map, Oauth oauth) {
     HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-
+    log.debug("Retrieving OAuth token");
     tokenCache = restTemplate.postForObject(
         String.format("%s/oauth2/token", oauth.getBaseUrl()),
         request,

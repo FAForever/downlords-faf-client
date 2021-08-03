@@ -14,8 +14,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.Faction;
@@ -28,6 +26,7 @@ import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.faforever.commons.lobby.MatchmakerState;
+import com.faforever.commons.lobby.MessageTarget;
 import com.faforever.commons.lobby.NoticeInfo;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
@@ -72,38 +71,34 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
   private final TokenService tokenService;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
+  private final UidService uidService;
+  private final PreferencesService preferencesService;
 
   private final FafLobbyClient lobbyClient;
 
   public FafServerAccessorImpl(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
-                             TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
+                               TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.taskScheduler = taskScheduler;
     this.tokenService = tokenService;
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
+    this.preferencesService = preferencesService;
+    this.uidService = uidService;
 
-    FafLobbyClient.Config config = new Config(
-        Version.getCurrentVersion(),
-        "downlords-faf-client",
-        clientProperties.getServer().getHost(),
-        clientProperties.getServer().getPort() + 1,
-        sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
-        1024 * 1024,
-        false
-    );
-    lobbyClient = new FafLobbyClient(config, objectMapper);
+    lobbyClient = new FafLobbyClient(objectMapper);
   }
 
   @Override
   public void afterPropertiesSet() throws Exception {
     eventBus.register(this);
     addEventListener(IrcPasswordInfo.class, this::onIrcPassword);
+    addEventListener(NoticeInfo.class, this::onNotice);
   }
 
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
-    lobbyClient.getEvents().filter(serverMessage -> serverMessage.getClass() == type)
+    lobbyClient.getEvents().filter(serverMessage -> type.isAssignableFrom(serverMessage.getClass()))
         .cast(type)
         .doOnNext(listener)
         .onErrorContinue((throwable, message) -> log.warn("Could not process listener for `{}`", message, throwable))
@@ -120,8 +115,18 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
 
   public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
     connectionState.setValue(ConnectionState.CONNECTING);
+    FafLobbyClient.Config config = new Config(
+        tokenService.getRefreshedTokenValue(),
+        Version.getCurrentVersion(),
+        "downlords-faf-client",
+        clientProperties.getServer().getHost(),
+        clientProperties.getServer().getPort() + 1,
+        sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
+        1024 * 1024,
+        false
+    );
 
-    return lobbyClient.connectAndLogin(tokenService.getRefreshedTokenValue())
+    return lobbyClient.connectAndLogin(config)
         .doOnNext(loginMessage -> connectionState.setValue(ConnectionState.CONNECTED))
         .toFuture();
   }
@@ -146,6 +151,7 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
   }
 
   public void disconnect() {
+    log.info("Closing lobby server connection");
     lobbyClient.disconnect();
     connectionState.setValue(ConnectionState.DISCONNECTED);
   }
@@ -175,18 +181,8 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
         .toFuture();
   }
 
-  public void stopSearchMatchmaker() {
-    // Not implemented
-  }
-
   public void sendGpgMessage(GpgGameOutboundMessage message) {
-    lobbyClient.sendGpgGameMessage(
-        new com.faforever.commons.lobby.GpgGameOutboundMessage(
-            message.getCommand(),
-            message.getArgs(),
-            "game"
-        )
-    );
+    lobbyClient.sendGpgGameMessage(new GpgGameOutboundMessage(message.getCommand(), message.getArgs(), MessageTarget.GAME));
   }
 
   public void removeFriend(int playerId) {
@@ -204,11 +200,6 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
   public CompletableFuture<Collection<Avatar>> getAvailableAvatars() {
     return lobbyClient.getAvailableAvatars()
         .toFuture();
-  }
-
-  @Override
-  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
-
   }
 
   public void closePlayersGame(int playerId) {
@@ -268,13 +259,8 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
     lobbyClient.restoreGameSession(id);
   }
 
-  @Override
-  public void ping() {
-
-  }
-
-  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
-    lobbyClient.gameMatchmaking(queue.getTechnicalName(), MatchmakerState.valueOf(state.name()));
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakerState state) {
+    lobbyClient.gameMatchmaking(queue.getTechnicalName(), state);
   }
 
   public void inviteToParty(Player recipient) {

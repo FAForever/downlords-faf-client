@@ -14,10 +14,10 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.lobby.IrcPasswordInfo;
+import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.MapChangeListener;
@@ -125,7 +125,7 @@ public class KittehChatServiceTest extends ServiceTest {
   private EventBus eventBus;
 
   @Captor
-  private ArgumentCaptor<Consumer<SocialMessage>> socialMessageListenerCaptor;
+  private ArgumentCaptor<Consumer<SocialInfo>> socialMessageListenerCaptor;
 
   private DefaultEventManager eventManager;
   private DefaultClient client;
@@ -198,7 +198,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     instance.afterPropertiesSet();
 
-    verify(fafService).addOnMessageListener(eq(SocialMessage.class), socialMessageListenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(SocialInfo.class), socialMessageListenerCaptor.capture());
   }
 
   @AfterEach
@@ -260,7 +260,7 @@ public class KittehChatServiceTest extends ServiceTest {
         new DefaultActor(client, "server"),
         client.getServerInfo()));
 
-    SocialMessage socialMessage = new SocialMessage(List.of(), List.of(), List.of());
+    SocialInfo socialMessage = new SocialInfo(List.of(), List.of(), List.of(), List.of(), 0);
 
     socialMessageListenerCaptor.getValue().accept(socialMessage);
   }

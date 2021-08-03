@@ -19,6 +19,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
+import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.Player.LeaderboardRating;
 import com.faforever.commons.lobby.SocialInfo;
@@ -232,6 +233,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Subscribe
+  public void onLoggedInEvent(LoginSuccessEvent event) {
+    if (userService.getOwnPlayer().getRatings().values().stream().mapToInt(LeaderboardRating::getNumberOfGames).sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
+      joinChannel(NEWBIE_CHANNEL_NAME);
+    }
+  }
+
+  @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
     Player player = event.getPlayer();
 
@@ -249,9 +257,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   public void onConnect(ClientNegotiationCompleteEvent event) {
     connectionState.set(ConnectionState.CONNECTED);
-    if (userService.getOwnPlayer().getRatings().values().stream().mapToInt(LeaderboardRating::getNumberOfGames).sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
-      joinChannel(NEWBIE_CHANNEL_NAME);
-    }
   }
 
   @Handler

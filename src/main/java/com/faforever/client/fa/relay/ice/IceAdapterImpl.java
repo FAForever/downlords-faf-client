@@ -254,12 +254,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private void setLobbyInitMode() {
     switch (lobbyInitMode) {
-      case DEFAULT_LOBBY:
-        iceAdapterProxy.setLobbyInitMode("normal");
-        break;
-      case AUTO_LOBBY:
-        iceAdapterProxy.setLobbyInitMode("auto");
-        break;
+      case DEFAULT_LOBBY -> iceAdapterProxy.setLobbyInitMode("normal");
+      case AUTO_LOBBY -> iceAdapterProxy.setLobbyInitMode("auto");
     }
   }
 

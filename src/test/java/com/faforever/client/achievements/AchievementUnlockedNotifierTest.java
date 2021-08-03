@@ -5,11 +5,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.UpdatedAchievement;
-import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.AchievementType;
+import com.faforever.commons.lobby.UpdatedAchievementsInfo;
+import com.faforever.commons.lobby.UpdatedAchievementsInfo.AchievementState;
+import com.faforever.commons.lobby.UpdatedAchievementsInfo.UpdatedAchievement;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ public class AchievementUnlockedNotifierTest extends ServiceTest {
   private AudioService audioService;
 
   @Captor
-  private ArgumentCaptor<Consumer<UpdatedAchievementsMessage>> listenerCaptor;
+  private ArgumentCaptor<Consumer<UpdatedAchievementsInfo>> listenerCaptor;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -57,7 +58,7 @@ public class AchievementUnlockedNotifierTest extends ServiceTest {
     instance = new AchievementUnlockedNotifier(notificationService, i18n, achievementService, fafService, audioService);
     instance.afterPropertiesSet();
 
-    verify(fafService).addOnMessageListener(eq(UpdatedAchievementsMessage.class), listenerCaptor.capture());
+    verify(fafService).addOnMessageListener(eq(UpdatedAchievementsInfo.class), listenerCaptor.capture());
   }
 
   @Test
@@ -98,10 +99,8 @@ public class AchievementUnlockedNotifierTest extends ServiceTest {
     when(i18n.get("achievement.unlockedTitle")).thenReturn("Achievement unlocked");
     when(achievementService.getImage(achievementDefinition, REVEALED)).thenReturn(mock(Image.class));
 
-    UpdatedAchievement updatedAchievement = new UpdatedAchievement();
-    updatedAchievement.setNewlyUnlocked(newlyUnlocked);
-    updatedAchievement.setAchievementId("1234");
-    UpdatedAchievementsMessage message = new UpdatedAchievementsMessage(List.of(updatedAchievement));
+    UpdatedAchievement updatedAchievement = new UpdatedAchievement("1234", AchievementState.UNLOCKED, 0, newlyUnlocked);
+    UpdatedAchievementsInfo message = new UpdatedAchievementsInfo(List.of(updatedAchievement));
 
     listenerCaptor.getValue().accept(message);
   }

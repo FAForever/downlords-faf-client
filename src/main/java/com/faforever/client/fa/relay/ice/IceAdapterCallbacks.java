@@ -5,6 +5,7 @@ import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.remote.FafService;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.MessageTarget;
 import com.google.common.eventbus.EventBus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class IceAdapterCallbacks {
 
   public void onGpgNetMessageReceived(String header, List<Object> chunks) {
     log.debug("Message from game: '{}' '{}'", header, chunks);
-    eventBus.post(new GpgOutboundMessageEvent(new GpgGameOutboundMessage(header, chunks, "game")));
+    eventBus.post(new GpgOutboundMessageEvent(new GpgGameOutboundMessage(header, chunks, MessageTarget.GAME)));
   }
 
   public void onIceMsg(long localPlayerId, long remotePlayerId, Object message) {

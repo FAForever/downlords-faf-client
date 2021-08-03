@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.test.ServiceTest;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;

@@ -4,14 +4,13 @@ package com.faforever.client.remote;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
-import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -52,8 +51,6 @@ public interface FafServerAccessor {
 
   CompletableFuture<GameLaunchResponse> startSearchMatchmaker();
 
-  void stopSearchMatchmaker();
-
   void sendGpgMessage(GpgGameOutboundMessage message);
 
   void removeFriend(int playerId);
@@ -63,8 +60,6 @@ public interface FafServerAccessor {
   void selectAvatar(URL url);
 
   CompletableFuture<Collection<Avatar>> getAvailableAvatars();
-
-  void banPlayer(int playerId, int duration, PeriodType periodType, String reason);
 
   void closePlayersGame(int playerId);
 
@@ -76,9 +71,7 @@ public interface FafServerAccessor {
 
   void restoreGameSession(int id);
 
-  void ping();
-
-  void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state);
+  void gameMatchmaking(MatchmakingQueue queue, MatchmakerState state);
 
   void inviteToParty(Player recipient);
 

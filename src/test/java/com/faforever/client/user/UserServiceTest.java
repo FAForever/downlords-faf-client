@@ -13,14 +13,14 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.commons.api.dto.MeResult;
-import com.faforever.commons.lobby.PlayerInfo;
+import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,13 +68,13 @@ public class UserServiceTest extends ServiceTest {
 
   private UserService instance;
   private Preferences preferences;
-  private LoginMessage validLoginMessage;
+  private LoginSuccessResponse validLoginMessage;
   private MeResult meResult;
 
   @BeforeEach
   public void setUp() throws Exception {
-    PlayerInfo me = new PlayerInfo(1, "junit", null, null, null, new HashMap<>(), new HashMap<>());
-    validLoginMessage = new LoginMessage(me);
+    Player me = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());
+    validLoginMessage = new LoginSuccessResponse(me);
     meResult = new MeResult();
     meResult.setUserName("junit");
     meResult.setUserId("1");
@@ -217,8 +217,8 @@ public class UserServiceTest extends ServiceTest {
 
   @Test
   public void testLoginWrongUserFromServer() {
-    PlayerInfo notMe = new PlayerInfo(100, "notMe", null, null, null, new HashMap<>(), new HashMap<>());
-    LoginMessage invalidLoginMessage = new LoginMessage(notMe);
+    Player notMe = new Player(100, "notMe", null, null, "", new HashMap<>(), new HashMap<>());
+    LoginSuccessResponse invalidLoginMessage = new LoginSuccessResponse(notMe);
     when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafService.getCurrentUser()).thenReturn(CompletableFuture.completedFuture(meResult));
     when(fafService.connectToServer()).thenReturn(CompletableFuture.completedFuture(invalidLoginMessage));
@@ -250,8 +250,8 @@ public class UserServiceTest extends ServiceTest {
     otherResult.setUserName("junit2");
     otherResult.setUserId("2");
     when(fafService.getCurrentUser()).thenReturn(CompletableFuture.completedFuture(otherResult));
-    PlayerInfo me = new PlayerInfo(2, "junit2", null, null, null, new HashMap<>(), new HashMap<>());
-    LoginMessage loginMessage = new LoginMessage(me);
+    Player me = new Player(2, "junit2", null, null, "", new HashMap<>(), new HashMap<>());
+    LoginSuccessResponse loginMessage = new LoginSuccessResponse(me);
     when(fafService.connectToServer()).thenReturn(CompletableFuture.completedFuture(loginMessage));
 
     instance.login("abc").join();

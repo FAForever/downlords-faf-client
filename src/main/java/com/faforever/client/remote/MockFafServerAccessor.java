@@ -5,8 +5,6 @@ import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PeriodType;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
@@ -16,10 +14,12 @@ import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.LobbyMode;
 import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.ServerMessage;
 import com.google.common.eventbus.EventBus;
@@ -144,11 +144,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void stopSearchMatchmaker() {
-
-  }
-
-  @Override
   public void sendGpgMessage(GpgGameOutboundMessage message) {
 
   }
@@ -165,11 +160,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
   @Override
   public void selectAvatar(URL url) {
-
-  }
-
-  @Override
-  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
 
   }
 
@@ -204,12 +194,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void ping() {
-
-  }
-
-  @Override
-  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakerState state) {
 
   }
 
@@ -250,7 +235,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
 
 
   private GameInfo createGameInfo(int uid, String title, GameAccess access, String featuredMod, String mapName, int numPlayers, int maxPlayers, String host) {
-    return new GameInfo(uid, "", "", GameType.CUSTOM, maxPlayers, numPlayers, "public", false,
+    return new GameInfo(uid, "", "", GameType.CUSTOM, maxPlayers, numPlayers, GameVisibility.PUBLIC, false,
         GameStatus.OPEN, "faf", "", Map.of(), "", "", 0.0, Map.of(), null, null, false,
         List.of());
   }

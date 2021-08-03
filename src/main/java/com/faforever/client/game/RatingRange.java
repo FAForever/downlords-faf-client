@@ -1,4 +1,4 @@
-package com.faforever.client.remote.domain;
+package com.faforever.client.game;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

@@ -38,6 +38,7 @@ import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -383,8 +384,6 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    onMatchmakerSearchStopped();
-
     return modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName).handleAsync((ignoredResult, throwable) -> askWhetherToStartWithOutMap(throwable)))
@@ -473,8 +472,6 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
     }
 
-    onMatchmakerSearchStopped();
-
     Game game = getByUid(gameId);
 
     Map<String, Integer> modVersions = game.getFeaturedModVersions();
@@ -535,7 +532,7 @@ public class GameService implements InitializingBean {
     log.info("Matchmaking search has been started");
     inMatchmakerQueue = true;
 
-    return modService.getFeaturedMod(FAF.getTechnicalName())
+    CompletableFuture<Void> matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafService.startSearchMatchmaker())
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
@@ -547,25 +544,22 @@ public class GameService implements InitializingBean {
               String ratingType = gameLaunchMessage.getLeaderboard();
 
               startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
-            }))
-        .exceptionally(throwable -> {
-          if (throwable.getCause() instanceof CancellationException) {
-            log.info("Matchmaking search has been cancelled");
-          } else {
-            log.warn("Matchmade game could not be started", throwable);
-          }
-          return null;
-        });
-  }
+            }));
 
-  public void onMatchmakerSearchStopped() {
-    if (inMatchmakerQueue) {
-      fafService.stopSearchMatchmaker();
-      inMatchmakerQueue = false;
-      log.debug("Matchmaker search stopped");
-    } else {
-      log.debug("Matchmaker search has already been stopped, ignoring call");
-    }
+    matchmakerFuture.whenComplete((aVoid, throwable) -> {
+          inMatchmakerQueue = false;
+          if (throwable != null) {
+            if (throwable instanceof CancellationException) {
+              log.info("Matchmaking search has been cancelled");
+            } else {
+              log.warn("Matchmade game could not be started", throwable);
+            }
+          } else {
+            log.debug("Matchmaker queue exited");
+          }
+        });
+
+    return matchmakerFuture;
   }
 
   /**

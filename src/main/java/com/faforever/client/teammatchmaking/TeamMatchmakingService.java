@@ -17,7 +17,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
@@ -30,6 +29,7 @@ import com.faforever.commons.lobby.LobbyMode;
 import com.faforever.commons.lobby.MatchmakerInfo;
 import com.faforever.commons.lobby.MatchmakerMatchCancelledResponse;
 import com.faforever.commons.lobby.MatchmakerMatchFoundResponse;
+import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
@@ -87,6 +88,8 @@ public class TeamMatchmakingService implements InitializingBean {
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
   private final BooleanProperty currentlyInQueue = new SimpleBooleanProperty();
   private final InvalidationListener queueJoinInvalidationListener;
+
+  private CompletableFuture<Void> matchmakingGameFuture;
 
   public TeamMatchmakingService(PlayerService playerService, NotificationService notificationService, PreferencesService preferencesService, FafService fafService, EventBus eventBus, I18n i18n, TaskScheduler taskScheduler, GameService gameService) {
     this.playerService = playerService;
@@ -154,11 +157,11 @@ public class TeamMatchmakingService implements InitializingBean {
     matchmakingQueues.stream()
         .filter(matchmakingQueue -> Objects.equals(matchmakingQueue.getTechnicalName(), message.getQueueName()))
         .forEach(matchmakingQueue -> {
-          matchmakingQueue.setJoined(message.getState().equals(MatchmakingState.START.getString()));
+          matchmakingQueue.setJoined(message.getState().equals(MatchmakerState.START));
           leaveQueueTimeouts.forEach(f -> f.cancel(false));
 
-              if (message.getState().equals(MatchmakingState.START.getString())) {
-                gameService.startSearchMatchmaker();
+              if (message.getState().equals(MatchmakerState.START)) {
+                matchmakingGameFuture = gameService.startSearchMatchmaker();
 
                 party.getMembers().stream()
                     .filter(partyMember -> Objects.equals(partyMember.getPlayer(), playerService.getCurrentPlayer()))
@@ -169,7 +172,13 @@ public class TeamMatchmakingService implements InitializingBean {
         );
 
     if (matchmakingQueues.stream().noneMatch(MatchmakingQueue::isJoined) && !matchFoundAndWaitingForGameLaunch) {
-      gameService.onMatchmakerSearchStopped();
+      stopMatchMakerLaunch();
+    }
+  }
+
+  private void stopMatchMakerLaunch() {
+    if (matchmakingGameFuture != null) {
+      matchmakingGameFuture.cancel(false);
     }
   }
 
@@ -183,7 +192,7 @@ public class TeamMatchmakingService implements InitializingBean {
     ));
 
     matchmakingQueues.stream()
-        .filter(matchmakingQueue -> Objects.equals(matchmakingQueue.getTechnicalName(), message.getQueue()))
+        .filter(matchmakingQueue -> Objects.equals(matchmakingQueue.getTechnicalName(), message.getQueueName()))
         .forEach(matchmakingQueue -> matchmakingQueue.setTimedOutMatchingStatus(MatchingStatus.MATCH_FOUND, Duration.ofSeconds(60), taskScheduler));
 
     matchmakingQueues.forEach(matchmakingQueue -> matchmakingQueue.setJoined(false));
@@ -196,7 +205,7 @@ public class TeamMatchmakingService implements InitializingBean {
         .forEach(matchmakingQueue -> matchmakingQueue.setTimedOutMatchingStatus(MatchingStatus.MATCH_CANCELLED, Duration.ofSeconds(60), taskScheduler));
 
     matchFoundAndWaitingForGameLaunch = false;
-    gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
+    stopMatchMakerLaunch();
   }
 
   @VisibleForTesting
@@ -210,7 +219,6 @@ public class TeamMatchmakingService implements InitializingBean {
         .forEach(matchmakingQueue -> matchmakingQueue.setTimedOutMatchingStatus(MatchingStatus.GAME_LAUNCHING, Duration.ofSeconds(60), taskScheduler));
 
     matchFoundAndWaitingForGameLaunch = false;
-    gameService.onMatchmakerSearchStopped(); // joining custom games is still blocked till match is cancelled or launched
   }
 
   public boolean joinQueue(MatchmakingQueue queue) {
@@ -229,12 +237,12 @@ public class TeamMatchmakingService implements InitializingBean {
       return false;
     }
 
-    fafService.updateMatchmakerState(queue, MatchmakingState.START);
+    fafService.updateMatchmakerState(queue, MatchmakerState.START);
     return true;
   }
 
   public void leaveQueue(MatchmakingQueue queue) {
-    fafService.updateMatchmakerState(queue, MatchmakingState.STOP);
+    fafService.updateMatchmakerState(queue, MatchmakerState.STOP);
     leaveQueueTimeouts.add(taskScheduler.schedule(
         () -> JavaFxUtil.runLater(() -> queue.setJoined(false)), Instant.now().plus(Duration.ofSeconds(5))));
   }

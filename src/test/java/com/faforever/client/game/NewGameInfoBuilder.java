@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.mod.FeaturedMod;
+import com.faforever.commons.lobby.GameVisibility;
 
 import java.util.HashSet;
 import java.util.Set;

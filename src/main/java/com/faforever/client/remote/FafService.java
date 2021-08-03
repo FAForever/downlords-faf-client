@@ -15,7 +15,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
-import com.faforever.client.remote.domain.MatchmakingState;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.reporting.ModerationReport;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
@@ -43,9 +42,9 @@ import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
-import com.faforever.commons.lobby.GpgGameOutboundMessage.GameStateMessage;
 import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.MatchmakerState;
 import com.faforever.commons.lobby.ServerMessage;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -104,10 +103,6 @@ public class FafService {
     return fafServerAccessor.startSearchMatchmaker();
   }
 
-  public void stopSearchMatchmaker() {
-    fafServerAccessor.stopSearchMatchmaker();
-  }
-
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
   }
@@ -147,7 +142,7 @@ public class FafService {
 
   @Async
   public void notifyGameEnded() {
-    fafServerAccessor.sendGpgMessage(new GameStateMessage("Ended"));
+    fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Ended"));
   }
 
   @Async
@@ -588,7 +583,7 @@ public class FafService {
     fafServerAccessor.setPartyFactions(factions);
   }
 
-  public void updateMatchmakerState(MatchmakingQueue queue, MatchmakingState state) {
+  public void updateMatchmakerState(MatchmakingQueue queue, MatchmakerState state) {
     fafServerAccessor.gameMatchmaking(queue, state);
   }
 
@@ -603,9 +598,8 @@ public class FafService {
         .map(MapBean::fromMapVersionDto);
   }
 
-  //TODO: Double check this is correct
   public void sendIceMessage(int remotePlayerId, Object message) {
-    fafServerAccessor.sendGpgMessage(new GpgGameOutboundMessage("IceMsg", List.of(remotePlayerId, message), "game"));
+    fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.iceMessage(remotePlayerId, message));
   }
 
   @Async
