@@ -51,14 +51,12 @@ import com.faforever.commons.lobby.SearchInfo;
 import com.faforever.commons.lobby.ServerMessage;
 import com.faforever.commons.lobby.SessionResponse;
 import com.faforever.commons.lobby.SocialInfo;
-import com.faforever.commons.lobby.UpdatedAchievementsInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.google.common.eventbus.EventBus;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.LineEncoder;
 import io.netty.handler.codec.string.LineSeparator;
@@ -155,7 +153,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getServer()
-        .setHost(LOOPBACK_ADDRESS.getHostAddress())
+        .setHost(disposableServer.host())
         .setPort(disposableServer.port() - 1);
 
     instance = new FafServerAccessorImpl(notificationService, i18n, taskScheduler, clientProperties, preferencesService, uidService,
@@ -197,10 +195,10 @@ public class ServerAccessorImplTest extends ServiceTest {
               })
               .then();
 
-          Mono<Void> outboundMono = outbound.send(serverSentSink.asFlux().map(message -> {
+          Mono<Void> outboundMono = outbound.sendString(serverSentSink.asFlux().map(message -> {
             log.info("Sending message from fake server {}", message);
-            return Unpooled.copiedBuffer(message + "\n", StandardCharsets.UTF_8);
-          })).then();
+            return message + "\n";
+          }), StandardCharsets.UTF_8).then();
 
           return inboundMono.mergeWith(outboundMono);
         })
@@ -210,7 +208,7 @@ public class ServerAccessorImplTest extends ServiceTest {
   @SneakyThrows
   private void assertMessageContainsComponents(String command, String... values) {
     serverMessagesReceived.filter(message -> message.contains(command)).next()
-        .switchIfEmpty(Mono.just(""))
+        .switchIfEmpty(Mono.error(new AssertionError("No matching messages")))
         .doOnNext(json -> {
           assertThat(json, containsString("command"));
           for (String string : values) {
@@ -785,23 +783,6 @@ public class ServerAccessorImplTest extends ServiceTest {
         }""");
 
     assertThat(parsedMessage, equalTo(authenticationFailedMessage));
-  }
-
-  @Test
-  public void testOnUpdatedAchievements() throws InterruptedException, JsonProcessingException {
-    UpdatedAchievementsInfo updatedAchievementsMessage = new UpdatedAchievementsInfo(List.of());
-
-    sendFromServer(updatedAchievementsMessage);
-    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(receivedMessage, is(updatedAchievementsMessage));
-
-    ServerMessage parsedMessage = parseServerString("""
-        {
-          "command" : "updated_achievements",
-          "updated_achievements" : [ ]
-        }""");
-
-    assertThat(parsedMessage, equalTo(updatedAchievementsMessage));
   }
 
   @Test

@@ -21,7 +21,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.faforever.commons.lobby.IrcPasswordInfo;
-import com.faforever.commons.lobby.Player.LeaderboardRating;
+import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -234,7 +234,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Subscribe
   public void onLoggedInEvent(LoginSuccessEvent event) {
-    if (userService.getOwnPlayer().getRatings().values().stream().mapToInt(LeaderboardRating::getNumberOfGames).sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
+    if (userService.getOwnPlayer().getRatings().values().stream().mapToInt(LeaderboardStats::getNumberOfGames).sum() < MAX_GAMES_FOR_NEWBIE_CHANNEL) {
       joinChannel(NEWBIE_CHANNEL_NAME);
     }
   }

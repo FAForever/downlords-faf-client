@@ -6,9 +6,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.remote.FafService;
 import com.faforever.commons.api.dto.AchievementDefinition;
-import com.faforever.commons.lobby.UpdatedAchievementsInfo;
-import com.faforever.commons.lobby.UpdatedAchievementsInfo.AchievementState;
-import com.faforever.commons.lobby.UpdatedAchievementsInfo.UpdatedAchievement;
+import com.faforever.commons.api.dto.AchievementState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -31,19 +29,6 @@ public class AchievementUnlockedNotifier implements InitializingBean {
 
   @Override
   public void afterPropertiesSet() {
-    fafService.addOnMessageListener(UpdatedAchievementsInfo.class, this::onUpdatedAchievementsMessage);
-  }
-
-  private void onUpdatedAchievementsMessage(UpdatedAchievementsInfo message) {
-    message.getUpdatedAchievements().stream()
-        .filter(UpdatedAchievement::getNewlyUnlocked)
-        .forEachOrdered(updatedAchievement -> achievementService.getAchievementDefinition(updatedAchievement.getAchievementId())
-            .thenAccept(this::notifyAboutUnlockedAchievement)
-            .exceptionally(throwable -> {
-              log.warn("Could not valueOf achievement definition for achievement: {}", updatedAchievement.getAchievementId(), throwable);
-              return null;
-            })
-        );
   }
 
   private void notifyAboutUnlockedAchievement(AchievementDefinition achievementDefinition) {

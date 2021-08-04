@@ -25,11 +25,11 @@ public class LeaderboardRating {
     numberOfGames = new SimpleIntegerProperty();
   }
 
-  public static LeaderboardRating fromDto(Player.LeaderboardRating dto) {
+  public static LeaderboardRating fromDto(Player.LeaderboardStats dto) {
     LeaderboardRating leaderboardRating = new LeaderboardRating();
     leaderboardRating.setNumberOfGames(dto.getNumberOfGames());
-    leaderboardRating.setMean(dto.getRating().get(0));
-    leaderboardRating.setDeviation(dto.getRating().get(1));
+    leaderboardRating.setMean(dto.getRating().getMean());
+    leaderboardRating.setDeviation(dto.getRating().getDeviation());
     return leaderboardRating;
   }
 
