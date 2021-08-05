@@ -6,7 +6,7 @@ import com.faforever.client.remote.FafService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.lobby.GameStatus;
-import com.faforever.commons.lobby.Player.LeaderboardRating;
+import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
@@ -101,7 +101,7 @@ public class PlayerServiceTest extends ServiceTest {
   public void testPlayerUpdatedFromPlayerInfo() {
     Player player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
 
-    assertEquals((int) playerInfo1.getRatings().values().stream().mapToInt(LeaderboardRating::getNumberOfGames).sum(), player.getNumberOfGames());
+    assertEquals((int) playerInfo1.getRatings().values().stream().mapToInt(LeaderboardStats::getNumberOfGames).sum(), player.getNumberOfGames());
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
