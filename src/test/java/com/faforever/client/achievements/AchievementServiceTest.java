@@ -10,7 +10,6 @@ import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 
 import java.net.URL;
@@ -56,7 +55,6 @@ public class AchievementServiceTest extends ServiceTest {
   public void testGetPlayerAchievementsForCurrentUser() throws Exception {
     instance.playerAchievements.add(new PlayerAchievement());
     instance.getPlayerAchievements(PLAYER_ID);
-    verify(fafService).addOnMessageListener(ArgumentMatchers.any(), ArgumentMatchers.any());
     verifyNoMoreInteractions(fafService);
   }
 

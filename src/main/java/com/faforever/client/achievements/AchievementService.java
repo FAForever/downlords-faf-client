@@ -67,17 +67,11 @@ public class AchievementService implements InitializingBean {
 
   @Cacheable(value = CacheNames.ACHIEVEMENT_IMAGES, sync = true)
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
-    URL url;
-    switch (achievementState) {
-      case REVEALED:
-        url = noCatch(() -> new URL(achievementDefinition.getRevealedIconUrl()));
-        break;
-      case UNLOCKED:
-        url = noCatch(() -> new URL(achievementDefinition.getUnlockedIconUrl()));
-        break;
-      default:
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    URL url = switch (achievementState) {
+      case REVEALED -> noCatch(() -> new URL(achievementDefinition.getRevealedIconUrl()));
+      case UNLOCKED -> noCatch(() -> new URL(achievementDefinition.getUnlockedIconUrl()));
+      default -> throw new UnsupportedOperationException("Not yet implemented");
+    };
     return assetService.loadAndCacheImage(url, Paths.get("achievements").resolve(achievementState.name().toLowerCase()),
         null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
   }
