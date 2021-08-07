@@ -35,6 +35,7 @@ import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.api.dto.PlayerEvent;
 import com.faforever.commons.api.dto.Tournament;
 import com.faforever.commons.api.dto.TutorialCategory;
+import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
@@ -59,6 +60,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestOperations;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -124,11 +126,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private final ClientProperties clientProperties;
   private final JsonApiMessageConverter jsonApiMessageConverter;
   private final JsonApiErrorHandler jsonApiErrorHandler;
-  private final OAuthTokenInterceptor oAuthTokenInterceptor;
+  private final OAuthTokenFilter oAuthTokenFilter;
   private final HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
   private RestTemplateBuilder templateBuilder;
   private CountDownLatch authorizedLatch = new CountDownLatch(1);
+  private WebClient webClient;
   private RestOperations restOperations;
 
   private static String rsql(Condition<?> eq) {
@@ -160,6 +163,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public List<PlayerAchievement> getPlayerAchievements(int playerId) {
+    ElideNavigator.of(PlayerAchievement.class).collection().addFilter(qBuilder().intNum("player.id").eq(playerId))
     return getAll("/data/playerAchievement", java.util.Map.of(
         FILTER, rsql(qBuilder().intNum("player.id").eq(playerId))
     ));
@@ -648,6 +652,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   public void authorize() {
     Api apiProperties = clientProperties.getApi();
+
+    webClient = WebClient.builder()
+        .baseUrl(apiProperties.getBaseUrl())
+        .filter(oAuthTokenFilter)
+        .codecs()
+        .build();
 
     restOperations = templateBuilder
         // Base URL can be changed in login window
