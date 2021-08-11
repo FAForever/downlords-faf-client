@@ -53,6 +53,7 @@ import com.faforever.client.remote.domain.outbound.faf.ListIceServersMessage;
 import com.faforever.client.remote.domain.outbound.faf.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.outbound.faf.LoginOauthClientMessage;
 import com.faforever.client.remote.domain.outbound.faf.MakeBroadcastMessage;
+import com.faforever.client.remote.domain.outbound.faf.MatchReadyMessage;
 import com.faforever.client.remote.domain.outbound.faf.MatchmakerInfoOutboundMessage;
 import com.faforever.client.remote.domain.outbound.faf.PingMessage;
 import com.faforever.client.remote.domain.outbound.faf.PongMessage;
@@ -557,6 +558,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
     writeToServer(new GameMatchmakingMessage(queue.getTechnicalName(), state));
   }
+
+  @Override
+  public void gameMatchmakingReady() { writeToServer(new MatchReadyMessage()); }
 
   @Override
   public void inviteToParty(Player recipient) {

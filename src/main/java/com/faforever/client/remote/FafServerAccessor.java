@@ -82,6 +82,8 @@ public interface FafServerAccessor {
 
   void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state);
 
+  void gameMatchmakingReady();
+
   void inviteToParty(Player recipient);
 
   void acceptPartyInvite(Player sender);

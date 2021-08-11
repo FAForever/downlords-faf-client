@@ -302,6 +302,11 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
+  public void gameMatchmakingReady() {
+
+  }
+
+  @Override
   public void inviteToParty(com.faforever.client.player.Player recipient) {
 
   }

@@ -599,6 +599,8 @@ public class FafService {
     fafServerAccessor.gameMatchmaking(queue, state);
   }
 
+  public void readyForMatchLaunch() { fafServerAccessor.gameMatchmakingReady(); }
+
   @Async
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
     return CompletableFuture.completedFuture(fafApiAccessor.getClanByTag(tag)
