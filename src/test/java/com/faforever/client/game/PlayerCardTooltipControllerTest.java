@@ -1,20 +1,31 @@
 package com.faforever.client.game;
 
+import com.faforever.client.chat.InitiatePrivateChatEvent;
+import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
+import com.faforever.client.player.PlayerContextMenuController;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
+import com.google.common.eventbus.EventBus;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PlayerCardTooltipControllerTest extends UITest {
@@ -22,12 +33,16 @@ public class PlayerCardTooltipControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private CountryFlagService countryFlagService;
+  @Mock
+  private EventBus eventBus;
+  @Mock
+  private UiService uiService;
 
   private PlayerCardTooltipController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PlayerCardTooltipController(countryFlagService, i18n);
+    instance = new PlayerCardTooltipController(countryFlagService, uiService,eventBus, i18n);
     loadFxml("theme/player_card_tooltip.fxml", clazz -> instance);
   }
 
@@ -83,5 +98,44 @@ public class PlayerCardTooltipControllerTest extends UITest {
     assertThat(instance.foeIconText.isVisible(), is(false));
     assertThat(instance.friendIconText.isVisible(), is(false));
     assertThat(instance.playerInfo.getText(), is("user(1000)"));
+  }
+
+  @Test
+  public void testInitiatePrivateChatByDoubleClickingOnRoot() {
+    Player player = PlayerBuilder.create("junit").socialStatus(SocialStatus.OTHER).get();
+    runOnFxThreadAndWait(() -> {
+      instance.setPlayer(player, 1000, Faction.RANDOM);
+      instance.getRoot().getOnMouseClicked().handle(createMouseDoubleClickEvent());
+    });
+
+    verify(eventBus).post(any(InitiatePrivateChatEvent.class));
+  }
+
+  @Test
+  public void testNoMouseEventForRootIfPlayerIsOwner() {
+    Player player = PlayerBuilder.create("junit").socialStatus(SocialStatus.SELF).get();
+    runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.RANDOM));
+
+    assertThat(instance.getRoot().getOnMouseClicked(), nullValue());
+  }
+
+  @Test
+  public void testShowContextMenuOfPlayerByRightMouseClicking() {
+    PlayerContextMenuController playerContextMenuController = mock(PlayerContextMenuController.class);
+    ContextMenu contextMenu = mock(ContextMenu.class);
+    when(uiService.loadFxml("theme/player/player_context_menu.fxml")).thenReturn(playerContextMenuController);
+    when(playerContextMenuController.getRoot()).thenReturn(contextMenu);
+    Player player = PlayerBuilder.create("junit").socialStatus(SocialStatus.OTHER).get();
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot()); // for avoid NPE when invoke getScene()
+      instance.setPlayer(player, 1000, Faction.RANDOM);
+      instance.getRoot().getOnMouseClicked().handle(MouseEvents.generateClick(MouseButton.SECONDARY, 1));
+    });
+
+    verify(contextMenu).show(getStage(), 0.0d, 0.0d);
+  }
+
+  private MouseEvent createMouseDoubleClickEvent() {
+    return MouseEvents.generateClick(MouseButton.PRIMARY, 2);
   }
 }
