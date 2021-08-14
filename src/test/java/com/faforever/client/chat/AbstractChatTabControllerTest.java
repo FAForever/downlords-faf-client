@@ -332,7 +332,23 @@ public class AbstractChatTabControllerTest extends UITest {
   @Test
   public void testChannelNamesTransformedToHyperlinks() {
     String output = instance.replaceChannelNamesWithHyperlinks("Go to #moderation and report a user");
-    assertThat(output, is("Go to <a href=\"javascript:void(0);\" onClick=\"java.openChannel('#moderation')\">#moderation</a> and report a user"));
+    String expected = String.format("Go to %s and report a user", instance.transformToChannelLinkHtml("#moderation"));
+    assertThat(output, is(expected));
+  }
+
+  @Test
+  public void testDuplicateChannelNamesTransformedToHyperlinks() {
+    String output = instance.replaceChannelNamesWithHyperlinks("Go to #moderation #moderation #moderation and report a user");
+    String expected = String.format("Go to %1$s %1$s %1$s and report a user", instance.transformToChannelLinkHtml("#moderation"));
+    assertThat(output, is(expected));
+  }
+
+  @Test
+  public void testSeveralChannelNamesTransformedToHyperlinks() {
+    String output = instance.replaceChannelNamesWithHyperlinks("#develop #development #test");
+    String expected = String.format("%s %s %s", instance.transformToChannelLinkHtml("#develop"),
+        instance.transformToChannelLinkHtml("#development"), instance.transformToChannelLinkHtml("#test"));
+    assertThat(output, is(expected));
   }
 
   @Test

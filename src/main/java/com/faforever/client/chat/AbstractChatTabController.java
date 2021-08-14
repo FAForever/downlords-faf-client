@@ -91,13 +91,13 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private static final org.springframework.core.io.Resource AUTOLINKER_JS_RESOURCE = new ClassPathResource("/js/Autolinker.min.js");
   private static final org.springframework.core.io.Resource JQUERY_JS_RESOURCE = new ClassPathResource("js/jquery-2.1.4.min.js");
   private static final org.springframework.core.io.Resource JQUERY_HIGHLIGHT_JS_RESOURCE = new ClassPathResource("js/jquery.highlight-5.closure.js");
+  private static final String CHANNEL_LINK_HTML_FORMAT = "<a href=\"javascript:void(0);\" onClick=\"java.openChannel('%1$s')\">%1$s</a>";
 
-  public static final String CHANNEL_NAME_GROUP_NAME = "channelName";
   /**
    * A pattern identifying all strings with a # in front and not starting with a number. Those are interpreted as
    * irc-channels.
    */
-  private static final Pattern CHANNEL_USER_PATTERN = Pattern.compile("(^|\\s)(?<" + CHANNEL_NAME_GROUP_NAME + ">#[a-zA-Z]\\S+)", CASE_INSENSITIVE);
+  private static final Pattern CHANNEL_USER_PATTERN = Pattern.compile("(^|\\s)#[a-zA-Z]\\S+", CASE_INSENSITIVE);
 
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
@@ -603,12 +603,15 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   @VisibleForTesting
   protected String replaceChannelNamesWithHyperlinks(String text) {
-    Matcher channelMatcher = CHANNEL_USER_PATTERN.matcher(text);
-    while (channelMatcher.find()) {
-      String channelName = channelMatcher.group(CHANNEL_NAME_GROUP_NAME);
-      text = text.replace(channelName, "<a href=\"javascript:void(0);\" onClick=\"java.openChannel('" + channelName + "')\">" + channelName + "</a>");
-    }
-    return text;
+    return CHANNEL_USER_PATTERN.matcher(text).replaceAll(matchResult -> {
+      String channelName = matchResult.group();
+      return (channelName.startsWith(" ") ? " " : "") + transformToChannelLinkHtml(channelName);
+    });
+  }
+
+  @VisibleForTesting
+  String transformToChannelLinkHtml(String channelName) {
+    return String.format(CHANNEL_LINK_HTML_FORMAT, channelName.strip());
   }
 
   protected void onMention(ChatMessage chatMessage) {
