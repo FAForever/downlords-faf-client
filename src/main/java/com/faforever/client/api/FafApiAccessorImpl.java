@@ -361,10 +361,6 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
                 .map(gameReviewSummary -> ((GameReviewsSummary) gameReviewSummary).getGame())
                 .collect(Collectors.toList()))
         );
-//    return new Tuple<>(pageWithPageCount.get().stream()
-//        .map(GameReviewsSummary::getGame)
-//        .collect(Collectors.toList()),
-//        pageWithPageCount.getMeta());
   }
 
   @Override
@@ -627,7 +623,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .bodyValue(request)
         .retrieve()
-        .bodyToMono(Void.class);
+        .bodyToMono(Void.class)
+        .doOnNext(object -> log.debug("Posted {} to {}", object, endpointPath));
   }
 
   @SneakyThrows
@@ -648,7 +645,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(request)
         .retrieve()
-        .bodyToMono(Void.class);
+        .bodyToMono(Void.class)
+        .doOnNext(aVoid -> log.debug("Patched {} at {}", request, endpointPath));
   }
 
   @SneakyThrows
@@ -656,7 +654,8 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     authorizedLatch.await();
     return webClient.delete().uri(endpointPath)
         .retrieve()
-        .bodyToMono(Void.class);
+        .bodyToMono(Void.class)
+        .doOnNext(aVoid -> log.debug("Deleted {}", endpointPath));
   }
 
   @SneakyThrows
@@ -718,10 +717,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
     authorizedLatch.await();
     String url = uriComponents.toUriString();
-    return webClient.get().uri(url)
+    return (Flux<T>) webClient.get().uri(url)
         .retrieve()
         .bodyToFlux(Object.class)
-        .map(object -> (T) object)
         .cache()
         .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
   }
@@ -736,10 +734,9 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
     authorizedLatch.await();
     String url = uriComponents.toUriString();
-    return webClient.get().uri(url)
+    return (Flux<T>) webClient.get().uri(url)
         .retrieve()
         .bodyToFlux(Object.class)
-        .map(object -> (T) object)
         .cache()
         .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
   }
