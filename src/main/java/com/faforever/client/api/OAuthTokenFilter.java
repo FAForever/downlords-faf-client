@@ -2,7 +2,6 @@ package com.faforever.client.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -18,9 +17,9 @@ public class OAuthTokenFilter implements ExchangeFilterFunction {
   private final TokenService tokenService;
 
   @Override
-  @NotNull
   public Mono<ClientResponse> filter(ClientRequest request, ExchangeFunction next) {
-    request.headers().add(HttpHeaders.AUTHORIZATION, "Bearer " + tokenService.getRefreshedTokenValue());
-    return next.exchange(request);
+    return next.exchange(ClientRequest.from(request)
+        .headers(headers -> headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + tokenService.getRefreshedTokenValue()))
+        .build());
   }
 }

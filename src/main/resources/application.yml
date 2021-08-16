@@ -64,11 +64,9 @@ spring:
     name: Downlord's FAF Client
   main:
     web-application-type: none
+  codec:
+    max-in-memory-size: 16MB
 
-security:
-  oauth2:
-    client:
-      clientAuthenticationScheme: header
 logging:
   level:
     org.springframework.beans: warn

@@ -382,7 +382,7 @@ public class FafApiAccessorImplTest extends ServiceTest {
   @Test
   public void testSessionExpired() {
     instance.onSessionExpiredEvent(new SessionExpiredEvent());
-    RuntimeException exception = assertThrows(RuntimeException.class, () -> WaitForAsyncUtils.waitForAsync(1000, () -> instance.verifyUser()));
+    RuntimeException exception = assertThrows(RuntimeException.class, () -> WaitForAsyncUtils.waitForAsync(1000, () -> instance.getMe()));
     assertEquals(TimeoutException.class, exception.getCause().getClass());
   }
 }

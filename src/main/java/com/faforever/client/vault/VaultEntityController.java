@@ -8,7 +8,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.beans.binding.Bindings;
@@ -33,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.util.function.Tuple2;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -73,7 +73,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   public int pageSize;
   public ComboBox<Integer> perPageComboBox;
   protected ObjectProperty<State> state;
-  protected CompletableFuture<Tuple<List<T>, Integer>> currentSupplier;
+  protected CompletableFuture<Tuple2<List<T>, Integer>> currentSupplier;
 
   public VaultEntityController(UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
     this.uiService = uiService;
@@ -172,11 +172,11 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           synchronized (monitorForAddingFutures) {
             loadingEntitiesFutureReference.set(loadingEntitiesFutureReference.get().thenCompose(aVoid -> showRoomCategory.getEntitySupplier().get())
                 .thenAccept(result -> {
-                  if (result.getFirst().isEmpty()) {
+                  if (result.getT1().isEmpty()) {
                     showRoomRoot.setVisible(false);
                     return;
                   }
-                  populate(result.getFirst(), vaultEntityShowRoomController.getPane());
+                  populate(result.getT1(), vaultEntityShowRoomController.getPane());
                 }));
           }
           return showRoomRoot;
@@ -255,13 +255,13 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
     JavaFxUtil.runLater(this::enterResultState);
   }
 
-  protected void displayFromSupplier(Supplier<CompletableFuture<Tuple<List<T>, Integer>>> supplier, boolean firstLoad) {
+  protected void displayFromSupplier(Supplier<CompletableFuture<Tuple2<List<T>, Integer>>> supplier, boolean firstLoad) {
     supplier.get()
         .thenAccept(tuple -> {
-          displaySearchResult(tuple.getFirst());
+          displaySearchResult(tuple.getT1());
           if (firstLoad) {
             //when theres no search results the page count should be 1, 0 (which is returned) results in infinite pages
-            JavaFxUtil.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getSecond())));
+            JavaFxUtil.runLater(() -> pagination.setPageCount(Math.max(1, tuple.getT2())));
           }
         })
         .exceptionally(throwable -> {
@@ -338,7 +338,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
   @Value
   public class ShowRoomCategory {
-    Supplier<CompletableFuture<Tuple<List<T>, Integer>>> entitySupplier;
+    Supplier<CompletableFuture<Tuple2<List<T>, Integer>>> entitySupplier;
     SearchType searchType;
     String i18nKey;
   }

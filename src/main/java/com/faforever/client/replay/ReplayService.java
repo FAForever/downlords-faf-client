@@ -27,7 +27,6 @@ import com.faforever.client.replay.Replay.GameOption;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayDataParser;
@@ -48,6 +47,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -157,7 +158,7 @@ public class ReplayService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<Replay>, Integer>> loadLocalReplayPage(int pageSize, int page) throws IOException {
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> loadLocalReplayPage(int pageSize, int page) throws IOException {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
@@ -181,13 +182,13 @@ public class ReplayService {
           .filter(e -> !e.isCompletedExceptionally())
           .collect(Collectors.toList());
 
-      return CompletableFuture.allOf(replayFutures.toArray(new CompletableFuture[0]))
+      return Mono.fromFuture(CompletableFuture.allOf(replayFutures.toArray(new CompletableFuture[0]))
           .thenApply(ignoredVoid ->
               replayFutures.stream()
                   .map(CompletableFuture::join)
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList()))
-          .thenApply(replays -> new Tuple<>(replays, numPages));
+      ).zipWith(Mono.just(numPages)).toFuture();
     }
   }
 
@@ -307,21 +308,21 @@ public class ReplayService {
   }
 
 
-  public CompletableFuture<Tuple<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
     return fafService.getNewestReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int maxResults, int page, SortConfig sortConfig) {
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int maxResults, int page, SortConfig sortConfig) {
     Condition<?> filterCondition = qBuilder().intNum("playerStats.player.id").eq(playerId);
     String query = filterCondition.query(new RSQLVisitor());
     return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
     return fafService.getHighestRatedReplaysWithPageCount(topElementCount, page);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, Integer>> findByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> findByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
     return fafService.findReplaysByQueryWithPageCount(query, maxResults, page, sortConfig);
   }
 
@@ -449,7 +450,7 @@ public class ReplayService {
     runLiveReplay(replayId);
   }
 
-  public CompletableFuture<Tuple<List<Replay>, Integer>> getOwnReplaysWithPageCount(int maxResults, int page) {
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> getOwnReplaysWithPageCount(int maxResults, int page) {
     SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
     return getReplaysForPlayerWithPageCount(userService.getUserId(), maxResults, page, sortConfig);
   }

@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.event.MapUploadedEvent;
@@ -16,7 +17,6 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.map.PreviewGenerator;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.binding.Bindings;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -28,11 +28,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -88,10 +90,7 @@ public class MapUploadController implements Controller<Node> {
   }
 
   public void initialize() {
-    mapInfoPane.managedProperty().bind(mapInfoPane.visibleProperty());
-    uploadProgressPane.managedProperty().bind(uploadProgressPane.visibleProperty());
-    parseProgressPane.managedProperty().bind(parseProgressPane.visibleProperty());
-    uploadCompletePane.managedProperty().bind(uploadCompletePane.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(mapInfoPane, uploadCompletePane, parseProgressPane, uploadProgressPane);
 
     mapInfoPane.setVisible(false);
     uploadProgressPane.setVisible(false);
@@ -128,18 +127,12 @@ public class MapUploadController implements Controller<Node> {
     this.mapInfo = mapInfo;
     enterMapInfoState();
 
-    mapNameLabel.textProperty().bind(mapInfo.displayNameProperty());
-    descriptionLabel.textProperty().bind(mapInfo.descriptionProperty());
-    versionLabel.textProperty().bind(mapInfo.versionProperty().asString());
-    sizeLabel.textProperty().bind(Bindings.createStringBinding(
-        () -> {
-          MapSize mapSize = mapInfo.getSize();
-          return i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInKm(), mapSize.getHeightInKm());
-        }, mapInfo.sizeProperty())
-    );
-    playersLabel.textProperty().bind(Bindings.createStringBinding(
-        () -> i18n.get("mapVault.upload.playersFormat", mapInfo.getPlayers()), mapInfo.playersProperty())
-    );
+    mapNameLabel.setText(mapInfo.getDisplayName());
+    descriptionLabel.setText(mapInfo.getDescription());
+    versionLabel.setText(Optional.ofNullable(mapInfo.getVersion()).map(ComparableVersion::toString).orElse(""));
+    MapSize mapSize = mapInfo.getSize();
+    sizeLabel.setText(i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
+    playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.getPlayers()));
 
     thumbnailImageView.setImage(generatePreview(mapPath));
   }

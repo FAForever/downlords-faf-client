@@ -16,7 +16,6 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.IdenticonUtil;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -42,6 +41,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import reactor.util.function.Tuple2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -253,7 +253,7 @@ public class ModService implements InitializingBean, DisposableBean {
         .orElse(null);
   }
 
-  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getNewestModsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<ModVersion>, Integer>> getNewestModsWithPageCount(int count, int page) {
     return findByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.NEWEST_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), count, page);
   }
 
@@ -289,10 +289,6 @@ public class ModService implements InitializingBean, DisposableBean {
     return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(modVersion.getDisplayName()));
   }
 
-  public void evictModsCache() {
-    fafService.evictModsCache();
-  }
-
   /**
    * Returns the download size of the specified modVersion in bytes.
    */
@@ -326,7 +322,7 @@ public class ModService implements InitializingBean, DisposableBean {
     ));
   }
 
-  public CompletableFuture<Tuple<List<ModVersion>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
+  public CompletableFuture<Tuple2<List<ModVersion>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
     return fafService.findModsByQueryWithPageCount(searchConfig, count, page);
   }
 
@@ -334,7 +330,7 @@ public class ModService implements InitializingBean, DisposableBean {
     return fafService.getRecommendedModPageCount(count);
   }
 
-  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
     return fafService.getRecommendedModsWithPageCount(count, page);
   }
 
@@ -343,12 +339,11 @@ public class ModService implements InitializingBean, DisposableBean {
     // Nothing to see here
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getHighestRatedUiModsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<ModVersion>, Integer>> getHighestRatedUiModsWithPageCount(int count, int page) {
     return fafService.findModsByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.type==UI;latestVersion.hidden==\"false\""), count, page);
   }
 
-  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getHighestRatedModsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<ModVersion>, Integer>> getHighestRatedModsWithPageCount(int count, int page) {
     return fafService.findModsByQueryWithPageCount(new SearchConfig(new SortConfig(SearchablePropertyMappings.HIGHEST_RATED_MOD_KEY, SortOrder.DESC), "latestVersion.hidden==\"false\""), count, page);
   }
 

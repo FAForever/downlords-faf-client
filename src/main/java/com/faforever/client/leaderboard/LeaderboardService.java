@@ -1,6 +1,6 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.util.Tuple;
+import reactor.util.function.Tuple2;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -14,7 +14,7 @@ public interface LeaderboardService {
 
   CompletableFuture<List<LeaderboardEntry>> getEntries(Leaderboard leaderboard);
 
-  CompletableFuture<Tuple<List<LeaderboardEntry>, Integer>> getPagedEntries(Leaderboard leaderboard, int count, int page);
+  CompletableFuture<Tuple2<List<LeaderboardEntry>, Integer>> getPagedEntries(Leaderboard leaderboard, int count, int page);
 
   CompletableFuture<List<RatingStat>> getLeaderboardStats(String leaderboardTechnicalName);
 }

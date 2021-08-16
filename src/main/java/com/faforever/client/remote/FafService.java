@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.avatar.AvatarBean;
 import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.clan.Clan;
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.coop.CoopMission;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.game.NewGameInfo;
@@ -20,7 +19,6 @@ import com.faforever.client.reporting.ModerationReport;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.tournament.TournamentBean;
 import com.faforever.client.tutorial.TutorialCategory;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -29,15 +27,13 @@ import com.faforever.commons.api.dto.CoopResult;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReview;
-import com.faforever.commons.api.dto.Map;
-import com.faforever.commons.api.dto.MapPoolAssignment;
 import com.faforever.commons.api.dto.MapVersion;
 import com.faforever.commons.api.dto.MapVersionReview;
 import com.faforever.commons.api.dto.MeResult;
-import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersionReview;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
 import com.faforever.commons.api.dto.PlayerAchievement;
+import com.faforever.commons.api.dto.PlayerEvent;
 import com.faforever.commons.io.ByteCountListener;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
@@ -50,18 +46,19 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -144,116 +141,102 @@ public class FafService {
     fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Ended"));
   }
 
-  @Async
   public CompletableFuture<List<Leaderboard>> getLeaderboards() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getLeaderboards().stream()
+    return fafApiAccessor.getLeaderboards()
         .map(Leaderboard::fromDto)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<LeaderboardEntry>> getLeaderboardEntriesForPlayer(int playerId) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getLeaderboardEntriesForPlayer(playerId)
-        .stream()
+    return fafApiAccessor.getLeaderboardEntriesForPlayer(playerId)
         .map(LeaderboardEntry::fromDto)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<LeaderboardEntry>> getAllLeaderboardEntries(String leaderboardTechnicalName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getAllLeaderboardEntries(leaderboardTechnicalName)
-        .parallelStream()
+    return fafApiAccessor.getAllLeaderboardEntries(leaderboardTechnicalName)
         .map(LeaderboardEntry::fromDto)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<LeaderboardEntry>, Integer>> getLeaderboardEntriesWithPageCount(String leaderboardTechnicalName, int count, int page) {
-    Tuple<List<com.faforever.commons.api.dto.LeaderboardEntry>, java.util.Map<String, ?>> tuple = fafApiAccessor.getLeaderboardEntriesWithMeta(leaderboardTechnicalName, count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(LeaderboardEntry::fromDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<LeaderboardEntry>, Integer>> getLeaderboardEntriesWithPageCount(String leaderboardTechnicalName, int count, int page) {
+    return fafApiAccessor.getLeaderboardEntriesWithTotalPages(leaderboardTechnicalName, count, page)
+        .map(tuple -> tuple.mapT1(entries ->
+            entries.stream().map(LeaderboardEntry::fromDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<ModVersion>> getMods() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMods().stream()
+    return fafApiAccessor.getMods()
         .map(ModVersion::fromModDto)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<Optional<com.faforever.client.mod.ModVersion>> getModVersion(String uid) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getModVersion(uid).map(modVersion -> ModVersion.fromDto(modVersion, null)));
+    return fafApiAccessor.getModVersion(uid)
+        .map(modVersion -> ModVersion.fromDto(modVersion, null))
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
   public void reconnect() {
     fafServerAccessor.reconnect();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMostPlayedMapsWithPageCount(int count, int page) {
-    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMostPlayedMapsWithMeta(count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(MapBean::fromMapDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMostPlayedMapsWithPageCount(int count, int page) {
+    return fafApiAccessor.getMostPlayedMapsWithTotalPages(count, page)
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(MapBean::fromMapDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<Integer> getRecommendedMapPageCount(int count) {
-    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedMapsWithMeta(count, 1);
-    return CompletableFuture.completedFuture(((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages"));
+    return fafApiAccessor.getRecommendedMapsWithTotalPages(count, 1).map(Tuple2::getT2).toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
-    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedMapsWithMeta(count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(MapBean::fromMapDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
+    return fafApiAccessor.getRecommendedMapsWithTotalPages(count, page)
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(MapBean::fromMapDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMapsByIdWithPageCount(List<Integer> mapIdList, int count, int page) {
-    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getMapsByIdWithMeta(mapIdList, count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(MapBean::fromMapDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMapsByIdWithPageCount(List<Integer> mapIdList, int count, int page) {
+    return fafApiAccessor.getMapsByIdWithTotalPages(mapIdList, count, page)
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(MapBean::fromMapDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
-    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getHighestRatedMapsWithMeta(count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(MapBean::fromMapDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
+    return fafApiAccessor.getHighestRatedMapsWithTotalPages(count, page)
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(MapBean::fromMapDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
-    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.getNewestMapsWithMeta(count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(MapBean::fromMapDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
+    return fafApiAccessor.getNewestMapsWithTotalPages(count, page)
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(MapBean::fromMapDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<CoopMission>> getCoopMaps() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getCoopMissions().stream()
+    return fafApiAccessor.getCoopMissions()
         .map(CoopMission::fromCoopInfo)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
   @Async
@@ -262,14 +245,12 @@ public class FafService {
         avatars.stream().map(AvatarBean::fromAvatar).collect(toList()));
   }
 
-  @Async
   public CompletableFuture<MeResult> getCurrentUser() {
-    return CompletableFuture.completedFuture(fafApiAccessor.verifyUser());
+    return fafApiAccessor.getMe().toFuture();
   }
 
-  @Async
   public CompletableFuture<Set<String>> getPermissions() {
-    return CompletableFuture.completedFuture(fafApiAccessor.verifyUser().getPermissions());
+    return fafApiAccessor.getMe().toFuture().thenApply(MeResult::getPermissions);
   }
 
   public void selectAvatar(AvatarBean avatar) {
@@ -277,121 +258,123 @@ public class FafService {
     eventBus.post(new AvatarChangedEvent(avatar));
   }
 
-  @CacheEvict(CacheNames.MODS)
-  public void evictModsCache() {
-    // Cache eviction by annotation
-  }
-
-  @Async
   public CompletableFuture<List<CoopResult>> getCoopLeaderboard(CoopMission mission, int numberOfPlayers) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getCoopLeaderboard(mission.getId(), numberOfPlayers));
+    return fafApiAccessor.getCoopLeaderboard(mission.getId(), numberOfPlayers).collectList().toFuture();
   }
 
-  @Async
   public CompletableFuture<List<RatingHistoryDataPoint>> getRatingHistory(int playerId, int leaderboardId) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getRatingJournal(playerId, leaderboardId)
-        .parallelStream()
+    return fafApiAccessor.getRatingJournal(playerId, leaderboardId)
         .filter(gamePlayerStats -> gamePlayerStats.getCreateTime() != null
             && gamePlayerStats.getMeanAfter() != null
             && gamePlayerStats.getDeviationAfter() != null)
         .map(entry -> new RatingHistoryDataPoint(entry.getGamePlayerStats().getScoreTime(), entry.getMeanAfter(), entry.getDeviationAfter()))
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
-        .sorted(Comparator.comparingInt(com.faforever.commons.api.dto.FeaturedMod::getOrder))
+    return fafApiAccessor.getFeaturedMods()
+        .sort(Comparator.comparingInt(com.faforever.commons.api.dto.FeaturedMod::getOrder))
         .map(FeaturedMod::fromFeaturedMod)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<FeaturedModFile>> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedModFiles(featuredMod, version));
+    return fafApiAccessor.getFeaturedModFiles(featuredMod, version).collectList().toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
-    Tuple<List<Game>, java.util.Map<String, ?>> tuple = fafApiAccessor.getNewestReplaysWithMeta(topElementCount, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(Replay::fromDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> getNewestReplaysWithPageCount(int topElementCount, int page) {
+    return fafApiAccessor.getNewestReplaysWithTotalPages(topElementCount, page)
+        .map(tuple -> tuple.mapT1(replays ->
+            replays.stream().map(Replay::fromDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
-    Tuple<List<Game>, java.util.Map<String, ?>> tuple = fafApiAccessor.getHighestRatedReplaysWithMeta(topElementCount, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(Replay::fromDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> getHighestRatedReplaysWithPageCount(int topElementCount, int page) {
+    return fafApiAccessor.getHighestRatedReplaysWithTotalPages(topElementCount, page)
+        .map(tuple -> tuple.mapT1(replays ->
+            replays.stream().map(Replay::fromDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  public void uploadMod(Path modFile, ByteCountListener byteListener) {
-    fafApiAccessor.uploadMod(modFile, byteListener);
+  public CompletableFuture<Void> uploadMod(Path modFile, ByteCountListener byteListener) {
+    return fafApiAccessor.uploadMod(modFile, byteListener).toFuture();
   }
 
-  @Async
+  public CompletableFuture<Void> uploadMap(Path mapFile, boolean isRanked, ByteCountListener byteListener) {
+    return fafApiAccessor.uploadMap(mapFile, isRanked, byteListener).toFuture();
+  }
+
+  public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId) {
+    return fafApiAccessor.getPlayerEvents(playerId)
+        .collectMap(playerEvent -> playerEvent.getEvent().getId())
+        .toFuture();
+  }
+
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(int playerId) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getPlayerAchievements(playerId));
+    return fafApiAccessor.getPlayerAchievements(playerId)
+        .collectList()
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinitions());
+    return fafApiAccessor.getAchievementDefinitions()
+        .collectList()
+        .toFuture();
   }
 
-  @Async
   public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getAchievementDefinition(achievementId));
+    return fafApiAccessor.getAchievementDefinition(achievementId)
+        .toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<Replay>, Integer>> findReplaysByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
-    Tuple<List<Game>, java.util.Map<String, ?>> tuple = fafApiAccessor.findReplaysByQueryWithMeta(query, maxResults, page, sortConfig);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(Replay::fromDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<Replay>, Integer>> findReplaysByQueryWithPageCount(String query, int maxResults, int page, SortConfig sortConfig) {
+    return fafApiAccessor.findReplaysByQueryWithTotalPages(query, maxResults, page, sortConfig)
+        .map(tuple -> tuple.mapT1(replays ->
+            replays.stream().map(Replay::fromDto).collect(toList())
+        ))
+        .toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> findMapsByQueryWithPageCount(SearchConfig query, int count, int page) {
-    Tuple<List<Map>, java.util.Map<String, ?>> tuple = fafApiAccessor.findMapsByQueryWithMeta(query, count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(MapBean::fromMapDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> findMapsByQueryWithPageCount(SearchConfig query, int count, int page) {
+    return fafApiAccessor.findMapsByQueryWithTotalPages(query, count, page)
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(MapBean::fromMapDto).collect(toList())
+        ))
+        .toFuture();
   }
 
   public CompletableFuture<Optional<MapBean>> findMapByFolderName(String folderName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findMapByFolderName(folderName)
-        .map(MapBean::fromMapVersionDto));
+    return fafApiAccessor.findMapByFolderName(folderName)
+        .map(MapBean::fromMapVersionDto)
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
-  @Async
   public CompletableFuture<Optional<MapBean>> getMapLatestVersion(String mapFolderName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMapLatestVersion(mapFolderName)
-        .map(MapBean::fromMapVersionDto));
+    return fafApiAccessor.getMapLatestVersion(mapFolderName)
+        .map(MapBean::fromMapVersionDto)
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
   public CompletableFuture<List<Player>> getPlayersByIds(Collection<Integer> playerIds) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getPlayersByIds(playerIds).stream()
+    return fafApiAccessor.getPlayersByIds(playerIds)
         .map(Player::fromDto)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
   public CompletableFuture<Optional<Player>> queryPlayerByName(String playerName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.queryPlayerByName(playerName).map(Player::fromDto));
+    return fafApiAccessor.queryPlayerByName(playerName)
+        .map(Player::fromDto)
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
-  @Async
   public CompletableFuture<Void> saveGameReview(Review review, int gameId) {
     GameReview gameReview = (GameReview) new GameReview()
         .setScore(review.getScore().byteValue())
@@ -399,19 +382,19 @@ public class FafService {
 
     if (review.getId() == null) {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
-      GameReview updatedReview = fafApiAccessor.createGameReview(
+      return fafApiAccessor.createGameReview(
           (GameReview) gameReview
               .setGame(new Game().setId(String.valueOf(gameId)))
               .setPlayer((com.faforever.commons.api.dto.Player) (new com.faforever.commons.api.dto.Player().setId(String.valueOf(review.getPlayer().getId()))))
-      );
-      review.setId(updatedReview.getId());
+      ).doOnNext(updatedReview -> review.setId(updatedReview.getId()))
+          .toFuture()
+          .thenRun(() -> {
+          });
     } else {
-      fafApiAccessor.updateGameReview((GameReview) gameReview.setId(review.getId()));
+      return fafApiAccessor.updateGameReview((GameReview) gameReview.setId(review.getId())).toFuture();
     }
-    return CompletableFuture.completedFuture(null);
   }
 
-  @Async
   public CompletableFuture<Void> saveModVersionReview(Review review, String modVersionId) {
     ModVersionReview modVersionReview = (ModVersionReview) new ModVersionReview()
         .setScore(review.getScore().byteValue())
@@ -419,20 +402,20 @@ public class FafService {
 
     if (review.getId() == null) {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
-      ModVersionReview updatedReview = fafApiAccessor.createModVersionReview(
+      return fafApiAccessor.createModVersionReview(
           (ModVersionReview) modVersionReview
               .setModVersion((com.faforever.commons.api.dto.ModVersion) new com.faforever.commons.api.dto.ModVersion().setId(String.valueOf(modVersionId)))
               .setPlayer((com.faforever.commons.api.dto.Player) new com.faforever.commons.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
               .setId(String.valueOf(review.getId()))
-      );
-      review.setId(updatedReview.getId());
+      ).doOnNext(updatedReview -> review.setId(updatedReview.getId()))
+          .toFuture()
+          .thenRun(() -> {
+          });
     } else {
-      fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(review.getId()));
+      return fafApiAccessor.updateModVersionReview((ModVersionReview) modVersionReview.setId(review.getId())).toFuture();
     }
-    return CompletableFuture.completedFuture(null);
   }
 
-  @Async
   public CompletableFuture<Void> saveMapVersionReview(Review review, String mapVersionId) {
     MapVersionReview mapVersionReview = (MapVersionReview) new MapVersionReview()
         .setScore(review.getScore().byteValue())
@@ -440,48 +423,49 @@ public class FafService {
 
     if (review.getId() == null) {
       Assert.notNull(review.getPlayer(), "Player ID must be set");
-      MapVersionReview updatedReview = fafApiAccessor.createMapVersionReview(
+      return fafApiAccessor.createMapVersionReview(
           (MapVersionReview) mapVersionReview
               .setMapVersion((MapVersion) new MapVersion().setId(mapVersionId))
               .setPlayer((com.faforever.commons.api.dto.Player) new com.faforever.commons.api.dto.Player().setId(String.valueOf(review.getPlayer().getId())))
               .setId(String.valueOf(review.getId()))
-      );
-      review.setId(updatedReview.getId());
+      ).doOnNext(updatedReview -> review.setId(updatedReview.getId()))
+          .toFuture()
+          .thenRun(() -> {
+          });
     } else {
-      fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(review.getId()));
+      return fafApiAccessor.updateMapVersionReview((MapVersionReview) mapVersionReview.setId(review.getId())).toFuture();
     }
-
-    return CompletableFuture.completedFuture(null);
   }
 
   @Async
   public CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, String mapVersionId) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getLastGamesOnMap(playerId, mapVersionId, 1).stream()
+    return fafApiAccessor.getLastGamesOnMap(playerId, mapVersionId, 1)
+        .next()
         .map(Replay::fromDto)
-        .findFirst());
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
   @Async
   public CompletableFuture<Void> deleteGameReview(Review review) {
-    fafApiAccessor.deleteGameReview(review.getId());
-    return CompletableFuture.completedFuture(null);
+    return fafApiAccessor.deleteGameReview(review.getId()).toFuture();
   }
 
   @Async
   public CompletableFuture<Void> deleteMapVersionReview(Review review) {
-    fafApiAccessor.deleteMapVersionReview(review.getId());
-    return CompletableFuture.completedFuture(null);
+    return fafApiAccessor.deleteMapVersionReview(review.getId()).toFuture();
   }
 
   @Async
   public CompletableFuture<Void> deleteModVersionReview(Review review) {
-    fafApiAccessor.deleteModVersionReview(review.getId());
-    return CompletableFuture.completedFuture(null);
+    return fafApiAccessor.deleteModVersionReview(review.getId()).toFuture();
   }
 
   public CompletableFuture<Optional<Replay>> findReplayById(int id) {
-    return CompletableFuture.completedFuture(fafApiAccessor.findReplayById(id)
-        .map(Replay::fromDto));
+    return fafApiAccessor.findReplayById(id)
+        .map(Replay::fromDto)
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
   public CompletableFuture<List<IceServer>> getIceServers() {
@@ -493,65 +477,62 @@ public class FafService {
   }
 
   @Async
-  public CompletableFuture<Tuple<List<ModVersion>, Integer>> findModsByQueryWithPageCount(SearchConfig query, int count, int page) {
-    Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.findModsByQueryWithMeta(query, count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(ModVersion::fromModDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<ModVersion>, Integer>> findModsByQueryWithPageCount(SearchConfig query, int count, int page) {
+    return fafApiAccessor.findModsByQueryWithTotalPages(query, count, page)
+        .map(tuple -> tuple.mapT1(mods ->
+            mods.stream().map(ModVersion::fromModDto).collect(toList())
+        ))
+        .toFuture();
   }
 
   @Async
   public CompletableFuture<Integer> getRecommendedModPageCount(int count) {
-    Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedModsWithMeta(count, 1);
-    return CompletableFuture.completedFuture(((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages"));
+    return fafApiAccessor.getRecommendedModsWithTotalPages(count, 1).map(Tuple2::getT2).toFuture();
   }
 
   @Async
-  public CompletableFuture<Tuple<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
-    Tuple<List<Mod>, java.util.Map<String, ?>> tuple = fafApiAccessor.getRecommendedModsWithMeta(count, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(ModVersion::fromModDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
+    return fafApiAccessor.getRecommendedModsWithTotalPages(count, page)
+        .map(tuple -> tuple.mapT1(mods ->
+            mods.stream().map(ModVersion::fromModDto).collect(toList())
+        ))
+        .toFuture();
   }
 
   @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
-    List<MapPoolAssignment> poolAssignments = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating);
-    List<MapBean> mapVersions = poolAssignments.stream()
-        .map(MapPoolAssignment::getMapVersion)
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
+    Flux<MapBean> matchmakerMapsFlux = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating)
+        .flatMap(mapPoolAssignment -> {
+          if (mapPoolAssignment.getMapVersion() != null) {
+            return Mono.just(MapBean.fromMapVersionDto(mapPoolAssignment.getMapVersion()));
+          } else if (mapPoolAssignment.getMapParams() instanceof NeroxisGeneratorParams) {
+            return Mono.just(MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapPoolAssignment.getMapParams()));
+          } else {
+            return Mono.empty();
+          }
+        })
         .distinct()
-        .filter(Objects::nonNull)
-        .map(MapBean::fromMapVersionDto)
-        .collect(toList());
-    mapVersions.addAll(poolAssignments.stream()
-        .map(MapPoolAssignment::getMapParams)
-        .filter(mapParams -> mapParams instanceof NeroxisGeneratorParams)
-        .distinct()
-        .map(mapParams -> MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapParams))
-        .collect(toList()));
-    mapVersions.sort(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER));
-    return paginateResult(count, page, mapVersions);
+        .sort(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER))
+        .cache();
+    return paginateResult(count, page, matchmakerMapsFlux).toFuture();
   }
 
   @NotNull
-  private <T> CompletableFuture<Tuple<List<T>, Integer>> paginateResult(int count, int page, List<T> results) {
-    int totalPages = (results.size() - 1) / count + 1;
-    return CompletableFuture.completedFuture(new Tuple<>(results
-        .stream()
-        .skip((long) (page - 1) * count)
-        .limit(count)
-        .collect(toList()),
-        totalPages));
+  private <T> Mono<Tuple2<List<T>, Integer>> paginateResult(int count, int page, Flux<T> resultsFlux) {
+    return Mono.zip(
+        resultsFlux.skip((long) (page - 1) * count)
+            .takeLast(count).collectList(),
+        resultsFlux.count().map(size -> (size - 1) / count + 1)
+            .cast(Integer.class)
+    );
   }
 
   @Async
   public CompletableFuture<Optional<MatchmakingQueue>> getMatchmakingQueue(String technicalName) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getMatchmakerQueue(technicalName)
-        .map(MatchmakingQueue::fromDto));
+    return fafApiAccessor.getMatchmakerQueue(technicalName)
+        .map(MatchmakingQueue::fromDto)
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
   public void acceptPartyInvite(Player player) {
@@ -588,13 +569,10 @@ public class FafService {
 
   @Async
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getClanByTag(tag)
-        .map(Clan::fromDto));
-  }
-
-  public Optional<MapBean> findMapById(String id) {
-    return fafApiAccessor.findMapVersionById(id)
-        .map(MapBean::fromMapVersionDto);
+    return fafApiAccessor.getClanByTag(tag)
+        .map(Clan::fromDto)
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
   public void sendIceMessage(int remotePlayerId, Object message) {
@@ -603,33 +581,28 @@ public class FafService {
 
   @Async
   public CompletableFuture<List<TournamentBean>> getAllTournaments() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getAllTournaments()
-        .stream()
+    return fafApiAccessor.getAllTournaments()
         .map(TournamentBean::fromTournamentDto)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
   @Async
   public CompletableFuture<List<ModerationReport>> getAllModerationReports(int playerId) {
-    return CompletableFuture.completedFuture(fafApiAccessor.getPlayerModerationReports(playerId)
-        .stream()
+    return fafApiAccessor.getPlayerModerationReports(playerId)
         .map(ModerationReport::fromReportDto)
-        .collect(toList()));
+        .collectList()
+        .toFuture();
   }
 
   public CompletableFuture<Void> postModerationReport(ModerationReport report) {
-    fafApiAccessor.postModerationReport(report);
-    return CompletableFuture.completedFuture(null);
+    return fafApiAccessor.postModerationReport(report).toFuture();
   }
 
-  @Async
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getOwnedMapsWithPageCount(int playerId, int loadMoreCount, int page) {
-    Tuple<List<MapVersion>, java.util.Map<String, ?>> tuple = fafApiAccessor.getOwnedMapsWithMeta(playerId, loadMoreCount, page);
-    return CompletableFuture.completedFuture(new Tuple<>(tuple.getFirst()
-        .parallelStream()
-        .map(MapBean::fromMapVersionDto)
-        .collect(toList()),
-        ((HashMap<String, Integer>) tuple.getSecond().get("page")).get("totalPages")));
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getOwnedMapsWithPageCount(int playerId, int loadMoreCount, int page) {
+    return fafApiAccessor.getOwnedMapsWithTotalPages(playerId, loadMoreCount, page)
+        .map(tuple -> tuple.mapT1(mapVersions -> mapVersions.stream().map(MapBean::fromMapVersionDto).collect(Collectors.toList())))
+        .toFuture();
   }
 
   @Async
@@ -638,8 +611,7 @@ public class FafService {
     MapVersion mapVersion = new MapVersion();
     mapVersion.setHidden(true);
     mapVersion.setId(map.getId());
-    fafApiAccessor.updateMapVersion(id, mapVersion);
-    return CompletableFuture.completedFuture(null);
+    return fafApiAccessor.updateMapVersion(id, mapVersion).toFuture();
   }
 
   @Async
@@ -667,11 +639,10 @@ public class FafService {
     fafServerAccessor.broadcastMessage(message);
   }
 
-  @Async
   public CompletableFuture<List<TutorialCategory>> getTutorialCategories() {
-    return CompletableFuture.completedFuture(fafApiAccessor.getTutorialCategories().stream()
+    return fafApiAccessor.getTutorialCategories()
         .map(TutorialCategory::fromDto)
-        .collect(toList())
-    );
+        .collectList()
+        .toFuture();
   }
 }

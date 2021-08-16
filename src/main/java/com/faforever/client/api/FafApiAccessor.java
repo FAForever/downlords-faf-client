@@ -1,7 +1,6 @@
 package com.faforever.client.api;
 
 import com.faforever.client.mod.FeaturedMod;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.api.dto.AchievementDefinition;
@@ -29,12 +28,13 @@ import com.faforever.commons.api.dto.PlayerEvent;
 import com.faforever.commons.api.dto.Tournament;
 import com.faforever.commons.api.dto.TutorialCategory;
 import com.faforever.commons.io.ByteCountListener;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Provides access to the FAF REST API. Services should not access this class directly, but use {@link
@@ -42,115 +42,111 @@ import java.util.Optional;
  */
 public interface FafApiAccessor {
 
-  List<PlayerAchievement> getPlayerAchievements(int playerId);
-
-  List<PlayerEvent> getPlayerEvents(int playerId);
-
-  List<AchievementDefinition> getAchievementDefinitions();
-
-  AchievementDefinition getAchievementDefinition(String achievementId);
-
   void authorize();
 
-  List<Mod> getMods();
+  Flux<PlayerAchievement> getPlayerAchievements(int playerId);
 
-  List<com.faforever.commons.api.dto.FeaturedMod> getFeaturedMods();
+  Flux<PlayerEvent> getPlayerEvents(int playerId);
 
-  List<Leaderboard> getLeaderboards();
+  Flux<AchievementDefinition> getAchievementDefinitions();
 
-  List<LeaderboardEntry> getAllLeaderboardEntries(String leaderboardTechnicalName);
+  Mono<AchievementDefinition> getAchievementDefinition(String achievementId);
 
-  Tuple<List<LeaderboardEntry>, java.util.Map<String, ?>> getLeaderboardEntriesWithMeta(String leaderboardTechnicalName, int count, int page);
+  Flux<Mod> getMods();
 
-  List<LeaderboardEntry> getLeaderboardEntriesForPlayer(int playerId);
+  Flux<com.faforever.commons.api.dto.FeaturedMod> getFeaturedMods();
 
-  List<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId);
+  Flux<Leaderboard> getLeaderboards();
 
-  Tuple<List<Map>, java.util.Map<String, ?>> getMapsByIdWithMeta(List<Integer> mapIdList, int count, int page);
+  Flux<LeaderboardEntry> getAllLeaderboardEntries(String leaderboardTechnicalName);
 
-  Tuple<List<Map>, java.util.Map<String, ?>> getRecommendedMapsWithMeta(int count, int page);
+  Mono<Tuple2<List<LeaderboardEntry>, Integer>> getLeaderboardEntriesWithTotalPages(String leaderboardTechnicalName, int count, int page);
 
-  Tuple<List<Map>, java.util.Map<String, ?>> getMostPlayedMapsWithMeta(int count, int page);
+  Flux<LeaderboardEntry> getLeaderboardEntriesForPlayer(int playerId);
 
-  Tuple<List<Map>, java.util.Map<String, ?>> getHighestRatedMapsWithMeta(int count, int page);
+  Flux<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId);
 
-  Tuple<List<Map>, java.util.Map<String, ?>> getNewestMapsWithMeta(int count, int page);
+  Mono<Tuple2<List<Map>, Integer>> getMapsByIdWithTotalPages(List<Integer> mapIdList, int count, int page);
 
-  List<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count);
+  Mono<Tuple2<List<Map>, Integer>> getRecommendedMapsWithTotalPages(int count, int page);
 
-  void uploadMod(Path file, ByteCountListener listener);
+  Mono<Tuple2<List<Map>, Integer>> getMostPlayedMapsWithTotalPages(int count, int page);
 
-  void uploadMap(Path file, boolean isRanked, ByteCountListener listener) throws IOException;
+  Mono<Tuple2<List<Map>, Integer>> getHighestRatedMapsWithTotalPages(int count, int page);
 
-  List<CoopMission> getCoopMissions();
+  Mono<Tuple2<List<Map>, Integer>> getNewestMapsWithTotalPages(int count, int page);
 
-  List<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers);
+  Flux<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count);
 
-  void changePassword(String username, String currentPasswordHash, String newPasswordHash) throws IOException;
+  Mono<Void> uploadMod(Path file, ByteCountListener listener);
 
-  Optional<ModVersion> getModVersion(String uid);
+  Mono<Void> uploadMap(Path file, boolean isRanked, ByteCountListener listener);
 
-  List<com.faforever.commons.api.dto.FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
+  Flux<CoopMission> getCoopMissions();
 
-  Tuple<List<Game>, java.util.Map<String, ?>> getNewestReplaysWithMeta(int count, int page);
+  Flux<CoopResult> getCoopLeaderboard(String missionId, int numberOfPlayers);
 
-  Tuple<List<Game>, java.util.Map<String, ?>> getHighestRatedReplaysWithMeta(int count, int page);
+  Mono<ModVersion> getModVersion(String uid);
 
-  Tuple<List<Game>, java.util.Map<String, ?>> findReplaysByQueryWithMeta(String query, int maxResults, int page, SortConfig sortConfig);
+  Flux<com.faforever.commons.api.dto.FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version);
 
-  Optional<MapVersion> findMapByFolderName(String folderName);
+  Mono<Tuple2<List<Game>, Integer>> getNewestReplaysWithTotalPages(int count, int page);
 
-  Optional<MapVersion> getMapLatestVersion(String mapFolderName);
+  Mono<Tuple2<List<Game>, Integer>> getHighestRatedReplaysWithTotalPages(int count, int page);
 
-  List<Player> getPlayersByIds(Collection<Integer> playerIds);
+  Mono<Tuple2<List<Game>, Integer>> findReplaysByQueryWithTotalPages(String query, int maxResults, int page, SortConfig sortConfig);
 
-  Optional<Player> queryPlayerByName(String playerName);
+  Mono<MapVersion> findMapByFolderName(String folderName);
 
-  GameReview createGameReview(GameReview review);
+  Mono<MapVersion> getMapLatestVersion(String mapFolderName);
 
-  void updateGameReview(GameReview review);
+  Flux<Player> getPlayersByIds(Collection<Integer> playerIds);
 
-  ModVersionReview createModVersionReview(ModVersionReview review);
+  Mono<Player> queryPlayerByName(String playerName);
 
-  void updateModVersionReview(ModVersionReview review);
+  Mono<GameReview> createGameReview(GameReview review);
 
-  MapVersionReview createMapVersionReview(MapVersionReview review);
+  Mono<Void> updateGameReview(GameReview review);
 
-  void updateMapVersionReview(MapVersionReview review);
+  Mono<ModVersionReview> createModVersionReview(ModVersionReview review);
 
-  void deleteGameReview(String id);
+  Mono<Void> updateModVersionReview(ModVersionReview review);
 
-  List<TutorialCategory> getTutorialCategories();
+  Mono<MapVersionReview> createMapVersionReview(MapVersionReview review);
 
-  Optional<Clan> getClanByTag(String tag);
+  Mono<Void> updateMapVersionReview(MapVersionReview review);
 
-  Tuple<List<Map>, java.util.Map<String, ?>> findMapsByQueryWithMeta(SearchConfig searchConfig, int count, int page);
+  Mono<Void> deleteGameReview(String id);
 
-  Optional<MapVersion> findMapVersionById(String id);
+  Flux<TutorialCategory> getTutorialCategories();
 
-  void deleteMapVersionReview(String id);
+  Mono<Clan> getClanByTag(String tag);
 
-  void deleteModVersionReview(String id);
+  Mono<Tuple2<List<Map>, Integer>> findMapsByQueryWithTotalPages(SearchConfig searchConfig, int count, int page);
 
-  Optional<Game> findReplayById(int id);
+  Mono<Void> deleteMapVersionReview(String id);
 
-  Tuple<List<Mod>, java.util.Map<String, ?>> findModsByQueryWithMeta(SearchConfig query, int maxResults, int page);
+  Mono<Void> deleteModVersionReview(String id);
 
-  Tuple<List<Mod>, java.util.Map<String, ?>> getRecommendedModsWithMeta(int count, int page);
+  Mono<Game> findReplayById(int id);
 
-  List<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating);
+  Mono<Tuple2<List<Mod>, Integer>> findModsByQueryWithTotalPages(SearchConfig query, int maxResults, int page);
 
-  Optional<MatchmakerQueue> getMatchmakerQueue(String technicalName);
+  Mono<Tuple2<List<Mod>, Integer>> getRecommendedModsWithTotalPages(int count, int page);
 
-  List<Tournament> getAllTournaments();
+  Flux<MapPoolAssignment> getMatchmakerPoolMaps(int matchmakerQueueId, float rating);
 
-  List<ModerationReport> getPlayerModerationReports(int playerId);
+  Mono<MatchmakerQueue> getMatchmakerQueue(String technicalName);
 
-  void postModerationReport(com.faforever.client.reporting.ModerationReport report);
+  Flux<Tournament> getAllTournaments();
 
-  Tuple<List<MapVersion>, java.util.Map<String, ?>> getOwnedMapsWithMeta(int playerId, int loadMoreCount, int page);
+  Flux<ModerationReport> getPlayerModerationReports(int playerId);
 
-  void updateMapVersion(String id, MapVersion mapVersion);
+  Mono<Void> postModerationReport(com.faforever.client.reporting.ModerationReport report);
 
-  MeResult verifyUser();
+  Mono<Tuple2<List<MapVersion>, Integer>> getOwnedMapsWithTotalPages(int playerId, int loadMoreCount, int page);
+
+  Mono<Void> updateMapVersion(String id, MapVersion mapVersion);
+
+  Mono<MeResult> getMe();
 }

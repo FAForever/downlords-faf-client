@@ -1,8 +1,8 @@
 package com.faforever.client.map;
 
-import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Validator;
@@ -30,17 +30,17 @@ import static java.nio.file.Files.newOutputStream;
 public class MapUploadTask extends CompletableTask<Void> implements InitializingBean {
 
   private final PreferencesService preferencesService;
-  private final FafApiAccessor fafApiAccessor;
+  private final FafService fafService;
   private final I18n i18n;
 
   private Path mapPath;
   private Boolean isRanked;
 
   @Inject
-  public MapUploadTask(PreferencesService preferencesService, FafApiAccessor fafApiAccessor, I18n i18n) {
+  public MapUploadTask(PreferencesService preferencesService, FafService fafService, I18n i18n) {
     super(Priority.HIGH);
     this.preferencesService = preferencesService;
-    this.fafApiAccessor = fafApiAccessor;
+    this.fafService = fafService;
     this.i18n = i18n;
   }
 
@@ -79,8 +79,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
       log.debug("Uploading map {} as {}", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.uploading"));
 
-      fafApiAccessor.uploadMap(tmpFile, isRanked, byteListener);
-      return null;
+      return fafService.uploadMap(tmpFile, isRanked, byteListener).join();
     } finally {
       Files.delete(tmpFile);
       ResourceLocks.freeUploadLock();

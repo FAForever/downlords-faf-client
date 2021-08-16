@@ -138,7 +138,7 @@ public class ClientProperties {
     private String baseUrl;
     private String clientId;
     private String clientSecret;
-    private int maxPageSize = 10_000;
+    private int maxPageSize = 10000;
   }
 
   public void updateFromEndpoint(ServerEndpoints serverEndpoints) {
