@@ -595,8 +595,8 @@ public class FafService {
         .toFuture();
   }
 
-  public CompletableFuture<Void> postModerationReport(ModerationReport report) {
-    return fafApiAccessor.postModerationReport(report).toFuture();
+  public CompletableFuture<ModerationReport> postModerationReport(ModerationReport report) {
+    return fafApiAccessor.postModerationReport(report).map(ModerationReport::fromReportDto).toFuture();
   }
 
   public CompletableFuture<Tuple2<List<MapBean>, Integer>> getOwnedMapsWithPageCount(int playerId, int loadMoreCount, int page) {

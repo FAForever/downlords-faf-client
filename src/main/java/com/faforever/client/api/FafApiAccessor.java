@@ -142,7 +142,7 @@ public interface FafApiAccessor {
 
   Flux<ModerationReport> getPlayerModerationReports(int playerId);
 
-  Mono<Void> postModerationReport(com.faforever.client.reporting.ModerationReport report);
+  Mono<ModerationReport> postModerationReport(com.faforever.client.reporting.ModerationReport report);
 
   Mono<Tuple2<List<MapVersion>, Integer>> getOwnedMapsWithTotalPages(int playerId, int loadMoreCount, int page);
 

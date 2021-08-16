@@ -304,7 +304,7 @@ public class MockFafApiAccessor implements FafApiAccessor {
   }
 
   @Override
-  public Mono<Void> postModerationReport(com.faforever.client.reporting.ModerationReport report) {
+  public Mono<ModerationReport> postModerationReport(com.faforever.client.reporting.ModerationReport report) {
     return Mono.empty();
   }
 

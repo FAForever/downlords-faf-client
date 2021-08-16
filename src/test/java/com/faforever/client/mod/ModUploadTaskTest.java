@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsArrayWithSize.emptyArray;
@@ -39,6 +40,7 @@ public class ModUploadTaskTest extends UITest {
     Path cacheDirectory = Files.createDirectories(tempFolder.resolve("cache"));
     when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory);
     when(i18n.get(any())).thenReturn("");
+    when(fafService.uploadMod(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
   }
 
   @Test

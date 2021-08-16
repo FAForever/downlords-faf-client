@@ -422,7 +422,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Mono<GameReview> createGameReview(GameReview review) {
-    return postMultipartForm(REPLAY_ENDPOINT + "/" + review.getGame().getId() + "/reviews", review, GameReview.class);
+    return post(REPLAY_ENDPOINT + "/" + review.getGame().getId() + "/reviews", review, GameReview.class);
   }
 
   @Override
@@ -432,7 +432,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Mono<ModVersionReview> createModVersionReview(ModVersionReview review) {
-    return postMultipartForm("/data/modVersion/" + review.getModVersion().getId() + "/reviews", review, ModVersionReview.class);
+    return post(MOD_VERSION_ENDPOINT +"/" + review.getModVersion().getId() + "/reviews", review, ModVersionReview.class);
   }
 
   @Override
@@ -442,7 +442,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Mono<MapVersionReview> createMapVersionReview(MapVersionReview review) {
-    return postMultipartForm(MAP_VERSION_ENDPOINT + "/" + review.getMapVersion().getId() + "/reviews", review, MapVersionReview.class);
+    return post(MAP_VERSION_ENDPOINT + "/" + review.getMapVersion().getId() + "/reviews", review, MapVersionReview.class);
   }
 
   @Override
@@ -595,7 +595,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @Override
-  public Mono<Void> postModerationReport(com.faforever.client.reporting.ModerationReport report) {
+  public Mono<ModerationReport> postModerationReport(com.faforever.client.reporting.ModerationReport report) {
     List<java.util.Map<String, String>> reportedUsers = new ArrayList<>();
     report.getReportedUsers().forEach(player -> reportedUsers.add(java.util.Map.of("type", "player", "id", String.valueOf(player.getId()))));
     java.util.Map<String, Object> relationships = new HashMap<>(java.util.Map.of("reportedUsers", java.util.Map.of("data", reportedUsers)));
@@ -606,7 +606,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         "type", "moderationReport",
         "attributes", java.util.Map.of("gameIncidentTimecode", report.getGameIncidentTimeCode(), "reportDescription", report.getReportDescription()),
         "relationships", relationships)));
-    return postMultipartForm(REPORT_ENDPOINT, body);
+    return post(REPORT_ENDPOINT, body, ModerationReport.class);
   }
 
   @NotNull
@@ -628,10 +628,10 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @SneakyThrows
-  private <T> Mono<T> postMultipartForm(String endpointPath, Object request, Class<T> type) {
+  private <T> Mono<T> post(String endpointPath, Object request, Class<T> type) {
     authorizedLatch.await();
     return webClient.post().uri(endpointPath)
-        .contentType(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.parseMediaType("application/vnd.api+json;charset=utf-8"))
         .bodyValue(request)
         .retrieve()
         .bodyToMono(type)

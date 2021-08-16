@@ -1,64 +1,49 @@
 package com.faforever.client.api;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.mod.ModVersion;
-import com.faforever.client.mod.ModVersionBuilder;
+import com.faforever.client.config.JsonApiConfig;
 import com.faforever.client.reporting.ModerationReportBuilder;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.CoopMission;
+import com.faforever.commons.api.dto.CoopResult;
 import com.faforever.commons.api.dto.Event;
 import com.faforever.commons.api.dto.Game;
-import com.faforever.commons.api.dto.GamePlayerStats;
 import com.faforever.commons.api.dto.GameReview;
 import com.faforever.commons.api.dto.LeaderboardRatingJournal;
 import com.faforever.commons.api.dto.MapVersion;
 import com.faforever.commons.api.dto.MapVersionReview;
+import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersionReview;
 import com.faforever.commons.api.dto.ModerationReport;
 import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.api.dto.PlayerEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.jasminb.jsonapi.JSONAPIDocument;
+import com.github.jasminb.jsonapi.ResourceConverter;
 import com.google.common.eventbus.EventBus;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.util.UriUtils;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.test.StepVerifier;
 
-import java.net.MalformedURLException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Supplier;
 
-import static java.util.Collections.emptyList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.startsWith;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class FafApiAccessorImplTest extends ServiceTest {
 
@@ -67,316 +52,367 @@ public class FafApiAccessorImplTest extends ServiceTest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private OAuth2RestTemplate restOperations;
-  @Mock
-  private RestTemplateBuilder restTemplateBuilder;
-  @Mock
-  private JsonApiMessageConverter jsonApiMessageConverter;
-  @Mock
-  private JsonApiErrorHandler jsonApiErrorHandler;
-  @Mock
-  private OAuthTokenInterceptor oAuthTokenInterceptor;
+  private OAuthTokenFilter oAuthTokenFilter;
+
+  private ResourceConverter resourceConverter;
+  private MockWebServer mockApi;
+
+  @AfterEach
+  public void killServer() throws IOException {
+    mockApi.shutdown();
+  }
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    ObjectMapper objectMapper = new ObjectMapper();
+    resourceConverter = new JsonApiConfig().resourceConverter(objectMapper);
+    JsonApiReader jsonApiReader = new JsonApiReader(resourceConverter);
+    JsonApiWriter jsonApiWriter = new JsonApiWriter(resourceConverter);
+    mockApi = new MockWebServer();
+    mockApi.start();
 
-    when(restTemplateBuilder.requestFactory(any(Supplier.class))).thenReturn(restTemplateBuilder);
-    when(restTemplateBuilder.additionalMessageConverters(any(JsonApiMessageConverter.class))).thenReturn(restTemplateBuilder);
-    when(restTemplateBuilder.rootUri(any())).thenReturn(restTemplateBuilder);
-    when(restTemplateBuilder.errorHandler(any())).thenReturn(restTemplateBuilder);
-    when(restTemplateBuilder.interceptors(any(ClientHttpRequestInterceptor.class))).thenReturn(restTemplateBuilder);
-    when(restTemplateBuilder.build()).thenReturn(restOperations);
-
-    instance = new FafApiAccessorImpl(eventBus, restTemplateBuilder, new ClientProperties(), jsonApiMessageConverter, jsonApiErrorHandler, oAuthTokenInterceptor);
+    ClientProperties clientProperties = new ClientProperties();
+    clientProperties.getApi().setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
+    instance = new FafApiAccessorImpl(eventBus, clientProperties, jsonApiReader, jsonApiWriter, oAuthTokenFilter);
     instance.afterPropertiesSet();
     instance.authorize();
   }
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testGetPlayerAchievements() {
-    PlayerAchievement playerAchievement1 = new PlayerAchievement();
-    playerAchievement1.setId("1");
-    playerAchievement1.setAchievement(new AchievementDefinition().setId("1-2-3"));
-    PlayerAchievement playerAchievement2 = new PlayerAchievement();
-    playerAchievement2.setId("2");
-    playerAchievement2.setAchievement(new AchievementDefinition().setId("2-3-4"));
-    List<PlayerAchievement> result = Arrays.asList(playerAchievement1, playerAchievement2);
-
-    when(restOperations.getForObject(anyString(), eq(List.class)))
-        .thenReturn(result)
-        .thenReturn(emptyList());
-
-    assertThat(instance.getPlayerAchievements(123), is(result));
-
-    verify(restOperations).getForObject("/data/playerAchievement?filter=player.id==\"123\"&page[size]=10000&page[number]=1", List.class);
+  private void prepareJsonApiResponse(Object object) throws Exception {
+    byte[] serializedObject;
+    if (object instanceof Iterable) {
+      serializedObject = resourceConverter.writeDocumentCollection(new JSONAPIDocument<Iterable<?>>((Iterable<?>) object));
+    } else if (object instanceof JSONAPIDocument) {
+      serializedObject = resourceConverter.writeDocument((JSONAPIDocument<?>) object);
+    } else {
+      serializedObject = resourceConverter.writeDocument(new JSONAPIDocument<>(object));
+    }
+    mockApi.enqueue(new MockResponse()
+        .setBody(new String(serializedObject))
+        .addHeader("Content-Type", "application/vnd.api+json;charset=utf-8"));
   }
 
   @Test
-  public void testGetAchievementDefinitions() {
-    AchievementDefinition achievementDefinition1 = new AchievementDefinition();
-    achievementDefinition1.setId("1-2-3");
-    AchievementDefinition achievementDefinition2 = new AchievementDefinition();
-    achievementDefinition2.setId("2-3-4");
-    List<AchievementDefinition> result = Arrays.asList(achievementDefinition1, achievementDefinition2);
+  public void testGetPlayerAchievements() throws Exception {
+    List<PlayerAchievement> result = List.of(
+        (PlayerAchievement) new PlayerAchievement()
+            .setAchievement(new AchievementDefinition().setId("1-2-3"))
+            .setId("1"),
+        (PlayerAchievement) new PlayerAchievement()
+            .setAchievement(new AchievementDefinition().setId("2-3-4"))
+            .setId("2")
+    );
 
-    when(restOperations.getForObject(startsWith("/data/achievement"), eq(List.class)))
-        .thenReturn(result)
-        .thenReturn(emptyList());
+    prepareJsonApiResponse(result);
 
-    assertThat(instance.getAchievementDefinitions(), is(result));
+    StepVerifier.create(instance.getPlayerAchievements(123))
+        .expectNext(result.toArray(PlayerAchievement[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/playerAchievement?filter=player.id==\"123\"&page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testGetAchievementDefinition() {
+  public void testGetAchievementDefinitions() throws Exception {
+    List<AchievementDefinition> result = List.of(
+        new AchievementDefinition().setId("1-2-3"),
+        new AchievementDefinition().setId("2-3-4")
+    );
+
+    prepareJsonApiResponse(result);
+
+    StepVerifier.create(instance.getAchievementDefinitions())
+        .expectNext(result.toArray(AchievementDefinition[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/achievement?sort=order&page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
+  }
+
+  @Test
+  public void testGetAchievementDefinition() throws Exception {
     AchievementDefinition achievementDefinition = new AchievementDefinition();
     achievementDefinition.setId("1-2-3");
 
-    when(restOperations.getForObject(startsWith("/data/achievement/123"), eq(AchievementDefinition.class), anyMap()))
-        .thenReturn(achievementDefinition);
+    prepareJsonApiResponse(List.of(achievementDefinition));
 
-    assertThat(instance.getAchievementDefinition("123"), is(achievementDefinition));
+    StepVerifier.create(instance.getAchievementDefinitions())
+        .expectNext(achievementDefinition)
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/achievement?sort=order&page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testGetPlayerEvents() {
-    PlayerEvent playerEvent1 = new PlayerEvent();
-    playerEvent1.setId("1");
-    playerEvent1.setEvent(new Event().setId("1-1-1"));
-    playerEvent1.setCurrentCount(11);
-    PlayerEvent playerEvent2 = new PlayerEvent();
-    playerEvent2.setId("2");
-    playerEvent2.setEvent(new Event().setId("2-2-2"));
-    playerEvent2.setCurrentCount(22);
-    List<PlayerEvent> result = Arrays.asList(playerEvent1, playerEvent2);
-
-    when(restOperations.getForObject(anyString(), eq(List.class)))
-        .thenReturn(result)
-        .thenReturn(emptyList());
-
-    assertThat(instance.getPlayerEvents(123), is(result));
-
-    verify(restOperations).getForObject("/data/playerEvent" +
-        "?filter=player.id==\"123\"" +
-        "&page[size]=10000" +
-        "&page[number]=1", List.class);
-  }
-
-  @Test
-  public void testGetMods() throws MalformedURLException {
-    List<ModVersion> modVersions = Arrays.asList(
-        ModVersionBuilder.create().defaultValues().uid("1").get(),
-        ModVersionBuilder.create().defaultValues().uid("2").get()
+  public void testGetPlayerEvents() throws Exception {
+    List<PlayerEvent> result = List.of(
+        new PlayerEvent()
+            .setEvent(new Event().setId("1-1-1"))
+            .setCurrentCount(11)
+            .setId("1"),
+        new PlayerEvent()
+            .setEvent(new Event().setId("2-2-2"))
+            .setCurrentCount(22)
+            .setId("2")
     );
 
-    when(restOperations.getForObject(startsWith("/data/mod"), eq(List.class)))
-        .thenReturn(modVersions)
-        .thenReturn(emptyList());
+    prepareJsonApiResponse(result);
 
-    assertThat(instance.getMods(), equalTo(modVersions));
+    StepVerifier.create(instance.getPlayerEvents(123))
+        .expectNext(result.toArray(PlayerEvent[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/playerEvent?filter=player.id==\"123\"&page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testGetRatingHistory() {
-    List<GamePlayerStats> gamePlayerStats = Collections.singletonList(new GamePlayerStats());
+  public void testGetMods() throws Exception {
+    List<Mod> result = List.of(
+        (Mod) new Mod().setId("1"),
+        (Mod) new Mod().setId("2")
+    );
 
-    when(restOperations.getForObject(anyString(), eq(List.class)))
-        .thenReturn(gamePlayerStats)
-        .thenReturn(emptyList());
+    prepareJsonApiResponse(result);
 
-    List<LeaderboardRatingJournal> result = instance.getRatingJournal(123, 1);
+    StepVerifier.create(instance.getMods())
+        .expectNext(result.toArray(Mod[]::new))
+        .verifyComplete();
 
-    assertThat(result, is(gamePlayerStats));
-    verify(restOperations).getForObject("/data/leaderboardRatingJournal?filter=gamePlayerStats.player.id==\"123\";" +
-        "leaderboard.id==\"1\"&include=gamePlayerStats&page[size]=10000&page[number]=1", List.class);
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/mod?include=latestVersion,reviewsSummary,versions,versions.reviews,versions.reviews.player&page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testQueryPlayerByName() {
-    Player player = new Player();
+  public void testGetRatingHistory() throws Exception {
+    List<LeaderboardRatingJournal> result = List.of((LeaderboardRatingJournal) new LeaderboardRatingJournal().setId("1"));
 
-    when(restOperations.getForObject(anyString(), eq(List.class)))
-        .thenReturn(List.of(player))
-        .thenReturn(emptyList());
+    prepareJsonApiResponse(result);
 
-    Optional<Player> result = instance.queryPlayerByName("junit");
+    StepVerifier.create(instance.getRatingJournal(123, 1))
+        .expectNext(result.toArray(LeaderboardRatingJournal[]::new))
+        .verifyComplete();
 
-    assertTrue(result.isPresent());
-    assertThat(result.get(), is(player));
-    verify(restOperations).getForObject("/data/player?filter=login==\"junit\"&include=names&page[size]=10000&page[number]=1", List.class);
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/leaderboardRatingJournal?filter=gamePlayerStats.player.id==\"123\";leaderboard.id==\"1\"&include=gamePlayerStats&page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testGetPlayerModerationReports() {
-    List<ModerationReport> report = List.of(new ModerationReport());
+  public void testQueryPlayerByName() throws Exception {
+    Player player = (Player) new Player().setId("1");
 
-    when(restOperations.getForObject(anyString(), eq(List.class)))
-        .thenReturn(List.of(report))
-        .thenReturn(emptyList());
+    prepareJsonApiResponse(List.of(player));
 
-    List<ModerationReport> result = instance.getPlayerModerationReports(123);
+    StepVerifier.create(instance.queryPlayerByName("junit"))
+        .expectNext(player)
+        .verifyComplete();
 
-    assertThat(result, is(result));
-    verify(restOperations).getForObject("/data/moderationReport?filter=reporter.id==\"123\"&include=reporter,lastModerator,reportedUsers,game", List.class);
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/player?filter=login==\"junit\"&include=names&page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testPostModerationReport() {
+  public void testGetPlayerModerationReports() throws Exception {
+    List<ModerationReport> result = List.of((ModerationReport) new ModerationReport().setId("1"));
+
+    prepareJsonApiResponse(result);
+
+    StepVerifier.create(instance.getPlayerModerationReports(123))
+        .expectNext(result.toArray(ModerationReport[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/moderationReport?filter=reporter.id==\"123\"&include=reporter,lastModerator,reportedUsers,game", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
+  }
+
+  @Test
+  public void testPostModerationReport() throws Exception {
     com.faforever.client.reporting.ModerationReport report = ModerationReportBuilder.create().defaultValues().get();
 
-    instance.postModerationReport(report);
+    ModerationReport moderationReport = (ModerationReport) new ModerationReport().setId("1");
+    prepareJsonApiResponse(moderationReport);
 
-    List<Map<String, String>> reportedUsers = new ArrayList<>();
-    report.getReportedUsers().forEach(player -> reportedUsers.add(Map.of("type", "player", "id", String.valueOf(player.getId()))));
-    Map<String, Object> relationships = new HashMap<>(Map.of("reportedUsers", Map.of("data", reportedUsers)));
-    if (report.getGameId() != null) {
-      relationships.put("game", java.util.Map.of("data", Map.of("type", "game", "id", report.getGameId())));
-    }
-    java.util.Map<String, Object> body = Map.of("data", List.of(Map.of(
-        "type", "moderationReport",
-        "attributes", Map.of("gameIncidentTimecode", report.getGameIncidentTimeCode(), "reportDescription", report.getReportDescription()),
-        "relationships", relationships)));
+    StepVerifier.create(instance.postModerationReport(report)).expectNext(moderationReport).verifyComplete();
 
-    verify(restOperations).postForEntity("/data/moderationReport", body, String.class);
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.POST.name(), recordedRequest.getMethod());
+    assertEquals("/data/moderationReport", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
   public void testUploadMod() throws Exception {
     Path file = Files.createTempFile("foo", null);
-    instance.uploadMod(file, (written, total) -> {
-    });
 
-    verify(restOperations).postForEntity(eq("/mods/upload"), anyMap(), eq(String.class));
+    prepareJsonApiResponse(null);
+
+    StepVerifier.create(instance.uploadMod(file, (written, total) -> {
+    })).verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.POST.name(), recordedRequest.getMethod());
+    assertEquals("/mods/upload", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testChangePassword() {
-    instance.changePassword("junit", "currentPasswordHash", "newPasswordHash");
+  public void testGetCoopMissions() throws Exception {
+    List<CoopMission> result = List.of(new CoopMission().setId("1"));
 
-    ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
-    verify(restOperations).postForEntity(eq("/users/changePassword"), captor.capture(), eq(String.class));
+    prepareJsonApiResponse(result);
 
-    Map<String, String> body = captor.getValue();
-    assertThat(body.get("currentPassword"), is("currentPasswordHash"));
-    assertThat(body.get("newPassword"), is("newPasswordHash"));
+    StepVerifier.create(instance.getCoopMissions())
+        .expectNext(result.toArray(CoopMission[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/coopMission?page[size]=10000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testGetCoopMissions() {
-    when(restOperations.getForObject(startsWith("/data/coopMission"), eq(List.class))).thenReturn(emptyList());
+  public void getCoopLeaderboardAll() throws Exception {
+    List<CoopResult> result = List.of(new CoopResult().setId("1"));
 
-    instance.getCoopMissions();
+    prepareJsonApiResponse(result);
 
-    verify(restOperations).getForObject(eq("/data/coopMission?page[size]=10000&page[number]=1"), eq(List.class));
+    StepVerifier.create(instance.getCoopLeaderboard("1", 0))
+        .expectNext(result.toArray(CoopResult[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/coopResult?filter=mission==\"1\"&include=game.playerStats.player&sort=duration&page[size]=1000&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void getCoopLeaderboardAll() {
-    when(restOperations.getForObject(startsWith("/data/coopResult"), eq(List.class))).thenReturn(emptyList());
-
-    instance.getCoopLeaderboard("1", 0);
-
-    verify(restOperations).getForObject(eq("/data/coopResult?filter=mission==\"1\"&include=game.playerStats.player&sort=duration&page[size]=1000&page[number]=1"), eq(List.class));
-  }
-
-  @Test
-  public void getCoopLeaderboardOnePlayer() {
-    when(restOperations.getForObject(startsWith("/data/coopResult"), eq(List.class))).thenReturn(emptyList());
-
-    instance.getCoopLeaderboard("1", 1);
-
-    verify(restOperations).getForObject(eq("/data/coopResult?filter=mission==\"1\";playerCount==\"1\"&include=game.playerStats.player&sort=duration&page[size]=1000&page[number]=1"), eq(List.class));
-  }
-
-  @Test
-  public void testCreateGameReview() {
+  public void testCreateGameReview() throws Exception {
     GameReview gameReview = new GameReview().setGame(new Game().setId("5"));
 
-    when(restOperations.postForEntity(eq("/data/game/5/reviews"), eq(gameReview), eq(GameReview.class)))
-        .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+    prepareJsonApiResponse(gameReview.setId("1"));
 
-    instance.createGameReview(gameReview);
+    StepVerifier.create(instance.createGameReview(gameReview))
+        .expectNext(gameReview)
+        .verifyComplete();
 
-    ArgumentCaptor<GameReview> captor = ArgumentCaptor.forClass(GameReview.class);
-    verify(restOperations).postForEntity(eq("/data/game/5/reviews"), captor.capture(), eq(GameReview.class));
-    GameReview review = captor.getValue();
+    RecordedRequest recordedRequest = mockApi.takeRequest();
 
-    assertThat(review, is(gameReview));
+    assertEquals(HttpMethod.POST.name(), recordedRequest.getMethod());
+    assertEquals("/data/game/5/reviews", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testCreateModVersionReview() {
-    ModVersionReview modVersionReview = new ModVersionReview();
-    when(restOperations.postForEntity(eq("/data/modVersion/5/reviews"), eq(modVersionReview), eq(ModVersionReview.class)))
-        .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+  public void testCreateModVersionReview() throws Exception {
+    ModVersionReview modVersionReview = new ModVersionReview()
+        .setModVersion((com.faforever.commons.api.dto.ModVersion) new com.faforever.commons.api.dto.ModVersion().setId("5"));
 
-    instance.createModVersionReview(modVersionReview.setModVersion((com.faforever.commons.api.dto.ModVersion) new com.faforever.commons.api.dto.ModVersion().setId("5")));
+    prepareJsonApiResponse(modVersionReview.setId("1"));
 
-    ArgumentCaptor<ModVersionReview> captor = ArgumentCaptor.forClass(ModVersionReview.class);
-    verify(restOperations).postForEntity(eq("/data/modVersion/5/reviews"), captor.capture(), eq(ModVersionReview.class));
-    ModVersionReview review = captor.getValue();
+    StepVerifier.create(instance.createModVersionReview(modVersionReview))
+        .expectNext(modVersionReview)
+        .verifyComplete();
 
-    assertThat(review, is(modVersionReview));
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.POST.name(), recordedRequest.getMethod());
+    assertEquals("/data/modVersion/5/reviews", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testCreateMapVersionReview() {
-    MapVersionReview mapVersionReview = new MapVersionReview().setMapVersion((MapVersion) new MapVersion().setId("5"));
-    when(restOperations.postForEntity(eq("/data/mapVersion/5/reviews"), eq(mapVersionReview), eq(MapVersionReview.class)))
-        .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+  public void testCreateMapVersionReview() throws Exception {
+    MapVersionReview mapVersionReview = new MapVersionReview()
+        .setMapVersion((MapVersion) new MapVersion().setId("5"));
 
-    instance.createMapVersionReview(mapVersionReview);
+    prepareJsonApiResponse(mapVersionReview.setId("1"));
 
-    ArgumentCaptor<MapVersionReview> captor = ArgumentCaptor.forClass(MapVersionReview.class);
-    verify(restOperations).postForEntity(eq("/data/mapVersion/5/reviews"), captor.capture(), eq(MapVersionReview.class));
-    MapVersionReview review = captor.getValue();
+    StepVerifier.create(instance.createMapVersionReview(mapVersionReview))
+        .expectNext(mapVersionReview)
+        .verifyComplete();
 
-    assertThat(review, is(mapVersionReview));
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.POST.name(), recordedRequest.getMethod());
+    assertEquals("/data/mapVersion/5/reviews", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testGetLastGameOnMap() {
-    when(restOperations.getForObject(startsWith("/data/game"), eq(List.class)))
-        .thenReturn(Collections.singletonList(new Game()))
-        .thenReturn(emptyList());
+  public void testGetLastGameOnMap() throws Exception {
+    List<Game> result = List.of(new Game().setId("1"));
 
-    instance.getLastGamesOnMap(4, "42", 3);
+    prepareJsonApiResponse(result);
 
-    verify(restOperations).getForObject(contains("filter=mapVersion.id==\"42\";playerStats.player.id==\"4\""), eq(List.class));
+    StepVerifier.create(instance.getLastGamesOnMap(4, "42", 3))
+        .expectNext(result.toArray(Game[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals("/data/game?filter=mapVersion.id==\"42\";playerStats.player.id==\"4\"&include=featuredMod,playerStats,playerStats.player,playerStats.ratingChanges,reviews,reviews.player,mapVersion,mapVersion.map,reviewsSummary&sort=-endTime&page[size]=3&page[number]=1", UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testGetLatestVersionMap() {
+  public void testGetLatestVersionMap() throws Exception {
     MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001");
 
     MapVersion latestVersion = new MapVersion().setFolderName("palaneum.v0002");
     com.faforever.commons.api.dto.Map map = new com.faforever.commons.api.dto.Map()
         .setLatestVersion(latestVersion);
-    MapVersion mapFromServer = new MapVersion().setFolderName("palaneum.v0001")
-        .setMap(map);
 
-    when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
-        .thenReturn(Collections.singletonList(mapFromServer));
+    MapVersion mapFromServer = (MapVersion) new MapVersion().setFolderName("palaneum.v0001")
+        .setMap(map).setId("1");
 
-    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.of(latestVersion)));
-    String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
-    verify(restOperations).getForObject(contains(parameters), eq(List.class));
+    List<MapVersion> result = List.of(mapFromServer);
+
+    prepareJsonApiResponse(result);
+
+    StepVerifier.create(instance.getMapLatestVersion(localMap.getFolderName()))
+        .expectNext(result.toArray(MapVersion[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals(String.format("/data/mapVersion?filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"&include=map,map.latestVersion,map.author,map.reviewsSummary,map.versions.reviews,map.versions.reviews.player&page[size]=1&page[number]=1", localMap.getFolderName()), UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test
-  public void testGetLatestVersionMapIfNoMapFromServer() {
+  public void testGetLatestVersionMapIfNoMapFromServer() throws Exception {
     MapVersion localMap = new MapVersion().setFolderName("palaneum.v0001__1"); // the map does not exist on server
 
-    when(restOperations.getForObject(startsWith("/data/mapVersion"), eq(List.class)))
-        .thenReturn(emptyList());
+    List<MapVersion> result = List.of();
 
-    assertThat(instance.getMapLatestVersion(localMap.getFolderName()), is(Optional.empty()));
-    String parameters = String.format("filter=filename==\"maps/%s.zip\";map.latestVersion.hidden==\"false\"", localMap.getFolderName());
-    verify(restOperations).getForObject(contains(parameters), eq(List.class));
+    prepareJsonApiResponse(result);
+
+    StepVerifier.create(instance.getMapLatestVersion(localMap.getFolderName()))
+        .expectNext(result.toArray(MapVersion[]::new))
+        .verifyComplete();
+
+    RecordedRequest recordedRequest = mockApi.takeRequest();
+
+    assertEquals(HttpMethod.GET.name(), recordedRequest.getMethod());
+    assertEquals(String.format("/data/mapVersion?filter=filename==\"maps/palaneum.v0001__1.zip\";map.latestVersion.hidden==\"false\"&include=map,map.latestVersion,map.author,map.reviewsSummary,map.versions.reviews,map.versions.reviews.player&page[size]=1&page[number]=1", localMap.getFolderName()), UriUtils.decode(recordedRequest.getPath(), StandardCharsets.UTF_8));
   }
 
   @Test

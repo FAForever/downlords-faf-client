@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Mono;
 
 import java.net.URL;
 import java.util.Optional;
@@ -64,7 +65,7 @@ public class FafServiceTest extends ServiceTest {
     Review review = createReview(null, "something", 3, 42);
 
     when(fafApiAccessor.createGameReview(any()))
-        .thenReturn((GameReview) new GameReview().setPlayer(player()).setScore((byte) 1).setId("1"));
+        .thenReturn(Mono.just((GameReview) new GameReview().setPlayer(player()).setScore((byte) 1).setId("1")));
 
     instance.saveGameReview(review, 5);
     verify(fafApiAccessor).createGameReview(any());
@@ -75,7 +76,7 @@ public class FafServiceTest extends ServiceTest {
     Review review = createReview(null, "something", 3, 42);
 
     when(fafApiAccessor.createMapVersionReview(any()))
-        .thenReturn((MapVersionReview) new MapVersionReview().setPlayer(player()).setScore((byte) 1).setId("1"));
+        .thenReturn(Mono.just((MapVersionReview) new MapVersionReview().setPlayer(player()).setScore((byte) 1).setId("1")));
 
     instance.saveMapVersionReview(review, "5");
     verify(fafApiAccessor).createMapVersionReview(any());
@@ -86,7 +87,7 @@ public class FafServiceTest extends ServiceTest {
     Review review = createReview(null, "something", 3, 42);
 
     when(fafApiAccessor.createModVersionReview(any()))
-        .thenReturn((ModVersionReview) new ModVersionReview().setPlayer(player()).setScore((byte) 1).setId("1"));
+        .thenReturn(Mono.just((ModVersionReview) new ModVersionReview().setPlayer(player()).setScore((byte) 1).setId("1")));
 
     instance.saveModVersionReview(review, "5");
     verify(fafApiAccessor).createModVersionReview(any());

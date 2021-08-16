@@ -309,6 +309,9 @@ dependencies {
 
   implementation("com.install4j:install4j-runtime:${install4jVersion}")
 
+  testImplementation("com.squareup.okhttp3:okhttp")
+  testImplementation("com.squareup.okhttp3:mockwebserver")
+  testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.testfx:testfx-core:4.0.16-alpha") {
     exclude module: 'guava'
   }
