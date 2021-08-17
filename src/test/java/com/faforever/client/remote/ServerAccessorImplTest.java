@@ -214,9 +214,7 @@ public class ServerAccessorImplTest extends ServiceTest {
           for (String string : values) {
             assertThat(json, containsString(string));
           }
-        })
-        .then()
-        .block(Duration.ofSeconds(10));
+        }).block(Duration.ofSeconds(10));
   }
 
   @AfterEach
