@@ -32,8 +32,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriUtils;
 import reactor.util.function.Tuple2;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -265,6 +267,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           }
         })
         .exceptionally(throwable -> {
+          throwable = new RuntimeException(UriUtils.decode(throwable.getMessage(), StandardCharsets.UTF_8), throwable);
           log.error("Vault search error", throwable);
           notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
           enterResultState();
