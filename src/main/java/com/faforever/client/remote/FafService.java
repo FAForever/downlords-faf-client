@@ -484,7 +484,7 @@ public class FafService {
         .map(Replay::fromDto));
   }
 
-  public CompletableFuture<Collection<IceServer>> getIceServers() {
+  public CompletableFuture<List<IceServer>> getIceServers() {
     return fafServerAccessor.getIceServers();
   }
 

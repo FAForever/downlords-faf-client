@@ -46,7 +46,6 @@ import org.springframework.stereotype.Component;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -197,9 +196,8 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
     lobbyClient.selectAvatar(Optional.ofNullable(url).map(URL::toString).orElse(null));
   }
 
-  public CompletableFuture<Collection<Avatar>> getAvailableAvatars() {
-    return lobbyClient.getAvailableAvatars()
-        .toFuture();
+  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
+    return lobbyClient.getAvailableAvatars().collectList().toFuture();
   }
 
   public void closePlayersGame(int playerId) {
@@ -214,8 +212,9 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
     lobbyClient.broadcastMessage(message);
   }
 
-  public CompletableFuture<Collection<IceServer>> getIceServers() {
+  public CompletableFuture<List<IceServer>> getIceServers() {
     return lobbyClient.getIceServers()
+        .collectList()
         .toFuture();
   }
 

@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.CompletableFuture;
@@ -173,12 +172,12 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public CompletableFuture<Collection<Avatar>> getAvailableAvatars() {
+  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
     return CompletableFuture.completedFuture(List.of());
   }
 
   @Override
-  public CompletableFuture<Collection<IceServer>> getIceServers() {
+  public CompletableFuture<List<IceServer>> getIceServers() {
     return CompletableFuture.completedFuture(List.of());
   }
 

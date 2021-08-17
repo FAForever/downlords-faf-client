@@ -16,7 +16,6 @@ import com.faforever.commons.lobby.ServerMessage;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -59,7 +58,7 @@ public interface FafServerAccessor {
 
   void selectAvatar(URL url);
 
-  CompletableFuture<Collection<Avatar>> getAvailableAvatars();
+  CompletableFuture<List<Avatar>> getAvailableAvatars();
 
   void closePlayersGame(int playerId);
 
@@ -67,7 +66,7 @@ public interface FafServerAccessor {
 
   void broadcastMessage(String message);
 
-  CompletableFuture<Collection<IceServer>> getIceServers();
+  CompletableFuture<List<IceServer>> getIceServers();
 
   void restoreGameSession(int id);
 
