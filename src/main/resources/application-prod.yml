@@ -32,8 +32,6 @@ faf-client:
     client-id: faf-java-client
     redirect-url: http://localhost
 
-  status-page-url: https://statuspage.faforever.com
-
   forged-alliance:
     exe-url: https://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
 
