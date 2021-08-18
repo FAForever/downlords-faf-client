@@ -213,9 +213,7 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
   }
 
   public CompletableFuture<List<IceServer>> getIceServers() {
-    return lobbyClient.getIceServers()
-        .collectList()
-        .toFuture();
+    return lobbyClient.getIceServers().collectList().toFuture();
   }
 
   private void onNotice(NoticeInfo noticeMessage) {

@@ -29,6 +29,7 @@ import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
+import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.IceServerListResponse;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.lobby.LobbyMode;
@@ -46,6 +47,7 @@ import com.faforever.commons.lobby.PartyInfo;
 import com.faforever.commons.lobby.PartyInfo.PartyMember;
 import com.faforever.commons.lobby.PartyInvite;
 import com.faforever.commons.lobby.PartyKick;
+import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SearchInfo;
 import com.faforever.commons.lobby.ServerMessage;
@@ -488,6 +490,12 @@ public class ServerAccessorImplTest extends ServiceTest {
         "list_avatar",
         "action"
     );
+
+    AvatarListInfo avatarList = new AvatarListInfo(List.of(new Avatar("google.com", "test"), new Avatar("google.com", "test")));
+    sendFromServer(avatarList);
+
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
+    assertThat(receivedMessage, is(avatarList));
   }
 
   @Test
@@ -496,6 +504,14 @@ public class ServerAccessorImplTest extends ServiceTest {
     instance.getIceServers();
 
     assertMessageContainsComponents("ice_servers");
+
+    IceServerListResponse iceServers = new IceServerListResponse(List.of(
+        new IceServer("google.com", List.of(), "test", "cred", "credType")
+    ), 0);
+    sendFromServer(iceServers);
+
+    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
+    assertThat(receivedMessage, is(iceServers));
   }
 
   @Test
