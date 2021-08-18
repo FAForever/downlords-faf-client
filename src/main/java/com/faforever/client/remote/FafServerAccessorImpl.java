@@ -43,6 +43,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.net.URL;
 import java.time.Duration;
@@ -99,8 +100,11 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
     lobbyClient.getEvents().filter(serverMessage -> type.isAssignableFrom(serverMessage.getClass()))
         .cast(type)
-        .doOnNext(listener)
-        .onErrorContinue((throwable, message) -> log.warn("Could not process listener for `{}`", message, throwable))
+        .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message))
+            .onErrorResume(throwable -> {
+              log.warn("Could not process listener for `{}`", message, throwable);
+              return Mono.empty();
+            }))
         .subscribe();
   }
 
