@@ -6,7 +6,6 @@ import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -56,7 +55,6 @@ public class LoginController implements Controller<Pane> {
   private final UserService userService;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
-  private final PlatformService platformService;
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
@@ -80,7 +78,6 @@ public class LoginController implements Controller<Pane> {
   public TextField ircServerPortField;
   public TextField apiBaseUrlField;
   public TextField oauthBaseUrlField;
-  public Button serverStatusButton;
   public CheckBox rememberMeCheckBox;
 
   @VisibleForTesting
@@ -89,7 +86,7 @@ public class LoginController implements Controller<Pane> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane, loginWebView,
-        serverConfigPane, serverStatusButton, errorPane, loginProgressPane);
+        serverConfigPane, errorPane, loginProgressPane);
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     updateInfoFuture = clientUpdateService.getNewestUpdate();
 
@@ -97,7 +94,6 @@ public class LoginController implements Controller<Pane> {
     errorPane.setVisible(false);
     loginErrorLabel.setVisible(false);
     serverConfigPane.setVisible(false);
-    serverStatusButton.setVisible(clientProperties.getStatusPageUrl() != null);
     rememberMeCheckBox.setSelected(loginPrefs.getRememberMe());
     loginPrefs.rememberMeProperty().bindBidirectional(rememberMeCheckBox.selectedProperty());
 
@@ -358,13 +354,5 @@ public class LoginController implements Controller<Pane> {
     if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
       serverConfigPane.setVisible(!serverConfigPane.isVisible());
     }
-  }
-
-  public void seeServerStatus() {
-    String statusPageUrl = clientProperties.getStatusPageUrl();
-    if (statusPageUrl == null) {
-      return;
-    }
-    platformService.showDocument(statusPageUrl);
   }
 }

@@ -71,7 +71,7 @@ public class LoginControllerTest extends UITest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(userService.getHydraUrl()).thenReturn("google.com");
 
-    instance = new LoginController(userService, preferencesService, notificationService, platformService, clientProperties, i18n, clientUpdateService, webViewConfigurer);
+    instance = new LoginController(userService, preferencesService, notificationService, clientProperties, i18n, clientUpdateService, webViewConfigurer);
 
     loadFxml("theme/login.fxml", param -> instance);
     assertFalse(instance.loginProgressPane.isVisible());
@@ -255,18 +255,5 @@ public class LoginControllerTest extends UITest {
 
     verify(i18n).get("login.button.downloadPreparing");
     verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
-  }
-
-  @Test
-  public void testSeeServerStatus() {
-    clientProperties.setStatusPageUrl(null);
-    instance.seeServerStatus();
-
-    verify(platformService, never()).showDocument(anyString());
-
-    clientProperties.setStatusPageUrl("");
-    instance.seeServerStatus();
-
-    verify(platformService).showDocument(anyString());
   }
 }
