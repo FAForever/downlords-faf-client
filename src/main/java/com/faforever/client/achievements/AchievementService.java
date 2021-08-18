@@ -12,7 +12,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Service
 @RequiredArgsConstructor
 // TODO cut dependencies if possible
-public class AchievementService implements InitializingBean {
+public class AchievementService {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
 
@@ -84,10 +83,5 @@ public class AchievementService implements InitializingBean {
       achievementsLoadedFuture.complete(readOnlyPlayerAchievements);
     });
     return achievementsLoadedFuture;
-  }
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-
   }
 }
