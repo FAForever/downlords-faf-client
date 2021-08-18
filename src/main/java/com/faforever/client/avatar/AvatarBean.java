@@ -1,6 +1,6 @@
 package com.faforever.client.avatar;
 
-import com.faforever.client.remote.domain.Avatar;
+import com.faforever.commons.lobby.Player.Avatar;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -21,7 +21,7 @@ public class AvatarBean {
   }
 
   public static AvatarBean fromAvatar(Avatar avatar) {
-    return new AvatarBean(noCatch(() -> new URL(avatar.getUrl())), avatar.getTooltip());
+    return new AvatarBean(noCatch(() -> new URL(avatar.getUrl())), avatar.getDescription());
   }
 
   @Nullable

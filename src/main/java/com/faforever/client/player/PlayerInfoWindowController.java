@@ -3,7 +3,6 @@ package com.faforever.client.player;
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
-import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.domain.RatingHistoryDataPoint;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -19,6 +18,7 @@ import com.faforever.client.util.Assert;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.api.dto.PlayerEvent;
 import javafx.beans.InvalidationListener;
@@ -63,7 +63,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static com.faforever.client.player.EventService.EVENT_AEON_PLAYS;
 import static com.faforever.client.player.EventService.EVENT_AEON_WINS;
 import static com.faforever.client.player.EventService.EVENT_BUILT_AIR_UNITS;
@@ -136,7 +135,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
   private List<RatingHistoryDataPoint> ratingData;
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
-    return UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());
+    return AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());
   }
 
   public void initialize() {
@@ -377,7 +376,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
       JavaFxUtil.runLater(() -> {
         mostRecentAchievementNameLabel.setText(mostRecentAchievementName);
         mostRecentAchievementDescriptionLabel.setText(mostRecentAchievementDescription);
-        mostRecentAchievementImageView.setImage(achievementService.getImage(mostRecentAchievement, UNLOCKED));
+        mostRecentAchievementImageView.setImage(achievementService.getImage(mostRecentAchievement, AchievementState.UNLOCKED));
       });
     }
   }

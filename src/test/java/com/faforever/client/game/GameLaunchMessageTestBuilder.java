@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.LobbyMode;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.LobbyMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,12 +31,12 @@ public class GameLaunchMessageTestBuilder {
     mod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     args();
     ratingType("global");
+    initMode(LobbyMode.DEFAULT_LOBBY);
     return this;
   }
 
-  public GameLaunchMessage get() {
-    return new GameLaunchMessage(args, uid, mod, mapname, name, expectedPlayers, team, mapPosition, faction, initMode,
-        ratingType);
+  public GameLaunchResponse get() {
+    return new GameLaunchResponse(uid, name, mod, initMode, ratingType, args, mapname, expectedPlayers, mapPosition, team, faction);
   }
 
   public GameLaunchMessageTestBuilder name(String name) {

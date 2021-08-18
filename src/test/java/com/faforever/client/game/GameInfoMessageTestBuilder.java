@@ -1,8 +1,9 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
-import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
+import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.GameVisibility;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ public class GameInfoMessageTestBuilder {
   private Integer ratingMax;
   private Boolean enforceRatingRange;
   private GameType gameType;
-  private List<GameInfoMessage> games;
+  private List<GameInfo> games;
 
   private GameInfoMessageTestBuilder(Integer uid) {
     this.uid = uid;
@@ -39,9 +40,10 @@ public class GameInfoMessageTestBuilder {
     return new GameInfoMessageTestBuilder(uid);
   }
 
-  public GameInfoMessage get() {
-    return new GameInfoMessage(host, passwordProtected, visibility, state, numPlayers, teams, featuredMod, uid, maxPlayers,
-        title, simMods, mapname, launchedAt, ratingType, ratingMin, ratingMax, enforceRatingRange, gameType, games);
+  public GameInfo get() {
+    return new GameInfo(uid, title, host, gameType, maxPlayers, numPlayers, visibility, passwordProtected, state,
+        featuredMod, ratingType, simMods, mapname, mapname, launchedAt, teams, ratingMin, ratingMax,
+        enforceRatingRange, games);
   }
 
   public GameInfoMessageTestBuilder defaultValues() {
@@ -108,7 +110,7 @@ public class GameInfoMessageTestBuilder {
     return this;
   }
 
-  public GameInfoMessageTestBuilder games(List<GameInfoMessage> games) {
+  public GameInfoMessageTestBuilder games(List<GameInfo> games) {
     this.games = games;
     return this;
   }

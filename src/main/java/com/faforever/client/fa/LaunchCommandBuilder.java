@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -147,7 +148,7 @@ public class LaunchCommandBuilder {
     ));
 
     if (faction != null) {
-      command.add(String.format("/%s", faction.getString()));
+      command.add(String.format("/%s", faction.toString().toLowerCase(Locale.ROOT)));
     }
 
     if (logFile != null) {

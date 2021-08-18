@@ -3,7 +3,7 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import javafx.beans.InvalidationListener;
 
 import java.util.List;

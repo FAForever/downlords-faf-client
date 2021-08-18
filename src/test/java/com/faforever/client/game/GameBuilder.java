@@ -1,8 +1,9 @@
 package com.faforever.client.game;
 
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
 import com.faforever.commons.api.dto.VictoryCondition;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.GameVisibility;
 import javafx.collections.FXCollections;
 
 import java.time.Instant;
@@ -59,7 +60,7 @@ public class GameBuilder {
     return this;
   }
 
-  public GameBuilder id(int id) {
+  public GameBuilder id(Integer id) {
     game.setId(id);
     return this;
   }

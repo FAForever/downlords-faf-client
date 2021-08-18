@@ -8,7 +8,7 @@ import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.vault.search.SearchController.SortConfig;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;

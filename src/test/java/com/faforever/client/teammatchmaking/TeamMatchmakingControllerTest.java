@@ -16,7 +16,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.teammatchmaking.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;

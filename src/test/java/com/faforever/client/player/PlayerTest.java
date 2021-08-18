@@ -2,8 +2,8 @@ package com.faforever.client.player;
 
 import com.faforever.client.game.Game;
 import com.faforever.client.game.PlayerStatus;
-import com.faforever.client.remote.domain.GameStatus;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

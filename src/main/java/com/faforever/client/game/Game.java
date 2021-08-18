@@ -1,11 +1,12 @@
 package com.faforever.client.game;
 
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
-import com.faforever.client.remote.domain.inbound.faf.GameInfoMessage;
 import com.faforever.client.util.TimeUtil;
 import com.faforever.commons.api.dto.VictoryCondition;
+import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.GameVisibility;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -66,13 +67,17 @@ public class Game {
   private InvalidationListener hostListener;
   private InvalidationListener teamsListener;
 
-  public void updateFromLobbyServer(GameInfoMessage gameInfoMessage) {
+  public void updateFromLobbyServer(GameInfo gameInfoMessage) {
     setId(gameInfoMessage.getUid());
     setHost(gameInfoMessage.getHost());
     setTitle(StringEscapeUtils.unescapeHtml4(gameInfoMessage.getTitle()));
-    setMapFolderName(gameInfoMessage.getMapname());
+    setMapFolderName(gameInfoMessage.getMapName());
     setFeaturedMod(gameInfoMessage.getFeaturedMod());
-    setNumPlayers(gameInfoMessage.getNumPlayers() - gameInfoMessage.getTeams().getOrDefault(OBSERVERS_TEAM, List.of()).size());
+    if (gameInfoMessage.getNumberOfPlayers() != null && gameInfoMessage.getTeams() != null) {
+      setNumPlayers(gameInfoMessage.getNumberOfPlayers() - gameInfoMessage.getTeams().getOrDefault(OBSERVERS_TEAM, List.of()).size());
+    } else {
+      setNumPlayers(0);
+    }
     setMaxPlayers(gameInfoMessage.getMaxPlayers());
     Optional.ofNullable(gameInfoMessage.getLaunchedAt()).ifPresent(aDouble -> setStartTime(
         TimeUtil.fromPythonTime(aDouble.longValue()).toInstant()
@@ -80,7 +85,7 @@ public class Game {
     setStatus(gameInfoMessage.getState());
     setPasswordProtected(gameInfoMessage.getPasswordProtected());
     setGameType(gameInfoMessage.getGameType());
-    setRatingType(gameInfoMessage.getRatingType());
+    setRatingType(gameInfoMessage.getLeaderboard());
     setSimMods(gameInfoMessage.getSimMods());
     setTeams(gameInfoMessage.getTeams());
     setMinRating(gameInfoMessage.getRatingMin());
@@ -136,36 +141,36 @@ public class Game {
     return featuredMod;
   }
 
-  public int getId() {
+  public Integer getId() {
     return id.get();
   }
 
-  public void setId(int id) {
-    this.id.set(id);
+  public void setId(Integer id) {
+    this.id.setValue(id);
   }
 
   public IntegerProperty idProperty() {
     return id;
   }
 
-  public int getNumPlayers() {
+  public Integer getNumPlayers() {
     return numPlayers.get();
   }
 
-  public void setNumPlayers(int numPlayers) {
-    this.numPlayers.set(numPlayers);
+  public void setNumPlayers(Integer numPlayers) {
+    this.numPlayers.setValue(numPlayers);
   }
 
   public IntegerProperty numPlayersProperty() {
     return numPlayers;
   }
 
-  public int getMaxPlayers() {
+  public Integer getMaxPlayers() {
     return maxPlayers.get();
   }
 
-  public void setMaxPlayers(int maxPlayers) {
-    this.maxPlayers.set(maxPlayers);
+  public void setMaxPlayers(Integer maxPlayers) {
+    this.maxPlayers.setValue(maxPlayers);
   }
 
   public IntegerProperty maxPlayersProperty() {
@@ -220,11 +225,11 @@ public class Game {
     return maxRating;
   }
 
-  public void setEnforceRating(boolean enforceRating) {
-    this.enforceRating.set(enforceRating);
+  public void setEnforceRating(Boolean enforceRating) {
+    this.enforceRating.setValue(enforceRating);
   }
 
-  public boolean getEnforceRating() {
+  public Boolean getEnforceRating() {
     return enforceRating.getValue();
   }
 
@@ -337,7 +342,7 @@ public class Game {
     return visibility;
   }
 
-  public boolean isPasswordProtected() {
+  public Boolean isPasswordProtected() {
     return passwordProtected.get();
   }
 
@@ -345,8 +350,8 @@ public class Game {
     return passwordProtected;
   }
 
-  public void setPasswordProtected(boolean passwordProtected) {
-    this.passwordProtected.set(passwordProtected);
+  public void setPasswordProtected(Boolean passwordProtected) {
+    this.passwordProtected.setValue(passwordProtected);
   }
 
   public String getPassword() {

@@ -4,15 +4,14 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.inbound.faf.UpdatedAchievementsMessage;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Service
 @RequiredArgsConstructor
 // TODO cut dependencies if possible
-public class AchievementService implements InitializingBean {
+public class AchievementService {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
 
@@ -67,17 +66,11 @@ public class AchievementService implements InitializingBean {
 
   @Cacheable(value = CacheNames.ACHIEVEMENT_IMAGES, sync = true)
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
-    URL url;
-    switch (achievementState) {
-      case REVEALED:
-        url = noCatch(() -> new URL(achievementDefinition.getRevealedIconUrl()));
-        break;
-      case UNLOCKED:
-        url = noCatch(() -> new URL(achievementDefinition.getUnlockedIconUrl()));
-        break;
-      default:
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    URL url = switch (achievementState) {
+      case REVEALED -> noCatch(() -> new URL(achievementDefinition.getRevealedIconUrl()));
+      case UNLOCKED -> noCatch(() -> new URL(achievementDefinition.getUnlockedIconUrl()));
+      default -> throw new UnsupportedOperationException("Not yet implemented");
+    };
     return assetService.loadAndCacheImage(url, Paths.get("achievements").resolve(achievementState.name().toLowerCase()),
         null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
   }
@@ -91,14 +84,4 @@ public class AchievementService implements InitializingBean {
     });
     return achievementsLoadedFuture;
   }
-
-  @Override
-  public void afterPropertiesSet() {
-    fafService.addOnMessageListener(UpdatedAchievementsMessage.class, updatedAchievementsMessage -> reloadAchievements());
-  }
-
-  public enum AchievementState {
-    HIDDEN, REVEALED, UNLOCKED
-  }
-
 }

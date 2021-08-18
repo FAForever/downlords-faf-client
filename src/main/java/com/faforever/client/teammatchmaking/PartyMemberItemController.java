@@ -11,7 +11,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
-import com.faforever.commons.api.dto.Faction;
+import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;

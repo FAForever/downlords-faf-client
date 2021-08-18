@@ -15,15 +15,6 @@ import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.Player;
-import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.inbound.InboundMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
-import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
-import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GameEndedMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
-import com.faforever.client.remote.domain.outbound.gpg.IceMessage;
 import com.faforever.client.replay.Replay;
 import com.faforever.client.reporting.ModerationReport;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
@@ -35,7 +26,6 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.CoopResult;
-import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReview;
@@ -49,6 +39,13 @@ import com.faforever.commons.api.dto.ModVersionReview;
 import com.faforever.commons.api.dto.NeroxisGeneratorParams;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import com.faforever.commons.io.ByteCountListener;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.IceServer;
+import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.MatchmakerState;
+import com.faforever.commons.lobby.ServerMessage;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
@@ -69,7 +66,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -82,15 +78,11 @@ public class FafService {
   private final FafApiAccessor fafApiAccessor;
   private final EventBus eventBus;
 
-  public <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
-    fafServerAccessor.addOnMessageListener(type, listener);
+  public <T extends ServerMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
+    fafServerAccessor.addEventListener(type, listener);
   }
 
-  public <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
-    fafServerAccessor.removeOnMessageListener(type, listener);
-  }
-
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
+  public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
     return fafServerAccessor.requestHostGame(newGameInfo);
   }
 
@@ -102,29 +94,25 @@ public class FafService {
     return fafServerAccessor.connectionStateProperty();
   }
 
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
+  public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
     return fafServerAccessor.requestJoinGame(gameId, password);
   }
 
-  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
+  public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
     return fafServerAccessor.startSearchMatchmaker();
-  }
-
-  public void stopSearchMatchmaker() {
-    fafServerAccessor.stopSearchMatchmaker();
   }
 
   public void requestMatchmakerInfo() {
     fafServerAccessor.requestMatchmakerInfo();
   }
 
-  public void sendGpgMessage(GpgOutboundMessage message) {
+  public void sendGpgMessage(GpgGameOutboundMessage message) {
     fafServerAccessor.sendGpgMessage(message);
   }
 
   @Async
-  public CompletableFuture<LoginMessage> connectToServer() {
-    return fafServerAccessor.connectAndLogin();
+  public CompletableFuture<LoginSuccessResponse> connectToServer() {
+    return fafServerAccessor.connectAndLogIn();
   }
 
   public void authorizeApi() {
@@ -153,7 +141,7 @@ public class FafService {
 
   @Async
   public void notifyGameEnded() {
-    fafServerAccessor.sendGpgMessage(new GameEndedMessage());
+    fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Ended"));
   }
 
   @Async
@@ -270,9 +258,8 @@ public class FafService {
 
   @Async
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
-    return CompletableFuture.completedFuture(fafServerAccessor.getAvailableAvatars().stream()
-        .map(AvatarBean::fromAvatar)
-        .collect(Collectors.toList()));
+    return fafServerAccessor.getAvailableAvatars().thenApply(avatars ->
+        avatars.stream().map(AvatarBean::fromAvatar).collect(toList()));
   }
 
   @Async
@@ -308,7 +295,7 @@ public class FafService {
             && gamePlayerStats.getMeanAfter() != null
             && gamePlayerStats.getDeviationAfter() != null)
         .map(entry -> new RatingHistoryDataPoint(entry.getGamePlayerStats().getScoreTime(), entry.getMeanAfter(), entry.getDeviationAfter()))
-        .collect(Collectors.toList()));
+        .collect(toList()));
   }
 
   @Async
@@ -316,7 +303,7 @@ public class FafService {
     return CompletableFuture.completedFuture(fafApiAccessor.getFeaturedMods().stream()
         .sorted(Comparator.comparingInt(com.faforever.commons.api.dto.FeaturedMod::getOrder))
         .map(FeaturedMod::fromFeaturedMod)
-        .collect(Collectors.toList()));
+        .collect(toList()));
   }
 
   @Async
@@ -539,13 +526,13 @@ public class FafService {
         .distinct()
         .filter(Objects::nonNull)
         .map(MapBean::fromMapVersionDto)
-        .collect(Collectors.toList());
+        .collect(toList());
     mapVersions.addAll(poolAssignments.stream()
         .map(MapPoolAssignment::getMapParams)
         .filter(mapParams -> mapParams instanceof NeroxisGeneratorParams)
         .distinct()
         .map(mapParams -> MapBean.fromNeroxisGeneratedMapParams((NeroxisGeneratorParams) mapParams))
-        .collect(Collectors.toList()));
+        .collect(toList()));
     mapVersions.sort(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER));
     return paginateResult(count, page, mapVersions);
   }
@@ -595,7 +582,7 @@ public class FafService {
     fafServerAccessor.setPartyFactions(factions);
   }
 
-  public void updateMatchmakerState(MatchmakingQueue queue, MatchmakingState state) {
+  public void updateMatchmakerState(MatchmakingQueue queue, MatchmakerState state) {
     fafServerAccessor.gameMatchmaking(queue, state);
   }
 
@@ -611,7 +598,7 @@ public class FafService {
   }
 
   public void sendIceMessage(int remotePlayerId, Object message) {
-    fafServerAccessor.sendGpgMessage(new IceMessage(remotePlayerId, message));
+    fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.iceMessage(remotePlayerId, message));
   }
 
   @Async
@@ -666,11 +653,6 @@ public class FafService {
   }
 
   @Async
-  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
-    fafServerAccessor.banPlayer(playerId, duration, periodType, reason);
-  }
-
-  @Async
   public void closePlayersGame(int playerId) {
     fafServerAccessor.closePlayersGame(playerId);
   }
@@ -689,7 +671,7 @@ public class FafService {
   public CompletableFuture<List<TutorialCategory>> getTutorialCategories() {
     return CompletableFuture.completedFuture(fafApiAccessor.getTutorialCategories().stream()
         .map(TutorialCategory::fromDto)
-        .collect(Collectors.toList())
+        .collect(toList())
     );
   }
 }

@@ -3,12 +3,11 @@ package com.faforever.client.player;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameBuilder;
 import com.faforever.client.remote.FafService;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.PlayerInfo;
-import com.faforever.client.remote.domain.inbound.faf.PlayerInfoMessage;
-import com.faforever.client.remote.domain.inbound.faf.SocialMessage;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.Player.LeaderboardStats;
+import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -53,16 +52,16 @@ public class PlayerServiceTest extends ServiceTest {
   private EventBus eventBus;
 
   private PlayerService instance;
-  private PlayerInfo playerInfo1;
-  private PlayerInfo playerInfo2;
+  private com.faforever.commons.lobby.Player playerInfo1;
+  private com.faforever.commons.lobby.Player playerInfo2;
 
   @BeforeEach
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    when(userService.getOwnPlayerInfo()).thenReturn(new PlayerInfo(1, "junit", null, null, null, new HashMap<>(), new HashMap<>()));
+    when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");
-    playerInfo1 = new PlayerInfo(2, "junit2", null, null, null, new HashMap<>(), new HashMap<>());
-    playerInfo2 = new PlayerInfo(3, "junit3", null, null, null, new HashMap<>(), new HashMap<>());
+    playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, null, "", new HashMap<>(), new HashMap<>());
+    playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
 
     instance = new PlayerService(fafService, userService, eventBus);
 
@@ -76,8 +75,8 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testPostConstruct() {
-    verify(fafService).addOnMessageListener(eq(PlayerInfoMessage.class), any(Consumer.class));
-    verify(fafService).addOnMessageListener(eq(SocialMessage.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(com.faforever.commons.lobby.PlayerInfo.class), any(Consumer.class));
+    verify(fafService).addOnMessageListener(eq(SocialInfo.class), any(Consumer.class));
   }
 
   @Test
@@ -102,11 +101,11 @@ public class PlayerServiceTest extends ServiceTest {
   public void testPlayerUpdatedFromPlayerInfo() {
     Player player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
 
-    assertEquals((int) playerInfo1.getNumberOfGames(), player.getNumberOfGames());
+    assertEquals((int) playerInfo1.getRatings().values().stream().mapToInt(LeaderboardStats::getNumberOfGames).sum(), player.getNumberOfGames());
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
-    instance.createOrUpdatePlayerForPlayerInfo(new PlayerInfo(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()));
+    instance.createOrUpdatePlayerForPlayerInfo(new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()));
 
     assertEquals(0, player.getNumberOfGames());
     assertEquals("ABC", player.getClan());
@@ -215,7 +214,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetCurrentPlayerNull() {
-    when(userService.getOwnPlayerInfo()).thenReturn(null);
+    when(userService.getOwnPlayer()).thenReturn(null);
 
     assertThrows(IllegalStateException.class, () -> instance.getCurrentPlayer());
   }

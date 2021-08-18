@@ -1,9 +1,9 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.AchievementType;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import javafx.scene.effect.ColorAdjust;

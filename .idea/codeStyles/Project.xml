@@ -14,9 +14,6 @@
       <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
       <option name="JD_DO_NOT_WRAP_ONE_LINE_COMMENTS" value="true" />
     </JavaCodeStyleSettings>
-    <XML>
-      <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
-    </XML>
     <codeStyleSettings language="HTML">
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />

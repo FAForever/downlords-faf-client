@@ -17,14 +17,14 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.GameStatus;
-import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.GroupPermission;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.paint.Color;
@@ -118,54 +118,37 @@ public class ChatUserContextMenuControllerTest extends UITest {
   }
 
   @Test
-  public void testKickBanContextMenuNotShownForNormalUser() {
+  public void testKickContextMenuNotShownForNormalUser() {
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.banItem.isVisible());
     assertFalse(instance.kickGameItem.isVisible());
     assertFalse(instance.kickLobbyItem.isVisible());
     assertFalse(instance.moderatorActionSeparator.isVisible());
   }
 
   @Test
-  public void testKickBanContextMenuNotShownForSelf() {
+  public void testKickContextMenuNotShownForSelf() {
     player.setSocialStatus(SELF);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.banItem.isVisible());
     assertFalse(instance.kickGameItem.isVisible());
     assertFalse(instance.kickLobbyItem.isVisible());
     assertFalse(instance.moderatorActionSeparator.isVisible());
   }
 
   @Test
-  public void testKickContextMenuShownForMod() {
+  public void testKickContextMenuShownForModWithKickPermissions() {
     Set<String> permissions = Sets.newHashSet(GroupPermission.ADMIN_KICK_SERVER);
     when(moderatorService.getPermissions())
         .thenReturn(CompletableFuture.completedFuture(permissions));
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(instance.banItem.isVisible());
     assertTrue(instance.kickGameItem.isVisible());
     assertTrue(instance.kickLobbyItem.isVisible());
-    assertTrue(instance.moderatorActionSeparator.isVisible());
-  }
-
-  @Test
-  public void testBanContextMenuShownForMod() {
-    Set<String> permissions = Sets.newHashSet(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN);
-    when(moderatorService.getPermissions())
-        .thenReturn(CompletableFuture.completedFuture(permissions));
-    player.setSocialStatus(FOE);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.banItem.isVisible());
-    assertFalse(instance.kickGameItem.isVisible());
-    assertFalse(instance.kickLobbyItem.isVisible());
     assertTrue(instance.moderatorActionSeparator.isVisible());
   }
 

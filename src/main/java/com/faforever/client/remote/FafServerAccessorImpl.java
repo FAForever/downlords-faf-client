@@ -2,165 +2,224 @@ package com.faforever.client.remote;
 
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.api.TokenService;
-import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.UidService;
-import com.faforever.client.login.LoginFailedException;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.Avatar;
-import com.faforever.client.remote.domain.GameAccess;
-import com.faforever.client.remote.domain.MatchmakingState;
-import com.faforever.client.remote.domain.PeriodType;
-import com.faforever.client.remote.domain.SerializableMessage;
-import com.faforever.client.remote.domain.ServerCommand;
-import com.faforever.client.remote.domain.inbound.InboundMessage;
-import com.faforever.client.remote.domain.inbound.faf.AuthenticationFailedMessage;
-import com.faforever.client.remote.domain.inbound.faf.AvatarMessage;
-import com.faforever.client.remote.domain.inbound.faf.GameLaunchMessage;
-import com.faforever.client.remote.domain.inbound.faf.IceServersMessage;
-import com.faforever.client.remote.domain.inbound.faf.IceServersMessage.IceServer;
-import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
-import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
-import com.faforever.client.remote.domain.inbound.faf.NoticeMessage;
-import com.faforever.client.remote.domain.inbound.faf.SessionMessage;
-import com.faforever.client.remote.domain.inbound.gpg.GpgInboundMessage;
-import com.faforever.client.remote.domain.outbound.faf.AcceptPartyInviteMessage;
-import com.faforever.client.remote.domain.outbound.faf.AddFoeMessage;
-import com.faforever.client.remote.domain.outbound.faf.AddFriendMessage;
-import com.faforever.client.remote.domain.outbound.faf.BanPlayerMessage;
-import com.faforever.client.remote.domain.outbound.faf.ClosePlayersFAMessage;
-import com.faforever.client.remote.domain.outbound.faf.ClosePlayersLobbyMessage;
-import com.faforever.client.remote.domain.outbound.faf.GameMatchmakingMessage;
-import com.faforever.client.remote.domain.outbound.faf.HostGameMessage;
-import com.faforever.client.remote.domain.outbound.faf.InitSessionMessage;
-import com.faforever.client.remote.domain.outbound.faf.InviteToPartyMessage;
-import com.faforever.client.remote.domain.outbound.faf.JoinGameMessage;
-import com.faforever.client.remote.domain.outbound.faf.KickPlayerFromPartyMessage;
-import com.faforever.client.remote.domain.outbound.faf.LeavePartyMessage;
-import com.faforever.client.remote.domain.outbound.faf.ListIceServersMessage;
-import com.faforever.client.remote.domain.outbound.faf.ListPersonalAvatarsMessage;
-import com.faforever.client.remote.domain.outbound.faf.LoginOauthClientMessage;
-import com.faforever.client.remote.domain.outbound.faf.MakeBroadcastMessage;
-import com.faforever.client.remote.domain.outbound.faf.MatchmakerInfoOutboundMessage;
-import com.faforever.client.remote.domain.outbound.faf.PingMessage;
-import com.faforever.client.remote.domain.outbound.faf.PongMessage;
-import com.faforever.client.remote.domain.outbound.faf.ReadyPartyMessage;
-import com.faforever.client.remote.domain.outbound.faf.RemoveFoeMessage;
-import com.faforever.client.remote.domain.outbound.faf.RemoveFriendMessage;
-import com.faforever.client.remote.domain.outbound.faf.RestoreGameSessionMessage;
-import com.faforever.client.remote.domain.outbound.faf.SelectAvatarMessage;
-import com.faforever.client.remote.domain.outbound.faf.SetPartyFactionsMessage;
-import com.faforever.client.remote.domain.outbound.faf.UnreadyPartyMessage;
-import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
-import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.update.Version;
-import com.faforever.commons.api.dto.Faction;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.FafLobbyClient;
+import com.faforever.commons.lobby.FafLobbyClient.Config;
+import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameVisibility;
+import com.faforever.commons.lobby.GpgGameOutboundMessage;
+import com.faforever.commons.lobby.IceServer;
+import com.faforever.commons.lobby.IrcPasswordInfo;
+import com.faforever.commons.lobby.LoginSuccessResponse;
+import com.faforever.commons.lobby.MatchmakerState;
+import com.faforever.commons.lobby.MessageTarget;
+import com.faforever.commons.lobby.NoticeInfo;
+import com.faforever.commons.lobby.Player.Avatar;
+import com.faforever.commons.lobby.ServerMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.github.nocatch.NoCatch;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.concurrent.Task;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
-import javax.security.auth.login.LoginException;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.net.URL;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static com.faforever.client.util.ConcurrentUtil.executeInBackground;
+import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Component
 @Profile("!" + FafClientApplication.PROFILE_OFFLINE)
-@RequiredArgsConstructor
 @Slf4j
-public class FafServerAccessorImpl extends AbstractServerAccessor implements FafServerAccessor,
-    InitializingBean, DisposableBean {
+public class FafServerAccessorImpl implements FafServerAccessor, InitializingBean, DisposableBean {
 
-  private final ObjectMapper objectMapper = new ObjectMapper()
-      .addMixIn(Faction.class, FactionMixin.class)
-      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
-  private final HashMap<Class<? extends InboundMessage>, Collection<Consumer<InboundMessage>>> messageListeners = new HashMap<>();
+  private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(ConnectionState.DISCONNECTED);
 
-  private final PreferencesService preferencesService;
-  private final UidService uidService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final TokenService tokenService;
-  private final ReportingService reportingService;
   private final TaskScheduler taskScheduler;
+  private final TokenService tokenService;
   private final EventBus eventBus;
-  private final ReconnectTimerService reconnectTimerService;
-
-  @NotNull
   private final ClientProperties clientProperties;
-  private Task<Void> fafConnectionTask;
-  private ServerWriter serverWriter;
-  private volatile CompletableFuture<LoginMessage> loginFuture;
-  private CompletableFuture<SessionMessage> sessionFuture;
-  private CompletableFuture<GameLaunchMessage> gameLaunchFuture;
-  private final ObjectProperty<Long> sessionId = new SimpleObjectProperty<>();
-  private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>();
-  private Socket fafServerSocket;
-  private CompletableFuture<List<Avatar>> avatarsFuture;
-  private CompletableFuture<List<IceServer>> iceServersFuture;
+  private final UidService uidService;
+  private final PreferencesService preferencesService;
 
-  private void onAvatarMessage(AvatarMessage avatarMessage) {
-    avatarsFuture.complete(avatarMessage.getAvatarList());
+  private final FafLobbyClient lobbyClient;
+
+  public FafServerAccessorImpl(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
+                               TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
+    this.notificationService = notificationService;
+    this.i18n = i18n;
+    this.taskScheduler = taskScheduler;
+    this.tokenService = tokenService;
+    this.eventBus = eventBus;
+    this.clientProperties = clientProperties;
+    this.preferencesService = preferencesService;
+    this.uidService = uidService;
+
+    lobbyClient = new FafLobbyClient(objectMapper);
   }
 
-  private void onIceServersMessage(IceServersMessage iceServersMessage) {
-    iceServersFuture.complete(iceServersMessage.getIceServers());
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    eventBus.register(this);
+    addEventListener(IrcPasswordInfo.class, this::onIrcPassword);
+    addEventListener(NoticeInfo.class, this::onNotice);
   }
 
-  private void onNotice(NoticeMessage noticeMessage) {
+  public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
+    lobbyClient.getEvents().filter(serverMessage -> type.isAssignableFrom(serverMessage.getClass()))
+        .cast(type)
+        .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message))
+            .onErrorResume(throwable -> {
+              log.warn("Could not process listener for `{}`", message, throwable);
+              return Mono.empty();
+            }))
+        .subscribe();
+  }
+
+  public ConnectionState getConnectionState() {
+    return connectionState.get();
+  }
+
+  public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
+    return connectionState.getReadOnlyProperty();
+  }
+
+  public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
+    connectionState.setValue(ConnectionState.CONNECTING);
+    FafLobbyClient.Config config = new Config(
+        tokenService.getRefreshedTokenValue(),
+        Version.getCurrentVersion(),
+        "downlords-faf-client",
+        clientProperties.getServer().getHost(),
+        clientProperties.getServer().getPort() + 1,
+        sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
+        1024 * 1024,
+        false
+    );
+
+    return lobbyClient.connectAndLogin(config)
+        .doOnNext(loginMessage -> connectionState.setValue(ConnectionState.CONNECTED))
+        .toFuture();
+  }
+
+  public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
+    return lobbyClient.requestHostGame(
+        newGameInfo.getTitle(),
+        newGameInfo.getMap(),
+        newGameInfo.getFeaturedMod().getTechnicalName(),
+        GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
+        newGameInfo.getPassword(),
+        newGameInfo.getRatingMin(),
+        newGameInfo.getRatingMax(),
+        newGameInfo.getEnforceRatingRange()
+    )
+        .toFuture();
+  }
+
+  public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
+    return lobbyClient.requestJoinGame(gameId, password)
+        .toFuture();
+  }
+
+  public void disconnect() {
+    log.info("Closing lobby server connection");
+    lobbyClient.disconnect();
+    connectionState.setValue(ConnectionState.DISCONNECTED);
+  }
+
+  public void reconnect() {
+    disconnect();
+    connectAndLogIn();
+  }
+
+  public void addFriend(int playerId) {
+    lobbyClient.addFriend(playerId);
+  }
+
+  public void addFoe(int playerId) {
+    lobbyClient.addFoe(playerId);
+  }
+
+  public void requestMatchmakerInfo() {
+    lobbyClient.requestMatchmakerInfo();
+  }
+
+  public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
+    return lobbyClient.getEvents()
+        .filter(event -> event instanceof GameLaunchResponse)
+        .next()
+        .cast(GameLaunchResponse.class)
+        .toFuture();
+  }
+
+  public void sendGpgMessage(GpgGameOutboundMessage message) {
+    lobbyClient.sendGpgGameMessage(new GpgGameOutboundMessage(message.getCommand(), message.getArgs(), MessageTarget.GAME));
+  }
+
+  public void removeFriend(int playerId) {
+    lobbyClient.removeFriend(playerId);
+  }
+
+  public void removeFoe(int playerId) {
+    lobbyClient.removeFoe(playerId);
+  }
+
+  public void selectAvatar(URL url) {
+    lobbyClient.selectAvatar(Optional.ofNullable(url).map(URL::toString).orElse(null));
+  }
+
+  public CompletableFuture<List<Avatar>> getAvailableAvatars() {
+    return lobbyClient.getAvailableAvatars().collectList().toFuture();
+  }
+
+  public void closePlayersGame(int playerId) {
+    lobbyClient.closePlayerGame(playerId);
+  }
+
+  public void closePlayersLobby(int playerId) {
+    lobbyClient.closePlayerLobby(playerId);
+  }
+
+  public void broadcastMessage(String message) {
+    lobbyClient.broadcastMessage(message);
+  }
+
+  public CompletableFuture<List<IceServer>> getIceServers() {
+    return lobbyClient.getIceServers().collectList().toFuture();
+  }
+
+  private void onNotice(NoticeInfo noticeMessage) {
     if (Objects.equals(noticeMessage.getStyle(), "kill")) {
       log.warn("Game close requested by server...");
       notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
@@ -176,420 +235,64 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
     if (noticeMessage.getText() == null) {
       return;
     }
-    notificationService.addServerNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), noticeMessage.getSeverity(),
+
+    Severity severity;
+    String style = noticeMessage.getStyle();
+    if (style == null) {
+      severity = Severity.INFO;
+    } else {
+      severity = switch (style) {
+        case "error" -> Severity.ERROR;
+        case "warning" -> Severity.WARN;
+        default -> Severity.INFO;
+      };
+    }
+    notificationService.addServerNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
         Collections.singletonList(new DismissAction(i18n))));
   }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T extends InboundMessage> void addOnMessageListener(Class<T> type, Consumer<T> listener) {
-    if (!messageListeners.containsKey(type)) {
-      messageListeners.put(type, new LinkedList<>());
-    }
-    messageListeners.get(type).add((Consumer<InboundMessage>) listener);
+  private void onIrcPassword(IrcPasswordInfo ircPasswordInfo) {
+    eventBus.post(ircPasswordInfo);
   }
 
-  @Override
-  public <T extends InboundMessage> void removeOnMessageListener(Class<T> type, Consumer<T> listener) {
-    messageListeners.get(type).remove(listener);
+  public void restoreGameSession(int id) {
+    lobbyClient.restoreGameSession(id);
   }
 
-  @Override
-  public ConnectionState getConnectionState() {
-    return connectionState.get();
+  public void gameMatchmaking(MatchmakingQueue queue, MatchmakerState state) {
+    lobbyClient.gameMatchmaking(queue.getTechnicalName(), state);
   }
 
-  @Override
-  public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
-    return connectionState.getReadOnlyProperty();
+  public void inviteToParty(Player recipient) {
+    lobbyClient.inviteToParty(recipient.getId());
   }
 
-  @Override
-  public CompletableFuture<LoginMessage> connectAndLogin() {
-    sessionFuture = new CompletableFuture<>();
-    loginFuture = new CompletableFuture<>();
-
-    // TODO extract class?
-    fafConnectionTask = new Task<>() {
-
-      @Override
-      protected Void call() {
-        while (!isCancelled()) {
-          Server server = clientProperties.getServer();
-          String serverHost = server.getHost();
-          int serverPort = server.getPort();
-
-          log.info("Trying to connect to FAF server at {}:{}", serverHost, serverPort);
-          connectionState.set(ConnectionState.CONNECTING);
-
-          try (Socket fafServerSocket = new Socket(serverHost, serverPort);
-               OutputStream outputStream = fafServerSocket.getOutputStream()) {
-            FafServerAccessorImpl.this.fafServerSocket = fafServerSocket;
-
-            fafServerSocket.setKeepAlive(true);
-
-            serverWriter = createServerWriter(outputStream);
-
-            writeToServer(new InitSessionMessage(Version.getCurrentVersion()));
-
-            log.info("FAF server connection established");
-            connectionState.set(ConnectionState.CONNECTED);
-            reconnectTimerService.resetConnectionFailures();
-
-            blockingReadServer(fafServerSocket);
-          } catch (IOException e) {
-            connectionState.set(ConnectionState.DISCONNECTED);
-            if (isCancelled()) {
-              log.debug("Connection to FAF server has been closed");
-            } else {
-              if (loginFuture != null) {
-                loginFuture.completeExceptionally(new LoginFailedException("Lost connection to server during login"));
-                loginFuture = null;
-                fafConnectionTask.cancel();
-                return null;
-              }
-              log.warn("Lost connection to Server", e);
-              reconnectTimerService.incrementConnectionFailures();
-              reconnectTimerService.waitForReconnect();
-            }
-          }
-        }
-        return null;
-      }
-
-      @Override
-      protected void failed() {
-        super.failed();
-        log.error("Server connection task failed", getException());
-        if (loginFuture != null) {
-          loginFuture.completeExceptionally(new LoginException("The server connection task failed, an internal error occurred"));
-          loginFuture = null;
-        }
-        IOUtils.closeQuietly(serverWriter);
-        IOUtils.closeQuietly(fafServerSocket);
-      }
-
-      @Override
-      protected void cancelled() {
-        IOUtils.closeQuietly(serverWriter);
-        IOUtils.closeQuietly(fafServerSocket);
-        log.debug("Closed connection to FAF lobby server");
-      }
-    };
-    executeInBackground(fafConnectionTask);
-    return loginFuture;
+  public void acceptPartyInvite(Player sender) {
+    lobbyClient.acceptPartyInvite(sender.getId());
   }
 
-
-  @Override
-  public CompletableFuture<GameLaunchMessage> requestHostGame(NewGameInfo newGameInfo) {
-    HostGameMessage hostGameMessage = new HostGameMessage(
-        StringUtils.isEmpty(newGameInfo.getPassword()) ? GameAccess.PUBLIC : GameAccess.PASSWORD,
-        newGameInfo.getMap(),
-        newGameInfo.getTitle(),
-        new boolean[0],
-        newGameInfo.getFeaturedMod().getTechnicalName(),
-        newGameInfo.getPassword(),
-        null,
-        newGameInfo.getGameVisibility(),
-        newGameInfo.getRatingMin(),
-        newGameInfo.getRatingMax(),
-        newGameInfo.getEnforceRatingRange()
-    );
-
-    gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(hostGameMessage);
-    return gameLaunchFuture;
+  public void kickPlayerFromParty(Player kickedPlayer) {
+    lobbyClient.kickPlayerFromParty(kickedPlayer.getId());
   }
 
-  @Override
-  public CompletableFuture<GameLaunchMessage> requestJoinGame(int gameId, String password) {
-    JoinGameMessage joinGameMessage = new JoinGameMessage(gameId, password);
+  public void readyParty() {
+    lobbyClient.readyParty();
+  }
 
-    gameLaunchFuture = new CompletableFuture<>();
-    writeToServer(joinGameMessage);
-    return gameLaunchFuture;
+  public void unreadyParty() {
+    lobbyClient.unreadyParty();
+  }
+
+  public void leaveParty() {
+    lobbyClient.leaveParty();
+  }
+
+  public void setPartyFactions(List<Faction> factions) {
+    lobbyClient.setPartyFactions(new HashSet<>(factions));
   }
 
   @Override
   public void destroy() {
     disconnect();
-  }
-
-  public void disconnect() {
-    if (fafConnectionTask != null) {
-      fafConnectionTask.cancel(true);
-    }
-  }
-
-  @Override
-  public void reconnect() {
-    IOUtils.closeQuietly(fafServerSocket);
-    reconnectTimerService.skipWait();
-  }
-
-  @Override
-  public void addFriend(int playerId) {
-    writeToServer(new AddFriendMessage(playerId));
-  }
-
-  @Override
-  public void addFoe(int playerId) {
-    writeToServer(new AddFoeMessage(playerId));
-  }
-
-  @Override
-  public void requestMatchmakerInfo() {
-    writeToServer(new MatchmakerInfoOutboundMessage());
-  }
-
-  @Override
-  public CompletableFuture<GameLaunchMessage> startSearchMatchmaker() {
-    gameLaunchFuture = new CompletableFuture<>();
-    return gameLaunchFuture;
-  }
-
-  @Override
-  public void stopSearchMatchmaker() {
-    if (gameLaunchFuture != null && !gameLaunchFuture.isDone()) {
-      gameLaunchFuture.cancel(true);
-    } else {
-      // this might happen when entering multiple queues, the game already having started and the server
-      // telling the client about leaving all queues, therefore the client trying to cancel the matchmaking
-      // as it isn't aware of the launching game anymore (which has already launched)
-      log.warn("Game launch was already completed / cancelled when trying to stop searching for a matchmade game. Ignoring...");
-    }
-  }
-
-  @Override
-  public void sendGpgMessage(GpgOutboundMessage message) {
-    writeToServer(message);
-  }
-
-  @Override
-  public void removeFriend(int playerId) {
-    writeToServer(new RemoveFriendMessage(playerId));
-  }
-
-  @Override
-  public void removeFoe(int playerId) {
-    writeToServer(new RemoveFoeMessage(playerId));
-  }
-
-  @Override
-  public void selectAvatar(URL url) {
-    writeToServer(new SelectAvatarMessage(url));
-  }
-
-  @Override
-  public void banPlayer(int playerId, int duration, PeriodType periodType, String reason) {
-    writeToServer(new BanPlayerMessage(playerId, reason, duration, periodType.name()));
-  }
-
-  @Override
-  public void closePlayersGame(int playerId) {
-    writeToServer(new ClosePlayersFAMessage(playerId));
-  }
-
-  @Override
-  public void closePlayersLobby(int playerId) {
-    writeToServer(new ClosePlayersLobbyMessage(playerId));
-  }
-
-  @Override
-  public void broadcastMessage(String message) {
-    writeToServer(new MakeBroadcastMessage(message));
-  }
-
-  @Override
-  @Cacheable(value = CacheNames.AVAILABLE_AVATARS, sync = true)
-  public List<Avatar> getAvailableAvatars() {
-    avatarsFuture = new CompletableFuture<>();
-    writeToServer(new ListPersonalAvatarsMessage());
-    return NoCatch.noCatch(() -> avatarsFuture.get(10, TimeUnit.SECONDS));
-  }
-
-  @Override
-  public CompletableFuture<List<IceServer>> getIceServers() {
-    iceServersFuture = new CompletableFuture<>();
-    writeToServer(new ListIceServersMessage());
-    return iceServersFuture;
-  }
-
-  @Override
-  public void restoreGameSession(int id) {
-    writeToServer(new RestoreGameSessionMessage(id));
-  }
-
-  private ServerWriter createServerWriter(OutputStream outputStream) {
-    return new ServerWriter(outputStream, objectMapper);
-  }
-
-  private void writeToServer(SerializableMessage message) {
-    final CompletableFuture<LoginMessage> loginFuture = this.loginFuture;
-    if (message instanceof GpgInboundMessage && loginFuture != null && !loginFuture.isDone()) {
-      log.warn("GPGNetMessage discarded due to not being logged in");
-      return;
-    }
-
-    serverWriter.write(message);
-  }
-
-  public void onServerMessage(String message) {
-    ServerCommand serverCommand = ServerCommand.fromString(message);
-    if (serverCommand != null) {
-      dispatchServerMessage(serverCommand);
-    } else {
-      parseServerObject(message);
-    }
-  }
-
-  private void dispatchServerMessage(ServerCommand serverCommand) {
-    switch (serverCommand) {
-      case PING -> {
-        log.debug("Server PINGed");
-        onServerPing();
-      }
-      case PONG -> log.debug("Server PONGed");
-      default -> log.warn("Unknown server response: {}", serverCommand);
-    }
-  }
-
-  private void parseServerObject(String jsonString) {
-    try {
-      InboundMessage inboundMessage = objectMapper.readValue(jsonString, InboundMessage.class);
-      if (inboundMessage == null) {
-        log.debug("Discarding unimplemented server message: {}", jsonString);
-        return;
-      }
-
-      Class<?> messageClass = inboundMessage.getClass();
-      while (messageClass != Object.class) {
-        messageListeners.getOrDefault(messageClass, Collections.emptyList())
-            .forEach(consumer -> consumer.accept(inboundMessage));
-        messageClass = messageClass.getSuperclass();
-      }
-
-    } catch (JsonProcessingException e) {
-      log.warn("Could not deserialize message: " + jsonString, e);
-    }
-  }
-
-  private void onServerPing() {
-    writeToServer(new PongMessage());
-  }
-
-  private void dispatchAuthenticationFailed(AuthenticationFailedMessage message) {
-    fafConnectionTask.cancel();
-    loginFuture.completeExceptionally(new LoginFailedException(message.getText()));
-    loginFuture = null;
-  }
-
-  private void onFafLoginSucceeded(LoginMessage loginServerMessage) {
-    log.info("FAF login succeeded");
-
-    if (loginFuture != null) {
-      loginFuture.complete(loginServerMessage);
-      loginFuture = null;
-    } else {
-      log.warn("Unexpected login message from server");
-    }
-  }
-
-  private void onSessionInitiated(SessionMessage sessionMessage) {
-    log.info("FAF session initiated, session ID: {}", sessionMessage.getSession());
-    this.sessionId.set(sessionMessage.getSession());
-    sessionFuture.complete(sessionMessage);
-    logIn();
-  }
-
-  private void logIn() {
-    try {
-      String uniqueId = uidService.generate(String.valueOf(sessionId.get()), preferencesService.getFafDataDirectory().resolve("uid.log"));
-      writeToServer(new LoginOauthClientMessage(tokenService.getRefreshedTokenValue(), sessionId.get(), uniqueId));
-    } catch (IOException e) {
-      onUIDNotExecuted(e);
-    }
-  }
-
-  @VisibleForTesting
-  protected void onUIDNotExecuted(Exception e) {
-    log.error("UID.exe not executed", e);
-    if (e.getMessage() == null) {
-      return;
-    }
-    notificationService.addNotification(new ImmediateNotification(i18n.get("UIDNotExecuted"), e.getMessage(), Severity.ERROR,
-        List.of(new CopyErrorAction(i18n, reportingService, e), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))));
-  }
-
-  private void onIrcPassword(IrcPasswordServerMessage ircPasswordServerMessage) {
-    eventBus.post(ircPasswordServerMessage);
-  }
-
-  private void onGameLaunchInfo(GameLaunchMessage gameLaunchMessage) {
-    gameLaunchFuture.complete(gameLaunchMessage);
-    gameLaunchFuture = null;
-  }
-
-  @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
-  @Override
-  public void ping() {
-    if (fafServerSocket == null || !fafServerSocket.isConnected() || serverWriter == null) {
-      return;
-    }
-    writeToServer(new PingMessage());
-  }
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    addOnMessageListener(NoticeMessage.class, this::onNotice);
-    addOnMessageListener(SessionMessage.class, this::onSessionInitiated);
-    addOnMessageListener(LoginMessage.class, this::onFafLoginSucceeded);
-    addOnMessageListener(IrcPasswordServerMessage.class, this::onIrcPassword);
-    addOnMessageListener(GameLaunchMessage.class, this::onGameLaunchInfo);
-    addOnMessageListener(AuthenticationFailedMessage.class, this::dispatchAuthenticationFailed);
-    addOnMessageListener(AvatarMessage.class, this::onAvatarMessage);
-    addOnMessageListener(IceServersMessage.class, this::onIceServersMessage);
-  }
-
-
-  @Override
-  public void gameMatchmaking(MatchmakingQueue queue, MatchmakingState state) {
-    writeToServer(new GameMatchmakingMessage(queue.getTechnicalName(), state));
-  }
-
-  @Override
-  public void inviteToParty(Player recipient) {
-    writeToServer(new InviteToPartyMessage(recipient.getId()));
-  }
-
-  @Override
-  public void acceptPartyInvite(Player sender) {
-    writeToServer(new AcceptPartyInviteMessage(sender.getId()));
-  }
-
-  @Override
-  public void kickPlayerFromParty(Player kickedPlayer) {
-    writeToServer(new KickPlayerFromPartyMessage(kickedPlayer.getId()));
-  }
-
-  @Override
-  public void readyParty() {
-    writeToServer(new ReadyPartyMessage());
-  }
-
-  @Override
-  public void unreadyParty() {
-    writeToServer(new UnreadyPartyMessage());
-  }
-
-  @Override
-  public void leaveParty() {
-    writeToServer(new LeavePartyMessage());
-  }
-
-  @Override
-  public void setPartyFactions(List<Faction> factions) {
-    writeToServer(new SetPartyFactionsMessage(factions));
   }
 }

@@ -1,11 +1,11 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.AchievementType;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import com.google.common.base.MoreObjects;
@@ -52,7 +52,7 @@ public class AchievementItemController implements Controller<Node> {
     nameLabel.setText(achievementDefinition.getName());
     descriptionLabel.setText(achievementDefinition.getDescription());
     pointsLabel.setText(i18n.number(achievementDefinition.getExperiencePoints()));
-    imageView.setImage(achievementService.getImage(achievementDefinition, AchievementService.AchievementState.REVEALED));
+    imageView.setImage(achievementService.getImage(achievementDefinition, AchievementState.REVEALED));
     progressLabel.setText(i18n.get("achievement.stepsFormat", 0, achievementDefinition.getTotalSteps()));
     progressBar.setProgress(0);
 

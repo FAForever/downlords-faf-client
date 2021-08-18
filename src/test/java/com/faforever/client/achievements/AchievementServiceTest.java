@@ -1,16 +1,15 @@
 package com.faforever.client.achievements;
 
-import com.faforever.client.achievements.AchievementService.AchievementState;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 
 import java.net.URL;
@@ -21,9 +20,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.faforever.client.achievements.AchievementService.AchievementState.HIDDEN;
-import static com.faforever.client.achievements.AchievementService.AchievementState.REVEALED;
-import static com.faforever.client.achievements.AchievementService.AchievementState.UNLOCKED;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -51,15 +47,12 @@ public class AchievementServiceTest extends ServiceTest {
     Player player = new Player("abc");
     player.setId(PLAYER_ID);
     when(playerService.getCurrentPlayer()).thenReturn(player);
-
-    instance.afterPropertiesSet();
   }
 
   @Test
   public void testGetPlayerAchievementsForCurrentUser() throws Exception {
     instance.playerAchievements.add(new PlayerAchievement());
     instance.getPlayerAchievements(PLAYER_ID);
-    verify(fafService).addOnMessageListener(ArgumentMatchers.any(), ArgumentMatchers.any());
     verifyNoMoreInteractions(fafService);
   }
 
@@ -83,14 +76,14 @@ public class AchievementServiceTest extends ServiceTest {
 
   @Test
   public void testGetHiddenThrowsUnsupportedOperationException() throws Exception {
-    assertThrows(UnsupportedOperationException.class, () -> instance.getImage(null, HIDDEN));
+    assertThrows(UnsupportedOperationException.class, () -> instance.getImage(null, AchievementState.HIDDEN));
   }
 
   @Test
   public void testLoadAndCacheImageRevealed() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
     Path cacheSubDir = Paths.get("achievements").resolve(AchievementState.REVEALED.name().toLowerCase());
-    instance.getImage(achievementDefinition, REVEALED);
+    instance.getImage(achievementDefinition, AchievementState.REVEALED);
     verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getRevealedIconUrl()), cacheSubDir, null, 128, 128);
   }
 
@@ -98,7 +91,7 @@ public class AchievementServiceTest extends ServiceTest {
   public void testLoadAndCacheImageUnlocked() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
     Path cacheSubDir = Paths.get("achievements").resolve(AchievementState.UNLOCKED.name().toLowerCase());
-    instance.getImage(achievementDefinition, UNLOCKED);
+    instance.getImage(achievementDefinition, AchievementState.UNLOCKED);
     verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getUnlockedIconUrl()), cacheSubDir, null, 128, 128);
   }
 }

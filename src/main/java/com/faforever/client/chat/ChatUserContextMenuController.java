@@ -11,7 +11,6 @@ import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
-import com.faforever.client.moderator.BanDialogController;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.Player;
@@ -20,16 +19,14 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.domain.GameType;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.alert.Alert;
-import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.ClipboardUtil;
 import com.faforever.commons.api.dto.GroupPermission;
+import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -97,7 +94,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public MenuItem inviteItem;
   public MenuItem reportItem;
   public SeparatorMenuItem moderatorActionSeparator;
-  public MenuItem banItem;
   public MenuItem broadcastMessage;
   public ContextMenu chatUserContextMenuRoot;
   public MenuItem showUserInfo;
@@ -217,9 +213,8 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     JavaFxUtil.runLater(() -> {
       kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
       kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
-      banItem.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_ADMIN_ACCOUNT_BAN));
       broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
-      moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || banItem.isVisible() || broadcastMessage.isVisible());
+      moderatorActionSeparator.setVisible(kickGameItem.isVisible() || kickLobbyItem.isVisible() || broadcastMessage.isVisible());
     });
   }
 
@@ -314,19 +309,6 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   public void onInviteToGameSelected() {
     Player player = getPlayer();
     teamMatchmakingService.invitePlayer(player.getUsername());
-  }
-
-  public void onBan(ActionEvent actionEvent) {
-    actionEvent.consume();
-    Alert<?> dialog = new Alert<>(getRoot().getOwnerWindow());
-
-    BanDialogController controller = uiService.<BanDialogController>loadFxml("theme/moderator/ban_dialog.fxml")
-        .setPlayer(getPlayer())
-        .setCloseListener(dialog::close);
-
-    dialog.setContent(controller.getDialogLayout());
-    dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
-    dialog.show();
   }
 
   public void onBroadcastMessage(ActionEvent actionEvent) {

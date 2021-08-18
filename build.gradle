@@ -281,6 +281,7 @@ dependencies {
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
   implementation("javax.inject:javax.inject:1")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.github.rutledgepaulv:q-builders:${qBuildersVersion}")
   implementation("com.github.nsp:JSkills:${jSkillsVersion}")
   implementation("com.github.jasminb:jsonapi-converter:${jsonapiConverterVersion}")
@@ -310,10 +311,10 @@ dependencies {
   testImplementation("org.testfx:testfx-core:4.0.16-alpha") {
     exclude module: 'guava'
   }
+  testImplementation("io.projectreactor.netty:reactor-netty:1.0.4")
   testImplementation("org.testfx:testfx-junit5:4.0.16-alpha")
   testImplementation("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-  testImplementation("junit-addons:junit-addons:1.4")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok")
