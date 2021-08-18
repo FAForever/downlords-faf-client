@@ -33,9 +33,8 @@ import com.faforever.commons.lobby.ServerMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -63,7 +62,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Slf4j
 public class FafServerAccessorImpl implements FafServerAccessor, InitializingBean, DisposableBean {
 
-  private final ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+  private final ReadOnlyObjectWrapper<ConnectionState> connectionState = new ReadOnlyObjectWrapper<>(ConnectionState.DISCONNECTED);
 
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -113,7 +112,7 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
   }
 
   public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
-    return connectionState;
+    return connectionState.getReadOnlyProperty();
   }
 
   public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
