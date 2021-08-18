@@ -47,8 +47,6 @@ public class AchievementServiceTest extends ServiceTest {
     Player player = new Player("abc");
     player.setId(PLAYER_ID);
     when(playerService.getCurrentPlayer()).thenReturn(player);
-
-    instance.afterPropertiesSet();
   }
 
   @Test
