@@ -172,14 +172,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Flux<PlayerAchievement> getPlayerAchievements(int playerId) {
-    return getAll("/data/playerAchievement", java.util.Map.of(
+    return getAll(PlayerAchievement.class, "/data/playerAchievement", java.util.Map.of(
         FILTER, rsql(qBuilder().intNum("player.id").eq(playerId))
     ));
   }
 
   @Override
   public Flux<PlayerEvent> getPlayerEvents(int playerId) {
-    return getAll("/data/playerEvent", java.util.Map.of(
+    return getAll(PlayerEvent.class, "/data/playerEvent", java.util.Map.of(
         FILTER, rsql(qBuilder().intNum("player.id").eq(playerId))
     ));
   }
@@ -187,7 +187,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public Flux<AchievementDefinition> getAchievementDefinitions() {
-    return getAll(ACHIEVEMENT_ENDPOINT, java.util.Map.of(
+    return getAll(AchievementDefinition.class, ACHIEVEMENT_ENDPOINT, java.util.Map.of(
         SORT, "order"
     ));
   }
@@ -195,31 +195,31 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public Mono<AchievementDefinition> getAchievementDefinition(String achievementId) {
-    return getOne(ACHIEVEMENT_ENDPOINT + "/" + achievementId, AchievementDefinition.class);
+    return getOne(AchievementDefinition.class, ACHIEVEMENT_ENDPOINT + "/" + achievementId);
   }
 
   @Override
   @Cacheable(value = CacheNames.MODS, sync = true)
   public Flux<Mod> getMods() {
-    return getAll(MOD_ENDPOINT, java.util.Map.of(
+    return getAll(Mod.class, MOD_ENDPOINT, java.util.Map.of(
         INCLUDE, MOD_INCLUDES));
   }
 
   @Override
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
   public Flux<com.faforever.commons.api.dto.FeaturedMod> getFeaturedMods() {
-    return getMany("/data/featuredMod", 1000, java.util.Map.of());
+    return getMany(com.faforever.commons.api.dto.FeaturedMod.class, "/data/featuredMod", 1000, java.util.Map.of());
   }
 
   @Override
   @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
   public Flux<Leaderboard> getLeaderboards() {
-    return getAll(LEADERBOARD_ENDPOINT);
+    return getAll(Leaderboard.class, LEADERBOARD_ENDPOINT);
   }
 
   @Override
   public Flux<LeaderboardEntry> getLeaderboardEntriesForPlayer(int playerId) {
-    return getAll(LEADERBOARD_ENTRY_ENDPOINT, java.util.Map.of(
+    return getAll(LeaderboardEntry.class, LEADERBOARD_ENTRY_ENDPOINT, java.util.Map.of(
         FILTER, rsql(qBuilder().intNum("player.id").eq(playerId)),
         INCLUDE, LEADERBOARD_ENTRY_INCLUDES,
         SORT, "-rating"));
@@ -228,7 +228,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
   public Flux<LeaderboardEntry> getAllLeaderboardEntries(String leaderboardTechnicalName) {
-    return getAll(LEADERBOARD_ENTRY_ENDPOINT, java.util.Map.of(
+    return getAll(LeaderboardEntry.class, LEADERBOARD_ENTRY_ENDPOINT, java.util.Map.of(
         FILTER, rsql(qBuilder().string("leaderboard.technicalName").eq(leaderboardTechnicalName)
             .and().instant("updateTime").after(LocalDateTime.now().minusMonths(1).toInstant(ZoneOffset.UTC), false)),
         INCLUDE, LEADERBOARD_ENTRY_INCLUDES,
@@ -246,7 +246,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.RATING_HISTORY, sync = true)
   public Flux<LeaderboardRatingJournal> getRatingJournal(int playerId, int leaderboardId) {
-    return getAll("/data/leaderboardRatingJournal", java.util.Map.of(
+    return getAll(LeaderboardRatingJournal.class, "/data/leaderboardRatingJournal", java.util.Map.of(
         FILTER, rsql(qBuilder()
             .intNum("gamePlayerStats.player.id").eq(playerId)
             .and()
@@ -302,7 +302,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Flux<Game> getLastGamesOnMap(int playerId, String mapVersionId, int count) {
-    return getMany(REPLAY_ENDPOINT, count, java.util.Map.of(
+    return getMany(Game.class, REPLAY_ENDPOINT, count, java.util.Map.of(
         FILTER, rsql(qBuilder()
             .string("mapVersion.id").eq(mapVersionId)
             .and()
@@ -327,7 +327,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Mono<ModVersion> getModVersion(String uid) {
-    return getMany(MOD_VERSION_ENDPOINT, 1,
+    return getMany(ModVersion.class, MOD_VERSION_ENDPOINT, 1,
         java.util.Map.of(FILTER, rsql(qBuilder().string("uid").eq(uid)), INCLUDE, MOD_VERSION_INCLUDES)
     )
         .cast(ModVersion.class)
@@ -339,7 +339,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public Flux<FeaturedModFile> getFeaturedModFiles(FeaturedMod featuredMod, Integer version) {
     String endpoint = format("/featuredMods/%s/files/%s", featuredMod.getId(),
         Optional.ofNullable(version).map(String::valueOf).orElse("latest"));
-    return getMany(endpoint, 10_000, java.util.Map.of());
+    return getMany(FeaturedModFile.class, endpoint, 10_000, java.util.Map.of());
   }
 
   @Override
@@ -378,7 +378,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Mono<MapVersion> findMapByFolderName(String folderName) {
-    return getMany(MAP_VERSION_ENDPOINT, 1, java.util.Map.of(
+    return getMany(MapVersion.class, MAP_VERSION_ENDPOINT, 1, java.util.Map.of(
         FILTER, rsql(qBuilder().string("filename").eq(format(FILENAME_TEMPLATE, folderName))),
         INCLUDE, MAP_VERSION_INCLUDES))
         .cast(MapVersion.class)
@@ -391,7 +391,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .string("filename").eq(format(FILENAME_TEMPLATE, mapFolderName))
         .and()
         .string("map.latestVersion.hidden").eq("false"));
-    return getMany(MAP_VERSION_ENDPOINT, 1, java.util.Map.of(
+    return getMany(MapVersion.class, MAP_VERSION_ENDPOINT, 1, java.util.Map.of(
         FILTER, queryFilter,
         INCLUDE, MAP_VERSION_INCLUDES
     ))
@@ -403,14 +403,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   public Flux<Player> getPlayersByIds(Collection<Integer> playerIds) {
     List<String> ids = playerIds.stream().map(String::valueOf).collect(Collectors.toList());
 
-    return getMany("/data/player", playerIds.size(), java.util.Map.of(
+    return getMany(Player.class,"/data/player", playerIds.size(), java.util.Map.of(
         INCLUDE, PLAYER_INCLUDES,
         FILTER, rsql(qBuilder().string("id").in(ids))));
   }
 
   @Override
   public Mono<Player> queryPlayerByName(String playerName) {
-    return getAll("/data/player", java.util.Map.of(
+    return getAll(Player.class, "/data/player", java.util.Map.of(
         INCLUDE, PLAYER_INCLUDES,
         FILTER, rsql(qBuilder().string("login").eq(playerName))))
         .cast(Player.class)
@@ -421,7 +421,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @SneakyThrows
   @Override
   public Mono<MeResult> getMe() {
-    return getOne("/me", MeResult.class);
+    return getOne(MeResult.class, "/me");
   }
 
   @Override
@@ -491,7 +491,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Mono<Game> findReplayById(int id) {
-    return getOne(REPLAY_ENDPOINT + "/" + id, Game.class, java.util.Map.of(INCLUDE, REPLAY_INCLUDES));
+    return getOne(Game.class, REPLAY_ENDPOINT + "/" + id, java.util.Map.of(INCLUDE, REPLAY_INCLUDES));
   }
 
   @SneakyThrows
@@ -503,7 +503,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     conditions.add(qBuilder().string("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(String.valueOf(matchmakerQueueId)));
     conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating").lte(rating).or()
         .floatNum("mapPool.matchmakerQueueMapPool.minRating").ne(null));
-    return getAll("/data/mapPoolAssignment", java.util.Map.of(
+    return getAll(MapPoolAssignment.class, "/data/mapPoolAssignment", java.util.Map.of(
         INCLUDE, MATCHMAKER_POOL_INCLUDES,
         FILTER, rsql(qBuilder.and(conditions)).replace("ex", "isnull"),
         SORT, "mapVersion.width,mapVersion.map.displayName"));
@@ -512,7 +512,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.MATCHMAKER_QUEUES, sync = true)
   public Mono<MatchmakerQueue> getMatchmakerQueue(String technicalName) {
-    return getAll("/data/matchmakerQueue", java.util.Map.of(
+    return getAll(MatchmakerQueue.class, "/data/matchmakerQueue", java.util.Map.of(
         INCLUDE, "leaderboard",
         FILTER, rsql(qBuilder().string("technicalName").eq(technicalName))))
         .cast(MatchmakerQueue.class)
@@ -521,7 +521,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Flux<TutorialCategory> getTutorialCategories() {
-    return getAll("/data/tutorialCategory",
+    return getAll(TutorialCategory.class, "/data/tutorialCategory",
         java.util.Map.of(INCLUDE, "tutorials,tutorials.mapVersion.map,tutorials.mapVersion.map.latestVersion," +
             "tutorials.mapVersion.map.author"));
   }
@@ -542,7 +542,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.CLAN, sync = true)
   public Mono<Clan> getClanByTag(String tag) {
-    return getMany("/data/clan", 1, java.util.Map.of(
+    return getMany(Clan.class, "/data/clan", 1, java.util.Map.of(
         INCLUDE, CLAN_INCLUDES,
         FILTER, rsql(qBuilder().string("tag").eq(tag))
     ))
@@ -564,7 +564,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @Override
   @Cacheable(value = CacheNames.COOP_MAPS, sync = true)
   public Flux<CoopMission> getCoopMissions() {
-    return getAll("/data/coopMission");
+    return getAll(CoopMission.class, "/data/coopMission");
   }
 
   @Override
@@ -576,7 +576,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
       filterCondition = filterCondition.and().intNum("playerCount").eq(numberOfPlayers);
     }
 
-    return getMany("/data/coopResult", 1000, java.util.Map.of(
+    return getMany(CoopResult.class, "/data/coopResult", 1000, java.util.Map.of(
         FILTER, rsql(filterCondition),
         INCLUDE, COOP_RESULT_INCLUDES,
         SORT, "duration"
@@ -587,12 +587,12 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @SneakyThrows
   public Flux<Tournament> getAllTournaments() {
     authorizedLatch.await();
-    return getAllNoPaging(TOURNAMENT_LIST_ENDPOINT, java.util.Map.of());
+    return getAllNoPaging(Tournament.class, TOURNAMENT_LIST_ENDPOINT, java.util.Map.of());
   }
 
   @Override
   public Flux<ModerationReport> getPlayerModerationReports(int playerId) {
-    return getAllNoPaging(REPORT_ENDPOINT, java.util.Map.of(
+    return getAllNoPaging(ModerationReport.class, REPORT_ENDPOINT, java.util.Map.of(
         INCLUDE, REPORT_INCLUDES,
         FILTER, rsql(qBuilder().intNum("reporter.id").eq(playerId))))
         .cast(ModerationReport.class);
@@ -655,7 +655,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @SneakyThrows
-  private <T> Mono<T> getOne(String endpointPath, Class<T> type) {
+  private <T> Mono<T> getOne(Class<T> type, String endpointPath) {
     authorizedLatch.await();
     return retrieveMonoWithErrorHandling(type, webClient.get().uri(endpointPath))
         .cache()
@@ -663,7 +663,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @NotNull
-  private <T> Mono<T> getOne(String endpointPath, Class<T> type, java.util.Map<String, Serializable> params) {
+  private <T> Mono<T> getOne(Class<T> type, String endpointPath, java.util.Map<String, Serializable> params) {
     java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
         .collect(Collectors.toMap(Entry::getKey, entry -> Collections.singletonList(String.valueOf(entry.getValue()))));
 
@@ -671,27 +671,27 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .queryParams(CollectionUtils.toMultiValueMap(multiValues))
         .build();
 
-    return getOne(uriComponents.toUriString(), type);
+    return getOne(type, uriComponents.toUriString());
   }
 
-  private <T> Flux<T> getAll(String endpointPath) {
-    return getAll(endpointPath, Collections.emptyMap());
+  private <T> Flux<T> getAll(Class<T> type, String endpointPath) {
+    return getAll(type, endpointPath, Collections.emptyMap());
   }
 
-  private <T> Flux<T> getAll(String endpointPath, java.util.Map<String, Serializable> params) {
-    return getMany(endpointPath, clientProperties.getApi().getMaxPageSize(), params);
+  private <T> Flux<T> getAll(Class<T> type, String endpointPath, java.util.Map<String, Serializable> params) {
+    return getMany(type, endpointPath, clientProperties.getApi().getMaxPageSize(), params);
   }
 
   @SneakyThrows
-  private <T> Flux<T> getMany(String endpointPath, int count, java.util.Map<String, Serializable> params) {
-    return getPage(endpointPath, count, 1, params);
+  private <T> Flux<T> getMany(Class<T> type, String endpointPath, int count, java.util.Map<String, Serializable> params) {
+    return getPage(type, endpointPath, count, 1, params);
   }
 
-  private <T> Flux<T> getPage(String endpointPath, int pageSize, int page, java.util.Map<String, Serializable> params) {
+  private <T> Flux<T> getPage(Class<T> type, String endpointPath, int pageSize, int page, java.util.Map<String, Serializable> params) {
     java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
         .collect(Collectors.toMap(Entry::getKey, entry -> Collections.singletonList(String.valueOf(entry.getValue()))));
 
-    return getPage(endpointPath, pageSize, page, CollectionUtils.toMultiValueMap(multiValues));
+    return getPage(type, endpointPath, pageSize, page, CollectionUtils.toMultiValueMap(multiValues));
   }
 
   private <T> Mono<Tuple2<List<T>, Integer>> getPageWithTotalPages(String endpointPath, int pageSize, int page, java.util.Map<String, Serializable> params) {
@@ -702,7 +702,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   }
 
   @SneakyThrows
-  private <T> Flux<T> getAllNoPaging(String endpointPath, java.util.Map<String, String> params) {
+  private <T> Flux<T> getAllNoPaging(Class<T> type, String endpointPath, java.util.Map<String, String> params) {
     java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
         .collect(Collectors.toMap(Entry::getKey, entry -> Collections.singletonList(String.valueOf(entry.getValue()))));
     UriComponents uriComponents = UriComponentsBuilder.fromPath(endpointPath)
@@ -711,13 +711,13 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
     authorizedLatch.await();
     String url = uriComponents.toUriString();
-    return (Flux<T>) retrieveFluxWithErrorHandling(Object.class, webClient.get().uri(url))
+    return retrieveFluxWithErrorHandling(type, webClient.get().uri(url))
         .cache()
         .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
   }
 
   @SneakyThrows
-  private <T> Flux<T> getPage(String endpointPath, int pageSize, int page, MultiValueMap<String, String> params) {
+  private <T> Flux<T> getPage(Class<T> type, String endpointPath, int pageSize, int page, MultiValueMap<String, String> params) {
     UriComponents uriComponents = UriComponentsBuilder.fromPath(endpointPath)
         .queryParams(params)
         .replaceQueryParam("page[size]", pageSize)
@@ -726,7 +726,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
     authorizedLatch.await();
     String url = uriComponents.toUriString();
-    return (Flux<T>) retrieveFluxWithErrorHandling(Object.class, webClient.get().uri(url))
+    return retrieveFluxWithErrorHandling(type, webClient.get().uri(url))
         .cache()
         .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
   }
