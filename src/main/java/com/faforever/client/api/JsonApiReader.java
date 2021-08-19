@@ -1,5 +1,6 @@
 package com.faforever.client.api;
 
+import com.faforever.commons.api.elide.ElideEntity;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,10 @@ public class JsonApiReader implements HttpMessageReader<Object> {
 
   @Override
   public boolean canRead(ResolvableType elementType, MediaType mediaType) {
-    return mediaType == null
+    Class<?> clazz = elementType.toClass();
+    return clazz.equals(JSONAPIDocument.class)
+        || ElideEntity.class.isAssignableFrom(clazz)
+        || mediaType == null
         || getReadableMediaTypes().stream().anyMatch(readerMediaType -> readerMediaType.isCompatibleWith(mediaType));
   }
 

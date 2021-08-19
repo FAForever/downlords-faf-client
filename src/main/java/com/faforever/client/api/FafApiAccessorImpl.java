@@ -9,6 +9,7 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.api.dto.AchievementDefinition;
+import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopMission;
 import com.faforever.commons.api.dto.CoopResult;
@@ -36,6 +37,8 @@ import com.faforever.commons.api.dto.Tournament;
 import com.faforever.commons.api.dto.TutorialCategory;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
+import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
+import com.github.jasminb.jsonapi.models.errors.Errors;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
@@ -49,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -432,7 +436,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   @Override
   public Mono<ModVersionReview> createModVersionReview(ModVersionReview review) {
-    return post(MOD_VERSION_ENDPOINT +"/" + review.getModVersion().getId() + "/reviews", review, ModVersionReview.class);
+    return post(MOD_VERSION_ENDPOINT + "/" + review.getModVersion().getId() + "/reviews", review, ModVersionReview.class);
   }
 
   @Override
@@ -619,51 +623,41 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   @SneakyThrows
   private Mono<Void> postMultipartForm(String endpointPath, Object request) {
     authorizedLatch.await();
-    return webClient.post().uri(endpointPath)
+    return retrieveMonoWithErrorHandling(Void.class, webClient.post().uri(endpointPath)
         .contentType(MediaType.MULTIPART_FORM_DATA)
-        .bodyValue(request)
-        .retrieve()
-        .bodyToMono(Void.class)
+        .bodyValue(request))
         .doOnNext(object -> log.debug("Posted {} to {}", object, endpointPath));
   }
 
   @SneakyThrows
   private <T> Mono<T> post(String endpointPath, Object request, Class<T> type) {
     authorizedLatch.await();
-    return webClient.post().uri(endpointPath)
+    return retrieveMonoWithErrorHandling(type, webClient.post().uri(endpointPath)
         .contentType(MediaType.parseMediaType("application/vnd.api+json;charset=utf-8"))
-        .bodyValue(request)
-        .retrieve()
-        .bodyToMono(type)
+        .bodyValue(request))
         .doOnNext(object -> log.debug("Posted {} to {} with type {}", object, endpointPath, type));
   }
 
   @SneakyThrows
   private Mono<Void> patch(String endpointPath, Object request) {
     authorizedLatch.await();
-    return webClient.patch().uri(endpointPath)
-        .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(request)
-        .retrieve()
-        .bodyToMono(Void.class)
+    return retrieveMonoWithErrorHandling(Void.class, webClient.patch().uri(endpointPath)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(request))
         .doOnNext(aVoid -> log.debug("Patched {} at {}", request, endpointPath));
   }
 
   @SneakyThrows
   private Mono<Void> delete(String endpointPath) {
     authorizedLatch.await();
-    return webClient.delete().uri(endpointPath)
-        .retrieve()
-        .bodyToMono(Void.class)
+    return retrieveMonoWithErrorHandling(Void.class, webClient.delete().uri(endpointPath))
         .doOnNext(aVoid -> log.debug("Deleted {}", endpointPath));
   }
 
   @SneakyThrows
   private <T> Mono<T> getOne(String endpointPath, Class<T> type) {
     authorizedLatch.await();
-    return webClient.get().uri(endpointPath)
-        .retrieve()
-        .bodyToMono(type)
+    return retrieveMonoWithErrorHandling(type, webClient.get().uri(endpointPath))
         .cache()
         .doOnNext(object -> log.debug("Retrieved {} from {} with type {}", object, endpointPath, type));
   }
@@ -717,9 +711,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
     authorizedLatch.await();
     String url = uriComponents.toUriString();
-    return (Flux<T>) webClient.get().uri(url)
-        .retrieve()
-        .bodyToFlux(Object.class)
+    return (Flux<T>) retrieveFluxWithErrorHandling(Object.class, webClient.get().uri(url))
         .cache()
         .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
   }
@@ -734,9 +726,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
     authorizedLatch.await();
     String url = uriComponents.toUriString();
-    return (Flux<T>) webClient.get().uri(url)
-        .retrieve()
-        .bodyToFlux(Object.class)
+    return (Flux<T>) retrieveFluxWithErrorHandling(Object.class, webClient.get().uri(url))
         .cache()
         .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
   }
@@ -752,9 +742,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
     authorizedLatch.await();
     String url = uriComponents.toUriString();
-    return webClient.get().uri(url)
-        .retrieve()
-        .bodyToMono(JSONAPIDocument.class)
+    return retrieveMonoWithErrorHandling(JSONAPIDocument.class, webClient.get().uri(url))
         .map(jsonapiDocument -> (JSONAPIDocument<List<T>>) jsonapiDocument)
         .flatMap(document -> Mono.zip(
             Mono.fromCallable(document::get),
@@ -763,5 +751,44 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
         .switchIfEmpty(Mono.zip(Mono.just(List.of()), Mono.just(0)))
         .cache()
         .doOnNext(tuple -> log.debug("Retrieved {} from {}", tuple.getT1(), url));
+  }
+
+  private <T> Mono<T> retrieveMonoWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
+    return requestSpec.exchangeToMono(response -> {
+      if (response.statusCode().equals(HttpStatus.OK)) {
+        return response.bodyToMono(type);
+      } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
+        return response.bodyToMono(type).onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
+      } else if (response.statusCode().is4xxClientError()) {
+        return response.createException().flatMap(Mono::error);
+      } else if (response.statusCode().is5xxServerError()) {
+        return response.createException().flatMap(Mono::error);
+      } else {
+        log.warn("Unknown status returned by api");
+        return response.createException().flatMap(Mono::error);
+      }
+    });
+  }
+
+  private <T> Flux<T> retrieveFluxWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
+    return requestSpec.exchangeToFlux(response -> {
+      if (response.statusCode().equals(HttpStatus.OK)) {
+        return response.bodyToFlux(type);
+      } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
+        return response.bodyToFlux(Errors.class)
+            .flatMap(errors -> Mono.error(new IllegalArgumentException(new ApiException(errors.getErrors()))));
+      } else if (response.statusCode().equals(HttpStatus.NOT_FOUND)) {
+        return response.createException().flatMapMany(Mono::error);
+      } else if (response.statusCode().is4xxClientError()) {
+        return response.bodyToFlux(Errors.class)
+            .flatMap(errors -> Mono.error(new ApiException(errors.getErrors())));
+      } else if (response.statusCode().is5xxServerError()) {
+        return response.bodyToFlux(Errors.class)
+            .flatMap(errors -> Mono.error(new ApiException(errors.getErrors())));
+      } else {
+        log.warn("Unknown status returned by api");
+        return response.createException().flatMapMany(Flux::error);
+      }
+    });
   }
 }
