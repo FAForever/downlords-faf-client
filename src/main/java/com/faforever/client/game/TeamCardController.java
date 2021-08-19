@@ -95,7 +95,7 @@ public class TeamCardController implements Controller<Node> {
       RatingChangeLabelController ratingChangeLabelController = uiService.loadFxml("theme/rating_change_label.fxml");
       ratingChangeControllersByPlayerId.put(player.getId(), ratingChangeLabelController);
       HBox container = new HBox(playerCardTooltipController.getRoot(), ratingChangeLabelController.getRoot());
-      teamPane.getChildren().add(container);
+      JavaFxUtil.runLater(() -> teamPane.getChildren().add(container));
     }
 
     String teamTitle;
@@ -115,7 +115,8 @@ public class TeamCardController implements Controller<Node> {
     } else {
       teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
     }
-    teamNameLabel.setText(teamTitle);
+    String finalTeamTitle = teamTitle;
+    JavaFxUtil.runLater(() -> teamNameLabel.setText(finalTeamTitle));
   }
 
   public void showRatingChange(Map<String, List<PlayerStats>> teams) {
