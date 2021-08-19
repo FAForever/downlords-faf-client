@@ -47,7 +47,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
@@ -63,6 +62,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -107,7 +107,6 @@ public class FafService {
     fafServerAccessor.sendGpgMessage(message);
   }
 
-  @Async
   public CompletableFuture<LoginSuccessResponse> connectToServer() {
     return fafServerAccessor.connectAndLogIn();
   }
@@ -136,7 +135,6 @@ public class FafService {
     fafServerAccessor.removeFoe(player.getId());
   }
 
-  @Async
   public void notifyGameEnded() {
     fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Ended"));
   }
@@ -239,7 +237,6 @@ public class FafService {
         .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
     return fafServerAccessor.getAvailableAvatars().thenApply(avatars ->
         avatars.stream().map(AvatarBean::fromAvatar).collect(toList()));
@@ -437,7 +434,6 @@ public class FafService {
     }
   }
 
-  @Async
   public CompletableFuture<Optional<Replay>> getLastGameOnMap(int playerId, String mapVersionId) {
     return fafApiAccessor.getLastGamesOnMap(playerId, mapVersionId, 1)
         .next()
@@ -446,17 +442,14 @@ public class FafService {
         .thenApply(Optional::ofNullable);
   }
 
-  @Async
   public CompletableFuture<Void> deleteGameReview(Review review) {
     return fafApiAccessor.deleteGameReview(review.getId()).toFuture();
   }
 
-  @Async
   public CompletableFuture<Void> deleteMapVersionReview(Review review) {
     return fafApiAccessor.deleteMapVersionReview(review.getId()).toFuture();
   }
 
-  @Async
   public CompletableFuture<Void> deleteModVersionReview(Review review) {
     return fafApiAccessor.deleteModVersionReview(review.getId()).toFuture();
   }
@@ -476,7 +469,6 @@ public class FafService {
     fafServerAccessor.restoreGameSession(id);
   }
 
-  @Async
   public CompletableFuture<Tuple2<List<ModVersion>, Integer>> findModsByQueryWithPageCount(SearchConfig query, int count, int page) {
     return fafApiAccessor.findModsByQueryWithTotalPages(query, count, page)
         .map(tuple -> tuple.mapT1(mods ->
@@ -485,12 +477,10 @@ public class FafService {
         .toFuture();
   }
 
-  @Async
   public CompletableFuture<Integer> getRecommendedModPageCount(int count) {
     return fafApiAccessor.getRecommendedModsWithTotalPages(count, 1).map(Tuple2::getT2).toFuture();
   }
 
-  @Async
   public CompletableFuture<Tuple2<List<ModVersion>, Integer>> getRecommendedModsWithPageCount(int count, int page) {
     return fafApiAccessor.getRecommendedModsWithTotalPages(count, page)
         .map(tuple -> tuple.mapT1(mods ->
@@ -499,7 +489,6 @@ public class FafService {
         .toFuture();
   }
 
-  @Async
   public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(int matchmakerQueueId, float rating, int count, int page) {
     Flux<MapBean> matchmakerMapsFlux = fafApiAccessor.getMatchmakerPoolMaps(matchmakerQueueId, rating)
         .flatMap(mapPoolAssignment -> {
@@ -512,8 +501,7 @@ public class FafService {
           }
         })
         .distinct()
-        .sort(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER))
-        .cache();
+        .sort(Comparator.comparing(MapBean::getSize).thenComparing(MapBean::getDisplayName, String.CASE_INSENSITIVE_ORDER));
     return paginateResult(count, page, matchmakerMapsFlux).toFuture();
   }
 
@@ -527,7 +515,6 @@ public class FafService {
     );
   }
 
-  @Async
   public CompletableFuture<Optional<MatchmakingQueue>> getMatchmakingQueue(String technicalName) {
     return fafApiAccessor.getMatchmakerQueue(technicalName)
         .map(MatchmakingQueue::fromDto)
@@ -567,7 +554,6 @@ public class FafService {
     fafServerAccessor.gameMatchmaking(queue, state);
   }
 
-  @Async
   public CompletableFuture<Optional<Clan>> getClanByTag(String tag) {
     return fafApiAccessor.getClanByTag(tag)
         .map(Clan::fromDto)
@@ -579,7 +565,6 @@ public class FafService {
     fafServerAccessor.sendGpgMessage(GpgGameOutboundMessage.Companion.iceMessage(remotePlayerId, message));
   }
 
-  @Async
   public CompletableFuture<List<TournamentBean>> getAllTournaments() {
     return fafApiAccessor.getAllTournaments()
         .map(TournamentBean::fromTournamentDto)
@@ -587,7 +572,6 @@ public class FafService {
         .toFuture();
   }
 
-  @Async
   public CompletableFuture<List<ModerationReport>> getAllModerationReports(int playerId) {
     return fafApiAccessor.getPlayerModerationReports(playerId)
         .map(ModerationReport::fromReportDto)
@@ -605,7 +589,6 @@ public class FafService {
         .toFuture();
   }
 
-  @Async
   public CompletableFuture<Void> hideMapVersion(MapBean map) {
     String id = map.getId();
     MapVersion mapVersion = new MapVersion();
@@ -614,27 +597,22 @@ public class FafService {
     return fafApiAccessor.updateMapVersion(id, mapVersion).toFuture();
   }
 
-  @Async
   public CompletableFuture<Void> unRankMapVersion(MapBean map) {
     String id = map.getId();
     MapVersion mapVersion = new MapVersion();
     mapVersion.setRanked(false);
     mapVersion.setId(map.getId());
-    fafApiAccessor.updateMapVersion(id, mapVersion);
-    return CompletableFuture.completedFuture(null);
+    return fafApiAccessor.updateMapVersion(id, mapVersion).toFuture();
   }
 
-  @Async
   public void closePlayersGame(int playerId) {
     fafServerAccessor.closePlayersGame(playerId);
   }
 
-  @Async
   public void closePlayersLobby(int playerId) {
     fafServerAccessor.closePlayersLobby(playerId);
   }
 
-  @Async
   public void broadcastMessage(String message) {
     fafServerAccessor.broadcastMessage(message);
   }
