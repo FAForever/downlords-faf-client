@@ -1,5 +1,9 @@
 package com.faforever.client.api;
 
+import com.faforever.commons.api.dto.CoopMission;
+import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.FeaturedModFile;
+import com.faforever.commons.api.dto.PlayerEvent;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ResourceConverter;
@@ -29,10 +33,15 @@ public class JsonApiReader implements HttpMessageReader<Object> {
   @Override
   public boolean canRead(ResolvableType elementType, MediaType mediaType) {
     Class<?> clazz = elementType.toClass();
-    return clazz.equals(JSONAPIDocument.class)
+    return (clazz.equals(JSONAPIDocument.class)
         || ElideEntity.class.isAssignableFrom(clazz)
-        || mediaType == null
-        || getReadableMediaTypes().stream().anyMatch(readerMediaType -> readerMediaType.isCompatibleWith(mediaType));
+        //TODO: Remove once data classes properly extend ElideEntity
+        || clazz.equals(CoopMission.class)
+        || clazz.equals(CoopResult.class)
+        || clazz.equals(FeaturedModFile.class)
+        || clazz.equals(PlayerEvent.class))
+        && (mediaType == null
+        || getReadableMediaTypes().stream().anyMatch(readerMediaType -> readerMediaType.isCompatibleWith(mediaType)));
   }
 
   @Override

@@ -38,7 +38,6 @@ import com.faforever.commons.api.dto.TutorialCategory;
 import com.faforever.commons.io.ByteCountListener;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.exceptions.ResourceParseException;
-import com.github.jasminb.jsonapi.models.errors.Errors;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
@@ -775,19 +774,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
       if (response.statusCode().equals(HttpStatus.OK)) {
         return response.bodyToFlux(type);
       } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
-        return response.bodyToFlux(Errors.class)
-            .flatMap(errors -> Mono.error(new IllegalArgumentException(new ApiException(errors.getErrors()))));
-      } else if (response.statusCode().equals(HttpStatus.NOT_FOUND)) {
-        return response.createException().flatMapMany(Mono::error);
+        return response.bodyToFlux(type).onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
       } else if (response.statusCode().is4xxClientError()) {
-        return response.bodyToFlux(Errors.class)
-            .flatMap(errors -> Mono.error(new ApiException(errors.getErrors())));
+        return response.createException().flatMapMany(Mono::error);
       } else if (response.statusCode().is5xxServerError()) {
-        return response.bodyToFlux(Errors.class)
-            .flatMap(errors -> Mono.error(new ApiException(errors.getErrors())));
+        return response.createException().flatMapMany(Mono::error);
       } else {
         log.warn("Unknown status returned by api");
-        return response.createException().flatMapMany(Flux::error);
+        return response.createException().flatMapMany(Mono::error);
       }
     });
   }
