@@ -1,19 +1,22 @@
 package com.faforever.client.map;
 
+import com.faforever.client.builders.MapBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.builders.MapVersionReviewBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.MapVersionReviewBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.review.Review;
-import com.faforever.client.vault.review.ReviewBuilder;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -30,8 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.URL;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,9 +71,9 @@ public class MapDetailControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private ReviewsController reviewsController;
+  private ReviewsController<MapVersionReviewBean> reviewsController;
   @Mock
-  private ReviewController reviewController;
+  private ReviewController<MapVersionReviewBean> reviewController;
   @Mock
   private StarsController starsController;
   @Mock
@@ -80,34 +82,34 @@ public class MapDetailControllerTest extends UITest {
   private EventBus eventBus;
 
   private MapDetailController instance;
-  private Player currentPlayer;
-  private MapBean testMap;
-  private MapBean ownedMap;
-  private ObservableList<MapBean> installedMaps;
-  private Review review;
+  private PlayerBean currentPlayer;
+  private MapVersionBean testMap;
+  private MapVersionBean ownedMap;
+  private ObservableList<MapVersionBean> installedMaps;
+  private MapVersionReviewBean review;
 
   @BeforeEach
   public void setUp() throws Exception {
-    currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
-    testMap = MapBeanBuilder.create().defaultValues().get();
-    ownedMap = MapBeanBuilder.create().defaultValues().author(currentPlayer.getUsername()).get();
-    review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    testMap = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).createTime(OffsetDateTime.now()).get();
+    ownedMap = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().author(currentPlayer).get()).get();
+    review = MapVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     installedMaps = FXCollections.observableArrayList();
     installedMaps.add(testMap);
 
-    when(timeService.asDate(any(LocalDateTime.class))).thenReturn("test date");
+    when(timeService.asDate(any(OffsetDateTime.class))).thenReturn("test date");
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
     when(mapService.downloadAndInstallMap(any(), any(DoubleProperty.class), any(StringProperty.class))).thenReturn(CompletableFuture.runAsync(() -> {
     }));
-    when(i18n.number(testMap.getPlayers())).thenReturn(String.valueOf(testMap.getPlayers()));
-    when(i18n.get("map.id", testMap.getId())).thenReturn(testMap.getId());
+    when(i18n.number(testMap.getMaxPlayers())).thenReturn(String.valueOf(testMap.getMaxPlayers()));
+    when(i18n.get("map.id", testMap.getId())).thenReturn(String.valueOf(testMap.getId()));
     when(i18n.get("yes")).thenReturn("yes");
     when(i18n.get("no")).thenReturn("no");
     when(i18n.get(eq("mapPreview.size"), anyInt(), anyInt())).thenReturn("map size");
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
-    when(mapService.hasPlayedMap(eq(currentPlayer.getId()), eq(testMap.getId()))).thenReturn(CompletableFuture.completedFuture(true));
-    when(mapService.getFileSize(any(URL.class))).thenReturn(CompletableFuture.completedFuture(12));
+    when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(CompletableFuture.completedFuture(true));
+    when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
     instance = new MapDetailController(mapService, mapGeneratorService, notificationService, i18n, timeService, reportingService, playerService, reviewService, uiService, eventBus);
 
@@ -132,7 +134,7 @@ public class MapDetailControllerTest extends UITest {
   public void onCreateButtonClickedMapNotInstalled() {
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(false);
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.onCreateGameButtonClicked();
@@ -146,7 +148,7 @@ public class MapDetailControllerTest extends UITest {
   @Test
   public void onCreateButtonClickedMapInstalled() {
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.onCreateGameButtonClicked();
@@ -168,7 +170,7 @@ public class MapDetailControllerTest extends UITest {
   public void testSetRankedVisibleOwnedMap() {
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
 
-    instance.setMap(ownedMap);
+    instance.setMapVersion(ownedMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
@@ -186,7 +188,7 @@ public class MapDetailControllerTest extends UITest {
     ownedMap.setRanked(false);
     ownedMap.setHidden(true);
 
-    instance.setMap(ownedMap);
+    instance.setMapVersion(ownedMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
@@ -199,14 +201,14 @@ public class MapDetailControllerTest extends UITest {
 
   @Test
   public void testSetMap() {
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewsController).setCanWriteReview(true);
-    assertEquals(testMap.getDisplayName(), instance.nameLabel.getText());
-    assertEquals(testMap.getAuthor(), instance.authorLabel.getText());
-    assertEquals(String.valueOf(testMap.getPlayers()), instance.maxPlayersLabel.getText());
-    assertEquals(testMap.getId(), instance.mapIdLabel.getText());
+    assertEquals(testMap.getMap().getDisplayName(), instance.nameLabel.getText());
+    assertEquals(testMap.getMap().getAuthor().getUsername(), instance.authorLabel.getText());
+    assertEquals(String.valueOf(testMap.getMaxPlayers()), instance.maxPlayersLabel.getText());
+    assertEquals(String.valueOf(testMap.getId()), instance.mapIdLabel.getText());
     assertEquals("map size", instance.dimensionsLabel.getText());
     assertEquals("test date", instance.dateLabel.getText());
     assertEquals(testMap.getDescription(), instance.mapDescriptionLabel.getText());
@@ -219,45 +221,45 @@ public class MapDetailControllerTest extends UITest {
 
   @Test
   public void testSetMapNoThumbnailLoadsDefault() {
-    testMap.setLargeThumbnailUrl(null);
+    testMap.setThumbnailUrlLarge(null);
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapService, never()).loadPreview(any(MapBean.class), any());
+    verify(mapService, never()).loadPreview(any(MapVersionBean.class), any());
   }
 
   @Test
   public void testOnInstallButtonClicked() {
-    when(mapService.downloadAndInstallMap(any(MapBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapService).downloadAndInstallMap(any(MapBean.class), any(), any());
+    verify(mapService).downloadAndInstallMap(any(MapVersionBean.class), any(), any());
   }
 
   @Test
   public void testOnInstallButtonClickedInstallingMapThrowsException() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
-    when(mapService.downloadAndInstallMap(any(MapBean.class), any(), any())).thenReturn(future);
+    when(mapService.downloadAndInstallMap(any(MapVersionBean.class), any(), any())).thenReturn(future);
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.onInstallButtonClicked();
 
-    verify(mapService).downloadAndInstallMap(any(MapBean.class), any(), any());
+    verify(mapService).downloadAndInstallMap(any(MapVersionBean.class), any(), any());
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 
   @Test
   public void testOnUninstallButtonClicked() {
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
     when(mapService.uninstallMap(testMap)).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -269,7 +271,7 @@ public class MapDetailControllerTest extends UITest {
 
   @Test
   public void testOnUninstallButtonClickedThrowsException() {
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     CompletableFuture<Void> future = new CompletableFuture<>();
@@ -287,12 +289,12 @@ public class MapDetailControllerTest extends UITest {
   public void testOnUnRankButtonClicked() {
     when(mapService.unrankMapVersion(ownedMap)).thenReturn(CompletableFuture.completedFuture(null));
 
-    instance.setMap(ownedMap);
+    instance.setMapVersion(ownedMap);
     instance.unrankMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapService).unrankMapVersion(any(MapBean.class));
-    assertFalse(ownedMap.isRanked());
+    verify(mapService).unrankMapVersion(any(MapVersionBean.class));
+    assertFalse(ownedMap.getRanked());
     assertFalse(instance.unrankButton.isVisible());
   }
 
@@ -300,30 +302,29 @@ public class MapDetailControllerTest extends UITest {
   public void testOnUnRankButtonClickedInstallingMapThrowsException() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
-    when(mapService.unrankMapVersion(any(MapBean.class))).thenReturn(future);
+    when(mapService.unrankMapVersion(any(MapVersionBean.class))).thenReturn(future);
 
-    instance.setMap(ownedMap);
+    instance.setMapVersion(ownedMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.unrankMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(ownedMap.isRanked());
+    assertTrue(ownedMap.getRanked());
     assertTrue(instance.unrankButton.isVisible());
-    verify(mapService).unrankMapVersion(any(MapBean.class));
+    verify(mapService).unrankMapVersion(any(MapVersionBean.class));
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
   }
 
   @Test
   public void testHideButtonClicked() {
-    instance.setMap(ownedMap);
+    instance.setMapVersion(ownedMap);
     WaitForAsyncUtils.waitForFxEvents();
     when(mapService.hideMapVersion(ownedMap)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.hideMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(ownedMap.isHidden());
     assertFalse(instance.hideButton.isVisible());
     verify(mapService).hideMapVersion(ownedMap);
   }
@@ -331,7 +332,7 @@ public class MapDetailControllerTest extends UITest {
   @Test
   public void testOnHideButtonClickedThrowsException() {
 
-    instance.setMap(ownedMap);
+    instance.setMapVersion(ownedMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     CompletableFuture<Void> future = new CompletableFuture<>();
@@ -341,7 +342,6 @@ public class MapDetailControllerTest extends UITest {
     instance.hideMap();
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertFalse(testMap.isHidden());
     assertTrue(instance.hideButton.isVisible());
     verify(mapService).hideMapVersion(ownedMap);
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
@@ -349,9 +349,9 @@ public class MapDetailControllerTest extends UITest {
 
   @Test
   public void testSetMapNotPlayed() {
-    when(mapService.hasPlayedMap(currentPlayer.getId(), testMap.getId())).thenReturn(CompletableFuture.completedFuture(false));
+    when(mapService.hasPlayedMap(currentPlayer, testMap)).thenReturn(CompletableFuture.completedFuture(false));
 
-    instance.setMap(ownedMap);
+    instance.setMapVersion(ownedMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewsController, times(3)).setCanWriteReview(false);
@@ -361,7 +361,7 @@ public class MapDetailControllerTest extends UITest {
   public void testSetOfficialMap() {
     when(mapService.isOfficialMap(testMap.getFolderName())).thenReturn(true);
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.installButton.isVisible());
@@ -370,10 +370,10 @@ public class MapDetailControllerTest extends UITest {
 
   @Test
   public void testSetMapNoSize() {
-    when(mapService.getFileSize(testMap.getDownloadUrl())).thenReturn(CompletableFuture.completedFuture(-1));
+    when(mapService.getFileSize(testMap)).thenReturn(CompletableFuture.completedFuture(-1));
     when(i18n.get("notAvailable")).thenReturn("notAvailable");
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.installButton.isDisabled());
@@ -384,7 +384,7 @@ public class MapDetailControllerTest extends UITest {
   public void testOnDeleteReview() {
     testMap.getReviews().add(review);
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(testMap.getReviews().contains(review));
@@ -402,7 +402,7 @@ public class MapDetailControllerTest extends UITest {
   public void testOnDeleteReviewThrowsException() {
     testMap.getReviews().add(review);
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(testMap.getReviews().contains(review));
@@ -419,17 +419,18 @@ public class MapDetailControllerTest extends UITest {
   @Test
   public void testOnSendReviewNew() {
     review.setId(null);
+    review.setMapVersion(testMap);
     assertFalse(testMap.getReviews().contains(review));
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review, testMap.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveMapVersionReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review, testMap.getId());
+    verify(reviewService).saveMapVersionReview(review);
     assertTrue(testMap.getReviews().contains(review));
     assertEquals(currentPlayer, review.getPlayer());
   }
@@ -437,18 +438,20 @@ public class MapDetailControllerTest extends UITest {
   @Test
   public void testOnSendReviewUpdate() {
     testMap.getReviews().add(review);
+    review.setMapVersion(testMap);
+    review.setId(0);
 
     assertTrue(testMap.getReviews().contains(review));
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    when(reviewService.saveMapVersionReview(review, testMap.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveMapVersionReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveMapVersionReview(review, testMap.getId());
+    verify(reviewService).saveMapVersionReview(review);
     assertTrue(testMap.getReviews().contains(review));
     assertEquals(currentPlayer, review.getPlayer());
     assertEquals(1, testMap.getReviews().size());
@@ -457,13 +460,14 @@ public class MapDetailControllerTest extends UITest {
   @Test
   public void testOnSendReviewThrowsException() {
     testMap.getReviews().add(review);
+    review.setMapVersion(testMap);
 
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(testMap.getReviews().contains(review));
 
-    when(reviewService.saveMapVersionReview(review, testMap.getId())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(reviewService.saveMapVersionReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
@@ -475,7 +479,7 @@ public class MapDetailControllerTest extends UITest {
   @Test
   public void testChangeInstalledStateWhenModIsUninstalled() {
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.installButton.isVisible());
@@ -492,7 +496,7 @@ public class MapDetailControllerTest extends UITest {
   public void testChangeInstalledStateWhenMapIsInstalled() {
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(false);
     installedMaps.remove(testMap);
-    instance.setMap(testMap);
+    instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.installButton.isVisible());

@@ -1,10 +1,12 @@
 package com.faforever.client.map.management;
 
-import com.faforever.client.map.MapBean;
-import com.faforever.client.map.MapBeanBuilder;
+import com.faforever.client.builders.MapBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -24,10 +26,10 @@ public class RemovableMapCellControllerTest extends UITest {
   @Mock
   private NotificationService notificationService;
 
-  private final MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001").uid("officialMap")
-      .version(null).get();
-  private final MapBean customMap = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0001").uid("customMap")
-      .version(1).get();
+  private final MapVersionBean officialMap = MapVersionBeanBuilder.create().defaultValues().folderName("SCMP_001").id(0)
+      .version(null).map(MapBeanBuilder.create().defaultValues().get()).get();
+  private final MapVersionBean customMap = MapVersionBeanBuilder.create().defaultValues().folderName("palaneum.v0001").id(1)
+      .version(new ComparableVersion("1")).map(MapBeanBuilder.create().defaultValues().get()).get();
 
   private RemovableMapCellController instance;
 
@@ -69,7 +71,7 @@ public class RemovableMapCellControllerTest extends UITest {
     verify(notificationService).addImmediateErrorNotification(any(RuntimeException.class), any());
   }
 
-  private void initializeCell(MapBean map) {
+  private void initializeCell(MapVersionBean map) {
     runOnFxThreadAndWait(() -> instance.updateItem(map, false));
   }
 

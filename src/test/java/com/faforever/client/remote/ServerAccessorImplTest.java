@@ -1,23 +1,23 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.TokenService;
+import com.faforever.client.builders.GameInfoMessageBuilder;
+import com.faforever.client.builders.GameLaunchMessageBuilder;
+import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
+import com.faforever.client.builders.NewGameInfoBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
-import com.faforever.client.game.GameInfoMessageTestBuilder;
-import com.faforever.client.game.GameLaunchMessageTestBuilder;
 import com.faforever.client.game.NewGameInfo;
-import com.faforever.client.game.NewGameInfoBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.legacy.UidService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.teammatchmaking.MatchmakingQueue;
-import com.faforever.client.teammatchmaking.MatchmakingQueueBuilder;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.AvatarListInfo;
@@ -369,7 +369,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
     assertMessageContainsComponents(
         "game_join",
-        "uid",
+        "id",
         "password",
         "pass",
         String.valueOf(1)
@@ -527,7 +527,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
   @Test
   public void testGameMatchmaking() {
-    MatchmakingQueue queue = MatchmakingQueueBuilder.create().defaultValues().get();
+    MatchmakerQueueBean queue = MatchmakerQueueBeanBuilder.create().defaultValues().get();
 
     instance.gameMatchmaking(queue, MatchmakerState.START);
 
@@ -541,7 +541,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
   @Test
   public void testInviteToParty() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
 
     instance.inviteToParty(player);
 
@@ -553,7 +553,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
   @Test
   public void testAcceptPartyInvite() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
 
     instance.acceptPartyInvite(player);
 
@@ -565,7 +565,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
   @Test
   public void testKickPlayerFromParty() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
 
     instance.kickPlayerFromParty(player);
 
@@ -625,7 +625,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
   @Test
   public void testOnGameInfo() throws InterruptedException, JsonProcessingException {
-    GameInfo gameInfoMessage = GameInfoMessageTestBuilder.create(1)
+    GameInfo gameInfoMessage = GameInfoMessageBuilder.create(1)
         .defaultValues()
         .get();
 
@@ -663,7 +663,7 @@ public class ServerAccessorImplTest extends ServiceTest {
 
   @Test
   public void testOnGameLaunch() throws InterruptedException, JsonProcessingException {
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create()
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create()
         .defaultValues()
         .faction(Faction.AEON)
         .initMode(LobbyMode.AUTO_LOBBY)

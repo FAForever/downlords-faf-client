@@ -1,6 +1,6 @@
 package com.faforever.client.avatar.event;
 
-import com.faforever.client.avatar.AvatarBean;
+import com.faforever.client.domain.AvatarBean;
 import org.jetbrains.annotations.Nullable;
 
 public class AvatarChangedEvent {

@@ -1,5 +1,6 @@
 package com.faforever.client.tournament;
 
+import com.faforever.client.domain.TournamentBean;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ListCell;
 

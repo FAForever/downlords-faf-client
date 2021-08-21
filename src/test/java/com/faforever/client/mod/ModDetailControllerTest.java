@@ -1,17 +1,21 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.builders.ModBeanBuilder;
+import com.faforever.client.builders.ModVersionBeanBuilder;
+import com.faforever.client.builders.ModVersionReviewBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.ModBean;
+import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.ModVersionReviewBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.review.Review;
-import com.faforever.client.vault.review.ReviewBuilder;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -60,29 +64,30 @@ public class ModDetailControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private ReviewsController reviewsController;
+  private ReviewsController<ModVersionReviewBean> reviewsController;
   @Mock
-  private ReviewController reviewController;
+  private ReviewController<ModVersionReviewBean> reviewController;
   @Mock
   private StarsController starsController;
   @Mock
   private StarController starController;
 
   private ModDetailController instance;
-  private ObservableList<ModVersion> installedModVersions;
-  private Player currentPlayer;
-  private ModVersion modVersion;
+  private ObservableList<ModVersionBean> installedModVersions;
+  private PlayerBean currentPlayer;
+  private ModVersionBean modVersion;
 
   @BeforeEach
   public void setUp() throws Exception {
-    currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
-    modVersion = ModVersionBuilder.create().defaultValues().mod(ModBuilder.create().defaultValues().get()).get();
+    currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    modVersion = ModVersionBeanBuilder.create().defaultValues().mod(ModBeanBuilder.create().defaultValues().get()).get();
+    modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
     instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService, uiService);
 
     installedModVersions = FXCollections.observableArrayList();
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get("modVault.details.author", modVersion.getMod().getAuthor())).thenReturn(modVersion.getMod().getAuthor());
-    when(i18n.get("modVault.details.uploader", modVersion.getMod().getUploader())).thenReturn(modVersion.getMod().getUploader());
+    when(i18n.get("modVault.details.uploader", modVersion.getMod().getUploader().getUsername())).thenReturn(modVersion.getMod().getUploader().getUsername());
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 
     loadFxml("theme/vault/mod/mod_detail.fxml", clazz -> {
@@ -104,7 +109,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testSetMod() {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
     modVersion.getReviews().add(review);
 
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
@@ -112,9 +117,9 @@ public class ModDetailControllerTest extends UITest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(modVersion.getDisplayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.getMod().getDisplayName(), instance.nameLabel.getText());
     assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
-    assertEquals(modVersion.getMod().getUploader(), instance.uploaderLabel.getText());
+    assertEquals(modVersion.getMod().getUploader().getUsername(), instance.uploaderLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).getModSize(modVersion);
     verify(modService).loadThumbnail(modVersion);
@@ -130,7 +135,7 @@ public class ModDetailControllerTest extends UITest {
 
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(modVersion.getDisplayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.getMod().getDisplayName(), instance.nameLabel.getText());
     assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
     assertNull(instance.uploaderLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
@@ -152,27 +157,28 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnInstallButtonClicked() {
-    when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.setModVersion(modVersion);
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(modService).downloadAndInstallMod(any(ModVersion.class), any(), any());
+    verify(modService).downloadAndInstallMod(any(ModVersionBean.class), any(), any());
   }
 
   @Test
   public void testOnInstallButtonClickedInstallingModThrowsException() {
+    modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
-    when(modService.downloadAndInstallMod(any(ModVersion.class), any(), any())).thenReturn(future);
+    when(modService.downloadAndInstallMod(any(ModVersionBean.class), any(), any())).thenReturn(future);
 
     instance.setModVersion(modVersion);
 
     instance.onInstallButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(modService).downloadAndInstallMod(any(ModVersion.class), any(), any());
+    verify(modService).downloadAndInstallMod(any(ModVersionBean.class), any(), any());
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
   }
 
@@ -189,6 +195,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnUninstallButtonClickedThrowsException() {
+    modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
     instance.setModVersion(modVersion);
 
     CompletableFuture<Void> future = new CompletableFuture<>();
@@ -223,6 +230,7 @@ public class ModDetailControllerTest extends UITest {
   @Test
   public void testSetInstalledMod() {
     modVersion.getMod().setAuthor("nobody");
+    modVersion.getMod().setUploader(PlayerBeanBuilder.create().defaultValues().id(100).get());
     when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
@@ -246,6 +254,8 @@ public class ModDetailControllerTest extends UITest {
   @Test
   public void testSetOwnedMod() {
     when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
+    ModBean modBean = ModBeanBuilder.create().defaultValues().uploader(currentPlayer).author(currentPlayer.getUsername()).get();
+    modVersion.setMod(modBean);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -287,7 +297,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnDeleteReview() {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     modVersion.getReviews().add(review);
 
@@ -304,7 +314,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnDeleteReviewThrowsException() {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     modVersion.getReviews().add(review);
 
@@ -321,34 +331,37 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnSendReviewNew() {
-    Review review = ReviewBuilder.create().defaultValues().id(null).get();
+    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().id(null).get();
+    review.setModVersion(modVersion);
 
     instance.setModVersion(modVersion);
 
-    when(reviewService.saveModVersionReview(review, modVersion.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveModVersionReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveModVersionReview(review, modVersion.getId());
+    verify(reviewService).saveModVersionReview(review);
     assertTrue(modVersion.getReviews().contains(review));
     assertEquals(currentPlayer, review.getPlayer());
   }
 
   @Test
   public void testOnSendReviewUpdate() {
-    Review review = ReviewBuilder.create().defaultValues().get();
+    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().get();
+    review.setModVersion(modVersion);
+    review.setId(0);
 
     modVersion.getReviews().add(review);
 
     instance.setModVersion(modVersion);
 
-    when(reviewService.saveModVersionReview(review, modVersion.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveModVersionReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveModVersionReview(review, modVersion.getId());
+    verify(reviewService).saveModVersionReview(review);
     assertTrue(modVersion.getReviews().contains(review));
     assertEquals(currentPlayer, review.getPlayer());
     assertEquals(modVersion.getReviews().size(), 1);
@@ -356,13 +369,14 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testOnSendReviewThrowsException() {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    ModVersionReviewBean review = ModVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
+    review.setModVersion(modVersion);
 
     modVersion.getReviews().add(review);
 
     instance.setModVersion(modVersion);
 
-    when(reviewService.saveModVersionReview(review, modVersion.getId())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(reviewService.saveModVersionReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();

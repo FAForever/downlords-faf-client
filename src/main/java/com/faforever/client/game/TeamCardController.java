@@ -1,12 +1,13 @@
 package com.faforever.client.game;
 
 
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
@@ -50,19 +51,19 @@ public class TeamCardController implements Controller<Node> {
    * @param game the game to create teams from
    * @param playerService the service to use to look up players by name
    */
-  static void createAndAdd(Game game, PlayerService playerService, UiService uiService, Pane teamsPane) {
+  static void createAndAdd(GameBean game, PlayerService playerService, UiService uiService, Pane teamsPane) {
     List<Node> teamCardPanes = new ArrayList<>();
     if (game != null) {
       for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
         String team = entry.getKey();
         if (team != null) {
-          List<Player> players = entry.getValue().stream()
+          List<PlayerBean> players = entry.getValue().stream()
               .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
               .collect(Collectors.toList());
 
           TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
           teamCardController.setPlayersInTeam(team, players,
-              player -> RatingUtil.getLeaderboardRating(player, game.getRatingType()), null, RatingPrecision.ROUNDED);
+              player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
           teamCardPanes.add(teamCardController.getRoot());
         }
       }
@@ -70,9 +71,9 @@ public class TeamCardController implements Controller<Node> {
     JavaFxUtil.runLater(() -> teamsPane.getChildren().setAll(teamCardPanes));
   }
 
-  public void setPlayersInTeam(String team, List<Player> playerList, Function<Player, Integer> ratingProvider, Function<Player, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
+  public void setPlayersInTeam(String team, List<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
     int totalRating = 0;
-    for (Player player : playerList) {
+    for (PlayerBean player : playerList) {
       // If the server wasn't bugged, this would never be the case.
       if (player == null) {
         continue;
@@ -100,9 +101,9 @@ public class TeamCardController implements Controller<Node> {
 
     String teamTitle;
     if (team != null) {
-      if (Game.NO_TEAM.equals(team)) {
+      if (GameBean.NO_TEAM.equals(team)) {
         teamTitle = i18n.get("game.tooltip.teamTitleNoTeam");
-      } else if (Game.OBSERVERS_TEAM.equals(team)) {
+      } else if (GameBean.OBSERVERS_TEAM.equals(team)) {
         teamTitle = i18n.get("game.tooltip.observers");
       } else {
         try {
@@ -119,11 +120,11 @@ public class TeamCardController implements Controller<Node> {
     JavaFxUtil.runLater(() -> teamNameLabel.setText(finalTeamTitle));
   }
 
-  public void showRatingChange(Map<String, List<PlayerStats>> teams) {
+  public void showRatingChange(Map<String, List<GamePlayerStatsBean>> teams) {
     teams.values().stream()
         .flatMap(List::stream)
-        .filter(playerStats -> ratingChangeControllersByPlayerId.containsKey(playerStats.getPlayerId()))
-        .forEach(playerStats -> ratingChangeControllersByPlayerId.get(playerStats.getPlayerId()).setRatingChange(playerStats));
+        .filter(playerStats -> ratingChangeControllersByPlayerId.containsKey(playerStats.getPlayer().getId()))
+        .forEach(playerStats -> ratingChangeControllersByPlayerId.get(playerStats.getPlayer().getId()).setRatingChange(playerStats));
   }
 
   public Node getRoot() {

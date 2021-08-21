@@ -1,7 +1,7 @@
 package com.faforever.client.discord;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.game.Game;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.lobby.GameStatus;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.OffsetDateTime;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -64,7 +64,7 @@ public class DiscordRichPresenceService implements DisposableBean {
     }
   }
 
-  public void updatePlayedGameTo(Game game) {
+  public void updatePlayedGameTo(GameBean game) {
     log.debug("Updating discord rich presence game info");
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
@@ -88,14 +88,14 @@ public class DiscordRichPresenceService implements DisposableBean {
         joinSecret = objectMapper.writeValueAsString(new DiscordJoinSecret(game.getId()));
       }
 
-      if (game.getStatus() == GameStatus.PLAYING && game.getStartTime() != null && game.getStartTime().isAfter(Instant.now().plus(5, ChronoUnit.MINUTES))) {
+      if (game.getStatus() == GameStatus.PLAYING && game.getStartTime() != null && game.getStartTime().isAfter(OffsetDateTime.now().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds()))) {
         spectateSecret = objectMapper.writeValueAsString(new DiscordSpectateSecret(game.getId()));
       }
 
       discordRichPresence.setSecrets(joinSecret, spectateSecret);
 
       if (game.getStartTime() != null) {
-        discordRichPresence.setStartTimestamps(game.getStartTime().toEpochMilli());
+        discordRichPresence.setStartTimestamps(game.getStartTime().toEpochSecond());
       } else if (game.getStatus() == GameStatus.PLAYING) {
         discordRichPresence.setStartTimestamps(Instant.now().toEpochMilli());
       }
@@ -107,7 +107,7 @@ public class DiscordRichPresenceService implements DisposableBean {
     }
   }
 
-  private String getDiscordState(Game game) {
+  private String getDiscordState(GameBean game) {
     //I want no internationalisation in here as it should always be English
     switch (game.getStatus()) {
       case OPEN:

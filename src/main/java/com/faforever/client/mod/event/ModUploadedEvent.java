@@ -1,15 +1,15 @@
 package com.faforever.client.mod.event;
 
-import com.faforever.client.mod.ModVersion;
+import com.faforever.client.domain.ModVersionBean;
 
 public class ModUploadedEvent {
-  private final ModVersion modVersionInfo;
+  private final ModVersionBean modVersionInfo;
 
-  public ModUploadedEvent(ModVersion modVersionInfo) {
+  public ModUploadedEvent(ModVersionBean modVersionInfo) {
     this.modVersionInfo = modVersionInfo;
   }
 
-  public ModVersion getModVersionInfo() {
+  public ModVersionBean getModVersionInfo() {
     return modVersionInfo;
   }
 }

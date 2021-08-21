@@ -1,14 +1,18 @@
 package com.faforever.client.player;
 
-import com.faforever.client.achievements.AchievementDefinitionBuilder;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
-import com.faforever.client.achievements.PlayerAchievementBuilder;
-import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.builders.AchievementDefinitionBuilder;
+import com.faforever.client.builders.LeaderboardBeanBuilder;
+import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
+import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
+import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
+import com.faforever.client.builders.LeaderboardRatingMapBuilder;
+import com.faforever.client.builders.PlayerAchievementBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.Leaderboard;
-import com.faforever.client.leaderboard.LeaderboardBuilder;
-import com.faforever.client.leaderboard.LeaderboardEntryBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.stats.StatisticsService;
@@ -24,8 +28,6 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -72,13 +74,13 @@ public class PlayerInfoWindowControllerTest extends UITest {
   @Mock
   private LeaderboardService leaderboardService;
 
-  private Leaderboard leaderboard;
-  private Player player;
+  private LeaderboardBean leaderboard;
+  private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = LeaderboardBuilder.create().defaultValues().get();
-    player = PlayerBuilder.create("junit").defaultValues().get();
+    leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
+    player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
     instance = new PlayerInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
         i18n, uiService, timeService, playerService, notificationService, leaderboardService);
@@ -90,12 +92,12 @@ public class PlayerInfoWindowControllerTest extends UITest {
     when(achievementItemController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml")).thenReturn(playerRatingChartTooltipController);
     when(playerRatingChartTooltipController.getRoot()).thenReturn(new Pane());
-    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(player)));
     when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
-    when(leaderboardService.getEntriesForPlayer(eq(player.getId()))).thenReturn(CompletableFuture.completedFuture(List.of(LeaderboardEntryBuilder.create().defaultValues().get())));
-    when(statisticsService.getRatingHistory(eq(player.getId()), any())).thenReturn(CompletableFuture.completedFuture(asList(
-        new RatingHistoryDataPoint(OffsetDateTime.now(), 1500f, 50f),
-        new RatingHistoryDataPoint(OffsetDateTime.now().plus(1, ChronoUnit.DAYS), 1500f, 50f)
+    when(leaderboardService.getEntriesForPlayer(eq(player))).thenReturn(CompletableFuture.completedFuture(List.of(LeaderboardEntryBeanBuilder.create().defaultValues().get())));
+    when(statisticsService.getRatingHistory(eq(player), any())).thenReturn(CompletableFuture.completedFuture(asList(
+        LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now()).meanBefore(1500d).deviationBefore(50d).get(),
+        LeaderboardRatingJournalBeanBuilder.create().defaultValues().createTime(OffsetDateTime.now().plusDays(1)).meanBefore(1500d).deviationBefore(50d).get()
     )));
 
     loadFxml("theme/user_info_window.fxml", clazz -> instance);
@@ -129,16 +131,15 @@ public class PlayerInfoWindowControllerTest extends UITest {
 
   @Test
   public void testSetPlayerInfoBean() {
-    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(asList(
-        AchievementDefinitionBuilder.create().id("foo-bar").get(),
-        AchievementDefinitionBuilder.create().defaultValues().get()
+    when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(List.of(
+        AchievementDefinitionBuilder.create().id("foo-bar").get()
     )));
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
-    when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(asList(
-        PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get(),
-        PlayerAchievementBuilder.create().defaultValues().get()
-    )));
+    when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of(
+        PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get()
+        )));
     when(eventService.getPlayerEvents(player.getId())).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
 
     instance.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
@@ -158,6 +159,6 @@ public class PlayerInfoWindowControllerTest extends UITest {
     testSetPlayerInfoBean();
     instance.ratingTypeComboBox.setValue(leaderboard);
     instance.onRatingTypeChange();
-    verify(statisticsService, times(2)).getRatingHistory(player.getId(), leaderboard);
+    verify(statisticsService, times(2)).getRatingHistory(player, leaderboard);
   }
 }

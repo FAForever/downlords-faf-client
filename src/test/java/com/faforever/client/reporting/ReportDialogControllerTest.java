@@ -1,12 +1,14 @@
 package com.faforever.client.reporting;
 
+import com.faforever.client.builders.ModerationReportBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.ReplayBeanBuilder;
+import com.faforever.client.domain.ModerationReportBean;
+import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.replay.Replay;
-import com.faforever.client.replay.ReplayBuilder;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -47,13 +49,13 @@ public class ReportDialogControllerTest extends UITest {
   @Mock
   private ReplayService replayService;
 
-  private Player player;
-  private Replay replay;
+  private PlayerBean player;
+  private ReplayBean replay;
 
   @BeforeEach
   public void setUp() throws Exception {
-    player = PlayerBuilder.create("junit").defaultValues().get();
-    replay = ReplayBuilder.create().defaultValues()
+    player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    replay = ReplayBeanBuilder.create().defaultValues()
         .teams(FXCollections.observableMap(new HashMap<>(Map.of("1", List.of(player.getUsername())))))
         .get();
 
@@ -66,6 +68,7 @@ public class ReportDialogControllerTest extends UITest {
     when(playerService.getPlayerByName(player.getUsername())).thenReturn(CompletableFuture.completedFuture(Optional.of(player)));
     when(replayService.findById(replay.getId())).thenReturn(CompletableFuture.completedFuture(Optional.of(replay)));
     when(moderationService.getModerationReports()).thenReturn(CompletableFuture.completedFuture(List.of()));
+    when(moderationService.postModerationReport(any())).thenReturn(CompletableFuture.completedFuture(ModerationReportBeanBuilder.create().defaultValues().get()));
 
     loadFxml("theme/reporting/report_dialog.fxml", clazz -> instance);
 
@@ -79,7 +82,7 @@ public class ReportDialogControllerTest extends UITest {
   public void testOnReport() {
     instance.onReportButtonClicked();
 
-    verify(moderationService).postModerationReport(any(ModerationReport.class));
+    verify(moderationService).postModerationReport(any(ModerationReportBean.class));
     assertTrue(instance.offender.getText().isBlank());
     assertTrue(instance.reportDescription.getText().isBlank());
     assertTrue(instance.gameTime.getText().isBlank());
@@ -92,7 +95,7 @@ public class ReportDialogControllerTest extends UITest {
 
     instance.onReportButtonClicked();
 
-    verify(moderationService).postModerationReport(any(ModerationReport.class));
+    verify(moderationService).postModerationReport(any(ModerationReportBean.class));
     assertTrue(instance.offender.getText().isBlank());
     assertTrue(instance.reportDescription.getText().isBlank());
     assertTrue(instance.gameTime.getText().isBlank());

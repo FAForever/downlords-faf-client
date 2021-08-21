@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.IconCell;
@@ -55,29 +56,29 @@ public class GamesTableController implements Controller<Node> {
 
   private static final PseudoClass FRIEND_IN_GAME_PSEUDO_CLASS = PseudoClass.getPseudoClass("friendInGame");
 
-  private final ObjectProperty<Game> selectedGame = new SimpleObjectProperty<>();
+  private final ObjectProperty<GameBean> selectedGame = new SimpleObjectProperty<>();
   private final MapService mapService;
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
-  public TableView<Game> gamesTable;
-  public TableColumn<Game, Image> mapPreviewColumn;
-  public TableColumn<Game, String> gameTitleColumn;
-  public TableColumn<Game, PlayerFill> playersColumn;
-  public TableColumn<Game, Number> averageRatingColumn;
-  public TableColumn<Game, RatingRange> ratingRangeColumn;
-  public TableColumn<Game, String> modsColumn;
-  public TableColumn<Game, String> hostColumn;
-  public TableColumn<Game, Boolean> passwordProtectionColumn;
-  public TableColumn<Game, String> coopMissionName;
+  public TableView<GameBean> gamesTable;
+  public TableColumn<GameBean, Image> mapPreviewColumn;
+  public TableColumn<GameBean, String> gameTitleColumn;
+  public TableColumn<GameBean, PlayerFill> playersColumn;
+  public TableColumn<GameBean, Number> averageRatingColumn;
+  public TableColumn<GameBean, RatingRange> ratingRangeColumn;
+  public TableColumn<GameBean, String> modsColumn;
+  public TableColumn<GameBean, String> hostColumn;
+  public TableColumn<GameBean, Boolean> passwordProtectionColumn;
+  public TableColumn<GameBean, String> coopMissionName;
   private final ChangeListener<Boolean> showModdedGamesChangedListener = (observable, oldValue, newValue) -> modsColumn.setVisible(newValue);
   private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> passwordProtectionColumn.setVisible(newValue);
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
-  public ObjectProperty<Game> selectedGameProperty() {
+  public ObjectProperty<GameBean> selectedGameProperty() {
     return selectedGame;
   }
 
@@ -85,11 +86,11 @@ public class GamesTableController implements Controller<Node> {
     return gamesTable;
   }
 
-  public void initializeGameTable(ObservableList<Game> games) {
+  public void initializeGameTable(ObservableList<GameBean> games) {
     initializeGameTable(games, null, true);
   }
 
-  public void initializeGameTable(ObservableList<Game> games, Function<String, String> coopMissionNameProvider, boolean listenToFilterPreferences) {
+  public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider, boolean listenToFilterPreferences) {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
     tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -100,7 +101,7 @@ public class GamesTableController implements Controller<Node> {
       }
     });
 
-    SortedList<Game> sortedList = new SortedList<>(games);
+    SortedList<GameBean> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
     gamesTable.setPlaceholder(new Label(i18n.get("games.noGamesAvailable")));
     gamesTable.setRowFactory(param1 -> gamesRowFactory());
@@ -125,7 +126,7 @@ public class GamesTableController implements Controller<Node> {
         param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty())
     );
     playersColumn.setCellFactory(param -> playersCell());
-    ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getMinRating(), param.getValue().getMaxRating())));
+    ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getRatingMin(), param.getValue().getRatingMax())));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
@@ -158,9 +159,9 @@ public class GamesTableController implements Controller<Node> {
     }
   }
 
-  private void applyLastSorting(TableView<Game> gamesTable) {
+  private void applyLastSorting(TableView<GameBean> gamesTable) {
     final Map<String, SortType> lookup = new HashMap<>();
-    final ObservableList<TableColumn<Game, ?>> sortOrder = gamesTable.getSortOrder();
+    final ObservableList<TableColumn<GameBean, ?>> sortOrder = gamesTable.getSortOrder();
     preferencesService.getPreferences().getGameTableSorting().forEach(lookup::put);
     sortOrder.clear();
     gamesTable.getColumns().forEach(gameTableColumn -> {
@@ -171,7 +172,7 @@ public class GamesTableController implements Controller<Node> {
     });
   }
 
-  private void onColumnSorted(@NotNull SortEvent<TableView<Game>> event) {
+  private void onColumnSorted(@NotNull SortEvent<TableView<GameBean>> event) {
     ObservableMap<String, SortType> gameListSorting = preferencesService.getPreferences().getGameTableSorting();
 
     gameListSorting.clear();
@@ -182,7 +183,7 @@ public class GamesTableController implements Controller<Node> {
   }
 
   @NotNull
-  private ObservableValue<String> modCell(CellDataFeatures<Game, String> param) {
+  private ObservableValue<String> modCell(CellDataFeatures<GameBean, String> param) {
     Map<String, String> simMods = param.getValue().getSimMods();
     int simModCount = simMods.size();
     List<String> modNames;
@@ -196,10 +197,10 @@ public class GamesTableController implements Controller<Node> {
   }
 
   @NotNull
-  private TableRow<Game> gamesRowFactory() {
-    TableRow<Game> row = new TableRow<>() {
+  private TableRow<GameBean> gamesRowFactory() {
+    TableRow<GameBean> row = new TableRow<>() {
       @Override
-      protected void updateItem(Game game, boolean empty) {
+      protected void updateItem(GameBean game, boolean empty) {
         super.updateItem(game, empty);
         if (empty || game == null) {
           setTooltip(null);
@@ -213,7 +214,7 @@ public class GamesTableController implements Controller<Node> {
     };
     row.setOnMouseClicked(event -> {
       if (event.getClickCount() == 2) {
-        Game game = row.getItem();
+        GameBean game = row.getItem();
         joinGameHelper.join(game);
       }
     });
@@ -221,7 +222,7 @@ public class GamesTableController implements Controller<Node> {
       if (row.getItem() == null) {
         return;
       }
-      Game game = row.getItem();
+      GameBean game = row.getItem();
       gameTooltipController.setGame(game);
       if (tooltip.isShowing()) {
         gameTooltipController.displayGame();
@@ -230,17 +231,17 @@ public class GamesTableController implements Controller<Node> {
     return row;
   }
 
-  private TableCell<Game, Boolean> passwordIndicatorColumn() {
+  private TableCell<GameBean, Boolean> passwordIndicatorColumn() {
     return new IconCell<>(
         isPasswordProtected -> isPasswordProtected ? "lock-icon" : "");
   }
 
-  private TableCell<Game, PlayerFill> playersCell() {
+  private TableCell<GameBean, PlayerFill> playersCell() {
     return new StringCell<>(playerFill -> i18n.get("game.players.format",
         playerFill.getPlayers(), playerFill.getMaxPlayers()));
   }
 
-  private TableCell<Game, RatingRange> ratingTableCell() {
+  private TableCell<GameBean, RatingRange> ratingTableCell() {
     return new StringCell<>(ratingRange -> {
       if (ratingRange.getMin() == null && ratingRange.getMax() == null) {
         return "";

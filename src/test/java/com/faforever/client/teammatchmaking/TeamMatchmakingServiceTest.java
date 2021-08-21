@@ -1,22 +1,31 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.game.GameBuilder;
-import com.faforever.client.game.GameLaunchMessageTestBuilder;
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.GameLaunchMessageBuilder;
+import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
+import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
+import com.faforever.client.domain.PartyBean.PartyMember;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
+import com.faforever.client.mapstruct.MapperSetup;
+import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
-import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
-import com.faforever.client.teammatchmaking.Party.PartyMember;
+import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.dto.Leaderboard;
+import com.faforever.commons.api.dto.MatchmakerQueue;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.LobbyMode;
@@ -34,9 +43,11 @@ import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.scheduling.TaskScheduler;
+import reactor.core.publisher.Flux;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -48,9 +59,12 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
+import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -65,7 +79,9 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private FafService fafService;
+  private FafServerAccessor fafServerAccessor;
+  @Mock
+  private FafApiAccessor fafApiAccessor;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -77,22 +93,24 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Mock
   private CompletableFuture<Void> matchmakingFuture;
 
-  private Player player;
-  private Player otherPlayer;
+  private PlayerBean player;
+  private PlayerBean otherPlayer;
   private TeamMatchmakingService instance;
+  private final MatchmakerMapper matchmakerMapper = Mappers.getMapper(MatchmakerMapper.class);
 
 
   @BeforeEach
   public void setUp() throws Exception {
-    player = PlayerBuilder.create("junit").defaultValues().get();
-    otherPlayer = PlayerBuilder.create("junit2").defaultValues().id(2).get();
-    List<Player> playerList = new ArrayList<>();
+    MapperSetup.injectMappers(matchmakerMapper);
+    player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    otherPlayer = PlayerBeanBuilder.create().defaultValues().username("junit2").id(2).get();
+    List<PlayerBean> playerList = new ArrayList<>();
     playerList.add(player);
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     when(gameService.startSearchMatchmaker()).thenReturn(matchmakingFuture);
     instance = new TeamMatchmakingService(playerService, notificationService, preferencesService,
-        fafService, eventBus, i18n, taskScheduler, gameService);
+        fafApiAccessor, fafServerAccessor, eventBus, i18n, taskScheduler, gameService, matchmakerMapper);
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);
@@ -100,9 +118,9 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   private void setPartyMembers() {
     ObservableList<PartyMember> testMembers = FXCollections.observableArrayList();
-    testMembers.add(new PartyMember(new Player("member1")));
-    testMembers.add(new PartyMember(new Player("member2")));
-    testMembers.add(new PartyMember(new Player("member3")));
+    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member1").get()).get());
+    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member2").get()).get());
+    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member3").get()).get());
     testMembers.add(new PartyMember(player));
     instance.getParty().setMembers(testMembers);
     instance.getParty().setOwner(player);
@@ -147,7 +165,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   public void testOnKickedFromPartyMessageWhenInGame() {
     setPartyMembers();
     setOwnerByName("member2");
-    player.setGame(GameBuilder.create().defaultValues().get());
+    player.setGame(GameBeanBuilder.create().defaultValues().get());
 
     instance.onPartyKicked(new PartyKick());
 
@@ -199,10 +217,10 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     verify(gameService, never()).startSearchMatchmaker();
 
-    MatchmakingQueue testQueue = new MatchmakingQueue();
+    MatchmakerQueueBean testQueue = new MatchmakerQueueBean();
     testQueue.setTechnicalName("testQueue");
     testQueue.setJoined(false);
-    instance.getMatchmakingQueues().add(testQueue);
+    instance.getMatchmakerQueues().add(testQueue);
 
     SearchInfo message2 = new SearchInfo("testQueue", MatchmakerState.START);
 
@@ -222,20 +240,20 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     ArgumentCaptor<TransientNotification> captor = ArgumentCaptor.forClass(TransientNotification.class);
     verify(notificationService).addNotification(captor.capture());
-    assertThat(instance.getMatchmakingQueues().get(0).getMatchingStatus(), is(MatchingStatus.MATCH_FOUND));
-    assertThat(instance.getMatchmakingQueues().get(1).getMatchingStatus(), is(nullValue()));
+    assertThat(instance.getMatchmakerQueues().get(0).getMatchingStatus(), is(MatchingStatus.MATCH_FOUND));
+    assertThat(instance.getMatchmakerQueues().get(1).getMatchingStatus(), is(nullValue()));
     assertThat(instance.isCurrentlyInQueue(), is(false));
   }
 
   private void setTwoQueues() {
-    instance.getMatchmakingQueues().clear();
-    MatchmakingQueue queue1 = new MatchmakingQueue();
+    instance.getMatchmakerQueues().clear();
+    MatchmakerQueueBean queue1 = new MatchmakerQueueBean();
     queue1.setJoined(true);
     queue1.setTechnicalName("queue1");
-    MatchmakingQueue queue2 = new MatchmakingQueue();
+    MatchmakerQueueBean queue2 = new MatchmakerQueueBean();
     queue2.setJoined(true);
     queue2.setTechnicalName("queue2");
-    instance.getMatchmakingQueues().addAll(queue1, queue2);
+    instance.getMatchmakerQueues().addAll(queue1, queue2);
   }
 
   @Test
@@ -244,34 +262,35 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.onMatchCancelledMessage(new MatchmakerMatchCancelledResponse());
 
-    assertThat(instance.getMatchmakingQueues().get(0).getMatchingStatus(), is(MatchingStatus.MATCH_CANCELLED));
-    assertThat(instance.getMatchmakingQueues().get(1).getMatchingStatus(), is(nullValue()));
+    assertThat(instance.getMatchmakerQueues().get(0).getMatchingStatus(), is(MatchingStatus.MATCH_CANCELLED));
+    assertThat(instance.getMatchmakerQueues().get(1).getMatchingStatus(), is(nullValue()));
   }
 
   @Test
   public void testOnGameLaunchMessage() {
     testOnMatchFoundMessage();
-    GameLaunchResponse message = GameLaunchMessageTestBuilder.create().defaultValues().initMode(LobbyMode.AUTO_LOBBY).get();
+    GameLaunchResponse message = GameLaunchMessageBuilder.create().defaultValues().initMode(LobbyMode.AUTO_LOBBY).get();
 
     instance.onGameLaunchMessage(message);
 
-    assertThat(instance.getMatchmakingQueues().get(0).getMatchingStatus(), is(MatchingStatus.GAME_LAUNCHING));
-    assertThat(instance.getMatchmakingQueues().get(1).getMatchingStatus(), is(nullValue()));
+    assertThat(instance.getMatchmakerQueues().get(0).getMatchingStatus(), is(MatchingStatus.GAME_LAUNCHING));
+    assertThat(instance.getMatchmakerQueues().get(1).getMatchingStatus(), is(nullValue()));
   }
 
   @Test
   public void testOnMatchmakerInfoMessage() {
-    instance.getMatchmakingQueues().clear();
-    MatchmakingQueue queue1 = new MatchmakingQueue();
+    instance.getMatchmakerQueues().clear();
+    MatchmakerQueueBean queue1 = MatchmakerQueueBeanBuilder.create().defaultValues().get();
     queue1.setTechnicalName("queue1");
-    instance.getMatchmakingQueues().add(queue1);
-    when(fafService.getMatchmakingQueue("queue2")).thenReturn(CompletableFuture.completedFuture(Optional.of(new MatchmakingQueue())));
+    instance.getMatchmakerQueues().add(queue1);
+    MatchmakerQueue matchmakerQueue = new MatchmakerQueue().setLeaderboard(new Leaderboard().setId("1"));
+    matchmakerQueue.setId("2");
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(matchmakerQueue));
 
     instance.onMatchmakerInfo(createMatchmakerInfoMessage());
 
-    verify(fafService, never()).getMatchmakingQueue("queue1");
-    verify(fafService).getMatchmakingQueue("queue2");
-    assertThat(instance.getMatchmakingQueues().size(), is(2));
+    verify(fafApiAccessor, never()).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("queue1"))));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("queue2"))));
   }
 
   @NotNull
@@ -292,7 +311,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.invitePlayer("invitee");
 
-    verify(fafService).inviteToParty(otherPlayer);
+    verify(fafServerAccessor).inviteToParty(otherPlayer);
 
 
     instance.currentlyInQueueProperty().set(true);
@@ -309,7 +328,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.acceptPartyInvite(player);
 
-    verify(fafService).acceptPartyInvite(player);
+    verify(fafServerAccessor).acceptPartyInvite(player);
     verify(eventBus).post(new OpenTeamMatchmakingEvent());
 
 
@@ -327,16 +346,14 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   public void testKickPlayer() {
     instance.kickPlayerFromParty(otherPlayer);
 
-    verify(fafService).kickPlayerFromParty(otherPlayer);
+    verify(fafServerAccessor).kickPlayerFromParty(otherPlayer);
   }
 
   @Test
   public void testLeaveParty() {
-
     instance.leaveParty();
 
-
-    verify(fafService).leaveParty();
+    verify(fafServerAccessor).leaveParty();
     assertThat(instance.getParty().getMembers().size(), is(1));
     assertThat(instance.getParty().getOwner(), is(player));
     assertThat(instance.partyMembersNotReady(), is(false));
@@ -348,23 +365,23 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.sendFactionSelection(factions);
 
-    verify(fafService).setPartyFactions(factions);
+    verify(fafServerAccessor).setPartyFactions(factions);
   }
 
   @Test
   public void testJoinQueue() {
-    MatchmakingQueue queue = new MatchmakingQueue();
+    MatchmakerQueueBean queue = new MatchmakerQueueBean();
 
     Boolean success = instance.joinQueue(queue);
 
-    verify(fafService).updateMatchmakerState(queue, MatchmakerState.START);
+    verify(fafServerAccessor).gameMatchmaking(queue, MatchmakerState.START);
     assertThat(success, is(true));
   }
 
   @Test
   public void testJoinQueueWhileGameRunning() {
     when(gameService.isGameRunning()).thenReturn(true);
-    MatchmakingQueue queue = new MatchmakingQueue();
+    MatchmakerQueueBean queue = new MatchmakerQueueBean();
 
     Boolean success = instance.joinQueue(queue);
 
@@ -375,10 +392,10 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   @Test
   public void testLeaveQueue() {
-    MatchmakingQueue queue = new MatchmakingQueue();
+    MatchmakerQueueBean queue = new MatchmakerQueueBean();
 
     instance.leaveQueue(queue);
 
-    verify(fafService).updateMatchmakerState(queue, MatchmakerState.STOP);
+    verify(fafServerAccessor).gameMatchmaking(queue, MatchmakerState.STOP);
   }
 }

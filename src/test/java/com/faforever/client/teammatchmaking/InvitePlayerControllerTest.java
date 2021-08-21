@@ -1,6 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
-import com.faforever.client.player.PlayerBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -31,7 +31,7 @@ public class InvitePlayerControllerTest extends UITest {
     when(playerService.getPlayerNames())
         .thenReturn(Set.of("axel12", "TrustTheFall", "nInPrisonForWhat", "Sheikah"));
     when(playerService.getCurrentPlayer())
-        .thenReturn(PlayerBuilder.create("axel12").defaultValues().get());
+        .thenReturn(PlayerBeanBuilder.create().defaultValues().username("axel12").get());
     instance = new InvitePlayerController(playerService, uiService, teamMatchmakingService);
     loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml", clazz -> instance);
   }

@@ -1,21 +1,22 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.avatar.AvatarBean;
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
-import com.faforever.client.game.Game;
-import com.faforever.client.game.GameBuilder;
+import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportDialogController;
@@ -87,7 +88,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
   private ReportDialogController reportDialogController;
 
   private ChatUserContextMenuController instance;
-  private Player player;
+  private PlayerBean player;
   private ChatChannelUser chatUser;
 
   @BeforeEach
@@ -100,18 +101,17 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(avatarService.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(Arrays.asList(
-        new AvatarBean(new URL("http://www.example.com/avatar1.png"), "Avatar Number #1"),
-        new AvatarBean(new URL("http://www.example.com/avatar2.png"), "Avatar Number #2"),
-        new AvatarBean(new URL("http://www.example.com/avatar3.png"), "Avatar Number #3")
+        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar1.png")).description("Avatar Number #1").get(),
+        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar2.png")).description("Avatar Number #2").get(),
+        AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar3.png")).description("Avatar Number #3").get()
     )));
-    when(moderatorService.getPermissions())
-        .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
+    when(moderatorService.getPermissions()).thenReturn(Collections.emptySet());
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
 
 
     loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
 
-    player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
+    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
     chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().player(player).get();
 
     runOnFxThreadAndWait(() -> instance.setChatUser(chatUser));
@@ -119,8 +119,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testKickContextMenuNotShownForNormalUser() {
-    when(moderatorService.getPermissions())
-        .thenReturn(CompletableFuture.completedFuture(Collections.emptySet()));
+    when(moderatorService.getPermissions()).thenReturn(Collections.emptySet());
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -142,8 +141,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Test
   public void testKickContextMenuShownForModWithKickPermissions() {
     Set<String> permissions = Sets.newHashSet(GroupPermission.ADMIN_KICK_SERVER);
-    when(moderatorService.getPermissions())
-        .thenReturn(CompletableFuture.completedFuture(permissions));
+    when(moderatorService.getPermissions()).thenReturn(permissions);
     player.setSocialStatus(FOE);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -162,7 +160,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testJoinGameContextMenuShownForHostingUser() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
@@ -174,7 +172,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testJoinGameContextMenuNotShownForMatchmakerPlayer() {
-    Game game = GameBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).status(GameStatus.OPEN).host(player.getUsername()).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).status(GameStatus.OPEN).host(player.getUsername()).get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
@@ -195,7 +193,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testInviteContextMenuNotShownForHostingUser() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
@@ -207,7 +205,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testInviteContextMenuNotShownForLobbyingUser() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host("otherPlayer").get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host("otherPlayer").get();
 
     player.setSocialStatus(OTHER);
     player.setGame(game);
@@ -219,7 +217,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testInviteContextMenuNotShownForPlayingUser() {
-    Game game = new Game();
+    GameBean game = new GameBean();
     game.setFeaturedMod(KnownFeaturedMod.FAF.getTechnicalName());
     game.setStatus(GameStatus.PLAYING);
     game.setHost(player.getUsername());
@@ -311,7 +309,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testOnWatchGame() {
-    runOnFxThreadAndWait(() -> player.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get()));
+    runOnFxThreadAndWait(() -> player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()));
     instance.onWatchGameSelected();
 
     verify(replayService).runLiveReplay(player.getGame().getId());
@@ -320,7 +318,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Test
   public void testOnWatchGameThrowsIoExceptionTriggersNotification() {
     doThrow(new RuntimeException("Error in runLiveReplay")).when(replayService).runLiveReplay(anyInt());
-    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
 
     instance.onWatchGameSelected();
 

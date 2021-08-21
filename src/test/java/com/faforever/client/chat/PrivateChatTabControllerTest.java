@@ -1,17 +1,18 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
@@ -92,9 +93,8 @@ public class PrivateChatTabControllerTest extends UITest {
         i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,
         audioService, chatService, webViewConfigurer, countryFlagService, chatUserService);
 
-
-    playerName = "testUser";
-    Player player = new Player(playerName);
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    playerName = player.getUsername();
 
     when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
     when(userService.getUsername()).thenReturn(playerName);

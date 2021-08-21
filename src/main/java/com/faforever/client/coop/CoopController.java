@@ -1,12 +1,13 @@
 package com.faforever.client.coop;
 
+import com.faforever.client.domain.CoopMissionBean;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WebViewConfigurer;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
@@ -69,7 +70,7 @@ import static javafx.collections.FXCollections.observableList;
 @RequiredArgsConstructor
 public class CoopController extends AbstractViewController<Node> {
 
-  private static final Predicate<Game> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
+  private static final Predicate<GameBean> OPEN_COOP_GAMES_PREDICATE = gameInfoBean ->
       gameInfoBean.getStatus() == GameStatus.OPEN && gameInfoBean.getGameType() == GameType.COOP;
 
   private final ReplayService replayService;
@@ -85,7 +86,7 @@ public class CoopController extends AbstractViewController<Node> {
   private final ModService modService;
 
   public Node coopRoot;
-  public ComboBox<CoopMission> missionComboBox;
+  public ComboBox<CoopMissionBean> missionComboBox;
   public ImageView mapImageView;
   public WebView descriptionWebView;
   public Pane gameViewContainer;
@@ -141,9 +142,9 @@ public class CoopController extends AbstractViewController<Node> {
     descriptionWebView.getEngine().loadContent("<html></html>");
     webViewConfigurer.configureWebView(descriptionWebView);
 
-    ObservableList<Game> games = gameService.getGames();
+    ObservableList<GameBean> games = gameService.getGames();
 
-    FilteredList<Game> filteredItems = new FilteredList<>(games);
+    FilteredList<GameBean> filteredItems = new FilteredList<>(games);
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
     coopService.getMissions().thenAccept(coopMaps -> {
@@ -159,7 +160,7 @@ public class CoopController extends AbstractViewController<Node> {
         populateContainer(root);
       });
 
-      SingleSelectionModel<CoopMission> selectionModel = missionComboBox.getSelectionModel();
+      SingleSelectionModel<CoopMissionBean> selectionModel = missionComboBox.getSelectionModel();
       if (selectionModel.isEmpty()) {
         JavaFxUtil.runLater(selectionModel::selectFirst);
       }
@@ -169,8 +170,8 @@ public class CoopController extends AbstractViewController<Node> {
     });
   }
 
-  private String coopMissionFromFolderNamer(List<CoopMission> coopMaps, String mapFolderName) {
-    Optional<CoopMission> first = coopMaps.stream()
+  private String coopMissionFromFolderNamer(List<CoopMissionBean> coopMaps, String mapFolderName) {
+    Optional<CoopMissionBean> first = coopMaps.stream()
         .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
         .findFirst();
     if (first.isPresent()) {
@@ -204,8 +205,8 @@ public class CoopController extends AbstractViewController<Node> {
     });
   }
 
-  private ListCell<CoopMission> missionListCell() {
-    return new StringListCell<>(CoopMission::getName,
+  private ListCell<CoopMissionBean> missionListCell() {
+    return new StringListCell<>(CoopMissionBean::getName,
         mission -> {
           Label label = new Label();
           Region iconRegion = new Region();
@@ -242,11 +243,11 @@ public class CoopController extends AbstractViewController<Node> {
         });
   }
 
-  private CoopMission getSelectedMission() {
+  private CoopMissionBean getSelectedMission() {
     return missionComboBox.getSelectionModel().getSelectedItem();
   }
 
-  private void setSelectedMission(CoopMission mission) {
+  private void setSelectedMission(CoopMissionBean mission) {
     JavaFxUtil.runLater(() -> {
       descriptionWebView.getEngine().loadContent(mission.getDescription());
       mapImageView.setImage(mapService.loadPreview(mission.getMapFolderName(), PreviewSize.SMALL));

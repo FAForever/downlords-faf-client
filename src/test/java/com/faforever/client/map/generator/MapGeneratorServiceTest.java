@@ -1,9 +1,9 @@
 package com.faforever.client.map.generator;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.MapGenerator;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;

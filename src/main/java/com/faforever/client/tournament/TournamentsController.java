@@ -1,6 +1,7 @@
 package com.faforever.client.tournament;
 
 
+import com.faforever.client.domain.TournamentBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;

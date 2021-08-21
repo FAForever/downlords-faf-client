@@ -1,15 +1,18 @@
 package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.LeaderboardBeanBuilder;
+import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
+import com.faforever.client.builders.LeaderboardRatingMapBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatChannelUserBuilder;
 import com.faforever.client.chat.ChatUserService;
-import com.faforever.client.game.GameBuilder;
+import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.Leaderboard;
-import com.faforever.client.leaderboard.LeaderboardBuilder;
-import com.faforever.client.leaderboard.LeaderboardRatingBuilder;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.vault.replay.WatchButtonController;
@@ -52,14 +55,14 @@ public class PrivatePlayerInfoControllerTest extends UITest {
 
 
   private PrivatePlayerInfoController instance;
-  private Player player;
+  private PlayerBean player;
   private ChatChannelUser chatChannelUser;
-  private Leaderboard leaderboard;
+  private LeaderboardBean leaderboard;
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = LeaderboardBuilder.create().defaultValues().technicalName("global").get();
-    player = PlayerBuilder.create("junit").defaultValues().game(null).get();
+    leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
+    player = PlayerBeanBuilder.create().defaultValues().game(null).get();
     chatChannelUser = ChatChannelUserBuilder.create("junit").defaultValues().displayed(false).player(player).get();
 
     when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of()));
@@ -86,6 +89,8 @@ public class PrivatePlayerInfoControllerTest extends UITest {
 
   @Test
   public void testSetChatUserWithPlayerNoGame() {
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
+
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -110,7 +115,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
 
   @Test
   public void testSetChatUserWithPlayerWithGame() {
-    player.setGame(GameBuilder.create().defaultValues().get());
+    player.setGame(GameBeanBuilder.create().defaultValues().get());
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -126,7 +131,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     assertFalse(instance.gameDetailWrapper.isVisible());
     verify(gameDetailController, times(2)).setGame(player.getGame());
 
-    player.setGame(GameBuilder.create().defaultValues().get());
+    player.setGame(GameBeanBuilder.create().defaultValues().get());
 
     assertTrue(instance.gameDetailWrapper.isVisible());
     verify(gameDetailController, times(1)).setGame(player.getGame());
@@ -135,7 +140,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   @Test
   public void testSetChatUserLeavesGame() {
     instance.setChatUser(chatChannelUser);
-    player.setGame(GameBuilder.create().defaultValues().get());
+    player.setGame(GameBeanBuilder.create().defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.gameDetailWrapper.isVisible());
@@ -152,7 +157,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
-    player.getLeaderboardRatings().put("test", LeaderboardRatingBuilder.create().defaultValues().get());
+    player.getLeaderboardRatings().put("test", LeaderboardRatingBeanBuilder.create().defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(leaderboardService, times(2)).getLeaderboards();
@@ -191,6 +196,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     assertFalse(instance.unlockedAchievementsLabelLabel.isVisible());
     verify(gameDetailController, times(2)).setGame(null);
 
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
     chatChannelUser.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
 

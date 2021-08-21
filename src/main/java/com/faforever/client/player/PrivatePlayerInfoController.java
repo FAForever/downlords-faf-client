@@ -3,12 +3,13 @@ package com.faforever.client.player;
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatUserService;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
@@ -131,14 +132,14 @@ public class PrivatePlayerInfoController implements Controller<Node> {
       userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
       userImageView.setVisible(true);
 
-      JavaFxUtil.addAndTriggerListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(ratingInvalidationListener));
+      JavaFxUtil.addAndTriggerListener(player.getLeaderboardRatings(), new WeakInvalidationListener(ratingInvalidationListener));
       JavaFxUtil.addAndTriggerListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
 
       populateUnlockedAchievementsLabel(player);
     }, this::displayChatUserInfo);
   }
 
-  private void populateUnlockedAchievementsLabel(Player player) {
+  private void populateUnlockedAchievementsLabel(PlayerBean player) {
     achievementService.getAchievementDefinitions()
         .thenApply(achievementDefinitions -> {
           int totalAchievements = achievementDefinitions.size();
@@ -159,17 +160,17 @@ public class PrivatePlayerInfoController implements Controller<Node> {
         });
   }
 
-  private void onPlayerGameChanged(Game newGame) {
+  private void onPlayerGameChanged(GameBean newGame) {
     gameDetailController.setGame(newGame);
     gameDetailWrapper.setVisible(newGame != null);
   }
 
-  private void loadReceiverRatingInformation(Player player) {
+  private void loadReceiverRatingInformation(PlayerBean player) {
     leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
       StringBuilder ratingNames = new StringBuilder();
       StringBuilder ratingNumbers = new StringBuilder();
       leaderboards.forEach(leaderboard -> {
-        LeaderboardRating leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
+        LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
         if (leaderboardRating != null) {
           String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
           ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n\n");

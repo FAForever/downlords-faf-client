@@ -1,5 +1,7 @@
 package com.faforever.client.tutorial;
 
+import com.faforever.client.domain.TutorialBean;
+import com.faforever.client.domain.TutorialCategoryBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.NavigateEvent;
@@ -57,7 +59,7 @@ public class TutorialController extends AbstractViewController<Node> {
     loadingSpinner.setVisible(loading);
   }
 
-  private void displayTutorials(List<TutorialCategory> categories) {
+  private void displayTutorials(List<TutorialCategoryBean> categories) {
     JavaFxUtil.runLater(() -> {
       if (categories.isEmpty()) {
         setLoading(false);
@@ -81,7 +83,7 @@ public class TutorialController extends AbstractViewController<Node> {
     nothingToShow.setVisible(activate);
   }
 
-  private void addTutorials(List<Tutorial> tutorials) {
+  private void addTutorials(List<TutorialBean> tutorials) {
     tutorials.forEach(tutorial -> {
       TutorialListItemController tutorialListItemController = uiService.loadFxml("theme/tutorial_list_item.fxml");
       tutorialListItemController.setTutorial(tutorial);
@@ -98,7 +100,7 @@ public class TutorialController extends AbstractViewController<Node> {
     tutorialDetailController.setTutorial(tutorialListItemController.getTutorial());
   }
 
-  private void addCategory(TutorialCategory category) {
+  private void addCategory(TutorialCategoryBean category) {
     TutorialCategoryListItemController tutorialCategoryListItemController = uiService.loadFxml("theme/tutorial_category_list_item.fxml");
     tutorialCategoryListItemController.setCategory(category);
     tutorialOverviewPane.getChildren().add(tutorialCategoryListItemController.getRoot());

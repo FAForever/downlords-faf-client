@@ -1,5 +1,6 @@
 package com.faforever.client.map;
 
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.io.FileUtils;
 import com.faforever.client.task.CompletableTask;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ public class UninstallMapTask extends CompletableTask<Void> {
 
   private final MapService mapService;
 
-  private MapBean map;
+  private MapVersionBean map;
 
   @Inject
   public UninstallMapTask(MapService mapService) {
@@ -26,7 +27,7 @@ public class UninstallMapTask extends CompletableTask<Void> {
     this.mapService = mapService;
   }
 
-  public void setMap(MapBean map) {
+  public void setMap(MapVersionBean map) {
     this.map = map;
   }
 

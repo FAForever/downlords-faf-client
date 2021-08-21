@@ -1,11 +1,12 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
@@ -57,7 +58,7 @@ public class ModUploadControllerTest extends UITest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private FafService fafService;
+  private FafApiAccessor fafApiAccessor;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -68,7 +69,7 @@ public class ModUploadControllerTest extends UITest {
       return null;
     }).when(executorService).execute(any());
 
-    modUploadTask = new ModUploadTask(preferencesService, fafService, i18n) {
+    modUploadTask = new ModUploadTask(preferencesService, fafApiAccessor, i18n) {
       @Override
       protected Void call() {
         return null;
@@ -80,7 +81,7 @@ public class ModUploadControllerTest extends UITest {
 
   @Test
   public void testSetModPath() {
-    when(modService.extractModInfo(any())).thenReturn(new ModVersion());
+    when(modService.extractModInfo(any())).thenReturn(new ModVersionBean());
 
     instance.setModPath(modFolder);
 

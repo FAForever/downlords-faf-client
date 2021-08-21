@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.game.Game;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
@@ -80,7 +80,7 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   @Override
-  public CompletableFuture<Integer> start(int gameId, Supplier<Game> gameSupplier) {
+  public CompletableFuture<Integer> start(int gameId, Supplier<GameBean> gameSupplier) {
     stoppedGracefully = false;
     CompletableFuture<Integer> future = new CompletableFuture<>();
     new Thread(() -> {
@@ -130,9 +130,9 @@ public class ReplayServerImpl implements ReplayServer {
   /**
    * @param fafReplayOutputStream if {@code null}, the replay won't be relayed
    */
-  private void recordAndRelay(int uid, ServerSocket serverSocket, @Nullable OutputStream fafReplayOutputStream, Supplier<Game> onGameInfoFinished) throws IOException {
+  private void recordAndRelay(int uid, ServerSocket serverSocket, @Nullable OutputStream fafReplayOutputStream, Supplier<GameBean> onGameInfoFinished) throws IOException {
     Socket socket = serverSocket.accept();
-    Game game = onGameInfoFinished.get();
+    GameBean game = onGameInfoFinished.get();
     log.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
 
     initReplayInfo(uid);
@@ -171,7 +171,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }
 
-  private void finishReplayInfo(Game game) {
+  private void finishReplayInfo(GameBean game) {
     replayInfo.setHost(game.getHost());
     replayInfo.setUid(game.getId());
     replayInfo.setTitle(game.getTitle());

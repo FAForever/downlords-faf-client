@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -43,7 +44,7 @@ public class FriendOnlineNotifierTest extends ServiceTest {
     preferencesService.getPreferences().getNotification().setFriendOnlineSoundEnabled(false);
     preferencesService.getPreferences().getNotification().setFriendOnlineToastEnabled(false);
 
-    instance.onPlayerOnline(new PlayerOnlineEvent(new Player("axel12")));
+    instance.onPlayerOnline(new PlayerOnlineEvent(PlayerBeanBuilder.create().defaultValues().username("axel12").get()));
 
     Mockito.verifyZeroInteractions(notificationService, audioService);
   }

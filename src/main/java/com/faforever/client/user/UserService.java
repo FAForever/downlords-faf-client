@@ -1,5 +1,6 @@
 package com.faforever.client.user;
 
+import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.api.TokenService;
 import com.faforever.client.config.ClientProperties;
@@ -11,7 +12,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
@@ -20,6 +21,7 @@ import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +45,8 @@ public class UserService implements InitializingBean, DisposableBean {
   private final ObjectProperty<Player> ownPlayer = new SimpleObjectProperty<>();
 
   private final ClientProperties clientProperties;
-  private final FafService fafService;
+  private final FafServerAccessor fafServerAccessor;
+  private final FafApiAccessor fafApiAccessor;
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final TokenService tokenService;
@@ -96,8 +99,8 @@ public class UserService implements InitializingBean, DisposableBean {
   }
 
   private CompletableFuture<Void> loginToApi() {
-    return CompletableFuture.runAsync(fafService::authorizeApi)
-        .thenCompose(aVoid -> fafService.getCurrentUser())
+    return CompletableFuture.runAsync(fafApiAccessor::authorize)
+        .thenCompose(aVoid -> fafApiAccessor.getMe().toFuture())
         .thenAccept(me -> {
           if (getOwnUser() == null) {
             ownUser.set(me);
@@ -113,11 +116,11 @@ public class UserService implements InitializingBean, DisposableBean {
   }
 
   private CompletableFuture<Void> loginToLobbyServer() {
-    ConnectionState lobbyConnectionState = fafService.getLobbyConnectionState();
+    ConnectionState lobbyConnectionState = fafServerAccessor.getConnectionState();
     if (lobbyConnectionState == ConnectionState.CONNECTED || lobbyConnectionState == ConnectionState.CONNECTING) {
       return CompletableFuture.completedFuture(null);
     }
-    return fafService.connectToServer()
+    return fafServerAccessor.connectAndLogIn()
         .handle((loginMessage, throwable) -> {
           if (throwable != null) {
             log.error("Could not log into the server", throwable);
@@ -151,7 +154,7 @@ public class UserService implements InitializingBean, DisposableBean {
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     loginPrefs.setRefreshToken(null);
     preferencesService.storeInBackground();
-    fafService.disconnect();
+    fafServerAccessor.disconnect();
     ownUser.set(null);
     ownPlayer.set(null);
     eventBus.post(new LoggedOutEvent());
@@ -178,5 +181,17 @@ public class UserService implements InitializingBean, DisposableBean {
 
   public Player getOwnPlayer() {
     return ownPlayer.get();
+  }
+
+  public ConnectionState getConnectionState() {
+    return fafServerAccessor.getConnectionState();
+  }
+
+  public ReadOnlyObjectProperty<ConnectionState> connectionStateProperty() {
+    return fafServerAccessor.connectionStateProperty();
+  }
+
+  public void reconnectToLobby() {
+    fafServerAccessor.reconnect();
   }
 }

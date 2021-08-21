@@ -1,11 +1,11 @@
 package com.faforever.client.update;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;

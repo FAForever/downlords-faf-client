@@ -250,14 +250,13 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   }
 
   protected void displaySearchResult(List<T> results) {
-    JavaFxUtil.assertBackgroundThread();
     populate(results, searchResultPane);
     JavaFxUtil.runLater(this::enterResultState);
   }
 
   protected void displayFromSupplier(Supplier<CompletableFuture<Tuple2<List<T>, Integer>>> supplier, boolean firstLoad) {
     supplier.get()
-        .thenAccept(tuple -> {
+        .thenAcceptAsync(tuple -> {
           displaySearchResult(tuple.getT1());
           if (firstLoad) {
             //when theres no search results the page count should be 1, 0 (which is returned) results in infinite pages

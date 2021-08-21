@@ -1,5 +1,7 @@
 package com.faforever.client.map;
 
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -11,7 +13,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.vault.VaultEntityController;
@@ -38,14 +39,14 @@ import java.util.Random;
 // TODO I'd like to avoid the additional "getMost*" methods and always use the map query function instead, however,
 // this is currently not viable since Elide can't yet sort by relationship attributes. Once it supports that
 // (see https://github.com/yahoo/elide/issues/353), this can be refactored.
-public class MapVaultController extends VaultEntityController<MapBean> {
+public class MapVaultController extends VaultEntityController<MapVersionBean> {
 
   private final MapService mapService;
   private final EventBus eventBus;
 
   private MapDetailController mapDetailController;
   private Integer recommendedShowRoomPageCount;
-  private MatchmakingQueue matchmakingQueue;
+  private MatchmakerQueueBean matchmakerQueue;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService) {
@@ -92,9 +93,9 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   }
 
   @Override
-  protected void onDisplayDetails(MapBean mapBean) {
+  protected void onDisplayDetails(MapVersionBean mapBean) {
     JavaFxUtil.assertApplicationThread();
-    mapDetailController.setMap(mapBean);
+    mapDetailController.setMapVersion(mapBean);
     mapDetailController.getRoot().setVisible(true);
     mapDetailController.getRoot().requestFocus();
   }
@@ -106,14 +107,14 @@ public class MapVaultController extends VaultEntityController<MapBean> {
       case NEWEST -> currentSupplier = mapService.getNewestMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case HIGHEST_RATED -> currentSupplier = mapService.getHighestRatedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case PLAYED -> currentSupplier = mapService.getMostPlayedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case MAP_POOL -> currentSupplier = mapService.getMatchmakerMapsWithPageCount(matchmakingQueue, pageSize, pagination.getCurrentPageIndex() + 1);
+      case MAP_POOL -> currentSupplier = mapService.getMatchmakerMapsWithPageCount(matchmakerQueue, pageSize, pagination.getCurrentPageIndex() + 1);
       case OWN -> currentSupplier = mapService.getOwnedMapsWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
 
-  protected Node getEntityCard(MapBean map) {
+  protected Node getEntityCard(MapVersionBean map) {
     MapCardController controller = uiService.loadFxml("theme/vault/map/map_card.fxml");
-    controller.setMap(map);
+    controller.setMapVersion(map);
     controller.setOnOpenDetailListener(this::onDisplayDetails);
     return controller.getRoot();
   }
@@ -170,7 +171,7 @@ public class MapVaultController extends VaultEntityController<MapBean> {
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
     if (navigateEvent instanceof ShowMapPoolEvent) {
-      matchmakingQueue = ((ShowMapPoolEvent) navigateEvent).getQueue();
+      matchmakerQueue = ((ShowMapPoolEvent) navigateEvent).getQueue();
       searchType = SearchType.MAP_POOL;
       onPageChange(null, true);
     } else {

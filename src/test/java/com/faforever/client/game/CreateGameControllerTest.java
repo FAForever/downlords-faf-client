@@ -1,23 +1,28 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.FeaturedModBeanBuilder;
+import com.faforever.client.builders.MapBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.builders.ModBeanBuilder;
+import com.faforever.client.builders.ModVersionBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.MapBean;
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.map.MapBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.mod.ModVersion;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
+import com.faforever.client.user.UserService;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -83,7 +88,7 @@ public class CreateGameControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private FafService fafService;
+  private UserService userService;
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
@@ -95,11 +100,11 @@ public class CreateGameControllerTest extends UITest {
 
   private Preferences preferences;
   private CreateGameController instance;
-  private ObservableList<MapBean> mapList;
+  private ObservableList<MapVersionBean> mapList;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, fafService, mapGeneratorService, uiService);
+    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, userService, mapGeneratorService, uiService);
 
     mapList = FXCollections.observableArrayList();
 
@@ -121,8 +126,8 @@ public class CreateGameControllerTest extends UITest {
     when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/default_achievement.png"));
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
-    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
-    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(modService.updateAndActivateModVersions(any()))
         .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
 
@@ -165,26 +170,30 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedUpForPopulated() {
-    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
-    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
+    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
+    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
     instance.mapSearchTextField.setText("Test");
 
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyUpPressed);
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyUpReleased);
+    runOnFxThreadAndWait(() -> {
+      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
+      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
+      instance.mapSearchTextField.getOnKeyPressed().handle(keyUpPressed);
+      instance.mapSearchTextField.getOnKeyPressed().handle(keyUpReleased);
+    });
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(0));
   }
 
   @Test
   public void testMapSearchTextFieldKeyPressedDownForPopulated() {
-    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
-    mapList.add(MapBuilder.create().defaultValues().displayName("Test1").get());
+    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
+    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
     instance.mapSearchTextField.setText("Test");
 
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
-    instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
+    runOnFxThreadAndWait(() -> {
+      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownPressed);
+      instance.mapSearchTextField.getOnKeyPressed().handle(keyDownReleased);
+    });
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedIndex(), is(1));
   }
@@ -224,8 +233,8 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testButtonBindingIfNotConnected() {
-    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
-    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
+    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
+    when(userService.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -236,8 +245,8 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testButtonBindingIfNotConnecting() {
-    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
-    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.CONNECTING);
+    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
+    when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTING);
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -248,10 +257,10 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testSelectLastMap() {
-    MapBean lastMapBean = MapBuilder.create().defaultValues().folderName("foo").get();
+    MapVersionBean lastMapBean = MapVersionBeanBuilder.create().defaultValues().folderName("foo").map(MapBeanBuilder.create().defaultValues().get()).get();
     preferences.getLastGame().setLastMap("foo");
 
-    mapList.add(MapBuilder.create().defaultValues().folderName("Test1").get());
+    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get());
     mapList.add(lastMapBean);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -262,7 +271,7 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, fafService, mapGeneratorService, uiService);
+    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, userService, mapGeneratorService, uiService);
 
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
@@ -279,11 +288,11 @@ public class CreateGameControllerTest extends UITest {
     Runnable closeAction = mock(Runnable.class);
     instance.setOnCloseButtonClickedListener(closeAction);
 
-    MapBean map = MapBuilder.create().defaultValues().get();
-    when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
+    MapBean map = MapBeanBuilder.create().defaultValues().get();
+    when(mapService.updateLatestVersionIfNecessary(map.getLatestVersion())).thenReturn(completedFuture(map.getLatestVersion()));
     when(gameService.hostGame(any())).thenReturn(completedFuture(null));
 
-    mapList.add(map);
+    mapList.add(map.getLatestVersion());
     instance.mapListView.getSelectionModel().select(0);
     instance.onCreateButtonClicked();
 
@@ -293,71 +302,76 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testCreateGameWithSelectedModAndMap() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
-    ModVersion modVersion = new ModVersion();
-    String uidMod = "junit-mod";
-    modVersion.setUid(uidMod);
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().uid("junit-mod").mod(ModBeanBuilder.create().defaultValues().get()).get();
 
     when(modManagerController.getSelectedModVersions()).thenReturn(List.of(modVersion));
 
-    MapBean map = MapBuilder.create().defaultValues().get();
+    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
-    instance.mapListView.getSelectionModel().select(0);
-    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
-    instance.onCreateButtonClicked();
+    runOnFxThreadAndWait(() -> {
+      instance.mapListView.getSelectionModel().select(0);
+      instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+      instance.onCreateButtonClicked();
+    });
 
     verify(modManagerController).getSelectedModVersions();
-    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(uidMod));
+    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains("junit-mod"));
     assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(map.getFolderName()));
   }
 
   @Test
   public void testCreateGameWithOutdatedMod() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
-    ModVersion modVersion = new ModVersion();
+    ModVersionBean modVersion = new ModVersionBean();
     String uidMod = "outdated-mod";
     modVersion.setUid(uidMod);
 
-    ModVersion newModVersion = new ModVersion();
-    String newUidMod = "new-mod";
-    newModVersion.setUid(newUidMod);
+    ModVersionBean newModVersion = new ModVersionBean();
+    String newModUid = "new-mod";
+    newModVersion.setUid(newModUid);
 
-    List<ModVersion> selectedMods = singletonList(modVersion);
+    List<ModVersionBean> selectedMods = singletonList(modVersion);
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
 
-    MapBean map = MapBuilder.create().defaultValues().get();
+    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(CompletableFuture.completedFuture(map));
 
     when(modService.updateAndActivateModVersions(eq(selectedMods)))
         .thenAnswer(invocation -> completedFuture(List.of(newModVersion)));
 
-    when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
+    when(gameService.hostGame(any())).thenReturn(completedFuture(null));
 
-    mapList.add(map);
-    instance.mapListView.getSelectionModel().select(0);
-    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+    runOnFxThreadAndWait(() -> {
+      mapList.add(map);
+      instance.mapListView.getSelectionModel().select(0);
+      instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+    });
 
     instance.onCreateButtonClicked();
 
     verify(modManagerController).getSelectedModVersions();
-    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(newUidMod));
+    verify(gameService).hostGame(newGameInfoArgumentCaptor.capture());
+    assertThat(newGameInfoArgumentCaptor.getValue().getSimMods(), contains(newModUid));
     assertThat(newGameInfoArgumentCaptor.getValue().getMap(), is(map.getFolderName()));
   }
 
   @Test
   public void testCreateGameOnSelectedMapIfNoNewVersionMap() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
-    MapBean map = MapBuilder.create().defaultValues().get();
+    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
 
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
-    instance.mapListView.getSelectionModel().select(0);
-    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
-    instance.onCreateButtonClicked();
+    runOnFxThreadAndWait(() -> {
+      instance.mapListView.getSelectionModel().select(0);
+      instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+      instance.onCreateButtonClicked();
+    });
 
     assertThat(captor.getValue().getMap(), is(map.getFolderName()));
   }
@@ -366,15 +380,17 @@ public class CreateGameControllerTest extends UITest {
   public void testCreateGameOnUpdatedMapIfNewVersionMapExist() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
-    MapBean outdatedMap = MapBuilder.create().defaultValues().folderName("test.v0001").get();
-    MapBean updatedMap = MapBuilder.create().defaultValues().folderName("test.v0002").get();
+    MapVersionBean outdatedMap = MapVersionBeanBuilder.create().defaultValues().folderName("test.v0001").map(MapBeanBuilder.create().defaultValues().get()).get();
+    MapVersionBean updatedMap = MapVersionBeanBuilder.create().defaultValues().folderName("test.v0002").map(MapBeanBuilder.create().defaultValues().get()).get();
     when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(completedFuture(updatedMap));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(outdatedMap);
-    instance.mapListView.getSelectionModel().select(0);
-    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
-    instance.onCreateButtonClicked();
+    runOnFxThreadAndWait(() -> {
+      instance.mapListView.getSelectionModel().select(0);
+      instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+      instance.onCreateButtonClicked();
+    });
 
     assertThat(captor.getValue().getMap(), is(updatedMap.getFolderName()));
   }
@@ -383,57 +399,59 @@ public class CreateGameControllerTest extends UITest {
   public void testCreateGameOnSelectedMapImmediatelyIfThrowExceptionWhenUpdatingMap() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
-    MapBean map = MapBuilder.create().defaultValues().get();
+    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
     when(mapService.updateLatestVersionIfNecessary(map))
         .thenReturn(CompletableFuture.failedFuture(new RuntimeException("error when checking for update or updating map")));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
     mapList.add(map);
-    instance.mapListView.getSelectionModel().select(0);
-    instance.setOnCloseButtonClickedListener(mock(Runnable.class));
-    instance.onCreateButtonClicked();
+    runOnFxThreadAndWait(() -> {
+      instance.mapListView.getSelectionModel().select(0);
+      instance.setOnCloseButtonClickedListener(mock(Runnable.class));
+      instance.onCreateButtonClicked();
+    });
 
     assertThat(captor.getValue().getMap(), is(map.getFolderName()));
   }
 
   @Test
   public void testInitGameTypeComboBoxPostPopulated() {
-    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredMod)));
+    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().get();
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(singletonList(featuredModBean)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.featuredModListView.getItems(), hasSize(1));
-    assertThat(instance.featuredModListView.getItems().get(0), is(featuredMod));
+    assertThat(instance.featuredModListView.getItems().get(0), is(featuredModBean));
   }
 
   @Test
   public void testSelectLastOrDefaultSelectDefault() {
-    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
-    FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
+    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
     preferences.getLastGame().setLastGameType(null);
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredMod2));
+    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean2));
   }
 
   @Test
   public void testSelectLastOrDefaultSelectLast() {
-    FeaturedMod featuredMod = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
-    FeaturedMod featuredMod2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
+    FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
 
     preferences.getLastGame().setLastGameType("last");
-    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredMod, featuredMod2)));
+    when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredMod));
+    assertThat(instance.featuredModListView.getSelectionModel().getSelectedItem(), is(featuredModBean));
   }
 
   @Test

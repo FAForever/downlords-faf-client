@@ -1,9 +1,9 @@
 package com.faforever.client.fa;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -71,7 +71,7 @@ public class OnGameFullNotifier implements InitializingBean {
       platformService.stopFlashingWindow(faWindowTitle);
     });
 
-    Game currentGame = gameService.getCurrentGame();
+    GameBean currentGame = gameService.getCurrentGame();
     if (currentGame == null) {
       throw new ProgrammingError("Got a GameFull notification but player is not in a game");
     }

@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -80,7 +81,7 @@ public class OnlineReplayVaultControllerTest extends UITest {
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
   private SortConfig sortOrder;
   private SearchConfig standardSearchConfig;
-  private final Replay testReplay = new Replay();
+  private final ReplayBean testReplay = new ReplayBean();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -90,10 +91,10 @@ public class OnlineReplayVaultControllerTest extends UITest {
 
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of()));
-    when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)).toFuture());
-    when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)).toFuture());
+    when(replayService.getNewestReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
+    when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
     when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
-    when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<Replay>of()), Mono.just(0)).toFuture());
+    when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml")).thenReturn(vaultEntityShowRoomController);
     when(vaultEntityShowRoomController.getRoot()).thenReturn(new VBox(), new VBox(), new VBox());
@@ -135,11 +136,11 @@ public class OnlineReplayVaultControllerTest extends UITest {
     instance.searchType = SearchType.PLAYER;
     instance.setSupplier(null);
 
-    verify(replayService).findByQueryWithPageCount(standardSearchConfig.getSearchQuery(), instance.pageSize, 1, standardSearchConfig.getSortConfig());
+    verify(replayService).findByQueryWithPageCount(standardSearchConfig, instance.pageSize, 1);
     verify(replayService).getNewestReplaysWithPageCount(instance.pageSize, 1);
     verify(replayService).getHighestRatedReplaysWithPageCount(instance.pageSize, 1);
     verify(replayService).getOwnReplaysWithPageCount(instance.pageSize, 1);
-    verify(replayService).getReplaysForPlayerWithPageCount(0, instance.pageSize, 1, standardSearchConfig.getSortConfig());
+    verify(replayService).getReplaysForPlayerWithPageCount(0, instance.pageSize, 1);
   }
 
   @Test

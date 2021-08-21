@@ -1,15 +1,17 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.ReplayReviewBean;
+import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -57,19 +59,19 @@ public class ReplayCardController implements Controller<Node> {
   public Label onMapLabel;
   public Button watchButton;
   public StarsController starsController;
-  private Replay replay;
+  private ReplayBean replay;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
-  private Consumer<Replay> onOpenDetailListener;
+  private Consumer<ReplayBean> onOpenDetailListener;
 
-  public void setReplay(Replay replay) {
+  public void setReplay(ReplayBean replay) {
     this.replay = replay;
 
-    Optional<MapBean> optionalMap = Optional.ofNullable(replay.getMap());
+    Optional<MapVersionBean> optionalMap = Optional.ofNullable(replay.getMapVersion());
     if (optionalMap.isPresent()) {
-      MapBean map = optionalMap.get();
-      Image image = mapService.loadPreview(map.getFolderName(), PreviewSize.SMALL);
+      MapVersionBean mapVersion = optionalMap.get();
+      Image image = mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.SMALL);
       mapThumbnailImageView.setImage(image);
-      onMapLabel.setText(i18n.get("game.onMapFormat", map.getDisplayName()));
+      onMapLabel.setText(i18n.get("game.onMapFormat", mapVersion.getMap().getDisplayName()));
     } else {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
@@ -88,8 +90,9 @@ public class ReplayCardController implements Controller<Node> {
     }
 
     replay.getTeamPlayerStats().values().stream()
-        .flatMapToInt(playerStats -> playerStats.stream().filter(stats -> stats.getBeforeMean() != null && stats.getBeforeDeviation() != null)
-            .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
+        .flatMapToInt(playerStats -> playerStats.stream().map(stats -> stats.getLeaderboardRatingJournals().stream().findFirst())
+            .filter(Optional::isPresent).map(Optional::get)
+            .mapToInt(ratingJournal -> RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore())))
         .average()
         .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),
             () -> ratingLabel.setText("-"));
@@ -120,16 +123,25 @@ public class ReplayCardController implements Controller<Node> {
           teamsContainer.getChildren().add(teamBox);
         });
 
-    ObservableList<Review> reviews = replay.getReviews();
+    ObservableList<ReplayReviewBean> reviews = replay.getReviews();
     JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
   }
 
   private void populateReviews() {
-    ObservableList<Review> reviews = replay.getReviews();
+    ReplayReviewsSummaryBean replayReviewsSummary = replay.getGameReviewsSummary();
+    int numReviews;
+    float avgScore;
+    if (replayReviewsSummary == null) {
+      numReviews = 0;
+      avgScore = 0;
+    } else {
+      numReviews = replayReviewsSummary.getReviews();
+      avgScore = replayReviewsSummary.getScore() / numReviews;
+    }
     JavaFxUtil.runLater(() -> {
-      numberOfReviewsLabel.setText(i18n.number(reviews.size()));
-      starsController.setValue((float) reviews.stream().mapToInt(Review::getScore).average().orElse(0d));
+      numberOfReviewsLabel.setText(i18n.number(numReviews));
+      starsController.setValue(avgScore);
     });
   }
 
@@ -137,7 +149,7 @@ public class ReplayCardController implements Controller<Node> {
     return replayTileRoot;
   }
 
-  public void setOnOpenDetailListener(Consumer<Replay> onOpenDetailListener) {
+  public void setOnOpenDetailListener(Consumer<ReplayBean> onOpenDetailListener) {
     this.onOpenDetailListener = onOpenDetailListener;
   }
 

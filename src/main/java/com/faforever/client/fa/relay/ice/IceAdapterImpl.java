@@ -1,16 +1,16 @@
 package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.os.OsUtils;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
 import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
@@ -68,7 +68,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final EventBus eventBus;
-  private final FafService fafService;
+  private final FafServerAccessor fafServerAccessor;
   private final PreferencesService preferencesService;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
@@ -80,12 +80,12 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    fafService.addOnMessageListener(JoinGameGpgCommand.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
-    fafService.addOnMessageListener(HostGameGpgCommand.class, message -> iceAdapterProxy.hostGame(message.getMap()));
-    fafService.addOnMessageListener(ConnectToPeerGpgCommand.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
-    fafService.addOnMessageListener(GameLaunchResponse.class, this::updateLobbyModeFromGameInfo);
-    fafService.addOnMessageListener(DisconnectFromPeerGpgCommand.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
-    fafService.addOnMessageListener(IceMsgGpgCommand.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
+    fafServerAccessor.addEventListener(JoinGameGpgCommand.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
+    fafServerAccessor.addEventListener(HostGameGpgCommand.class, message -> iceAdapterProxy.hostGame(message.getMap()));
+    fafServerAccessor.addEventListener(ConnectToPeerGpgCommand.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
+    fafServerAccessor.addEventListener(GameLaunchResponse.class, this::updateLobbyModeFromGameInfo);
+    fafServerAccessor.addEventListener(DisconnectFromPeerGpgCommand.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
+    fafServerAccessor.addEventListener(IceMsgGpgCommand.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
   }
 
   /**
@@ -140,7 +140,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       return;
     }
 
-    fafService.sendGpgMessage(gpgMessage);
+    fafServerAccessor.sendGpgMessage(gpgMessage);
   }
 
   @Override
@@ -152,7 +152,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       int adapterPort = SocketUtils.findAvailableTcpPort();
       int gpgPort = SocketUtils.findAvailableTcpPort();
 
-      Player currentPlayer = playerService.getCurrentPlayer();
+      PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
       Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
 
@@ -244,7 +244,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   private void setIceServers() {
-    fafService.getIceServers()
+    fafServerAccessor.getIceServers()
         .thenAccept(iceServers -> iceAdapterProxy.setIceServers(toIceServers(iceServers)))
         .exceptionally(throwable -> {
           log.warn("Could not get ICE servers", throwable);

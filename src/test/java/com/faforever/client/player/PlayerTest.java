@@ -1,6 +1,8 @@
 package com.faforever.client.player;
 
-import com.faforever.client.game.Game;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.GameStatus;
@@ -14,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 
 public class PlayerTest extends ServiceTest {
-  private Player instance;
+  private PlayerBean instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new Player("junit");
+    instance = PlayerBeanBuilder.create().defaultValues().get();
   }
 
   @Test
@@ -38,9 +40,9 @@ public class PlayerTest extends ServiceTest {
   }
 
   private void checkStatusSetCorrectly(GameStatus gameStatus, PlayerStatus playerStatus, String playerName) {
-    Game game = null;
+    GameBean game = null;
     if (gameStatus != null) {
-      game = new Game();
+      game = new GameBean();
       game.setStatus(gameStatus);
       game.setHost(playerName);
     }
@@ -50,7 +52,7 @@ public class PlayerTest extends ServiceTest {
 
   @Test
   public void testPlayerStateChangedOnGameStatusChanged() {
-    Game game = new Game();
+    GameBean game = new GameBean();
     game.setStatus(GameStatus.PLAYING);
     instance.setGame(game);
     assertSame(instance.getStatus(), PlayerStatus.PLAYING);

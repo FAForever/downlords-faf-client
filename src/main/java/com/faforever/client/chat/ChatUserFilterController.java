@@ -1,10 +1,10 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.BooleanProperty;
@@ -111,13 +111,13 @@ public class ChatUserFilterController implements Controller<Node> {
       return true;
     }
 
-    Optional<Player> playerOptional = chatUser.getPlayer();
+    Optional<PlayerBean> playerOptional = chatUser.getPlayer();
 
     if (!playerOptional.isPresent()) {
       return false;
     }
 
-    Player player = playerOptional.get();
+    PlayerBean player = playerOptional.get();
     String clan = player.getClan();
     if (clan == null) {
       return false;
@@ -133,14 +133,14 @@ public class ChatUserFilterController implements Controller<Node> {
       return true;
     }
 
-    Optional<Player> optionalPlayer = chatUser.getPlayer();
+    Optional<PlayerBean> optionalPlayer = chatUser.getPlayer();
 
     if (!optionalPlayer.isPresent()) {
       return false;
     }
 
     //TODO filter by specifc leaderboard rating remove hardcoded value
-    Player player = optionalPlayer.get();
+    PlayerBean player = optionalPlayer.get();
     int rating = RatingUtil.getLeaderboardRating(player, "global");
     int minRating;
     int maxRating;
@@ -165,7 +165,7 @@ public class ChatUserFilterController implements Controller<Node> {
       return true;
     }
 
-    Optional<Player> playerOptional = chatUser.getPlayer();
+    Optional<PlayerBean> playerOptional = chatUser.getPlayer();
 
     if (!playerOptional.isPresent()) {
       return false;
@@ -185,7 +185,7 @@ public class ChatUserFilterController implements Controller<Node> {
       return true;
     }
 
-    Optional<Player> playerOptional = chatUser.getPlayer();
+    Optional<PlayerBean> playerOptional = chatUser.getPlayer();
     if (playerOptional.isEmpty()) {
       return false;
     }

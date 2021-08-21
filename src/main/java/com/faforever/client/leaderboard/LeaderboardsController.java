@@ -1,5 +1,7 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeaderboardEntryBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
@@ -40,13 +42,13 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   private final NotificationService notificationService;
   private final I18n i18n;
   public Pane leaderboardRoot;
-  public TableColumn<LeaderboardEntry, Number> rankColumn;
-  public TableColumn<LeaderboardEntry, String> nameColumn;
-  public TableColumn<LeaderboardEntry, Number> winLossColumn;
-  public TableColumn<LeaderboardEntry, Number> gamesPlayedColumn;
-  public TableColumn<LeaderboardEntry, Number> ratingColumn;
-  public TableView<LeaderboardEntry> ratingTable;
-  public ComboBox<Leaderboard> leaderboardComboBox;
+  public TableColumn<LeaderboardEntryBean, Number> rankColumn;
+  public TableColumn<LeaderboardEntryBean, String> nameColumn;
+  public TableColumn<LeaderboardEntryBean, Number> winLossColumn;
+  public TableColumn<LeaderboardEntryBean, Number> gamesPlayedColumn;
+  public TableColumn<LeaderboardEntryBean, Number> ratingColumn;
+  public TableView<LeaderboardEntryBean> ratingTable;
+  public ComboBox<LeaderboardBean> leaderboardComboBox;
   public TextField searchTextField;
   public Pane connectionProgressPane;
   public Pane contentPane;
@@ -70,7 +72,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     rankColumn.setCellValueFactory(param -> new SimpleIntegerProperty(ratingTable.getItems().indexOf(param.getValue()) + 1));
     rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
 
-    nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
+    nameColumn.setCellValueFactory(param -> param.getValue().getPlayer().usernameProperty());
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
 
     winLossColumn.setCellValueFactory(param -> new SimpleFloatProperty(param.getValue().getWinLossRatio()));
@@ -90,16 +92,16 @@ public class LeaderboardsController extends AbstractViewController<Node> {
       if (Validator.isInt(newValue)) {
         ratingTable.scrollTo(Integer.parseInt(newValue) - 1);
       } else {
-        LeaderboardEntry foundPlayer = null;
-        for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-          if (leaderboardEntry.getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
+        LeaderboardEntryBean foundPlayer = null;
+        for (LeaderboardEntryBean leaderboardEntry : ratingTable.getItems()) {
+          if (leaderboardEntry.getPlayer().getUsername().toLowerCase().startsWith(newValue.toLowerCase())) {
             foundPlayer = leaderboardEntry;
             break;
           }
         }
         if (foundPlayer == null) {
-          for (LeaderboardEntry leaderboardEntry : ratingTable.getItems()) {
-            if (leaderboardEntry.getUsername().toLowerCase().contains(newValue.toLowerCase())) {
+          for (LeaderboardEntryBean leaderboardEntry : ratingTable.getItems()) {
+            if (leaderboardEntry.getPlayer().getUsername().toLowerCase().contains(newValue.toLowerCase())) {
               foundPlayer = leaderboardEntry;
               break;
             }
@@ -116,15 +118,15 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   }
 
   @NotNull
-  private StringConverter<Leaderboard> leaderboardStringConverter() {
+  private StringConverter<LeaderboardBean> leaderboardStringConverter() {
     return new StringConverter<>() {
       @Override
-      public String toString(Leaderboard leaderboard) {
+      public String toString(LeaderboardBean leaderboard) {
         return i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
       }
 
       @Override
-      public Leaderboard fromString(String string) {
+      public LeaderboardBean fromString(String string) {
         return null;
       }
     };
@@ -139,7 +141,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     leaderboardService.getEntries(leaderboardComboBox.getValue()).thenAccept(leaderboardEntryBeans -> {
       ratingTable.setItems(observableList(leaderboardEntryBeans));
       usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField,
-          leaderboardEntryBeans.stream().map(LeaderboardEntry::getUsername).collect(Collectors.toList()));
+          leaderboardEntryBeans.stream().map(entry -> entry.getPlayer().getUsername()).collect(Collectors.toList()));
       usernamesAutoCompletion.setDelay(0);
       contentPane.setVisible(true);
     }).exceptionally(throwable -> {

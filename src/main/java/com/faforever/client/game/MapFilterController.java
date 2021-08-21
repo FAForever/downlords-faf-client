@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.map.MapBean;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.transformation.FilteredList;
@@ -23,7 +23,7 @@ public class MapFilterController implements Controller<Node> {
   public TextField mapHeightInKmTextField;
   private TextField mapNameTextField;
   private final BooleanProperty filterAppliedProperty = new SimpleBooleanProperty(false);
-  private FilteredList<MapBean> filteredMaps;
+  private FilteredList<MapVersionBean> filteredMaps;
 
   @Override
   public void initialize() {
@@ -40,7 +40,7 @@ public class MapFilterController implements Controller<Node> {
     JavaFxUtil.addListener(mapNameTextField.textProperty(), (observable, oldValue, newValue) -> runFilter());
   }
 
-  public void setFilteredMapList(FilteredList<MapBean> filteredMaps) {
+  public void setFilteredMapList(FilteredList<MapVersionBean> filteredMaps) {
     this.filteredMaps = filteredMaps;
   }
 
@@ -55,24 +55,24 @@ public class MapFilterController implements Controller<Node> {
             !mapWidthInKmTextField.getText().isEmpty() || !mapHeightInKmTextField.getText().isEmpty());
   }
 
-  private boolean containsMapName(MapBean map) {
+  private boolean containsMapName(MapVersionBean mapVersion) {
     String value = mapNameTextField.getText().toLowerCase();
-    return map.getDisplayName().toLowerCase().contains(value) || map.getFolderName().toLowerCase().contains(value);
+    return mapVersion.getMap().getDisplayName().toLowerCase().contains(value) || mapVersion.getFolderName().toLowerCase().contains(value);
   }
 
-  private boolean isEqualToNumberOfPlayers(MapBean map) {
+  private boolean isEqualToNumberOfPlayers(MapVersionBean mapVersion) {
     String value = numberOfPlayersTextField.getText();
-    return value.isEmpty() || map.getPlayers() == Integer.parseInt(value);
+    return value.isEmpty() || mapVersion.getMaxPlayers() == Integer.parseInt(value);
   }
 
-  private boolean isEqualToMapWidth(MapBean map) {
+  private boolean isEqualToMapWidth(MapVersionBean mapVersion) {
     String value = mapWidthInKmTextField.getText();
-    return value.isEmpty() || map.getSize().getWidthInKm() == Integer.parseInt(value);
+    return value.isEmpty() || mapVersion.getSize().getWidthInKm() == Integer.parseInt(value);
   }
 
-  private boolean isEqualToMapHeight(MapBean map) {
+  private boolean isEqualToMapHeight(MapVersionBean mapVersion) {
     String value = mapHeightInKmTextField.getText();
-    return value.isEmpty() || map.getSize().getHeightInKm() == Integer.parseInt(value);
+    return value.isEmpty() || mapVersion.getSize().getHeightInKm() == Integer.parseInt(value);
   }
 
   @Override

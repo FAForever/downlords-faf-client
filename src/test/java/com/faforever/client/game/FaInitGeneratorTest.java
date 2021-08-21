@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.mod.MountInfo;

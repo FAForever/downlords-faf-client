@@ -1,7 +1,7 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.leaderboard.LeaderboardRating;
-import com.faforever.client.player.Player;
+import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.lobby.Faction;
 import lombok.RequiredArgsConstructor;
@@ -46,14 +46,14 @@ public class ForgedAllianceService {
   }
 
   public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
-                           String ratingType, int gpgPort, int localReplayPort, boolean rehost, Player currentPlayer) throws IOException {
+                           String ratingType, int gpgPort, int localReplayPort, boolean rehost, PlayerBean currentPlayer) throws IOException {
     Path executable = getExecutable();
 
-    Optional<LeaderboardRating> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
+    Optional<LeaderboardRatingBean> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
         .map(rating -> rating.get(ratingType));
 
-    float mean = leaderboardRating.map(LeaderboardRating::getMean).orElse(0f);
-    float deviation = leaderboardRating.map(LeaderboardRating::getDeviation).orElse(0f);
+    float mean = leaderboardRating.map(LeaderboardRatingBean::getMean).orElse(0f);
+    float deviation = leaderboardRating.map(LeaderboardRatingBean::getDeviation).orElse(0f);
 
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
@@ -89,7 +89,7 @@ public class ForgedAllianceService {
   }
 
 
-  public Process startReplay(URI replayUri, Integer replayId, Player currentPlayer) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId, PlayerBean currentPlayer) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = defaultLaunchCommand()

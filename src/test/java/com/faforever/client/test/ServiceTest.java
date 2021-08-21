@@ -13,7 +13,7 @@ import java.net.URL;
 import static com.github.nocatch.NoCatch.noCatch;
 
 @Execution(ExecutionMode.CONCURRENT)
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class})
 @MockitoSettings(strictness = Strictness.LENIENT)
 //TODO figure out best way to refactor so that tests don't have to be lenient due to unnecessary stubbings spam
 public abstract class ServiceTest {

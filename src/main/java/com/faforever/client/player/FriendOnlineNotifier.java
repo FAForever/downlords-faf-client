@@ -2,6 +2,7 @@ package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.InitiatePrivateChatEvent;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -38,7 +39,7 @@ public class FriendOnlineNotifier implements InitializingBean {
   @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
-    Player player = event.getPlayer();
+    PlayerBean player = event.getPlayer();
 
     if (player.getSocialStatus() != SocialStatus.FRIEND) {
       return;

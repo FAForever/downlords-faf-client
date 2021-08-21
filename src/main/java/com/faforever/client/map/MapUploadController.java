@@ -1,6 +1,7 @@
 package com.faforever.client.map;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -74,7 +75,7 @@ public class MapUploadController implements Controller<Node> {
   public CheckBox rulesCheckBox;
   public Label rulesLabel;
   private Path mapPath;
-  private MapBean mapInfo;
+  private MapVersionBean mapInfo;
   private CompletableTask<Void> uploadMapTask;
   private Runnable cancelButtonClickedListener;
 
@@ -123,16 +124,16 @@ public class MapUploadController implements Controller<Node> {
     return SwingFXUtils.toFXImage(PreviewGenerator.generatePreview(mapPath, 256, 256), new WritableImage(256, 256));
   }
 
-  private void setMapInfo(MapBean mapInfo) {
+  private void setMapInfo(MapVersionBean mapInfo) {
     this.mapInfo = mapInfo;
     enterMapInfoState();
 
-    mapNameLabel.setText(mapInfo.getDisplayName());
+    mapNameLabel.setText(mapInfo.getMap().getDisplayName());
     descriptionLabel.setText(mapInfo.getDescription());
     versionLabel.setText(Optional.ofNullable(mapInfo.getVersion()).map(ComparableVersion::toString).orElse(""));
     MapSize mapSize = mapInfo.getSize();
     sizeLabel.setText(i18n.get("mapVault.upload.sizeFormat", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
-    playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.getPlayers()));
+    playersLabel.setText(i18n.get("mapVault.upload.playersFormat", mapInfo.getMaxPlayers()));
 
     thumbnailImageView.setImage(generatePreview(mapPath));
   }

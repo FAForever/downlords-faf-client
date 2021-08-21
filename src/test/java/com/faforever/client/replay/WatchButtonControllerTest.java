@@ -1,8 +1,8 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.game.Game;
-import com.faforever.client.game.GameBuilder;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,21 +33,21 @@ public class WatchButtonControllerTest extends UITest {
   private I18n i18n;
 
   private WatchButtonController instance;
-  private Game game;
+  private GameBean game;
 
   @BeforeEach
   public void setUp() throws Exception {
     ClientProperties properties = new ClientProperties();
     properties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
 
-    game = GameBuilder.create().defaultValues().get();
+    game = GameBeanBuilder.create().defaultValues().get();
     instance = new WatchButtonController(replayService, properties, timeService, i18n);
     loadFxml("theme/vault/replay/watch_button.fxml",  clazz -> instance);
   }
 
   @Test
   public void testButtonWhenWatchNotAllowed() {
-    game.setStartTime(Instant.now().minus(5, ChronoUnit.SECONDS));
+    game.setStartTime(OffsetDateTime.now().minus(5, ChronoUnit.SECONDS));
 
     setGame(game);
     assertThat(instance.watchButton.isDisabled(), is(true));
@@ -55,7 +55,7 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testButtonOnClickedWhenWatchNotAllowed() {
-    game.setStartTime(Instant.now().minus(5, ChronoUnit.SECONDS));
+    game.setStartTime(OffsetDateTime.now().minus(5, ChronoUnit.SECONDS));
 
     setGame(game);
     clickWatchButton();
@@ -64,7 +64,7 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testButtonWhenWatchAllowed() {
-    game.setStartTime(Instant.now().minus(15, ChronoUnit.SECONDS));
+    game.setStartTime(OffsetDateTime.now().minus(15, ChronoUnit.SECONDS));
 
     setGame(game);
     assertThat(instance.watchButton.isDisabled(), is(false));
@@ -72,14 +72,14 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testButtonOnClickedWhenWatchAllowed() {
-    game.setStartTime(Instant.now().minus(15, ChronoUnit.SECONDS));
+    game.setStartTime(OffsetDateTime.now().minus(15, ChronoUnit.SECONDS));
 
     setGame(game);
     clickWatchButton();
     verify(replayService).runLiveReplay(game.getId());
   }
 
-  private void setGame(Game game) {
+  private void setGame(GameBean game) {
     runOnFxThreadAndWait(() -> instance.setGame(game));
   }
 

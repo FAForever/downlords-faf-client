@@ -1,11 +1,11 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.io.FeaturedModFileCacheService;
-import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import lombok.extern.slf4j.Slf4j;
@@ -25,17 +25,17 @@ import java.util.Objects;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
-  private final FafService fafService;
+  private final ModService modService;
   private final PreferencesService preferencesService;
   private final DownloadService downloadService;
   private final I18n i18n;
   private final FeaturedModFileCacheService featuredModFileCacheService;
 
-  private FeaturedMod featuredMod;
+  private FeaturedModBean featuredMod;
   private Integer version;
 
   public SimpleHttpFeaturedModUpdaterTask(
-      FafService fafService,
+      ModService modService,
       PreferencesService preferencesService,
       DownloadService downloadService,
       I18n i18n,
@@ -43,7 +43,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   ) {
     super(Priority.HIGH);
 
-    this.fafService = fafService;
+    this.modService = modService;
     this.preferencesService = preferencesService;
     this.downloadService = downloadService;
     this.i18n = i18n;
@@ -57,8 +57,9 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     updateTitle(i18n.get("updater.taskTitle"));
     updateMessage(i18n.get("updater.readingFileList"));
 
-    List<FeaturedModFile> featuredModFiles = fafService.getFeaturedModFiles(featuredMod, version).get();
     Path fafDataDirectory = preferencesService.getFafDataDirectory();
+
+    List<FeaturedModFile> featuredModFiles = modService.getFeaturedModFiles(featuredMod, version).join();
 
     featuredModFiles
         .forEach(featuredModFile -> {
@@ -112,7 +113,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
   }
 
-  public void setFeaturedMod(FeaturedMod featuredMod) {
+  public void setFeaturedMod(FeaturedModBean featuredMod) {
     this.featuredMod = featuredMod;
   }
 

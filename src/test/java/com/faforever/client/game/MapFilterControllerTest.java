@@ -1,6 +1,8 @@
 package com.faforever.client.game;
 
-import com.faforever.client.map.MapBean;
+import com.faforever.client.builders.MapBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.map.MapSize;
 import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
@@ -12,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static com.faforever.client.map.MapBeanBuilder.create;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,13 +21,13 @@ public class MapFilterControllerTest extends UITest {
 
   private MapFilterController instance;
   private TextField mapNameTextField;
-  private FilteredList<MapBean> filteredMapList;
+  private FilteredList<MapVersionBean> filteredMapList;
 
-  private final List<MapBean> maps = List.of(
-      create().folderName("map1.v001").displayName("map1").players(8).size(MapSize.valueOf(512, 512)).get(),
-      create().folderName("map2.v001").displayName("map2").players(16).size(MapSize.valueOf(1024, 1024)).get(),
-      create().folderName("map3.v001").displayName("map3").players(4).size(MapSize.valueOf(256, 256)).get(),
-      create().folderName("map4.v001").displayName("map4").players(4).size(MapSize.valueOf(512, 512)).get()
+  private final List<MapVersionBean> maps = List.of(
+      MapVersionBeanBuilder.create().defaultValues().id(0).map(MapBeanBuilder.create().displayName("map1").get()).folderName("map1.v001").maxPlayers(8).size(MapSize.valueOf(512, 512)).get(),
+      MapVersionBeanBuilder.create().defaultValues().id(1).map(MapBeanBuilder.create().displayName("map2").get()).folderName("map2.v001").maxPlayers(16).size(MapSize.valueOf(1024, 1024)).get(),
+      MapVersionBeanBuilder.create().defaultValues().id(2).map(MapBeanBuilder.create().displayName("map3").get()).folderName("map3.v001").maxPlayers(4).size(MapSize.valueOf(256, 256)).get(),
+      MapVersionBeanBuilder.create().defaultValues().id(3).map(MapBeanBuilder.create().displayName("map4").get()).folderName("map4.v001").maxPlayers(4).size(MapSize.valueOf(512, 512)).get()
   );
 
   @BeforeEach
@@ -45,7 +46,7 @@ public class MapFilterControllerTest extends UITest {
     runOnFxThreadAndWait(() -> mapNameTextField.setText("p2"));
 
     assertEquals(1, filteredMapList.size());
-    assertEquals("map2", filteredMapList.get(0).getDisplayName());
+    assertEquals("map2", filteredMapList.get(0).getMap().getDisplayName());
     verifyFilterAppliedProperty(true);
   }
 
@@ -54,7 +55,7 @@ public class MapFilterControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.numberOfPlayersTextField.setText("8"));
 
     assertEquals(1, filteredMapList.size());
-    assertEquals("map1", filteredMapList.get(0).getDisplayName());
+    assertEquals("map1", filteredMapList.get(0).getMap().getDisplayName());
     verifyFilterAppliedProperty(true);
   }
 
@@ -63,7 +64,7 @@ public class MapFilterControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.mapWidthInKmTextField.setText("5"));
 
     assertEquals(1, filteredMapList.size());
-    assertEquals("map3", filteredMapList.get(0).getDisplayName());
+    assertEquals("map3", filteredMapList.get(0).getMap().getDisplayName());
     verifyFilterAppliedProperty(true);
   }
 
@@ -75,7 +76,7 @@ public class MapFilterControllerTest extends UITest {
     });
 
     assertEquals(1, filteredMapList.size());
-    assertEquals("map4", filteredMapList.get(0).getDisplayName());
+    assertEquals("map4", filteredMapList.get(0).getMap().getDisplayName());
     verifyFilterAppliedProperty(true);
   }
 
@@ -87,7 +88,7 @@ public class MapFilterControllerTest extends UITest {
     });
 
     assertEquals(1, filteredMapList.size());
-    assertEquals("map2", filteredMapList.get(0).getDisplayName());
+    assertEquals("map2", filteredMapList.get(0).getMap().getDisplayName());
     verifyFilterAppliedProperty(true);
   }
 

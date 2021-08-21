@@ -1,9 +1,9 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
@@ -39,7 +39,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
   public Region factionIcon;
   public ImageView factionImage;
 
-  public void setPlayer(Player player, Integer rating, Faction faction) {
+  public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
     if (player == null) {
       return;
     }
@@ -78,23 +78,15 @@ public class PlayerCardTooltipController implements Controller<Node> {
 
     factionIcon.setVisible(true);
     switch (faction) {
-      case AEON:
-        factionIcon.getStyleClass().add(UiService.AEON_STYLE_CLASS);
-        break;
-      case CYBRAN:
-        factionIcon.getStyleClass().add(UiService.CYBRAN_STYLE_CLASS);
-        break;
-      case SERAPHIM:
-        factionIcon.getStyleClass().add(UiService.SERAPHIM_STYLE_CLASS);
-        break;
-      case UEF:
-        factionIcon.getStyleClass().add(UiService.UEF_STYLE_CLASS);
-        break;
-      default:
+      case AEON -> factionIcon.getStyleClass().add(UiService.AEON_STYLE_CLASS);
+      case CYBRAN -> factionIcon.getStyleClass().add(UiService.CYBRAN_STYLE_CLASS);
+      case SERAPHIM -> factionIcon.getStyleClass().add(UiService.SERAPHIM_STYLE_CLASS);
+      case UEF -> factionIcon.getStyleClass().add(UiService.UEF_STYLE_CLASS);
+      default -> {
         factionIcon.setVisible(false);
         factionImage.setVisible(true);
         factionImage.setImage(RANDOM_IMAGE);
-        break;
+      }
     }
   }
 }

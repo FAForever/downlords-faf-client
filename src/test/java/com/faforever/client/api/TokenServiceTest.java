@@ -1,10 +1,10 @@
 package com.faforever.client.api;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;

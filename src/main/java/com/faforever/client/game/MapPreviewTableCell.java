@@ -1,12 +1,13 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.TableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class MapPreviewTableCell extends TableCell<Game, Image> {
+public class MapPreviewTableCell extends TableCell<GameBean, Image> {
 
   private final ImageView imageVew;
 

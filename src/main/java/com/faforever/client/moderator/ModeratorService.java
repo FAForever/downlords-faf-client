@@ -1,39 +1,33 @@
 package com.faforever.client.moderator;
 
-import com.faforever.client.remote.FafService;
+import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.client.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
 public class ModeratorService {
-  private final FafService fafService;
-  private Set<String> cachedPermissions;
+  private final FafServerAccessor fafServerAccessor;
+  private final UserService userService;
 
-  public CompletableFuture<Set<String>> getPermissions() {
-    if (cachedPermissions != null) {
-      return CompletableFuture.completedFuture(cachedPermissions);
-    }
-    return fafService.getPermissions()
-        .thenApply(permissions -> {
-          cachedPermissions = permissions;
-          return permissions;
-        });
+  public Set<String> getPermissions() {
+    return userService.getOwnUser().getPermissions();
   }
 
-  public void closePlayersGame(int playerId) {
-    fafService.closePlayersGame(playerId);
+  public void closePlayersGame(PlayerBean player) {
+    fafServerAccessor.closePlayersGame(player.getId());
   }
 
-  public void closePlayersLobby(int playerId) {
-    fafService.closePlayersLobby(playerId);
+  public void closePlayersLobby(PlayerBean player) {
+    fafServerAccessor.closePlayersLobby(player.getId());
   }
 
   public void broadcastMessage(String message) {
-    fafService.broadcastMessage(message);
+    fafServerAccessor.broadcastMessage(message);
   }
 
 }

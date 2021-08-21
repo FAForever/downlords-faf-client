@@ -1,7 +1,7 @@
 package com.faforever.client.i18n;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;

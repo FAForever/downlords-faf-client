@@ -3,13 +3,15 @@ package com.faforever.client.player;
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.achievements.AchievementItemController;
 import com.faforever.client.achievements.AchievementService;
-import com.faforever.client.domain.RatingHistoryDataPoint;
+import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import com.faforever.client.domain.NameRecordBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.OffsetDateTimeCell;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.Leaderboard;
-import com.faforever.client.leaderboard.LeaderboardRating;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.stats.StatisticsService;
@@ -122,17 +124,17 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public PlayerRatingChart ratingHistoryChart;
   public VBox loadingHistoryPane;
   public ComboBox<TimePeriod> timePeriodComboBox;
-  public ComboBox<Leaderboard> ratingTypeComboBox;
+  public ComboBox<LeaderboardBean> ratingTypeComboBox;
   public Label usernameLabel;
   public Label countryLabel;
   public ImageView countryImageView;
   public Pane userInfoRoot;
-  public TableView<NameRecord> nameHistoryTable;
-  public TableColumn<NameRecord, OffsetDateTime> changeDateColumn;
-  public TableColumn<NameRecord, String> nameColumn;
-  private Player player;
+  public TableView<NameRecordBean> nameHistoryTable;
+  public TableColumn<NameRecordBean, OffsetDateTime> changeDateColumn;
+  public TableColumn<NameRecordBean, String> nameColumn;
+  private PlayerBean player;
   private Window ownerWindow;
-  private List<RatingHistoryDataPoint> ratingData;
+  private List<LeaderboardRatingJournalBean> ratingData;
 
   private static boolean isUnlocked(PlayerAchievement playerAchievement) {
     return AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name());
@@ -159,7 +161,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     );
 
     nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
-    changeDateColumn.setCellValueFactory(param -> param.getValue().changeDateProperty());
+    changeDateColumn.setCellValueFactory(param -> param.getValue().changeTimeProperty());
     changeDateColumn.setCellFactory(param -> new OffsetDateTimeCell<>(timeService));
 
     timePeriodComboBox.setConverter(timePeriodStringConverter());
@@ -167,15 +169,14 @@ public class PlayerInfoWindowController implements Controller<Node> {
     timePeriodComboBox.getItems().addAll(TimePeriod.values());
     timePeriodComboBox.setValue(TimePeriod.ALL_TIME);
 
-    leaderboardService.getLeaderboards().thenApply(leaderboards -> {
+    leaderboardService.getLeaderboards().thenAccept(leaderboards -> JavaFxUtil.runLater(() -> {
       ratingTypeComboBox.getItems().clear();
       ratingTypeComboBox.getItems().addAll(leaderboards);
       ratingTypeComboBox.setConverter(leaderboardStringConverter());
       ratingTypeComboBox.getSelectionModel().selectFirst();
-      return null;
-    });
+    }));
 
-    ratingData = Collections.emptyList();
+    ratingData = List.of();
     ratingHistoryChart.initializeTooltip(uiService);
   }
 
@@ -196,7 +197,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     });
   }
 
-  public void setPlayer(Player player) {
+  public void setPlayer(PlayerBean player) {
     this.player = player;
 
     usernameLabel.setText(player.getUsername());
@@ -229,7 +230,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
       StringBuilder ratingNames = new StringBuilder();
       StringBuilder ratingNumbers = new StringBuilder();
       leaderboards.forEach(leaderboard -> {
-        LeaderboardRating leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
+        LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
         if (leaderboardRating != null) {
           String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
           ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n");
@@ -244,7 +245,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
   }
 
   private void updateNameHistory() {
-    playerService.getPlayersByIds(Collections.singletonList(player.getId()))
+    playerService.getPlayersByIds(List.of(player.getId()))
         .thenAccept(players -> nameHistoryTable.setItems(players.get(0).getNames()))
         .exceptionally(throwable -> {
           log.warn("Could not load player name history", throwable);
@@ -262,7 +263,17 @@ public class PlayerInfoWindowController implements Controller<Node> {
           return Collections.emptyList();
         })
         .thenAccept(this::setAvailableAchievements)
+        .exceptionally(throwable -> {
+          log.warn("Could not set available achievements", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
+          return null;
+        })
         .thenCompose(aVoid -> achievementService.getPlayerAchievements(player.getId()))
+        .exceptionally(throwable -> {
+          log.warn("Could not get PlayerAchievements", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
+          return null;
+        })
         .thenAccept(playerAchievements -> {
           updatePlayerAchievements(playerAchievements);
           enterAchievementsLoadedState();
@@ -328,7 +339,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
 
   private void plotGamesPlayedChart() {
     JavaFxUtil.runLater(() -> gamesPlayedChart.getData().clear());
-    leaderboardService.getEntriesForPlayer(player.getId()).thenAccept(leaderboardEntries -> JavaFxUtil.runLater(() ->
+    leaderboardService.getEntriesForPlayer(player).thenAccept(leaderboardEntries -> JavaFxUtil.runLater(() ->
         leaderboardEntries.forEach(leaderboardEntry ->
             gamesPlayedChart.getData().add(new PieChart.Data(i18n.getOrDefault(leaderboardEntry.getLeaderboard().getTechnicalName(), leaderboardEntry.getLeaderboard().getNameKey()),
                 leaderboardEntry.getGamesPlayed())))))
@@ -394,8 +405,8 @@ public class PlayerInfoWindowController implements Controller<Node> {
     }
   }
 
-  private CompletableFuture<Void> loadStatistics(Leaderboard leaderboard) {
-    return statisticsService.getRatingHistory(player.getId(), leaderboard)
+  private CompletableFuture<Void> loadStatistics(LeaderboardBean leaderboard) {
+    return statisticsService.getRatingHistory(player, leaderboard)
         .thenAccept(ratingHistory -> ratingData = ratingHistory)
         .exceptionally(throwable -> {
           // FIXME display to user
@@ -407,9 +418,10 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public void plotPlayerRatingGraph() {
     JavaFxUtil.assertApplicationThread();
     OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
-    List<XYChart.Data<Double, Double>> values = ratingData.stream().sorted(Comparator.comparing(RatingHistoryDataPoint::getInstant))
-        .filter(dataPoint -> dataPoint.getInstant().isAfter(afterDate))
-        .map(dataPoint -> new Data<>((double) dataPoint.getInstant().toEpochSecond(), (double) RatingUtil.getRating(dataPoint)))
+    List<XYChart.Data<Double, Double>> values = ratingData.stream()
+        .filter(ratingJournal -> ratingJournal.getGamePlayerStats().getScoreTime().isAfter(afterDate))
+        .sorted(Comparator.comparing(ratingJournal -> ratingJournal.getGamePlayerStats().getScoreTime()))
+        .map(ratingJournal -> new Data<>((double) ratingJournal.getGamePlayerStats().getScoreTime().toEpochSecond(), (double) RatingUtil.getRating(ratingJournal)))
         .collect(Collectors.toList());
 
     xAxis.setTickLabelFormatter(ratingLabelFormatter());
@@ -427,15 +439,15 @@ public class PlayerInfoWindowController implements Controller<Node> {
   }
 
   @NotNull
-  private StringConverter<Leaderboard> leaderboardStringConverter() {
+  private StringConverter<LeaderboardBean> leaderboardStringConverter() {
     return new StringConverter<>() {
       @Override
-      public String toString(Leaderboard leaderboard) {
+      public String toString(LeaderboardBean leaderboard) {
         return i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
       }
 
       @Override
-      public Leaderboard fromString(String string) {
+      public LeaderboardBean fromString(String string) {
         return null;
       }
     };

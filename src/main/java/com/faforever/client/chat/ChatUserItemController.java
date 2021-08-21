@@ -1,13 +1,14 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.clan.Clan;
+import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -146,7 +147,7 @@ public class ChatUserItemController implements Controller<Node> {
     };
   }
 
-  private GameTooltipController prepareGameInfoController(Game game) {
+  private GameTooltipController prepareGameInfoController(GameBean game) {
     GameTooltipController controller = uiService.loadFxml("theme/play/game_tooltip.fxml");
     controller.setShowMods(false);
     controller.setGame(game);
@@ -234,7 +235,7 @@ public class ChatUserItemController implements Controller<Node> {
 
   private void updateChatUserDisplay() {
     String styleString = chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse("");
-    String avatarString = chatUser.getPlayer().map(Player::getAvatarTooltip).orElse("");
+    String avatarString = chatUser.getPlayer().map(PlayerBean::getAvatar).map(AvatarBean::getDescription).orElse("");
     String clanString = chatUser.getClanTag().orElse("");
     JavaFxUtil.runLater(() -> {
       usernameLabel.setText(chatUser.getUsername());
@@ -271,11 +272,11 @@ public class ChatUserItemController implements Controller<Node> {
       return;
     }
 
-    Clan clan = chatUser.getClan().get();
+    ClanBean clan = chatUser.getClan().get();
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
-    if (currentPlayer.getId() != clan.getLeader().getId()
+    if (!currentPlayer.getId().equals(clan.getLeader().getId())
         && playerService.isOnline(clan.getLeader().getId())) {
       MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
       messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));

@@ -1,28 +1,44 @@
 package com.faforever.client.map;
 
+import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Vault;
+import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.domain.MapBean;
+import com.faforever.client.domain.MapBean.MapType;
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardRating;
-import com.faforever.client.map.MapBean.Type;
 import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.player.Player;
+import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
+import com.faforever.client.mapstruct.MapMapper;
+import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
+import com.faforever.commons.api.dto.Game;
+import com.faforever.commons.api.dto.Map;
+import com.faforever.commons.api.dto.MapPoolAssignment;
+import com.faforever.commons.api.dto.MapVersion;
+import com.faforever.commons.api.elide.ElideNavigator;
+import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
+import com.faforever.commons.api.elide.ElideNavigatorOnId;
+import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
+import com.github.rutledgepaulv.qbuilders.conditions.Condition;
+import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
@@ -48,6 +64,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import javax.inject.Inject;
@@ -59,10 +77,10 @@ import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -70,6 +88,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static com.faforever.client.util.LuaUtil.loadFile;
+import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlFragmentEscaper;
 import static java.lang.String.format;
@@ -77,6 +96,7 @@ import static java.nio.file.Files.list;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 
 @Slf4j
@@ -86,10 +106,11 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public static final String DEBUG = "debug";
   private static final String MAP_VERSION_REGEX = ".*[.v](?<version>\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
+
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
-  private final FafService fafService;
+  private final FafApiAccessor fafApiAccessor;
   private final AssetService assetService;
   private final I18n i18n;
   private final UiService uiService;
@@ -98,12 +119,14 @@ public class MapService implements InitializingBean, DisposableBean {
   private final EventBus eventBus;
   private final ForgedAlliancePrefs forgedAlliancePreferences;
   private final PlayerService playerService;
+  private final MapMapper mapMapper;
+  private final ReplayMapper replayMapper;
 
   private final String mapDownloadUrlFormat;
   private final String mapPreviewUrlFormat;
-  private final Map<Path, MapBean> pathToMap = new HashMap<>();
-  private final ObservableList<MapBean> installedMaps = FXCollections.observableArrayList();
-  private final Map<String, MapBean> mapsByFolderName = new HashMap<>();
+  private final java.util.Map<Path, MapVersionBean> pathToMap = new HashMap<>();
+  private final ObservableList<MapVersionBean> installedMaps = FXCollections.observableArrayList();
+  private final java.util.Map<String, MapVersionBean> mapsByFolderName = new HashMap<>();
   @VisibleForTesting
   Set<String> officialMaps = ImmutableSet.of(
       "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
@@ -118,17 +141,18 @@ public class MapService implements InitializingBean, DisposableBean {
   public MapService(PreferencesService preferencesService,
                     TaskService taskService,
                     ApplicationContext applicationContext,
-                    FafService fafService,
+                    FafApiAccessor fafApiAccessor,
                     AssetService assetService,
                     I18n i18n,
                     UiService uiService,
                     MapGeneratorService mapGeneratorService,
                     ClientProperties clientProperties,
-                    EventBus eventBus, PlayerService playerService) {
+                    EventBus eventBus, PlayerService playerService,
+                    MapMapper mapMapper, ReplayMapper replayMapper) {
     this.preferencesService = preferencesService;
     this.taskService = taskService;
     this.applicationContext = applicationContext;
-    this.fafService = fafService;
+    this.fafApiAccessor = fafApiAccessor;
     this.assetService = assetService;
     this.i18n = i18n;
     this.uiService = uiService;
@@ -140,17 +164,8 @@ public class MapService implements InitializingBean, DisposableBean {
     Vault vault = clientProperties.getVault();
     this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
     this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
-
-    installedMaps.addListener((ListChangeListener<MapBean>) change -> {
-      while (change.next()) {
-        for (MapBean mapBean : change.getRemoved()) {
-          mapsByFolderName.remove(mapBean.getFolderName().toLowerCase());
-        }
-        for (MapBean mapBean : change.getAddedSubList()) {
-          mapsByFolderName.put(mapBean.getFolderName().toLowerCase(), mapBean);
-        }
-      }
-    });
+    this.mapMapper = mapMapper;
+    this.replayMapper = replayMapper;
   }
 
   private static URL getDownloadUrl(String mapName, String baseUrl) {
@@ -166,6 +181,16 @@ public class MapService implements InitializingBean, DisposableBean {
     eventBus.register(this);
     JavaFxUtil.addListener(forgedAlliancePreferences.installationPathProperty(), observable -> tryLoadMaps());
     JavaFxUtil.addListener(forgedAlliancePreferences.customMapsDirectoryProperty(), observable -> tryLoadMaps());
+    installedMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
+      while (change.next()) {
+        for (MapVersionBean mapVersion : change.getRemoved()) {
+          mapsByFolderName.remove(mapVersion.getFolderName().toLowerCase());
+        }
+        for (MapVersionBean mapVersion : change.getAddedSubList()) {
+          mapsByFolderName.put(mapVersion.getFolderName().toLowerCase(), mapVersion);
+        }
+      }
+    });
     tryLoadMaps();
   }
 
@@ -263,10 +288,10 @@ public class MapService implements InitializingBean, DisposableBean {
   @VisibleForTesting
   void addInstalledMap(Path path) throws MapLoadException {
     try {
-      MapBean mapBean = readMap(path);
-      pathToMap.put(path, mapBean);
-      if (!mapsByFolderName.containsKey(mapBean.getFolderName())) {
-        installedMaps.add(mapBean);
+      MapVersionBean mapVersion = readMap(path);
+      pathToMap.put(path, mapVersion);
+      if (!isInstalled(mapVersion.getFolderName())) {
+        installedMaps.add(mapVersion);
       }
     } catch (MapLoadException e) {
       log.warn("Map could not be read: " + path.getFileName(), e);
@@ -280,7 +305,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   @NotNull
-  public MapBean readMap(Path mapFolder) throws MapLoadException {
+  public MapVersionBean readMap(Path mapFolder) throws MapLoadException {
     if (!Files.isDirectory(mapFolder)) {
       throw new MapLoadException("Not a folder: " + mapFolder.toAbsolutePath());
     }
@@ -295,20 +320,22 @@ public class MapService implements InitializingBean, DisposableBean {
       LuaValue scenarioInfo = luaRoot.get("ScenarioInfo");
       LuaValue size = scenarioInfo.get("size");
 
-      MapBean mapBean = new MapBean();
-      mapBean.setFolderName(mapFolder.getFileName().toString());
-      mapBean.setDisplayName(scenarioInfo.get("name").toString());
-      mapBean.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString()));
-      mapBean.setType(Type.fromString(scenarioInfo.get("type").toString()));
-      mapBean.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));
-      mapBean.setPlayers(scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
+      MapVersionBean mapVersion = new MapVersionBean();
+      MapBean map = new MapBean();
+      mapVersion.setFolderName(mapFolder.getFileName().toString());
+      map.setDisplayName(scenarioInfo.get("name").toString());
+      mapVersion.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString()));
+      map.setMapType(MapType.fromString(scenarioInfo.get("type").toString()));
+      mapVersion.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));
+      mapVersion.setMaxPlayers(scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
+      mapVersion.setMap(map);
 
-      LuaValue mapVersion = scenarioInfo.get("map_version");
-      if (!mapVersion.isnil()) {
-        mapBean.setVersion(new ComparableVersion(mapVersion.toString()));
+      LuaValue version = scenarioInfo.get("map_version");
+      if (!version.isnil()) {
+        mapVersion.setVersion(new ComparableVersion(version.toString()));
       }
 
-      return mapBean;
+      return mapVersion;
     } catch (IOException | LuaError e) {
       throw new MapLoadException(e);
     }
@@ -330,11 +357,11 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
 
-  public ObservableList<MapBean> getInstalledMaps() {
+  public ObservableList<MapVersionBean> getInstalledMaps() {
     return installedMaps;
   }
 
-  public Optional<MapBean> getMapLocallyFromName(String mapFolderName) {
+  public Optional<MapVersionBean> getMapLocallyFromName(String mapFolderName) {
     log.debug("Trying to find map '{}' locally", mapFolderName);
     String mapFolderKey = mapFolderName.toLowerCase();
     return Optional.ofNullable(mapsByFolderName.get(mapFolderKey));
@@ -344,12 +371,12 @@ public class MapService implements InitializingBean, DisposableBean {
     return officialMaps.stream().anyMatch(name -> name.equalsIgnoreCase(mapName));
   }
 
-  public boolean isOfficialMap(MapBean map) {
-    return isOfficialMap(map.getFolderName());
+  public boolean isOfficialMap(MapVersionBean mapVersion) {
+    return isOfficialMap(mapVersion.getFolderName());
   }
 
-  public boolean isCustomMap(MapBean map) {
-    return !isOfficialMap(map);
+  public boolean isCustomMap(MapVersionBean mapVersion) {
+    return !isOfficialMap(mapVersion);
   }
 
   /**
@@ -373,29 +400,8 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
 
-  public CompletableFuture<Void> downloadAndInstallMap(MapBean map, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
-    return downloadAndInstallMap(map.getFolderName(), map.getDownloadUrl(), progressProperty, titleProperty);
-  }
-
-  public CompletableFuture<Integer> getRecommendedMapPageCount(int count) {
-    return fafService.getRecommendedMapPageCount(count);
-  }
-
-  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
-    return fafService.getRecommendedMapsWithPageCount(count, page);
-  }
-
-  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
-    return fafService.getHighestRatedMapsWithPageCount(count, page);
-  }
-
-  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
-    return fafService.getNewestMapsWithPageCount(count, page);
-  }
-
-
-  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMostPlayedMapsWithPageCount(int count, int page) {
-    return fafService.getMostPlayedMapsWithPageCount(count, page);
+  public CompletableFuture<Void> downloadAndInstallMap(MapVersionBean mapVersion, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+    return downloadAndInstallMap(mapVersion.getFolderName(), mapVersion.getDownloadUrl(), progressProperty, titleProperty);
   }
 
   /**
@@ -403,18 +409,11 @@ public class MapService implements InitializingBean, DisposableBean {
    */
 
   @Cacheable(value = CacheNames.MAP_PREVIEW)
-  public Image loadPreview(MapBean map, PreviewSize previewSize) {
-    URL url;
-    switch (previewSize) {
-      case SMALL:
-        url = map.getSmallThumbnailUrl();
-        break;
-      case LARGE:
-        url = map.getLargeThumbnailUrl();
-        break;
-      default:
-        throw new ProgrammingError("Uncovered preview size: " + previewSize);
-    }
+  public Image loadPreview(MapVersionBean mapVersion, PreviewSize previewSize) {
+    URL url = switch (previewSize) {
+      case SMALL -> mapVersion.getThumbnailUrlSmall();
+      case LARGE -> mapVersion.getThumbnailUrlLarge();
+    };
     return loadPreview(url, previewSize);
   }
 
@@ -425,18 +424,18 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
 
-  public CompletableFuture<Void> uninstallMap(MapBean map) {
-    if (isOfficialMap(map.getFolderName())) {
+  public CompletableFuture<Void> uninstallMap(MapVersionBean mapVersion) {
+    if (isOfficialMap(mapVersion.getFolderName())) {
       throw new IllegalArgumentException("Attempt to uninstall an official map");
     }
     UninstallMapTask task = applicationContext.getBean(UninstallMapTask.class);
-    task.setMap(map);
+    task.setMap(mapVersion);
     return taskService.submitTask(task).getFuture();
   }
 
 
-  public Path getPathForMap(MapBean map) {
-    return getPathForMapInsensitive(map.getFolderName());
+  public Path getPathForMap(MapVersionBean mapVersion) {
+    return getPathForMapInsensitive(mapVersion.getFolderName());
   }
 
   private Path getMapsDirectory(String technicalName) {
@@ -476,45 +475,26 @@ public class MapService implements InitializingBean, DisposableBean {
     // Nothing to see here
   }
 
-  /**
-   * Tries to find a map my its folder name, first locally then on the server.
-   */
-  public CompletableFuture<Optional<MapBean>> findByMapFolderName(String folderName) {
-    Optional<MapBean> installed = getMapLocallyFromName(folderName);
-    if (installed.isPresent()) {
-      return CompletableFuture.completedFuture(installed);
-    }
-    return fafService.findMapByFolderName(folderName);
-  }
-
-  public CompletableFuture<MapBean> getMapLatestVersion(MapBean map) {
-    String folderName = map.getFolderName();
-    if (containsVersionControl(folderName)) {
-      return fafService.getMapLatestVersion(folderName).thenApply(latestMap -> latestMap.orElse(map));
-    }
-    return CompletableFuture.completedFuture(map);
-  }
-
   private boolean containsVersionControl(String mapFolderName) {
     return Pattern.matches(MAP_VERSION_REGEX, mapFolderName);
   }
 
-  public CompletableFuture<MapBean> updateLatestVersionIfNecessary(MapBean map) {
-    if (isOfficialMap(map) || !preferencesService.getPreferences().getMapAndModAutoUpdate()) {
-      return CompletableFuture.completedFuture(map);
+  public CompletableFuture<MapVersionBean> updateLatestVersionIfNecessary(MapVersionBean mapVersion) {
+    if (isOfficialMap(mapVersion) || !preferencesService.getPreferences().getMapAndModAutoUpdate()) {
+      return CompletableFuture.completedFuture(mapVersion);
     }
-    return getMapLatestVersion(map).thenCompose(latestMap -> {
+    return getMapLatestVersion(mapVersion).thenCompose(latestMap -> {
       CompletableFuture<Void> downloadFuture;
       if (!isInstalled(latestMap.getFolderName())) {
-        downloadFuture = download(latestMap.getFolderName());
+        downloadFuture = downloadAndInstallMap(latestMap, null, null);
       } else {
         downloadFuture = CompletableFuture.completedFuture(null);
       }
       return downloadFuture.thenApply(aVoid -> latestMap);
     }).thenCompose(latestMap -> {
       CompletableFuture<Void> uninstallFuture;
-      if (!latestMap.getFolderName().equals(map.getFolderName())) {
-        uninstallFuture = uninstallMap(map);
+      if (!latestMap.getFolderName().equals(mapVersion.getFolderName())) {
+        uninstallFuture = uninstallMap(mapVersion);
       } else {
         uninstallFuture = CompletableFuture.completedFuture(null);
       }
@@ -522,27 +502,11 @@ public class MapService implements InitializingBean, DisposableBean {
     });
   }
 
-  public CompletableFuture<Boolean> hasPlayedMap(int playerId, String mapVersionId) {
-    return fafService.getLastGameOnMap(playerId, mapVersionId)
-        .thenApply(Optional::isPresent);
-  }
-
   @Async
-  public CompletableFuture<Integer> getFileSize(URL downloadUrl) {
-    return CompletableFuture.completedFuture(noCatch(() -> downloadUrl
+  public CompletableFuture<Integer> getFileSize(MapVersionBean mapVersion) {
+    return CompletableFuture.completedFuture(noCatch(() -> mapVersion.getDownloadUrl()
         .openConnection()
         .getContentLength()));
-  }
-
-  public CompletableFuture<Tuple2<List<MapBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
-    return fafService.findMapsByQueryWithPageCount(searchConfig, count, page);
-  }
-
-  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakingQueue matchmakerQueue, int count, int page) {
-    Player player = playerService.getCurrentPlayer();
-    float meanRating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
-        .map(LeaderboardRating::getMean).orElse(0f);
-    return fafService.getMatchmakerMapsWithPageCount(matchmakerQueue.getQueueId(), meanRating, count, page);
   }
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
@@ -571,22 +535,6 @@ public class MapService implements InitializingBean, DisposableBean {
         .thenAccept(aVoid -> noCatch(() -> addInstalledMap(getPathForMapInsensitive(folderName))));
   }
 
-  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getOwnedMapsWithPageCount(int loadMoreCount, int page) {
-    Player player = playerService.getCurrentPlayer();
-    int playerId = player.getId();
-    return fafService.getOwnedMapsWithPageCount(playerId, loadMoreCount, page);
-  }
-
-  public CompletableFuture<Void> hideMapVersion(MapBean map) {
-    applicationContext.getBean(this.getClass()).evictCache();
-    return fafService.hideMapVersion(map);
-  }
-
-  public CompletableFuture<Void> unrankMapVersion(MapBean map) {
-    applicationContext.getBean(this.getClass()).evictCache();
-    return fafService.unRankMapVersion(map);
-  }
-
   @Override
   public void destroy() {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
@@ -601,5 +549,160 @@ public class MapService implements InitializingBean, DisposableBean {
     PreviewSize(String folderName) {
       this.folderName = folderName;
     }
+  }
+
+  public CompletableFuture<Void> hideMapVersion(MapVersionBean map) {
+    String id = String.valueOf(map.getId());
+    MapVersion mapVersion = new MapVersion();
+    mapVersion.setHidden(true);
+    mapVersion.setId(id);
+    ElideNavigatorOnId<MapVersion> navigator = ElideNavigator.of(mapVersion);
+    return fafApiAccessor.patch(navigator, mapVersion).toFuture();
+  }
+
+  public CompletableFuture<Void> unrankMapVersion(MapVersionBean map) {
+    String id = String.valueOf(map.getId());
+    MapVersion mapVersion = new MapVersion();
+    mapVersion.setRanked(false);
+    mapVersion.setId(id);
+    ElideNavigatorOnId<MapVersion> navigator = ElideNavigator.of(mapVersion);
+    return fafApiAccessor.patch(navigator, mapVersion).toFuture();
+  }
+
+  /**
+   * Tries to find a map my its folder name, first locally then on the server.
+   */
+  public CompletableFuture<Optional<MapVersionBean>> findByMapFolderName(String folderName) {
+    Optional<MapVersionBean> installed = getMapLocallyFromName(folderName);
+    if (installed.isPresent()) {
+      return CompletableFuture.completedFuture(installed);
+    }
+    ElideNavigatorOnCollection<MapVersion> navigator = ElideNavigator.of(MapVersion.class).collection()
+        .setFilter(qBuilder().string("foldername").eq(folderName));
+    return fafApiAccessor.getMany(navigator)
+        .next()
+        .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
+        .toFuture()
+        .thenApply(Optional::ofNullable);
+  }
+
+  @VisibleForTesting
+  CompletableFuture<MapVersionBean> getMapLatestVersion(MapVersionBean mapVersion) {
+    String folderName = mapVersion.getFolderName();
+
+    if (!containsVersionControl(folderName)) {
+      return CompletableFuture.completedFuture(mapVersion);
+    }
+
+    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
+        .setFilter(qBuilder().string("versions.folderName").eq(folderName))
+        .pageSize(1);
+    return fafApiAccessor.getMany(navigator)
+        .next()
+        .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
+        .map(MapBean::getLatestVersion)
+        .toFuture()
+        .thenApply(Optional::ofNullable)
+        .thenApply(latestMap -> latestMap.orElse(mapVersion));
+
+  }
+
+  @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakerQueueBean matchmakerQueue, int count, int page) {
+    PlayerBean player = playerService.getCurrentPlayer();
+    float meanRating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
+        .map(LeaderboardRatingBean::getMean).orElse(0f);
+    ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection();
+    List<Condition<?>> conditions = new ArrayList<>();
+    conditions.add(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
+    conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating").lte(meanRating).or()
+        .floatNum("mapPool.matchmakerQueueMapPool.minRating").ne(null));
+    String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor())).replace("ex", "isnull");
+    Flux<MapVersionBean> matchmakerMapsFlux = fafApiAccessor.getMany(navigator, customFilter)
+        .flatMap(mapPoolAssignment -> Mono.fromCallable(() ->
+            mapMapper.mapPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
+        )
+        .distinct()
+        .sort(Comparator.comparing(MapVersionBean::getSize).thenComparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER));
+    return Mono.zip(
+        matchmakerMapsFlux.skip((long) (page - 1) * count)
+            .takeLast(count).collectList(),
+        matchmakerMapsFlux.count().map(size -> (size - 1) / count + 1)
+            .cast(Integer.class)
+    ).toFuture();
+  }
+
+  public CompletableFuture<Boolean> hasPlayedMap(PlayerBean player, MapVersionBean mapVersion) {
+    ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class).collection()
+        .setFilter(qBuilder()
+            .intNum("mapVersion.id").eq(mapVersion.getId()).and()
+            .intNum("playerStats.player.id").eq(player.getId()))
+        .addSortingRule("endTime", false)
+        .pageSize(1);
+    return fafApiAccessor.getMany(navigator)
+        .next()
+        .map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext()))
+        .toFuture()
+        .thenApply(Optional::ofNullable)
+        .thenApply(Optional::isPresent);
+  }
+
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getOwnedMapsWithPageCount(int count, int page) {
+    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
+        .setFilter(qBuilder().string("author.id").eq(String.valueOf(playerService.getCurrentPlayer().getId())));
+    return getMapPage(navigator, count, page);
+  }
+
+  @Cacheable(value = CacheNames.MAPS, sync = true)
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
+    SortConfig sortConfig = searchConfig.getSortConfig();
+    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
+        .addSortingRule(sortConfig.getSortProperty(), sortConfig.getSortOrder().equals(SortOrder.ASC));
+    return getMapPage(navigator, searchConfig.getSearchQuery(), count, page);
+  }
+
+  @Cacheable(value = CacheNames.MAPS, sync = true)
+  public CompletableFuture<Integer> getRecommendedMapPageCount(int count) {
+    return getRecommendedMapsWithPageCount(count, 1).thenApply(Tuple2::getT2);
+  }
+
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
+    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
+        .setFilter(qBuilder().bool("recommended").isTrue());
+    return getMapPage(navigator, count, page);
+  }
+
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
+    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
+        .addSortingRule("reviewsSummary.lowerBound", false);
+    return getMapPage(navigator, count, page);
+  }
+
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
+    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
+        .addSortingRule("updateTime", false);
+    return getMapPage(navigator, count, page);
+  }
+
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMostPlayedMapsWithPageCount(int count, int page) {
+    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
+        .addSortingRule("gamesPlayed", false);
+    return getMapPage(navigator, count, page);
+  }
+
+  private CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMapPage(ElideNavigatorOnCollection<Map> navigator, int count, int page) {
+    navigator.pageNumber(page).pageSize(count);
+    return fafApiAccessor.getManyWithPageCount(navigator)
+        .map(tuple -> tuple.mapT1(mods ->
+            mods.stream().map(Map::getLatestVersion).map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext())).collect(toList())
+        )).toFuture();
+  }
+
+  private CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMapPage(ElideNavigatorOnCollection<Map> navigator, String customFilter, int count, int page) {
+    navigator.pageNumber(page).pageSize(count);
+    return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(dto -> mapMapper.map(dto.getLatestVersion(), new CycleAvoidingMappingContext())).collect(toList())
+        )).toFuture();
   }
 }

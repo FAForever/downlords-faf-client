@@ -1,6 +1,7 @@
 package com.faforever.client.clan;
 
 
+import com.faforever.client.domain.ClanBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import javafx.scene.Node;
@@ -35,7 +36,7 @@ public class ClanTooltipController implements Controller<Node> {
     this.i18n = i18n;
   }
 
-  public void setClan(Clan clan) {
+  public void setClan(ClanBean clan) {
     nameLabel.setText(clan.getName());
     // TODO improve formatting
     membersLabel.setText(i18n.number(clan.getMembers().size()));

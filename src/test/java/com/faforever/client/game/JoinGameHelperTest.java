@@ -1,10 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -54,14 +56,14 @@ public class JoinGameHelperTest extends UITest {
   @Mock
   private EventBus eventBus;
 
-  private Game game;
+  private GameBean game;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Player currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
-    game = GameBuilder.create().defaultValues()
-        .minRating(0)
-        .maxRating(1000)
+    PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
+    game = GameBeanBuilder.create().defaultValues()
+        .ratingMin(0)
+        .ratingMax(1000)
         .get();
 
     instance = new JoinGameHelper(i18n, playerService, gameService, preferencesService, notificationService, reportingService, uiService, eventBus);
@@ -144,7 +146,7 @@ public class JoinGameHelperTest extends UITest {
    */
   @Test
   public void testJoinGameIgnoreRatings() {
-    game.setMaxRating(-100);
+    game.setRatingMax(-100);
     instance.join(game, "haha", true);
     verify(gameService).joinGame(game, "haha");
     verify(notificationService, never()).addNotification(any(ImmediateNotification.class));
@@ -156,7 +158,7 @@ public class JoinGameHelperTest extends UITest {
    */
   @Test
   public void testJoinGameRatingToLow() {
-    game.setMinRating(5000);
+    game.setRatingMin(5000);
     instance.join(game);
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
@@ -166,7 +168,7 @@ public class JoinGameHelperTest extends UITest {
    */
   @Test
   public void testJoinGameRatingToHigh() {
-    game.setMaxRating(-100);
+    game.setRatingMax(-100);
     instance.join(game);
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }

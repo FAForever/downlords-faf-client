@@ -1,13 +1,14 @@
 package com.faforever.client.game;
 
 import com.faforever.client.discord.DiscordJoinEvent;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -50,13 +51,13 @@ public class JoinGameHelper {
     this.eventBus = eventBus;
   }
 
-  public void join(Game game) {
+  public void join(GameBean game) {
     this.join(game, null, false);
   }
 
-  public void join(Game game, String password, boolean ignoreRating) {
-    Player currentPlayer = playerService.getCurrentPlayer();
-    int playerRating = RatingUtil.getRoundedLeaderboardRating(currentPlayer, game.getRatingType());
+  public void join(GameBean game, String password, boolean ignoreRating) {
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    int playerRating = RatingUtil.getRoundedLeaderboardRating(currentPlayer, game.getLeaderboard());
 
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
@@ -65,8 +66,8 @@ public class JoinGameHelper {
       return;
     }
 
-    boolean minRatingViolated = game.getMinRating() != null && playerRating < game.getMinRating();
-    boolean maxRatingViolated = game.getMaxRating() != null && playerRating > game.getMaxRating();
+    boolean minRatingViolated = game.getRatingMin() != null && playerRating < game.getRatingMin();
+    boolean maxRatingViolated = game.getRatingMax() != null && playerRating > game.getRatingMax();
 
     if (!ignoreRating && (minRatingViolated || maxRatingViolated)) {
       showRatingOutOfBoundsConfirmation(playerRating, game, password);
@@ -89,10 +90,10 @@ public class JoinGameHelper {
     }
   }
 
-  private void showRatingOutOfBoundsConfirmation(int playerRating, Game game, String password) {
+  private void showRatingOutOfBoundsConfirmation(int playerRating, GameBean game, String password) {
     notificationService.addNotification(new ImmediateNotification(
         i18n.get("game.joinGameRatingConfirmation.title"),
-        i18n.get("game.joinGameRatingConfirmation.text", game.getMinRating(), game.getMaxRating(), playerRating),
+        i18n.get("game.joinGameRatingConfirmation.text", game.getRatingMin(), game.getRatingMax(), playerRating),
         Severity.INFO,
         asList(
             new Action(i18n.get("game.join"), event -> this.join(game, password, true)),

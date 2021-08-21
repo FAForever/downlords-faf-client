@@ -1,5 +1,6 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -24,7 +25,7 @@ import java.util.List;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class LocalReplayVaultController extends VaultEntityController<Replay> {
+public class LocalReplayVaultController extends VaultEntityController<ReplayBean> {
 
   private final ReplayService replayService;
 
@@ -46,7 +47,7 @@ public class LocalReplayVaultController extends VaultEntityController<Replay> {
   }
 
   @Override
-  protected void onDisplayDetails(Replay replay) {
+  protected void onDisplayDetails(ReplayBean replay) {
     JavaFxUtil.assertApplicationThread();
     replayDetailController.setReplay(replay);
     replayDetailController.getRoot().setVisible(true);
@@ -77,7 +78,7 @@ public class LocalReplayVaultController extends VaultEntityController<Replay> {
     }
   }
 
-  protected Node getEntityCard(Replay replay) {
+  protected Node getEntityCard(ReplayBean replay) {
     ReplayCardController controller = uiService.loadFxml("theme/vault/replay/replay_card.fxml");
     controller.setReplay(replay);
     controller.setOnOpenDetailListener(this::onDisplayDetails);

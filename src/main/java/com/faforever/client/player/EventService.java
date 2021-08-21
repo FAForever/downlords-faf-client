@@ -1,13 +1,19 @@
 package com.faforever.client.player;
 
-import com.faforever.client.remote.FafService;
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.config.CacheNames;
 import com.faforever.commons.api.dto.PlayerEvent;
+import com.faforever.commons.api.elide.ElideNavigator;
+import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 
 
 @Lazy
@@ -44,9 +50,16 @@ public class EventService {
   public static final String EVENT_SERAPHIM_PLAYS = "fefcb392-848f-4836-9683-300b283bc308";
   public static final String EVENT_SERAPHIM_WINS = "15b6c19a-6084-4e82-ada9-6c30e282191f";
 
-  private final FafService fafService;
+  private final FafApiAccessor fafApiAccessor;
 
+  @Cacheable(value = CacheNames.PLAYER_EVENTS, sync = true)
   public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId) {
-    return fafService.getPlayerEvents(playerId);
+    ElideNavigatorOnCollection<PlayerEvent> navigator = ElideNavigator.of(PlayerEvent.class)
+        .collection()
+        .setFilter(qBuilder().intNum("player.id").eq(playerId))
+        .pageSize(fafApiAccessor.getMaxPageSize());
+    return fafApiAccessor.getMany(navigator)
+        .collectMap(playerEvent -> playerEvent.getEvent().getId())
+        .toFuture();
   }
 }

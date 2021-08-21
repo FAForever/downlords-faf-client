@@ -1,6 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -10,7 +12,6 @@ import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -549,10 +550,10 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String decoratedClanTag = "";
     String countryFlagUrl = "";
 
-    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
     if (playerOptional.isPresent()) {
-      Player player = playerOptional.get();
-      avatarUrl = player.getAvatarUrl();
+      PlayerBean player = playerOptional.get();
+      avatarUrl = Optional.ofNullable(player.getAvatar()).map(AvatarBean::getUrl).map(URL::toExternalForm).orElse("");
       countryFlagUrl = countryFlagService.getCountryFlagUrl(player.getCountry())
           .map(URL::toString)
           .orElse("");
@@ -565,7 +566,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     String timeString = timeService.asShortTime(chatMessage.getTime());
     html = html.replace("{time}", timeString)
-        .replace("{avatar}", StringUtils.defaultString(avatarUrl))
+        .replace("{avatar}", avatarUrl)
         .replace("{username}", login)
         .replace("{clan-tag}", clanTag)
         .replace("{decorated-clan-tag}", decoratedClanTag)
@@ -624,7 +625,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       return;
     }
 
-    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
     String identIconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
 
     if (preferencesService.getPreferences().getNotification().isPrivateMessageToastEnabled()) {
@@ -642,7 +643,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected String getMessageCssClass(String login) {
-    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(login);
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(login);
     if (playerOptional.isEmpty()) {
       return CSS_CLASS_CHAT_ONLY;
     }

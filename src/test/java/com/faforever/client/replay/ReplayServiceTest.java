@@ -1,50 +1,57 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.mapstruct.MapperSetup;
+import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
+import com.faforever.commons.api.dto.GameReviewsSummary;
+import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentCaptor;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import reactor.util.function.Tuple2;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
+import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -56,6 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -117,7 +125,7 @@ public class ReplayServiceTest extends ServiceTest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private FafService fafService;
+  private FafApiAccessor fafApiAccessor;
   @Mock
   private ReportingService reportingService;
   @Mock
@@ -127,22 +135,20 @@ public class ReplayServiceTest extends ServiceTest {
   @Mock
   private MapService mapService;
   @Mock
-  private EventBus publisher;
-  @Mock
   private MapGeneratorService mapGeneratorService;
-  @Mock
-  private ExecutorService executorService;
   @Mock
   private UserService userService;
   @Mock
   private ReplayDataParser replayDataParser;
 
+  private ReplayMapper replayMapper = Mappers.getMapper(ReplayMapper.class);
+
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    MapperSetup.injectMappers(replayMapper);
 
     instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafService, modService, mapService, publisher);
+        taskService, i18n, reportingService, applicationContext, platformService, fafApiAccessor, modService, mapService, replayMapper);
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
@@ -209,7 +215,7 @@ public class ReplayServiceTest extends ServiceTest {
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file1);
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file2);
 
-    Collection<Replay> localReplays = new ArrayList<>();
+    Collection<ReplayBean> localReplays = new ArrayList<>();
     try {
       localReplays.addAll(instance.loadLocalReplayPage(2, 1).get().getT1());
     } catch (FakeTestException exception) {
@@ -234,9 +240,9 @@ public class ReplayServiceTest extends ServiceTest {
     when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
     when(replayFileReader.parseReplay(file1)).thenReturn(replayDataParser);
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
+    when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapVersionBeanBuilder.create().defaultValues().get())));
 
-    Collection<Replay> localReplays = instance.loadLocalReplayPage(1, 1).get().getT1();
+    Collection<ReplayBean> localReplays = instance.loadLocalReplayPage(1, 1).get().getT1();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));
@@ -247,7 +253,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testRunFafReplayFile() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
 
     instance.runReplay(replay);
@@ -260,7 +266,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testRunFafReplayFileGeneratedMap() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
 
     when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH_GENERATED);
@@ -276,7 +282,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testRunScFaReplayFile() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
 
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
 
     when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
@@ -293,7 +299,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
 
     instance.runReplay(replay);
@@ -306,7 +312,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
 
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
 
     instance.runReplay(replay);
@@ -315,19 +321,11 @@ public class ReplayServiceTest extends ServiceTest {
 
   @Test
   public void testOwnReplays() throws Exception {
-    ArgumentCaptor<String> queryCatcher = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<Integer> pageSizeCatcher = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<Integer> pageCatcher = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<SortConfig> sortCatcher = ArgumentCaptor.forClass(SortConfig.class);
     when(userService.getUserId()).thenReturn(47);
-    when(fafService.findReplaysByQueryWithPageCount(queryCatcher.capture(), pageSizeCatcher.capture(), pageCatcher.capture(), sortCatcher.capture())).thenReturn(CompletableFuture.completedFuture(null));
-    CompletableFuture<Tuple2<List<Replay>, Integer>> ownReplays = instance.getOwnReplaysWithPageCount(100, 1);
-    ownReplays.get();
-    assertEquals("playerStats.player.id==\"47\"", queryCatcher.getValue());
-    assertEquals(100, (int) pageSizeCatcher.getValue());
-    assertEquals(1, (int) pageCatcher.getValue());
-    assertEquals(SortOrder.DESC, sortCatcher.getValue().getSortOrder());
-    assertEquals("startTime", sortCatcher.getValue().getSortProperty());
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
+    instance.getOwnReplaysWithPageCount(100, 1).join();
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().intNum("playerStats.player.id").eq(47).and().instant("endTime").after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)));
   }
 
   @Test
@@ -337,7 +335,7 @@ public class ReplayServiceTest extends ServiceTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);
@@ -364,7 +362,7 @@ public class ReplayServiceTest extends ServiceTest {
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
 
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
 
     when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
 
@@ -383,7 +381,7 @@ public class ReplayServiceTest extends ServiceTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
-    Replay replay = new Replay();
+    ReplayBean replay = new ReplayBean();
 
     instance.runReplay(replay);
 
@@ -406,9 +404,56 @@ public class ReplayServiceTest extends ServiceTest {
     Path path = Paths.get("foo.bar");
     when(replayFileReader.parseReplay(path)).thenReturn(replayDataParser);
 
-    instance.enrich(new Replay(), path);
+    instance.enrich(new ReplayBean(), path);
 
     verify(replayDataParser).getChatMessages();
     verify(replayDataParser).getGameOptions();
+  }
+
+  @Test
+  public void testGetNewest() {
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
+    instance.getNewestReplaysWithPageCount(10, 1);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().instant("endTime").after(Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
+  }
+
+  @Test
+  public void testGetHighestRated() {
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
+    instance.getHighestRatedReplaysWithPageCount(10, 1);
+    verify(fafApiAccessor).getManyWithPageCount(((ElideNavigatorOnCollection<GameReviewsSummary>) argThat(ElideMatchers.hasDtoClass(GameReviewsSummary.class))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("lowerBound", false)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
+  }
+
+  @Test
+  public void testGetReplaysForPlayer() {
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
+    instance.getReplaysForPlayerWithPageCount(0, 10, 1);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().intNum("playerStats.player.id").eq(0).and().instant("endTime").after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("endTime", false)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
+  }
+
+  @Test
+  public void testFindByQuery() {
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(Mono.empty());
+    SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
+    instance.findByQueryWithPageCount(searchConfig, 10, 1);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("testSort", true)), eq("testQuery"));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), eq("testQuery"));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), eq("testQuery"));
+  }
+
+  @Test
+  public void testFindById() {
+    when(fafApiAccessor.getOne(any())).thenReturn(Mono.empty());
+    instance.findById(0);
+    verify(fafApiAccessor).getOne(any());
   }
 }

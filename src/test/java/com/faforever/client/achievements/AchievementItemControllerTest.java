@@ -1,5 +1,7 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.builders.AchievementDefinitionBuilder;
+import com.faforever.client.builders.PlayerAchievementBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.api.dto.AchievementDefinition;

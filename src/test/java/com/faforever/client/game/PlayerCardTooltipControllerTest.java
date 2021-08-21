@@ -1,9 +1,9 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -35,10 +35,11 @@ public class PlayerCardTooltipControllerTest extends UITest {
   public void testSetFoe() {
     when(i18n.get("userInfo.tooltipFormat.withRating", "foe", 1000)).thenReturn("foe(1000)");
 
-    PlayerBuilder playerBuilder = PlayerBuilder.create("foe")
+    PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
         .defaultValues()
+        .username("foe")
         .socialStatus(SocialStatus.FOE);
-    Player player = playerBuilder.get();
+    PlayerBean player = playerBeanBuilder.get();
     instance.setPlayer(player, 1000, Faction.CYBRAN);
 
     assertThat(instance.factionIcon.getStyleClass(), hasItem(UiService.CYBRAN_STYLE_CLASS));
@@ -53,10 +54,11 @@ public class PlayerCardTooltipControllerTest extends UITest {
   public void testSetFriend() {
     when(i18n.get("userInfo.tooltipFormat.withRating", "user", 1000)).thenReturn("user(1000)");
 
-    PlayerBuilder playerBuilder = PlayerBuilder.create("user")
+    PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
         .defaultValues()
+        .username("user")
         .socialStatus(SocialStatus.FRIEND);
-    Player player = playerBuilder.get();
+    PlayerBean player = playerBeanBuilder.get();
     instance.setPlayer(player, 1000, Faction.SERAPHIM);
 
     assertThat(instance.factionIcon.getStyleClass(), hasItem(UiService.SERAPHIM_STYLE_CLASS));
@@ -71,10 +73,11 @@ public class PlayerCardTooltipControllerTest extends UITest {
   public void testSetOther() {
     when(i18n.get("userInfo.tooltipFormat.withRating", "user", 1000)).thenReturn("user(1000)");
 
-    PlayerBuilder playerBuilder = PlayerBuilder.create("user")
+    PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create()
         .defaultValues()
+        .username("user")
         .socialStatus(SocialStatus.OTHER);
-    Player player = playerBuilder.get();
+    PlayerBean player = playerBeanBuilder.get();
     instance.setPlayer(player, 1000, Faction.RANDOM);
 
     assertThat(instance.factionIcon.isVisible(), is(false));

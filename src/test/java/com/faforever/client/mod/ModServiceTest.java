@@ -1,17 +1,32 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.builders.FeaturedModBeanBuilder;
+import com.faforever.client.builders.ModBeanBuilder;
+import com.faforever.client.builders.ModVersionBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.ModBean;
+import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.ModVersion.ModType;
+import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
+import com.faforever.client.mapstruct.MapperSetup;
+import com.faforever.client.mapstruct.ModMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.UITest;
+import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.client.vault.search.SearchController.SortConfig;
+import com.faforever.client.vault.search.SearchController.SortOrder;
+import com.faforever.commons.api.dto.FeaturedModFile;
+import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.io.ByteCopier;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -23,9 +38,12 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,12 +58,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -54,6 +72,9 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -70,8 +91,6 @@ public class ModServiceTest extends UITest {
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
 
   @TempDir
-  public Path modsDirectory;
-  @TempDir
   public Path faDataDirectory;
 
   @Mock
@@ -81,7 +100,7 @@ public class ModServiceTest extends UITest {
   @Mock
   private TaskService taskService;
   @Mock
-  private FafService fafService;
+  private FafApiAccessor fafApiAccessor;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -91,11 +110,16 @@ public class ModServiceTest extends UITest {
   @Mock
   private PlatformService platformService;
 
+  private Path modsDirectory;
   private ModService instance;
+  private ModMapper modMapper = Mappers.getMapper(ModMapper.class);
   private Path gamePrefsPath;
 
   @BeforeEach
   public void setUp() throws Exception {
+    MapperSetup.injectMappers(modMapper);
+    modsDirectory = faDataDirectory.resolve("mods");
+    Files.createDirectories(modsDirectory);
     gamePrefsPath = faDataDirectory.resolve("game.prefs");
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
@@ -104,9 +128,10 @@ public class ModServiceTest extends UITest {
         .then()
         .get();
 
-    instance = new ModService(fafService, preferencesService, taskService, applicationContext, notificationService, i18n,
-        platformService, assetService);
+    instance = new ModService(fafApiAccessor, preferencesService, taskService, applicationContext, notificationService, i18n,
+        platformService, assetService, modMapper);
 
+    when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(taskService.submitTask(any(CompletableTask.class))).then(invocation -> {
       CompletableTask<?> completableTask = invocation.getArgument(0);
@@ -132,7 +157,7 @@ public class ModServiceTest extends UITest {
 
   @Test
   public void testPostConstructLoadInstalledMods() {
-    ObservableList<ModVersion> installedModVersions = instance.getInstalledModVersions();
+    ObservableList<ModVersionBean> installedModVersions = instance.getInstalledModVersions();
 
     assertThat(installedModVersions.size(), is(1));
   }
@@ -207,7 +232,7 @@ public class ModServiceTest extends UITest {
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    ModVersion modVersion = ModVersionBuilder.create().defaultValues().downloadUrl(modUrl).get();
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
     instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
@@ -288,14 +313,14 @@ public class ModServiceTest extends UITest {
     copyMod("EM", ECO_MANAGER_MOD_INFO);
     instance.loadInstalledMods();
 
-    ArrayList<ModVersion> installedModVersions = new ArrayList<>(instance.getInstalledModVersions());
-    installedModVersions.sort(Comparator.comparing(ModVersion::getDisplayName));
+    ArrayList<ModVersionBean> installedModVersions = new ArrayList<>(instance.getInstalledModVersions());
+    installedModVersions.sort(Comparator.comparing(modVersionBean -> modVersionBean.getMod().getDisplayName()));
 
-    ModVersion modVersion = installedModVersions.get(0);
+    ModVersionBean modVersion = installedModVersions.get(0);
 
-    assertThat(modVersion.getDisplayName(), is("BlackOps Global Icon Support Mod"));
+    assertThat(modVersion.getMod().getDisplayName(), is("BlackOps Global Icon Support Mod"));
     assertThat(modVersion.getVersion(), is(new ComparableVersion("5")));
-    assertThat(modVersion.getUploader(), is("Exavier Macbeth, DeadMG"));
+    assertThat(modVersion.getMod().getAuthor(), is("Exavier Macbeth, DeadMG"));
     assertThat(modVersion.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
     assertThat(modVersion.getImagePath(), nullValue());
     assertThat(modVersion.getSelectable(), is(true));
@@ -305,25 +330,25 @@ public class ModServiceTest extends UITest {
 
     modVersion = installedModVersions.get(1);
 
-    assertThat(modVersion.getDisplayName(), is("BlackOps Unleashed"));
+    assertThat(modVersion.getMod().getDisplayName(), is("BlackOps Unleashed"));
     assertThat(modVersion.getVersion(), is(new ComparableVersion("8")));
-    assertThat(modVersion.getUploader(), is("Lt_hawkeye"));
+    assertThat(modVersion.getMod().getAuthor(), is("Lt_hawkeye"));
     assertThat(modVersion.getDescription(), is("Version 5.2. BlackOps Unleased Unitpack contains several new units and game changes. Have fun"));
     assertThat(modVersion.getImagePath(), is(modsDirectory.resolve("BlackOpsUnleashed/icons/yoda_icon.bmp")));
     assertThat(modVersion.getSelectable(), is(true));
     assertThat(modVersion.getId(), is(nullValue()));
     assertThat(modVersion.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(modVersion.getModType(), equalTo(ModType.SIM));
-    assertThat(modVersion.getMountInfos(), hasSize(10));
-    assertThat(modVersion.getMountInfos().get(3).getFile(), is(Paths.get("effects")));
-    assertThat(modVersion.getMountInfos().get(3).getMountPoint(), is("/effects"));
+    assertThat(modVersion.getMountPoints(), hasSize(10));
+    assertThat(modVersion.getMountPoints().get(3).getFile(), is(Paths.get("effects")));
+    assertThat(modVersion.getMountPoints().get(3).getMountPoint(), is("/effects"));
     assertThat(modVersion.getHookDirectories(), contains("/blackops"));
 
     modVersion = installedModVersions.get(2);
 
-    assertThat(modVersion.getDisplayName(), is("EcoManager"));
+    assertThat(modVersion.getMod().getDisplayName(), is("EcoManager"));
     assertThat(modVersion.getVersion(), is(new ComparableVersion("3")));
-    assertThat(modVersion.getUploader(), is("Crotalus"));
+    assertThat(modVersion.getMod().getAuthor(), is("Crotalus"));
     assertThat(modVersion.getDescription(), is("EcoManager v3, more efficient energy throttling"));
     assertThat(modVersion.getImagePath(), nullValue());
     assertThat(modVersion.getSelectable(), is(true));
@@ -373,7 +398,7 @@ public class ModServiceTest extends UITest {
   @Test
   public void testGetPathForModUnknownModReturnsNull() {
     assertThat(instance.getInstalledModVersions(), hasSize(1));
-    assertThat(instance.getPathForMod(ModVersionBuilder.create().uid("1").get()), Matchers.nullValue());
+    assertThat(instance.getPathForMod(ModVersionBeanBuilder.create().defaultValues().uid("1").get()), Matchers.nullValue());
   }
 
   @Test
@@ -393,7 +418,7 @@ public class ModServiceTest extends UITest {
 
   @Test
   public void testLoadThumbnail() throws MalformedURLException {
-    ModVersion modVersion = ModVersionBuilder.create().defaultValues()
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues()
         .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
         .get();
     instance.loadThumbnail(modVersion);
@@ -402,18 +427,19 @@ public class ModServiceTest extends UITest {
 
   @Test
   public void testUpdateModsWithUpdatedMod() throws IOException, ExecutionException, InterruptedException {
-    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
-    Mod mod = new Mod();
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
+    ModBean mod = new ModBean();
     modVersion.setMod(mod);
     mod.setLatestVersion(modVersion);
 
-    when(fafService.getModVersion(eq(modVersion.getUid())))
-        .thenReturn(CompletableFuture.completedFuture(Optional.of(modVersion)));
+    ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
+
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
 
     Files.createFile(gamePrefsPath);
 
 
-    List<ModVersion> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    List<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
     verify(taskService, times(0)).submitTask(any(InstallModTask.class));
 
@@ -423,14 +449,14 @@ public class ModServiceTest extends UITest {
 
   @Test
   public void testUpdateModsWithAutoUpdateTurnedOff() throws IOException, ExecutionException, InterruptedException {
-    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
     Preferences preferences = new Preferences();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     preferences.setMapAndModAutoUpdate(false);
 
-    List<ModVersion> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    List<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
-    verify(fafService, times(0)).getModVersion(eq(modVersion.getUid()));
+    verify(fafApiAccessor, times(0)).getMany(any());
 
     assertThat(modVersions, hasSize(1));
     assertThat(modVersions.get(0), is(modVersion));
@@ -438,18 +464,13 @@ public class ModServiceTest extends UITest {
 
   @Test
   public void testUpdateModsWithOutdatedMod() throws IOException, ExecutionException, InterruptedException {
-    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
-    Mod mod = new Mod();
-    modVersion.setMod(mod);
-    ModVersion newerModVersion = ModVersionBuilder.create()
-        .defaultValues()
-        .id("1223214")
-        .uid("b17b7e58-d46d-4465-895b-ed0887e75dc1")
-        .get();
-    mod.setLatestVersion(newerModVersion);
+    ModVersionBean latestVersion = ModVersionBeanBuilder.create().defaultValues().uid("latest").id(100).get();
+    ModBean mod = ModBeanBuilder.create().defaultValues().latestVersion(latestVersion).get();
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().mod(mod).get();
 
-    when(fafService.getModVersion(eq(modVersion.getUid())))
-        .thenReturn(CompletableFuture.completedFuture(Optional.of(modVersion)));
+    ModVersion dto = modMapper.map(modVersion, new CycleAvoidingMappingContext());
+
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(dto));
 
     Files.createFile(gamePrefsPath);
 
@@ -462,12 +483,12 @@ public class ModServiceTest extends UITest {
     when(installModTask.getFuture())
         .thenReturn(CompletableFuture.completedFuture(null));
 
-    List<ModVersion> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    List<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
     verify(taskService, times(2)).submitTask(any());
 
     assertThat(modVersions, hasSize(1));
-    assertThat(modVersions.get(0), is(newerModVersion));
+    assertThat(modVersions.get(0), is(latestVersion));
   }
 
   private InstallModTask stubInstallModTask() {
@@ -481,7 +502,66 @@ public class ModServiceTest extends UITest {
 
   @Test
   public void testGetRecommendedMods() {
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
     instance.getRecommendedModsWithPageCount(10, 0);
-    verify(fafService).getRecommendedModsWithPageCount(10, 0);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended").isTrue())));
+  }
+
+  @Test
+  public void testGetFeaturedFiles() {
+    when(fafApiAccessor.getMany(eq(FeaturedModFile.class), anyString(), anyInt(), any())).thenReturn(Flux.empty());
+    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
+    instance.getFeaturedModFiles(featuredMod, 0);
+    verify(fafApiAccessor).getMany(eq(FeaturedModFile.class), eq(String.format("/featuredMods/%s/files/%s", featuredMod.getId(), 0)), eq(100), any());
+  }
+
+  @Test
+  public void testGetFeaturedMod() {
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    instance.getFeaturedMod("test");
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("test"))));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));
+  }
+
+  @Test
+  public void testFindByQuery() throws Exception {
+    when(fafApiAccessor.getManyWithPageCount(any(), anyString())).thenReturn(Mono.empty());
+
+    SearchConfig searchConfig = new SearchConfig(new SortConfig("testSort", SortOrder.ASC), "testQuery");
+    instance.findByQueryWithPageCount(searchConfig, 10, 1);
+
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("testSort", true)), eq("testQuery"));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), eq("testQuery"));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), eq("testQuery"));
+  }
+
+  @Test
+  public void testGetHighestRated() {
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
+    instance.getHighestRatedModsWithPageCount(10, 1);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("SIM"))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
+  }
+
+  @Test
+  public void testGetHighestRatedUI() {
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
+    instance.getHighestRatedUiModsWithPageCount(10, 1);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("UI"))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
+  }
+
+  @Test
+  public void testGetNewest() {
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
+    instance.getNewestModsWithPageCount(10, 1);
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("latestVersion.createTime", false)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
   }
 }

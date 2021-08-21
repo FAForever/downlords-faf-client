@@ -1,5 +1,7 @@
 package com.faforever.client.map;
 
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +51,7 @@ public class UninstallMapTaskTest extends ServiceTest {
   public void testCall() throws Exception {
     copyMap("theta_passage_5.v0001", THETA_PASSAGE);
 
-    MapBean map = MapBeanBuilder.create().uid("b2cde810-15d0-4bfa-af6a-ec2d6ecd561b").get();
+    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().id(123).get();
 
     Path mapPath = mapsDirectory.resolve("theta_passage_5.v0001");
     when(mapService.getPathForMap(map)).thenReturn(mapPath);

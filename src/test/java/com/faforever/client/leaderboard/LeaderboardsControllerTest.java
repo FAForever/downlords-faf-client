@@ -1,5 +1,10 @@
 package com.faforever.client.leaderboard;
 
+import com.faforever.client.builders.LeaderboardBeanBuilder;
+import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeaderboardEntryBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
@@ -11,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static com.faforever.client.leaderboard.LeaderboardEntryBuilder.create;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -32,27 +36,18 @@ public class LeaderboardsControllerTest extends UITest {
   @Mock
   private I18n i18n;
 
-  private final Leaderboard leaderboardGlobal = LeaderboardBuilder.create().defaultValues().id(1).technicalName("global").get();
-  private final List<LeaderboardEntry> entriesGlobal = List.of(
-      create().defaultValues().username("MarcSpector").get(),
-      create().defaultValues().username("Sheikah").get(),
-      create().defaultValues().username("ZLO").get()
-  );
-
-  private final Leaderboard leaderboard1v1 = LeaderboardBuilder.create().defaultValues().id(2).technicalName("1v1").get();
-  private final List<LeaderboardEntry> entries1v1 = List.of(
-      create().defaultValues().username("Lenkin").get(),
-      create().defaultValues().username("Nexus").get(),
-      create().defaultValues().username("FtXCommando").get(),
-      create().defaultValues().username("Tex").get()
+  private final LeaderboardBean leaderboardGlobal = LeaderboardBeanBuilder.create().defaultValues().id(1).technicalName("global").get();
+  private final List<LeaderboardEntryBean> entriesGlobal = List.of(
+      LeaderboardEntryBeanBuilder.create().defaultValues().id(0).player(PlayerBeanBuilder.create().defaultValues().username("MarcSpector").id(0).get()).get(),
+      LeaderboardEntryBeanBuilder.create().defaultValues().id(1).player(PlayerBeanBuilder.create().defaultValues().username("Sheikah").id(1).get()).get(),
+      LeaderboardEntryBeanBuilder.create().defaultValues().id(2).player(PlayerBeanBuilder.create().defaultValues().username("ZLO").id(2).get()).get()
   );
 
   @BeforeEach
   public void setUp() throws Exception {
     when(leaderboardService.getLeaderboards())
-        .thenReturn(CompletableFuture.completedFuture(List.of(leaderboardGlobal, leaderboard1v1)));
+        .thenReturn(CompletableFuture.completedFuture(List.of(leaderboardGlobal)));
     when(leaderboardService.getEntries(leaderboardGlobal)).thenReturn(CompletableFuture.completedFuture(entriesGlobal));
-    when(leaderboardService.getEntries(leaderboard1v1)).thenReturn(CompletableFuture.completedFuture(entries1v1));
 
     instance = new LeaderboardsController(leaderboardService, notificationService, i18n);
 
@@ -65,19 +60,14 @@ public class LeaderboardsControllerTest extends UITest {
     assertTrue(instance.contentPane.isVisible());
     assertEquals(3, instance.ratingTable.getItems().size());
     verifyNoInteractions(notificationService);
-
-    showLeaderboard(leaderboard1v1);
-    assertTrue(instance.contentPane.isVisible());
-    assertEquals(4, instance.ratingTable.getItems().size());
-    verifyNoInteractions(notificationService);
   }
 
   @Test
   public void testOnDisplayWhenThrowException() {
     Exception exception = new RuntimeException("error of loading leaderboard entries");
-    when(leaderboardService.getEntries(leaderboard1v1))
+    when(leaderboardService.getEntries(leaderboardGlobal))
         .thenReturn(CompletableFuture.failedFuture(exception));
-    showLeaderboard(leaderboard1v1);
+    showLeaderboard(leaderboardGlobal);
     assertFalse(instance.contentPane.isVisible());
     verify(notificationService).addImmediateErrorNotification(any(), any());
   }
@@ -86,22 +76,22 @@ public class LeaderboardsControllerTest extends UITest {
   public void testFilterByNamePlayerExactMatch() {
     showLeaderboard(leaderboardGlobal);
     assertNull(instance.ratingTable.getSelectionModel().getSelectedItem());
-    setSearchText("Sheikah");
+    runOnFxThreadAndWait(() -> setSearchText("Sheikah"));
     assertEquals(3, instance.ratingTable.getItems().size());
-    assertEquals("Sheikah", instance.ratingTable.getSelectionModel().getSelectedItem().getUsername());
+    assertEquals("Sheikah", instance.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
   }
 
   @Test
   public void testFilterByNamePlayerPartialMatch() {
     showLeaderboard(leaderboardGlobal);
     assertNull(instance.ratingTable.getSelectionModel().getSelectedItem());
-    setSearchText("z");
+    runOnFxThreadAndWait(() -> setSearchText("z"));
     assertEquals(3, instance.ratingTable.getItems().size());
-    assertEquals("ZLO", instance.ratingTable.getSelectionModel().getSelectedItem().getUsername());
+    assertEquals("ZLO", instance.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
   }
 
   @Test
-  public void testAutoCompletionSuggestionsForGlobal() {
+  public void testAutoCompletionSuggestions() {
     showLeaderboard(leaderboardGlobal);
     settingAutoCompletionForTestEnvironment();
     setSearchText("o");
@@ -110,15 +100,7 @@ public class LeaderboardsControllerTest extends UITest {
     assertSearchSuggestions("Sheikah");
   }
 
-  @Test
-  public void testAutoCompletionSuggestionsFor1v1() {
-    showLeaderboard(leaderboard1v1);
-    settingAutoCompletionForTestEnvironment();
-    setSearchText("ex");
-    assertSearchSuggestions("Nexus", "Tex");
-  }
-
-  private void showLeaderboard(Leaderboard leaderboard) {
+  private void showLeaderboard(LeaderboardBean leaderboard) {
     runOnFxThreadAndWait(() -> {
       instance.leaderboardComboBox.setValue(leaderboard);
       instance.onLeaderboardSelected();

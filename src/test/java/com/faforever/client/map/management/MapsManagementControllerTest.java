@@ -1,12 +1,13 @@
 package com.faforever.client.map.management;
 
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,12 +27,12 @@ public class MapsManagementControllerTest extends UITest {
   @Mock
   private UiService uiService;
 
-  private final MapBean officialMap = MapBeanBuilder.create().displayName("official map").folderName("SCMP_001").uid("official1")
+  private final MapVersionBean officialMap = MapVersionBeanBuilder.create().folderName("SCMP_001").id(0)
       .version(null).get();
-  private final MapBean customMap1 = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0001").uid("custom1")
-      .version(1).get();
-  private final MapBean customMap2 = MapBeanBuilder.create().displayName("custom map").folderName("palaneum.v0002").uid("custom2")
-      .version(2).get();
+  private final MapVersionBean customMap1 = MapVersionBeanBuilder.create().folderName("palaneum.v0001").id(1)
+      .version(new ComparableVersion("1")).get();
+  private final MapVersionBean customMap2 = MapVersionBeanBuilder.create().folderName("palaneum.v0002").id(2)
+      .version(new ComparableVersion("2")).get();
 
   private MapsManagementController instance;
 
@@ -64,7 +65,7 @@ public class MapsManagementControllerTest extends UITest {
     verifyItemsInList(customMap1, customMap2, officialMap);
   }
 
-  private void verifyItemsInList(MapBean... items) {
+  private void verifyItemsInList(MapVersionBean... items) {
     Arrays.stream(items).forEach(item -> assertThat(instance.listView.getItems().contains(item), is(true)));
   }
 

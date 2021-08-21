@@ -2,6 +2,7 @@ package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.api.SessionExpiredEvent;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
@@ -19,7 +20,6 @@ import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.play.PlayController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.test.UITest;

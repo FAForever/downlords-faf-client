@@ -1,8 +1,8 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Validator;
@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.faforever.commons.io.Bytes.formatSize;
 import static java.nio.file.Files.createTempFile;
@@ -29,17 +30,17 @@ import static java.nio.file.Files.newOutputStream;
 public class ModUploadTask extends CompletableTask<Void> {
 
   private final PreferencesService preferencesService;
-  private final FafService fafService;
+  private final FafApiAccessor fafApiAccessor;
   private final I18n i18n;
 
   private Path modPath;
 
   @Inject
-  public ModUploadTask(PreferencesService preferencesService, FafService fafService, I18n i18n) {
+  public ModUploadTask(PreferencesService preferencesService, FafApiAccessor fafApiAccessor, I18n i18n) {
     super(Priority.HIGH);
 
     this.preferencesService = preferencesService;
-    this.fafService = fafService;
+    this.fafApiAccessor = fafApiAccessor;
     this.i18n = i18n;
   }
 
@@ -72,7 +73,7 @@ public class ModUploadTask extends CompletableTask<Void> {
       log.debug("Uploading mod {} as {}", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.uploading"));
 
-      return fafService.uploadMod(tmpFile, byteListener).join();
+      return fafApiAccessor.uploadFile("/mods/upload", tmpFile, byteListener, Map.of()).block();
     } finally {
       Files.delete(tmpFile);
       ResourceLocks.freeUploadLock();

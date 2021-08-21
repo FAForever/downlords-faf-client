@@ -1,15 +1,13 @@
 package com.faforever.client.achievements;
 
+import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
-import com.faforever.client.remote.FafService;
 import com.faforever.commons.api.dto.AchievementDefinition;
 import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.PlayerAchievement;
-import com.google.common.annotations.VisibleForTesting;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.faforever.commons.api.elide.ElideNavigator;
+import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,50 +17,42 @@ import org.springframework.stereotype.Service;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static com.github.nocatch.NoCatch.noCatch;
 
 
 @Lazy
 @Service
 @RequiredArgsConstructor
-// TODO cut dependencies if possible
 public class AchievementService {
 
   private static final int ACHIEVEMENT_IMAGE_SIZE = 128;
 
-  private final FafService fafService;
-  private final PlayerService playerService;
+  private final FafApiAccessor fafApiAccessor;
   private final AssetService assetService;
-  @VisibleForTesting
-  final ObservableList<PlayerAchievement> playerAchievements = FXCollections.observableArrayList();
-  private final ObservableList<PlayerAchievement> readOnlyPlayerAchievements = FXCollections.unmodifiableObservableList(playerAchievements);
-  
+
+  @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public CompletableFuture<List<PlayerAchievement>> getPlayerAchievements(Integer playerId) {
-    int currentPlayerId = playerService.getCurrentPlayer().getId();
-    if (Objects.equals(currentPlayerId, playerId)) {
-      if (readOnlyPlayerAchievements.isEmpty()) {
-
-        return reloadAchievements();
-      }
-      return CompletableFuture.completedFuture(readOnlyPlayerAchievements);
-    }
-
-    return fafService.getPlayerAchievements(playerId);
+    ElideNavigatorOnCollection<PlayerAchievement> navigator = ElideNavigator.of(PlayerAchievement.class)
+        .collection()
+        .setFilter(qBuilder().intNum("player.id").eq(playerId))
+        .pageSize(fafApiAccessor.getMaxPageSize());
+    return fafApiAccessor.getMany(navigator).collectList().toFuture();
   }
 
 
+  @Cacheable(value = CacheNames.ACHIEVEMENTS, sync = true)
   public CompletableFuture<List<AchievementDefinition>> getAchievementDefinitions() {
-    return fafService.getAchievementDefinitions();
+    ElideNavigatorOnCollection<AchievementDefinition> navigator = ElideNavigator.of(AchievementDefinition.class)
+        .collection()
+        .addSortingRule("order", true)
+        .pageSize(fafApiAccessor.getMaxPageSize());
+    return fafApiAccessor.getMany(navigator)
+        .collectList()
+        .toFuture();
   }
-
-
-  public CompletableFuture<AchievementDefinition> getAchievementDefinition(String achievementId) {
-    return fafService.getAchievementDefinition(achievementId);
-  }
-
 
   @Cacheable(value = CacheNames.ACHIEVEMENT_IMAGES, sync = true)
   public Image getImage(AchievementDefinition achievementDefinition, AchievementState achievementState) {
@@ -73,15 +63,5 @@ public class AchievementService {
     };
     return assetService.loadAndCacheImage(url, Paths.get("achievements").resolve(achievementState.name().toLowerCase()),
         null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
-  }
-
-  private CompletableFuture<List<PlayerAchievement>> reloadAchievements() {
-    CompletableFuture<List<PlayerAchievement>> achievementsLoadedFuture = new CompletableFuture<>();
-    int playerId = playerService.getCurrentPlayer().getId();
-    fafService.getPlayerAchievements(playerId).thenAccept(achievements -> {
-      playerAchievements.setAll(achievements);
-      achievementsLoadedFuture.complete(readOnlyPlayerAchievements);
-    });
-    return achievementsLoadedFuture;
   }
 }

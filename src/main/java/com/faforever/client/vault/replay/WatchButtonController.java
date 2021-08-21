@@ -1,9 +1,9 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.game.Game;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.util.TimeService;
@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -28,7 +28,7 @@ public class WatchButtonController implements Controller<Node> {
   private final TimeService timeService;
 
   public Button watchButton;
-  private Game game;
+  private GameBean game;
   private final I18n i18n;
   private Timeline delayTimeline;
 
@@ -50,7 +50,7 @@ public class WatchButtonController implements Controller<Node> {
     watchButton.setOnAction(event -> replayService.runLiveReplay(game.getId()));
   }
 
-  public void setGame(Game game) {
+  public void setGame(GameBean game) {
     this.game = game;
     Assert.notNull(game, "Game must not be null");
     Assert.notNull(game.getStartTime(), "The game's start must not be null: " + game);
@@ -94,7 +94,7 @@ public class WatchButtonController implements Controller<Node> {
     Assert.notNull(game.getStartTime(),
         "Game's start time is null, in which case it shouldn't even be listed: " + game);
     return java.time.Duration.between(
-        Instant.now(),
+        OffsetDateTime.now(),
         game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())
     );
   }

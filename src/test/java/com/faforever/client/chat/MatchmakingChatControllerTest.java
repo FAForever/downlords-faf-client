@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.discord.JoinDiscordEvent;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -9,7 +10,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;

@@ -1,28 +1,33 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.builders.MapBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PlayerStatsMapBuilder;
+import com.faforever.client.builders.ReplayBeanBuilder;
+import com.faforever.client.builders.ReplayReviewBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
-import com.faforever.client.map.MapBeanBuilder;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
-import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.review.Review;
-import com.faforever.client.vault.review.ReviewBuilder;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -33,6 +38,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,26 +107,27 @@ public class ReplayDetailControllerTest extends UITest {
   @Mock
   private ReportDialogController reportDialogController;
 
-  private Player currentPlayer;
-  private Replay onlineReplay;
-  private Replay localReplay;
-  private MapBean mapBean;
+  private PlayerBean currentPlayer;
+  private ReplayBean onlineReplay;
+  private ReplayBean localReplay;
+  private MapVersionBean mapBean;
 
   @BeforeEach
   public void setUp() throws Exception {
-    currentPlayer = PlayerBuilder.create("junit").defaultValues().get();
-    mapBean = MapBeanBuilder.create().defaultValues().get();
-    onlineReplay = ReplayBuilder.create().defaultValues()
+    currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
+    mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
+    onlineReplay = ReplayBeanBuilder.create().defaultValues()
         .validity(Validity.VALID)
-        .featuredMod(new FeaturedMod())
+        .featuredMod(new FeaturedModBean())
         .reviews(FXCollections.emptyObservableList())
         .title("test")
-        .map(mapBean)
+        .mapVersion(mapBean)
+        .teamPlayerStats(PlayerStatsMapBuilder.create().defaultValues().get())
         .get();
 
-    localReplay = ReplayBuilder.create().defaultValues()
+    localReplay = ReplayBeanBuilder.create().defaultValues()
         .validity(Validity.VALID)
-        .featuredMod(new FeaturedMod())
+        .featuredMod(new FeaturedModBean())
         .reviews(FXCollections.emptyObservableList())
         .title("test")
         .replayFile(Paths.get("foo.tmp"))
@@ -130,8 +137,8 @@ public class ReplayDetailControllerTest extends UITest {
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("junit").defaultValues().get());
-    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBuilder.create("junit").defaultValues().get())));
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().defaultValues().get())));
     when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(12));
     when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
     when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");
@@ -143,9 +150,11 @@ public class ReplayDetailControllerTest extends UITest {
     when(i18n.get("unknown")).thenReturn("unknown");
     when(i18n.number(anyInt())).thenReturn("1234");
     when(i18n.get("game.idFormat", onlineReplay.getId())).thenReturn(String.valueOf(onlineReplay.getId()));
-    when(i18n.get("game.onMapFormat", mapBean.getDisplayName())).thenReturn(mapBean.getDisplayName());
+    when(i18n.get("game.onMapFormat", mapBean.getMap().getDisplayName())).thenReturn(mapBean.getMap().getDisplayName());
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
+    when(teamCardController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
+    when(reportDialogController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/vault/replay/replay_detail.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -193,7 +202,7 @@ public class ReplayDetailControllerTest extends UITest {
     assertEquals("test", instance.titleLabel.getText());
     assertEquals("1234", instance.playerCountLabel.getText());
     assertEquals("42", instance.qualityLabel.getText());
-    assertEquals(mapBean.getDisplayName(), instance.onMapLabel.getText());
+    assertEquals(mapBean.getMap().getDisplayName(), instance.onMapLabel.getText());
   }
 
   @Test
@@ -283,7 +292,7 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void testReasonShownNotRated() {
-    Replay replay = ReplayBuilder.create().defaultValues()
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues()
         .validity(Validity.HAS_AI)
         .teamPlayerStats(FXCollections.observableMap(PlayerStatsMapBuilder.create().defaultValues().get()))
         .get();
@@ -303,7 +312,7 @@ public class ReplayDetailControllerTest extends UITest {
   public void tickTimeDisplayed() {
     when(replayService.getSize(anyInt())).thenReturn(CompletableFuture.completedFuture(1024));
     when(timeService.shortDuration(any())).thenReturn("16min 40s");
-    Replay replay = ReplayBuilder.create().defaultValues().replayTicks(10_000).get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().replayTicks(10_000).get();
 
     instance.setReplay(replay);
     WaitForAsyncUtils.waitForFxEvents();
@@ -317,9 +326,10 @@ public class ReplayDetailControllerTest extends UITest {
   @Test
   public void onDownloadMoreInfoClicked() {
     when(replayService.getSize(anyInt())).thenReturn(CompletableFuture.completedFuture(1024));
-    Replay replay = ReplayBuilder.create().defaultValues().get();
-    Review review = ReviewBuilder.create().defaultValues().player(new Player("junit")).get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
+    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(PlayerBeanBuilder.create().defaultValues().get()).get();
     replay.getReviews().add(review);
+    review.setReplay(replay);
 
     instance.setReplay(replay);
     WaitForAsyncUtils.waitForFxEvents();
@@ -352,24 +362,24 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void testGetPlayerFaction() {
-    Map<Integer, PlayerStats> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
+    Map<Integer, GamePlayerStatsBean> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
         .flatMap(Collection::stream)
-        .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
+        .collect(Collectors.toMap(stats -> stats.getPlayer().getId(), Function.identity()));
     int id = statsByPlayerId.keySet().stream().findFirst().orElseThrow();
-    PlayerStats playerStats = statsByPlayerId.get(id);
-    Player player = PlayerBuilder.create("junit").defaultValues().id(id).get();
+    GamePlayerStatsBean playerStats = statsByPlayerId.get(id);
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().id(id).get();
     assertEquals(playerStats.getFaction(), instance.getPlayerFaction(player, statsByPlayerId));
   }
 
   @Test
   public void testGetPlayerRating() {
-    Map<Integer, PlayerStats> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
+    Map<Integer, GamePlayerStatsBean> statsByPlayerId = onlineReplay.getTeamPlayerStats().values().stream()
         .flatMap(Collection::stream)
-        .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
+        .collect(Collectors.toMap(stats -> stats.getPlayer().getId(), Function.identity()));
     int id = statsByPlayerId.keySet().stream().findFirst().orElseThrow();
-    PlayerStats playerStats = statsByPlayerId.get(id);
-    Player player = PlayerBuilder.create("junit").defaultValues().id(id).get();
-    assertEquals(Integer.valueOf(RatingUtil.getRating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation())), instance.getPlayerRating(player, statsByPlayerId));
+    LeaderboardRatingJournalBean playerStats = statsByPlayerId.get(id).getLeaderboardRatingJournals().get(0);
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().id(id).get();
+    assertEquals(Integer.valueOf(RatingUtil.getRating(playerStats.getMeanBefore(), playerStats.getDeviationBefore())), instance.getPlayerRating(player, statsByPlayerId));
   }
 
   @Test
@@ -423,10 +433,11 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void testOnDeleteReview() {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
-    Replay replay = ReplayBuilder.create().defaultValues().get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
+    review.setReplay(replay);
 
     instance.setReplay(replay);
 
@@ -441,13 +452,13 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void testOnDeleteReviewThrowsException() {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
-    Replay replay = ReplayBuilder.create().defaultValues().get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
+    review.setReplay(replay);
 
     instance.setReplay(replay);
-
 
     when(reviewService.deleteGameReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
@@ -460,37 +471,39 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void testOnSendReviewNew() {
-    Review review = ReviewBuilder.create().defaultValues().id(null).get();
+    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().id(null).get();
 
-    Replay replay = ReplayBuilder.create().defaultValues().get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
+    review.setReplay(replay);
 
     instance.setReplay(replay);
 
-    when(reviewService.saveGameReview(review, replay.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveReplayReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveGameReview(review, replay.getId());
+    verify(reviewService).saveReplayReview(review);
     assertTrue(replay.getReviews().contains(review));
     assertEquals(currentPlayer, review.getPlayer());
   }
 
   @Test
   public void testOnSendReviewUpdate() {
-    Review review = ReviewBuilder.create().defaultValues().get();
+    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
 
-    Replay replay = ReplayBuilder.create().defaultValues().get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
+    review.setReplay(replay);
 
     instance.setReplay(replay);
 
-    when(reviewService.saveGameReview(review, replay.getId())).thenReturn(CompletableFuture.completedFuture(null));
+    when(reviewService.saveReplayReview(review)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(reviewService).saveGameReview(review, replay.getId());
+    verify(reviewService).saveReplayReview(review);
     assertTrue(replay.getReviews().contains(review));
     assertEquals(currentPlayer, review.getPlayer());
     assertEquals(1, replay.getReviews().size());
@@ -498,14 +511,15 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void testOnSendReviewThrowsException() {
-    Review review = ReviewBuilder.create().defaultValues().player(currentPlayer).get();
+    ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
-    Replay replay = ReplayBuilder.create().defaultValues().get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     replay.getReviews().add(review);
+    review.setReplay(replay);
 
     instance.setReplay(replay);
 
-    when(reviewService.saveGameReview(review, replay.getId())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(reviewService.saveReplayReview(review)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
     instance.onSendReview(review);
     WaitForAsyncUtils.waitForFxEvents();

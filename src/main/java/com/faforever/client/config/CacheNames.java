@@ -11,11 +11,16 @@ public final class CacheNames {
   public static final String STATISTICS = "statistics";
   public static final String ACHIEVEMENT_IMAGES = "achievementImages";
   public static final String ACHIEVEMENTS = "achievements";
+  public static final String PLAYER_EVENTS = "playerEvents";
   public static final String MODS = "mods";
   public static final String LEADERBOARD = "Leaderboard";
   public static final String LADDER_1V1_LEADERBOARD = "ladder1v1Leaderboard";
   public static final String GLOBAL_LEADERBOARD = "globalLeaderboard";
   public static final String MAPS = "maps";
+  public static final String REPLAYS_SEARCH = "replaysSearch";
+  public static final String REPLAYS_RECENT = "replaysRecent";
+  public static final String REPLAYS_MINE = "replaysMine";
+  public static final String REPLAYS_LIKED = "replaysLiked";
   public static final String MAP_GENERATOR = "mapGenerator";
   public static final String THEME_IMAGES = "themeImages";
   public static final String MOD_THUMBNAIL = "modThumbnail";
@@ -29,6 +34,7 @@ public final class CacheNames {
   public static final String CLAN = "clan";
   public static final String MATCHMAKER_QUEUES = "matchmakerQueues";
   public static final String MATCHMAKER_POOLS = "matchmakerPools";
+  public static final String MODERATION_REPORTS = "moderationReports";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

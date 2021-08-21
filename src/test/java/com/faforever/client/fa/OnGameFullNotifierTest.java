@@ -1,10 +1,10 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.Game;
-import com.faforever.client.game.GameBuilder;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -61,7 +61,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testOnGameFull() throws Exception {
-    Game game = GameBuilder.create().defaultValues().get();
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(gameService.getCurrentGame()).thenReturn(game);
     when(platformService.isWindowFocused("Forged Alliance")).thenReturn(false);
 
@@ -79,7 +79,7 @@ public class OnGameFullNotifierTest extends ServiceTest {
 
   @Test
   public void testAlreadyFocusedDoesntTriggerNotification() throws Exception {
-    Game game = GameBuilder.create().defaultValues().get();
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(gameService.getCurrentGame()).thenReturn(game);
     when(platformService.isWindowFocused("Forged Alliance")).thenReturn(true);
 

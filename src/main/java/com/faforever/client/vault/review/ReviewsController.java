@@ -1,16 +1,16 @@
 package com.faforever.client.vault.review;
 
 
+import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.ReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,6 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,11 +30,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ReviewsController implements Controller<Pane> {
+public class ReviewsController<T extends ReviewBean> implements Controller<Pane> {
   private static final int REVIEWS_PER_PAGE = 4;
   private final I18n i18n;
   private final UiService uiService;
@@ -53,20 +55,20 @@ public class ReviewsController implements Controller<Pane> {
   /**
    * Not named `ownReviewController` because `ownReview` clashes with {@link #ownReview}.
    */
-  public ReviewController ownReviewPaneController;
+  public ReviewController<T> ownReviewPaneController;
   public Label ownReviewLabel;
   public Pane otherReviewsContainer;
   public Pane reviewsPagination;
   public Button pageLeftButton;
   public Button pageRightButton;
 
-  private Consumer<Review> onSendReviewListener;
+  private Consumer<T> onSendReviewListener;
   private Pane ownReviewRoot;
-  private Consumer<Review> onDeleteReviewListener;
-  private ObservableList<Review> reviews;
+  private Consumer<T> onDeleteReviewListener;
+  private ObservableList<T> reviews;
   private final InvalidationListener onReviewsChangedListener;
-  private Review ownReview;
-  private List<List<Review>> reviewPages;
+  private T ownReview;
+  private List<List<T>> reviewPages;
   private int currentReviewPage;
 
   public ReviewsController(I18n i18n, UiService uiService, PlayerService playerService) {
@@ -94,7 +96,7 @@ public class ReviewsController implements Controller<Pane> {
         reviewsPagination, pageRightButton);
   }
 
-  private void onDeleteReview(Review review) {
+  private void onDeleteReview(T review) {
     Optional.ofNullable(this.onDeleteReviewListener).ifPresent(listener -> listener.accept(review));
   }
 
@@ -113,30 +115,23 @@ public class ReviewsController implements Controller<Pane> {
     setOwnReview(this.ownReview);
   }
 
-  public void setOnSendReviewListener(Consumer<Review> onSendReviewListener) {
+  public void setOnSendReviewListener(Consumer<T> onSendReviewListener) {
     this.onSendReviewListener = onSendReviewListener;
   }
 
-  public void setReviews(ObservableList<Review> reviews) {
-    this.reviews = reviews.sorted(Comparator.comparing(Review::getVersion).reversed());
+  public void setReviews(ObservableList<T> reviews) {
+    this.reviews = reviews.sorted(Comparator.<T, ComparableVersion>comparing(review -> Optional.ofNullable(review.getVersion()).orElse(new ComparableVersion("0"))).reversed());
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
-    JavaFxUtil.addListener(this.reviews, onReviewsChangedListener);
-    FilteredList<Review> onlyOtherNonEmptyReviews = this.reviews
+    FilteredList<T> onlyOtherNonEmptyReviews = this.reviews
         .filtered(review -> review.getPlayer().getId() != currentPlayer.getId() && !Strings.isNullOrEmpty(review.getText()));
 
     reviewPages = Lists.newArrayList(Iterables.partition(onlyOtherNonEmptyReviews, REVIEWS_PER_PAGE));
     currentReviewPage = Math.max(0, Math.min(0, reviewPages.size() - 1));
     reviewsPagination.setVisible(!reviewPages.isEmpty());
     displayReviewsPage(0);
-
-    // Prevent flickering
-    if (Platform.isFxApplicationThread()) {
-      onReviewsChanged();
-    } else {
-      JavaFxUtil.runLater(this::onReviewsChanged);
-    }
+    JavaFxUtil.addAndTriggerListener(this.reviews, onReviewsChangedListener);
   }
 
   public void setCanWriteReview(boolean canWriteReview) {
@@ -150,11 +145,11 @@ public class ReviewsController implements Controller<Pane> {
     pageLeftButton.setVisible(page > 0);
     pageRightButton.setVisible(page < reviewPages.size() - 1);
 
-    List<Review> reviewsPage = reviewPages.get(currentReviewPage);
+    List<? extends ReviewBean> reviewsPage = reviewPages.get(currentReviewPage);
     List<Pane> reviewNodes = reviewsPage.stream()
         .map(review -> {
-          ReviewController controller = uiService.loadFxml("theme/vault/review/review.fxml");
-          controller.setReview(review);
+          ReviewController<T> controller = uiService.loadFxml("theme/vault/review/review.fxml");
+          controller.setReview((T) review);
           return controller.getRoot();
         })
         .collect(Collectors.toList());
@@ -166,7 +161,7 @@ public class ReviewsController implements Controller<Pane> {
     JavaFxUtil.assertApplicationThread();
 
     Map<Integer, Long> ratingOccurrences = reviews.stream()
-        .collect(Collectors.groupingBy(Review::getScore, Collectors.counting()));
+        .collect(Collectors.groupingBy(ReviewBean::getScore, Collectors.counting()));
 
     Long fiveStars = ratingOccurrences.getOrDefault(5, 0L);
     Long fourStars = ratingOccurrences.getOrDefault(4, 0L);
@@ -192,13 +187,17 @@ public class ReviewsController implements Controller<Pane> {
     twoStarsBar.prefWidthProperty().bind(((Pane) twoStarsBar.getParent()).widthProperty().multiply(twoStarsPercentage));
     oneStarBar.prefWidthProperty().bind(((Pane) oneStarBar.getParent()).widthProperty().multiply(oneStarPercentage));
 
-    IntSummaryStatistics statistics = reviews.stream().mapToInt(Review::getScore).summaryStatistics();
+    IntSummaryStatistics statistics = reviews.stream().mapToInt(ReviewBean::getScore).summaryStatistics();
     float average = (float) statistics.getAverage();
     scoreLabel.setText(i18n.rounded(average, 1));
     averageStarsController.setValue(average);
   }
 
-  public void setOwnReview(Review ownReview) {
+  public void setReviewSupplier(Supplier<T> reviewSupplier) {
+    this.ownReviewPaneController.setReviewSupplier(reviewSupplier);
+  }
+
+  public void setOwnReview(T ownReview) {
     this.ownReview = ownReview;
     JavaFxUtil.runLater(() -> {
       if (ownReview != null) {
@@ -214,7 +213,7 @@ public class ReviewsController implements Controller<Pane> {
     });
   }
 
-  public void setOnDeleteReviewListener(Consumer<Review> onDeleteReviewListener) {
+  public void setOnDeleteReviewListener(Consumer<T> onDeleteReviewListener) {
     this.onDeleteReviewListener = onDeleteReviewListener;
   }
 
