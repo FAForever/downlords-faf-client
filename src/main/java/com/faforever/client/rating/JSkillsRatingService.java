@@ -2,8 +2,8 @@ package com.faforever.client.rating;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.TrueSkill;
-import com.faforever.client.replay.Replay;
-import com.faforever.client.replay.Replay.PlayerStats;
+import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.ReplayBean;
 import jskills.GameInfo;
 import jskills.Rating;
 import jskills.Team;
@@ -25,20 +25,31 @@ public class JSkillsRatingService implements RatingService {
   }
 
   @Override
-  public double calculateQuality(Replay replay) {
-    Collection<List<PlayerStats>> teams = replay.getTeamPlayerStats().values();
+  public double calculateQuality(ReplayBean replay) {
+    Collection<List<GamePlayerStatsBean>> teams = replay.getTeamPlayerStats().values();
     if (teams.size() != 2) {
       return Double.NaN;
     }
-    if (!teams.stream().allMatch(playerStats -> playerStats.stream().allMatch(stats -> stats.getBeforeDeviation() != null && stats.getBeforeMean() != null))) {
+    if (!teams.stream().allMatch(playerStats -> playerStats.stream().allMatch(stats -> stats.getLeaderboardRatingJournals().stream()
+        .findFirst()
+        .map(ratingJournal -> ratingJournal.getMeanBefore() != null && ratingJournal.getDeviationBefore() != null)
+        .orElse(false)))) {
       return Double.NaN;
     }
     return TrueSkillCalculator.calculateMatchQuality(gameInfo, teams.stream()
         .map(players -> {
           Team team = new Team();
-          players.forEach(stats -> team.addPlayer(
-              new jskills.Player<>(stats.getPlayerId()), new Rating(stats.getBeforeMean(), stats.getBeforeDeviation())
-          ));
+          players.forEach(stats -> {
+            stats.getLeaderboardRatingJournals().stream().findFirst().ifPresent(
+                ratingJournal -> {
+                  if (ratingJournal.getMeanBefore() != null && ratingJournal.getDeviationBefore() != null) {
+                    team.addPlayer(
+                        new jskills.Player<>(stats.getPlayer().getId()), new Rating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore())
+                    );
+                  }
+                }
+            );
+          });
           return team;
         })
         .collect(Collectors.toList()));

@@ -1,8 +1,8 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.clan.Clan;
+import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -29,7 +29,7 @@ public final class ChatChannelUserBuilder {
     return chatChannelUser;
   }
 
-  public ChatChannelUserBuilder player(Player player) {
+  public ChatChannelUserBuilder player(PlayerBean player) {
     chatChannelUser.setPlayer(player);
     return this;
   }
@@ -64,7 +64,7 @@ public final class ChatChannelUserBuilder {
     return this;
   }
 
-  public ChatChannelUserBuilder clan(Clan clan) {
+  public ChatChannelUserBuilder clan(ClanBean clan) {
     chatChannelUser.setClan(clan);
     return this;
   }

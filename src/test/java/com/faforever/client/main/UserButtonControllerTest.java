@@ -1,7 +1,7 @@
 package com.faforever.client.main;
 
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -41,7 +41,7 @@ public class UserButtonControllerTest extends UITest {
   private PreferencesService preferencesService;
 
   private UserButtonController instance;
-  private Player player;
+  private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -49,7 +49,7 @@ public class UserButtonControllerTest extends UITest {
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(playerInfoWindowController);
 
-    player = PlayerBuilder.create(TEST_USER_NAME).defaultValues().get();
+    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(userService.getUsername()).thenReturn(TEST_USER_NAME);
 

@@ -4,6 +4,7 @@ import com.faforever.commons.api.elide.ElideEntity;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
 import org.springframework.http.ReactiveHttpInputMessage;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.util.List;
 import java.util.Map;
@@ -39,24 +41,25 @@ public class JsonApiReader implements HttpMessageReader<Object> {
   public Mono<Object> readMono(ResolvableType elementType, ReactiveHttpInputMessage message, Map hints) {
     Class<?> clazz = elementType.toClass();
     if (clazz.equals(JSONAPIDocument.class)) {
-      return message.getBody()
-          .map(dataBuffer -> dataBuffer.asInputStream(true))
-          .reduce((SequenceInputStream::new))
+      return getCompleteStream(message)
           .map(completeStream -> resourceConverter.readDocumentCollection(completeStream, Object.class));
     } else {
-      return message.getBody()
-          .map(dataBuffer -> dataBuffer.asInputStream(true))
-          .reduce((SequenceInputStream::new))
+      return getCompleteStream(message)
           .flatMap(completeStream -> Mono.fromCallable(() -> resourceConverter.readDocument(completeStream, Object.class).get()));
     }
   }
 
   @Override
   public Flux<Object> read(ResolvableType elementType, ReactiveHttpInputMessage message, Map hints) {
-    return message.getBody()
-        .map(dataBuffer -> dataBuffer.asInputStream(true))
-        .reduce((SequenceInputStream::new))
+    return getCompleteStream(message)
         .flatMap(completeStream -> Mono.fromCallable(() -> resourceConverter.readDocumentCollection(completeStream, Object.class).get()))
         .flatMapMany(Flux::fromIterable);
+  }
+
+  @NotNull
+  private Mono<InputStream> getCompleteStream(ReactiveHttpInputMessage message) {
+    return message.getBody()
+        .map(dataBuffer -> dataBuffer.asInputStream(true))
+        .reduce((SequenceInputStream::new));
   }
 }

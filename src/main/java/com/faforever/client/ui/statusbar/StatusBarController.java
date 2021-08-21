@@ -4,9 +4,9 @@ import com.faforever.client.chat.ChatService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.Version;
+import com.faforever.client.user.UserService;
 import com.google.common.base.Strings;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -29,7 +29,7 @@ public class StatusBarController implements Controller<Node> {
   private static final PseudoClass CONNECTIVITY_CONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("connected");
   private static final PseudoClass CONNECTIVITY_DISCONNECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("disconnected");
 
-  private final FafService fafService;
+  private final UserService userService;
   private final I18n i18n;
   private final ChatService chatService;
   private final TaskService taskService;
@@ -43,8 +43,8 @@ public class StatusBarController implements Controller<Node> {
   public Label taskProgressLabel;
   public Label versionLabel;
 
-  public StatusBarController(FafService fafService, I18n i18n, ChatService chatService, TaskService taskService) {
-    this.fafService = fafService;
+  public StatusBarController(UserService userService, I18n i18n, ChatService chatService, TaskService taskService) {
+    this.userService = userService;
     this.i18n = i18n;
     this.chatService = chatService;
     this.taskService = taskService;
@@ -55,7 +55,7 @@ public class StatusBarController implements Controller<Node> {
     setCurrentWorkerInStatusBar(null);
     versionLabel.setText(Version.getCurrentVersion());
 
-    JavaFxUtil.addListener(fafService.connectionStateProperty(), (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
+    JavaFxUtil.addListener(userService.connectionStateProperty(), (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
       switch (newValue) {
         case DISCONNECTED -> {
           fafConnectionButton.setText(i18n.get("statusBar.fafDisconnected"));
@@ -135,7 +135,7 @@ public class StatusBarController implements Controller<Node> {
   }
 
   public void onFafReconnectClicked() {
-    fafService.reconnect();
+    userService.reconnectToLobby();
   }
 
   public void onChatReconnectClicked() {

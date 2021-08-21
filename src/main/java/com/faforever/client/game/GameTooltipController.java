@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
@@ -33,7 +34,7 @@ public class GameTooltipController implements Controller<Node> {
   private InvalidationListener teamInvalidationListener;
   private InvalidationListener simModsInvalidationListener;
   private int maxPrefColumns;
-  private Game game;
+  private GameBean game;
   private boolean showMods;
 
   public void initialize() {
@@ -44,7 +45,7 @@ public class GameTooltipController implements Controller<Node> {
     showMods = true;
   }
 
-  public void setGame(Game game) {
+  public void setGame(GameBean game) {
     this.game = game;
   }
 

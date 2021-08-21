@@ -1,10 +1,10 @@
 package com.faforever.client.vault.replay;
 
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.MapPreviewTableCell;
 import com.faforever.client.i18n.I18n;
@@ -33,7 +33,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,20 +42,20 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LiveReplayController extends AbstractViewController<Node> {
-  private final ObjectProperty<Game> selectedGame;
+  private final ObjectProperty<GameBean> selectedGame;
   private final GameService gameService;
   private final UiService uiService;
   private final I18n i18n;
   private final MapService mapService;
   private final TimeService timeService;
-  public TableView<Game> liveReplayControllerRoot;
-  public TableColumn<Game, Image> mapPreviewColumn;
-  public TableColumn<Game, Instant> startTimeColumn;
-  public TableColumn<Game, String> gameTitleColumn;
-  public TableColumn<Game, Number> playersColumn;
-  public TableColumn<Game, String> modsColumn;
-  public TableColumn<Game, String> hostColumn;
-  public TableColumn<Game, Game> watchColumn;
+  public TableView<GameBean> liveReplayControllerRoot;
+  public TableColumn<GameBean, Image> mapPreviewColumn;
+  public TableColumn<GameBean, OffsetDateTime> startTimeColumn;
+  public TableColumn<GameBean, String> gameTitleColumn;
+  public TableColumn<GameBean, Number> playersColumn;
+  public TableColumn<GameBean, String> modsColumn;
+  public TableColumn<GameBean, String> hostColumn;
+  public TableColumn<GameBean, GameBean> watchColumn;
 
   public LiveReplayController(GameService gameService, UiService uiService, I18n i18n,
                               MapService mapService, TimeService timeService) {
@@ -73,10 +73,10 @@ public class LiveReplayController extends AbstractViewController<Node> {
     initializeGameTable(gameService.getGames());
   }
 
-  private void initializeGameTable(ObservableList<Game> games) {
-    FilteredList<Game> filteredGameList = new FilteredList<>(games);
+  private void initializeGameTable(ObservableList<GameBean> games) {
+    FilteredList<GameBean> filteredGameList = new FilteredList<>(games);
     filteredGameList.setPredicate(game -> game.getStatus() == GameStatus.PLAYING);
-    SortedList<Game> sortedList = new SortedList<>(filteredGameList);
+    SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(liveReplayControllerRoot.comparatorProperty());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
@@ -108,7 +108,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     liveReplayControllerRoot.sort();
   }
 
-  private Node watchReplayButton(Game game) {
+  private Node watchReplayButton(GameBean game) {
     WatchButtonController controller = uiService.loadFxml("theme/vault/replay/watch_button.fxml");
     controller.setGame(game);
     return controller.getRoot();
@@ -120,7 +120,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
   }
 
   @NotNull
-  private ObservableValue<String> modCell(CellDataFeatures<Game, String> param) {
+  private ObservableValue<String> modCell(CellDataFeatures<GameBean, String> param) {
     Map<String, String> simMods = param.getValue().getSimMods();
     int simModCount = simMods.size();
     List<String> modNames;

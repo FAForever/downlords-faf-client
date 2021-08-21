@@ -1,5 +1,7 @@
 package com.faforever.client.tutorial;
 
+import com.faforever.client.domain.TutorialBean;
+import com.faforever.client.domain.TutorialCategoryBean;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.test.UITest;
@@ -40,9 +42,9 @@ public class TutorialControllerTest extends UITest {
       }
       return instance;
     });
-    TutorialCategory tutorialCategory = new TutorialCategory();
+    TutorialCategoryBean tutorialCategory = new TutorialCategoryBean();
     tutorialCategory.setCategory("test category");
-    Tutorial tutorial = new Tutorial();
+    TutorialBean tutorial = new TutorialBean();
     tutorial.setImageUrl("http://example.com/example.png");
     tutorial.setDescription("Test description");
     tutorial.setTitle("Test Title");

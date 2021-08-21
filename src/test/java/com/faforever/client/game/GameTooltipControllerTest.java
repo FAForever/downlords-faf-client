@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
-import com.faforever.client.player.Player;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -31,7 +32,7 @@ public class GameTooltipControllerTest extends UITest {
   private PlayerService playerService;
   
   @Mock
-  private Game game;
+  private GameBean game;
   
   @Mock
   private TeamCardController teamCardController;
@@ -41,7 +42,7 @@ public class GameTooltipControllerTest extends UITest {
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(teamCardController.getRoot()).thenReturn(new Pane());
-    when(playerService.getPlayerByNameIfOnline(Mockito.anyString())).thenReturn(Optional.of(new Player("")));
+    when(playerService.getPlayerByNameIfOnline(Mockito.anyString())).thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().get()));
     
     instance = new GameTooltipController(uiService, playerService);
     loadFxml("theme/play/game_tooltip.fxml", clazz -> instance);

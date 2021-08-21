@@ -1,13 +1,12 @@
 package com.faforever.client.patch;
 
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.mod.MountInfo;
@@ -50,7 +49,6 @@ public class GameUpdaterImpl implements GameUpdater {
   private final ModService modService;
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
-  private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
@@ -62,7 +60,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   @Override
-  public CompletableFuture<Void> update(FeaturedMod featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
+  public CompletableFuture<Void> update(FeaturedModBean featuredMod, Integer version, Map<String, Integer> featuredModVersions, Set<String> simModUids) {
     // The following ugly code is sponsored by the featured-mod-mess. FAF and Coop are both featured mods - but others,
     // (except fafbeta and fafdevelop) implicitly depend on FAF. So if a non-base mod is being played, make sure FAF is
     // installed.
@@ -149,11 +147,6 @@ public class GameUpdaterImpl implements GameUpdater {
     }
   }
 
-  @Override
-  public CompletableFuture<List<FeaturedMod>> getFeaturedMods() {
-    return fafService.getFeaturedMods();
-  }
-
   private CompletableFuture<Void> downloadMissingSimMods(Set<String> simModUids) {
     if (simModUids == null || simModUids.isEmpty()) {
       return CompletableFuture.completedFuture(null);
@@ -166,7 +159,7 @@ public class GameUpdaterImpl implements GameUpdater {
     return CompletableFuture.allOf(simModFutures.toArray(new CompletableFuture[simModFutures.size()]));
   }
 
-  private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedMod featuredMod, Integer version) {
+  private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version) {
     for (FeaturedModUpdater featuredModUpdater : featuredModUpdaters) {
       if (featuredModUpdater.canUpdate(featuredMod)) {
         return featuredModUpdater.updateMod(featuredMod, version);

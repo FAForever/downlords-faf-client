@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.PreferencesService;
@@ -35,12 +36,12 @@ import java.util.Map;
 public class GamesTilesContainerController implements Controller<Node> {
 
   private final UiService uiService;
-  private final ListChangeListener<Game> gameListChangeListener;
+  private final ListChangeListener<GameBean> gameListChangeListener;
   private final PreferencesService preferencesService;
   public FlowPane tiledFlowPane;
   public ScrollPane tiledScrollPane;
   private final ChangeListener<? super TilesSortingOrder> sortingListener;
-  private final ObjectProperty<Game> selectedGame;
+  private final ObjectProperty<GameBean> selectedGame;
   private Comparator<Node> appliedComparator;
   @VisibleForTesting
   Map<Integer, Node> gameIdToGameCard;
@@ -101,12 +102,12 @@ public class GamesTilesContainerController implements Controller<Node> {
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
   }
 
-  ReadOnlyObjectProperty<Game> selectedGameProperty() {
+  ReadOnlyObjectProperty<GameBean> selectedGameProperty() {
     return this.selectedGame;
   }
 
   @VisibleForTesting
-  void createTiledFlowPane(ObservableList<Game> games, ComboBox<TilesSortingOrder> choseSortingTypeChoiceBox) {
+  void createTiledFlowPane(ObservableList<GameBean> games, ComboBox<TilesSortingOrder> choseSortingTypeChoiceBox) {
     JavaFxUtil.assertApplicationThread();
     initializeChoiceBox(choseSortingTypeChoiceBox);
     gameIdToGameCard = new HashMap<>();
@@ -127,11 +128,11 @@ public class GamesTilesContainerController implements Controller<Node> {
   private void selectFirstGame() {
     ObservableList<Node> cards = tiledFlowPane.getChildren();
     if (!cards.isEmpty()) {
-      selectedGame.set((Game) cards.get(0).getUserData());
+      selectedGame.set((GameBean) cards.get(0).getUserData());
     }
   }
 
-  private void addGameCard(Game game) {
+  private void addGameCard(GameBean game) {
     GameTileController gameTileController = uiService.loadFxml("theme/play/game_card.fxml");
     gameTileController.setGame(game);
     gameTileController.setOnSelectedListener(selectedGame::set);
@@ -155,12 +156,12 @@ public class GamesTilesContainerController implements Controller<Node> {
   }
 
   public enum TilesSortingOrder {
-    PLAYER_DES(Comparator.comparingInt(o -> ((Game) o.getUserData()).getNumPlayers()), true, "tiles.comparator.playersDescending"),
-    PLAYER_ASC(Comparator.comparingInt(o -> ((Game) o.getUserData()).getNumPlayers()), false, "tiles.comparator.playersAscending"),
-    AVG_RATING_DES(Comparator.comparingDouble(o -> ((Game) o.getUserData()).getAverageRating()), true, "tiles.comparator.averageRatingDescending"),
-    AVG_RATING_ASC(Comparator.comparingDouble(o -> ((Game) o.getUserData()).getAverageRating()), false, "tiles.comparator.averageRatingAscending"),
-    NAME_DES(Comparator.comparing(o -> ((Game) o.getUserData()).getTitle().toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
-    NAME_ASC(Comparator.comparing(o -> ((Game) o.getUserData()).getTitle().toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
+    PLAYER_DES(Comparator.comparingInt(o -> ((GameBean) o.getUserData()).getNumPlayers()), true, "tiles.comparator.playersDescending"),
+    PLAYER_ASC(Comparator.comparingInt(o -> ((GameBean) o.getUserData()).getNumPlayers()), false, "tiles.comparator.playersAscending"),
+    AVG_RATING_DES(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), true, "tiles.comparator.averageRatingDescending"),
+    AVG_RATING_ASC(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), false, "tiles.comparator.averageRatingAscending"),
+    NAME_DES(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
+    NAME_ASC(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
 
     @Getter
     private final Comparator<Node> comparator;

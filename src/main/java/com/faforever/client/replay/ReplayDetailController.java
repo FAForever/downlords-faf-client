@@ -1,30 +1,32 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.ReplayBean;
+import com.faforever.client.domain.ReplayBean.ChatMessage;
+import com.faforever.client.domain.ReplayBean.GameOption;
+import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
-import com.faforever.client.replay.Replay.ChatMessage;
-import com.faforever.client.replay.Replay.GameOption;
-import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ClipboardUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.api.dto.Faction;
@@ -98,7 +100,7 @@ public class ReplayDetailController implements Controller<Node> {
   public Pane teamsContainer;
   public Separator ratingSeparator;
   public Pane reviewsContainer;
-  public ReviewsController reviewsController;
+  public ReviewsController<ReplayReviewBean> reviewsController;
   public Separator reviewSeparator;
   public TableView<ChatMessage> chatTable;
   public TableColumn<ChatMessage, Duration> chatGameTimeColumn;
@@ -116,10 +118,11 @@ public class ReplayDetailController implements Controller<Node> {
   public Button showRatingChangeButton;
   public Button reportButton;
   public Label notRatedReasonLabel;
-  private Replay replay;
-  private ObservableMap<String, List<PlayerStats>> teams;
+  private ReplayBean replay;
+  private ObservableMap<String, List<GamePlayerStatsBean>> teams;
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
     JavaFxUtil.addLabelContextMenus(uiService, onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
@@ -161,11 +164,10 @@ public class ReplayDetailController implements Controller<Node> {
     playerCountLabel.setTooltip(new Tooltip(i18n.get("replay.playerCountTooltip")));
     ratingLabel.setTooltip(new Tooltip(i18n.get("replay.ratingTooltip")));
     qualityLabel.setTooltip(new Tooltip(i18n.get("replay.qualityTooltip")));
-    showRatingChangeButton.managedProperty().bind(showRatingChangeButton.visibleProperty());
-    notRatedReasonLabel.managedProperty().bind(notRatedReasonLabel.visibleProperty());
+    reviewsController.setReviewSupplier(ReplayReviewBean::new);
   }
 
-  public void setReplay(Replay replay) {
+  public void setReplay(ReplayBean replay) {
     this.replay = replay;
     watchButton.setDisable(false);
     downloadMoreInfoButton.setDisable(false);
@@ -176,12 +178,12 @@ public class ReplayDetailController implements Controller<Node> {
     dateLabel.setText(timeService.asDate(replay.getStartTime()));
     timeLabel.setText(timeService.asShortTime(replay.getStartTime()));
 
-    Optional<MapBean> optionalMap = Optional.ofNullable(replay.getMap());
-    if (optionalMap.isPresent()) {
-      MapBean map = optionalMap.get();
-      Image image = mapService.loadPreview(map.getFolderName(), PreviewSize.LARGE);
+    Optional<MapVersionBean> optionalMapVersion = Optional.ofNullable(replay.getMapVersion());
+    if (optionalMapVersion.isPresent()) {
+      MapVersionBean mapVersion = optionalMapVersion.get();
+      Image image = mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.LARGE);
       mapThumbnailImageView.setImage(image);
-      onMapLabel.setText(i18n.get("game.onMapFormat", map.getDisplayName()));
+      onMapLabel.setText(i18n.get("game.onMapFormat", mapVersion.getMap().getDisplayName()));
     } else {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
@@ -189,6 +191,7 @@ public class ReplayDetailController implements Controller<Node> {
     OffsetDateTime endTime = replay.getEndTime();
     if (endTime != null) {
       durationLabel.setText(timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)));
+      durationLabel.setVisible(true);
     } else {
       durationLabel.setVisible(false);
     }
@@ -196,13 +199,14 @@ public class ReplayDetailController implements Controller<Node> {
     Integer replayTicks = replay.getReplayTicks();
     if (replayTicks != null) {
       replayDurationLabel.setText(timeService.shortDuration(Duration.ofMillis(replayTicks * 100)));
+      replayDurationLabel.setVisible(true);
     } else {
       replayDurationLabel.setVisible(false);
     }
 
     modLabel.setText(
         Optional.ofNullable(replay.getFeaturedMod())
-            .map(FeaturedMod::getDisplayName)
+            .map(FeaturedModBean::getDisplayName)
             .orElseGet(() -> i18n.get("unknown"))
     );
     playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
@@ -216,8 +220,10 @@ public class ReplayDetailController implements Controller<Node> {
 
 
     replay.getTeamPlayerStats().values().stream()
-        .flatMapToInt(playerStats -> playerStats.stream().filter(stats -> stats.getBeforeMean() != null && stats.getBeforeDeviation() != null)
-            .mapToInt(stats -> RatingUtil.getRating(stats.getBeforeMean(), stats.getBeforeDeviation())))
+        .flatMapToInt(playerStats -> playerStats.stream().map(stats -> stats.getLeaderboardRatingJournals().stream().findFirst())
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .mapToInt(ratingJournal -> RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore())))
         .average()
         .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),
             () -> ratingLabel.setText("-"));
@@ -242,7 +248,7 @@ public class ReplayDetailController implements Controller<Node> {
         downloadMoreInfoButton.setDisable(true);
         watchButton.setDisable(true);
       }
-      Player currentPlayer = playerService.getCurrentPlayer();
+      PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
       reviewsController.setOnSendReviewListener(this::onSendReview);
       reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
@@ -275,7 +281,7 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  void onDeleteReview(Review review) {
+  void onDeleteReview(ReplayReviewBean review) {
     reviewService.deleteGameReview(review)
         .thenRun(() -> JavaFxUtil.runLater(() -> {
           replay.getReviews().remove(review);
@@ -289,11 +295,12 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  void onSendReview(Review review) {
+  void onSendReview(ReplayReviewBean review) {
     boolean isNew = review.getId() == null;
-    Player player = playerService.getCurrentPlayer();
+    PlayerBean player = playerService.getCurrentPlayer();
     review.setPlayer(player);
-    reviewService.saveGameReview(review, replay.getId())
+    review.setReplay(replay);
+    reviewService.saveReplayReview(review)
         .thenRun(() -> {
           if (isNew) {
             replay.getReviews().add(review);
@@ -313,8 +320,8 @@ public class ReplayDetailController implements Controller<Node> {
     replayService.downloadReplay(replay.getId())
         .thenAccept(path -> {
           replayService.enrich(replay, path);
-          if (onMapLabel.getText().equals(i18n.get("game.onUnknownMap")) && replay.getMap() != null) {
-            MapBean map = replay.getMap();
+          if (onMapLabel.getText().equals(i18n.get("game.onUnknownMap")) && replay.getMapVersion() != null) {
+            MapVersionBean map = replay.getMapVersion();
             onMapLabel.setText(i18n.get("game.onMapFormat", map.getFolderName()));
             Image image = mapService.loadPreview(map.getFolderName(), PreviewSize.LARGE);
             mapThumbnailImageView.setImage(image);
@@ -345,22 +352,22 @@ public class ReplayDetailController implements Controller<Node> {
     teamsContainer.getChildren().clear();
     teamCardControllers.clear();
     configureRatingControls();
-    Map<Integer, PlayerStats> statsByPlayerId = teams.values().stream()
+    Map<Integer, GamePlayerStatsBean> statsByPlayerId = teams.values().stream()
         .flatMap(Collection::stream)
-        .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
+        .collect(Collectors.toMap(stats -> stats.getPlayer().getId(), Function.identity()));
 
     teams.forEach((team, value) -> {
       List<Integer> playerIds = value.stream()
-          .map(PlayerStats::getPlayerId)
+          .map(stats -> stats.getPlayer().getId())
           .collect(Collectors.toList());
 
 
       TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
       teamCardControllers.add(controller);
 
-      Function<Player, Integer> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
+      Function<PlayerBean, Integer> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
 
-      Function<Player, Faction> playerFactionFunction = player -> getPlayerFaction(player, statsByPlayerId);
+      Function<PlayerBean, Faction> playerFactionFunction = player -> getPlayerFaction(player, statsByPlayerId);
 
       playerService.getPlayersByIds(playerIds)
           .thenAccept(players ->
@@ -372,18 +379,23 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  Faction getPlayerFaction(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
+  Faction getPlayerFaction(PlayerBean player, Map<Integer, GamePlayerStatsBean> statsByPlayerId) {
     return statsByPlayerId.get(player.getId()).getFaction();
   }
 
   @VisibleForTesting
-  Integer getPlayerRating(Player player, Map<Integer, PlayerStats> statsByPlayerId) {
-    PlayerStats playerStats = statsByPlayerId.get(player.getId());
-    if (playerStats.getBeforeDeviation() != null && playerStats.getBeforeMean() != null) {
-      return RatingUtil.getRating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
-    } else {
+  Integer getPlayerRating(PlayerBean player, Map<Integer, GamePlayerStatsBean> statsByPlayerId) {
+    GamePlayerStatsBean playerStats = statsByPlayerId.get(player.getId());
+    if (playerStats == null) {
       return null;
     }
+
+    LeaderboardRatingJournalBean ratingJournal = playerStats.getLeaderboardRatingJournals().stream().findFirst().orElse(null);
+    if (ratingJournal == null || ratingJournal.getMeanBefore() == null || ratingJournal.getDeviationBefore() == null) {
+      return null;
+    }
+
+    return RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore());
   }
 
   private void configureRatingControls() {
@@ -436,7 +448,7 @@ public class ReplayDetailController implements Controller<Node> {
 
 
   public void copyLink() {
-    String replayUrl = Replay.getReplayUrl(replay.getId(), clientProperties.getVault().getReplayDownloadUrlFormat());
+    String replayUrl = ReplayBean.getReplayUrl(replay.getId(), clientProperties.getVault().getReplayDownloadUrlFormat());
     ClipboardUtil.copyToClipboard(replayUrl);
   }
 

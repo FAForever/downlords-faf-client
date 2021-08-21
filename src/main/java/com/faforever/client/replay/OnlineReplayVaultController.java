@@ -1,5 +1,7 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -7,7 +9,6 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -19,8 +20,6 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
-import com.faforever.client.vault.search.SearchController.SortConfig;
-import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.api.dto.Game;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class OnlineReplayVaultController extends VaultEntityController<Replay> {
+public class OnlineReplayVaultController extends VaultEntityController<ReplayBean> {
 
   private static final int TOP_ELEMENT_COUNT = 6;
 
@@ -64,7 +63,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
   }
 
   @Override
-  protected void onDisplayDetails(Replay replay) {
+  protected void onDisplayDetails(ReplayBean replay) {
     JavaFxUtil.assertApplicationThread();
     replayDetailController.setReplay(replay);
     replayDetailController.getRoot().setVisible(true);
@@ -73,15 +72,15 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
 
   protected void setSupplier(SearchConfig searchConfig) {
     switch (searchType) {
-      case SEARCH -> currentSupplier = replayService.findByQueryWithPageCount(searchConfig.getSearchQuery(), pageSize, pagination.getCurrentPageIndex() + 1, searchConfig.getSortConfig());
+      case SEARCH -> currentSupplier = replayService.findByQueryWithPageCount(searchConfig, pageSize, pagination.getCurrentPageIndex() + 1);
       case OWN -> currentSupplier = replayService.getOwnReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case NEWEST -> currentSupplier = replayService.getNewestReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
       case HIGHEST_RATED -> currentSupplier = replayService.getHighestRatedReplaysWithPageCount(pageSize, pagination.getCurrentPageIndex() + 1);
-      case PLAYER -> currentSupplier = replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, pagination.getCurrentPageIndex() + 1, new SortConfig("startTime", SortOrder.DESC));
+      case PLAYER -> currentSupplier = replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, pagination.getCurrentPageIndex() + 1);
     }
   }
 
-  protected Node getEntityCard(Replay replay) {
+  protected Node getEntityCard(ReplayBean replay) {
     ReplayCardController controller = uiService.loadFxml("theme/vault/replay/replay_card.fxml");
     controller.setReplay(replay);
     controller.setOnOpenDetailListener(this::onDisplayDetails);
@@ -131,7 +130,7 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
 
     modService.getFeaturedMods().thenAccept(featuredMods ->
         JavaFxUtil.runLater(() ->
-            featuredModFilterController.setItems(featuredMods.stream().map(FeaturedMod::getDisplayName)
+            featuredModFilterController.setItems(featuredMods.stream().map(FeaturedModBean::getDisplayName)
                 .collect(Collectors.toList()))));
 
     CategoryFilterController leaderboardFilterController = searchController.addCategoryFilter("playerStats.ratingChanges.leaderboard.id",
@@ -204,7 +203,6 @@ public class OnlineReplayVaultController extends VaultEntityController<Replay> {
     enterSearchingState();
     searchType = SearchType.PLAYER;
     playerId = event.getPlayerId();
-    SortConfig sortConfig = new SortConfig("startTime", SortOrder.DESC);
-    displayFromSupplier(() -> replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, 1, sortConfig), true);
+    displayFromSupplier(() -> replayService.getReplaysForPlayerWithPageCount(playerId, pageSize, 1), true);
   }
 }

@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -48,7 +49,7 @@ public class GameDetailController implements Controller<Pane> {
   public Node joinButton;
   public WatchButtonController watchButtonController;
   public Node watchButton;
-  private final ReadOnlyObjectWrapper<Game> game;
+  private final ReadOnlyObjectWrapper<GameBean> game;
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
   private InvalidationListener numPlayersInvalidationListener;
@@ -84,7 +85,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGameStatusChanged() {
-    Game game = this.game.get();
+    GameBean game = this.game.get();
     if (game != null) {
       switch (game.getStatus()) {
         case PLAYING -> {
@@ -107,7 +108,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGamePropertyChanged() {
-    Game game = this.game.get();
+    GameBean game = this.game.get();
     if (game != null) {
       JavaFxUtil.runLater(() -> {
         gameTitleLabel.setText(game.getTitle());
@@ -119,14 +120,14 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onNumPlayersChanged() {
-    Game game = this.game.get();
+    GameBean game = this.game.get();
     if (game != null) {
       JavaFxUtil.runLater(() ->
           numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())));
     }
   }
 
-  public void setGame(Game game) {
+  public void setGame(GameBean game) {
     resetListeners();
 
     this.game.set(game);
@@ -182,7 +183,7 @@ public class GameDetailController implements Controller<Pane> {
         });
   }
 
-  public ReadOnlyObjectProperty<Game> gameProperty() {
+  public ReadOnlyObjectProperty<GameBean> gameProperty() {
     return game.getReadOnlyProperty();
   }
 

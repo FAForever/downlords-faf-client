@@ -1,9 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.FeaturedModBeanBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.mod.FeaturedMod;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
@@ -45,12 +48,12 @@ public class GameDetailControllerTest extends UITest {
   private WatchButtonController watchButtonController;
 
   private GameDetailController instance;
-  private Game game;
+  private GameBean game;
 
 
   @BeforeEach
   public void setUp() throws Exception {
-    game = GameBuilder.create().defaultValues().get();
+    game = GameBeanBuilder.create().defaultValues().get();
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(null);
@@ -128,7 +131,7 @@ public class GameDetailControllerTest extends UITest {
   @Test
   public void testModListener() {
     assertEquals("Forged Alliance Forever", instance.gameTypeLabel.getText());
-    FeaturedMod mod = FeaturedModBeanBuilder.create().defaultValues().technicalName("ladder").displayName("LADDER").get();
+    FeaturedModBean mod = FeaturedModBeanBuilder.create().defaultValues().technicalName("ladder").displayName("LADDER").get();
     when(modService.getFeaturedMod(mod.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(mod));
     runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.getTechnicalName()));
     assertEquals(mod.getDisplayName(), instance.gameTypeLabel.getText());

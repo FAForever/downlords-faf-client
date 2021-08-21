@@ -1,19 +1,19 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.avatar.AvatarBean;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
+import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
-import com.faforever.client.game.Game;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.moderator.ModeratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
@@ -115,12 +115,11 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
 
   private void initializeListeners() {
     chatUserPropertyInvalidationListener = observable -> {
-      Optional<Player> optionalPlayer = chatUser.getPlayer();
-      optionalPlayer.ifPresent(player ->
-          moderatorService.getPermissions().thenAccept(permissions -> setModeratorOptions(permissions, player)));
+      Optional<PlayerBean> optionalPlayer = chatUser.getPlayer();
+      optionalPlayer.ifPresent(player -> setModeratorOptions(moderatorService.getPermissions(), player));
       SocialStatus socialStatus = chatUser.getSocialStatus().orElse(null);
       PlayerStatus playerStatus = chatUser.getGameStatus().orElse(null);
-      Game game = optionalPlayer.map(Player::getGame).orElse(null);
+      GameBean game = optionalPlayer.map(PlayerBean::getGame).orElse(null);
       if (socialStatus == SELF && optionalPlayer.isPresent()) {
         loadAvailableAvatars(optionalPlayer.get());
       }
@@ -152,7 +151,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
           if (url == null) {
             return null;
           }
-          return new ImageView(avatarService.loadAvatar(url.toString()));
+          return new ImageView(avatarService.loadAvatar(avatarBean));
         });
   }
 
@@ -207,7 +206,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
                 removeFoeItem.visibleProperty()))));
   }
 
-  private void setModeratorOptions(Set<String> permissions, Player player) {
+  private void setModeratorOptions(Set<String> permissions, PlayerBean player) {
     boolean notSelf = !player.getSocialStatus().equals(SELF);
 
     JavaFxUtil.runLater(() -> {
@@ -218,25 +217,26 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
     });
   }
 
-  private void loadAvailableAvatars(Player player) {
+  private void loadAvailableAvatars(PlayerBean player) {
     avatarService.getAvailableAvatars().thenAccept(avatars -> {
       ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
-      items.add(0, new AvatarBean(null, i18n.get("chat.userContext.noAvatar")));
+      AvatarBean noAvatar = new AvatarBean();
+      noAvatar.setDescription(i18n.get("chat.userContext.noAvatar"));
+      items.add(0, noAvatar);
 
-      String currentAvatarUrl = player.getAvatarUrl();
+      AvatarBean currentAvatar = player.getAvatar();
       JavaFxUtil.runLater(() -> {
         avatarComboBox.getItems().setAll(items);
         avatarComboBox.getSelectionModel().select(items.stream()
-            .filter(avatarBean -> Objects.equals(Objects.toString(avatarBean.getUrl(), null), currentAvatarUrl))
+            .filter(avatarBean -> Objects.equals(avatarBean, currentAvatar))
             .findFirst()
             .orElse(null));
 
         // Only after the box has been populated and we selected the current value, we add the listener.
         // Otherwise the code above already triggers a changeAvatar()
         avatarComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-          player.setAvatarTooltip(newValue == null ? null : newValue.getDescription());
-          player.setAvatarUrl(newValue == null ? null : Objects.toString(newValue.getUrl(), null));
-          avatarService.changeAvatar(newValue);
+          player.setAvatar(newValue);
+          avatarService.changeAvatar(Objects.requireNonNullElse(newValue, noAvatar));
         });
       });
     });
@@ -258,7 +258,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onAddFriendSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     if (player.getSocialStatus() == FOE) {
       playerService.removeFoe(player);
     }
@@ -266,7 +266,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onRemoveFriendSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     playerService.removeFriend(player);
   }
 
@@ -279,7 +279,7 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onAddFoeSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     if (player.getSocialStatus() == FRIEND) {
       playerService.removeFriend(player);
     }
@@ -287,12 +287,12 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onRemoveFoeSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     playerService.removeFoe(player);
   }
 
   public void onWatchGameSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     try {
       replayService.runLiveReplay(player.getGame().getId());
     } catch (Exception e) {
@@ -302,12 +302,12 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onViewReplaysSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     eventBus.post(new ShowUserReplaysEvent(player.getId()));
   }
 
   public void onInviteToGameSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     teamMatchmakingService.invitePlayer(player.getUsername());
   }
 
@@ -330,12 +330,12 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onJoinGameSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     joinGameHelper.join(player.getGame());
   }
 
   @NotNull
-  private Player getPlayer() {
+  private PlayerBean getPlayer() {
     return chatUser.getPlayer().orElseThrow(() -> new IllegalStateException("No player for chat user:" + chatUser));
   }
 
@@ -349,11 +349,11 @@ public class ChatUserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onKickGame() {
-    moderatorService.closePlayersGame(getPlayer().getId());
+    moderatorService.closePlayersGame(getPlayer());
   }
 
   public void onKickLobby() {
-    moderatorService.closePlayersLobby(getPlayer().getId());
+    moderatorService.closePlayersLobby(getPlayer());
   }
 
 

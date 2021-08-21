@@ -1,7 +1,8 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.game.Game;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -36,8 +37,8 @@ public class FriendJoinedGameNotifier implements InitializingBean {
 
   @Subscribe
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
-    Player player = event.getPlayer();
-    Game game = event.getGame();
+    PlayerBean player = event.getPlayer();
+    GameBean game = event.getGame();
     if (preferencesService.getPreferences().getNotification().isFriendJoinsGameSoundEnabled()) {
       audioService.playFriendJoinsGameSound();
     }

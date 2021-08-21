@@ -1,10 +1,12 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.builders.ModVersionBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
@@ -70,9 +72,9 @@ public class ModVaultControllerTest extends UITest {
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersion>of()), Mono.just(0)).toFuture());
-    when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersion>of()), Mono.just(0)).toFuture());
-    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersion>of()), Mono.just(0)).toFuture());
+    when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
+    when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
+    when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(i18n.get(anyString())).thenReturn("test");
 
     instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
@@ -120,7 +122,7 @@ public class ModVaultControllerTest extends UITest {
 
   @Test
   public void testShowModDetail() throws MalformedURLException {
-    ModVersion modVersion = ModVersionBuilder.create().defaultValues().get();
+    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
     JavaFxUtil.runLater(() -> instance.onDisplayDetails(modVersion));
     WaitForAsyncUtils.waitForFxEvents();
 

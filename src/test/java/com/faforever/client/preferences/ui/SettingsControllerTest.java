@@ -1,5 +1,6 @@
 package com.faforever.client.preferences.ui;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -9,7 +10,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.settings.LanguageItemController;

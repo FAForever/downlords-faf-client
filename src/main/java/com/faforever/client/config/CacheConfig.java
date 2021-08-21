@@ -34,11 +34,17 @@ import static com.faforever.client.config.CacheNames.MAP_GENERATOR;
 import static com.faforever.client.config.CacheNames.MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.MATCHMAKER_POOLS;
 import static com.faforever.client.config.CacheNames.MATCHMAKER_QUEUES;
+import static com.faforever.client.config.CacheNames.MODERATION_REPORTS;
 import static com.faforever.client.config.CacheNames.MODS;
 import static com.faforever.client.config.CacheNames.MOD_THUMBNAIL;
 import static com.faforever.client.config.CacheNames.NEWS;
 import static com.faforever.client.config.CacheNames.PERMISSION;
+import static com.faforever.client.config.CacheNames.PLAYER_EVENTS;
 import static com.faforever.client.config.CacheNames.RATING_HISTORY;
+import static com.faforever.client.config.CacheNames.REPLAYS_LIKED;
+import static com.faforever.client.config.CacheNames.REPLAYS_MINE;
+import static com.faforever.client.config.CacheNames.REPLAYS_RECENT;
+import static com.faforever.client.config.CacheNames.REPLAYS_SEARCH;
 import static com.faforever.client.config.CacheNames.STATISTICS;
 import static com.faforever.client.config.CacheNames.THEME_IMAGES;
 import static com.faforever.client.config.CacheNames.URL_PREVIEW;
@@ -57,9 +63,14 @@ public class CacheConfig extends CachingConfigurerSupport {
     simpleCacheManager.setCaches(Arrays.asList(
         new CaffeineCache(STATISTICS, newBuilder().maximumSize(10).expireAfterWrite(20, MINUTES).build()),
         new CaffeineCache(ACHIEVEMENTS, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(PLAYER_EVENTS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(PERMISSION, newBuilder().build()),
         new CaffeineCache(MODS, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MAPS, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(REPLAYS_SEARCH, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(REPLAYS_LIKED, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(REPLAYS_MINE, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(REPLAYS_RECENT, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MAP_GENERATOR, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(LEADERBOARD, newBuilder().expireAfterWrite(5, MINUTES).build()),
         new CaffeineCache(GLOBAL_LEADERBOARD, newBuilder().maximumSize(1).expireAfterAccess(5, MINUTES).build()),
@@ -74,6 +85,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         new CaffeineCache(FEATURED_MOD_FILES, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MATCHMAKER_QUEUES, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MATCHMAKER_POOLS, newBuilder().expireAfterWrite(1, MINUTES).build()),
+        new CaffeineCache(MODERATION_REPORTS, newBuilder().expireAfterWrite(10, MINUTES).build()),
 
         // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
         // at the same time it doesn't prevent unused images from being garbage collected.

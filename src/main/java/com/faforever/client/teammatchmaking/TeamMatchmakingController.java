@@ -4,15 +4,16 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.ChatMessage;
 import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.PartyBean.PartyMember;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -102,13 +103,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public GridPane contentPane;
   public ColumnConstraints column2;
   public RowConstraints row2;
-  private Player player;
+  private PlayerBean player;
   private Map<Faction, ToggleButton> factionsToButtons;
   @VisibleForTesting
   protected MatchmakingChatController matchmakingChatController;
   private InvalidationListener matchmakingQueuesLabelInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
-  private ChangeListener<Player> partyOwnerChangeListener;
+  private ChangeListener<PlayerBean> partyOwnerChangeListener;
 
   @Override
   public void initialize() {
@@ -185,7 +186,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
     playerPropertiesInvalidationListener = observable -> {
       Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
-      Image avatarImage = Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl());
+      Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
       String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
       JavaFxUtil.runLater(() -> {
         countryImageView.setImage(countryFlag);
@@ -208,14 +209,14 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private void addListeners() {
     JavaFxUtil.addAndTriggerListener(player.clanProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.avatarUrlProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.avatarProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.countryProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.getLeaderboardRatings(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.usernameProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakChangeListener<>(partyOwnerChangeListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> setCrownVisibility());
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> renderPartyMembers());
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getMatchmakingQueues(), (InvalidationListener) observable -> renderQueues());
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getMatchmakerQueues(), (InvalidationListener) observable -> renderQueues());
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.currentlyInQueueProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
@@ -326,8 +327,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private synchronized void renderQueues() {
-    List<MatchmakingQueue> queues = new ArrayList<>(teamMatchmakingService.getMatchmakingQueues());
-    queues.sort(Comparator.comparing(MatchmakingQueue::getQueueId));
+    List<MatchmakerQueueBean> queues = new ArrayList<>(teamMatchmakingService.getMatchmakerQueues());
+    queues.sort(Comparator.comparing(MatchmakerQueueBean::getId));
     int queuesPerRow = Math.min(queues.size(), 4);
     List<VBox> queueCards = queues.stream().map(queue -> {
       MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");

@@ -13,8 +13,8 @@ import java.util.Map;
  * i18n keys and API keys are nicely decoupled and can therefore be changed independently.
  */
 public class SearchablePropertyMappings {
-  public static final String NEWEST_MOD_KEY = "latestVersion.createTime";
-  public static final String HIGHEST_RATED_MOD_KEY = "reviewsSummary.lowerBound";
+  public static final String NEWEST_KEY = "latestVersion.createTime";
+  public static final String HIGHEST_RATED_KEY = "reviewsSummary.lowerBound";
 
   public static final Map<String, Property> GAME_PROPERTY_MAPPING = ImmutableMap.<String, Property>builder()
       .put("playerStats.player.login", new Property("game.player.username", false))

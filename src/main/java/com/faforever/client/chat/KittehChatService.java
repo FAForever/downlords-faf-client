@@ -6,16 +6,16 @@ import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerOfflineEvent;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
@@ -76,7 +76,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
@@ -103,7 +102,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final ChatUserService chatUserService;
   private final PreferencesService preferencesService;
   private final UserService userService;
-  private final FafService fafService;
+  private final FafServerAccessor fafServerAccessor;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
@@ -136,7 +135,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
-    fafService.addOnMessageListener(SocialInfo.class, this::onSocialMessage);
+    fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
     connectionState.addListener((observable, oldValue, newValue) -> {
       switch (newValue) {
         case DISCONNECTED, CONNECTING -> onDisconnected();
@@ -241,7 +240,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
-    Player player = event.getPlayer();
+    PlayerBean player = event.getPlayer();
 
     synchronized (channels) {
       channels.values().parallelStream()
@@ -340,7 +339,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     ircLog.debug("Received private message: {}", event);
 
     ChatChannelUser sender = getOrCreateChatUser(user.getNick(), user.getNick(), false);
-    if (sender.getPlayer().map(Player::getSocialStatus).filter(status -> status == SocialStatus.FOE).isPresent()
+    if (sender.getPlayer().map(PlayerBean::getSocialStatus).filter(status -> status == SocialStatus.FOE).isPresent()
         && preferencesService.getPreferences().getChat().getHideFoeMessages()) {
       ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
       return;
@@ -500,16 +499,14 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator) {
+    String key = mapKey(username, channel);
     synchronized (chatChannelUsersByChannelAndName) {
-      String key = mapKey(username, channel);
-      if (!chatChannelUsersByChannelAndName.containsKey(key)) {
-        Optional<Player> optionalPlayer = playerService.getPlayerByNameIfOnline(username);
-
+      return chatChannelUsersByChannelAndName.computeIfAbsent(key, s -> {
         ChatChannelUser chatChannelUser = new ChatChannelUser(username, isModerator);
-        chatChannelUsersByChannelAndName.put(key, chatChannelUser);
-        chatUserService.associatePlayerToChatUser(chatChannelUser, optionalPlayer.orElse(null));
-      }
-      return chatChannelUsersByChannelAndName.get(key);
+        playerService.getPlayerByNameIfOnline(username)
+            .ifPresent(player -> chatUserService.associatePlayerToChatUser(chatChannelUser, player));
+        return chatChannelUser;
+      });
     }
   }
 
@@ -520,9 +517,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener) {
-    synchronized (chatChannelUsersByChannelAndName) {
-      JavaFxUtil.addListener(chatChannelUsersByChannelAndName, listener);
-    }
+    JavaFxUtil.addListener(chatChannelUsersByChannelAndName, listener);
   }
 
   @Override

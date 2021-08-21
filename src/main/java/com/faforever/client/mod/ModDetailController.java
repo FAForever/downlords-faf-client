@@ -1,19 +1,21 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.ModVersionReviewBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
@@ -30,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -62,11 +66,11 @@ public class ModDetailController implements Controller<Node> {
   public ProgressBar progressBar;
   public Label modDescriptionLabel;
   public Node modDetailRoot;
-  public ReviewsController reviewsController;
+  public ReviewsController<ModVersionReviewBean> reviewsController;
   public Label authorLabel;
 
-  private ModVersion modVersion;
-  private ListChangeListener<ModVersion> installStatusChangeListener;
+  private ModVersionBean modVersion;
+  private ListChangeListener<ModVersionBean> installStatusChangeListener;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
@@ -84,13 +88,13 @@ public class ModDetailController implements Controller<Node> {
 
     installStatusChangeListener = change -> {
       while (change.next()) {
-        for (ModVersion modVersion : change.getAddedSubList()) {
+        for (ModVersionBean modVersion : change.getAddedSubList()) {
           if (this.modVersion.equals(modVersion)) {
             setInstalled(true);
             return;
           }
         }
-        for (ModVersion modVersion : change.getRemoved()) {
+        for (ModVersionBean modVersion : change.getRemoved()) {
           if (this.modVersion.equals(modVersion)) {
             setInstalled(false);
             return;
@@ -104,6 +108,7 @@ public class ModDetailController implements Controller<Node> {
     dependenciesContainer.setManaged(false);
 
     reviewsController.setCanWriteReview(false);
+    reviewsController.setReviewSupplier(ModVersionReviewBean::new);
   }
 
   public void onCloseButtonClicked() {
@@ -119,10 +124,10 @@ public class ModDetailController implements Controller<Node> {
     return modDetailRoot;
   }
 
-  public void setModVersion(ModVersion modVersion) {
+  public void setModVersion(ModVersionBean modVersion) {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
-    nameLabel.setText(modVersion.getDisplayName());
+    nameLabel.setText(modVersion.getMod().getDisplayName());
     idLabel.setText(i18n.get("mod.idNumber", modVersion.getId()));
 
     setUploaderAndAuthor(modVersion);
@@ -139,24 +144,26 @@ public class ModDetailController implements Controller<Node> {
     sizeLabel.setText(Bytes.formatSize(getModSize(), i18n.getUserSpecificLocale()));
     versionLabel.setText(modVersion.getVersion().toString());
 
-    Player player = playerService.getCurrentPlayer();
+    PlayerBean player = playerService.getCurrentPlayer();
 
     reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid())
-        && !modVersion.getMod().getAuthor().equals(player.getUsername()));
+        && !player.getUsername().equals(modVersion.getMod().getAuthor()) && !player.equals(modVersion.getMod().getUploader()));
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);
-    reviewsController.setReviews(modVersion.getReviews());
+    reviewsController.setReviews(modVersion.getMod().getVersions().stream()
+        .flatMap(version -> version.getReviews().stream())
+        .collect(Collectors.toCollection(FXCollections::observableArrayList)));
     reviewsController.setOwnReview(modVersion.getReviews().stream()
-        .filter(review -> review.getPlayer().getId() == player.getId())
+        .filter(review -> review.getPlayer().getId().equals(player.getId()))
         .findFirst().orElse(null));
   }
 
-  private void setUploaderAndAuthor(ModVersion modVersion) {
+  private void setUploaderAndAuthor(ModVersionBean modVersion) {
     if (modVersion.getMod() != null) {
-      String uploader = modVersion.getMod().getUploader();
+      PlayerBean uploader = modVersion.getMod().getUploader();
 
       if (uploader != null) {
-        uploaderLabel.setText(i18n.get("modVault.details.uploader", uploader));
+        uploaderLabel.setText(i18n.get("modVault.details.uploader", uploader.getUsername()));
       } else {
         uploaderLabel.setText(null);
       }
@@ -165,7 +172,7 @@ public class ModDetailController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  void onDeleteReview(Review review) {
+  void onDeleteReview(ModVersionReviewBean review) {
     reviewService.deleteModVersionReview(review)
         .thenRun(() -> JavaFxUtil.runLater(() -> {
           modVersion.getReviews().remove(review);
@@ -179,13 +186,12 @@ public class ModDetailController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  void onSendReview(Review review) {
+  void onSendReview(ModVersionReviewBean review) {
     boolean isNew = review.getId() == null;
-    Player player = playerService.getCurrentPlayer();
+    PlayerBean player = playerService.getCurrentPlayer();
     review.setPlayer(player);
-    review.setVersion(modVersion.getVersion());
-    review.setLatestVersion(modVersion.getVersion());
-    reviewService.saveModVersionReview(review, modVersion.getId())
+    review.setModVersion(modVersion);
+    reviewService.saveModVersionReview(review)
         .thenRun(() -> {
           if (isNew) {
             modVersion.getReviews().add(review);
@@ -209,7 +215,7 @@ public class ModDetailController implements Controller<Node> {
         .exceptionally(throwable -> {
           log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
           return null;
         });
@@ -223,7 +229,7 @@ public class ModDetailController implements Controller<Node> {
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);
           return null;
         });

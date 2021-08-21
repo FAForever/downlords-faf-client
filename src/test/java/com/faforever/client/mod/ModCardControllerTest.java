@@ -1,7 +1,10 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.builders.ModBeanBuilder;
+import com.faforever.client.builders.ModVersionBeanBuilder;
+import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
@@ -48,8 +51,8 @@ public class ModCardControllerTest extends UITest {
   private StarController starController;
 
   private ModCardController instance;
-  private ModVersion modVersion;
-  private ObservableList<ModVersion> installedModVersions;
+  private ModVersionBean modVersion;
+  private ObservableList<ModVersionBean> installedModVersions;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -59,11 +62,11 @@ public class ModCardControllerTest extends UITest {
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());
 
-    modVersion = ModVersionBuilder.create().defaultValues().mod(ModBuilder.create().defaultValues().get()).get();
+    modVersion = ModVersionBeanBuilder.create().defaultValues().mod(ModBeanBuilder.create().defaultValues().get()).get();
 
     when(modService.uninstallMod(any())).thenReturn(CompletableFuture.runAsync(() -> {
     }));
-    when(modService.downloadAndInstallMod((ModVersion) any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {
+    when(modService.downloadAndInstallMod((ModVersionBean) any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {
     }));
 
     loadFxml("theme/vault/mod/mod_card.fxml", clazz -> {
@@ -82,7 +85,7 @@ public class ModCardControllerTest extends UITest {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
     instance.setModVersion(modVersion);
 
-    assertEquals(modVersion.getDisplayName(), instance.nameLabel.getText());
+    assertEquals(modVersion.getMod().getDisplayName(), instance.nameLabel.getText());
     assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
     verify(modService).loadThumbnail(modVersion);
@@ -107,7 +110,7 @@ public class ModCardControllerTest extends UITest {
   @Test
   @SuppressWarnings("unchecked")
   public void testShowModDetail() {
-    Consumer<ModVersion> listener = mock(Consumer.class);
+    Consumer<ModVersionBean> listener = mock(Consumer.class);
     instance.setOnOpenDetailListener(listener);
     instance.onShowModDetail();
     verify(listener).accept(any());

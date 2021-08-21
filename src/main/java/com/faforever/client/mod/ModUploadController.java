@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -69,7 +70,7 @@ public class ModUploadController implements Controller<Node> {
   public Label rulesLabel;
   private Path modPath;
   private CompletableTask<Void> modUploadTask;
-  private ModVersion modVersionInfo;
+  private ModVersionBean modVersionInfo;
   private Runnable cancelButtonClickedListener;
 
   public void initialize() {
@@ -102,14 +103,14 @@ public class ModUploadController implements Controller<Node> {
     uploadCompletePane.setVisible(false);
   }
 
-  private void setModVersionInfo(ModVersion modVersion) {
+  private void setModVersionInfo(ModVersionBean modVersion) {
     this.modVersionInfo = modVersion;
     JavaFxUtil.runLater(() -> {
       enterModInfoState();
-      modNameLabel.textProperty().bind(modVersion.displayNameProperty());
+      modNameLabel.textProperty().bind(modVersion.getMod().displayNameProperty());
       descriptionLabel.textProperty().bind(modVersion.descriptionProperty());
       versionLabel.textProperty().bind(modVersion.versionProperty().asString());
-      uidLabel.textProperty().bind(modVersion.idProperty());
+      uidLabel.textProperty().bind(modVersion.idProperty().asString());
       thumbnailImageView.imageProperty().bind(
           Bindings.createObjectBinding(() -> modService.loadThumbnail(modVersion), modVersion.idProperty(), modVersion.imagePathProperty())
       );

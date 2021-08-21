@@ -1,18 +1,17 @@
 package com.faforever.client.map;
 
+import com.faforever.client.builders.MapBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
-import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
-import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
-import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -44,12 +42,6 @@ public class MapCardControllerTest extends UITest {
   @Mock
   private ReportingService reportingService;
   @Mock
-  private TimeService timeService;
-  @Mock
-  private PlayerService playerService;
-  @Mock
-  private ReviewService reviewService;
-  @Mock
   private I18n i18n;
   @Mock
   private ReviewsController reviewsController;
@@ -59,12 +51,10 @@ public class MapCardControllerTest extends UITest {
   private StarsController starsController;
   @Mock
   private StarController starController;
-  @Mock
-  private EventBus eventBus;
 
   private MapCardController instance;
-  private ObservableList<MapBean> installedMaps;
-  private MapBean mapBean;
+  private ObservableList<MapVersionBean> installedMaps;
+  private MapVersionBean mapBean;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -75,15 +65,7 @@ public class MapCardControllerTest extends UITest {
     installedMaps = FXCollections.observableArrayList();
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
     instance = new MapCardController(mapService, mapGeneratorService, notificationService, i18n, reportingService);
-    mapBean = new MapBean();
-    mapBean.setFolderName("testMap");
-    mapBean.setDisplayName("testMap");
-    mapBean.setAuthor("axel12");
-    mapBean.setRanked(true);
-    mapBean.setHidden(false);
-    mapBean.setId("23");
-    mapBean.setSize(MapSize.valueOf(1, 1));
-    mapBean.setDownloadUrl(new URL("http://google.com"));
+    mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).folderName("testMap").ranked(true).id(23).size(MapSize.valueOf(1, 1)).get();
 
     loadFxml("theme/vault/map/map_card.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -104,10 +86,10 @@ public class MapCardControllerTest extends UITest {
 
   @Test
   public void testSetMap() {
-    instance.setMap(mapBean);
+    instance.setMapVersion(mapBean);
 
-    assertThat(instance.nameLabel.getText(), is("testMap"));
-    assertThat(instance.authorLabel.getText(), is("axel12"));
+    assertThat(instance.nameLabel.getText(), is("test"));
+    assertThat(instance.authorLabel.getText(), is("junit"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
   }
 
@@ -129,7 +111,7 @@ public class MapCardControllerTest extends UITest {
 
   @Test
   public void onMapInstalled() {
-    instance.setMap(mapBean);
+    instance.setMapVersion(mapBean);
     installedMaps.add(mapBean);
     WaitForAsyncUtils.waitForFxEvents();
     assertTrue(instance.uninstallButton.isVisible());
@@ -138,7 +120,7 @@ public class MapCardControllerTest extends UITest {
 
   @Test
   public void onMapUninstalled() {
-    instance.setMap(mapBean);
+    instance.setMapVersion(mapBean);
     installedMaps.add(mapBean);
     installedMaps.remove(mapBean);
     WaitForAsyncUtils.waitForFxEvents();

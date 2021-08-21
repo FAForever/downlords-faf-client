@@ -1,5 +1,6 @@
 package com.faforever.client.tournament;
 
+import com.faforever.client.domain.TournamentBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.TimeService;

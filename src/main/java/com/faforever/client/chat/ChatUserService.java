@@ -1,18 +1,17 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.clan.Clan;
 import com.faforever.client.clan.ClanService;
+import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -54,7 +53,7 @@ public class ChatUserService implements InitializingBean {
         if (player.getClan() != null) {
           clanService.getClanByTag(player.getClan())
               .thenAccept(optionalClan -> {
-                Clan clan = optionalClan.orElse(null);
+                ClanBean clan = optionalClan.orElse(null);
                 chatChannelUser.setClan(clan);
               });
         } else {
@@ -71,8 +70,9 @@ public class ChatUserService implements InitializingBean {
       chatChannelUser.getPlayer()
           .ifPresent(player -> {
             Image avatar;
-            if (!Strings.isNullOrEmpty(player.getAvatarUrl())) {
-              avatar = avatarService.loadAvatar(player.getAvatarUrl());
+            if (player.getAvatar() != null) {
+              log.debug("Fetching Avatar {}", player.getAvatar());
+              avatar = avatarService.loadAvatar(player.getAvatar());
             } else {
               avatar = null;
             }
@@ -110,7 +110,7 @@ public class ChatUserService implements InitializingBean {
 
   private void populateColor(ChatChannelUser chatChannelUser) {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    Optional<Player> optionalPlayer = chatChannelUser.getPlayer();
+    Optional<PlayerBean> optionalPlayer = chatChannelUser.getPlayer();
     String lowercaseUsername = chatChannelUser.getUsername().toLowerCase(US);
 
     Color color = null;
@@ -135,7 +135,7 @@ public class ChatUserService implements InitializingBean {
     chatChannelUser.setColor(color);
   }
 
-  private void setGameImages(ChatChannelUser chatChannelUser, Player player) {
+  private void setGameImages(ChatChannelUser chatChannelUser, PlayerBean player) {
     PlayerStatus status = player.getStatus();
     Image playerStatusImage = switch (status) {
       case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
@@ -154,7 +154,7 @@ public class ChatUserService implements InitializingBean {
     chatChannelUser.setMapImage(mapImage);
   }
 
-  public void associatePlayerToChatUser(ChatChannelUser chatChannelUser, Player player) {
+  public void associatePlayerToChatUser(ChatChannelUser chatChannelUser, PlayerBean player) {
     if (player != null && chatChannelUser.getPlayer().filter(userPlayer -> userPlayer.getUsername().equals(player.getUsername())).isEmpty()) {
       chatChannelUser.setPlayer(player);
       addListeners(chatChannelUser);

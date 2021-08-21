@@ -1,15 +1,52 @@
 package com.faforever.client.avatar;
 
+import com.faforever.client.avatar.event.AvatarChangedEvent;
+import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.mapstruct.AvatarMapper;
+import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
+import com.faforever.client.remote.AssetService;
+import com.faforever.client.remote.FafServerAccessor;
+import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public interface AvatarService {
+import static com.faforever.client.config.CacheNames.AVATARS;
 
-  Image loadAvatar(String avatarUrl);
+@Lazy
+@Service
+@RequiredArgsConstructor
+public class AvatarService implements InitializingBean {
 
-  CompletableFuture<List<AvatarBean>> getAvailableAvatars();
+  private final FafServerAccessor fafServerAccessor;
+  private final AssetService assetService;
+  private final EventBus eventBus;
+  private final AvatarMapper avatarMapper;
 
-  void changeAvatar(AvatarBean avatar);
+  @Cacheable(value = AVATARS, sync = true)
+  public Image loadAvatar(AvatarBean avatar) {
+    return assetService.loadAndCacheImage(avatar.getUrl(), Paths.get("avatars"), null);
+  }
+
+  public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {
+    return fafServerAccessor.getAvailableAvatars()
+        .thenApply(dto -> avatarMapper.mapDtos(dto, new CycleAvoidingMappingContext()));
+  }
+
+  public void changeAvatar(AvatarBean avatar) {
+    fafServerAccessor.selectAvatar(avatar.getUrl());
+    eventBus.post(new AvatarChangedEvent(avatar));
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    eventBus.register(this);
+  }
 }

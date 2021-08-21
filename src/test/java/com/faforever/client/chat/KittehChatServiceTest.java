@@ -1,19 +1,19 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.lobby.IrcPasswordInfo;
@@ -118,7 +118,7 @@ public class KittehChatServiceTest extends ServiceTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private FafService fafService;
+  private FafServerAccessor fafServerAccessor;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -141,7 +141,7 @@ public class KittehChatServiceTest extends ServiceTest {
         .setDefaultChannel(DEFAULT_CHANNEL_NAME)
         .setReconnectDelay(100);
 
-    instance = new KittehChatService(chatUserService, preferencesService, userService, fafService,
+    instance = new KittehChatService(chatUserService, preferencesService, userService, fafServerAccessor,
         eventBus, clientProperties, playerService);
 
     Irc irc = clientProperties.getIrc();
@@ -198,7 +198,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     instance.afterPropertiesSet();
 
-    verify(fafService).addOnMessageListener(eq(SocialInfo.class), socialMessageListenerCaptor.capture());
+    verify(fafServerAccessor).addEventListener(eq(SocialInfo.class), socialMessageListenerCaptor.capture());
   }
 
   @AfterEach
@@ -274,7 +274,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testGroupToColorChangeFriend() {
-    Player player = PlayerBuilder.create(user1.getNick()).defaultValues().socialStatus(SocialStatus.FRIEND).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user1.getNick()).socialStatus(SocialStatus.FRIEND).get();
     defaultChatUser1.setPlayer(player);
 
     connect();
@@ -291,7 +291,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
   @Test
   public void testGroupToColorChangeFoe() {
-    Player player = PlayerBuilder.create(user1.getNick()).defaultValues().socialStatus(SocialStatus.FOE).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user1.getNick()).socialStatus(SocialStatus.FOE).get();
     defaultChatUser1.setPlayer(player);
 
     connect();
@@ -346,7 +346,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     join(defaultChannel, user1);
 
-    Player player = PlayerBuilder.create(user1.getNick()).defaultValues().get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user1.getNick()).get();
 
     instance.onPlayerOnline(new PlayerOnlineEvent(player));
 
@@ -493,7 +493,7 @@ public class KittehChatServiceTest extends ServiceTest {
   @Test
   public void testChatMessageEventNotTriggeredByPrivateMessageFromFoe() {
     ChatChannelUser foeUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick(), false);
-    foeUser.setPlayer(PlayerBuilder.create(defaultChatUser1.getUsername()).socialStatus(SocialStatus.FOE).get());
+    foeUser.setPlayer(PlayerBeanBuilder.create().defaultValues().username(defaultChatUser1.getUsername()).socialStatus(SocialStatus.FOE).get());
 
     String message = "private message";
 

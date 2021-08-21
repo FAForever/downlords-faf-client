@@ -3,13 +3,13 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
@@ -393,7 +393,7 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.runLater(() -> getJsObject().call("updateUserMessageDisplay", chatUser.getUsername(), display));
   }
 
-  private void associateChatUserWithPlayer(Player player, ChatChannelUser chatUser) {
+  private void associateChatUserWithPlayer(PlayerBean player, ChatChannelUser chatUser) {
     chatUserService.associatePlayerToChatUser(chatUser, player);
 
     updateCssClass(chatUser);
@@ -531,7 +531,7 @@ public class ChannelTabController extends AbstractChatTabController {
   protected String getInlineStyle(String username) {
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, chatChannel.getName());
 
-    Optional<Player> playerOptional = playerService.getPlayerByNameIfOnline(username);
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(username);
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     String color = "";

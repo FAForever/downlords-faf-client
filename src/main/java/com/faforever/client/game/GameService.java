@@ -2,6 +2,10 @@ package com.faforever.client.game;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -10,9 +14,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowReplayEvent;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
-import com.faforever.client.mod.FeaturedMod;
+import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
@@ -21,12 +24,11 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
@@ -54,7 +56,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +65,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -104,11 +104,8 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 @Lazy
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class GameService implements InitializingBean {
 
-  @VisibleForTesting
-  static final String DEFAULT_RATING_TYPE = "global";
   private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
   private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = "\ndebug = {\n" +
       "    enable_debug_facilities = true\n" +
@@ -119,11 +116,11 @@ public class GameService implements InitializingBean {
 
   /** TODO: Explain why access needs to be synchronized. */
   @VisibleForTesting
-  final SimpleObjectProperty<Game> currentGame;
+  final SimpleObjectProperty<GameBean> currentGame;
 
-  private final ObservableMap<Integer, Game> gameIdToGame;
+  private final ObservableMap<Integer, GameBean> gameIdToGame;
 
-  private final FafService fafService;
+  private final FafServerAccessor fafServerAccessor;
   private final ForgedAllianceService forgedAllianceService;
   private final MapService mapService;
   private final PreferencesService preferencesService;
@@ -140,20 +137,20 @@ public class GameService implements InitializingBean {
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
   private final ReconnectTimerService reconnectTimerService;
-  private final ObservableList<Game> games;
+  private final ObservableList<GameBean> games;
   private final String faWindowTitle;
   private final MaskPatternLayout logMasker;
+  private final GameMapper gameMapper;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Process process;
   private boolean rehostRequested;
   private int localReplayPort;
-  private ForgedAlliancePrefs forgedAlliancePrefs;
   private boolean inOthersParty;
   private boolean inMatchmakerQueue;
 
-  @Inject
   public GameService(ClientProperties clientProperties,
-                     FafService fafService,
+                     FafServerAccessor fafServerAccessor,
                      ForgedAllianceService forgedAllianceService,
                      MapService mapService,
                      PreferencesService preferencesService,
@@ -169,8 +166,9 @@ public class GameService implements InitializingBean {
                      PlatformService platformService,
                      DiscordRichPresenceService discordRichPresenceService,
                      ReplayServer replayServer,
-                     ReconnectTimerService reconnectTimerService) {
-    this.fafService = fafService;
+                     ReconnectTimerService reconnectTimerService,
+                     GameMapper gameMapper) {
+    this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
     this.preferencesService = preferencesService;
@@ -187,6 +185,7 @@ public class GameService implements InitializingBean {
     this.discordRichPresenceService = discordRichPresenceService;
     this.replayServer = replayServer;
     this.reconnectTimerService = reconnectTimerService;
+    this.gameMapper = gameMapper;
 
     logMasker = new MaskPatternLayout();
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
@@ -224,11 +223,11 @@ public class GameService implements InitializingBean {
 
     eventBus.register(this);
 
-    fafService.addOnMessageListener(GameInfo.class, this::onGameInfo);
-    fafService.addOnMessageListener(LoginSuccessResponse.class, message -> onLoggedIn());
+    fafServerAccessor.addEventListener(GameInfo.class, this::onGameInfo);
+    fafServerAccessor.addEventListener(LoginSuccessResponse.class, message -> onLoggedIn());
 
     JavaFxUtil.addListener(
-        fafService.connectionStateProperty(),
+        fafServerAccessor.connectionStateProperty(),
         (observable, oldValue, newValue) -> {
           if (newValue == ConnectionState.DISCONNECTED) {
             synchronized (gameIdToGame) {
@@ -240,7 +239,7 @@ public class GameService implements InitializingBean {
   }
 
   @NotNull
-  private InvalidationListener generateNumberOfPlayersChangeListener(Game game) {
+  private InvalidationListener generateNumberOfPlayersChangeListener(GameBean game) {
     return new InvalidationListener() {
       @Override
       public void invalidated(Observable observable) {
@@ -254,7 +253,7 @@ public class GameService implements InitializingBean {
   }
 
   @NotNull
-  private ChangeListener<GameStatus> generateGameStatusListener(Game game) {
+  private ChangeListener<GameStatus> generateGameStatusListener(GameBean game) {
     return new ChangeListener<>() {
       @Override
       public void changed(ObservableValue<? extends GameStatus> observable, GameStatus oldStatus, GameStatus newStatus) {
@@ -300,7 +299,7 @@ public class GameService implements InitializingBean {
 
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
-        .thenCompose(aVoid -> fafService.requestHostGame(newGameInfo))
+        .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
         .thenAccept(gameLaunchMessage -> {
 
           String ratingType = gameLaunchMessage.getLeaderboard();
@@ -313,7 +312,7 @@ public class GameService implements InitializingBean {
     notificationService.addImmediateWarnNotification("teammatchmaking.notification.customAlreadyInQueue.message");
   }
 
-  public CompletableFuture<Void> joinGame(Game game, String password) {
+  public CompletableFuture<Void> joinGame(GameBean game, String password) {
     if (isRunning()) {
       log.warn("Game is running, ignoring join request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
@@ -344,7 +343,7 @@ public class GameService implements InitializingBean {
           }
         })
         .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
-        .thenCompose(aVoid -> fafService.requestJoinGame(game.getId(), password))
+        .thenCompose(aVoid -> fafServerAccessor.requestJoinGame(game.getId(), password))
         .thenAccept(gameLaunchMessage -> {
           synchronized (currentGame) {
             // Store password in case we rehost
@@ -472,7 +471,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> runWithLiveReplay(replayUrl, gameId, gameType, mapName));
     }
 
-    Game game = getByUid(gameId);
+    GameBean game = getByUid(gameId);
 
     Map<String, Integer> modVersions = game.getFeaturedModVersions();
     Set<String> simModUids = game.getSimMods().keySet();
@@ -496,16 +495,16 @@ public class GameService implements InitializingBean {
   }
 
   @NotNull
-  private Player getCurrentPlayer() {
+  private PlayerBean getCurrentPlayer() {
     return playerService.getCurrentPlayer();
   }
 
-  public ObservableList<Game> getGames() {
+  public ObservableList<GameBean> getGames() {
     return games;
   }
 
-  public Game getByUid(int uid) {
-    Game game = gameIdToGame.get(uid);
+  public GameBean getByUid(int uid) {
+    GameBean game = gameIdToGame.get(uid);
     if (game == null) {
       log.warn("Can't find {} in gameInfoBean map", uid);
     }
@@ -534,7 +533,7 @@ public class GameService implements InitializingBean {
 
     CompletableFuture<Void> matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
-        .thenCompose(aVoid -> fafService.startSearchMatchmaker())
+        .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
             .thenRun(() -> {
               gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
@@ -566,7 +565,7 @@ public class GameService implements InitializingBean {
    * Returns the preferences the player is currently in. Returns {@code null} if not in a preferences.
    */
   @Nullable
-  public Game getCurrentGame() {
+  public GameBean getCurrentGame() {
     synchronized (currentGame) {
       return currentGame.get();
     }
@@ -576,8 +575,8 @@ public class GameService implements InitializingBean {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedMod featuredMod, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
-    return gameUpdater.update(featuredMod, version, featuredModVersions, simModUids);
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
+    return gameUpdater.update(featuredModBean, version, featuredModVersions, simModUids);
   }
 
   public boolean isGameRunning() {
@@ -625,7 +624,7 @@ public class GameService implements InitializingBean {
         });
   }
 
-  private void onRecentlyPlayedGameEnded(Game game) {
+  private void onRecentlyPlayedGameEnded(GameBean game) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     if (!notification.isAfterGameReviewEnabled() || !notification.isTransientNotificationsEnabled()) {
       return;
@@ -682,7 +681,7 @@ public class GameService implements InitializingBean {
         synchronized (gameRunning) {
           gameRunning.set(false);
           if (forOnlineGame) {
-            fafService.notifyGameEnded();
+            fafServerAccessor.notifyGameEnded();
             replayServer.stop();
             iceAdapter.stop();
           }
@@ -699,7 +698,7 @@ public class GameService implements InitializingBean {
 
   private void rehost() {
     synchronized (currentGame) {
-      Game game = currentGame.get();
+      GameBean game = currentGame.get();
 
       modService.getFeaturedMod(game.getFeaturedMod())
           .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
@@ -709,7 +708,7 @@ public class GameService implements InitializingBean {
               game.getMapFolderName(),
               new HashSet<>(game.getSimMods().values()),
               GameVisibility.PUBLIC,
-              game.getMinRating(), game.getMaxRating(), game.getEnforceRating())));
+              game.getRatingMin(), game.getRatingMax(), game.getEnforceRating())));
     }
   }
 
@@ -727,7 +726,7 @@ public class GameService implements InitializingBean {
 
   private void onLoggedIn() {
     if (isGameRunning()) {
-      fafService.restoreGameSession(currentGame.get().getId());
+      fafServerAccessor.restoreGameSession(currentGame.get().getId());
     }
   }
 
@@ -739,12 +738,12 @@ public class GameService implements InitializingBean {
 
     Integer gameId = gameInfoMessage.getUid();
     gameIdToGame.computeIfAbsent(gameId, integer -> {
-      Game game = new Game();
+      GameBean game = new GameBean();
       game.setTeamsListener(observable -> game.setAverageRating(calcAverageRating(game)));
       return game;
     });
-    Game game = gameIdToGame.get(gameId);
-    game.updateFromLobbyServer(gameInfoMessage);
+    GameBean game = gameIdToGame.get(gameId);
+    gameMapper.update(gameInfoMessage, game);
     playerService.updatePlayersInGame(game);
     if (game.getStatus() == GameStatus.CLOSED) {
       boolean removed = gameIdToGame.remove(gameInfoMessage.getUid(), game);
@@ -775,7 +774,7 @@ public class GameService implements InitializingBean {
     });
   }
 
-  private Game enhanceWithLastPasswordIfPasswordProtected(Game game) {
+  private GameBean enhanceWithLastPasswordIfPasswordProtected(GameBean game) {
     if (!game.isPasswordProtected()) {
       return game;
     }
@@ -784,9 +783,9 @@ public class GameService implements InitializingBean {
     return game;
   }
 
-  private double calcAverageRating(Game game) {
+  private double calcAverageRating(GameBean game) {
     return playerService.getAllPlayersInGame(game).stream()
-        .mapToInt(player -> RatingUtil.getLeaderboardRating(player, game.getRatingType()))
+        .mapToInt(player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()))
         .average()
         .orElse(0.0);
   }
@@ -808,7 +807,7 @@ public class GameService implements InitializingBean {
     inOthersParty = !Objects.equals(playerService.getCurrentPlayer(), event.getNewOwner());
   }
 
-  public void launchTutorial(MapBean mapVersion, String technicalMapName) {
+  public void launchTutorial(MapVersionBean mapVersion, String technicalMapName) {
 
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();

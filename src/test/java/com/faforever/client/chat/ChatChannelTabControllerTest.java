@@ -1,18 +1,18 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
@@ -206,12 +206,12 @@ public class ChatChannelTabControllerTest extends UITest {
   @SuppressWarnings("unchecked")
   public void testOnUserJoinsChannel() {
     String username1 = "player";
-    Player player = PlayerBuilder.create(username1).socialStatus(OTHER).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser userInList = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     when(playerService.getPlayerByNameIfOnline(username1)).thenReturn(Optional.of(player));
 
     String username2 = "player joins";
-    Player newPlayer = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean newPlayer = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
     userMap.put(username2, chatUser);
@@ -240,12 +240,12 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testOnUserLeaveFromChannel() {
     String username1 = "player";
-    Player player = PlayerBuilder.create(username1).socialStatus(OTHER).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser userInList = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     when(playerService.getPlayerByNameIfOnline(username1)).thenReturn(Optional.of(player));
 
     String username2 = "leaving player";
-    Player leavingPlayer = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean leavingPlayer = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     ObservableMap<String, ChatChannelUser> userMap = FXCollections.observableHashMap();
     userMap.put(username2, chatUser);
@@ -307,7 +307,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
     this.getRoot().setVisible(false);
     preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    when(playerService.getPlayerByNameIfOnline("junit")).thenReturn(Optional.ofNullable(PlayerBuilder.create("junit").defaultValues().socialStatus(FOE).get()));
+    when(playerService.getPlayerByNameIfOnline("junit")).thenReturn(Optional.ofNullable(PlayerBeanBuilder.create().defaultValues().username("junit").socialStatus(FOE).get()));
     instance.onMention(new ChatMessage("junit", Instant.now(), "junit", "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
   }
@@ -358,7 +358,7 @@ public class ChatChannelTabControllerTest extends UITest {
     String playerName = "playerName";
     ChatChannelUser chatUser = new ChatChannelUser(playerName, false);
 
-    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
+    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().username(playerName).socialStatus(FOE).get()));
     when(chatService.getOrCreateChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
     runOnFxThreadAndWait(() -> {
       instance.setChatChannel(defaultChatChannel);
@@ -374,7 +374,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void getInlineStyleRandomFoeShow() {
     String playerName = "somePlayer";
     ChatChannelUser chatUser = new ChatChannelUser(playerName, false);
-    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(PlayerBuilder.create(playerName).socialStatus(FOE).get()));
+    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().username(playerName).socialStatus(FOE).get()));
 
     when(chatService.getOrCreateChatUser(playerName, CHANNEL_NAME)).thenReturn(chatUser);
     runOnFxThreadAndWait(() -> {
@@ -472,7 +472,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testModeratorIsInModeratorsList() {
     String username = "moderator";
-    Player player = PlayerBuilder.create(username).socialStatus(OTHER).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(username).socialStatus(OTHER).get();
     ChatChannelUser moderator = ChatChannelUserBuilder.create(username).moderator(true).get();
     defaultChatChannel.addUser(moderator);
 
@@ -487,7 +487,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testFriendlyPlayerIsInFriendList() {
     String username = "friend";
-    Player player = PlayerBuilder.create(username).socialStatus(FRIEND).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(username).socialStatus(FRIEND).get();
     ChatChannelUser friendUser = ChatChannelUserBuilder.create(username).socialStatus(FRIEND).get();
     defaultChatChannel.addUser(friendUser);
 
@@ -502,7 +502,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testEnemyPlayerIsInFoeList() {
     String username = "foe";
-    Player player = PlayerBuilder.create(username).socialStatus(FOE).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(username).socialStatus(FOE).get();
     ChatChannelUser enemyUser = ChatChannelUserBuilder.create(username).socialStatus(FOE).get();
     defaultChatChannel.addUser(enemyUser);
 
@@ -517,10 +517,10 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testOtherPlayersIsInOtherList() {
     String username1 = "player1";
-    Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
-    Player player2 = PlayerBuilder.create(username2).socialStatus(SELF).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(SELF).get();
     ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(SELF).get();
     defaultChatChannel.addUsers(Arrays.asList(user1, user2));
 
@@ -550,10 +550,10 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testPlayerBecomesFriendly() {
     String username1 = "player1";
-    Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
-    Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChatChannel.addUsers(Arrays.asList(user1, user2));
 
@@ -575,10 +575,10 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testPlayerBecomesEnemy() {
     String username1 = "player1";
-    Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
-    Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChatChannel.addUsers(Arrays.asList(user1, user2));
 
@@ -600,10 +600,10 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testFriendlyPlayerBecomesOther() {
     String username1 = "player1";
-    Player player1 = PlayerBuilder.create(username1).socialStatus(FRIEND).get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(FRIEND).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(FRIEND).get();
     String username2 = "player2";
-    Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChatChannel.addUsers(Arrays.asList(user1, user2));
 
@@ -624,10 +624,10 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testEnemyPlayerBecomesOther() {
     String username1 = "player1";
-    Player player1 = PlayerBuilder.create(username1).socialStatus(FOE).get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(FOE).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(FOE).get();
     String username2 = "player2";
-    Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChatChannel.addUsers(Arrays.asList(user1, user2));
 
@@ -648,10 +648,10 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testWhenUserAddPlayerToFriendlyListByAccidentallyAndCancelsActionImmediately() {
     String username1 = "player1";
-    Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
-    Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChatChannel.addUsers(Arrays.asList(user1, user2));
 
@@ -672,10 +672,10 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testWhenUserAddPlayerToFoeListByAccidentallyAndCancelsActionImmediately() {
     String username1 = "player1";
-    Player player1 = PlayerBuilder.create(username1).socialStatus(OTHER).get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
     String username2 = "player2";
-    Player player2 = PlayerBuilder.create(username2).socialStatus(OTHER).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(OTHER).get();
     ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(OTHER).get();
     defaultChatChannel.addUsers(Arrays.asList(user1, user2));
 
@@ -793,12 +793,12 @@ public class ChatChannelTabControllerTest extends UITest {
   private List<ChatChannelUser> prepareUserList(ChatUserCategory category, List<String> usernames) {
     return usernames.stream().map(name -> {
       ChatChannelUserBuilder builder = ChatChannelUserBuilder.create(name);
-      PlayerBuilder playerBuilder = PlayerBuilder.create(name);
+      PlayerBeanBuilder playerBeanBuilder = PlayerBeanBuilder.create().defaultValues().username(name);
       switch (category) {
-        case OTHER -> builder.player(playerBuilder.socialStatus(OTHER).get());
-        case FRIEND -> builder.player(playerBuilder.socialStatus(FRIEND).get());
-        case FOE -> builder.player(playerBuilder.socialStatus(FOE).get());
-        case MODERATOR -> builder.player(playerBuilder.socialStatus(OTHER).get()).moderator(true);
+        case OTHER -> builder.player(playerBeanBuilder.socialStatus(OTHER).get());
+        case FRIEND -> builder.player(playerBeanBuilder.socialStatus(FRIEND).get());
+        case FOE -> builder.player(playerBeanBuilder.socialStatus(FOE).get());
+        case MODERATOR -> builder.player(playerBeanBuilder.socialStatus(OTHER).get()).moderator(true);
         case CHAT_ONLY -> builder.player(null);
       }
       return builder.get();

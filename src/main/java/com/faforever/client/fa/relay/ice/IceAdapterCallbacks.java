@@ -3,7 +3,7 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
-import com.faforever.client.remote.FafService;
+import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.MessageTarget;
 import com.google.common.eventbus.EventBus;
@@ -18,6 +18,7 @@ import java.util.List;
 /**
  * Dispatches all methods that the ICE adapter can call on its client.
  */
+@SuppressWarnings("unused")
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
@@ -25,7 +26,7 @@ import java.util.List;
 public class IceAdapterCallbacks {
 
   private final EventBus eventBus;
-  private final FafService fafService;
+  private final FafServerAccessor fafServerAccessor;
 
   public void onConnectionStateChanged(String newState) {
     log.debug("ICE adapter connection state changed to: {}", newState);
@@ -39,7 +40,7 @@ public class IceAdapterCallbacks {
 
   public void onIceMsg(long localPlayerId, long remotePlayerId, Object message) {
     log.debug("ICE message for connection '{}/{}': {}", localPlayerId, remotePlayerId, message);
-    fafService.sendIceMessage((int) remotePlayerId, message);
+    fafServerAccessor.sendIceMessage((int) remotePlayerId, message);
   }
 
   public void onIceConnectionStateChanged(long localPlayerId, long remotePlayerId, String state) {

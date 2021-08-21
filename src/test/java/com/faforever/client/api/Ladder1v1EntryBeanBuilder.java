@@ -1,21 +1,18 @@
 package com.faforever.client.api;
 
-import com.faforever.client.leaderboard.LeaderboardEntry;
+import com.faforever.client.domain.LeaderboardEntryBean;
+import com.faforever.client.domain.PlayerBean;
 
 public class Ladder1v1EntryBeanBuilder {
 
-  private LeaderboardEntry leaderboardEntry;
-
-  private Ladder1v1EntryBeanBuilder() {
-    leaderboardEntry = new LeaderboardEntry();
-  }
+  private final LeaderboardEntryBean leaderboardEntry = new LeaderboardEntryBean();
 
   public static Ladder1v1EntryBeanBuilder create() {
     return new Ladder1v1EntryBeanBuilder();
   }
 
-  public Ladder1v1EntryBeanBuilder username(String username) {
-    leaderboardEntry.setUsername(username);
+  public Ladder1v1EntryBeanBuilder username(PlayerBean player) {
+    leaderboardEntry.setPlayer(player);
     return this;
   }
 
@@ -23,7 +20,7 @@ public class Ladder1v1EntryBeanBuilder {
     return this;
   }
 
-  public LeaderboardEntry get() {
+  public LeaderboardEntryBean get() {
     return leaderboardEntry;
   }
 }

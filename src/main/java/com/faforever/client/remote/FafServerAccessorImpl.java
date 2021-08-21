@@ -3,6 +3,8 @@ package com.faforever.client.remote;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.api.TokenService;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -12,9 +14,7 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.player.Player;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.FafLobbyClient;
@@ -148,8 +148,7 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
   }
 
   public CompletableFuture<GameLaunchResponse> requestJoinGame(int gameId, String password) {
-    return lobbyClient.requestJoinGame(gameId, password)
-        .toFuture();
+    return lobbyClient.requestJoinGame(gameId, password).toFuture();
   }
 
   public void disconnect() {
@@ -259,19 +258,19 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
     lobbyClient.restoreGameSession(id);
   }
 
-  public void gameMatchmaking(MatchmakingQueue queue, MatchmakerState state) {
+  public void gameMatchmaking(MatchmakerQueueBean queue, MatchmakerState state) {
     lobbyClient.gameMatchmaking(queue.getTechnicalName(), state);
   }
 
-  public void inviteToParty(Player recipient) {
+  public void inviteToParty(PlayerBean recipient) {
     lobbyClient.inviteToParty(recipient.getId());
   }
 
-  public void acceptPartyInvite(Player sender) {
+  public void acceptPartyInvite(PlayerBean sender) {
     lobbyClient.acceptPartyInvite(sender.getId());
   }
 
-  public void kickPlayerFromParty(Player kickedPlayer) {
+  public void kickPlayerFromParty(PlayerBean kickedPlayer) {
     lobbyClient.kickPlayerFromParty(kickedPlayer.getId());
   }
 
@@ -289,6 +288,14 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
 
   public void setPartyFactions(List<Faction> factions) {
     lobbyClient.setPartyFactions(new HashSet<>(factions));
+  }
+
+  public void notifyGameEnded() {
+    sendGpgMessage(GpgGameOutboundMessage.Companion.gameStateMessage("Ended"));
+  }
+
+  public void sendIceMessage(int remotePlayerId, Object message) {
+    sendGpgMessage(GpgGameOutboundMessage.Companion.iceMessage(remotePlayerId, message));
   }
 
   @Override

@@ -1,16 +1,17 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
@@ -291,20 +292,18 @@ public class AbstractChatTabControllerTest extends UITest {
 
   @Test
   public void getMessageCssClassFriend() {
-    String playerName = "somePlayer";
-    Player player = new Player(playerName);
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     player.setSocialStatus(FRIEND);
-    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
-    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FRIEND.getCssClass());
+    when(playerService.getPlayerByNameIfOnline(player.getUsername())).thenReturn(Optional.of(player));
+    assertEquals(instance.getMessageCssClass(player.getUsername()), SocialStatus.FRIEND.getCssClass());
   }
 
   @Test
   public void getMessageCssClassFoe() {
-    String playerName = "somePlayer";
-    Player player = new Player(playerName);
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     player.setSocialStatus(FOE);
-    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
-    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.FOE.getCssClass());
+    when(playerService.getPlayerByNameIfOnline(player.getUsername())).thenReturn(Optional.of(player));
+    assertEquals(instance.getMessageCssClass(player.getUsername()), SocialStatus.FOE.getCssClass());
   }
 
   @Test
@@ -316,11 +315,10 @@ public class AbstractChatTabControllerTest extends UITest {
 
   @Test
   public void getMessageCssClassSelf() {
-    String playerName = "junit";
-    Player player = new Player(playerName);
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     player.setSocialStatus(SELF);
-    when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
-    assertEquals(instance.getMessageCssClass(playerName), SocialStatus.SELF.getCssClass());
+    when(playerService.getPlayerByNameIfOnline(player.getUsername())).thenReturn(Optional.of(player));
+    assertEquals(instance.getMessageCssClass(player.getUsername()), SocialStatus.SELF.getCssClass());
   }
 
   @Test

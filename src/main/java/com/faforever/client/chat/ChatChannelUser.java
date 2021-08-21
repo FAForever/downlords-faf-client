@@ -1,9 +1,10 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.clan.Clan;
+import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
@@ -34,12 +35,12 @@ public class ChatChannelUser {
   private final StringProperty username;
   private final BooleanProperty moderator;
   private final ObjectProperty<Color> color;
-  private final ObjectProperty<Player> player;
+  private final ObjectProperty<PlayerBean> player;
   private final ObjectProperty<Instant> lastActive;
   private final ObjectProperty<PlayerStatus> gameStatus;
   private final ObjectProperty<SocialStatus> socialStatus;
   private final ObjectProperty<Image> avatar;
-  private final ObjectProperty<Clan> clan;
+  private final ObjectProperty<ClanBean> clan;
   private final StringProperty clanTag;
   private final ObjectProperty<Image> countryFlag;
   private final StringProperty countryName;
@@ -50,7 +51,7 @@ public class ChatChannelUser {
   private ChangeListener<SocialStatus> socialStatusChangeListener;
   private ChangeListener<PlayerStatus> gameStatusChangeListener;
   private ChangeListener<String> clanTagChangeListener;
-  private ChangeListener<String> avatarChangeListener;
+  private ChangeListener<AvatarBean> avatarChangeListener;
   private ChangeListener<String> countryInvalidationListener;
   private InvalidationListener displayedChangeListener;
 
@@ -73,11 +74,11 @@ public class ChatChannelUser {
     this.displayed = new SimpleBooleanProperty(false);
   }
 
-  public Optional<Player> getPlayer() {
+  public Optional<PlayerBean> getPlayer() {
     return Optional.ofNullable(player.get());
   }
 
-  public void setPlayer(Player player) {
+  public void setPlayer(PlayerBean player) {
     if (!Objects.equals(player, this.player.get())) {
       if (this.player.get() != null) {
         this.player.get().getChatChannelUsers().remove(this);
@@ -100,7 +101,7 @@ public class ChatChannelUser {
     }
   }
 
-  public ObjectProperty<Player> playerProperty() {
+  public ObjectProperty<PlayerBean> playerProperty() {
     return player;
   }
 
@@ -189,15 +190,15 @@ public class ChatChannelUser {
     return avatar;
   }
 
-  public Optional<Clan> getClan() {
+  public Optional<ClanBean> getClan() {
     return Optional.ofNullable(clan.get());
   }
 
-  public void setClan(Clan clan) {
+  public void setClan(ClanBean clan) {
     this.clan.set(clan);
   }
 
-  public ObjectProperty<Clan> clanProperty() {
+  public ObjectProperty<ClanBean> clanProperty() {
     return clan;
   }
 
@@ -355,25 +356,25 @@ public class ChatChannelUser {
     }
   }
 
-  public ChangeListener<String> getAvatarChangeListener() {
+  public ChangeListener<AvatarBean> getAvatarChangeListener() {
     return avatarChangeListener;
   }
 
-  public void setAvatarChangeListener(ChangeListener<String> listener) {
+  public void setAvatarChangeListener(ChangeListener<AvatarBean> listener) {
     if (player.get() != null) {
       if (avatarChangeListener != null) {
-        JavaFxUtil.removeListener(player.get().avatarUrlProperty(), avatarChangeListener);
+        JavaFxUtil.removeListener(player.get().avatarProperty(), avatarChangeListener);
       }
       avatarChangeListener = listener;
       if (avatarChangeListener != null) {
-        JavaFxUtil.addAndTriggerListener(player.get().avatarUrlProperty(), avatarChangeListener);
+        JavaFxUtil.addAndTriggerListener(player.get().avatarProperty(), avatarChangeListener);
       }
     }
   }
 
   public void removeListeners() {
     if (avatarChangeListener != null) {
-      JavaFxUtil.removeListener(player.get().avatarUrlProperty(), avatarChangeListener);
+      JavaFxUtil.removeListener(player.get().avatarProperty(), avatarChangeListener);
       avatarChangeListener = null;
     }
     if (countryInvalidationListener != null) {

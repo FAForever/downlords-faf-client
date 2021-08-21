@@ -1,14 +1,17 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.game.GameBuilder;
+import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PartyBuilder;
+import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.PartyBean;
+import com.faforever.client.domain.PartyBean.PartyMember;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.teammatchmaking.Party.PartyMember;
-import com.faforever.client.teammatchmaking.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
@@ -46,15 +49,15 @@ public class PartyMemberItemControllerTest extends UITest {
   private I18n i18n;
 
   private PartyMemberItemController instance;
-  private Player owner;
-  private Player player;
-  private Party party;
+  private PlayerBean owner;
+  private PlayerBean player;
+  private PartyBean party;
 
   @BeforeEach
   public void setUp() throws Exception {
     party = PartyBuilder.create().defaultValues().get();
     owner = party.getOwner();
-    player = PlayerBuilder.create("player").id(100).defaultValues().get();
+    player = PlayerBeanBuilder.create().defaultValues().username("player").id(100).defaultValues().get();
     PartyMember partyMember = PartyMemberBuilder.create(owner).defaultValues().get();
     party.getMembers().add(partyMember);
     when(i18n.get("leaderboard.divisionName")).thenReturn("division");
@@ -73,7 +76,7 @@ public class PartyMemberItemControllerTest extends UITest {
     assertFalse(instance.playerStatusImageView.isVisible());
     assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
 
-    owner.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
+    owner.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.playerStatusImageView.isVisible());
@@ -104,14 +107,14 @@ public class PartyMemberItemControllerTest extends UITest {
   @Test
   public void testPlayerPropertyListener() {
     verify(countryFlagService).loadCountryFlag(owner.getCountry());
-    verify(avatarService).loadAvatar(owner.getAvatarUrl());
+    verify(avatarService).loadAvatar(owner.getAvatar());
     assertThat(instance.usernameLabel.getText(), is(owner.getUsername()));
     assertThat(instance.gameCountLabel.getText(), is("GAMES PLAYED: 0"));
     assertThat(instance.clanLabel.isVisible(), is(true));
     assertThat(instance.clanLabel.getText(), is(String.format("[%s]", player.getClan())));
 
     owner.setCountry("DE");
-    owner.setAvatarUrl("");
+    owner.setAvatar(AvatarBeanBuilder.create().defaultValues().get());
     owner.setClan("");
     owner.setUsername("player");
     owner.setLeaderboardRatings(new HashMap<>());

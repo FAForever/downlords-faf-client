@@ -1,5 +1,6 @@
 package com.faforever.client.tutorial;
 
+import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -27,7 +28,7 @@ public class TutorialListItemController extends AbstractViewController<Node> {
   public ImageView imageView;
   public Label titleLabel;
   public Label ordinalLabel;
-  private Tutorial tutorial;
+  private TutorialBean tutorial;
   private final MapService mapService;
 
   public TutorialListItemController(MapService mapService) {
@@ -39,18 +40,18 @@ public class TutorialListItemController extends AbstractViewController<Node> {
     return root;
   }
 
-  public Tutorial getTutorial() {
+  public TutorialBean getTutorial() {
     return tutorial;
   }
 
-  public void setTutorial(final Tutorial tutorial) {
+  public void setTutorial(final TutorialBean tutorial) {
     this.tutorial = tutorial;
     imageView.setImage(getImage(tutorial));
     titleLabel.textProperty().bind(tutorial.titleProperty());
     ordinalLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(tutorial.getOrdinal()), tutorial.ordinalProperty()));
   }
 
-  private Image getImage(Tutorial tutorial) {
+  private Image getImage(TutorialBean tutorial) {
     if (!Strings.isNullOrEmpty(tutorial.getImageUrl())) {
       return new Image(tutorial.getImageUrl());
     }

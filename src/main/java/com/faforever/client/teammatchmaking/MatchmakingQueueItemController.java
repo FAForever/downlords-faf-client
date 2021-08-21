@@ -1,13 +1,14 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.FafService;
-import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
+import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -29,7 +30,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @Slf4j
 @Component
@@ -39,7 +40,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   private final static String QUEUE_I18N_PATTERN = "teammatchmaking.queue.%s";
 
-  private final FafService fafService;
+  private final UserService userService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final I18n i18n;
@@ -56,7 +57,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   public Button mapPoolButton;
 
   @VisibleForTesting
-  MatchmakingQueue queue;
+  MatchmakerQueueBean queue;
   private InvalidationListener queueButtonStateInvalidationListener;
   private InvalidationListener queueStateInvalidationListener;
   private InvalidationListener queuePopulationInvalidationListener;
@@ -101,7 +102,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     return queueItemRoot;
   }
 
-  public void setQueue(MatchmakingQueue queue) {
+  public void setQueue(MatchmakerQueueBean queue) {
     this.queue = queue;
     joinLeaveQueueButton.setText(i18n.getOrDefault(queue.getTechnicalName(), String.format(QUEUE_I18N_PATTERN, queue.getTechnicalName())));
     setQueuePopTimeUpdater(queue);
@@ -112,22 +113,22 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     JavaFxUtil.addListener(queue.teamSizeProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
-    JavaFxUtil.addListener(fafService.connectionStateProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addListener(userService.connectionStateProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addAndTriggerListener(queue.joinedProperty(), new WeakInvalidationListener(queueStateInvalidationListener));
   }
 
   private void setQueueButtonState() {
-    boolean disable = fafService.getLobbyConnectionState() != ConnectionState.CONNECTED
+    boolean disable = userService.getConnectionState() != ConnectionState.CONNECTED
         || teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
         || teamMatchmakingService.partyMembersNotReady()
         || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer());
     JavaFxUtil.runLater(() -> joinLeaveQueueButton.setDisable(disable));
   }
 
-  private void setQueuePopTimeUpdater(MatchmakingQueue queue) {
+  private void setQueuePopTimeUpdater(MatchmakerQueueBean queue) {
     Timeline queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
-        Instant now = Instant.now();
+        OffsetDateTime now = OffsetDateTime.now();
         Duration timeUntilPopQueue = Duration.between(now, queue.getQueuePopTime());
         if (!timeUntilPopQueue.isNegative()) {
           queuePopTimeLabel.setText(i18n.get("teammatchmaking.queuePopTimer",

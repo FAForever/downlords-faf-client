@@ -1,9 +1,10 @@
 package com.faforever.client.vault.review;
 
+import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.ReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,10 +19,11 @@ import org.springframework.util.Assert;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ReviewController implements Controller<Pane> {
+public class ReviewController<T extends ReviewBean> implements Controller<Pane> {
   private static final String[] STARS_TIP_KEYS = {
       "review.starsTip.one",
       "review.starsTip.two",
@@ -47,9 +49,10 @@ public class ReviewController implements Controller<Pane> {
   public Button deleteButton;
   public Button editButton;
 
-  private Consumer<Review> onSendReviewListener;
-  private Consumer<Review> onDeleteReviewListener;
-  private Review review;
+  private Supplier<T> reviewSupplier;
+  private Consumer<T> onSendReviewListener;
+  private Consumer<T> onDeleteReviewListener;
+  private T review;
   private Runnable onCancelReviewListener;
 
   public ReviewController(I18n i18n, PlayerService playerService) {
@@ -73,7 +76,7 @@ public class ReviewController implements Controller<Pane> {
     deleteButton.setVisible(false);
   }
 
-  public void setReview(Review review) {
+  public void setReview(T review) {
     JavaFxUtil.assertApplicationThread();
     this.review = review;
     if (review == null) {
@@ -82,7 +85,7 @@ public class ReviewController implements Controller<Pane> {
       return;
     }
 
-    Player currentPlayer = playerService.getCurrentPlayer();
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
     boolean isReviewOwnedByCurrentUser = currentPlayer.equals(review.getPlayer());
 
@@ -129,14 +132,18 @@ public class ReviewController implements Controller<Pane> {
 
   public void onSendReview() {
     if (review == null) {
-      review = new Review();
+      review = reviewSupplier.get();
     }
     review.setScore(Math.round(selectionStarsController.getValue()));
     review.setText(reviewTextArea.getText());
     this.onSendReviewListener.accept(review);
   }
 
-  void setOnSendReviewListener(Consumer<Review> onSendReviewListener) {
+  public void setReviewSupplier(Supplier<T> reviewSupplier) {
+    this.reviewSupplier = reviewSupplier;
+  }
+
+  void setOnSendReviewListener(Consumer<T> onSendReviewListener) {
     this.onSendReviewListener = onSendReviewListener;
   }
 
@@ -152,7 +159,7 @@ public class ReviewController implements Controller<Pane> {
     this.onCancelReviewListener = onCancelReviewListener;
   }
 
-  void setOnDeleteReviewListener(Consumer<Review> onDeleteReviewListener) {
+  void setOnDeleteReviewListener(Consumer<T> onDeleteReviewListener) {
     this.onDeleteReviewListener = onDeleteReviewListener;
   }
 }

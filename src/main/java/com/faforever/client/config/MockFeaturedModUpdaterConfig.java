@@ -8,7 +8,6 @@ import com.faforever.client.patch.FeaturedModUpdater;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.patch.GameUpdaterImpl;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationContext;
@@ -24,7 +23,6 @@ public class MockFeaturedModUpdaterConfig {
   private final ModService modService;
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
-  private final FafService fafService;
   private final FaInitGenerator faInitGenerator;
   private final FeaturedModUpdater featuredModUpdater;
   private final PreferencesService preferencesService;
@@ -32,7 +30,7 @@ public class MockFeaturedModUpdaterConfig {
 
   @Bean
   GameUpdater gameUpdater() {
-    return new GameUpdaterImpl(modService, applicationContext, taskService, fafService, faInitGenerator, preferencesService, notificationService)
+    return new GameUpdaterImpl(modService, applicationContext, taskService, faInitGenerator, preferencesService, notificationService)
         .addFeaturedModUpdater(featuredModUpdater);
   }
 }

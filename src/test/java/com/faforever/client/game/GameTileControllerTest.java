@@ -1,5 +1,8 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.FeaturedModBeanBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -40,14 +43,14 @@ public class GameTileControllerTest extends UITest {
   @Mock
   private PlayerService playerService;
 
-  private Game game;
+  private GameBean game;
 
   @Mock
-  private Consumer<Game> onSelectedConsumer;
+  private Consumer<GameBean> onSelectedConsumer;
 
   @BeforeEach
   public void setUp() throws Exception {
-    game = GameBuilder.create().defaultValues().get();
+    game = GameBeanBuilder.create().defaultValues().get();
 
     when(i18n.get(anyString())).thenReturn("test");
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(

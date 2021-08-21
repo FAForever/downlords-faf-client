@@ -1,10 +1,10 @@
 package com.faforever.client.remote;
 
 
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.Player;
-import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
@@ -70,13 +70,13 @@ public interface FafServerAccessor {
 
   void restoreGameSession(int id);
 
-  void gameMatchmaking(MatchmakingQueue queue, MatchmakerState state);
+  void gameMatchmaking(MatchmakerQueueBean queue, MatchmakerState state);
 
-  void inviteToParty(Player recipient);
+  void inviteToParty(PlayerBean recipient);
 
-  void acceptPartyInvite(Player sender);
+  void acceptPartyInvite(PlayerBean sender);
 
-  void kickPlayerFromParty(Player kickedPlayer);
+  void kickPlayerFromParty(PlayerBean kickedPlayer);
 
   void readyParty();
 
@@ -85,4 +85,8 @@ public interface FafServerAccessor {
   void leaveParty();
 
   void setPartyFactions(List<Faction> factions);
+
+  void notifyGameEnded();
+
+  void sendIceMessage(int remotePlayerId, Object message);
 }

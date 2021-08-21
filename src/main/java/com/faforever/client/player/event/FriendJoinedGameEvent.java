@@ -1,23 +1,23 @@
 package com.faforever.client.player.event;
 
-import com.faforever.client.game.Game;
-import com.faforever.client.player.Player;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 
 public class FriendJoinedGameEvent {
-  private Player player;
-  private Game game;
+  private PlayerBean player;
+  private GameBean game;
 
-  public FriendJoinedGameEvent(Player player, Game game) {
+  public FriendJoinedGameEvent(PlayerBean player, GameBean game) {
     this.player = player;
     this.game = game;
   }
 
-  public Player getPlayer() {
+  public PlayerBean getPlayer() {
     return player;
   }
 
 
-  public Game getGame() {
+  public GameBean getGame() {
     return game;
   }
 

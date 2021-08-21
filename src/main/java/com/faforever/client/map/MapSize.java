@@ -31,7 +31,7 @@ public class MapSize implements Comparable<MapSize> {
   }
 
   public static MapSize valueOf(int widthInPixels, int heightInPixels) {
-    String cacheKey = String.valueOf(widthInPixels) + String.valueOf(heightInPixels);
+    String cacheKey = String.format("%d%d", widthInPixels, heightInPixels);
     if (cache.containsKey(cacheKey)) {
       return cache.get(cacheKey);
     }
@@ -47,7 +47,6 @@ public class MapSize implements Comparable<MapSize> {
     int otherDimension = o.widthInPixels * o.heightInPixels;
 
     if (dimension == otherDimension) {
-      //noinspection SuspiciousNameCombination
       return Integer.compare(widthInPixels, o.widthInPixels);
     }
 

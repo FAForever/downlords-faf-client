@@ -1,14 +1,18 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.GamePlayerStatsBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.Player;
-import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.Label;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -23,8 +27,7 @@ import static org.mockito.Mockito.when;
 
 public class TeamCardControllerTest extends UITest {
   private TeamCardController instance;
-  @Mock
-  private Player player;
+
   @Mock
   private I18n i18n;
   @Mock
@@ -34,12 +37,20 @@ public class TeamCardControllerTest extends UITest {
   @Mock
   private RatingChangeLabelController ratingChangeLabelController;
 
-  private ArrayList<Player> playerList;
-  private ObservableMap<String, List<PlayerStats>> teams;
-  private PlayerStats playerStats;
+  private PlayerBean player;
+  private ArrayList<PlayerBean> playerList;
+  private ObservableMap<String, List<GamePlayerStatsBean>> teams;
+  private GamePlayerStatsBean playerStats;
+
+  //Create Panel to initialize the graphics
+  @BeforeAll
+  public static void initGraphics() {
+    JFXPanel panel = new JFXPanel();
+  }
 
   @BeforeEach
   public void setUp() throws IOException {
+    player = PlayerBeanBuilder.create().defaultValues().id(1).get();
     instance = new TeamCardController(uiService, i18n);
     playerList = new ArrayList<>();
     playerList.add(player);
@@ -49,17 +60,10 @@ public class TeamCardControllerTest extends UITest {
     when(uiService.loadFxml("theme/rating_change_label.fxml")).thenReturn(ratingChangeLabelController);
     when(playerCardTooltipController.getRoot()).thenReturn(new Label());
     when(ratingChangeLabelController.getRoot()).thenReturn(new Label());
-    when(player.getId()).thenReturn(1);
-
-    playerStats = PlayerStats.builder()
-        .playerId(1)
-        .beforeMean(1000.0)
-        .beforeDeviation(0.0)
-        .afterMean(1100.0)
-        .afterMean(0.0)
-        .score(0)
-        .faction(null)
-        .build();
+    playerStats = GamePlayerStatsBeanBuilder.create()
+        .defaultValues()
+        .player(PlayerBeanBuilder.create().defaultValues().get())
+        .get();
 
     teams.put("2", Collections.singletonList(playerStats));
 

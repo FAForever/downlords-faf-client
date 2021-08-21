@@ -1,7 +1,7 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.game.Game;
-import com.faforever.client.game.GameBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -37,9 +37,9 @@ public class LiveReplayControllerTest extends UITest {
 
   private LiveReplayController instance;
 
-  private final Game openedGame = GameBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get();
-  private final Game livingGame = GameBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get();
-  private final List<Game> games = List.of(openedGame, livingGame);
+  private final GameBean openedGame = GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get();
+  private final GameBean livingGame = GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get();
+  private final List<GameBean> games = List.of(openedGame, livingGame);
 
   @BeforeEach
   public void setUp() throws IOException {

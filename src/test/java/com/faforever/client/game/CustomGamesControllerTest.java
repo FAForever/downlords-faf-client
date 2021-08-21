@@ -1,8 +1,10 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -13,12 +15,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,7 +52,7 @@ public class CustomGamesControllerTest extends UITest {
   @Mock
   private GamesTilesContainerController gamesTilesContainerController;
 
-  private ObservableList<Game> games;
+  private ObservableList<GameBean> games;
   private Preferences preferences;
 
   @BeforeEach
@@ -90,7 +93,7 @@ public class CustomGamesControllerTest extends UITest {
   @Test
   public void testSetSelectedGameShowsDetailPane() {
     instance.toggleGameDetailPaneButton.setSelected(true);
-    instance.setSelectedGame(GameBuilder.create().defaultValues().get());
+    instance.setSelectedGame(GameBeanBuilder.create().defaultValues().get());
     assertTrue(instance.gameDetailPane.isVisible());
   }
 
@@ -98,35 +101,21 @@ public class CustomGamesControllerTest extends UITest {
   public void testSetSelectedGameDoesNotShowDetailPaneIfDisabled() {
     instance.toggleGameDetailPaneButton.setSelected(false);
     preferences.setShowGameDetailsSidePane(false);
-    instance.setSelectedGame(GameBuilder.create().defaultValues().get());
+    instance.setSelectedGame(GameBeanBuilder.create().defaultValues().get());
     assertFalse(instance.gameDetailPane.isVisible());
   }
 
   @Test
   public void testUpdateFilters() {
-    Game game = GameBuilder.create().defaultValues().get();
-    Game gameWithMod = GameBuilder.create().defaultValues().get();
-    Game gameWithPW = GameBuilder.create().defaultValues().get();
-    Game gameWithModAndPW = GameBuilder.create().defaultValues().get();
-    Game ladderGame = GameBuilder.create().defaultValues().get();
-    Game matchmakerGame = GameBuilder.create().defaultValues().get();
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    GameBean gameWithMod = GameBeanBuilder.create().defaultValues().simMods(Map.of("123-456-789", "Fake mod name")).get();
+    GameBean gameWithPW = GameBeanBuilder.create().defaultValues().password("password").passwordProtected(true).get();
+    GameBean gameWithModAndPW = GameBeanBuilder.create().defaultValues().simMods(Map.of("123-456-789", "Fake mod name")).password("password").passwordProtected(true).get();
+    GameBean matchmakerGame = GameBeanBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).get();
 
-    ObservableMap<String, String> simMods = FXCollections.observableHashMap();
-    simMods.put("123-456-789", "Fake mod name");
-    gameWithMod.setSimMods(simMods);
-    gameWithModAndPW.setSimMods(simMods);
 
-    gameWithPW.setPassword("password");
-    gameWithPW.passwordProtectedProperty().set(true);
-    gameWithModAndPW.setPassword("password");
-    gameWithModAndPW.passwordProtectedProperty().set(true);
-
-    ladderGame.setFeaturedMod(KnownFeaturedMod.LADDER_1V1.getTechnicalName());
-    ladderGame.setGameType(GameType.MATCHMAKER);
-    matchmakerGame.setGameType(GameType.MATCHMAKER);
-
-    ObservableList<Game> games = FXCollections.observableArrayList();
-    games.addAll(game, gameWithMod, gameWithPW, gameWithModAndPW, ladderGame, matchmakerGame);
+    ObservableList<GameBean> games = FXCollections.observableArrayList();
+    games.addAll(game, gameWithMod, gameWithPW, gameWithModAndPW, matchmakerGame);
     runOnFxThreadAndWait(() -> instance.setFilteredList(games));
 
     instance.showModdedGamesCheckBox.setSelected(false);

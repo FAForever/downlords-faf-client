@@ -1,12 +1,14 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -72,8 +74,8 @@ public class GamesTableControllerTest extends UITest {
   public void test() throws Exception {
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBuilder.create().defaultValues().get(),
-          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
       ));
     });
     WaitForAsyncUtils.waitForFxEvents();
@@ -84,8 +86,8 @@ public class GamesTableControllerTest extends UITest {
     preferences.setShowPasswordProtectedGames(false);
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBuilder.create().defaultValues().get(),
-          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
       ));
     });
     WaitForAsyncUtils.waitForFxEvents();
@@ -100,8 +102,8 @@ public class GamesTableControllerTest extends UITest {
     preferences.setShowModdedGames(false);
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBuilder.create().defaultValues().get(),
-          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
       ));
     });
     WaitForAsyncUtils.waitForFxEvents();
@@ -116,8 +118,8 @@ public class GamesTableControllerTest extends UITest {
     preferences.setShowPasswordProtectedGames(false);
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBuilder.create().defaultValues().get(),
-          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
       ), string -> string, false);
     });
     WaitForAsyncUtils.waitForFxEvents();
@@ -129,8 +131,8 @@ public class GamesTableControllerTest extends UITest {
     preferences.setShowModdedGames(false);
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBuilder.create().defaultValues().get(),
-          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
       ), string -> string, false);
     });
     WaitForAsyncUtils.waitForFxEvents();
@@ -143,8 +145,8 @@ public class GamesTableControllerTest extends UITest {
 
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBuilder.create().defaultValues().get(),
-          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
       ));
     });
     WaitForAsyncUtils.waitForFxEvents();
@@ -160,10 +162,10 @@ public class GamesTableControllerTest extends UITest {
 
     JavaFxUtil.runLater(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBuilder.create().defaultValues().get(),
-          GameBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
       ));
-      TableColumn<Game, ?> column = instance.gamesTable.getColumns().get(0);
+      TableColumn<GameBean, ?> column = instance.gamesTable.getColumns().get(0);
       column.setSortType(SortType.ASCENDING);
       instance.gamesTable.getSortOrder().add(column);
     });

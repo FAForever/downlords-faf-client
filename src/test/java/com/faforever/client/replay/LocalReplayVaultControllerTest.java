@@ -1,5 +1,7 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.builders.ReplayBeanBuilder;
+import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -86,7 +88,7 @@ public class LocalReplayVaultControllerTest extends UITest {
 
   @Test
   public void testShowLocalReplayDetail() {
-    Replay replay = ReplayBuilder.create().get();
+    ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     JavaFxUtil.runLater(() -> instance.onDisplayDetails(replay));
     WaitForAsyncUtils.waitForFxEvents();
 

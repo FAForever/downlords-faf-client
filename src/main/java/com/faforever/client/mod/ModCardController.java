@@ -1,12 +1,14 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.domain.ModReviewsSummaryBean;
+import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.review.Review;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -46,16 +48,26 @@ public class ModCardController implements Controller<Node> {
   public Label typeLabel;
   public Button installButton;
   public Button uninstallButton;
-  private ModVersion modVersion;
-  private Consumer<ModVersion> onOpenDetailListener;
-  private ListChangeListener<ModVersion> installStatusChangeListener;
+  private ModVersionBean modVersion;
+  private Consumer<ModVersionBean> onOpenDetailListener;
+  private ListChangeListener<ModVersionBean> installStatusChangeListener;
   public StarsController starsController;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
 
   private void populateReviews() {
+    ModReviewsSummaryBean modReviewsSummary = modVersion.getMod().getModReviewsSummary();
+    int numReviews;
+    float avgScore;
+    if (modReviewsSummary == null) {
+      numReviews = 0;
+      avgScore = 0;
+    } else {
+      numReviews = modReviewsSummary.getReviews();
+      avgScore = modReviewsSummary.getScore() / numReviews;
+    }
     JavaFxUtil.runLater(() -> {
-      numberOfReviewsLabel.setText(i18n.number(modVersion.getReviewsSummary().getReviews()));
-      starsController.setValue(modVersion.getReviewsSummary().getScore() / modVersion.getReviewsSummary().getReviews());
+      numberOfReviewsLabel.setText(i18n.number(numReviews));
+      starsController.setValue(avgScore);
     });
   }
 
@@ -64,13 +76,13 @@ public class ModCardController implements Controller<Node> {
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installStatusChangeListener = change -> {
       while (change.next()) {
-        for (ModVersion modVersion : change.getAddedSubList()) {
+        for (ModVersionBean modVersion : change.getAddedSubList()) {
           if (this.modVersion.equals(modVersion)) {
             setInstalled(true);
             return;
           }
         }
-        for (ModVersion modVersion : change.getRemoved()) {
+        for (ModVersionBean modVersion : change.getRemoved()) {
           if (this.modVersion.equals(modVersion)) {
             setInstalled(false);
             return;
@@ -86,7 +98,7 @@ public class ModCardController implements Controller<Node> {
         .exceptionally(throwable -> {
           log.error("Could not install mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.installationFailed",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(false);
           return null;
         });
@@ -97,7 +109,7 @@ public class ModCardController implements Controller<Node> {
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.couldNotDeleteMod",
-              modVersion.getDisplayName(), throwable.getLocalizedMessage());
+              modVersion.getMod().getDisplayName(), throwable.getLocalizedMessage());
           setInstalled(true);
           return null;
         });
@@ -108,10 +120,10 @@ public class ModCardController implements Controller<Node> {
     uninstallButton.setVisible(installed);
   }
 
-  public void setModVersion(ModVersion modVersion) {
+  public void setModVersion(ModVersionBean modVersion) {
     this.modVersion = modVersion;
     thumbnailImageView.setImage(modService.loadThumbnail(modVersion));
-    nameLabel.setText(modVersion.getDisplayName());
+    nameLabel.setText(modVersion.getMod().getDisplayName());
     if (modVersion.getMod() != null) {
       authorLabel.setText(modVersion.getMod().getAuthor());
     }
@@ -120,10 +132,10 @@ public class ModCardController implements Controller<Node> {
     typeLabel.setText(modVersion.getModType() != null ? i18n.get(modVersion.getModType().getI18nKey()) : "");
     setInstalled(modService.isModInstalled(modVersion.getUid()));
 
-    ObservableList<ModVersion> installedModVersions = modService.getInstalledModVersions();
+    ObservableList<ModVersionBean> installedModVersions = modService.getInstalledModVersions();
     JavaFxUtil.addListener(installedModVersions, new WeakListChangeListener<>(installStatusChangeListener));
 
-    ObservableList<Review> reviews = modVersion.getReviews();
+    ObservableList<ModVersionReviewBean> reviews = modVersion.getReviews();
     JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
     reviewsChangedListener.invalidated(reviews);
   }
@@ -132,7 +144,7 @@ public class ModCardController implements Controller<Node> {
     return modTileRoot;
   }
 
-  public void setOnOpenDetailListener(Consumer<ModVersion> onOpenDetailListener) {
+  public void setOnOpenDetailListener(Consumer<ModVersionBean> onOpenDetailListener) {
     this.onOpenDetailListener = onOpenDetailListener;
   }
 

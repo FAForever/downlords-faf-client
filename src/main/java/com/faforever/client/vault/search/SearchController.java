@@ -33,9 +33,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.StringConverter;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
+import lombok.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -112,13 +111,7 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.logicalOperatorField.setVisible(false);
     initialLogicalNodeController.removeCriteriaButton.setVisible(false);
 
-    queryInvalidationListener = observable -> {
-      if (filterPane.isVisible()) {
-        queryTextField.setText(buildQuery(filterNodes));
-      } else {
-        queryTextField.setText(buildQuery(initialLogicalNodeController.specificationController, queryNodes));
-      }
-    };
+    queryInvalidationListener = observable -> queryTextField.setText(buildQuery());
     onlyShowLastYearCheckBox.selectedProperty().addListener(queryInvalidationListener);
     addInvalidationListener(initialLogicalNodeController);
     initSorting();
@@ -364,7 +357,19 @@ public class SearchController implements Controller<Pane> {
    * Builds the query string if possible, returns empty string if not. A query string can not be built if the user
    * selected no or invalid values.
    */
-  private String buildQuery(List<? extends FilterNodeController> queryNodes) {
+  private String buildQuery() {
+    Condition compositeQuery = getCompositeCondition();
+    return compositeQuery != null ? (String) compositeQuery.query(new RSQLVisitor()) : "";
+  }
+
+  private Condition getCompositeCondition() {
+    if (filterPane.isVisible()) {
+      return getCompositeCondition(filterNodes);
+    }
+    return getCompositeCondition(initialLogicalNodeController.specificationController, queryNodes);
+  }
+
+  private Condition getCompositeCondition(List<? extends FilterNodeController> queryNodes) {
     QBuilder qBuilder = new QBuilder<>();
     ArrayList<Condition> conditions = new ArrayList<>();
 
@@ -374,35 +379,32 @@ public class SearchController implements Controller<Pane> {
     }
 
     if (!conditions.isEmpty()) {
-      Condition toQuery = qBuilder.and(conditions);
-      return (String) toQuery.query(new RSQLVisitor());
+      return qBuilder.and(conditions);
     } else {
-      return "";
+      return qBuilder.and(List.of());
     }
   }
 
-  private String buildQuery(SpecificationController initialSpecification, List<LogicalNodeController> queryNodes) {
+  private Condition getCompositeCondition(SpecificationController initialSpecification, List<LogicalNodeController> queryNodes) {
     QBuilder qBuilder = new QBuilder<>();
     boolean isLastYearChecked = onlyShowLastYearCheckBox.isVisible() && onlyShowLastYearCheckBox.isSelected();
     Optional<Condition> condition = initialSpecification.appendTo(qBuilder);
 
-    if (!condition.isPresent()) {
+    if (condition.isEmpty()) {
       return isLastYearChecked ?
-          (String) qBuilder.instant("endTime").after(OffsetDateTime.now().minusYears(1).toInstant(), false).query(new RSQLVisitor())
-          : "";
+          qBuilder.instant("endTime").after(OffsetDateTime.now().minusYears(1).toInstant(), false) : null;
     }
 
     for (LogicalNodeController queryNode : queryNodes) {
       Optional<Condition> currentCondition = queryNode.appendTo(condition.get());
-      if (!currentCondition.isPresent()) {
+      if (currentCondition.isEmpty()) {
         break;
       }
       condition = currentCondition;
     }
 
-    Condition toQuery = isLastYearChecked ? condition.get().and().instant("endTime").after(OffsetDateTime.now().minusYears(1).toInstant(), false)
+    return isLastYearChecked ? condition.get().and().instant("endTime").after(OffsetDateTime.now().minusYears(1).toInstant(), false)
         : condition.get();
-    return (String) toQuery.query(new RSQLVisitor());
   }
 
 
@@ -451,24 +453,22 @@ public class SearchController implements Controller<Pane> {
     }
   }
 
-  @Data
-  @AllArgsConstructor
+  @Value
   public static class SortConfig {
-    private String sortProperty;
-    private SortOrder sortOrder;
+    String sortProperty;
+    SortOrder sortOrder;
 
     public String toQuery() {
       return sortOrder.getQuery() + sortProperty;
     }
   }
 
-  @Data
-  @AllArgsConstructor
+  @Value
   public static class SearchConfig {
-    private SortConfig sortConfig;
-    private String searchQuery;
+    SortConfig sortConfig;
+    String searchQuery;
 
-    public boolean hasQuery() {
+    public boolean hasCustomQuery() {
       return searchQuery != null && !searchQuery.isEmpty();
     }
   }

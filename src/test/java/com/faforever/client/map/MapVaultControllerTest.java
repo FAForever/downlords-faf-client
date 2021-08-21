@@ -1,5 +1,7 @@
 package com.faforever.client.map;
 
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -93,11 +95,11 @@ public class MapVaultControllerTest extends UITest {
       }
       return instance;
     }, instance);
-    when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
-    when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapVersionBean>of()), Mono.just(0)).toFuture());
   }
 
   @Test
@@ -125,17 +127,17 @@ public class MapVaultControllerTest extends UITest {
 
   @Test
   public void testShowMapDetail() throws MalformedURLException {
-    MapBean mapBean = MapBeanBuilder.create().defaultValues().get();
+    MapVersionBean mapBean = MapVersionBeanBuilder.create().defaultValues().get();
     JavaFxUtil.runLater(() -> instance.onDisplayDetails(mapBean));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapDetailController).setMap(mapBean);
+    verify(mapDetailController).setMapVersion(mapBean);
     assertTrue(mapDetailController.getRoot().isVisible());
   }
 
   @Test
   public void testGetShowRoomCategories() {
-    List<VaultEntityController<MapBean>.ShowRoomCategory> categories = instance.getShowRoomCategories();
+    List<VaultEntityController<MapVersionBean>.ShowRoomCategory> categories = instance.getShowRoomCategories();
     for (ShowRoomCategory category : categories) {
       category.getEntitySupplier().get();
     }

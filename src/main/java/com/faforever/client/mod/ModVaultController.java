@@ -1,10 +1,11 @@
 package com.faforever.client.mod;
 
+import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.domain.ModVersionBean.ModType;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
-import com.faforever.client.mod.ModVersion.ModType;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
@@ -32,7 +33,7 @@ import java.util.Random;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class ModVaultController extends VaultEntityController<ModVersion> {
+public class ModVaultController extends VaultEntityController<ModVersionBean> {
 
   private final ModService modService;
   private final EventBus eventBus;
@@ -60,7 +61,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
   }
 
   @Override
-  protected void onDisplayDetails(ModVersion modVersion) {
+  protected void onDisplayDetails(ModVersionBean modVersion) {
     JavaFxUtil.runLater(() -> {
       modDetailController.setModVersion(modVersion);
       modDetailController.getRoot().setVisible(true);
@@ -78,7 +79,7 @@ public class ModVaultController extends VaultEntityController<ModVersion> {
     }
   }
 
-  protected Node getEntityCard(ModVersion modVersion) {
+  protected Node getEntityCard(ModVersionBean modVersion) {
     ModCardController controller = uiService.loadFxml("theme/vault/mod/mod_card.fxml");
     controller.setModVersion(modVersion);
     controller.setOnOpenDetailListener(this::onDisplayDetails);

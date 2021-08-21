@@ -1,8 +1,8 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.replay.Replay.PlayerStats;
 import com.faforever.client.util.RatingUtil;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -31,17 +31,19 @@ public class RatingChangeLabelController implements Controller<Node> {
     ratingChangeLabelRoot.setVisible(false);
   }
 
-  public void setRatingChange(PlayerStats playerStats) {
-    if (playerStats.getAfterMean() == null || playerStats.getAfterDeviation() == null) {
-      return;
-    }
-    int newRating = RatingUtil.getRating(playerStats.getAfterMean(), playerStats.getAfterDeviation());
-    int oldRating = RatingUtil.getRating(playerStats.getBeforeMean(), playerStats.getBeforeDeviation());
+  public void setRatingChange(GamePlayerStatsBean playerStats) {
+    playerStats.getLeaderboardRatingJournals().stream().findFirst()
+        .ifPresent(ratingChange -> {
+          if (ratingChange.getMeanAfter() != null && ratingChange.getDeviationAfter() != null) {
+            int newRating = RatingUtil.getRating(ratingChange.getMeanAfter(), ratingChange.getDeviationAfter());
+            int oldRating = RatingUtil.getRating(ratingChange.getMeanBefore(), ratingChange.getDeviationBefore());
 
-    int ratingChange = newRating - oldRating;
-    ratingChangeLabelRoot.setText(i18n.numberWithSign(ratingChange));
-    ratingChangeLabelRoot.pseudoClassStateChanged(ratingChange < 0 ? NEGATIVE : POSITIVE, true);
+            int ratingChangeValue = newRating - oldRating;
+            ratingChangeLabelRoot.setText(i18n.numberWithSign(ratingChangeValue));
+            ratingChangeLabelRoot.pseudoClassStateChanged(ratingChangeValue < 0 ? NEGATIVE : POSITIVE, true);
 
-    ratingChangeLabelRoot.setVisible(true);
+            ratingChangeLabelRoot.setVisible(true);
+          }
+        });
   }
 }

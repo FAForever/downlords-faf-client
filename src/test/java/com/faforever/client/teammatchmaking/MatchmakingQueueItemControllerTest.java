@@ -1,14 +1,18 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
+import com.faforever.client.builders.PartyBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.MatchmakerQueueBean;
+import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
+import com.faforever.client.domain.PartyBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.FafService;
-import com.faforever.client.teammatchmaking.MatchmakingQueue.MatchingStatus;
 import com.faforever.client.test.UITest;
+import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -30,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class MatchmakingQueueItemControllerTest extends UITest {
 
   @Mock
-  private FafService fafService;
+  private UserService userService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -40,17 +44,17 @@ public class MatchmakingQueueItemControllerTest extends UITest {
   @Mock
   private EventBus eventBus;
 
-  private Player player;
+  private PlayerBean player;
   private MatchmakingQueueItemController instance;
-  private MatchmakingQueue queue;
-  private Party party;
+  private MatchmakerQueueBean queue;
+  private PartyBean party;
   private BooleanProperty partyMembersNotReadyProperty;
 
   @BeforeEach
   public void setUp() throws Exception {
     partyMembersNotReadyProperty = new ReadOnlyBooleanWrapper();
 
-    queue = MatchmakingQueueBuilder.create().defaultValues().get();
+    queue = MatchmakerQueueBeanBuilder.create().defaultValues().get();
     party = PartyBuilder.create().defaultValues().get();
     player = party.getOwner();
     when(teamMatchmakingService.getParty()).thenReturn(party);
@@ -58,10 +62,10 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
     when(playerService.getCurrentPlayer()).thenReturn(player);
-    when(fafService.getLobbyConnectionState()).thenReturn(ConnectionState.CONNECTED);
-    when(fafService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
+    when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
+    when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 
-    instance = new MatchmakingQueueItemController(fafService, playerService, teamMatchmakingService, i18n, eventBus);
+    instance = new MatchmakingQueueItemController(userService, playerService, teamMatchmakingService, i18n, eventBus);
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
     loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml", clazz -> instance);
@@ -160,7 +164,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
 
     runOnFxThreadAndWait(() -> party.getMembers().add(new PartyBuilder.PartyMemberBuilder(
-        PlayerBuilder.create("notMe").defaultValues().get()).defaultValues().get()));
+        PlayerBeanBuilder.create().defaultValues().username("notMe").get()).defaultValues().get()));
     assertThat(instance.joinLeaveQueueButton.isDisabled(), is(true));
 
     runOnFxThreadAndWait(() -> party.getMembers().setAll(party.getMembers().get(0)));
@@ -182,7 +186,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
   public void testPartyOwnerListener() {
     assertThat(instance.joinLeaveQueueButton.isDisabled(), is(false));
 
-    runOnFxThreadAndWait(() -> party.setOwner(PlayerBuilder.create("notMe").defaultValues().id(100).get()));
+    runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create().defaultValues().username("notMe").id(100).get()));
     assertThat(instance.joinLeaveQueueButton.isDisabled(), is(true));
 
     runOnFxThreadAndWait(() -> party.setOwner(player));

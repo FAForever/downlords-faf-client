@@ -1,9 +1,13 @@
 package com.faforever.client.tutorial;
 
+import com.faforever.client.builders.MapBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.builders.TutorialBeanBuilder;
+import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.test.UITest;
@@ -37,19 +41,17 @@ public class TutorialDetailControllerTest extends UITest {
 
   @Test
   public void loadExampleTutorial(){
-    Tutorial tutorial = new Tutorial();
-    tutorial.setTitle("title");
-    tutorial.setDescription("description");
-    tutorial.setLaunchable(true);
-    MapBean mapVersion = new MapBean();
+    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
+    TutorialBean tutorial = TutorialBeanBuilder.create().defaultValues().launchable(true).mapVersion(mapVersion).get();
+
     tutorial.setMapVersion(mapVersion);
-    Image image = new Image("http://examle.com");
+    Image image = new Image("http://example.com");
     when(mapService.loadPreview(mapVersion, PreviewSize.LARGE)).thenReturn(image);
     JavaFxUtil.runLater(() -> instance.setTutorial(tutorial));
     WaitForAsyncUtils.waitForFxEvents();
     verify(mapService).loadPreview(mapVersion, PreviewSize.LARGE);
     assertEquals(instance.mapImage.getImage(),image);
-    assertEquals(instance.titleLabel.getText(),"title");
+    assertEquals(instance.titleLabel.getText(),tutorial.getTitle());
     assertTrue(instance.mapContainer.isVisible());
   }
 }

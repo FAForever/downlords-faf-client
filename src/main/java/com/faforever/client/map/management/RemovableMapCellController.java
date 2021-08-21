@@ -1,8 +1,8 @@
 package com.faforever.client.map.management;
 
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.map.MapBean;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class RemovableMapCellController extends ListCell<MapBean> implements Controller<Node> {
+public class RemovableMapCellController extends ListCell<MapVersionBean> implements Controller<Node> {
 
   public HBox root;
   public Button removeButton;
@@ -33,18 +33,18 @@ public class RemovableMapCellController extends ListCell<MapBean> implements Con
   private final NotificationService notificationService;
 
   @Override
-  protected void updateItem(MapBean item, boolean empty) {
-    super.updateItem(item, empty);
+  protected void updateItem(MapVersionBean mapVersion, boolean empty) {
+    super.updateItem(mapVersion, empty);
     JavaFxUtil.runLater(() -> {
       setText(null);
 
-      if (item == null || empty) {
+      if (mapVersion == null || empty) {
         setGraphic(null);
       } else {
-        previewMapView.setImage(mapService.loadPreview(item.getFolderName(), PreviewSize.SMALL));
-        mapNameLabel.setText(item.getDisplayName());
-        if (mapService.isCustomMap(item)) {
-          removeButton.setOnMouseClicked(event -> mapService.uninstallMap(item).exceptionally(throwable -> {
+        previewMapView.setImage(mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.SMALL));
+        mapNameLabel.setText(mapVersion.getMap().getDisplayName());
+        if (mapService.isCustomMap(mapVersion)) {
+          removeButton.setOnMouseClicked(event -> mapService.uninstallMap(mapVersion).exceptionally(throwable -> {
             log.error("cannot uninstall the map", throwable);
             notificationService.addImmediateErrorNotification(throwable, "management.maps.uninstall.error");
             return null;

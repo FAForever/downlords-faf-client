@@ -1,9 +1,9 @@
 package com.faforever.client.util;
 
-import com.faforever.client.domain.RatingHistoryDataPoint;
-import com.faforever.client.leaderboard.Leaderboard;
-import com.faforever.client.leaderboard.LeaderboardRating;
-import com.faforever.client.player.Player;
+import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeaderboardRatingBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import com.faforever.client.domain.PlayerBean;
 
 import java.util.Optional;
 
@@ -18,11 +18,11 @@ public final class RatingUtil {
     return (int) (ratingToBeRounded / 100) * 100;
   }
 
-  public static Integer getRoundedLeaderboardRating(Player player, String ratingType) {
+  public static Integer getRoundedLeaderboardRating(PlayerBean player, String ratingType) {
     return getRoundedRating(getLeaderboardRating(player, ratingType));
   }
 
-  public static Integer getRoundedLeaderboardRating(Player player, Leaderboard leaderboard) {
+  public static Integer getRoundedLeaderboardRating(PlayerBean player, LeaderboardBean leaderboard) {
     return getRoundedLeaderboardRating(player, leaderboard.getTechnicalName());
   }
 
@@ -30,18 +30,18 @@ public final class RatingUtil {
     return (rating + 50) / 100 * 100;
   }
 
-  public static Integer getLeaderboardRating(Player player, String ratingType) {
+  public static Integer getLeaderboardRating(PlayerBean player, String ratingType) {
     return Optional.of(player.getLeaderboardRatings())
         .map(rating -> rating.get(ratingType))
         .map(RatingUtil::getRating)
         .orElse(0);
   }
 
-  public static Integer getLeaderboardRating(Player player, Leaderboard leaderboard) {
+  public static Integer getLeaderboardRating(PlayerBean player, LeaderboardBean leaderboard) {
     return getLeaderboardRating(player, leaderboard.getTechnicalName());
   }
 
-  public static int getRating(LeaderboardRating leaderboardRating) {
+  public static int getRating(LeaderboardRatingBean leaderboardRating) {
     return (int) (leaderboardRating.getMean() - 3f * leaderboardRating.getDeviation());
   }
 
@@ -49,8 +49,8 @@ public final class RatingUtil {
     return (int) (ratingMean - 3f * ratingDeviation);
   }
 
-  public static int getRating(RatingHistoryDataPoint datapoint) {
-    return getRating(datapoint.getMean(), datapoint.getDeviation());
+  public static int getRating(LeaderboardRatingJournalBean ratingJournal) {
+    return getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore());
   }
 
   public static int getRating(Rating rating) {

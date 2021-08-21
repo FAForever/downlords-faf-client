@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -51,13 +52,13 @@ public class GameTileController implements Controller<Node> {
   public Label hostLabel;
   public Label modsLabel;
   public ImageView mapImageView;
-  private Consumer<Game> onSelectedListener;
-  private Game game;
+  private Consumer<GameBean> onSelectedListener;
+  private GameBean game;
 
   private InvalidationListener numPlayersInvalidationListener;
   private InvalidationListener gamePropertiesInvalidationListener;
 
-  public void setOnSelectedListener(Consumer<Game> onSelectedListener) {
+  public void setOnSelectedListener(Consumer<GameBean> onSelectedListener) {
     this.onSelectedListener = onSelectedListener;
   }
 
@@ -93,7 +94,7 @@ public class GameTileController implements Controller<Node> {
     });
   }
 
-  public void setGame(Game game) {
+  public void setGame(GameBean game) {
     Assert.checkNotNullIllegalState(this.game, "Game has already been set");
     this.game = game;
 

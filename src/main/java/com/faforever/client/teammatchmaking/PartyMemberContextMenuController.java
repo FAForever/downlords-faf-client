@@ -2,10 +2,10 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -46,7 +46,7 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
   public MenuItem reportItem;
   public ContextMenu partyMemberContextMenuRoot;
   public MenuItem showUserInfo;
-  private Player player;
+  private PlayerBean player;
 
 
   public PartyMemberContextMenuController(ClientProperties clientProperties,
@@ -65,7 +65,7 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
     return partyMemberContextMenuRoot;
   }
 
-  public void setPlayer(Player player) {
+  public void setPlayer(PlayerBean player) {
     this.player = player;
 
     sendPrivateMessageItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF));
@@ -100,7 +100,7 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
   }
 
   public void onAddFriendSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     if (player.getSocialStatus() == FOE) {
       playerService.removeFoe(player);
     }
@@ -108,7 +108,7 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
   }
 
   public void onRemoveFriendSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     playerService.removeFriend(player);
   }
 
@@ -117,7 +117,7 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
   }
 
   public void onAddFoeSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     if (player.getSocialStatus() == FRIEND) {
       playerService.removeFriend(player);
     }
@@ -125,17 +125,17 @@ public class PartyMemberContextMenuController implements Controller<ContextMenu>
   }
 
   public void onRemoveFoeSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     playerService.removeFoe(player);
   }
 
   public void onViewReplaysSelected() {
-    Player player = getPlayer();
+    PlayerBean player = getPlayer();
     eventBus.post(new ShowUserReplaysEvent(player.getId()));
   }
 
   @NotNull
-  private Player getPlayer() {
+  private PlayerBean getPlayer() {
     return player;
   }
 

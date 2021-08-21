@@ -1,15 +1,15 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.avatar.AvatarBean;
-import com.faforever.client.clan.Clan;
+import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -63,7 +63,7 @@ public class ChatUserItemControllerTest extends UITest {
   @Mock
   private TimeService timeService;
 
-  private Clan testClan;
+  private ClanBean testClan;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -72,11 +72,11 @@ public class ChatUserItemControllerTest extends UITest {
 
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
     when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
-    testClan = new Clan();
+    testClan = new ClanBean();
     testClan.setTag("e");
-    testClan.setLeader(PlayerBuilder.create("test_player").defaultValues().id(2).get());
+    testClan.setLeader(PlayerBeanBuilder.create().defaultValues().username("test_player").id(2).get());
     when(playerService.isOnline(eq(2))).thenReturn(true);
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBuilder.create("junit").defaultValues().get());
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
 
     instance = new ChatUserItemController(
         preferencesService,
@@ -105,8 +105,8 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testNullValuesHidesNodes() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername())
         .defaultValues()
         .player(player)
         .get();
@@ -121,8 +121,8 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testNotNullValuesShowsNodes() {
-    Player player = PlayerBuilder.create("junit").defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit")
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername())
         .defaultValues()
         .player(player)
         .avatar(new Image(UiService.UNKNOWN_MAP_IMAGE))
@@ -182,14 +182,14 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testContactClanLeaderNotShowing() throws Exception {
-    Player player = PlayerBuilder.create("junit")
+    PlayerBean player = PlayerBeanBuilder.create()
         .defaultValues()
         .id(2)
         .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
+        .avatar(AvatarBeanBuilder.create().defaultValues().url(new URL("http://example.com/avatar.png")).description("dog").get())
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
+    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername()).defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);
@@ -202,19 +202,13 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testContactClanLeaderShowingSameClan() throws Exception {
-    Player player = PlayerBuilder.create("junit")
+    PlayerBean player = PlayerBeanBuilder.create()
         .defaultValues()
+        .id(1)
         .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
         .get();
-    Player otherClanLeader = PlayerBuilder.create("test_player")
-        .id(2)
-        .defaultValues()
-        .clan("e")
-        .avatar(new AvatarBean(new URL("http://example.com/avatar.png"), "dog"))
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(otherClanLeader);
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
+    when(playerService.getCurrentPlayer()).thenReturn(player);
+    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername()).defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);
@@ -227,16 +221,17 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testContactClanLeaderShowingOtherClan() throws Exception {
-    Player player = PlayerBuilder.create("junit")
+    PlayerBean player = PlayerBeanBuilder.create()
         .defaultValues()
         .clan("e")
         .get();
-    Player otherClanLeader = PlayerBuilder.create("test_player")
+    PlayerBean otherClanLeader = PlayerBeanBuilder.create()
         .defaultValues()
+        .username("test_player")
         .clan("not")
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(otherClanLeader);
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().player(player).clan(testClan).get());
+    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername()).defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);

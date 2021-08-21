@@ -1,14 +1,14 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.domain.PartyBean.PartyMember;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
@@ -65,7 +65,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public HBox playerCard;
   public ImageView playerStatusImageView;
 
-  private Player player;
+  private PlayerBean player;
   private WeakReference<PartyMemberContextMenuController> contextMenuController = null;
   private InvalidationListener playerStatusInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
@@ -114,8 +114,8 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   private void setPartyOwnerProperties() {
-    Player currentPlayer = playerService.getCurrentPlayer();
-    Player owner = teamMatchmakingService.getParty().getOwner();
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+    PlayerBean owner = teamMatchmakingService.getParty().getOwner();
     JavaFxUtil.runLater(() -> {
       crownLabel.setVisible(owner == player);
       kickPlayerButton.setVisible(owner == currentPlayer && player != currentPlayer);
@@ -125,7 +125,7 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private void setPlayerProperties() {
     Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
-    Image avatarImage = Strings.isNullOrEmpty(player.getAvatarUrl()) ? null : avatarService.loadAvatar(player.getAvatarUrl());
+    Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
     String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
     JavaFxUtil.runLater(() -> {
       countryImageView.setImage(countryFlag);
@@ -139,9 +139,9 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private void addListeners() {
     JavaFxUtil.addAndTriggerListener(player.clanProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.avatarUrlProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.avatarProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.countryProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
-    JavaFxUtil.addListener(player.leaderboardRatingMapProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
+    JavaFxUtil.addListener(player.getLeaderboardRatings(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addListener(player.usernameProperty(), new WeakInvalidationListener(playerPropertiesInvalidationListener));
     JavaFxUtil.addAndTriggerListener(player.statusProperty(), new WeakInvalidationListener(playerStatusInvalidationListener));
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(partyOwnerInvalidationListener));

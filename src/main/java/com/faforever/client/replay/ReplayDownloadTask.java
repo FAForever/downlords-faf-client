@@ -1,6 +1,7 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -46,7 +47,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
   protected Path call() throws Exception {
     updateTitle(i18n.get("mapReplayTask.title", replayId));
 
-    String replayUrl = Replay.getReplayUrl(replayId, clientProperties.getVault().getReplayDownloadUrlFormat());
+    String replayUrl = ReplayBean.getReplayUrl(replayId, clientProperties.getVault().getReplayDownloadUrlFormat());
 
     log.info("Downloading replay {} from {}", replayId, replayUrl);
 

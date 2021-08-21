@@ -1,11 +1,11 @@
 package com.faforever.client.teammatchmaking;
 
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.game.Game;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -37,7 +37,7 @@ public class PartyMemberContextMenuControllerTest extends UITest {
   private PlatformService platformService;
   
   private PartyMemberContextMenuController instance;
-  private Player player;
+  private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -45,7 +45,7 @@ public class PartyMemberContextMenuControllerTest extends UITest {
         eventBus, uiService, platformService);
     loadFxml("theme/play/teammatchmaking/party_member_context_menu.fxml", clazz -> instance);
 
-    player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new Game()).get();
+    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new GameBean()).get();
   }
 
   @Test

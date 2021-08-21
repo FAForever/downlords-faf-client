@@ -1,23 +1,23 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.avatar.AvatarBean;
-import com.faforever.client.avatar.AvatarBeanBuilder;
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.clan.Clan;
-import com.faforever.client.clan.ClanBuilder;
+import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.ClanBeanBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.clan.ClanService;
-import com.faforever.client.game.Game;
-import com.faforever.client.game.GameBuilder;
+import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
@@ -33,9 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -73,28 +71,28 @@ public class ChatUserServiceTest extends ServiceTest {
   @Mock
   private MapService mapService;
 
-  private Player player;
+  private PlayerBean player;
   private AvatarBean avatar;
   private Preferences preferences;
   private ChatChannelUser chatUser;
-  private Clan testClan;
+  private ClanBean testClan;
 
   @BeforeEach
   public void setUp() throws Exception {
-    player = PlayerBuilder.create("junit").defaultValues().get();
+    player = PlayerBeanBuilder.create().defaultValues().get();
     avatar = AvatarBeanBuilder.create().defaultValues().get();
-    chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
+    chatUser = ChatChannelUserBuilder.create(player.getUsername()).defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues()
         .chatPrefs()
         .chatColorMode(ChatColorMode.DEFAULT)
         .then()
         .get();
-    testClan = ClanBuilder.create().defaultValues().get();
+    testClan = ClanBeanBuilder.create().defaultValues().get();
     when(clanService.getClanByTag(testClan.getTag())).thenReturn(CompletableFuture.completedFuture(Optional.of(testClan)));
     when(countryFlagService.loadCountryFlag(anyString())).thenReturn(Optional.of(mock(Image.class)));
     when(uiService.getThemeImage(anyString())).thenReturn(mock(Image.class));
     when(mapService.loadPreview(anyString(), any(PreviewSize.class))).thenReturn(mock(Image.class));
-    when(avatarService.loadAvatar(anyString())).thenReturn(mock(Image.class));
+    when(avatarService.loadAvatar(any(AvatarBean.class))).thenReturn(mock(Image.class));
     when(i18n.getCountryNameLocalized("US")).thenReturn("United States");
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
@@ -117,7 +115,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
     verify(clanService, never()).getClanByTag(anyString());
     verify(countryFlagService, never()).loadCountryFlag(anyString());
-    verify(avatarService, never()).loadAvatar(anyString());
+    verify(avatarService, never()).loadAvatar(any());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
     verify(uiService, never()).getThemeImage(anyString());
     assertNull(chatUser.getAvatarChangeListener());
@@ -136,7 +134,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
     verify(clanService, never()).getClanByTag(anyString());
     verify(countryFlagService, never()).loadCountryFlag(anyString());
-    verify(avatarService, never()).loadAvatar(anyString());
+    verify(avatarService, never()).loadAvatar(any());
     verify(mapService, never()).loadPreview(anyString(), any(PreviewSize.class));
     verify(uiService, never()).getThemeImage(anyString());
     assertNull(chatUser.getAvatarChangeListener());
@@ -156,7 +154,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
     verify(clanService, times(2)).getClanByTag(anyString());
     verify(countryFlagService, times(2)).loadCountryFlag(anyString());
-    verify(avatarService, times(2)).loadAvatar(anyString());
+    verify(avatarService, times(2)).loadAvatar(any());
     assertNotNull(chatUser.getAvatarChangeListener());
     assertNotNull(chatUser.getSocialStatus());
     assertNotNull(chatUser.getClanTagChangeListener());
@@ -175,7 +173,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
     verify(clanService, times(3)).getClanByTag(anyString());
     verify(countryFlagService, times(3)).loadCountryFlag(anyString());
-    verify(avatarService, times(3)).loadAvatar(anyString());
+    verify(avatarService, times(3)).loadAvatar(any());
     assertTrue(chatUser.getStatusTooltipText().isEmpty());
     assertTrue(chatUser.getGameStatusImage().isEmpty());
     assertTrue(chatUser.getMapImage().isEmpty());
@@ -187,18 +185,18 @@ public class ChatUserServiceTest extends ServiceTest {
 
   @Test
   public void testListenersRemovedOnSecondAssociation() {
-    Player player1 = PlayerBuilder.create("junit1").defaultValues().get();
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username("junit1").get();
     instance.associatePlayerToChatUser(chatUser, player1);
 
 
     ChangeListener<PlayerStatus> gameStatusListener = chatUser.getGameStatusChangeListener();
     ChangeListener<SocialStatus> socialStatusListener = chatUser.getSocialStatusChangeListener();
     ChangeListener<String> clanTagListener = chatUser.getClanTagChangeListener();
-    ChangeListener<String> avatarListener = chatUser.getAvatarChangeListener();
+    ChangeListener<AvatarBean> avatarListener = chatUser.getAvatarChangeListener();
     ChangeListener<String> countryListener = chatUser.getCountryInvalidationListener();
     InvalidationListener displayedListener = chatUser.getDisplayedChangeListener();
 
-    Player player2 = PlayerBuilder.create("junit2").defaultValues().get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username("junit2").get();
     instance.associatePlayerToChatUser(chatUser, player2);
 
 
@@ -246,7 +244,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
   @Test
   public void testClanChange() {
-    Clan newClan = new Clan();
+    ClanBean newClan = new ClanBean();
     newClan.setTag("NC");
     when(clanService.getClanByTag(newClan.getTag())).thenReturn(CompletableFuture.completedFuture(Optional.of(newClan)));
     player.setClan(testClan.getTag());
@@ -289,7 +287,7 @@ public class ChatUserServiceTest extends ServiceTest {
     instance.associatePlayerToChatUser(chatUser, player);
 
 
-    verify(avatarService, times(3)).loadAvatar(Objects.requireNonNull(avatar.getUrl()).toExternalForm());
+    verify(avatarService, times(3)).loadAvatar(avatar);
     assertTrue(chatUser.getAvatar().isPresent());
   }
 
@@ -297,12 +295,10 @@ public class ChatUserServiceTest extends ServiceTest {
   public void testAvatarChange() throws MalformedURLException {
     player.setAvatar(avatar);
     instance.associatePlayerToChatUser(chatUser, player);
-    String newUrl = new URL("http://awesome.png").toExternalForm();
-    player.setAvatarUrl(newUrl);
+    player.setAvatar(avatar);
 
 
-    verify(avatarService, times(3)).loadAvatar(Objects.requireNonNull(avatar.getUrl()).toExternalForm());
-    verify(avatarService).loadAvatar(newUrl);
+    verify(avatarService, times(3)).loadAvatar(avatar);
     assertTrue(chatUser.getAvatar().isPresent());
   }
 
@@ -310,10 +306,10 @@ public class ChatUserServiceTest extends ServiceTest {
   public void testAvatarSameChange() {
     player.setAvatar(avatar);
     instance.associatePlayerToChatUser(chatUser, player);
-    player.setAvatarUrl(Objects.requireNonNull(avatar.getUrl()).toExternalForm());
+    player.setAvatar(avatar);
 
 
-    verify(avatarService, times(3)).loadAvatar(avatar.getUrl().toExternalForm());
+    verify(avatarService, times(3)).loadAvatar(avatar);
     assertTrue(chatUser.getAvatar().isPresent());
   }
 
@@ -323,7 +319,7 @@ public class ChatUserServiceTest extends ServiceTest {
     instance.associatePlayerToChatUser(chatUser, player);
 
 
-    verify(avatarService, never()).loadAvatar(anyString());
+    verify(avatarService, never()).loadAvatar(any(AvatarBean.class));
     assertTrue(chatUser.getAvatar().isEmpty());
   }
 
@@ -391,7 +387,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
   @Test
   public void testStatusToPlaying() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get();
     player.setGame(game);
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
     instance.associatePlayerToChatUser(chatUser, player);
@@ -405,7 +401,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
   @Test
   public void testStatusToHosting() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
     player.setGame(game);
     when(i18n.get("game.gameStatus.hosting")).thenReturn("Hosting");
     instance.associatePlayerToChatUser(chatUser, player);
@@ -419,7 +415,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
   @Test
   public void testStatusToLobbying() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get();
     player.setGame(game);
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);
@@ -433,7 +429,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
   @Test
   public void testStatusChange() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get();
     player.setGame(game);
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     when(i18n.get("game.gameStatus.playing")).thenReturn("Playing");
@@ -450,7 +446,7 @@ public class ChatUserServiceTest extends ServiceTest {
 
   @Test
   public void testStatusSameChange() {
-    Game game = GameBuilder.create().defaultValues().status(GameStatus.OPEN).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get();
     player.setGame(game);
     when(i18n.get("game.gameStatus.lobby")).thenReturn("Waiting for game to start");
     instance.associatePlayerToChatUser(chatUser, player);

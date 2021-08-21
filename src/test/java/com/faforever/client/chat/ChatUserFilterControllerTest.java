@@ -1,11 +1,11 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.game.GameBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.LeaderboardRatingMapBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardRatingMapBuilder;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,15 +33,15 @@ public class ChatUserFilterControllerTest extends UITest {
 
   private ChatChannelUser chatChannelUser;
   private ChatUserFilterController instance;
-  private Player player;
+  private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
     instance = new ChatUserFilterController(i18n, flagService);
     instance.channelTabController = channelTabController;
 
-    player = PlayerBuilder.create("junit").defaultValues().get();
-    chatChannelUser = ChatChannelUserBuilder.create("junit")
+    player = PlayerBeanBuilder.create().defaultValues().get();
+    chatChannelUser = ChatChannelUserBuilder.create(player.getUsername())
         .defaultValues()
         .player(player)
         .get();
@@ -86,7 +86,7 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testIsGameStatusMatchPlaying() {
-    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
     instance.playerStatusFilter = PLAYING;
 
     assertTrue(instance.isGameStatusMatch(chatChannelUser));
@@ -94,12 +94,12 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testIsGameStatusMatchLobby() {
-    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get());
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get());
     instance.playerStatusFilter = HOSTING;
 
     assertTrue(instance.isGameStatusMatch(chatChannelUser));
 
-    player.setGame(GameBuilder.create().defaultValues().status(GameStatus.OPEN).get());
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get());
     instance.playerStatusFilter = LOBBYING;
 
     assertTrue(instance.isGameStatusMatch(chatChannelUser));

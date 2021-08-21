@@ -3,9 +3,9 @@ package com.faforever.client.ui.statusbar;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.remote.FafService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.user.UserService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -26,7 +26,7 @@ public class StatusBarControllerTest extends UITest {
   private ObjectProperty<ConnectionState> connectionStateProperty;
 
   @Mock
-  private FafService fafService;
+  private UserService userService;
   @Mock
   private I18n i18n;
   @Mock
@@ -36,11 +36,11 @@ public class StatusBarControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new StatusBarController(fafService, i18n, chatService, taskService);
+    instance = new StatusBarController(userService, i18n, chatService, taskService);
 
     connectionStateProperty = new SimpleObjectProperty<>();
     when(taskService.getActiveWorkers()).thenReturn(FXCollections.emptyObservableList());
-    when(fafService.connectionStateProperty()).thenReturn(connectionStateProperty);
+    when(userService.connectionStateProperty()).thenReturn(connectionStateProperty);
     when(chatService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     loadFxml("theme/statusbar/status_bar.fxml", param -> instance);
@@ -88,7 +88,7 @@ public class StatusBarControllerTest extends UITest {
   @Test
   public void testOnFafReconnectClicked() throws Exception {
     instance.onFafReconnectClicked();
-    verify(fafService).reconnect();
+    verify(userService).reconnectToLobby();
   }
 
   @Test
