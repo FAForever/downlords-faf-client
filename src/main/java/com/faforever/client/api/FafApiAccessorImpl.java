@@ -641,7 +641,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
   private Mono<Void> patch(String endpointPath, Object request) {
     authorizedLatch.await();
     return retrieveMonoWithErrorHandling(Void.class, webClient.patch().uri(endpointPath)
-            .contentType(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.parseMediaType("application/vnd.api+json;charset=utf-8"))
             .bodyValue(request))
         .doOnNext(aVoid -> log.debug("Patched {} at {}", request, endpointPath));
   }

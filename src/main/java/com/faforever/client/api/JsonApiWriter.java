@@ -24,7 +24,7 @@ public class JsonApiWriter implements HttpMessageWriter<Object> {
 
   @Override
   public List<MediaType> getWritableMediaTypes() {
-    return List.of(MediaType.APPLICATION_JSON, MediaType.parseMediaType("application/vnd.api+json;charset=utf-8"));
+    return List.of(MediaType.parseMediaType("application/vnd.api+json;charset=utf-8"));
   }
 
   @Override
