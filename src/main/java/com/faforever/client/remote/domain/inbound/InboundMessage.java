@@ -11,6 +11,7 @@ import com.faforever.client.remote.domain.inbound.faf.IrcPasswordServerMessage;
 import com.faforever.client.remote.domain.inbound.faf.LoginMessage;
 import com.faforever.client.remote.domain.inbound.faf.MatchCancelledMessage;
 import com.faforever.client.remote.domain.inbound.faf.MatchFoundMessage;
+import com.faforever.client.remote.domain.inbound.faf.MatchInfoMessage;
 import com.faforever.client.remote.domain.inbound.faf.MatchmakerInfoMessage;
 import com.faforever.client.remote.domain.inbound.faf.NoticeMessage;
 import com.faforever.client.remote.domain.inbound.faf.PartyInviteMessage;
@@ -50,6 +51,7 @@ import java.util.List;
     @Type(value = MatchmakerInfoMessage.class, name = MatchmakerInfoMessage.COMMAND),
     @Type(value = MatchFoundMessage.class, name = MatchFoundMessage.COMMAND),
     @Type(value = MatchCancelledMessage.class, name = MatchCancelledMessage.COMMAND),
+    @Type(value = MatchInfoMessage.class, name = MatchInfoMessage.COMMAND),
     @Type(value = SocialMessage.class, name = SocialMessage.COMMAND),
     @Type(value = AuthenticationFailedMessage.class, name = AuthenticationFailedMessage.COMMAND),
     @Type(value = UpdatedAchievementsMessage.class, name = UpdatedAchievementsMessage.COMMAND),

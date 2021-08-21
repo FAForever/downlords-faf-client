@@ -560,7 +560,9 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   }
 
   @Override
-  public void gameMatchmakingReady() { writeToServer(new MatchReadyMessage()); }
+  public void gameMatchmakingReady(boolean ready) {
+    writeToServer(new MatchReadyMessage(ready));
+  }
 
   @Override
   public void inviteToParty(Player recipient) {

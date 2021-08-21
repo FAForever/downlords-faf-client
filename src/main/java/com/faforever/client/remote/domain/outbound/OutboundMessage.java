@@ -23,6 +23,7 @@ import com.faforever.client.remote.domain.outbound.faf.ListIceServersMessage;
 import com.faforever.client.remote.domain.outbound.faf.ListPersonalAvatarsMessage;
 import com.faforever.client.remote.domain.outbound.faf.LoginOauthClientMessage;
 import com.faforever.client.remote.domain.outbound.faf.MakeBroadcastMessage;
+import com.faforever.client.remote.domain.outbound.faf.MatchReadyMessage;
 import com.faforever.client.remote.domain.outbound.faf.MatchmakerInfoOutboundMessage;
 import com.faforever.client.remote.domain.outbound.faf.PingMessage;
 import com.faforever.client.remote.domain.outbound.faf.PongMessage;
@@ -95,6 +96,7 @@ import java.util.List;
     @Type(value = SetPartyFactionsMessage.class, name = SetPartyFactionsMessage.COMMAND),
     @Type(value = GameMatchmakingMessage.class, name = GameMatchmakingMessage.COMMAND),
     @Type(value = MatchmakerInfoOutboundMessage.class, name = MatchmakerInfoOutboundMessage.COMMAND),
+    @Type(value = MatchReadyMessage.class, name = MatchReadyMessage.COMMAND),
     @Type(value = LoginOauthClientMessage.class, name = LoginOauthClientMessage.COMMAND),
     // GPG Client Messages not directly instantiated they are only forwarded from the game
     // Listing here serves as documentation of known messages

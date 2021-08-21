@@ -183,7 +183,7 @@ public class TeamMatchmakingService implements InitializingBean {
         i18n.get("teammatchmaking.notification.matchFound.title"),
         i18n.get("teammatchmaking.notification.matchFound.message")
     ));
-    fafService.readyForMatchLaunch(); // remove when implementing full match ready UI
+    fafService.readyForMatchLaunch(true); // remove when implementing full match ready UI
 
     matchmakingQueues.stream()
         .filter(matchmakingQueue -> Objects.equals(matchmakingQueue.getTechnicalName(), message.getQueueName()))

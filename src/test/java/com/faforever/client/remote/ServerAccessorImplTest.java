@@ -571,6 +571,13 @@ public class ServerAccessorImplTest extends UITest {
         "kick_player_from_party",
         String.valueOf(player.getId()));
   }
+  
+  @Test
+  public void testPlayerReadyForMatch() {
+    instance.gameMatchmakingReady(true);
+
+    assertMessageContainsComponents("match_ready");
+  }
 
   @Test
   public void testReadyParty() {

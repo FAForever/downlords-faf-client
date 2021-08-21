@@ -302,7 +302,7 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void gameMatchmakingReady() {
+  public void gameMatchmakingReady(boolean ready) {
 
   }
 
