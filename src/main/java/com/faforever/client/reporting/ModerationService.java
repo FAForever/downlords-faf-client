@@ -24,7 +24,7 @@ public class ModerationService {
     return fafService.getAllModerationReports(currentPlayer.getId());
   }
 
-  public CompletableFuture<Void> postModerationReport(ModerationReport report) {
+  public CompletableFuture<ModerationReport> postModerationReport(ModerationReport report) {
     return fafService.postModerationReport(report);
   }
 }

@@ -11,7 +11,6 @@ import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import javafx.scene.Node;
@@ -25,6 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,13 +80,13 @@ public class VaultEntityControllerTest extends UITest {
         Math.min((page + 1) * pageSize, elements.size()));
   }
 
-  private CompletableFuture<Tuple<List<Integer>, Integer>> asFuture(Tuple<List<Integer>, Integer> page) {
+  private CompletableFuture<Tuple2<List<Integer>, Integer>> asFuture(Tuple2<List<Integer>, Integer> page) {
     return CompletableFuture.completedFuture(page);
   }
 
-  private CompletableFuture<Tuple<List<Integer>, Integer>> mocksAsFuture(List<Integer> elements, int pageSize, int page) {
-    return CompletableFuture.completedFuture(new Tuple<>(getMockPageElements(elements, pageSize, page),
-        (int) Math.ceil((double) elements.size() / pageSize)));
+  private CompletableFuture<Tuple2<List<Integer>, Integer>> mocksAsFuture(List<Integer> elements, int pageSize, int page) {
+    return Mono.zip(Mono.just(getMockPageElements(elements, pageSize, page)),
+        Mono.just((int) Math.ceil((double) elements.size() / pageSize))).toFuture();
   }
 
   @BeforeEach

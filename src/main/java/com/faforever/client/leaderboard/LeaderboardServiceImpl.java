@@ -3,11 +3,11 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.remote.FafService;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.client.util.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import reactor.util.function.Tuple2;
 
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     return fafService.getAllLeaderboardEntries(leaderboard.getTechnicalName());
   }
 
-  public CompletableFuture<Tuple<List<LeaderboardEntry>, Integer>> getPagedEntries(Leaderboard leaderboard, int count, int page) {
+  public CompletableFuture<Tuple2<List<LeaderboardEntry>, Integer>> getPagedEntries(Leaderboard leaderboard, int count, int page) {
     return fafService.getLeaderboardEntriesWithPageCount(leaderboard.getTechnicalName(), count, page);
   }
 

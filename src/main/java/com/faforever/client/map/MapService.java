@@ -22,7 +22,6 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.teammatchmaking.MatchmakingQueue;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ProgrammingError;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -49,6 +48,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import reactor.util.function.Tuple2;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -381,20 +381,20 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafService.getRecommendedMapPageCount(count);
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getRecommendedMapsWithPageCount(int count, int page) {
     return fafService.getRecommendedMapsWithPageCount(count, page);
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
     return fafService.getHighestRatedMapsWithPageCount(count, page);
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
     return fafService.getNewestMapsWithPageCount(count, page);
   }
 
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMostPlayedMapsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMostPlayedMapsWithPageCount(int count, int page) {
     return fafService.getMostPlayedMapsWithPageCount(count, page);
   }
 
@@ -534,15 +534,11 @@ public class MapService implements InitializingBean, DisposableBean {
         .getContentLength()));
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
     return fafService.findMapsByQueryWithPageCount(searchConfig, count, page);
   }
 
-  public Optional<MapBean> findMap(String id) {
-    return fafService.findMapById(id);
-  }
-
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakingQueue matchmakerQueue, int count, int page) {
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakingQueue matchmakerQueue, int count, int page) {
     Player player = playerService.getCurrentPlayer();
     float meanRating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
         .map(LeaderboardRating::getMean).orElse(0f);
@@ -575,7 +571,7 @@ public class MapService implements InitializingBean, DisposableBean {
         .thenAccept(aVoid -> noCatch(() -> addInstalledMap(getPathForMapInsensitive(folderName))));
   }
 
-  public CompletableFuture<Tuple<List<MapBean>, Integer>> getOwnedMapsWithPageCount(int loadMoreCount, int page) {
+  public CompletableFuture<Tuple2<List<MapBean>, Integer>> getOwnedMapsWithPageCount(int loadMoreCount, int page) {
     Player player = playerService.getCurrentPlayer();
     int playerId = player.getId();
     return fafService.getOwnedMapsWithPageCount(playerId, loadMoreCount, page);

@@ -72,8 +72,7 @@ public class ModUploadTask extends CompletableTask<Void> {
       log.debug("Uploading mod {} as {}", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.uploading"));
 
-      fafService.uploadMod(tmpFile, byteListener);
-      return null;
+      return fafService.uploadMod(tmpFile, byteListener).join();
     } finally {
       Files.delete(tmpFile);
       ResourceLocks.freeUploadLock();

@@ -10,7 +10,6 @@ import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.VaultEntityController.SearchType;
 import com.faforever.client.vault.VaultEntityController.ShowRoomCategory;
@@ -23,9 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -94,11 +93,11 @@ public class MapVaultControllerTest extends UITest {
       }
       return instance;
     }, instance);
-    when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
-    when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(CompletableFuture.completedFuture(new Tuple<>(Collections.emptyList(), 0)));
+    when(mapService.getHighestRatedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getNewestMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getMostPlayedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getRecommendedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
+    when(mapService.getOwnedMapsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<MapBean>of()), Mono.just(0)).toFuture());
   }
 
   @Test

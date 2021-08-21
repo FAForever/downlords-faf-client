@@ -1,6 +1,6 @@
 package com.faforever.client.player;
 
-import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.remote.FafService;
 import com.faforever.commons.api.dto.PlayerEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -8,10 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toMap;
 
 
 @Lazy
@@ -48,11 +44,9 @@ public class EventService {
   public static final String EVENT_SERAPHIM_PLAYS = "fefcb392-848f-4836-9683-300b283bc308";
   public static final String EVENT_SERAPHIM_WINS = "15b6c19a-6084-4e82-ada9-6c30e282191f";
 
-  private final FafApiAccessor fafApiAccessor;
-  private final ExecutorService executorService;
+  private final FafService fafService;
 
   public CompletableFuture<Map<String, PlayerEvent>> getPlayerEvents(int playerId) {
-    return CompletableFuture.supplyAsync(() -> fafApiAccessor.getPlayerEvents(playerId).stream()
-        .collect(toMap(playerEvent -> playerEvent.getEvent().getId(), identity())), executorService);
+    return fafService.getPlayerEvents(playerId);
   }
 }

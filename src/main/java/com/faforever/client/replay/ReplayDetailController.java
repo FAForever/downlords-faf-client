@@ -349,7 +349,7 @@ public class ReplayDetailController implements Controller<Node> {
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(PlayerStats::getPlayerId, Function.identity()));
 
-    JavaFxUtil.runLater(() -> teams.forEach((team, value) -> {
+    teams.forEach((team, value) -> {
       List<Integer> playerIds = value.stream()
           .map(PlayerStats::getPlayerId)
           .collect(Collectors.toList());
@@ -367,8 +367,8 @@ public class ReplayDetailController implements Controller<Node> {
               controller.setPlayersInTeam(team, players, playerRatingFunction, playerFactionFunction, RatingPrecision.EXACT)
           );
 
-      teamsContainer.getChildren().add(controller.getRoot());
-    }));
+      JavaFxUtil.runLater(() -> teamsContainer.getChildren().add(controller.getRoot()));
+    });
   }
 
   @VisibleForTesting

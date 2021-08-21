@@ -19,7 +19,6 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Tuple;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.replay.ReplayDataParser;
@@ -32,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
+import reactor.util.function.Tuple2;
 
 import java.net.URI;
 import java.nio.file.Files;
@@ -211,7 +211,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     Collection<Replay> localReplays = new ArrayList<>();
     try {
-      localReplays.addAll(instance.loadLocalReplayPage(2, 1).get().getFirst());
+      localReplays.addAll(instance.loadLocalReplayPage(2, 1).get().getT1());
     } catch (FakeTestException exception) {
       // expected
     }
@@ -236,7 +236,7 @@ public class ReplayServiceTest extends ServiceTest {
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapBeanBuilder.create().defaultValues().get())));
 
-    Collection<Replay> localReplays = instance.loadLocalReplayPage(1, 1).get().getFirst();
+    Collection<Replay> localReplays = instance.loadLocalReplayPage(1, 1).get().getT1();
 
     assertThat(localReplays, hasSize(1));
     assertThat(localReplays.iterator().next().getId(), is(123));
@@ -321,7 +321,7 @@ public class ReplayServiceTest extends ServiceTest {
     ArgumentCaptor<SortConfig> sortCatcher = ArgumentCaptor.forClass(SortConfig.class);
     when(userService.getUserId()).thenReturn(47);
     when(fafService.findReplaysByQueryWithPageCount(queryCatcher.capture(), pageSizeCatcher.capture(), pageCatcher.capture(), sortCatcher.capture())).thenReturn(CompletableFuture.completedFuture(null));
-    CompletableFuture<Tuple<List<Replay>, Integer>> ownReplays = instance.getOwnReplaysWithPageCount(100, 1);
+    CompletableFuture<Tuple2<List<Replay>, Integer>> ownReplays = instance.getOwnReplaysWithPageCount(100, 1);
     ownReplays.get();
     assertEquals("playerStats.player.id==\"47\"", queryCatcher.getValue());
     assertEquals(100, (int) pageSizeCatcher.getValue());
