@@ -322,16 +322,6 @@ public class MockFafServerAccessor implements FafServerAccessor {
   }
 
   @Override
-  public void readyParty() {
-
-  }
-
-  @Override
-  public void unreadyParty() {
-
-  }
-
-  @Override
   public void leaveParty() {
 
   }

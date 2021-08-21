@@ -583,14 +583,6 @@ public class FafService {
     fafServerAccessor.leaveParty();
   }
 
-  public void readyParty() {
-    fafServerAccessor.readyParty();
-  }
-
-  public void unreadyParty() {
-    fafServerAccessor.unreadyParty();
-  }
-
   public void setPartyFactions(List<Faction> factions) {
     fafServerAccessor.setPartyFactions(factions);
   }

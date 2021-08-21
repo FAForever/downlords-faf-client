@@ -580,20 +580,6 @@ public class ServerAccessorImplTest extends UITest {
   }
 
   @Test
-  public void testReadyParty() {
-    instance.readyParty();
-
-    assertMessageContainsComponents("ready_party");
-  }
-
-  @Test
-  public void testUnreadyParty() {
-    instance.unreadyParty();
-
-    assertMessageContainsComponents("unready_party");
-  }
-
-  @Test
   public void testLeaveParty() {
     instance.leaveParty();
 

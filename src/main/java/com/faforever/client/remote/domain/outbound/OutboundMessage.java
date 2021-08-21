@@ -27,14 +27,12 @@ import com.faforever.client.remote.domain.outbound.faf.MatchReadyMessage;
 import com.faforever.client.remote.domain.outbound.faf.MatchmakerInfoOutboundMessage;
 import com.faforever.client.remote.domain.outbound.faf.PingMessage;
 import com.faforever.client.remote.domain.outbound.faf.PongMessage;
-import com.faforever.client.remote.domain.outbound.faf.ReadyPartyMessage;
 import com.faforever.client.remote.domain.outbound.faf.RemoveFoeMessage;
 import com.faforever.client.remote.domain.outbound.faf.RemoveFriendMessage;
 import com.faforever.client.remote.domain.outbound.faf.RemoveSocialMessage;
 import com.faforever.client.remote.domain.outbound.faf.RestoreGameSessionMessage;
 import com.faforever.client.remote.domain.outbound.faf.SelectAvatarMessage;
 import com.faforever.client.remote.domain.outbound.faf.SetPartyFactionsMessage;
-import com.faforever.client.remote.domain.outbound.faf.UnreadyPartyMessage;
 import com.faforever.client.remote.domain.outbound.gpg.AIOptionMessage;
 import com.faforever.client.remote.domain.outbound.gpg.ChatMessage;
 import com.faforever.client.remote.domain.outbound.gpg.ClearSlotMessage;
@@ -91,8 +89,6 @@ import java.util.List;
     @Type(value = AcceptPartyInviteMessage.class, name = AcceptPartyInviteMessage.COMMAND),
     @Type(value = KickPlayerFromPartyMessage.class, name = KickPlayerFromPartyMessage.COMMAND),
     @Type(value = LeavePartyMessage.class, name = LeavePartyMessage.COMMAND),
-    @Type(value = ReadyPartyMessage.class, name = ReadyPartyMessage.COMMAND),
-    @Type(value = UnreadyPartyMessage.class, name = UnreadyPartyMessage.COMMAND),
     @Type(value = SetPartyFactionsMessage.class, name = SetPartyFactionsMessage.COMMAND),
     @Type(value = GameMatchmakingMessage.class, name = GameMatchmakingMessage.COMMAND),
     @Type(value = MatchmakerInfoOutboundMessage.class, name = MatchmakerInfoOutboundMessage.COMMAND),

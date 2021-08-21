@@ -57,13 +57,11 @@ import com.faforever.client.remote.domain.outbound.faf.MatchReadyMessage;
 import com.faforever.client.remote.domain.outbound.faf.MatchmakerInfoOutboundMessage;
 import com.faforever.client.remote.domain.outbound.faf.PingMessage;
 import com.faforever.client.remote.domain.outbound.faf.PongMessage;
-import com.faforever.client.remote.domain.outbound.faf.ReadyPartyMessage;
 import com.faforever.client.remote.domain.outbound.faf.RemoveFoeMessage;
 import com.faforever.client.remote.domain.outbound.faf.RemoveFriendMessage;
 import com.faforever.client.remote.domain.outbound.faf.RestoreGameSessionMessage;
 import com.faforever.client.remote.domain.outbound.faf.SelectAvatarMessage;
 import com.faforever.client.remote.domain.outbound.faf.SetPartyFactionsMessage;
-import com.faforever.client.remote.domain.outbound.faf.UnreadyPartyMessage;
 import com.faforever.client.remote.domain.outbound.gpg.GpgOutboundMessage;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.serialization.FactionMixin;
@@ -577,16 +575,6 @@ public class FafServerAccessorImpl extends AbstractServerAccessor implements Faf
   @Override
   public void kickPlayerFromParty(Player kickedPlayer) {
     writeToServer(new KickPlayerFromPartyMessage(kickedPlayer.getId()));
-  }
-
-  @Override
-  public void readyParty() {
-    writeToServer(new ReadyPartyMessage());
-  }
-
-  @Override
-  public void unreadyParty() {
-    writeToServer(new UnreadyPartyMessage());
   }
 
   @Override

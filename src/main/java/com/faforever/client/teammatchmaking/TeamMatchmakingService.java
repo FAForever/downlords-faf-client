@@ -348,14 +348,6 @@ public class TeamMatchmakingService implements InitializingBean {
     }
   }
 
-  public void readyParty() {
-    fafService.readyParty();
-  }
-
-  public void unreadyParty() {
-    fafService.unreadyParty();
-  }
-
   public void sendFactionSelection(List<Faction> factions) {
     fafService.setPartyFactions(factions);
   }

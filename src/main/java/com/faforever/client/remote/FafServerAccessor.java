@@ -90,10 +90,6 @@ public interface FafServerAccessor {
 
   void kickPlayerFromParty(Player kickedPlayer);
 
-  void readyParty();
-
-  void unreadyParty();
-
   void leaveParty();
 
   void setPartyFactions(List<Faction> factions);
