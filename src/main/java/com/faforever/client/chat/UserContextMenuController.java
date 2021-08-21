@@ -336,7 +336,7 @@ public class UserContextMenuController implements Controller<ContextMenu> {
     teamMatchmakingService.invitePlayer(getPlayer().getUsername());
   }
 
-  public void onBroadcastMessage(ActionEvent actionEvent) {
+  public void onBroadcastMessageSelected(ActionEvent actionEvent) {
     actionEvent.consume();
 
     TextInputDialog broadcastMessageInputDialog = new TextInputDialog();
@@ -368,7 +368,7 @@ public class UserContextMenuController implements Controller<ContextMenu> {
     return chatUser != null ? chatUser.getUsername() : player.getUsername();
   }
 
-  public void onRemoveCustomColor() {
+  public void onRemoveCustomColorSelected() {
     colorPicker.setValue(null);
   }
 
@@ -377,11 +377,11 @@ public class UserContextMenuController implements Controller<ContextMenu> {
     return contextMenuRoot;
   }
 
-  public void onKickGame() {
+  public void onKickGameSelected() {
     moderatorService.closePlayersGame(getPlayer().getId());
   }
 
-  public void onKickLobby() {
+  public void onKickLobbySelected() {
     moderatorService.closePlayersLobby(getPlayer().getId());
   }
 }

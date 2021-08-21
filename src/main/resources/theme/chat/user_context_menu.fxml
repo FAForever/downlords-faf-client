@@ -31,7 +31,8 @@
                   text="%chat.userContext.addFoe" visible="false"/>
         <MenuItem fx:id="removeFoeItem" mnemonicParsing="false" onAction="#onRemoveFoeSelected"
                   text="%chat.userContext.removeFoe" visible="false"/>
-        <MenuItem fx:id="reportPlayerItem" mnemonicParsing="false" onAction="#onReportPlayerSelected" text="%chat.userContext.report"
+        <MenuItem fx:id="reportPlayerItem" mnemonicParsing="false" onAction="#onReportPlayerSelected"
+                  text="%chat.userContext.report"
                   visible="false"/>
 
         <SeparatorMenuItem fx:id="otherSeparator" mnemonicParsing="false"/>
@@ -43,13 +44,13 @@
                   text="%chat.userContext.viewReplays"/>
 
         <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" visible="false"/>
-        <MenuItem fx:id="kickGameItem" mnemonicParsing="false" onAction="#onKickGame" text="%chat.userContext.kickGame"
+        <MenuItem fx:id="kickGameItem" mnemonicParsing="false" onAction="#onKickGameSelected"
+                  text="%chat.userContext.kickGame"
                   visible="false"/>
-        <MenuItem fx:id="kickLobbyItem" mnemonicParsing="false" onAction="#onKickLobby"
-                  text="%chat.userContext.kickLobby"
-                  visible="false"/>
-        <MenuItem fx:id="broadcastMessage" mnemonicParsing="false" onAction="#onBroadcastMessage" visible="false"
-                  text="%chat.userContext.broadcast"/>
+        <MenuItem fx:id="kickLobbyItem" mnemonicParsing="false" onAction="#onKickLobbySelected"
+                  text="%chat.userContext.kickLobby" visible="false"/>
+        <MenuItem fx:id="broadcastMessage" mnemonicParsing="false" onAction="#onBroadcastMessageSelected"
+                  visible="false" text="%chat.userContext.broadcast"/>
 
         <SeparatorMenuItem fx:id="chatChannelSeparator" mnemonicParsing="false" visible="false"/>
         <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false" visible="false">
@@ -58,8 +59,8 @@
                     <children>
                         <Label text="%chat.userColor"/>
                         <ColorPicker fx:id="colorPicker" styleClass="button" HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="removeCustomColorButton" onAction="#onRemoveCustomColor" styleClass="icon,small"
-                                text="" HBox.hgrow="NEVER"/>
+                        <Button fx:id="removeCustomColorButton" onAction="#onRemoveCustomColorSelected"
+                                styleClass="icon,small" text="" HBox.hgrow="NEVER"/>
                     </children>
                 </HBox>
             </content>
