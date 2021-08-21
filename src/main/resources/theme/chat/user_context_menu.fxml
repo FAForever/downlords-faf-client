@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ContextMenu?>
+<?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.layout.HBox?>
+<ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="contextMenuRoot"
+             xmlns="http://javafx.com/javafx/8.0.141"
+             fx:controller="com.faforever.client.chat.UserContextMenuController">
+    <items>
+        <MenuItem fx:id="showPlayerInfoItem" mnemonicParsing="false" onAction="#onShowUserInfoSelected"
+                  text="%chat.userContext.userInfo"/>
+        <MenuItem fx:id="sendPrivateMessageItem" mnemonicParsing="false" onAction="#onSendPrivateMessageSelected"
+                  text="%chat.userContext.privateMessage"/>
+        <MenuItem fx:id="copyPLayerNameItem" mnemonicParsing="false" onAction="#onCopyPlayerNameSelected"
+                  text="%chat.userContext.copyUsername"/>
+
+        <SeparatorMenuItem fx:id="socialSeparator" mnemonicParsing="false" visible="false"/>
+        <MenuItem fx:id="invitePlayerItem" mnemonicParsing="false" onAction="#onInviteToGameSelected"
+                  text="%chat.userContext.inviteToGame" visible="false"/>
+        <MenuItem fx:id="addFriendItem" mnemonicParsing="false" onAction="#onAddFriendSelected"
+                  text="%chat.userContext.addFriend" visible="false"/>
+        <MenuItem fx:id="removeFriendItem" mnemonicParsing="false" onAction="#onRemoveFriendSelected"
+                  text="%chat.userContext.removeFriend" visible="false"/>
+        <MenuItem fx:id="addFoeItem" mnemonicParsing="false" onAction="#onAddFoeSelected"
+                  text="%chat.userContext.addFoe" visible="false"/>
+        <MenuItem fx:id="removeFoeItem" mnemonicParsing="false" onAction="#onRemoveFoeSelected"
+                  text="%chat.userContext.removeFoe" visible="false"/>
+        <MenuItem fx:id="reportPlayerItem" mnemonicParsing="false" onAction="#onReportPlayerSelected" text="%chat.userContext.report"
+                  visible="false"/>
+
+        <SeparatorMenuItem fx:id="otherSeparator" mnemonicParsing="false"/>
+        <MenuItem fx:id="joinGameItem" mnemonicParsing="false" onAction="#onJoinGameSelected"
+                  text="%chat.userContext.joinGame" visible="false"/>
+        <MenuItem fx:id="watchGameItem" mnemonicParsing="false" onAction="#onWatchGameSelected"
+                  text="%chat.userContext.viewLiveReplay" visible="false"/>
+        <MenuItem fx:id="viewReplaysItem" mnemonicParsing="false" onAction="#onViewReplaysSelected"
+                  text="%chat.userContext.viewReplays"/>
+
+        <SeparatorMenuItem fx:id="moderatorActionSeparator" mnemonicParsing="false" visible="false"/>
+        <MenuItem fx:id="kickGameItem" mnemonicParsing="false" onAction="#onKickGame" text="%chat.userContext.kickGame"
+                  visible="false"/>
+        <MenuItem fx:id="kickLobbyItem" mnemonicParsing="false" onAction="#onKickLobby"
+                  text="%chat.userContext.kickLobby"
+                  visible="false"/>
+        <MenuItem fx:id="banItem" mnemonicParsing="false" onAction="#onBan" visible="false"
+                  text="%chat.userContext.ban"/>
+        <MenuItem fx:id="broadcastMessage" mnemonicParsing="false" onAction="#onBroadcastMessage" visible="false"
+                  text="%chat.userContext.broadcast"/>
+
+        <SeparatorMenuItem fx:id="chatChannelSeparator" mnemonicParsing="false" visible="false"/>
+        <CustomMenuItem fx:id="colorPickerMenuItem" hideOnClick="false" mnemonicParsing="false" visible="false">
+            <content>
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Label text="%chat.userColor"/>
+                        <ColorPicker fx:id="colorPicker" styleClass="button" HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="removeCustomColorButton" onAction="#onRemoveCustomColor" styleClass="icon,small"
+                                text="" HBox.hgrow="NEVER"/>
+                    </children>
+                </HBox>
+            </content>
+        </CustomMenuItem>
+        <CustomMenuItem fx:id="avatarPickerMenuItem" hideOnClick="false" mnemonicParsing="false" visible="false">
+            <content>
+            </content>
+            <content>
+                <ComboBox fx:id="avatarComboBox" maxWidth="1.7976931348623157E308"/>
+            </content>
+        </CustomMenuItem>
+    </items>
+</ContextMenu>

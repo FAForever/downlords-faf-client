@@ -1,12 +1,12 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.InitiatePrivateChatEvent;
+import com.faforever.client.chat.UserContextMenuController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
-import com.faforever.client.player.PlayerContextMenuController;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
@@ -51,7 +51,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
   public Region factionIcon;
   public ImageView factionImage;
 
-  private WeakReference<PlayerContextMenuController> playerContextMenuReference;
+  private WeakReference<UserContextMenuController> playerContextMenuReference;
 
   public void setPlayer(Player player, Integer rating, Faction faction) {
     if (player == null) {
@@ -85,7 +85,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
     if (playerContextMenuReference != null && playerContextMenuReference.get() != null) {
       playerContextMenuReference.get().getRoot().show(window, event.getScreenX(), event.getScreenY());
     } else {
-      PlayerContextMenuController controller = uiService.loadFxml("theme/player/player_context_menu.fxml");
+      UserContextMenuController controller = uiService.loadFxml("theme/chat/user_context_menu.fxml");
       controller.setPlayer(player);
       controller.getRoot().show(window, event.getScreenX(), event.getScreenY());
       playerContextMenuReference = new WeakReference<>(controller);

@@ -58,7 +58,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ChatUserContextMenuControllerTest extends UITest {
+public class UserContextMenuControllerTest extends UITest {
   private static final String TEST_USER_NAME = "junit";
 
   @Mock
@@ -86,13 +86,13 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Mock
   private ReportDialogController reportDialogController;
 
-  private ChatUserContextMenuController instance;
+  private UserContextMenuController instance;
   private Player player;
   private ChatChannelUser chatUser;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController(preferencesService, playerService,
+    instance = new UserContextMenuController(preferencesService, playerService,
         replayService, notificationService, i18n, eventBus, joinGameHelper,
         avatarService, uiService, moderatorService, teamMatchmakingService);
 
@@ -109,7 +109,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
 
 
-    loadFxml("theme/chat/chat_user_context_menu.fxml", clazz -> instance);
+    loadFxml("theme/chat/user_context_menu.fxml", clazz -> instance);
 
     player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
     chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().player(player).get();
@@ -190,7 +190,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
     player.setSocialStatus(OTHER);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(instance.inviteItem.isVisible());
+    assertTrue(instance.invitePlayerItem.isVisible());
   }
 
   @Test
@@ -202,7 +202,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.HOSTING);
-    assertFalse(instance.inviteItem.isVisible());
+    assertFalse(instance.invitePlayerItem.isVisible());
   }
 
   @Test
@@ -214,7 +214,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.LOBBYING);
-    assertFalse(instance.inviteItem.isVisible());
+    assertFalse(instance.invitePlayerItem.isVisible());
   }
 
   @Test
@@ -229,7 +229,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertEquals(player.getStatus(), PlayerStatus.PLAYING);
-    assertFalse(instance.inviteItem.isVisible());
+    assertFalse(instance.invitePlayerItem.isVisible());
   }
 
   @Test
@@ -329,7 +329,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testOnReportChatUser() {
-    instance.onReport();
+    instance.onReportPlayerSelected();
 
     verify(reportDialogController).setOffender(player);
     verify(reportDialogController).setOwnerWindow(instance.getRoot().getOwnerWindow());
@@ -341,7 +341,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
     chatUser.setPlayer(null);
     WaitForAsyncUtils.waitForFxEvents();
 
-    instance.onReport();
+    instance.onReportPlayerSelected();
 
     verify(reportDialogController).setOffender(chatUser.getUsername());
     verify(reportDialogController).setOwnerWindow(instance.getRoot().getOwnerWindow());
@@ -380,7 +380,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
   public void testHideUserInfoIfNoPlayer() {
     chatUser.setPlayer(null);
     WaitForAsyncUtils.waitForFxEvents();
-    assertThat(instance.showUserInfo.isVisible(), is(false));
+    assertThat(instance.showPlayerInfoItem.isVisible(), is(false));
     assertThat(instance.viewReplaysItem.isVisible(), is(false));
   }
 }

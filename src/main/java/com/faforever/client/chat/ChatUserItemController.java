@@ -69,7 +69,7 @@ public class ChatUserItemController implements Controller<Node> {
   private Tooltip avatarTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
-  private WeakReference<ChatUserContextMenuController> contextMenuController = null;
+  private WeakReference<UserContextMenuController> contextMenuController = null;
 
   public ChatUserItemController(PreferencesService preferencesService,
                                 I18n i18n, UiService uiService, EventBus eventBus, PlayerService playerService,
@@ -173,14 +173,14 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     if (contextMenuController != null) {
-      ChatUserContextMenuController controller = contextMenuController.get();
+      UserContextMenuController controller = contextMenuController.get();
       if (controller != null) {
         controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         return;
       }
     }
 
-    ChatUserContextMenuController controller = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
+    UserContextMenuController controller = uiService.loadFxml("theme/chat/user_context_menu.fxml");
     controller.setChatUser(chatUser);
     controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 

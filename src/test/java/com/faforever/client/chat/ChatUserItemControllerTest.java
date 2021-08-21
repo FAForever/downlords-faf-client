@@ -161,10 +161,10 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testOnContextMenuRequested() {
-    ChatUserContextMenuController contextMenuController = mock(ChatUserContextMenuController.class);
+    UserContextMenuController contextMenuController = mock(UserContextMenuController.class);
     ContextMenu contextMenu = mock(ContextMenu.class);
     when(contextMenuController.getContextMenu()).thenReturn(contextMenu);
-    when(uiService.loadFxml("theme/chat/chat_user_context_menu.fxml")).thenReturn(contextMenuController);
+    when(uiService.loadFxml("theme/chat/user_context_menu.fxml")).thenReturn(contextMenuController);
 
     WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().setAll(instance.chatUserItemRoot));
 
@@ -175,7 +175,7 @@ public class ChatUserItemControllerTest extends UITest {
     ContextMenuEvent event = mock(ContextMenuEvent.class);
     instance.onContextMenuRequested(event);
 
-    verify(uiService).loadFxml("theme/chat/chat_user_context_menu.fxml");
+    verify(uiService).loadFxml("theme/chat/user_context_menu.fxml");
     verify(contextMenuController).setChatUser(chatUser);
     verify(contextMenu).show(any(Window.class), anyDouble(), anyDouble());
   }

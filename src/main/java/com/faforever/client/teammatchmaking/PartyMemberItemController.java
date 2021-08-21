@@ -1,6 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.chat.UserContextMenuController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
@@ -66,7 +67,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private Player player;
-  private WeakReference<PartyMemberContextMenuController> contextMenuController = null;
+  private WeakReference<UserContextMenuController> contextMenuController = null;
   private InvalidationListener playerStatusInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
   private InvalidationListener partyOwnerInvalidationListener;
@@ -165,16 +166,17 @@ public class PartyMemberItemController implements Controller<Node> {
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     if (contextMenuController != null) {
-      PartyMemberContextMenuController controller = contextMenuController.get();
+      UserContextMenuController controller = contextMenuController.get();
       if (controller != null) {
-        controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        controller.getRoot().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         return;
       }
     }
 
-    PartyMemberContextMenuController controller = uiService.loadFxml("theme/play/teammatchmaking/party_member_context_menu.fxml");
+    UserContextMenuController controller = uiService.loadFxml("theme/chat/user_context_menu.fxml");
     controller.setPlayer(player);
-    controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    controller.showSocialItems();
+    controller.getRoot().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 
     contextMenuController = new WeakReference<>(controller);
   }

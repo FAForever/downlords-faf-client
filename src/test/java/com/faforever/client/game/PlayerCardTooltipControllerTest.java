@@ -1,12 +1,12 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.InitiatePrivateChatEvent;
+import com.faforever.client.chat.UserContextMenuController;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerBuilder;
-import com.faforever.client.player.PlayerContextMenuController;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -121,10 +121,10 @@ public class PlayerCardTooltipControllerTest extends UITest {
 
   @Test
   public void testShowContextMenuOfPlayerByRightMouseClicking() {
-    PlayerContextMenuController playerContextMenuController = mock(PlayerContextMenuController.class);
+    UserContextMenuController userContextMenuController = mock(UserContextMenuController.class);
     ContextMenu contextMenu = mock(ContextMenu.class);
-    when(uiService.loadFxml("theme/player/player_context_menu.fxml")).thenReturn(playerContextMenuController);
-    when(playerContextMenuController.getRoot()).thenReturn(contextMenu);
+    when(uiService.loadFxml("theme/chat/user_context_menu.fxml")).thenReturn(userContextMenuController);
+    when(userContextMenuController.getRoot()).thenReturn(contextMenu);
     Player player = PlayerBuilder.create("junit").socialStatus(SocialStatus.OTHER).get();
     runOnFxThreadAndWait(() -> {
       getRoot().getChildren().add(instance.getRoot()); // for avoid NPE when invoke getScene()
