@@ -625,7 +625,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     return retrieveMonoWithErrorHandling(Void.class, webClient.post().uri(endpointPath)
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .bodyValue(request))
-        .doOnNext(object -> log.debug("Posted {} to {}", object, endpointPath));
+        .doOnSuccess(aVoid -> log.debug("Posted {} to {}", request, endpointPath));
   }
 
   @SneakyThrows
@@ -643,14 +643,14 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
     return retrieveMonoWithErrorHandling(Void.class, webClient.patch().uri(endpointPath)
             .contentType(MediaType.parseMediaType("application/vnd.api+json;charset=utf-8"))
             .bodyValue(request))
-        .doOnNext(aVoid -> log.debug("Patched {} at {}", request, endpointPath));
+        .doOnSuccess(aVoid -> log.debug("Patched {} at {}", request, endpointPath));
   }
 
   @SneakyThrows
   private Mono<Void> delete(String endpointPath) {
     authorizedLatch.await();
     return retrieveMonoWithErrorHandling(Void.class, webClient.delete().uri(endpointPath))
-        .doOnNext(aVoid -> log.debug("Deleted {}", endpointPath));
+        .doOnSuccess(aVoid -> log.debug("Deleted {}", endpointPath));
   }
 
   @SneakyThrows
@@ -754,7 +754,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private <T> Mono<T> retrieveMonoWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
     return requestSpec.exchangeToMono(response -> {
-      if (response.statusCode().equals(HttpStatus.OK)) {
+      if (response.statusCode().is2xxSuccessful()) {
         return response.bodyToMono(type);
       } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
         return response.bodyToMono(type).onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
@@ -771,7 +771,7 @@ public class FafApiAccessorImpl implements FafApiAccessor, InitializingBean {
 
   private <T> Flux<T> retrieveFluxWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
     return requestSpec.exchangeToFlux(response -> {
-      if (response.statusCode().equals(HttpStatus.OK)) {
+      if (response.statusCode().is2xxSuccessful()) {
         return response.bodyToFlux(type);
       } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
         return response.bodyToFlux(type).onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
