@@ -130,15 +130,6 @@
   -fx-page-information-visible: true;
 }
 
-.number-button:selected {
-  -fx-background-color: -card-color;
-  -fx-border-color: -fx-accent;
-}
-
-.number-button:hover {
-  -fx-border-color: -dimmed-accent;
-}
-
 .page-button {
   -fx-background-color: transparent;
   -fx-border-color: -fx-box-border;
