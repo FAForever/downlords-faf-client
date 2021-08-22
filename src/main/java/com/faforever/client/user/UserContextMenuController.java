@@ -1,7 +1,10 @@
-package com.faforever.client.chat;
+package com.faforever.client.user;
 
 import com.faforever.client.avatar.AvatarBean;
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatUserCategory;
+import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -169,10 +172,6 @@ public class UserContextMenuController implements Controller<ContextMenu> {
           }
           return new ImageView(avatarService.loadAvatar(url.toString()));
         });
-  }
-
-  ContextMenu getContextMenu() {
-    return contextMenuRoot;
   }
 
   public void setChatUser(ChatChannelUser chatUser) {

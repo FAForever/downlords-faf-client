@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.InitiatePrivateChatEvent;
-import com.faforever.client.chat.UserContextMenuController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -9,6 +8,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.Player;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.user.UserContextMenuController;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -85,7 +85,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
     if (playerContextMenuReference != null && playerContextMenuReference.get() != null) {
       playerContextMenuReference.get().getRoot().show(window, event.getScreenX(), event.getScreenY());
     } else {
-      UserContextMenuController controller = uiService.loadFxml("theme/chat/user_context_menu.fxml");
+      UserContextMenuController controller = uiService.loadFxml("theme/user/user_context_menu.fxml");
       controller.setPlayer(player);
       controller.getRoot().show(window, event.getScreenX(), event.getScreenY());
       playerContextMenuReference = new WeakReference<>(controller);

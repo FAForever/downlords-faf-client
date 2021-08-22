@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <ContextMenu xmlns:fx="http://javafx.com/fxml/1" fx:id="contextMenuRoot"
              xmlns="http://javafx.com/javafx/8.0.141"
-             fx:controller="com.faforever.client.chat.UserContextMenuController">
+             fx:controller="com.faforever.client.user.UserContextMenuController">
     <items>
         <MenuItem fx:id="showPlayerInfoItem" mnemonicParsing="false" onAction="#onShowUserInfoSelected"
                   text="%chat.userContext.userInfo"/>

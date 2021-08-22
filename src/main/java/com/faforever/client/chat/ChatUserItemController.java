@@ -12,6 +12,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.user.UserContextMenuController;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
@@ -175,14 +176,14 @@ public class ChatUserItemController implements Controller<Node> {
     if (contextMenuController != null) {
       UserContextMenuController controller = contextMenuController.get();
       if (controller != null) {
-        controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        controller.getRoot().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         return;
       }
     }
 
-    UserContextMenuController controller = uiService.loadFxml("theme/chat/user_context_menu.fxml");
+    UserContextMenuController controller = uiService.loadFxml("theme/user/user_context_menu.fxml");
     controller.setChatUser(chatUser);
-    controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    controller.getRoot().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 
     contextMenuController = new WeakReference<>(controller);
   }

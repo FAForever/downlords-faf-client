@@ -1,7 +1,6 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.chat.UserContextMenuController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
@@ -11,6 +10,7 @@ import com.faforever.client.player.Player;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.teammatchmaking.Party.PartyMember;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.user.UserContextMenuController;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -173,7 +173,7 @@ public class PartyMemberItemController implements Controller<Node> {
       }
     }
 
-    UserContextMenuController controller = uiService.loadFxml("theme/chat/user_context_menu.fxml");
+    UserContextMenuController controller = uiService.loadFxml("theme/user/user_context_menu.fxml");
     controller.setPlayer(player);
     controller.showSocialItems();
     controller.getRoot().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());

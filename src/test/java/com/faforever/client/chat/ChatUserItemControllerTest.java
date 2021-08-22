@@ -13,6 +13,7 @@ import com.faforever.client.preferences.PreferencesBuilder;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.user.UserContextMenuController;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.ObservableList;
@@ -163,8 +164,8 @@ public class ChatUserItemControllerTest extends UITest {
   public void testOnContextMenuRequested() {
     UserContextMenuController contextMenuController = mock(UserContextMenuController.class);
     ContextMenu contextMenu = mock(ContextMenu.class);
-    when(contextMenuController.getContextMenu()).thenReturn(contextMenu);
-    when(uiService.loadFxml("theme/chat/user_context_menu.fxml")).thenReturn(contextMenuController);
+    when(contextMenuController.getRoot()).thenReturn(contextMenu);
+    when(uiService.loadFxml("theme/user/user_context_menu.fxml")).thenReturn(contextMenuController);
 
     WaitForAsyncUtils.asyncFx(() -> getRoot().getChildren().setAll(instance.chatUserItemRoot));
 
@@ -175,7 +176,7 @@ public class ChatUserItemControllerTest extends UITest {
     ContextMenuEvent event = mock(ContextMenuEvent.class);
     instance.onContextMenuRequested(event);
 
-    verify(uiService).loadFxml("theme/chat/user_context_menu.fxml");
+    verify(uiService).loadFxml("theme/user/user_context_menu.fxml");
     verify(contextMenuController).setChatUser(chatUser);
     verify(contextMenu).show(any(Window.class), anyDouble(), anyDouble());
   }

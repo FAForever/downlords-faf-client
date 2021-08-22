@@ -1,7 +1,10 @@
-package com.faforever.client.chat;
+package com.faforever.client.user;
 
 import com.faforever.client.avatar.AvatarBean;
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatChannelUserBuilder;
+import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.game.Game;
 import com.faforever.client.game.GameBuilder;
@@ -109,7 +112,7 @@ public class UserContextMenuControllerTest extends UITest {
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
 
 
-    loadFxml("theme/chat/user_context_menu.fxml", clazz -> instance);
+    loadFxml("theme/user/user_context_menu.fxml", clazz -> instance);
 
     player = PlayerBuilder.create(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
     chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().player(player).get();

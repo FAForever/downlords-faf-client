@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.chat.InitiatePrivateChatEvent;
-import com.faforever.client.chat.UserContextMenuController;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
@@ -10,6 +9,7 @@ import com.faforever.client.player.PlayerBuilder;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.user.UserContextMenuController;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ContextMenu;
@@ -123,7 +123,7 @@ public class PlayerCardTooltipControllerTest extends UITest {
   public void testShowContextMenuOfPlayerByRightMouseClicking() {
     UserContextMenuController userContextMenuController = mock(UserContextMenuController.class);
     ContextMenu contextMenu = mock(ContextMenu.class);
-    when(uiService.loadFxml("theme/chat/user_context_menu.fxml")).thenReturn(userContextMenuController);
+    when(uiService.loadFxml("theme/user/user_context_menu.fxml")).thenReturn(userContextMenuController);
     when(userContextMenuController.getRoot()).thenReturn(contextMenu);
     Player player = PlayerBuilder.create("junit").socialStatus(SocialStatus.OTHER).get();
     runOnFxThreadAndWait(() -> {
