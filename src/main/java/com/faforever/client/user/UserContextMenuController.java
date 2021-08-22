@@ -114,8 +114,8 @@ public class UserContextMenuController implements Controller<ContextMenu> {
   public ComboBox<AvatarBean> avatarComboBox;
 
   private ChatChannelUser chatUser;
-  private InvalidationListener chatUserPropertyInvalidationListener;
   private Player player;
+  private boolean allowSocialActions = false;
 
   @Override
   public void initialize() {
@@ -135,30 +135,28 @@ public class UserContextMenuController implements Controller<ContextMenu> {
         !avatarComboBox.getItems().isEmpty(), avatarComboBox.getItems()));
   }
 
-  private void initializeListenersForChatUser() {
-    chatUserPropertyInvalidationListener = observable -> {
-      Optional<Player> optionalPlayer = chatUser.getPlayer();
-      optionalPlayer.ifPresent(player ->
-          moderatorService.getPermissions().thenAccept(permissions -> setModeratorOptions(permissions, player)));
-      SocialStatus socialStatus = chatUser.getSocialStatus().orElse(null);
-      PlayerStatus playerStatus = chatUser.getGameStatus().orElse(null);
-      Game game = optionalPlayer.map(Player::getGame).orElse(null);
-      if (socialStatus == SELF && optionalPlayer.isPresent()) {
-        loadAvailableAvatars(optionalPlayer.get());
-      }
-      JavaFxUtil.runLater(() -> {
-        showPlayerInfoItem.setVisible(optionalPlayer.isPresent());
-        viewReplaysItem.setVisible(optionalPlayer.isPresent());
-        sendPrivateMessageItem.setVisible(socialStatus != SELF);
-        setSocialItemsVisibility(socialStatus);
+  private void adjustItemsVisibility(Optional<Player> optionalPlayer) {
+    SocialStatus socialStatus = optionalPlayer.map(Player::getSocialStatus).orElse(null);
+    PlayerStatus playerStatus = optionalPlayer.map(Player::getStatus).orElse(null);
+    Game game = optionalPlayer.map(Player::getGame).orElse(null);
+    JavaFxUtil.runLater(() -> {
+      showPlayerInfoItem.setVisible(optionalPlayer.isPresent());
+      sendPrivateMessageItem.setVisible(socialStatus != SELF);
+      reportPlayerItem.setVisible(socialStatus != SELF);
+      viewReplaysItem.setVisible(optionalPlayer.isPresent());
+      joinGameItem.setVisible(socialStatus != SELF
+          && (playerStatus == PlayerStatus.LOBBYING || playerStatus == PlayerStatus.HOSTING)
+          && game != null && game.getGameType() != GameType.MATCHMAKER);
+      watchGameItem.setVisible(playerStatus == PlayerStatus.PLAYING);
 
-        joinGameItem.setVisible(socialStatus != SELF
-            && (playerStatus == PlayerStatus.LOBBYING || playerStatus == PlayerStatus.HOSTING)
-            && game != null && game.getGameType() != GameType.MATCHMAKER);
-        watchGameItem.setVisible(playerStatus == PlayerStatus.PLAYING);
+      if (allowSocialActions) {
         invitePlayerItem.setVisible(socialStatus != SELF && playerStatus == PlayerStatus.IDLE);
-      });
-    };
+        addFriendItem.setVisible(socialStatus != FRIEND && socialStatus != SELF);
+        removeFriendItem.setVisible(socialStatus == FRIEND);
+        addFoeItem.setVisible(socialStatus != FOE && socialStatus != SELF);
+        removeFoeItem.setVisible(socialStatus == FOE);
+      }
+    });
   }
 
   @NotNull
@@ -178,7 +176,14 @@ public class UserContextMenuController implements Controller<ContextMenu> {
     Assert.checkNotNullIllegalState(this.chatUser, "Chat User already set");
     Assert.checkNotNullIllegalState(this.player, "Player already set");
     this.chatUser = chatUser;
-    initializeListenersForChatUser();
+    allowSocialActions = true;
+    chatUser.getPlayer().ifPresent(player -> {
+      if (player.getSocialStatus() == SELF) {
+        loadAvailableAvatars(chatUser.getPlayer().get());
+      } else {
+        moderatorService.getPermissions().thenAccept(this::setModeratorOptions);
+      }
+    });
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
@@ -211,39 +216,23 @@ public class UserContextMenuController implements Controller<ContextMenu> {
         .and(colorPicker.valueProperty().isNotNull()));
     colorPickerMenuItem.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
 
+    InvalidationListener chatUserPropertyInvalidationListener = observable -> adjustItemsVisibility(chatUser.getPlayer());
     WeakInvalidationListener weakChatUserPropertyListener = new WeakInvalidationListener(chatUserPropertyInvalidationListener);
-    JavaFxUtil.addListener(chatUser.playerProperty(), weakChatUserPropertyListener);
-    JavaFxUtil.addListener(chatUser.socialStatusProperty(), weakChatUserPropertyListener);
-    JavaFxUtil.addAndTriggerListener(chatUser.gameStatusProperty(), weakChatUserPropertyListener);
+    JavaFxUtil.addAndTriggerListener(chatUser.playerProperty(), weakChatUserPropertyListener);
   }
 
   public void setPlayer(Player player) {
     Assert.checkNotNullIllegalState(this.player, "Player already set");
     Assert.checkNotNullIllegalState(this.chatUser, "Chat User already set");
     this.player = player;
+    adjustItemsVisibility(Optional.of(player));
   }
 
-  public void showSocialItems() {
-    setSocialItemsVisibility(getPlayer().getSocialStatus());
-  }
-
-  private void setSocialItemsVisibility(SocialStatus status) {
+  private void setModeratorOptions(Set<String> permissions) {
     JavaFxUtil.runLater(() -> {
-      addFriendItem.setVisible(status != FRIEND && status != SELF);
-      removeFriendItem.setVisible(status == FRIEND);
-      addFoeItem.setVisible(status != FOE && status != SELF);
-      removeFoeItem.setVisible(status == FOE);
-      reportPlayerItem.setVisible(status != SELF);
-    });
-  }
-
-  private void setModeratorOptions(Set<String> permissions, Player player) {
-    boolean notSelf = !player.getSocialStatus().equals(SELF);
-
-    JavaFxUtil.runLater(() -> {
-      kickGameItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
-      kickLobbyItem.setVisible(notSelf & permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
-      broadcastMessage.setVisible(notSelf & permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
+      kickGameItem.setVisible(permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+      kickLobbyItem.setVisible(permissions.contains(GroupPermission.ADMIN_KICK_SERVER));
+      broadcastMessage.setVisible(permissions.contains(GroupPermission.ROLE_WRITE_MESSAGE));
     });
   }
 
@@ -300,8 +289,7 @@ public class UserContextMenuController implements Controller<ContextMenu> {
 
   public void onReportPlayerSelected() {
     ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
-    chatUser.getPlayer().ifPresentOrElse(reportDialogController::setOffender,
-        () -> reportDialogController.setOffender(getUsername()));
+    reportDialogController.setOffender(getUsername());
     reportDialogController.setOwnerWindow(contextMenuRoot.getOwnerWindow());
     reportDialogController.show();
   }
@@ -328,7 +316,7 @@ public class UserContextMenuController implements Controller<ContextMenu> {
   }
 
   public void onViewReplaysSelected() {
-    eventBus.post(new ShowUserReplaysEvent( getPlayer().getId()));
+    eventBus.post(new ShowUserReplaysEvent(getPlayer().getId()));
   }
 
   public void onInviteToGameSelected() {

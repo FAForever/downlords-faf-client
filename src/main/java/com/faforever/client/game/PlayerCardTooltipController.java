@@ -81,15 +81,10 @@ public class PlayerCardTooltipController implements Controller<Node> {
   }
 
   private void showContextMenu(MouseEvent event, Player player) {
-    Window window = getRoot().getScene().getWindow();
-    if (playerContextMenuReference != null && playerContextMenuReference.get() != null) {
-      playerContextMenuReference.get().getRoot().show(window, event.getScreenX(), event.getScreenY());
-    } else {
-      UserContextMenuController controller = uiService.loadFxml("theme/user/user_context_menu.fxml");
-      controller.setPlayer(player);
-      controller.getRoot().show(window, event.getScreenX(), event.getScreenY());
-      playerContextMenuReference = new WeakReference<>(controller);
-    }
+    UserContextMenuController controller = uiService.loadFxml("theme/user/user_context_menu.fxml");
+    controller.setPlayer(player);
+    controller.getRoot().show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    playerContextMenuReference = new WeakReference<>(controller);
   }
 
   public Node getRoot() {

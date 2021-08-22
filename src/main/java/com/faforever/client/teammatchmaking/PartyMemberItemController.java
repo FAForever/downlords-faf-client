@@ -67,7 +67,6 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private Player player;
-  private WeakReference<UserContextMenuController> contextMenuController = null;
   private InvalidationListener playerStatusInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
   private InvalidationListener partyOwnerInvalidationListener;
@@ -165,19 +164,8 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuController != null) {
-      UserContextMenuController controller = contextMenuController.get();
-      if (controller != null) {
-        controller.getRoot().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        return;
-      }
-    }
-
     UserContextMenuController controller = uiService.loadFxml("theme/user/user_context_menu.fxml");
     controller.setPlayer(player);
-    controller.showSocialItems();
     controller.getRoot().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-
-    contextMenuController = new WeakReference<>(controller);
   }
 }

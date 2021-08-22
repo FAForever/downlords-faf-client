@@ -36,8 +36,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.ref.WeakReference;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
@@ -70,7 +68,6 @@ public class ChatUserItemController implements Controller<Node> {
   private Tooltip avatarTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
-  private WeakReference<UserContextMenuController> contextMenuController = null;
 
   public ChatUserItemController(PreferencesService preferencesService,
                                 I18n i18n, UiService uiService, EventBus eventBus, PlayerService playerService,
@@ -173,19 +170,9 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuController != null) {
-      UserContextMenuController controller = contextMenuController.get();
-      if (controller != null) {
-        controller.getRoot().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        return;
-      }
-    }
-
     UserContextMenuController controller = uiService.loadFxml("theme/user/user_context_menu.fxml");
     controller.setChatUser(chatUser);
     controller.getRoot().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-
-    contextMenuController = new WeakReference<>(controller);
   }
 
   public void onItemClicked(MouseEvent mouseEvent) {

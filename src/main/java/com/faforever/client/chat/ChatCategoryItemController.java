@@ -28,7 +28,6 @@ public class ChatCategoryItemController implements Controller<Node> {
   private final UiService uiService;
   private final PreferencesService preferencesService;
   public Label chatUserCategoryRoot;
-  private WeakReference<ChatCategoryContextMenuController> contextMenuController = null;
   private ChatUserCategory chatUserCategory;
 
   void setChatUserCategory(@Nullable ChatUserCategory chatUserCategory) {
@@ -53,19 +52,9 @@ public class ChatCategoryItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuController != null) {
-      ChatCategoryContextMenuController controller = contextMenuController.get();
-      if (controller != null) {
-        controller.getContextMenu().show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        return;
-      }
-    }
-
     ChatCategoryContextMenuController controller = uiService.loadFxml("theme/chat/chat_category_context_menu.fxml");
     controller.setCategory(chatUserCategory);
     controller.getContextMenu().show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-
-    contextMenuController = new WeakReference<>(controller);
   }
 
   @Override
