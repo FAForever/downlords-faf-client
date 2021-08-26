@@ -1,5 +1,9 @@
+import com.faforever.client.Update4jConfigTask
 import com.install4j.gradle.Install4jTask
+import de.undercouch.gradle.tasks.download.Download
 import org.gradle.internal.os.OperatingSystem
+
+import java.nio.file.Paths
 
 buildscript {
   repositories {
@@ -17,6 +21,8 @@ plugins {
   id "co.riiid.gradle" version "0.4.2"
   id "de.undercouch.download" version "4.1.1"
   id 'jacoco'
+  id "org.jetbrains.gradle.plugin.idea-ext" version "0.7"
+  id 'org.beryx.runtime' version '1.11.0'
 }
 
 // source: https://github.com/mendhak/Gradle-Travis-Colored-Output/blob/master/ColoredOutput.gradle
@@ -42,8 +48,8 @@ tasks.withType(Test) {
       String exceptions = result.getException().toString().split("\\n").join("\n" + indent)
 
       out.println("\n" + ANSI_BOLD_WHITE + descriptor.parent.name + ANSI_RESET
-                  + "\n" + indent + ANSI_RED + X_MARK + ANSI_RESET + " " + descriptor.name
-                  + "\n" + indent + exceptions)
+        + "\n" + indent + ANSI_RED + X_MARK + ANSI_RESET + " " + descriptor.name
+        + "\n" + indent + exceptions)
     }
   }
 
@@ -64,11 +70,11 @@ tasks.withType(Test) {
 
       out.println("--------------------------------------------------------------------------");
       out.println("Results: " + summaryStyle + "${result.resultType}" + ANSI_RESET
-              + " (${result.testCount} tests, "
-              + ANSI_GREEN + "${result.successfulTestCount} passed" + ANSI_RESET
-              + ", " + failStyle + "${result.failedTestCount} failed" + ANSI_RESET
-              + ", " + skipStyle + "${result.skippedTestCount} skipped" + ANSI_RESET
-              + ")");
+        + " (${result.testCount} tests, "
+        + ANSI_GREEN + "${result.successfulTestCount} passed" + ANSI_RESET
+        + ", " + failStyle + "${result.failedTestCount} failed" + ANSI_RESET
+        + ", " + skipStyle + "${result.skippedTestCount} skipped" + ANSI_RESET
+        + ")");
       out.println("--------------------------------------------------------------------------");
     }
   }
@@ -85,9 +91,13 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'distribution'
 
+allprojects {
+  sourceCompatibility = JavaVersion.VERSION_15
+  targetCompatibility = JavaVersion.VERSION_15
+}
 
-sourceCompatibility = JavaVersion.VERSION_15
-targetCompatibility = JavaVersion.VERSION_15
+mainClassName = "com.faforever.client.Main"
+group 'com.faforever'
 
 // These are read from gradle.properties
 version "${version}"
@@ -96,7 +106,7 @@ project.ext.javafxPlatform = "${javafxPlatform}"
 bootJar.enabled = false
 jar.enabled = true
 
-if (javafxPlatform == "unspecified") {
+if (project.ext.javafxPlatform == "unspecified") {
   switch (OperatingSystem.current()) {
     case OperatingSystem.LINUX:
       project.ext.javafxPlatform = "linux"
@@ -109,7 +119,7 @@ if (javafxPlatform == "unspecified") {
       break
   }
 }
-println "Platform is: ${javafxPlatform}"
+println "Platform is: ${project.ext.javafxPlatform}"
 
 compileJava.dependsOn(processResources)
 processResources {
@@ -133,58 +143,67 @@ jacocoTestReport {
 test {
   useJUnitPlatform()
   systemProperties = [
-          'junit.jupiter.execution.parallel.enabled': true
+    'junit.jupiter.execution.parallel.enabled': true
   ]
 }
 
 configurations {
   codacy
+  webViewPatch
+  updater
 }
 
-
 bootRun {
-    main = "com.faforever.client.Main"
-    jvmArgs = [
-            "-DnativeDir=build/resources/native",
-            "-Dprism.dirtyopts=false",
-            "-Dprism.forceGPU=true",
-            "-Xms128m",
-            "-Xmx712m",
-            "-XX:MinHeapFreeRatio=15",
-            "-XX:MaxHeapFreeRatio=33",
-            "-XX:+HeapDumpOnOutOfMemoryError",
-            "-XX:+UseStringDeduplication",
-            "-XX:ConcGCThreads=1",
-            "-XX:ParallelGCThreads=1",
-            "-XX:+UseG1GC",
-            "-javaagent:webview-patch/build/libs/webview-patch.jar",
-            "-Djava.net.preferIPv4Stack=true",
-            "-XX:TieredStopAtLevel=1"
-    ]
+  main = "com.faforever.client.Main"
+  jvmArgs = [
+    "-DnativeDir=build/resources/native",
+    "-Dprism.dirtyopts=false",
+    "-Dprism.forceGPU=true",
+    "-Xms128m",
+    "-Xmx712m",
+    "-XX:MinHeapFreeRatio=15",
+    "-XX:MaxHeapFreeRatio=33",
+    "-XX:+HeapDumpOnOutOfMemoryError",
+    "-XX:+UseStringDeduplication",
+    "-XX:ConcGCThreads=1",
+    "-XX:ParallelGCThreads=1",
+    "-XX:+UseG1GC",
+    "-javaagent:webview-patch/build/libs/webview-patch.jar",
+    "-Djava.net.preferIPv4Stack=true",
+    "-XX:TieredStopAtLevel=1"
+  ]
 }
 
 jar {
-  manifest {
-    attributes "Main-Class": "com.faforever.client.Main",
-        "Implementation-Title": "Downlord's FAF Client",
+  doFirst {
+    manifest {
+      attributes "Main-Class": project.mainClassName,
+        "Implementation-Title": "FAF Client",
         "Implementation-Version": archiveVersion,
-        "Implementation-Vendor": "Downlord"
+        "Implementation-Vendor": "Downlord",
+        "Class-Path": (configurations.runtimeClasspath.collect { it.name }.join(' '))
+    }
   }
 }
 
 distributions {
   main {
     contents {
-      from {
-        [
-            configurations.runtimeClasspath,
-            jar,
-            downloadIceAdapter.outputs.files,
-            downloadUnixUid.outputs.files,
-            downloadWindowsUid.outputs.files
-        ]
+      into('tools') {
+        from { [downloadIceAdapter.outputs.files, downloadUnixUid.outputs.files, downloadWindowsUid.outputs.files] }
+        from "${rootDir}/src/media/splash/splash.png"
+
+        from(configurations.webViewPatch) {
+          include "*webview-patch*.jar"
+          rename '.*webview-patch.*\\.jar', 'webview-patch.jar'
+        }
+        from(configurations.updater) {
+          include "updater-*.jar"
+          rename 'updater-.*\\.jar', 'updater.jar'
+        }
       }
       exclude('**/i4jruntime*.jar')
+      into('')
     }
   }
 }
@@ -224,43 +243,101 @@ task buildInstall4jMediaFiles(type: Install4jTask) {
       throw new RuntimeException('Specify install4jHomeDir in gradle.properties and set it to an install4j installation directory')
     }
   }
+
+  doLast {
+    if (project.ext.javafxPlatform == "win") {
+      def zipPath = file("${buildDir}/install4j").listFiles().find { it.name.startsWith('faf_windows-x64_') && it.name.endsWith('.zip') }
+      copy {
+        // TODO if someone knows how to hook this to the output of buildInstall4jMediaFiles, please do so
+        from(zipTree(zipPath))
+        into "${buildDir}/update4j/win/"
+      }
+    } else if (project.ext.javafxPlatform == "linux") {
+      def tarPath = file("${buildDir}/install4j").listFiles().find { it.name.startsWith('faf_unix_') && it.name.endsWith('.tar.gz') }
+      copy {
+        // TODO if someone knows how to hook this to the output of buildInstall4jMediaFiles, please do so
+        from(tarTree(resources.gzip(tarPath)))
+        into "${buildDir}/update4j/unix/"
+      }
+    } else {
+      throw new GradleException("Unsupported: " + project.ext.javafxPlatform)
+    }
+  }
 }
 
+task downloadWebViewPatch(type: Copy) {
+  from(configurations.webViewPatch) {
+    include "*webview-patch*.jar"
+  }
+  into "${buildDir}/webview-patch/"
+  rename '.*webview-patch.*\\.jar', 'webview-patch.jar'
+}
+assemble.dependsOn downloadWebViewPatch
+
+/* Makes updater.jar available as a resource to the application. */
+task copyUpdaterToResources(type: Copy) {
+  from(configurations.updater) {
+    include "updater-*.jar"
+  }
+  into "${buildDir}/resources/updater"
+  rename 'updater-.*\\.jar', 'updater.jar'
+}
+assemble.dependsOn copyUpdaterToResources
+
 task downloadIceAdapter(type: Download) {
-  group "native dependencies"
+  group "external tools"
   src "https://github.com/FAForever/java-ice-adapter/releases/download/v${faf_ice_adapter_version}/faf-ice-adapter.jar"
-  dest file("${buildDir}/resources/native/faf-ice-adapter.jar")
+  dest file("${buildDir}/resources/tools/faf-ice-adapter.jar")
   onlyIfNewer true
 }
 
 task downloadUnixUid(type: Download) {
-  group "native dependencies"
+  group "external tools"
   src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid"
-  dest file("${buildDir}/resources/native/faf-uid")
+  dest file("${buildDir}/resources/tools/faf-uid")
   onlyIfNewer true
   doLast {
-    file("${buildDir}/resources/native/faf-uid").setExecutable(true, false)
+    file("${buildDir}/resources/tools/faf-uid").setExecutable(true, false)
   }
 }
 
 task downloadWindowsUid(type: Download) {
-  group "native dependencies"
+  group "external tools"
   src "https://github.com/FAForever/uid/releases/download/v${faf_uid_version}/faf-uid.exe"
-  dest file("${buildDir}/resources/native/faf-uid.exe")
+  dest file("${buildDir}/resources/tools/faf-uid.exe")
   onlyIfNewer true
 }
 
 task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid, downloadIceAdapter]) {
-  group "native dependencies"
+  group "external tools"
 }
 
-compileJava.dependsOn 'downloadNativeDependencies'
-compileJava.dependsOn ':webview-patch:build'
+task update4jConfig(type: Update4jConfigTask, dependsOn: buildInstall4jMediaFiles) {
+  baseUrl = project.getProperties().getOrDefault("update4jBaseUrl", "http://localhost/\${version}")
+  if (project.ext.javafxPlatform == null) {
+    throw new IllegalStateException("project.ext.javafxPlatform is missing")
+  }
+  println "2 Platform is: " + project.ext.javafxPlatform
+
+  if (project.ext.javafxPlatform == "win") {
+    sourceDir = Paths.get("${buildDir}/update4j/win/faf-client-${project.version}")
+    println "sourceDir is: " + project.ext.javafxPlatform
+  } else if (project.ext.javafxPlatform == "linux") {
+    sourceDir = Paths.get("${buildDir}/update4j/unix/faf-client-${project.version}")
+  }
+  update4jXml = sourceDir.resolve("update4j.xml")
+}
+
+assemble.dependsOn 'downloadNativeDependencies'
 
 task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
   main = "com.codacy.CodacyCoverageReporter"
   classpath = configurations.codacy
   args = ["-l", "Java", "-r", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"]
+}
+
+idea.project.settings.taskTriggers {
+  beforeSync tasks.getByName("downloadNativeDependencies"), tasks.getByName("copyUpdaterToResources")
 }
 
 repositories {
@@ -310,6 +387,7 @@ dependencies {
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:7.3.0")
   implementation("org.mapstruct:mapstruct:1.4.2.Final")
+  implementation "org.update4j:update4j:${update4jVersion}"
 
   implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
   implementation("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
@@ -322,7 +400,8 @@ dependencies {
   implementation("org.controlsfx:controlsfx:${controlsfxVersion}")
   implementation("org.fxmisc.flowless:flowless:${flowlessVersion}")
 
-  implementation(project(":webview-patch"))
+  webViewPatch(project(":webview-patch"))
+  updater project(':updater')
   implementation("org.javassist:javassist:${project.ext['javassist.version']}")
 
   implementation("com.install4j:install4j-runtime:${install4jVersion}")

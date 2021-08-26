@@ -4,11 +4,13 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.install4j.api.launcher.StartupNotification;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -22,12 +24,14 @@ import java.nio.file.Paths;
 @Component
 @Slf4j
 @RequiredArgsConstructor
+@ConditionalOnClass(StartupNotification.class)
 public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
 
   private final ReplayService replayService;
   private final NotificationService notificationService;
 
   @Override
+  @SneakyThrows
   public void afterPropertiesSet() {
     log.debug("Registering file opening handler: {}", this.getClass().getName());
     StartupNotification.registerStartupListener(this::onStartup);

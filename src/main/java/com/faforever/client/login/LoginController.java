@@ -17,11 +17,9 @@ import com.faforever.client.status.StatPingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientUpdateService;
-import com.faforever.client.update.DownloadUpdateTask;
-import com.faforever.client.update.UpdateInfo;
+import com.faforever.client.update.ClientUpdateTask;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
-import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.Node;
@@ -40,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -91,15 +90,12 @@ public class LoginController implements Controller<Pane> {
   public TextField oauthBaseUrlField;
   public CheckBox rememberMeCheckBox;
 
-  @VisibleForTesting
-  CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<Void> resetPageFuture;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane, loginWebView,
-        serverConfigPane, errorPane, loginProgressPane, messagesContainer);
+      serverConfigPane, errorPane, loginProgressPane, messagesContainer);
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
-    updateInfoFuture = clientUpdateService.getNewestUpdate();
 
     messagesContainer.setVisible(false);
     downloadUpdateButton.setVisible(false);
@@ -150,36 +146,36 @@ public class LoginController implements Controller<Pane> {
 
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
-          .thenAccept(clientConfiguration -> {
-            ServerEndpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
+        .thenAccept(clientConfiguration -> {
+          ServerEndpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
 
-            clientProperties.updateFromEndpoint(defaultEndpoint);
+          clientProperties.updateFromEndpoint(defaultEndpoint);
 
-            String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
-            boolean shouldUpdate = false;
-            try {
-              shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
-            } catch (Exception e) {
-              log.error("Error occurred checking for update", e);
-            }
+          ComparableVersion minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
+          boolean shouldUpdate = false;
+          try {
+            shouldUpdate = Version.shouldUpdate(minimumVersion);
+          } catch (Exception e) {
+            log.error("Error occurred checking for update", e);
+          }
 
-            if (minimumVersion != null && shouldUpdate) {
-              JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
-            }
+          if (minimumVersion != null && shouldUpdate) {
+            JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
+          }
 
-            JavaFxUtil.runLater(() -> {
-              environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
-              environmentComboBox.getSelectionModel().select(defaultEndpoint);
-            });
-          }).exceptionally(throwable -> {
-            log.warn("Could not read remote preferences", throwable);
-            return null;
-          }).thenRunAsync(() -> {
-            String refreshToken = loginPrefs.getRefreshToken();
-            if (refreshToken != null) {
-              loginWithToken(refreshToken);
-            }
+          JavaFxUtil.runLater(() -> {
+            environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
+            environmentComboBox.getSelectionModel().select(defaultEndpoint);
           });
+        }).exceptionally(throwable -> {
+          log.warn("Could not read remote preferences", throwable);
+          return null;
+        }).thenRunAsync(() -> {
+          String refreshToken = loginPrefs.getRefreshToken();
+          if (refreshToken != null) {
+            loginWithToken(refreshToken);
+          }
+        });
     } else {
       initializeFuture = CompletableFuture.completedFuture(null);
     }
@@ -207,9 +203,9 @@ public class LoginController implements Controller<Pane> {
 
       if (params.stream().anyMatch(param -> param.getName().equals("error"))) {
         String error = params.stream().filter(param -> param.getName().equals("error"))
-            .findFirst().map(NameValuePair::getValue).orElse(null);
+          .findFirst().map(NameValuePair::getValue).orElse(null);
         String errorDescription = params.stream().filter(param -> param.getName().equals("error_description"))
-            .findFirst().map(NameValuePair::getValue).orElse(null);
+          .findFirst().map(NameValuePair::getValue).orElse(null);
         log.warn("Error during login error: url {}; error {}; {}", newValue, error, errorDescription);
         reloadLogin();
         notificationService.addImmediateErrorNotification(new RuntimeException("Error during login"), "login.error", error, errorDescription);
@@ -217,14 +213,14 @@ public class LoginController implements Controller<Pane> {
       }
 
       String reportedState = params.stream().filter(param -> param.getName().equals("state"))
-          .map(NameValuePair::getValue)
-          .findFirst()
-          .orElse(null);
+        .map(NameValuePair::getValue)
+        .findFirst()
+        .orElse(null);
 
       String code = params.stream().filter(param -> param.getName().equals("code"))
-          .map(NameValuePair::getValue)
-          .findFirst()
-          .orElse(null);
+        .map(NameValuePair::getValue)
+        .findFirst()
+        .orElse(null);
 
       if (reportedState != null) {
 
@@ -285,8 +281,8 @@ public class LoginController implements Controller<Pane> {
 
   private CompletableFuture<List<Message>> checkGlobalAnnouncements() {
     return statPingService.getMessages()
-        .filter(LoginController::shouldDisplayAnnouncement)
-        .collectList().toFuture();
+      .filter(LoginController::shouldDisplayAnnouncement)
+      .collectList().toFuture();
   }
 
   private static boolean shouldDisplayAnnouncement(Message message) {
@@ -295,8 +291,8 @@ public class LoginController implements Controller<Pane> {
 
   private CompletableFuture<List<Service>> checkOfflineServices() {
     return statPingService.getServices()
-        .filter(service -> !service.isOnline())
-        .collectList().toFuture();
+      .filter(service -> !service.isOnline())
+      .collectList().toFuture();
   }
 
   private void displayAnnouncements(List<Message> messages) {
@@ -335,10 +331,10 @@ public class LoginController implements Controller<Pane> {
     }
 
     return service.getMessages().stream()
-        .filter(this::isHappeningNow)
-        .findFirst()
-        .map(Message::getTitle)
-        .orElse(i18n.get("reasonUnknown"));
+      .filter(this::isHappeningNow)
+      .findFirst()
+      .map(Message::getTitle)
+      .orElse(i18n.get("reasonUnknown"));
   }
 
   private void reloadLogin() {
@@ -349,7 +345,7 @@ public class LoginController implements Controller<Pane> {
     }
   }
 
-  private void showClientOutdatedPane(String minimumVersion) {
+  private void showClientOutdatedPane(ComparableVersion minimumVersion) {
     JavaFxUtil.runLater(() -> {
       errorPane.setVisible(true);
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
@@ -379,44 +375,50 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void onDownloadUpdateButtonClicked() {
-    downloadUpdateButton.setOnAction(event -> {
-    });
-    log.info("Downloading update");
-    updateInfoFuture
-        .thenAccept(updateInfo -> {
-          DownloadUpdateTask downloadUpdateTask = clientUpdateService.downloadAndInstallInBackground(updateInfo);
+    String downloadButtonText = downloadUpdateButton.getText();
+    downloadUpdateButton.setDisable(true);
+    downloadUpdateButton.setText(i18n.get("login.button.downloadPreparing"));
 
-          if (downloadUpdateTask != null) {
-            downloadUpdateButton.textProperty().bind(
-                Bindings.createStringBinding(() -> downloadUpdateTask.getProgress() == -1 ?
-                        i18n.get("login.button.downloadPreparing") :
-                        i18n.get("login.button.downloadProgress", downloadUpdateTask.getProgress()),
-                    downloadUpdateTask.progressProperty()));
-          }
-        });
+    clientUpdateService.checkForUpdateInBackground().thenCompose(updateInfo -> {
+      if (updateInfo.isEmpty()) {
+        return CompletableFuture.completedFuture(null);
+      }
+      log.info("Downloading update: {}", updateInfo);
+      ClientUpdateTask clientUpdateTask = clientUpdateService.updateInBackground(updateInfo.get());
+
+      downloadUpdateButton.textProperty().bind(
+        Bindings.createStringBinding(() -> i18n.get("login.button.downloadProgress", Math.max(0, clientUpdateTask.getProgress())),
+          clientUpdateTask.progressProperty()));
+      return clientUpdateTask.getFuture();
+    }).handle((aVoid, throwable) -> {
+      downloadUpdateButton.textProperty().unbind();
+      downloadUpdateButton.setText(downloadButtonText);
+      downloadUpdateButton.setDisable(false);
+      return null;
+    });
   }
 
   private void loginWithCode(String code) {
     showLoginProgess();
     userService.login(code)
-        .exceptionally(throwable -> {
-          showLoginForm();
-          notificationService.addImmediateErrorNotification(throwable, "login.failed");
-          return null;
-        });
+      .exceptionally(throwable -> {
+        showLoginForm();
+        notificationService.addImmediateErrorNotification(throwable, "login.failed");
+        return null;
+      });
   }
 
   private void loginWithToken(String refreshToken) {
     showLoginProgess();
     userService.loginWithRefreshToken(refreshToken)
-        .exceptionally(throwable -> {
-          showLoginForm();
-          if (!(throwable.getCause() instanceof HttpClientErrorException.BadRequest
-              || throwable.getCause() instanceof HttpClientErrorException.Unauthorized)) {
-            notificationService.addImmediateErrorNotification(throwable, "login.failed");
-          }
-          return null;
-        });
+      .exceptionally(throwable -> {
+        showLoginForm();
+        if (!(throwable.getCause() instanceof HttpClientErrorException.BadRequest
+          || throwable.getCause() instanceof HttpClientErrorException.Unauthorized)) {
+          notificationService.addImmediateErrorNotification(throwable, "login.failed");
+        }
+        return null;
+      });
   }
 
   private void showLoginForm() {

@@ -70,7 +70,7 @@ public class AchievementItemController implements Controller<Node> {
   public void setPlayerAchievement(PlayerAchievement playerAchievement) {
     Assert.checkNullIllegalState(achievementDefinition, "achievementDefinition needs to be set first");
     Assert.checkObjectUnequalsIllegalState(achievementDefinition.getId(), playerAchievement.getAchievement().getId(),
-        "Achievement ID does not match");
+      "Achievement ID does not match");
 
     if (AchievementState.UNLOCKED == AchievementState.valueOf(playerAchievement.getState().name())) {
       imageView.setImage(achievementService.getImage(achievementDefinition, AchievementState.UNLOCKED));

@@ -44,7 +44,7 @@
         </VBox>
         <VBox fx:id="loginFormPane" alignment="TOP_CENTER" spacing="5.0" VBox.vgrow="SOMETIMES">
             <children>
-                <WebView fx:id="loginWebView" maxWidth="800.0" minHeight="100.0" minWidth="100.0" VBox.vgrow="ALWAYS"/>
+                <WebView fx:id="loginWebView" maxWidth="800.0" minHeight="100.0" minWidth="100.0" VBox.vgrow="ALWAYS" />
                 <HBox alignment="CENTER" maxWidth="500" spacing="10.0" VBox.vgrow="NEVER">
                     <children>
                         <Label maxHeight="1.7976931348623157E308" minWidth="-Infinity" onMouseClicked="#onMouseClicked" text="%login.environment">
@@ -58,15 +58,15 @@
                 </HBox>
                 <GridPane fx:id="serverConfigPane" alignment="CENTER" maxWidth="500" vgap="5.0" VBox.vgrow="NEVER">
                     <columnConstraints>
-                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
-                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
-                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
-                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
-                        <RowConstraints/>
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints />
                     </rowConstraints>
                     <children>
                         <TextField fx:id="serverHostField" promptText="%login.serverHost" />

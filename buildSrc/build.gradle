@@ -1,0 +1,9 @@
+repositories {
+  mavenCentral()
+  maven { url 'https://maven.ej-technologies.com/repository' }
+}
+
+dependencies {
+  // Must be manually synced with gradle.properties
+  implementation "org.update4j:update4j:1.5.7"
+}

@@ -1,24 +1,19 @@
 package com.faforever.client.update;
 
-import lombok.NonNull;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
-import java.util.regex.Pattern;
-
-import static java.text.MessageFormat.format;
-
 @Slf4j
 public final class Version {
-  private static String currentVersion;
-
-  private static final String SNAPSHOT_VERSION = "snapshot";
-  private static final Pattern SEMVER_PATTERN = Pattern.compile("v?\\d+(\\.\\d+)*[^.]*");
-  private static final String UNSPECIFIED_VERSION = "unspecified";
+  @VisibleForTesting
+  static final ComparableVersion UNSPECIFIED_VERSION = new ComparableVersion("0.0.0");
+  @VisibleForTesting
+  public static ComparableVersion currentVersion;
 
   static {
     String version = Version.class.getPackage().getImplementationVersion();
-    currentVersion = version != null ? version : SNAPSHOT_VERSION;
+    currentVersion = version != null ? new ComparableVersion(version) : UNSPECIFIED_VERSION;
 
     log.info("The current application version is: {}", currentVersion);
   }
@@ -27,12 +22,8 @@ public final class Version {
     // static class
   }
 
-  public static String getCurrentVersion() {
+  public static ComparableVersion getCurrentVersion() {
     return currentVersion;
-  }
-
-  public static boolean followsSemverPattern(String versionString) {
-    return versionString != null && SEMVER_PATTERN.matcher(versionString).matches();
   }
 
   /**
@@ -40,49 +31,19 @@ public final class Version {
    *
    * @return true if the remote version is higher than the current version
    */
-  public static boolean shouldUpdate(@NonNull String fromVersionRaw, @NonNull String toVersionRaw) {
-    log.debug("Comparing current version '{}' to remote version '{}'", currentVersion, toVersionRaw);
+  public static boolean shouldUpdate(ComparableVersion version) {
+    log.debug("Comparing version '{}' to remote version '{}'", currentVersion, version);
 
-    // Strip the "v" prefix
-    String fromVersion = removePrefix(fromVersionRaw);
-    String toVersion = removePrefix(toVersionRaw);
-
-    if (fromVersion.equals(SNAPSHOT_VERSION) || fromVersion.equals(UNSPECIFIED_VERSION)) {
+    if (currentVersion.equals(UNSPECIFIED_VERSION)) {
       log.info("Snapshot versions are not to be updated");
       return false;
     }
 
-    if (!followsSemverPattern(fromVersion)) {
-      log.error("fromVersion '{}' is not matching semver pattern", fromVersion);
-      // since obviously the app is not properly versioned, throw an exception - this should not happen
-      throw new IllegalArgumentException(format("fromVersion ''{0}'' is not matching semver pattern", fromVersion));
-    }
-
-    if (!followsSemverPattern(toVersion)) {
-      log.error("toVersion '{}' is not matching semver pattern", toVersion);
-      // probably issue on the remote side where we fetched the toVersion - no exception and "just no update"
+    if (currentVersion.compareTo(version) > -1) {
+      log.info("Version '{}' is not newer than current version '{}'", version, currentVersion);
       return false;
     }
-
-    ComparableVersion fromComparableVersion = new ComparableVersion(fromVersion);
-    ComparableVersion toComparableVersion = new ComparableVersion(toVersion);
-
-    if (toComparableVersion.compareTo(fromComparableVersion) < 1) {
-      log.info("fromVersion '{}' is not newer than toVersion '{}'. No update is required.",
-          toComparableVersion.getCanonical(), fromComparableVersion.getCanonical());
-      return false;
-    } else {
-      log.info("fromVersion version '{}' is newer than toVersion '{}'. fromVersion should be updated.",
-          toComparableVersion.getCanonical(), fromComparableVersion.getCanonical());
-      return true;
-    }
-  }
-
-  public static String removePrefix(String version) {
-    if (version.startsWith("v")) {
-      return version.substring(1);
-    } else {
-      return version;
-    }
+    log.info("Version '{}' is newer than current version '{}'", version, currentVersion);
+    return true;
   }
 }

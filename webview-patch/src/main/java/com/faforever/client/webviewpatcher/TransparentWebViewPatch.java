@@ -17,7 +17,7 @@ package com.faforever.client.webviewpatcher; /**
  * software.
  * <p>
  * 3. This notice may not be removed or altered from any source distribution.
- *
+ * <p>
  * Changes made to the original can be seen in the git history.
  */
 
@@ -54,8 +54,8 @@ public class TransparentWebViewPatch implements ClassFileTransformer {
         // it changes
         CtMethod fireLoadEvent_method = ct_class.getDeclaredMethod("fireLoadEvent");
         fireLoadEvent_method.insertBefore("{\n" + "    "
-            + "setBackgroundColor(0);\n"
-            + "}");
+          + "setBackgroundColor(0);\n"
+          + "}");
 
         _CLASS_POOL.importPackage("com.sun.webkit.graphics");
 
@@ -64,10 +64,10 @@ public class TransparentWebViewPatch implements ClassFileTransformer {
         // when the page is scrolled
         CtMethod scroll_method = ct_class.getDeclaredMethod("scroll");
         scroll_method.insertBefore(
-            "{\n" + "   "
-                + "addDirtyRect(new com.sun.webkit.graphics.WCRectangle(0f,0f,(float)width,(float)height));\n"
-                + "return;"
-                + "}"
+          "{\n" + "   "
+            + "addDirtyRect(new com.sun.webkit.graphics.WCRectangle(0f,0f,(float)width,(float)height));\n"
+            + "return;"
+            + "}"
         );
         byte_code = ct_class.toBytecode();
         ct_class.detach();
@@ -87,9 +87,9 @@ public class TransparentWebViewPatch implements ClassFileTransformer {
         CtClass[] signature = new CtClass[]{_CLASS_POOL.get("com.sun.webkit.graphics.WCRectangle")};
         CtMethod setClip_method = ct_class.getDeclaredMethod("setClip", signature);
         setClip_method.insertBefore(
-            "{" + "  "
-                + " $0.clearRect($1.getX(),$1.getY(),$1.getWidth(),$1.getHeight());"
-                + "}");
+          "{" + "  "
+            + " $0.clearRect($1.getX(),$1.getY(),$1.getWidth(),$1.getHeight());"
+            + "}");
         byte_code = ct_class.toBytecode();
         ct_class.detach();
       } catch (Exception e) {

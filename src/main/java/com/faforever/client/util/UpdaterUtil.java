@@ -22,7 +22,6 @@ public class UpdaterUtil {
    *
    * @param filePath the zip file to extract the movies directory from
    * @param fafDataDirectory the path to the FAF data directory
-   * @throws IOException
    */
   public static void extractMoviesIfPresent(Path filePath, Path fafDataDirectory) throws IOException {
     try {

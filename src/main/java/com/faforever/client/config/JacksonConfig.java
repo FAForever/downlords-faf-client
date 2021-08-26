@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.annotations.VisibleForTesting;
-
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +30,9 @@ public class JacksonConfig {
 
     @Override
     public ComparableVersion deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-      return new ComparableVersion(p.getValueAsString());
+      String valueAsString = p.getValueAsString();
+      valueAsString = valueAsString.startsWith("v") ? valueAsString.substring(1) : valueAsString;
+      return new ComparableVersion(valueAsString);
     }
   }
 

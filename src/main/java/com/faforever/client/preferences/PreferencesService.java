@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.remote.gson.ComparableVersionMixin;
 import com.faforever.client.serialization.ColorMixin;
 import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.serialization.PathDeserializer;
@@ -40,9 +41,11 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.logging.LogFile;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -108,17 +111,17 @@ public class PreferencesService implements InitializingBean {
   private static final Path FEATURED_MOD_CACHE_PATH;
 
   static {
-    if (org.bridj.Platform.isWindows()) {
-      FAF_DATA_DIRECTORY = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
-    } else {
-      FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
-    }
+     if (org.bridj.Platform.isWindows()) {
+       FAF_DATA_DIRECTORY = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+     } else {
+       FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
     FEATURED_MOD_CACHE_PATH = CACHE_DIRECTORY.resolve(FEATURED_MOD_CACHE_SUB_FOLDER);
 
-    System.setProperty("LOG_FILE", PreferencesService.FAF_DATA_DIRECTORY
+    System.setProperty(LogFile.FILE_NAME_PROPERTY, PreferencesService.FAF_DATA_DIRECTORY
         .resolve("logs")
-        .resolve("client.log")
+        .resolve("faf-client.log")
         .toString());
     // duplicated, see getFafLogDirectory; make getFafLogDirectory or log dir static?
 
@@ -163,7 +166,8 @@ public class PreferencesService implements InitializingBean {
         .enable(SerializationFeature.INDENT_OUTPUT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .addMixIn(Color.class, ColorMixin.class)
-        .addMixIn(Faction.class, FactionMixin.class);
+        .addMixIn(Faction.class, FactionMixin.class)
+        .addMixIn(ComparableVersion.class, ComparableVersionMixin.class);
 
     TypeFactory typeFactory = objectMapper.getTypeFactory();
 

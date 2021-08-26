@@ -16,10 +16,12 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfigurationBuilder;
 import com.faforever.client.update.ClientUpdateService;
-import com.faforever.client.update.DownloadUpdateTask;
+import com.faforever.client.update.ClientUpdateTask;
 import com.faforever.client.update.UpdateInfo;
-import com.faforever.client.update.VersionTest;
+import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.mockito.Answers;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -211,7 +213,6 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testInitializeWithNoMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
         .defaultValues()
         .latestRelease()
@@ -219,9 +220,8 @@ public class LoginControllerTest extends UITest {
         .then()
         .get();
 
-    VersionTest.setCurrentVersion("2.2.0");
+    Version.currentVersion = new ComparableVersion("2.2.0");
 
-    when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -235,13 +235,10 @@ public class LoginControllerTest extends UITest {
     assertThat(instance.loginErrorLabel.isVisible(), is(false));
     assertThat(instance.downloadUpdateButton.isVisible(), is(false));
     assertThat(instance.loginFormPane.isDisable(), is(false));
-
-    verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
   }
 
   @Test
   public void testInitializeWithMandatoryUpdate() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
         .defaultValues()
         .latestRelease()
@@ -249,9 +246,8 @@ public class LoginControllerTest extends UITest {
         .then()
         .get();
 
-    VersionTest.setCurrentVersion("1.2.0");
+    Version.currentVersion = new ComparableVersion("1.2.0");
 
-    when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
     clientProperties.setUseRemotePreferences(true);
@@ -266,23 +262,21 @@ public class LoginControllerTest extends UITest {
     assertThat(instance.downloadUpdateButton.isVisible(), is(true));
     assertThat(instance.loginFormPane.isDisable(), is(true));
 
-    verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
-    verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
+    verify(i18n).get("login.clientTooOldError", new ComparableVersion("1.2.0"), new ComparableVersion("2.1.2"));
   }
 
   @Test
   public void testOnDownloadUpdateButtonClicked() throws Exception {
-    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
-    DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, preferencesService);
-    when(clientUpdateService.downloadAndInstallInBackground(updateInfo)).thenReturn(downloadUpdateTask);
-
-    ReflectionTestUtils.setField(instance, "updateInfoFuture", CompletableFuture.completedFuture(updateInfo));
+    UpdateInfo updateInfo = new UpdateInfo(null, null, Optional.empty(), null, 5, null, false);
+    ClientUpdateTask clientUpdateTask = new ClientUpdateTask(i18n, preferencesService);
+    when(clientUpdateService.updateInBackground(updateInfo)).thenReturn(clientUpdateTask);
+    when(clientUpdateService.checkForUpdateInBackground()).thenReturn(CompletableFuture.completedFuture(Optional.of(updateInfo)));
 
     instance.onDownloadUpdateButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(i18n).get("login.button.downloadPreparing");
-    verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
+    verify(clientUpdateService, atLeastOnce()).updateInBackground(updateInfo);
   }
 
   @Test

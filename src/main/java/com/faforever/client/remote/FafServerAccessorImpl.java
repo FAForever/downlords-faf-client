@@ -119,7 +119,7 @@ public class FafServerAccessorImpl implements FafServerAccessor, InitializingBea
     connectionState.setValue(ConnectionState.CONNECTING);
     FafLobbyClient.Config config = new Config(
         tokenService.getRefreshedTokenValue(),
-        Version.getCurrentVersion(),
+        Version.getCurrentVersion().toString(),
         "downlords-faf-client",
         clientProperties.getServer().getHost(),
         clientProperties.getServer().getPort() + 1,

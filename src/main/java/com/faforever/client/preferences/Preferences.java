@@ -50,6 +50,7 @@ public class Preferences {
   private final BooleanProperty disallowJoinsViaDiscord;
   private final BooleanProperty showGameDetailsSidePane;
   private final BooleanProperty advancedIceLogEnabled;
+  private final BooleanProperty autoUpdate;
   private final IntegerProperty cacheLifeTimeInDays;
   private final BooleanProperty gameDataCacheActivated;
   private final BooleanProperty debugLogEnabled;
@@ -84,6 +85,7 @@ public class Preferences {
     gameDataCacheActivated = new SimpleBooleanProperty(false);
     debugLogEnabled = new SimpleBooleanProperty(false);
     mapAndModAutoUpdate = new SimpleBooleanProperty(true);
+    autoUpdate = new SimpleBooleanProperty(true);
   }
 
   public VaultPrefs getVault() {
@@ -230,6 +232,18 @@ public class Preferences {
     return advancedIceLogEnabled;
   }
 
+  public boolean isAutoUpdate() {
+    return autoUpdate.get();
+  }
+
+  public void setAutoUpdate(boolean autoUpdate) {
+    this.autoUpdate.set(autoUpdate);
+  }
+
+  public BooleanProperty autoUpdateProperty() {
+    return autoUpdate;
+  }
+
   public BooleanProperty showGameDetailsSidePaneProperty() {
     return showGameDetailsSidePane;
   }
@@ -318,7 +332,7 @@ public class Preferences {
     return debugLogEnabled;
   }
 
-  public boolean isMapAndModAutoUpdate() {
+  public boolean getMapAndModAutoUpdate() {
     return mapAndModAutoUpdate.get();
   }
 

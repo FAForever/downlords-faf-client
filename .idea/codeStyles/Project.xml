@@ -14,6 +14,10 @@
       <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
       <option name="JD_DO_NOT_WRAP_ONE_LINE_COMMENTS" value="true" />
     </JavaCodeStyleSettings>
+    <Properties>
+      <option name="SPACES_AROUND_KEY_VALUE_DELIMITER" value="true" />
+      <option name="KEEP_BLANK_LINES" value="true" />
+    </Properties>
     <codeStyleSettings language="HTML">
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />

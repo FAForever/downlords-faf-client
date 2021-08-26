@@ -27,9 +27,7 @@ import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -38,14 +36,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SettingsControllerTest extends UITest {
@@ -128,7 +125,7 @@ public class SettingsControllerTest extends UITest {
     instance.prereleaseToggle.setSelected(true);
     verify(clientUpdateService).checkForUpdateInBackground();
     instance.prereleaseToggle.setSelected(false);
-    verifyNoMoreInteractions(clientUpdateService);
+    verify(clientUpdateService, times(2)).checkForUpdateInBackground();
   }
 
   @Test

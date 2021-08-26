@@ -149,6 +149,7 @@ public class SettingsController implements Controller<Node> {
   public Button allowReplayWhileInGameButton;
   public CheckBox debugLogToggle;
   public CheckBox mapAndModAutoUpdateCheckBox;
+  public CheckBox autoUpdateCheckbox;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -251,14 +252,7 @@ public class SettingsController implements Controller<Node> {
     });
 
     currentThemeChangeListener = (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue);
-    selectedThemeChangeListener = (observable, oldValue, newValue) -> {
-      uiService.setTheme(newValue);
-      if (oldValue != null && uiService.doesThemeNeedRestart(newValue)) {
-        notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
-            Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
-        // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
-      }
-    };
+    selectedThemeChangeListener = (observable, oldValue, newValue) -> uiService.setTheme(newValue);
 
     JavaFxUtil.addListener(preferences.getNotification().toastPositionProperty(), (observable, oldValue, newValue) -> setSelectedToastPosition(newValue));
     setSelectedToastPosition(preferences.getNotification().getToastPosition());
@@ -280,7 +274,7 @@ public class SettingsController implements Controller<Node> {
     configureDateSetting(preferences);
     configureChatSetting(preferences);
     configureLanguageSelection();
-    configureThemeSelection();
+    configureThemeSelection(preferences);
     configureToastScreen(preferences);
     configureStartTab(preferences);
 
@@ -315,6 +309,9 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
 
+    autoUpdateCheckbox.selectedProperty().bindBidirectional(preferences.autoUpdateProperty());
+    autoUpdateCheckbox.selectedProperty().addListener((observable, oldValue, newValue) -> clientUpdateService.checkForUpdateInBackground());
+
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
       Path vaultBaseDirectory = secondaryVaultLocationToggle.isSelected() ? preferencesService.getFAFVaultLocation() : preferencesService.getGPGVaultLocation();
@@ -324,11 +321,8 @@ public class SettingsController implements Controller<Node> {
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
     prereleaseToggle.selectedProperty().bindBidirectional(preferences.preReleaseCheckEnabledProperty());
-    prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue != null && newValue && (oldValue == null || !oldValue)) {
-        clientUpdateService.checkForUpdateInBackground();
-      }
-    });
+    // TODO just like in LoginController, this should trigger a notification. However, don't just copy-paste it. Instead, publish an UpdateAvailableEvent and implement a notifier component that listens to it. Or so.
+    prereleaseToggle.selectedProperty().addListener((observable, oldValue, newValue) -> clientUpdateService.checkForUpdateInBackground());
 
     debugLogToggle.selectedProperty().bindBidirectional(preferences.debugLogEnabledProperty());
 
@@ -470,10 +464,13 @@ public class SettingsController implements Controller<Node> {
     }
   }
 
-  private void configureThemeSelection() {
+  private void configureThemeSelection(Preferences preferences) {
     themeComboBox.setItems(FXCollections.observableArrayList(uiService.getAvailableThemes()));
 
-    themeComboBox.getSelectionModel().select(uiService.getCurrentTheme());
+    Theme currentTheme = themeComboBox.getItems().stream()
+        .filter(theme -> theme.getDisplayName().equals(preferences.getThemeName()))
+        .findFirst().orElse(UiService.DEFAULT_THEME);
+    themeComboBox.getSelectionModel().select(currentTheme);
 
     themeComboBox.getSelectionModel().selectedItemProperty().addListener(selectedThemeChangeListener);
     JavaFxUtil.addListener(uiService.currentThemeProperty(), new WeakChangeListener<>(currentThemeChangeListener));
