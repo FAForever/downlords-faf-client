@@ -135,7 +135,7 @@ public class MainControllerTest extends UITest {
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
     when(uiService.loadFxml("theme/settings/settings.fxml")).thenReturn(settingsController);
-    when(uiService.loadFxml("theme/login.fxml")).thenReturn(loginController);
+    when(uiService.loadFxml("theme/login/login.fxml")).thenReturn(loginController);
     when(uiService.loadFxml("theme/chat/chat.fxml")).thenReturn(chatController);
     when(uiService.loadFxml("theme/play/play.fxml")).thenReturn(playController);
     when(uiService.createScene(any())).thenAnswer(invocation -> new Scene(invocation.getArgument(0)));
@@ -304,6 +304,6 @@ public class MainControllerTest extends UITest {
   @Test
   public void testOnSessionExpired() throws Exception {
     runOnFxThreadAndWait(() -> instance.onSessionExpiredEvent(new SessionExpiredEvent()));
-    verify(uiService, times(2)).loadFxml("theme/login.fxml");
+    verify(uiService, times(2)).loadFxml("theme/login/login.fxml");
   }
 }

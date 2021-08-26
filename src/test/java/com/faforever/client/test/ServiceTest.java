@@ -18,6 +18,7 @@ import static com.github.nocatch.NoCatch.noCatch;
 //TODO figure out best way to refactor so that tests don't have to be lenient due to unnecessary stubbings spam
 public abstract class ServiceTest {
 
+  // TODO why are those methods here when they are used only by exactly one subclass and are not "service" specific?
   protected String getThemeFile(String file) {
     return String.format("/%s", file);
   }

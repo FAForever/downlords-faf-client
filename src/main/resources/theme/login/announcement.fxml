@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+
+<VBox fx:id="loginAnnouncementRoot" styleClass="announcement" spacing="5.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.AnnouncementController">
+   <children>
+      <HBox spacing="10.0">
+         <children>
+            <Label fx:id="titleLabel" styleClass="h3" text="Title" />
+            <Label fx:id="timeLabel" text="Time" />
+         </children>
+      </HBox>
+      <Label fx:id="messageLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="This is a long text to test wrapping" wrapText="true" />
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</VBox>

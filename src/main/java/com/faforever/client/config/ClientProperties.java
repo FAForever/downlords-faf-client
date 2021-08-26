@@ -31,6 +31,7 @@ public class ClientProperties {
   private MapGenerator mapGenerator = new MapGenerator();
   private Website website = new Website();
   private Discord discord = new Discord();
+  private Statping statping = new Statping();
   private String translationProjectUrl;
   private String clientConfigUrl;
   private boolean useRemotePreferences;
@@ -195,6 +196,11 @@ public class ClientProperties {
     private String discordPrereleaseFeedbackChannelUrl;
     /** URL to join the FAF Discord server. */
     private String joinUrl;
+  }
+
+  @Data
+  public static class Statping {
+    private String apiRoot;
   }
 
   @Data
