@@ -33,7 +33,6 @@ faf-client:
     base-url: http://localhost:4444
     scopes: openid offline public_profile upload_map upload_mod lobby
     client-id: faf-java-client
-    redirect-url: http://localhost
 
 logging:
   level:

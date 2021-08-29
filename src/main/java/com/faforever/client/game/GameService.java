@@ -58,7 +58,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -231,7 +230,6 @@ public class GameService implements InitializingBean, DisposableBean {
     JavaFxUtil.addListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
   }
 
-  @NotNull
   private InvalidationListener generateNumberOfPlayersChangeListener(GameBean game) {
     return new InvalidationListener() {
       @Override
@@ -245,7 +243,6 @@ public class GameService implements InitializingBean, DisposableBean {
     };
   }
 
-  @NotNull
   private ChangeListener<GameStatus> generateGameStatusListener(GameBean game) {
     return new ChangeListener<>() {
       @Override
@@ -414,7 +411,6 @@ public class GameService implements InitializingBean, DisposableBean {
     return true;
   }
 
-  @NotNull
   public CompletableFuture<Path> postGameDirectoryChooseEvent() {
     CompletableFuture<Path> gameDirectoryFuture = new CompletableFuture<>();
     eventBus.post(new GameDirectoryChooseEvent(gameDirectoryFuture));
@@ -562,7 +558,7 @@ public class GameService implements InitializingBean, DisposableBean {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, @Nullable Integer version, @NotNull Set<String> simModUids) {
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, @Nullable Integer version, Set<String> simModUids) {
     return gameUpdater.update(featuredModBean, version, simModUids);
   }
 

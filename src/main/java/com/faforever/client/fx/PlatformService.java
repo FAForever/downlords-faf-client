@@ -43,7 +43,6 @@ public class PlatformService {
   /**
    * Opens the specified URI in a new browser window or tab.
    */
-
   public void showDocument(String url) {
     hostServices.showDocument(url);
   }

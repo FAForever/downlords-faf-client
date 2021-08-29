@@ -2,12 +2,16 @@ package com.faforever.client.builders;
 
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.GitHubRepo;
+import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientConfiguration.SocketEndpoint;
 import com.faforever.client.update.ClientConfiguration.UrlEndpoint;
 
+import java.net.URI;
 import java.net.URL;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ClientConfigurationBuilder {
@@ -59,6 +63,33 @@ public class ClientConfigurationBuilder {
 
     public UrlEndpoint get() {
       return urlEndpoint;
+    }
+
+  }
+
+  public static class OAuthEndpointBuilder extends UrlEndpointBuilder {
+    private final OAuthEndpoint oAuthEndpoint = new OAuthEndpoint();
+
+    public static OAuthEndpointBuilder create() {
+      return new OAuthEndpointBuilder();
+    }
+
+    public OAuthEndpointBuilder defaultValues() {
+      return this;
+    }
+
+    @Override
+    public OAuthEndpointBuilder url(String url) {
+      return (OAuthEndpointBuilder) super.url(url);
+    }
+
+    public OAuthEndpointBuilder redirectUris(Collection<URI> redirectUris) {
+      oAuthEndpoint.setRedirectUris(redirectUris);
+      return this;
+    }
+
+    public OAuthEndpoint get() {
+      return oAuthEndpoint;
     }
 
   }
@@ -132,7 +163,10 @@ public class ClientConfigurationBuilder {
     }
 
     public ServerEndpointsBuilder oauth(String url) {
-      serverEndpoints.setOauth(UrlEndpointBuilder.create().url(url).get());
+      serverEndpoints.setOauth(OAuthEndpointBuilder.create()
+          .url(url)
+          .redirectUris(Collections.singletonList(URI.create("http://localhost:123")))
+          .get());
       return this;
     }
 
