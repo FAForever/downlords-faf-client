@@ -234,7 +234,7 @@ public class Preferences {
     return showGameDetailsSidePane;
   }
 
-  public boolean getPreReleaseCheckEnabled() {
+  public boolean isPreReleaseCheckEnabled() {
     return preReleaseCheckEnabled.get();
   }
 
@@ -318,7 +318,7 @@ public class Preferences {
     return debugLogEnabled;
   }
 
-  public boolean getMapAndModAutoUpdate() {
+  public boolean isMapAndModAutoUpdate() {
     return mapAndModAutoUpdate.get();
   }
 
