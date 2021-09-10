@@ -119,7 +119,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     searchController.setVaultRoot(vaultRoot);
     searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedReplayQueries());
 
-    searchController.addTextFilter("playerStats.player.login", i18n.get("game.player.username"), false);
+    searchController.addTextFilter("playerStats.player.login", i18n.get("game.player.username"), true);
     searchController.addTextFilter("mapVersion.map.displayName", i18n.get("game.map.displayName"), false);
     searchController.addTextFilter("mapVersion.map.author.login", i18n.get("game.map.author"), false);
     searchController.addTextFilter("name", i18n.get("game.title"), false);
