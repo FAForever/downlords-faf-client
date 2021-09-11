@@ -690,7 +690,7 @@ public class GameServiceTest extends ServiceTest {
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     instance.startSearchMatchmaker();
     verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
+        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null", "/gameoptions", "null"),
         gameLaunchMessage.getLeaderboard(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
 
