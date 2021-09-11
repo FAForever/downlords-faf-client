@@ -540,10 +540,11 @@ public class GameService implements InitializingBean {
               gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
               gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
-              Map<String, String> gameOptions = gameLaunchMessage.getGameOptions();
-              gameLaunchMessage.getArgs().add("/gameoptions " + gameOptions.keySet().stream()
-                  .map(key -> key + ":" + gameOptions.get(key))
-                  .collect(Collectors.joining(" ")));
+              if (gameLaunchMessage.getGameOptions() != null) {
+                gameLaunchMessage.getArgs().add("/gameoptions " + gameLaunchMessage.getGameOptions().entrySet().stream()
+                    .map(entry -> entry.getKey() + ":" + entry.getValue())
+                    .collect(Collectors.joining(" ")));
+              }
 
               String ratingType = gameLaunchMessage.getLeaderboard();
 
