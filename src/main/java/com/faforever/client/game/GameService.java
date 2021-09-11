@@ -87,6 +87,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
@@ -539,7 +540,10 @@ public class GameService implements InitializingBean {
               gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
               gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
               gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
-              gameLaunchMessage.getArgs().add("/gameoptions " + gameLaunchMessage.getGameOptions());
+              Map<String, String> gameOptions = gameLaunchMessage.getGameOptions();
+              gameLaunchMessage.getArgs().add("/gameoptions " + gameOptions.keySet().stream()
+                  .map(key -> key + ":" + gameOptions.get(key))
+                  .collect(Collectors.joining(" ")));
 
               String ratingType = gameLaunchMessage.getLeaderboard();
 
