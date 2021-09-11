@@ -45,27 +45,26 @@ public class TokenService implements InitializingBean {
 
   @SneakyThrows
   public synchronized String getRefreshedTokenValue() {
-    if (tokenCache != null) {
-      try {
-        if (tokenCache.isExpired()) {
-          log.debug("Token expired, fetching new token");
-          loginWithRefreshToken(tokenCache.getRefreshToken().getValue());
-        } else {
-          log.debug("Token still valid for {} seconds", tokenCache.getExpiresIn());
-        }
-
-        return tokenCache.getValue();
-      } catch (Exception e) {
-        log.info("Could not login with token", e);
-        tokenCache = null;
-        preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
-        preferencesService.storeInBackground();
-        eventBus.post(new SessionExpiredEvent());
-        return null;
-      }
-    } else {
+    if (tokenCache == null) {
       log.warn("No valid token found to be refreshed");
       eventBus.post(new LogOutRequestEvent());
+      return null;
+    }
+
+    try {
+      if (tokenCache.isExpired()) {
+        log.debug("Token expired, fetching new token");
+        loginWithRefreshToken(tokenCache.getRefreshToken().getValue());
+      }
+
+      log.debug("Token still valid for {} seconds", tokenCache.getExpiresIn());
+      return tokenCache.getValue();
+    } catch (Exception e) {
+      log.info("Could not login with token", e);
+      tokenCache = null;
+      preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
+      preferencesService.storeInBackground();
+      eventBus.post(new SessionExpiredEvent());
       return null;
     }
   }
@@ -121,12 +120,12 @@ public class TokenService implements InitializingBean {
   }
 
   public String getRefreshToken() {
-    if (tokenCache != null
-        && tokenCache.getRefreshToken() != null
-        && preferencesService.getPreferences().getLogin().getRememberMe()) {
-      return tokenCache.getRefreshToken().getValue();
-    } else {
+    if (tokenCache == null
+        || tokenCache.getRefreshToken() == null
+        || !preferencesService.getPreferences().getLogin().getRememberMe()) {
       return null;
     }
+
+    return tokenCache.getRefreshToken().getValue();
   }
 }
