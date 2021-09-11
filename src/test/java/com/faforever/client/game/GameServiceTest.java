@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -690,7 +691,25 @@ public class GameServiceTest extends ServiceTest {
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     instance.startSearchMatchmaker();
     verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null", "/gameoptions", "null"),
+        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
+        gameLaunchMessage.getLeaderboard(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void startSearchMatchmakerWithGameOptions() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    Map<String, String> gameOptions = new HashMap<>();
+    gameOptions.put("Share", "ShareUntilDeath");
+    gameOptions.put("UnitCap", "500");
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
+    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    instance.startSearchMatchmaker();
+    verify(forgedAllianceService).startGame(
+        gameLaunchMessage.getUid(), null, List.of("/team", "1", "/players", "4", "/startspot", "3", "/gameoptions", "Share:ShareUntilDeath UnitCap:500"),
         gameLaunchMessage.getLeaderboard(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
   }
 
