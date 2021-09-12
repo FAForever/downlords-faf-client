@@ -144,6 +144,23 @@ configurations {
 
 bootRun {
     main = "com.faforever.client.Main"
+    jvmArgs = [
+            "-DnativeDir=build/resources/native",
+            "-Dprism.dirtyopts=false",
+            "-Dprism.forceGPU=true",
+            "-Xms128m",
+            "-Xmx712m",
+            "-XX:MinHeapFreeRatio=15",
+            "-XX:MaxHeapFreeRatio=33",
+            "-XX:+HeapDumpOnOutOfMemoryError",
+            "-XX:+UseStringDeduplication",
+            "-XX:ConcGCThreads=1",
+            "-XX:ParallelGCThreads=1",
+            "-XX:+UseG1GC",
+            "-javaagent:webview-patch/build/libs/webview-patch.jar",
+            "-Djava.net.preferIPv4Stack=true",
+            "-XX:TieredStopAtLevel=1"
+    ]
 }
 
 jar {
