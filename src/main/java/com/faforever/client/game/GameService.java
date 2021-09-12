@@ -87,7 +87,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
@@ -537,14 +536,7 @@ public class GameService implements InitializingBean {
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
             .thenRun(() -> {
-              gameLaunchMessage.getArgs().add("/team " + gameLaunchMessage.getTeam());
-              gameLaunchMessage.getArgs().add("/players " + gameLaunchMessage.getExpectedPlayers());
-              gameLaunchMessage.getArgs().add("/startspot " + gameLaunchMessage.getMapPosition());
-              if (gameLaunchMessage.getGameOptions() != null) {
-                gameLaunchMessage.getArgs().add("/gameoptions " + gameLaunchMessage.getGameOptions().entrySet().stream()
-                    .map(entry -> entry.getKey() + ":" + entry.getValue())
-                    .collect(Collectors.joining(" ")));
-              }
+              addMatchmakerGameLaunchArguments(gameLaunchMessage);
 
               String ratingType = gameLaunchMessage.getLeaderboard();
 
@@ -565,6 +557,23 @@ public class GameService implements InitializingBean {
         });
 
     return matchmakerFuture;
+  }
+
+  private void addMatchmakerGameLaunchArguments(GameLaunchResponse gameLaunchMessage) {
+    List<String> args = gameLaunchMessage.getArgs();
+    args.add("/team");
+    args.add(String.valueOf(gameLaunchMessage.getTeam()));
+    args.add("/players");
+    args.add(String.valueOf(gameLaunchMessage.getExpectedPlayers()));
+    args.add("/startspot");
+    args.add(String.valueOf(gameLaunchMessage.getMapPosition()));
+    Optional.ofNullable(gameLaunchMessage.getGameOptions())
+        .ifPresent(gameOptions -> {
+          args.add("/gameoptions");
+          gameOptions.entrySet().stream()
+              .map(entry -> entry.getKey() + ":" + entry.getValue())
+              .forEach(args::add);
+        });
   }
 
   /**
