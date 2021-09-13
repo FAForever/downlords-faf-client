@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
+<VBox fx:id="loginRoot" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="login-root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.login.LoginController">
+    <children>
+      <VBox fx:id="messagesContainer" alignment="CENTER" maxWidth="500.0" prefWidth="500.0" spacing="5.0" />
+        <VBox fx:id="errorPane" alignment="CENTER" maxWidth="500.0" prefWidth="500.0">
+            <Label fx:id="loginErrorLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" styleClass="hint" text="This error message is supposed to be long enough to test text wrapping" wrapText="true" VBox.vgrow="NEVER">
+                <graphic>
+                    <Region styleClass="icon,error-icon" />
+                </graphic>
+                <VBox.margin>
+                    <Insets bottom="5.0" />
+                </VBox.margin>
+            </Label>
+            <Button fx:id="downloadUpdateButton" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="-Infinity" onAction="#onDownloadUpdateButtonClicked" prefHeight="50.0" text="%login.button.downloadUpdate" VBox.vgrow="NEVER">
+                <VBox.margin>
+                    <Insets bottom="10.0" />
+                </VBox.margin>
+            </Button>
+        </VBox>
+        <VBox fx:id="loginProgressPane" alignment="CENTER" maxWidth="Infinity" visible="false" VBox.vgrow="ALWAYS">
+            <children>
+                <ProgressIndicator prefHeight="80.0" prefWidth="80.0" />
+                <Label text="%login.progress.message">
+                    <VBox.margin>
+                        <Insets top="14.0" />
+                    </VBox.margin>
+                </Label>
+            </children>
+        </VBox>
+        <VBox fx:id="loginFormPane" alignment="TOP_CENTER" spacing="5.0" VBox.vgrow="SOMETIMES">
+            <children>
+                <WebView fx:id="loginWebView" maxWidth="800.0" minHeight="100.0" minWidth="100.0" VBox.vgrow="ALWAYS"/>
+                <HBox alignment="CENTER" maxWidth="500" spacing="10.0" VBox.vgrow="NEVER">
+                    <children>
+                        <Label maxHeight="1.7976931348623157E308" minWidth="-Infinity" onMouseClicked="#onMouseClicked" text="%login.environment">
+                            <HBox.margin>
+                                <Insets right="10.0" />
+                            </HBox.margin>
+                        </Label>
+                        <ComboBox fx:id="environmentComboBox" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                        <CheckBox fx:id="rememberMeCheckBox" text="%login.remember" />
+                    </children>
+                </HBox>
+                <GridPane fx:id="serverConfigPane" alignment="CENTER" maxWidth="500" vgap="5.0" VBox.vgrow="NEVER">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints prefHeight="30.0" vgrow="SOMETIMES"/>
+                        <RowConstraints/>
+                    </rowConstraints>
+                    <children>
+                        <TextField fx:id="serverHostField" promptText="%login.serverHost" />
+                        <TextField fx:id="serverPortField" prefColumnCount="6" promptText="%port" GridPane.columnIndex="1" />
+                        <TextField fx:id="replayServerHostField" layoutX="10.0" layoutY="7.0" promptText="%login.replayServerHost" GridPane.rowIndex="1" />
+                        <TextField fx:id="replayServerPortField" layoutX="310.0" layoutY="7.0" prefColumnCount="6" promptText="%port" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="apiBaseUrlField" prefColumnCount="6" promptText="%login.apiBaseUrl" GridPane.columnSpan="2147483647" GridPane.rowIndex="3" />
+                        <TextField fx:id="oauthBaseUrlField" prefColumnCount="6" promptText="%login.oauthBaseUrl" GridPane.columnSpan="2147483647" GridPane.rowIndex="4" />
+                        <TextField fx:id="ircServerHostField" promptText="%login.ircServerHost" GridPane.rowIndex="2" />
+                        <TextField fx:id="ircServerPortField" promptText="%port" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    </children>
+                </GridPane>
+            </children>
+        </VBox>
+    </children>
+   <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="40.0" />
+   </padding>
+</VBox>

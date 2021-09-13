@@ -715,6 +715,12 @@
   -fx-scale-shape: true;
 }
 
+.login-root .announcement {
+  -fx-background-color: -warn-transparent;
+  -fx-border-color: -warn;
+  -fx-border-width: 1;
+}
+
 /***************** Chart*****************/
 
 .axis {

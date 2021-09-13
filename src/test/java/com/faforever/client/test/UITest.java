@@ -112,7 +112,7 @@ public abstract class UITest extends ApplicationTest {
     });
     noCatch((NoCatchRunnable) latch::await);
     if (loadExceptionWrapper.getLoadException() != null) {
-      throw new RuntimeException("Loading fxm failed", loadExceptionWrapper.getLoadException());
+      throw new RuntimeException("Loading FXML failed", loadExceptionWrapper.getLoadException());
     }
   }
 

@@ -11,6 +11,10 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.status.Message;
+import com.faforever.client.status.Service;
+import com.faforever.client.status.StatPingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
@@ -20,6 +24,7 @@ import com.faforever.client.user.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -43,8 +48,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -59,8 +66,12 @@ public class LoginController implements Controller<Pane> {
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
   private final WebViewConfigurer webViewConfigurer;
+  private final StatPingService statPingService;
+  private final UiService uiService;
+
   private CompletableFuture<Void> initializeFuture;
 
+  public Pane messagesContainer;
   public Pane errorPane;
   public Pane loginFormPane;
   public Pane loginProgressPane;
@@ -86,10 +97,11 @@ public class LoginController implements Controller<Pane> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane, loginWebView,
-        serverConfigPane, errorPane, loginProgressPane);
+        serverConfigPane, errorPane, loginProgressPane, messagesContainer);
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     updateInfoFuture = clientUpdateService.getNewestUpdate();
 
+    messagesContainer.setVisible(false);
     downloadUpdateButton.setVisible(false);
     errorPane.setVisible(false);
     loginErrorLabel.setVisible(false);
@@ -250,6 +262,83 @@ public class LoginController implements Controller<Pane> {
 
       log.debug("login web view visited {}", location);
     });
+
+    checkServiceStatus();
+  }
+
+  private void checkServiceStatus() {
+    checkGlobalAnnouncements().thenAccept(messages -> {
+      displayAnnouncements(messages);
+
+      // Only check for offline services if no announced maintenance is happening right now. Otherwise, the user
+      // might see redundant messages.
+      if (messages.stream().noneMatch(this::isHappeningNow)) {
+        checkOfflineServices().thenAccept(this::displayOfflineServices);
+      }
+    });
+  }
+
+  private boolean isHappeningNow(Message message) {
+    OffsetDateTime now = OffsetDateTime.now();
+    return message.getStartOn().isBefore(now) && message.getEndOn().isAfter(now);
+  }
+
+  private CompletableFuture<List<Message>> checkGlobalAnnouncements() {
+    return statPingService.getMessages()
+        .filter(LoginController::shouldDisplayAnnouncement)
+        .collectList().toFuture();
+  }
+
+  private static boolean shouldDisplayAnnouncement(Message message) {
+    return message.getEndOn().isAfter(OffsetDateTime.now());
+  }
+
+  private CompletableFuture<List<Service>> checkOfflineServices() {
+    return statPingService.getServices()
+        .filter(service -> !service.isOnline())
+        .collectList().toFuture();
+  }
+
+  private void displayAnnouncements(List<Message> messages) {
+    if (messages.isEmpty()) {
+      return;
+    }
+    List<Node> controllers = messages.stream().map(message -> {
+      AnnouncementController controller = uiService.loadFxml("theme/login/announcement.fxml");
+      controller.setTitle(message.getTitle());
+      controller.setMessage(message.getDescription());
+      controller.setTime(message.getStartOn(), message.getEndOn());
+      return controller.getRoot();
+    }).collect(Collectors.toList());
+    JavaFxUtil.runLater(() -> {
+      messagesContainer.getChildren().addAll(controllers);
+      messagesContainer.setVisible(true);
+    });
+  }
+
+  private void displayOfflineServices(List<Service> services) {
+    if (services.isEmpty()) {
+      return;
+    }
+
+    OfflineServicesController controller = uiService.loadFxml("theme/login/offline_services.fxml");
+    services.forEach(service -> controller.addService(service.getName(), findOfflineReason(service), service.getLastSuccess()));
+    JavaFxUtil.runLater(() -> {
+      messagesContainer.getChildren().add(controller.getRoot());
+      messagesContainer.setVisible(true);
+    });
+  }
+
+  private String findOfflineReason(Service service) {
+    if (!service.getIncidents().isEmpty()) {
+      return service.getIncidents().get(0).getTitle();
+    }
+
+    return service.getMessages().stream()
+        .filter(this::isHappeningNow)
+        .findFirst()
+        .map(Message::getTitle)
+        .orElse(i18n.get("reasonUnknown"));
   }
 
   private void reloadLogin() {
