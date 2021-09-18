@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", config = MapperConfiguration.class)
 public interface TournamentMapper {
      TournamentBean map(Tournament dto, @Context CycleAvoidingMappingContext context);
 

@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", config = MapperConfiguration.class)
 public interface UrlMapper {
     default URL map(String string) throws MalformedURLException {
         return new URL(string);

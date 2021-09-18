@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UrlMapper.class})
+@Mapper(componentModel = "spring", uses = {UrlMapper.class}, config = MapperConfiguration.class)
 public interface AvatarMapper {
 
   @Mapping(target = "description", source = "tooltip")

@@ -16,7 +16,7 @@ import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {MapMapper.class, LeaderboardMapper.class})
+@Mapper(componentModel = "spring", uses = {MapMapper.class, LeaderboardMapper.class}, config = MapperConfiguration.class)
 public interface MatchmakerMapper {
     MatchmakerQueueBean map(MatchmakerQueue dto, @Context CycleAvoidingMappingContext context);
     MatchmakerQueue map(MatchmakerQueueBean bean, @Context CycleAvoidingMappingContext context);

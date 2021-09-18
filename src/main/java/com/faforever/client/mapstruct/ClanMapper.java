@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {PlayerMapper.class})
+@Mapper(componentModel = "spring", uses = {PlayerMapper.class}, config = MapperConfiguration.class)
 public abstract class ClanMapper {
 
   @Autowired

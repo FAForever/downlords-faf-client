@@ -14,7 +14,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {PlayerMapper.class, ReviewMapper.class})
+@Mapper(componentModel = "spring", uses = {PlayerMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface MapMapper {
   MapBean map(Map dto, @Context CycleAvoidingMappingContext context);
 

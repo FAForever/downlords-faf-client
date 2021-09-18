@@ -20,7 +20,7 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {ReplayMapper.class, ModMapper.class, MapMapper.class, PlayerMapper.class})
+@Mapper(componentModel = "spring", uses = {ReplayMapper.class, ModMapper.class, MapMapper.class, PlayerMapper.class}, config = MapperConfiguration.class)
 public interface ReviewMapper {
 
   @Mapping(target = "replay", source = "game")

@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {PlayerMapper.class, ReplayMapper.class})
+@Mapper(componentModel = "spring", uses = {PlayerMapper.class, ReplayMapper.class}, config = MapperConfiguration.class)
 public interface ModerationReportMapper {
 	@Mapping(target = "gameIncidentTimeCode", source = "gameIncidentTimecode")
 	ModerationReportBean map(ModerationReport dto, @Context CycleAvoidingMappingContext context);

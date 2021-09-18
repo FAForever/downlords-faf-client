@@ -8,7 +8,7 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {ReplayMapper.class})
+@Mapper(componentModel = "spring", uses = {ReplayMapper.class}, config = MapperConfiguration.class)
 public interface CoopMapper {
 
     @Mapping(target="mapFolderName", source="folderName")

@@ -21,11 +21,11 @@ import java.util.Map;
 
 import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
-@Mapper(componentModel = "spring", imports = {TimeUtil.class}, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class})
+@Mapper(componentModel = "spring", imports = {TimeUtil.class}, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface ReplayMapper {
   @Mapping(target="title", source="name")
-  @Mapping(target="teamPlayerStats", expression="java(mapToTeamPlayerStats(dto, new CycleAvoidingMappingContext()))")
-  @Mapping(target="teams", expression="java(mapToTeams(dto, new CycleAvoidingMappingContext()))")
+  @Mapping(target="teamPlayerStats", expression="java(mapToTeamPlayerStats(dto, context))")
+  @Mapping(target="teams", expression="java(mapToTeams(dto, context))")
   ReplayBean map(Game dto, @Context CycleAvoidingMappingContext context);
 
   default Map<String, List<String>> mapToTeams(Game dto, @Context CycleAvoidingMappingContext context) {

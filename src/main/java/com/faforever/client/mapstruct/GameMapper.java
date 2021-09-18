@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Mapper(componentModel = "spring", collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE)
+@Mapper(componentModel = "spring", collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, config = MapperConfiguration.class)
 public interface GameMapper {
   String OBSERVERS_TEAM = "-1";
 

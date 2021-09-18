@@ -7,7 +7,7 @@ import com.faforever.commons.api.dto.TutorialCategory;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", uses = {MapMapper.class})
+@Mapper(componentModel = "spring", uses = {MapMapper.class}, config = MapperConfiguration.class)
 public interface TutorialMapper {
      TutorialBean map(Tutorial dto, @Context CycleAvoidingMappingContext context);
 

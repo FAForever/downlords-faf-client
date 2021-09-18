@@ -14,7 +14,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {ReplayMapper.class, PlayerMapper.class})
+@Mapper(componentModel = "spring", uses = {ReplayMapper.class, PlayerMapper.class}, config = MapperConfiguration.class)
 public interface LeaderboardMapper {
   LeaderboardBean map(Leaderboard dto, @Context CycleAvoidingMappingContext context);
 

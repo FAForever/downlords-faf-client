@@ -9,7 +9,7 @@ import com.faforever.commons.api.dto.VotingSubject;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", config = MapperConfiguration.class)
 public interface VotingMapper {
      VotingChoiceBean map(VotingChoice dto, @Context CycleAvoidingMappingContext context);
 

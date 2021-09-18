@@ -12,7 +12,7 @@ import org.mapstruct.MappingTarget;
 import java.util.List;
 import java.util.Set;
 
-@Mapper(componentModel = "spring", uses = {LeaderboardMapper.class, AvatarMapper.class, UrlMapper.class})
+@Mapper(componentModel = "spring", uses = {LeaderboardMapper.class, AvatarMapper.class, UrlMapper.class}, config = MapperConfiguration.class)
 public interface PlayerMapper {
      @Mapping(target = "username", source = "login")
      PlayerBean map(Player dto, @Context CycleAvoidingMappingContext context);
