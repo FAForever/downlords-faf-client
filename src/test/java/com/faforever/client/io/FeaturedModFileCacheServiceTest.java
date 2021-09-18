@@ -64,7 +64,7 @@ public class FeaturedModFileCacheServiceTest extends ServiceTest {
 
     assertThat(instance.getCachedFilePath(featuredModFile), is(cachePathNewFile));
 
-    instance.moveFeaturedModFileFromCache(featuredModFile, targetPath);
+    instance.copyFeaturedModFileFromCache(featuredModFile, targetPath);
 
     final Path oldFileNowInCachePath = groupFolderInCache.resolve(hashOldFile);
     assertTrue(Files.isRegularFile(oldFileNowInCachePath));

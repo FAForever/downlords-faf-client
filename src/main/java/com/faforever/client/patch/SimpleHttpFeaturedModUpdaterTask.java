@@ -71,10 +71,10 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
             if (fileAlreadyLoaded(featuredModFile, targetPath)) {
               log.debug("Featured mod file already prepared: {}", featuredModFile);
             } else if (featuredModFileCacheService.isCached(featuredModFile)) {
-              featuredModFileCacheService.moveFeaturedModFileFromCache(featuredModFile, targetPath);
+              featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
             } else {
               downloadFeaturedModFile(featuredModFile, featuredModFileCacheService.getCachedFilePath(featuredModFile));
-              featuredModFileCacheService.moveFeaturedModFileFromCache(featuredModFile, targetPath);
+              featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
             }
           } catch (IOException e) {
             log.error("Error on updating featured mod file: {}", featuredModFile, e);

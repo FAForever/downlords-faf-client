@@ -52,7 +52,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
     return getCachedFilePath(readHashFromFile(targetPath), targetPath.getParent().getFileName().toString());
   }
 
-  public void moveFeaturedModFileFromCache(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
+  public void copyFeaturedModFileFromCache(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
     Files.createDirectories(targetPath.getParent());
     ResourceLocks.acquireDiskLock();
 
@@ -61,7 +61,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
         //We want to keep the old file for now in case it is needed again for example for old replays
         moveFeaturedModFileToCache(targetPath);
       }
-      Files.move(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
       UpdaterUtil.extractMoviesIfPresent(targetPath, preferencesService.getFafDataDirectory());
     } finally {
       ResourceLocks.freeDiskLock();
