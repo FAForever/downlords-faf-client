@@ -309,7 +309,7 @@ dependencies {
   implementation("io.github.micheljung:fxstage:0.8.0")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:7.3.0")
-  implementation("org.mapstruct:mapstruct:1.4.2.Final")
+  implementation("org.mapstruct:mapstruct:${mapStructVersion}")
 
   implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
   implementation("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
@@ -340,9 +340,9 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok")
-  annotationProcessor("org.mapstruct:mapstruct-processor:1.4.2.Final")
+  annotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
   testAnnotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.4.2.Final")
+  testAnnotationProcessor("org.mapstruct:mapstruct-processor:${mapStructVersion}")
   compileOnly("org.projectlombok:lombok")
   testCompileOnly("org.projectlombok:lombok")
 
