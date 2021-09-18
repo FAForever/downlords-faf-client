@@ -38,7 +38,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Checks
-        run: xvfb-run --auto-servernum ./gradlew --stacktrace -PjavafxPlatform=linux check
+        run: ./gradlew --stacktrace -PjavafxPlatform=linux check
         env:
           JAVA_TOOL_OPTIONS: "-Dprism.verbose=true -Dprism.order=sw"
 

@@ -35,6 +35,13 @@ import static com.github.nocatch.NoCatch.noCatch;
 @Slf4j
 public abstract class UITest extends ApplicationTest {
 
+  static {
+    System.setProperty("testfx.robot", "glass");
+    System.setProperty("testfx.headless", "true");
+    System.setProperty("prism.order", "sw");
+    System.setProperty("prism.text", "t2k");
+  }
+
   private final Pane root;
   private Scene scene;
   private Stage stage;
@@ -60,7 +67,7 @@ public abstract class UITest extends ApplicationTest {
   }
 
   protected Scene createScene(Stage stage) {
-    return new Scene(getRoot(), 1, 1);
+    return new Scene(getRoot());
   }
 
   protected boolean showStage() {
