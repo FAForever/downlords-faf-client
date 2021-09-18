@@ -26,7 +26,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Checks
-        run: xvfb-run --auto-servernum ./gradlew -PjavafxPlatform=linux check
+        run: ./gradlew -PjavafxPlatform=linux check
         env:
           JAVA_TOOL_OPTIONS: "-Dprism.verbose=true -Dprism.order=sw"
 
