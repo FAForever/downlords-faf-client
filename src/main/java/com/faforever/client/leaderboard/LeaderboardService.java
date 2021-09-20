@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.util.function.Tuple2;
 
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -88,6 +89,7 @@ public class LeaderboardService {
   public CompletableFuture<LeagueSeasonBean> getLatestSeason(int leagueId) {
     ElideNavigatorOnCollection<LeagueSeason> navigator = ElideNavigator.of(LeagueSeason.class).collection()
         .setFilter(qBuilder().intNum("league.id").eq(leagueId))
+        // TODO: this needs some more thought
         .addSortingRule("endDate", true);
     return fafApiAccessor.getMany(navigator)
         .next()
@@ -101,22 +103,27 @@ public class LeaderboardService {
       return CompletableFuture.failedFuture(notRanked);
     }
     AtomicInteger rank = new AtomicInteger();
-    getAllSubdivisions(entry.getLeagueSeasonId()).thenAccept(divisions -> {
+    return getAllSubdivisions(entry.getLeagueSeasonId()).thenApply(divisions -> {
       divisions.stream()
           .filter(division -> division.getDivision().getIndex() >= entry.getSubdivision().getDivision().getIndex())
           .filter(division -> !(division.getDivision().getIndex() == entry.getSubdivision().getDivision().getIndex() && division.getIndex() <= entry.getSubdivision().getIndex()))
           .forEach(division -> getSizeOfDivision(division).thenApply(rank::addAndGet));
       getEntries(entry.getSubdivision()).thenAccept(leagueEntryBeans ->
           rank.addAndGet(leagueEntryBeans.indexOf(entry) + 1));
+      return rank.get();
     });
-    return CompletableFuture.completedFuture(rank.get());
   }
 
   public CompletableFuture<Integer> getTotalPlayers(int leagueSeasonId) {
-    AtomicInteger rank = new AtomicInteger();
-    getAllSubdivisions(leagueSeasonId).thenAccept(divisions ->
-        divisions.forEach(division -> getSizeOfDivision(division).thenApply(rank::addAndGet)));
-    return CompletableFuture.completedFuture(rank.get());
+    ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
+        .setFilter(qBuilder()
+            .intNum("leagueSeason.id").eq(leagueSeasonId)
+            .and()
+            .intNum("score").gt(-1))
+        .pageSize(1);
+    return fafApiAccessor.getManyWithPageCount(navigator)
+        .toFuture()
+        .thenApply(Tuple2::getT2);
   }
 
   public CompletableFuture<Integer> getSizeOfDivision(SubdivisionBean subdivision) {
@@ -140,7 +147,8 @@ public class LeaderboardService {
   public CompletableFuture<List<LeagueEntryBean>> getEntries(SubdivisionBean subdivision) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder().intNum("leagueSeason.id").eq(subdivision.getLeagueSeasonId())
-            .and().intNum("leagueSeasonDivisionSubdivision.id").eq(subdivision.getIndex()))
+            .and().intNum("leagueSeasonDivisionSubdivision.subdivisionIndex").eq(subdivision.getIndex())
+            .and().intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex").eq(subdivision.getDivision().getIndex()))
         .addSortingRule("score", false);
     return fafApiAccessor.getMany(navigator)
         .collectList()

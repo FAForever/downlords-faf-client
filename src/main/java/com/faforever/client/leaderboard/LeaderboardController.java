@@ -15,12 +15,14 @@ import com.faforever.client.util.Validator;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -81,6 +83,7 @@ public class LeaderboardController implements Controller<Tab> {
   public TabPane subDivisionTabPane;
   public ImageView playerDivisionImageView;
   public CategoryAxis xAxis;
+  public NumberAxis yAxis;
   private LeagueSeasonBean season;
 
   @VisibleForTesting
@@ -96,6 +99,7 @@ public class LeaderboardController implements Controller<Tab> {
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
 
     majorDivisionPicker.setConverter(divisionStringConverter());
+    yAxis.setTickLabelFormatter(integerStringConverter());
 
     searchTextField.textProperty().addListener((observable, oldValue, newValue) ->
         processSearchInput(newValue));
@@ -263,7 +267,34 @@ public class LeaderboardController implements Controller<Tab> {
     });
   }
 
+  public void onMajorDivisionPicked() {
+    leaderboardService.getAllSubdivisions(season.getId()).thenAccept(subdivisions ->
+        JavaFxUtil.runLater(() -> {
+          subDivisionTabPane.getTabs().clear();
+          subdivisions.stream()
+              .filter(subdivision -> subdivision.getDivision().getIndex() == majorDivisionPicker.getValue().getDivision().getIndex())
+              .forEach(subdivision -> {
+                SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml");
+                controller.getRoot().setUserData(subdivision.getIndex());
+                controller.populate(subdivision);
+                subDivisionTabPane.getTabs().add(controller.getRoot());
+                subDivisionTabPane.getSelectionModel().selectLast();
+              });
+        }));
+    // The tabs always appear 40px wider than they should for whatever reason. We add a little more to prevent horizontal scrolling
+    JavaFxUtil.runLater(() -> subDivisionTabPane.setTabMinWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0));
+    JavaFxUtil.runLater(() -> subDivisionTabPane.setTabMaxWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0));
+  }
+
   private void plotDivisionDistributions(List<SubdivisionBean> subdivisions, LeagueEntryBean leagueEntry) {
+    // We need to set the categories first, to ensure they have the right order.
+    ObservableList<String> categories = FXCollections.observableArrayList();
+    subdivisions.stream()
+        .filter(subdivision -> subdivision.getIndex() == 1)
+        .map(subdivision -> i18n.get(subdivision.getDivisionI18nKey()))
+        .forEach(categories::add);
+    xAxis.setCategories(categories);
+
     subdivisions.stream().filter(subdivision -> subdivision.getDivision().getIndex() == 1).forEach(firstTierSubDivision -> {
       XYChart.Series<String, Integer> series = new XYChart.Series<>();
       series.setName(firstTierSubDivision.getNameKey());
@@ -337,22 +368,21 @@ public class LeaderboardController implements Controller<Tab> {
     };
   }
 
-  public void onMajorDivisionPicked() {
-    leaderboardService.getAllSubdivisions(season.getId()).thenAccept(subdivisions ->
-      JavaFxUtil.runLater(() -> {
-        subDivisionTabPane.getTabs().clear();
-        subdivisions.stream()
-            .filter(subdivision -> subdivision.getDivision().getIndex() == majorDivisionPicker.getValue().getDivision().getIndex())
-            .forEach(subdivision -> {
-              SubDivisionTabController controller = uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml");
-              controller.getRoot().setUserData(subdivision.getIndex());
-              controller.populate(subdivision);
-              subDivisionTabPane.getTabs().add(controller.getRoot());
-              subDivisionTabPane.getSelectionModel().selectLast();
-            });
-      }));
-    // The tabs always appear 40px wider than they should for whatever reason. We add a little more to prevent horizontal scrolling
-    JavaFxUtil.runLater(() -> subDivisionTabPane.setTabMinWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0));
-    JavaFxUtil.runLater(() -> subDivisionTabPane.setTabMaxWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0));
+  @NotNull
+  private StringConverter<Number> integerStringConverter() {
+    return new StringConverter<>() {
+      @Override
+      public String toString(Number object) {
+        if(object.intValue()!=object.doubleValue())
+          return "";
+        return String.valueOf(object.intValue());
+      }
+
+      @Override
+      public Number fromString(String string) {
+        Number val = Double.parseDouble(string);
+        return val.intValue();
+      }
+    };
   }
 }

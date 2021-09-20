@@ -88,7 +88,7 @@
                                    <CategoryAxis fx:id="xAxis" animated="false" label="%leaderboard.rank" side="BOTTOM" tickLabelGap="0.0" />
                                </xAxis>
                                <yAxis>
-                                   <NumberAxis side="LEFT" label="%coop.leaderboard.players"/>
+                                   <NumberAxis fx:id="yAxis" side="LEFT" label="%coop.leaderboard.players"/>
                                </yAxis>
                            </BarChart>
                            <padding>
