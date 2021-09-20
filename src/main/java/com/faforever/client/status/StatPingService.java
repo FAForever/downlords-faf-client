@@ -33,6 +33,10 @@ public class StatPingService {
   }
 
   private <T> Flux<T> getMany(String path, Class<T> type) {
+    if (apiRoot == null) {
+      return Flux.empty();
+    }
+
     return webClient.get().uri(path).retrieve().bodyToFlux(type)
         .onErrorResume(t -> {
           log.warn("Could not read StatPing from: {}", apiRoot, t);
