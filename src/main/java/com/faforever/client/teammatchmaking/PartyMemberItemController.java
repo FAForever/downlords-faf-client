@@ -7,8 +7,10 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
@@ -31,6 +33,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.nio.file.Paths;
+
+import static com.github.nocatch.NoCatch.noCatch;
 
 @Slf4j
 @Component
@@ -41,8 +47,10 @@ public class PartyMemberItemController implements Controller<Node> {
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
 
+  private final AssetService assetService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
+  private final LeaderboardService leaderboardService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final UiService uiService;
@@ -90,9 +98,23 @@ public class PartyMemberItemController implements Controller<Node> {
       return;
     }
 
-    // TODO: replace this with divisionproperty once it is available
-    leagueImageView.setVisible(false);
-    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase());
+    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
+      JavaFxUtil.runLater(() -> {
+        if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
+          leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+          leagueImageView.setVisible(false);
+        } else {
+          leagueLabel.setText(i18n.get("leaderboard.divisionName",
+              i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
+              leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
+          leagueImageView.setImage(assetService.loadAndCacheImage(noCatch(() ->
+              new URL(leagueEntry.get().getSubdivision().getMediumImageKey())), Paths.get("divisions"), null
+          ));
+          leagueImageView.setVisible(true);
+        }
+      });
+    });
+
     playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
 
     addListeners();

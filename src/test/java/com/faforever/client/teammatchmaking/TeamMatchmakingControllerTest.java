@@ -2,6 +2,7 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
@@ -14,10 +15,12 @@ import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
@@ -36,6 +39,8 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
 import static com.faforever.client.teammatchmaking.TeamMatchmakingController.CHAT_AT_BOTTOM_PSEUDO_CLASS;
@@ -58,7 +63,11 @@ public class TeamMatchmakingControllerTest extends UITest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
+  private AssetService assetService;
+  @Mock
   private AvatarService avatarService;
+  @Mock
+  private LeaderboardService leaderboardService;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -93,6 +102,8 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(teamMatchmakingService.getParty()).thenReturn(party);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
+    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+        CompletableFuture.completedFuture(Optional.empty()));
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
@@ -104,9 +115,24 @@ public class TeamMatchmakingControllerTest extends UITest {
       when(controller.getRoot()).thenReturn(new Tab());
       return controller;
     });
-    instance = new TeamMatchmakingController(countryFlagService, avatarService, preferencesService, playerService, i18n, uiService,
-        teamMatchmakingService, eventBus);
+    instance = new TeamMatchmakingController(assetService, countryFlagService, avatarService, leaderboardService,
+        preferencesService, playerService, i18n, uiService, teamMatchmakingService, eventBus);
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> instance);
+  }
+
+  @Test
+  public void testLeagueNotSet() {
+    assertFalse(instance.leagueImageView.isVisible());
+    assertThat(instance.leagueLabel.getText(), is("IN PLACEMENT"));
+  }
+
+  @Test
+  public void testLeagueSet() {
+    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+        CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
+
+    assertTrue(instance.leagueImageView.isVisible());
+    assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
   }
 
   @Test

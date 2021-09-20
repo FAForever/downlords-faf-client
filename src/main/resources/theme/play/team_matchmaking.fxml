@@ -23,7 +23,7 @@
     <GridPane fx:id="contentPane">
         <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" minWidth="710.0"/>
-            <ColumnConstraints hgrow="ALWAYS" fx:id="column2" minWidth="710.0"/>
+            <ColumnConstraints hgrow="ALWAYS" fx:id="column2" prefWidth="500.0"/>
         </columnConstraints>
         <rowConstraints>
             <RowConstraints vgrow="SOMETIMES" />
@@ -66,7 +66,7 @@
                                     </HBox>
                                     <HBox spacing="15.0">
                                         <Label fx:id="leagueLabel" styleClass="player-card-text"
-                                               text="%leaderboard.divisionName"/>
+                                               text="%teammatchmaking.inPlacement"/>
                                         <Label fx:id="gameCountLabel" styleClass="player-card-text"
                                                text="%teammatchmaking.gameCount"/>
                                         <Pane HBox.hgrow="ALWAYS"/>

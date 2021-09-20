@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
 <AnchorPane fx:id="playerItemRoot" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
             onContextMenuRequested="#onContextMenuRequested"
             fx:controller="com.faforever.client.teammatchmaking.PartyMemberItemController">
@@ -56,7 +56,7 @@
                 </HBox>
                 <HBox spacing="15.0" alignment="CENTER_LEFT">
                     <children>
-                        <Label fx:id="leagueLabel" text="%leaderboard.divisionName" styleClass="player-card-text" />
+                        <Label fx:id="leagueLabel" text="%teammatchmaking.inPlacement" styleClass="player-card-text" />
                         <Label fx:id="gameCountLabel" text="%teammatchmaking.gameCount" styleClass="player-card-text" />
                         <HBox HBox.hgrow="ALWAYS" alignment="CENTER_RIGHT">
                             <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="36.0" preserveRatio="true" />

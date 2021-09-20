@@ -11,9 +11,11 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -49,6 +51,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -56,6 +60,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
+import static com.github.nocatch.NoCatch.noCatch;
 
 @Component
 @RequiredArgsConstructor
@@ -66,8 +71,10 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass CHAT_AT_BOTTOM_PSEUDO_CLASS = PseudoClass.getPseudoClass("bottom");
 
+  private final AssetService assetService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
+  private final LeaderboardService leaderboardService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
   private final I18n i18n;
@@ -124,14 +131,31 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     initializeDynamicChatPosition();
     initializeUppercaseText();
     initializeListeners();
+    initializeLeagueInfo();
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getMatchmaker().getFactions();
     selectFactions(factions);
     teamMatchmakingService.sendFactionSelection(factions);
     teamMatchmakingService.requestMatchmakerInfo();
+  }
 
-    // TODO: Use when leagues implemented
-    leagueImageView.setVisible(false);
+    private void initializeLeagueInfo() {
+      JavaFxUtil.runLater(() -> {
+        leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
+          if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
+            leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+            leagueImageView.setVisible(false);
+          } else {
+            leagueLabel.setText(i18n.get("leaderboard.divisionName",
+                i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
+                leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
+            leagueImageView.setImage(assetService.loadAndCacheImage(noCatch(() ->
+                new URL(leagueEntry.get().getSubdivision().getMediumImageKey())), Paths.get("divisions"), null
+            ));
+            leagueImageView.setVisible(true);
+          }
+        });
+      });
   }
 
   private void initializeDynamicChatPosition() {
@@ -161,8 +185,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     partyHeadingLabel.setText(i18n.get("teammatchmaking.partyTitle").toUpperCase());
     invitePlayerButton.setText(i18n.get("teammatchmaking.invitePlayer").toUpperCase());
     leavePartyButton.setText(i18n.get("teammatchmaking.leaveParty").toUpperCase());
-    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase()); // TODO: replace this with divisionproperty once it is available
-    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase());
   }
 
   private void setQueueHeadingLabel() {

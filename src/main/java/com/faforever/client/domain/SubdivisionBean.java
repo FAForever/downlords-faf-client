@@ -125,7 +125,17 @@ public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
   }
 
   public String getImageKey() {
-    return String.format("https://content.faforever.com/divisions/icons/%s-%s.png",
-        getDivision().getIndex(), index.get());
+    return String.format("https://content.faforever.com/divisions/icons/%s%s.png",
+        getDivision().getNameKey(), getNameKey());
+  }
+
+  public String getMediumImageKey() {
+    return String.format("https://content.faforever.com/divisions/icons/medium/%s%s_medium.png",
+        getDivision().getNameKey(), getNameKey());
+  }
+
+  public String getSmallImageKey() {
+    return String.format("https://content.faforever.com/divisions/icons/small/%s%s_small.png",
+        getDivision().getNameKey(), getNameKey());
   }
 }

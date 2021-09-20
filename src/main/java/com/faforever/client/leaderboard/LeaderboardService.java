@@ -29,6 +29,7 @@ import reactor.util.function.Tuple2;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -141,6 +142,21 @@ public class LeaderboardService {
         .next()
         .map(dto -> leaderboardMapper.map(dto, player.getUsername(), new CycleAvoidingMappingContext()))
         .toFuture();
+  }
+
+  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
+  public CompletableFuture<Optional<LeagueEntryBean>> getHighestLeagueEntryForPlayer(PlayerBean player) {
+    ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
+        .setFilter(qBuilder().intNum("loginId").eq(player.getId()))
+        .addSortingRule("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex", false);
+    return fafApiAccessor.getMany(navigator)
+        // This goes all the way back. Maybe we don't want that
+        .filter(leagueSeasonScore -> leagueSeasonScore.getLeagueSeason().getStartDate().isBefore(OffsetDateTime.now()))
+        .reduce((score1, score2) -> score1.getLeagueSeasonDivisionSubdivision().getSubdivisionIndex()
+            > score2.getLeagueSeasonDivisionSubdivision().getSubdivisionIndex() ? score1 : score2)
+        .map(dto -> leaderboardMapper.map(dto, player.getUsername(), new CycleAvoidingMappingContext()))
+        .toFuture()
+        .thenApply(Optional::ofNullable);
   }
 
   @Cacheable(value = CacheNames.DIVISIONS, sync = true)
