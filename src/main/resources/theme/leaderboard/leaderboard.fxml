@@ -43,7 +43,7 @@
                                         <Region styleClass="icon,search-icon" />
                                     </graphic>
                                 </Label>
-                                <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="160.0" prefWidth="160.0" promptText="%leaderboard.searchPrompt" styleClass="search" />
+                                <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="150.0" promptText="%leaderboard.searchPrompt" styleClass="search" />
                             </HBox>
                         </children>
                     </HBox>

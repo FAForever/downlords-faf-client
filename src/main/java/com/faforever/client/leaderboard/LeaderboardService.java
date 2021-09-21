@@ -28,6 +28,7 @@ import reactor.util.function.Tuple2;
 
 import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -109,12 +110,15 @@ public class LeaderboardService {
           .filter(division -> division.getDivision().getIndex() >= entry.getSubdivision().getDivision().getIndex())
           .filter(division -> !(division.getDivision().getIndex() == entry.getSubdivision().getDivision().getIndex() && division.getIndex() <= entry.getSubdivision().getIndex()))
           .forEach(division -> getSizeOfDivision(division).thenApply(rank::addAndGet));
-      getEntries(entry.getSubdivision()).thenAccept(leagueEntryBeans ->
-          rank.addAndGet(leagueEntryBeans.indexOf(entry) + 1));
+      getEntries(entry.getSubdivision()).thenAccept(leagueEntryBeans -> {
+        leagueEntryBeans.sort(Comparator.comparing(LeagueEntryBean::getScore).reversed());
+        rank.addAndGet(leagueEntryBeans.indexOf(entry) + 1);
+      });
       return rank.get();
     });
   }
 
+  @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public CompletableFuture<Integer> getTotalPlayers(int leagueSeasonId) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder()
@@ -131,7 +135,7 @@ public class LeaderboardService {
     return getEntries(subdivision).thenApply(List::size);
   }
 
-  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
+  @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public CompletableFuture<LeagueEntryBean> getLeagueEntryForPlayer(PlayerBean player, int leagueSeasonId) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder()
@@ -144,7 +148,7 @@ public class LeaderboardService {
         .toFuture();
   }
 
-  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
+  @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public CompletableFuture<Optional<LeagueEntryBean>> getHighestLeagueEntryForPlayer(PlayerBean player) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder().intNum("loginId").eq(player.getId()))
@@ -159,13 +163,12 @@ public class LeaderboardService {
         .thenApply(Optional::ofNullable);
   }
 
-  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
+  @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public CompletableFuture<List<LeagueEntryBean>> getEntries(SubdivisionBean subdivision) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder().intNum("leagueSeason.id").eq(subdivision.getLeagueSeasonId())
             .and().intNum("leagueSeasonDivisionSubdivision.subdivisionIndex").eq(subdivision.getIndex())
-            .and().intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex").eq(subdivision.getDivision().getIndex()))
-        .addSortingRule("score", false);
+            .and().intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex").eq(subdivision.getDivision().getIndex()));
     return mapLeagueEntryDtoToBean(fafApiAccessor.getMany(navigator)
         .collectList()
         .toFuture()

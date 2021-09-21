@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -35,7 +36,6 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   public TabPane leaderboardRoot;
 
   private boolean isHandlingEvent;
-  private LeaderboardController lastTabController;
   private final List<LeaderboardController> controllers = new ArrayList<>();
   private Tab lastTab;
 
@@ -51,6 +51,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
           LeaderboardController controller = uiService.loadFxml("theme/leaderboard/leaderboard.fxml");
           controller.setSeason(season);
           controller.getRoot().setText(i18n.get(String.format("leaderboard.%s", league.getTechnicalName())));
+          controller.getRoot().setUserData(league.getId());
           JavaFxUtil.runLater(() -> leaderboardRoot.getTabs().add(controller.getRoot()));
           controllers.add(controller);
         }).thenRun(() -> {
@@ -58,9 +59,11 @@ public class LeaderboardsController extends AbstractViewController<Node> {
             log.info("Api returned no leagues");
             notificationService.addImmediateErrorNotification(null, "leaderboard.noLeaderboards");
           }
-          lastTabController = controllers.get(0);
-          lastTab = lastTabController.getRoot();
-          leaderboardRoot.getSelectionModel().select(lastTabController.getRoot());
+          JavaFxUtil.runLater(() -> {
+            leaderboardRoot.getTabs().sort(Comparator.comparing(tab -> (int) tab.getUserData()));
+            leaderboardRoot.getSelectionModel().select(0);
+            lastTab = leaderboardRoot.getTabs().get(0);
+          });
         }).exceptionally(throwable -> {
           log.warn("Error while loading seasons", throwable);
           notificationService.addImmediateErrorNotification(throwable, "leaderboard.noLeaderboards");
@@ -90,7 +93,6 @@ public class LeaderboardsController extends AbstractViewController<Node> {
         controllers.forEach(controller -> {
           if (controller.getRoot().equals(event.getLeagueTab())) {
             lastTab = controller.getRoot();
-            lastTabController = controller;
           }
         });
       }

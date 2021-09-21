@@ -98,23 +98,6 @@ public class PartyMemberItemController implements Controller<Node> {
       return;
     }
 
-    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
-      JavaFxUtil.runLater(() -> {
-        if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
-          leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
-          leagueImageView.setVisible(false);
-        } else {
-          leagueLabel.setText(i18n.get("leaderboard.divisionName",
-              i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
-              leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
-          leagueImageView.setImage(assetService.loadAndCacheImage(noCatch(() ->
-              new URL(leagueEntry.get().getSubdivision().getMediumImageKey())), Paths.get("divisions"), null
-          ));
-          leagueImageView.setVisible(true);
-        }
-      });
-    });
-
     playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
 
     addListeners();
@@ -150,12 +133,30 @@ public class PartyMemberItemController implements Controller<Node> {
     Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
     String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
     JavaFxUtil.runLater(() -> {
+      setLeagueInfo();
       countryImageView.setImage(countryFlag);
       avatarImageView.setImage(avatarImage);
       clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));
       clanLabel.setText(clanTag);
       gameCountLabel.setText(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase());
       usernameLabel.setText(player.getUsername());
+    });
+  }
+
+  private void setLeagueInfo() {
+    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
+      if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
+        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+        leagueImageView.setVisible(false);
+      } else {
+        leagueLabel.setText(i18n.get("leaderboard.divisionName",
+            i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
+            leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
+        leagueImageView.setImage(assetService.loadAndCacheImage(noCatch(() ->
+            new URL(leagueEntry.get().getSubdivision().getMediumImageKey())), Paths.get("divisions"), null
+        ));
+        leagueImageView.setVisible(true);
+      }
     });
   }
 

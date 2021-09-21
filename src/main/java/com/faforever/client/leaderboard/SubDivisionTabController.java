@@ -16,6 +16,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
+
 import static javafx.collections.FXCollections.observableList;
 
 
@@ -58,9 +60,10 @@ public class SubDivisionTabController implements Controller<Tab> {
   public void populate(SubdivisionBean subdivision) {
     subDivisionTab.setText(subdivision.getNameKey());
 
-    leaderboardService.getEntries(subdivision).thenAccept(leagueEntryBeans ->
-        ratingTable.setItems(observableList(leagueEntryBeans)))
-        .exceptionally(throwable -> {
+    leaderboardService.getEntries(subdivision).thenAccept(leagueEntryBeans -> {
+      leagueEntryBeans.sort(Comparator.comparing(LeagueEntryBean::getScore).reversed());
+      ratingTable.setItems(observableList(leagueEntryBeans));
+    }).exceptionally(throwable -> {
       log.warn("Error while loading leaderboard entries for division " + subdivision, throwable);
       notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
       return null;

@@ -131,31 +131,11 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     initializeDynamicChatPosition();
     initializeUppercaseText();
     initializeListeners();
-    initializeLeagueInfo();
 
     ObservableList<Faction> factions = preferencesService.getPreferences().getMatchmaker().getFactions();
     selectFactions(factions);
     teamMatchmakingService.sendFactionSelection(factions);
     teamMatchmakingService.requestMatchmakerInfo();
-  }
-
-    private void initializeLeagueInfo() {
-      JavaFxUtil.runLater(() -> {
-        leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
-          if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
-            leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
-            leagueImageView.setVisible(false);
-          } else {
-            leagueLabel.setText(i18n.get("leaderboard.divisionName",
-                i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
-                leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
-            leagueImageView.setImage(assetService.loadAndCacheImage(noCatch(() ->
-                new URL(leagueEntry.get().getSubdivision().getMediumImageKey())), Paths.get("divisions"), null
-            ));
-            leagueImageView.setVisible(true);
-          }
-        });
-      });
   }
 
   private void initializeDynamicChatPosition() {
@@ -203,6 +183,23 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     JavaFxUtil.runLater(() -> queueHeadingLabel.setText(labelText));
   }
 
+  private void setLeagueInfo() {
+    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
+      if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
+        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+        leagueImageView.setVisible(false);
+      } else {
+        leagueLabel.setText(i18n.get("leaderboard.divisionName",
+            i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
+            leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
+        leagueImageView.setImage(assetService.loadAndCacheImage(noCatch(() ->
+            new URL(leagueEntry.get().getSubdivision().getMediumImageKey())), Paths.get("divisions"), null
+        ));
+        leagueImageView.setVisible(true);
+      }
+    });
+  }
+
   private void initializeListeners() {
     matchmakingQueuesLabelInvalidationListener = observable -> setQueueHeadingLabel();
 
@@ -211,6 +208,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
       String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
       JavaFxUtil.runLater(() -> {
+        setLeagueInfo();
         countryImageView.setImage(countryFlag);
         avatarImageView.setImage(avatarImage);
         clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));

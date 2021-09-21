@@ -209,8 +209,7 @@ public class LeaderboardController implements Controller<Tab> {
           selectHighestDivision();
         } else {
           if (leagueEntry.getSubdivision() == null) {
-            // TODO hardcoding the 10 games is bad
-            playerDivisionNameLabel.setText(i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed(), 10));
+            playerDivisionNameLabel.setText(i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed()));
             selectHighestDivision();
           } else {
             JavaFxUtil.runLater(() -> {
@@ -290,6 +289,7 @@ public class LeaderboardController implements Controller<Tab> {
   }
 
   private void plotDivisionDistributions(List<SubdivisionBean> subdivisions, LeagueEntryBean leagueEntry) {
+    JavaFxUtil.runLater(() -> ratingDistributionChart.getData().clear());
     // We need to set the categories first, to ensure they have the right order.
     ObservableList<String> categories = FXCollections.observableArrayList();
     subdivisions.stream()
