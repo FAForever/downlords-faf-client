@@ -1,6 +1,7 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.LeagueEntryBean;
+import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.SubdivisionBean;
 
 import java.time.OffsetDateTime;
@@ -15,8 +16,8 @@ public class LeagueEntryBeanBuilder {
   public LeagueEntryBeanBuilder defaultValues() {
     username("junit");
     gamesPlayed(100);
-    leagueSeasonId(1);
     score(5);
+    leagueSeason(LeagueSeasonBeanBuilder.create().defaultValues().get());
     subdivision(SubdivisionBeanBuilder.create().defaultValues().get());
     return this;
   }
@@ -31,8 +32,8 @@ public class LeagueEntryBeanBuilder {
     return this;
   }
 
-  public LeagueEntryBeanBuilder leagueSeasonId(int leagueSeasonId) {
-    leagueEntryBean.setLeagueSeasonId(leagueSeasonId);
+  public LeagueEntryBeanBuilder leagueSeason(LeagueSeasonBean leagueSeason) {
+    leagueEntryBean.setLeagueSeason(leagueSeason);
     return this;
   }
 

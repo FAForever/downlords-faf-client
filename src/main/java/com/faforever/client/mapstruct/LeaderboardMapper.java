@@ -79,11 +79,11 @@ public interface LeaderboardMapper {
 
   @Mapping(target = "username", source = "playerName")
   @Mapping(target = "gamesPlayed", source = "dto.gameCount")
-  @Mapping(target = "leagueSeasonId", expression = "java(Integer.parseInt(dto.getLeagueSeason().getId()))")
   @Mapping(target = "subdivision", source = "dto.leagueSeasonDivisionSubdivision")
   LeagueEntryBean map(LeagueSeasonScore dto, String playerName, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "gameCount", source = "gamesPlayed")
-  @Mapping(target = "leagueSeasonDivisionSubdivision", source = "subdivision")
-  LeagueSeasonScore map(LeagueEntryBean bean, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "loginId", source = "playerId")
+  @Mapping(target = "gameCount", source = "bean.gamesPlayed")
+  @Mapping(target = "leagueSeasonDivisionSubdivision", source = "bean.subdivision")
+  LeagueSeasonScore map(LeagueEntryBean bean, int playerId, @Context CycleAvoidingMappingContext context);
 }

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -109,29 +110,41 @@ public class LeaderboardServiceTest extends ServiceTest {
   public void testGetLatestSeason() {
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
 
-    instance.getEntries(leaderboard).toCompletableFuture().join();
+    instance.getLatestSeason(1).toCompletableFuture().join();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("endDate", true)));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("startDate", false)));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.filterPresent()));
   }
 
   @Test
   public void testGetAccumulatedRank() {
-    when(instance.getSizeOfDivision(any())).thenReturn(CompletableFuture.completedFuture(10));
+    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
+    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leagueEntryBean, 0, new CycleAvoidingMappingContext())));
+    when(playerService.getPlayersByIds(List.of(0))).thenReturn(
+        CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().id(0).username("junit").get())));
 
+    int result = instance.getSizeOfDivision(subdivisionBean).toCompletableFuture().join();
+    Assertions.assertEquals(1, result);
   }
 
   @Test
   public void testGetTotalPlayers() {
-    when(instance.getSizeOfDivision(any())).thenReturn(CompletableFuture.completedFuture(10));
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.empty());
 
+    instance.getTotalPlayers(1).toCompletableFuture().join();
+
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.filterPresent()));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(1)));
   }
 
   @Test
   public void testGetSizeOfDivision() {
     SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().get();
-    when(instance.getEntries(subdivisionBean)).thenReturn(CompletableFuture.completedFuture(List.of(leagueEntryBean)));
+    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leagueEntryBean, 0, new CycleAvoidingMappingContext())));
+    when(playerService.getPlayersByIds(List.of(0))).thenReturn(
+        CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().id(0).username("junit").get())));
 
     int result = instance.getSizeOfDivision(subdivisionBean).toCompletableFuture().join();
     Assertions.assertEquals(1, result);
@@ -140,7 +153,7 @@ public class LeaderboardServiceTest extends ServiceTest {
   @Test
   public void testGetLeagueEntryForPlayer() {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().username("junit").get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext())));
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leagueEntryBean, 0, new CycleAvoidingMappingContext())));
 
     LeagueEntryBean result = instance.getLeagueEntryForPlayer(player, 2).toCompletableFuture().join();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()).and()
@@ -150,9 +163,9 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeagueEntries() {
-    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().leagueSeasonId(1).get();
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().leagueSeasonId(1).subdivision(subdivisionBean).get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext())));
+    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
+    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leagueEntryBean, 0, new CycleAvoidingMappingContext())));
     when(playerService.getPlayersByIds(List.of(0))).thenReturn(
         CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().id(0).username("junit").get())));
 
@@ -162,11 +175,11 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetAllSubdivisions() {
-    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().leagueSeasonId(1).get();
+    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(subdivisionBean, new CycleAvoidingMappingContext())));
 
-    List<SubdivisionBean> result = instance.getAllSubdivisions(1).toCompletableFuture().join();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq("1"))));
+    List<SubdivisionBean> result = instance.getAllSubdivisions(0).toCompletableFuture().join();
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq("0"))));
     Assertions.assertEquals(List.of(subdivisionBean), result);
   }
 }

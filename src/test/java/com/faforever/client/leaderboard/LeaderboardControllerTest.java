@@ -20,6 +20,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 public class LeaderboardControllerTest extends UITest {
 
@@ -47,11 +49,11 @@ public class LeaderboardControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-
+    when(i18n.get(anyString())).thenReturn("");
 
     instance = new LeaderboardController(assetService, i18n, leaderboardService, notificationService, playerService, uiService);
 
-    loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> instance);
+    loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
   }
 
   @Test
@@ -85,13 +87,36 @@ public class LeaderboardControllerTest extends UITest {
   }
 
   private void assertSearchSuggestions(String... expectedSuggestions) {
-    List<String> actualSuggestions = instance.usernamesAutoCompletion.getAutoCompletionPopup().getSuggestions();
-    assertEquals(expectedSuggestions.length,  actualSuggestions.size());
-    assertTrue(actualSuggestions.containsAll(Arrays.asList(expectedSuggestions)));
+    runOnFxThreadAndWait(() -> {
+      List<String> actualSuggestions = instance.usernamesAutoCompletion.getAutoCompletionPopup().getSuggestions();
+      assertEquals(expectedSuggestions.length,  actualSuggestions.size());
+      assertTrue(actualSuggestions.containsAll(Arrays.asList(expectedSuggestions)));
+  });
   }
 
   @Test
   public void testGetRoot() throws Exception {
     assertEquals(instance.getRoot(), instance.leaderboardRoot);
   }
+
+  @Test
+  public void testMajorDivisionPicker() {
+
+  }
+
+  @Test
+  public void noLeagueEntry() {
+
+  }
+
+  @Test
+  public void testNotPlaced() {
+
+  }
+
+  @Test
+  public void testWithLeagueEntry() {
+
+  }
+
 }

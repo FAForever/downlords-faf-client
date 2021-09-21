@@ -18,9 +18,8 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
   @EqualsAndHashCode.Include
   StringProperty username = new SimpleStringProperty();
   IntegerProperty gamesPlayed = new SimpleIntegerProperty();
-  @ToString.Include
-  IntegerProperty leagueSeasonId = new SimpleIntegerProperty();
   IntegerProperty score = new SimpleIntegerProperty();
+  ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
   ObjectProperty<SubdivisionBean> subdivision = new SimpleObjectProperty<>();
 
   public String getUsername() {
@@ -33,18 +32,6 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
 
   public StringProperty usernameProperty() {
     return username;
-  }
-
-  public int getLeagueSeasonId() {
-    return leagueSeasonId.get();
-  }
-
-  public void setLeagueSeasonId(int leagueSeasonId) {
-    this.leagueSeasonId.set(leagueSeasonId);
-  }
-
-  public IntegerProperty leagueSeasonIdProperty() {
-    return leagueSeasonId;
   }
 
   public int getGamesPlayed() {
@@ -69,6 +56,18 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
 
   public IntegerProperty scoreProperty() {
     return score;
+  }
+
+  public LeagueSeasonBean getLeagueSeason() {
+    return leagueSeason.get();
+  }
+
+  public void setLeagueSeason(LeagueSeasonBean leagueSeason) {
+    this.leagueSeason.set(leagueSeason);
+  }
+
+  public ObjectProperty<LeagueSeasonBean> leagueSeasonProperty() {
+    return leagueSeason;
   }
 
   public SubdivisionBean getSubdivision() {

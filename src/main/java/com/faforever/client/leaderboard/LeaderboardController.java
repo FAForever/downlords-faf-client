@@ -137,7 +137,10 @@ public class LeaderboardController implements Controller<Tab> {
 
   private void searchInAllDivisions(String searchText) {
     playerService.getPlayerByName(searchText).thenAccept(playerBeanOptional -> playerBeanOptional.ifPresent(player ->
-      leaderboardService.getLeagueEntryForPlayer(player, season.getId()).thenAccept(leagueEntry -> {
+      leaderboardService.getLeagueEntryForPlayer(player, season.getId()).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
+        if (leagueEntry == null) {
+          return;
+        }
         majorDivisionPicker.getItems().stream()
             .filter(item -> item.getDivision().getIndex() == leagueEntry.getSubdivision().getDivision().getIndex())
             .findFirst().ifPresent(item -> majorDivisionPicker.getSelectionModel().select(item));
@@ -149,7 +152,7 @@ public class LeaderboardController implements Controller<Tab> {
               newTable.scrollTo(leagueEntry);
               newTable.getSelectionModel().select(leagueEntry);
             });
-      })));
+      }))));
   }
 
   public void setSeason(LeagueSeasonBean season) {

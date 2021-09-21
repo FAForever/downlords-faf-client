@@ -90,9 +90,9 @@ public class LeaderboardService {
   public CompletableFuture<LeagueSeasonBean> getLatestSeason(int leagueId) {
     ElideNavigatorOnCollection<LeagueSeason> navigator = ElideNavigator.of(LeagueSeason.class).collection()
         .setFilter(qBuilder().intNum("league.id").eq(leagueId))
-        // TODO: this needs some more thought
-        .addSortingRule("endDate", true);
+        .addSortingRule("startDate", false);
     return fafApiAccessor.getMany(navigator)
+        .filter(leagueSeason -> leagueSeason.getStartDate().isBefore(OffsetDateTime.now()))
         .next()
         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
         .toFuture();
@@ -104,7 +104,7 @@ public class LeaderboardService {
       return CompletableFuture.failedFuture(notRanked);
     }
     AtomicInteger rank = new AtomicInteger();
-    return getAllSubdivisions(entry.getLeagueSeasonId()).thenApply(divisions -> {
+    return getAllSubdivisions(entry.getLeagueSeason().getId()).thenApply(divisions -> {
       divisions.stream()
           .filter(division -> division.getDivision().getIndex() >= entry.getSubdivision().getDivision().getIndex())
           .filter(division -> !(division.getDivision().getIndex() == entry.getSubdivision().getDivision().getIndex() && division.getIndex() <= entry.getSubdivision().getIndex()))
@@ -166,26 +166,30 @@ public class LeaderboardService {
             .and().intNum("leagueSeasonDivisionSubdivision.subdivisionIndex").eq(subdivision.getIndex())
             .and().intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex").eq(subdivision.getDivision().getIndex()))
         .addSortingRule("score", false);
-    return fafApiAccessor.getMany(navigator)
+    return mapLeagueEntryDtoToBean(fafApiAccessor.getMany(navigator)
         .collectList()
         .toFuture()
-        .thenCompose(leagueSeasonScores -> {
-          if (leagueSeasonScores.isEmpty()) {
-            return CompletableFuture.completedFuture(Collections.emptyList());
-          }
-          List<Integer> playerIds = leagueSeasonScores
-              .parallelStream()
-              .map(LeagueSeasonScore::getLoginId)
-              .collect(Collectors.toList());
-          return playerService.getPlayersByIds(playerIds).thenApply(playerBeans -> playerBeans
-              .parallelStream()
-              .flatMap(playerBean -> leagueSeasonScores
-                  .stream()
-                  .filter(leagueSeasonScore -> leagueSeasonScore.getLoginId().equals(playerBean.getId()))
-                  .map(leagueSeasonScore -> leaderboardMapper.map(leagueSeasonScore, playerBean.getUsername(), new CycleAvoidingMappingContext()))
-              )
-              .collect(Collectors.toList()));
-        });
+    );
+  }
+
+  private CompletableFuture<List<LeagueEntryBean>> mapLeagueEntryDtoToBean(CompletableFuture<List<LeagueSeasonScore>> future) {
+    return future.thenCompose(leagueSeasonScores -> {
+      if (leagueSeasonScores.isEmpty()) {
+        return CompletableFuture.completedFuture(Collections.emptyList());
+      }
+      List<Integer> playerIds = leagueSeasonScores
+          .parallelStream()
+          .map(LeagueSeasonScore::getLoginId)
+          .collect(Collectors.toList());
+      return playerService.getPlayersByIds(playerIds).thenApply(playerBeans -> playerBeans
+          .parallelStream()
+          .flatMap(playerBean -> leagueSeasonScores
+              .stream()
+              .filter(leagueSeasonScore -> leagueSeasonScore.getLoginId().equals(playerBean.getId()))
+              .map(leagueSeasonScore -> leaderboardMapper.map(leagueSeasonScore, playerBean.getUsername(), new CycleAvoidingMappingContext()))
+          )
+          .collect(Collectors.toList()));
+    });
   }
 
   @Cacheable(value = CacheNames.DIVISIONS, sync = true)
