@@ -703,10 +703,10 @@ public class GameServiceTest extends ServiceTest {
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageTestBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafService.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     instance.startSearchMatchmaker();
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, List.of("/team", "1", "/players", "4", "/startspot", "3", "/gameoptions", "Share:ShareUntilDeath", "UnitCap:500"),
