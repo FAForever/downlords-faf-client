@@ -829,7 +829,18 @@ public class GameService implements InitializingBean {
           notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
           return null;
         });
+  }
 
+  public void startGameOffline() {
+    if (!preferencesService.isGamePathValid()) {
+      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
+      gameDirectoryFuture.thenAccept(path -> startGameOffline());
+      return;
+    }
+
+    process = noCatch(() -> forgedAllianceService.startGameOffline(List.of()));
+    setGameRunning(true);
+    spawnTerminationListener(process, false);
   }
 
   @Async

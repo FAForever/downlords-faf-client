@@ -3,6 +3,7 @@ package com.faforever.client.login;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -56,6 +57,8 @@ public class LoginControllerTest extends UITest {
 
   private LoginController instance;
   @Mock
+  private GameService gameService;
+  @Mock
   private PreferencesService preferencesService;
   @Mock
   private NotificationService notificationService;
@@ -98,7 +101,7 @@ public class LoginControllerTest extends UITest {
     when(offlineServiceController.getRoot()).thenReturn(new Label());
     when(offlineServicesController.getRoot()).thenReturn(new Pane());
 
-    instance = new LoginController(userService, preferencesService, notificationService, clientProperties, i18n,
+    instance = new LoginController(gameService, userService, preferencesService, notificationService, clientProperties, i18n,
         clientUpdateService, webViewConfigurer, statPingService, uiService);
 
     loadFxml("theme/login/login.fxml", param -> instance);
@@ -283,6 +286,14 @@ public class LoginControllerTest extends UITest {
 
     verify(i18n).get("login.button.downloadPreparing");
     verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
+  }
+
+  @Test
+  public void testOnPlayOfflineButtonClicked() throws Exception {
+    instance.onPlayOfflineButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(gameService).startGameOffline();
   }
 
   @Test

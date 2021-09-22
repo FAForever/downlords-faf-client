@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.FafClientApplication;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
@@ -67,7 +66,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -90,7 +88,6 @@ import static javafx.collections.FXCollections.observableMap;
 @Lazy
 @Service
 @Slf4j
-@Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 @RequiredArgsConstructor
 public class KittehChatService implements ChatService, InitializingBean, DisposableBean {
 

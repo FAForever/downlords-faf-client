@@ -7,6 +7,7 @@ import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
+import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
@@ -59,6 +60,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LoginController implements Controller<Pane> {
 
+  private final GameService gameService;
   private final UserService userService;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
@@ -78,6 +80,7 @@ public class LoginController implements Controller<Pane> {
   public WebView loginWebView;
   public ComboBox<ServerEndpoints> environmentComboBox;
   public Button downloadUpdateButton;
+  public Button playOfflineButton;
   public Label loginErrorLabel;
   public Pane loginRoot;
   public GridPane serverConfigPane;
@@ -350,6 +353,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private void showClientOutdatedPane(String minimumVersion) {
+    log.warn("Client Update required");
     JavaFxUtil.runLater(() -> {
       errorPane.setVisible(true);
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
@@ -358,7 +362,7 @@ public class LoginController implements Controller<Pane> {
       loginFormPane.setDisable(true);
       loginFormPane.setVisible(false);
       loginWebView.setVisible(false);
-      log.warn("Update required");
+      playOfflineButton.setVisible(false);
     });
   }
 
@@ -433,6 +437,10 @@ public class LoginController implements Controller<Pane> {
       loginFormPane.setVisible(false);
       loginProgressPane.setVisible(true);
     });
+  }
+
+  public void onPlayOfflineButtonClicked() {
+    gameService.startGameOffline();
   }
 
   public Pane getRoot() {
