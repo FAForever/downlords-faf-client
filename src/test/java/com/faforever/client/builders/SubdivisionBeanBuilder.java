@@ -15,8 +15,8 @@ public class SubdivisionBeanBuilder {
   public SubdivisionBeanBuilder defaultValues() {
     leagueSeasonId(0);
     index(1);
-    nameKey("test_description");
-    descriptionKey("test_name");
+    nameKey("I");
+    descriptionKey("test_description");
     highestScore(10);
     maxRating(100);
     minRating(-100);

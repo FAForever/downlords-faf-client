@@ -68,12 +68,12 @@ public class PartyMemberItemControllerTest extends UITest {
     party = PartyBuilder.create().defaultValues().get();
     owner = party.getOwner();
     player = PlayerBeanBuilder.create().defaultValues().username("player").id(100).defaultValues().get();
-    PartyMember partyMember = PartyMemberBuilder.create(owner).defaultValues().get();
+    PartyMember partyMember = PartyMemberBuilder.create(player).defaultValues().get();
     party.getMembers().add(partyMember);
     when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In placement");
     when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
     when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
-    when(playerService.getCurrentPlayer()).thenReturn(player);
+    when(playerService.getCurrentPlayer()).thenReturn(owner);
     when(teamMatchmakingService.getParty()).thenReturn(party);
     when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
@@ -95,8 +95,10 @@ public class PartyMemberItemControllerTest extends UITest {
     when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
 
-    assertTrue(instance.leagueImageView.isVisible());
+    runOnFxThreadAndWait(() -> instance.setLeagueInfo());
+
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
+    assertTrue(instance.leagueImageView.isVisible());
   }
 
   @Test
@@ -104,51 +106,51 @@ public class PartyMemberItemControllerTest extends UITest {
     assertFalse(instance.playerStatusImageView.isVisible());
     assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
 
-    owner.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.playerStatusImageView.isVisible());
     assertTrue(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
 
-    runOnFxThreadAndWait(() -> owner.setGame(null));
+    runOnFxThreadAndWait(() -> player.setGame(null));
     assertFalse(instance.playerStatusImageView.isVisible());
     assertFalse(instance.playerCard.getPseudoClassStates().contains(PLAYING_PSEUDO_CLASS));
   }
 
   @Test
   public void testPartyOwnerListener() {
-    assertThat(instance.crownLabel.isVisible(), is(true));
-    assertThat(instance.kickPlayerButton.isVisible(), is(false));
-    assertTrue(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
-
-    runOnFxThreadAndWait(() -> party.setOwner(player));
     assertThat(instance.crownLabel.isVisible(), is(false));
     assertThat(instance.kickPlayerButton.isVisible(), is(true));
     assertFalse(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
 
-    runOnFxThreadAndWait(() -> party.setOwner(owner));
+    runOnFxThreadAndWait(() -> party.setOwner(player));
     assertThat(instance.crownLabel.isVisible(), is(true));
     assertThat(instance.kickPlayerButton.isVisible(), is(false));
     assertTrue(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
+
+    runOnFxThreadAndWait(() -> party.setOwner(owner));
+    assertThat(instance.crownLabel.isVisible(), is(false));
+    assertThat(instance.kickPlayerButton.isVisible(), is(true));
+    assertFalse(instance.playerCard.getPseudoClassStates().contains(LEADER_PSEUDO_CLASS));
   }
 
   @Test
   public void testPlayerPropertyListener() {
-    verify(countryFlagService).loadCountryFlag(owner.getCountry());
-    verify(avatarService).loadAvatar(owner.getAvatar());
-    assertThat(instance.usernameLabel.getText(), is(owner.getUsername()));
+    verify(countryFlagService).loadCountryFlag(player.getCountry());
+    verify(avatarService).loadAvatar(player.getAvatar());
+    assertThat(instance.usernameLabel.getText(), is(player.getUsername()));
     assertThat(instance.gameCountLabel.getText(), is("GAMES PLAYED: 0"));
     assertThat(instance.clanLabel.isVisible(), is(true));
     assertThat(instance.clanLabel.getText(), is(String.format("[%s]", player.getClan())));
 
-    owner.setCountry("DE");
-    owner.setAvatar(AvatarBeanBuilder.create().defaultValues().get());
-    owner.setClan("");
-    owner.setUsername("player");
-    owner.setLeaderboardRatings(new HashMap<>());
+    player.setCountry("DE");
+    player.setAvatar(AvatarBeanBuilder.create().defaultValues().get());
+    player.setClan("");
+    player.setUsername("player");
+    player.setLeaderboardRatings(new HashMap<>());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.usernameLabel.getText(), is(owner.getUsername()));
+    assertThat(instance.usernameLabel.getText(), is(player.getUsername()));
     assertThat(instance.gameCountLabel.getText(), is("GAMES PLAYED: 0"));
     assertThat(instance.clanLabel.isVisible(), is(false));
     assertThat(instance.clanLabel.getText(), is(""));
@@ -158,7 +160,7 @@ public class PartyMemberItemControllerTest extends UITest {
   public void testOnKickPlayerButtonClicked() {
     instance.onKickPlayerButtonClicked(null);
 
-    verify(teamMatchmakingService).kickPlayerFromParty(owner);
+    verify(teamMatchmakingService).kickPlayerFromParty(player);
   }
 
   @Test

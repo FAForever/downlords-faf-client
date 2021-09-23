@@ -13,7 +13,7 @@ public class DivisionBeanBuilder {
   private final DivisionBean divisionBean = new DivisionBean();
 
   public DivisionBeanBuilder defaultValues() {
-    index(0);
+    index(1);
     nameKey("test_description");
     descriptionKey("test_name");
     leagueSeason(LeagueSeasonBeanBuilder.create().defaultValues().get());

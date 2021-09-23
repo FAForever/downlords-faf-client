@@ -203,7 +203,8 @@ public class LeaderboardController implements Controller<Tab> {
     updateDisplayedPlayerStats(player);
   }
 
-  private void updateDisplayedPlayerStats(PlayerBean player) {
+  @VisibleForTesting
+  protected void updateDisplayedPlayerStats(PlayerBean player) {
     leaderboardService.getAllSubdivisions(season.getId()).thenAccept(divisions ->
       leaderboardService.getLeagueEntryForPlayer(player, season.getId()).thenAccept(leagueEntry -> {
         if (leagueEntry == null) {

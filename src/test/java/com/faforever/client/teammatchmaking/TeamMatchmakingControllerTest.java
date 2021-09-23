@@ -110,6 +110,8 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(teamMatchmakingService.getMatchmakerQueues()).thenReturn(matchmakerQueues);
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(i18n.get(anyString())).thenReturn("");
+    when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
+    when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
     when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> {
       MatchmakingChatController controller = mock(MatchmakingChatController.class);
       when(controller.getRoot()).thenReturn(new Tab());
@@ -130,6 +132,8 @@ public class TeamMatchmakingControllerTest extends UITest {
   public void testLeagueSet() {
     when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
+
+    instance.initialize();
 
     assertTrue(instance.leagueImageView.isVisible());
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
