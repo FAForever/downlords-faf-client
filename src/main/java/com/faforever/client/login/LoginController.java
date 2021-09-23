@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -440,7 +441,16 @@ public class LoginController implements Controller<Pane> {
   }
 
   public void onPlayOfflineButtonClicked() {
-    gameService.startGameOffline();
+    try {
+      gameService.startGameOffline();
+    } catch (Exception e) {
+      if (e.getCause() instanceof IOException) {
+        notificationService.addImmediateWarnNotification("offline.noExe");
+      } else {
+        notificationService.addImmediateErrorNotification(e, "offline.error");
+      }
+    }
+
   }
 
   public Pane getRoot() {

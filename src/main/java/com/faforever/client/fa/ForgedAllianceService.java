@@ -39,7 +39,6 @@ public class ForgedAllianceService {
         .executable(executable)
         .additionalArgs(args)
         .logFile(preferencesService.getNewGameLogFile(0))
-
         .build();
 
     return launch(executable, launchCommand);

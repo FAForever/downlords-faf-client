@@ -21,6 +21,7 @@ import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
+import com.github.nocatch.NoCatchException;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ import org.testfx.assertions.api.Assertions;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -49,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -294,6 +297,26 @@ public class LoginControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(gameService).startGameOffline();
+  }
+
+  @Test
+  public void testOnPlayOfflineButtonClickedNoExe() throws Exception {
+    doThrow(new NoCatchException(new IOException())).when(gameService).startGameOffline();
+    instance.onPlayOfflineButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(gameService).startGameOffline();
+    verify(notificationService).addImmediateWarnNotification("offline.noExe");
+  }
+
+  @Test
+  public void testOnPlayOfflineButtonClickedError() throws Exception {
+    doThrow(new RuntimeException()).when(gameService).startGameOffline();
+    instance.onPlayOfflineButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(gameService).startGameOffline();
+    verify(notificationService).addImmediateErrorNotification(any(), eq("offline.error"));
   }
 
   @Test
