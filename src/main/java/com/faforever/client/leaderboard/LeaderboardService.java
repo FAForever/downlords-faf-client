@@ -47,6 +47,19 @@ public class LeaderboardService {
   private final LeaderboardMapper leaderboardMapper;
   private final PlayerService playerService;
 
+  private static final Comparator<SubdivisionBean> SUBDIVISION_COMPARATOR = (o1, o2) -> {
+    if (o1.getDivision().getIndex() > o2.getDivision().getIndex()) {
+      return 1;
+    }
+    if (o1.getDivision().getIndex() == o2.getDivision().getIndex() && o1.getIndex() > o2.getIndex()) {
+      return 1;
+    }
+    if (o1.getDivision().getIndex() == o2.getDivision().getIndex() && o1.getIndex() == o2.getIndex()) {
+      return 0;
+    }
+    return -1;
+  };
+
   @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
   public CompletableFuture<List<LeaderboardBean>> getLeaderboards() {
     ElideNavigatorOnCollection<Leaderboard> navigator = ElideNavigator.of(Leaderboard.class).collection();
@@ -107,8 +120,7 @@ public class LeaderboardService {
     AtomicInteger rank = new AtomicInteger();
     return getAllSubdivisions(entry.getLeagueSeason().getId()).thenApply(divisions -> {
       divisions.stream()
-          .filter(division -> division.getDivision().getIndex() >= entry.getSubdivision().getDivision().getIndex())
-          .filter(division -> !(division.getDivision().getIndex() == entry.getSubdivision().getDivision().getIndex() && division.getIndex() <= entry.getSubdivision().getIndex()))
+          .filter(division -> SUBDIVISION_COMPARATOR.compare(division, entry.getSubdivision()) > 0)
           .forEach(division -> getSizeOfDivision(division).thenApply(rank::addAndGet));
       getEntries(entry.getSubdivision()).thenAccept(leagueEntryBeans -> {
         leagueEntryBeans.sort(Comparator.comparing(LeagueEntryBean::getScore).reversed());
@@ -151,14 +163,12 @@ public class LeaderboardService {
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public CompletableFuture<Optional<LeagueEntryBean>> getHighestLeagueEntryForPlayer(PlayerBean player) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
-        .setFilter(qBuilder().intNum("loginId").eq(player.getId()))
-        .addSortingRule("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex", false);
+        .setFilter(qBuilder().intNum("loginId").eq(player.getId()));
     return fafApiAccessor.getMany(navigator)
         // This goes all the way back. Maybe we don't want that
         .filter(leagueSeasonScore -> leagueSeasonScore.getLeagueSeason().getStartDate().isBefore(OffsetDateTime.now()))
-        .reduce((score1, score2) -> score1.getLeagueSeasonDivisionSubdivision().getSubdivisionIndex()
-            > score2.getLeagueSeasonDivisionSubdivision().getSubdivisionIndex() ? score1 : score2)
         .map(dto -> leaderboardMapper.map(dto, player.getUsername(), new CycleAvoidingMappingContext()))
+        .reduce((score1, score2) -> SUBDIVISION_COMPARATOR.compare(score1.getSubdivision(), score2.getSubdivision()) > 0 ? score1 : score2)
         .toFuture()
         .thenApply(Optional::ofNullable);
   }

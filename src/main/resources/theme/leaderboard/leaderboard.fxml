@@ -35,7 +35,7 @@
                     <HBox fx:id="box" spacing="10.0">
                         <children>
                             <ComboBox fx:id="majorDivisionPicker" styleClass="division-selector" onAction="#onMajorDivisionPicked"
-                                      promptText="Tiers"/>
+                                      promptText="Tiers" minWidth="200.0" />
                             <Pane HBox.hgrow="ALWAYS" />
                             <HBox alignment="CENTER_LEFT" spacing="10.0">
                                 <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
@@ -71,8 +71,11 @@
                            </VBox>
                            <Pane minWidth="20.0" HBox.hgrow="ALWAYS" />
                            <VBox alignment="BOTTOM_CENTER" spacing="20.0">
-                             <ImageView fx:id="playerDivisionImageView" fitHeight="200.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true" />
-                             <Label fx:id="playerDivisionNameLabel" styleClass="heading" maxWidth="380.0" text="%leaderboard.noEntry" wrapText="true" alignment="CENTER"/>
+                               <AnchorPane>
+                                   <ImageView fx:id="playerDivisionImageView" fitHeight="200.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true" />
+                                   <Label fx:id="placementLabel" styleClass="heading" maxWidth="380.0" text="%leaderboard.noEntry" wrapText="true" AnchorPane.bottomAnchor="60"/>
+                               </AnchorPane>
+                               <Label fx:id="playerDivisionNameLabel" styleClass="heading" maxWidth="380.0" text="%leaderboard.divisionName" wrapText="true" alignment="CENTER" visible="false"/>
                            </VBox>
                          </children>
                         <padding>

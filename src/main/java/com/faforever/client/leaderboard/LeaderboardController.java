@@ -84,6 +84,7 @@ public class LeaderboardController implements Controller<Tab> {
   public ImageView playerDivisionImageView;
   public CategoryAxis xAxis;
   public NumberAxis yAxis;
+  public Label placementLabel;
   private LeagueSeasonBean season;
 
   @VisibleForTesting
@@ -209,10 +210,16 @@ public class LeaderboardController implements Controller<Tab> {
           selectHighestDivision();
         } else {
           if (leagueEntry.getSubdivision() == null) {
-            playerDivisionNameLabel.setText(i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed()));
+            JavaFxUtil.runLater(() -> {
+              playerDivisionNameLabel.setVisible(false);
+              placementLabel.setVisible(true);
+              placementLabel.setText(i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed()));
+            });
             selectHighestDivision();
           } else {
             JavaFxUtil.runLater(() -> {
+              playerDivisionNameLabel.setVisible(true);
+              placementLabel.setVisible(false);
               playerDivisionImageView.setImage(assetService.loadAndCacheImage(
                   noCatch(() -> new URL(leagueEntry.getSubdivision().getImageKey())), Paths.get("divisions"), null));
               playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
@@ -323,7 +330,7 @@ public class LeaderboardController implements Controller<Tab> {
 
   private void setXAxisLabel(LeagueEntryBean leagueEntry) {
     leaderboardService.getTotalPlayers(season.getId()).thenAccept(totalPlayers -> {
-      if (leagueEntry == null) {
+      if (leagueEntry == null || leagueEntry.getSubdivision() == null) {
         JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.totalPlayers", totalPlayers)));
       } else {
         leaderboardService.getAccumulatedRank(leagueEntry)

@@ -184,7 +184,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void setLeagueInfo() {
-    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
+    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
       if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
         leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
         leagueImageView.setVisible(false);
@@ -197,7 +197,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         ));
         leagueImageView.setVisible(true);
       }
-    });
+    }));
   }
 
   private void initializeListeners() {
@@ -207,8 +207,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
       Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
       String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
+      setLeagueInfo();
       JavaFxUtil.runLater(() -> {
-        setLeagueInfo();
         countryImageView.setImage(countryFlag);
         avatarImageView.setImage(avatarImage);
         clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));

@@ -28,6 +28,7 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -132,8 +133,8 @@ public class PartyMemberItemController implements Controller<Node> {
     Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
     Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
     String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
+    setLeagueInfo();
     JavaFxUtil.runLater(() -> {
-      setLeagueInfo();
       countryImageView.setImage(countryFlag);
       avatarImageView.setImage(avatarImage);
       clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));
@@ -143,8 +144,9 @@ public class PartyMemberItemController implements Controller<Node> {
     });
   }
 
-  private void setLeagueInfo() {
-    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> {
+  @VisibleForTesting
+  protected void setLeagueInfo() {
+    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
       if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
         leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
         leagueImageView.setVisible(false);
@@ -157,7 +159,7 @@ public class PartyMemberItemController implements Controller<Node> {
         ));
         leagueImageView.setVisible(true);
       }
-    });
+    }));
   }
 
   private void addListeners() {
