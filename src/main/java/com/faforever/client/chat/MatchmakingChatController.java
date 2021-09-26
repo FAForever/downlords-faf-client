@@ -25,7 +25,6 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -35,8 +34,6 @@ import java.util.Arrays;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MatchmakingChatController extends AbstractChatTabController {
-
-  private final ApplicationEventPublisher applicationEventPublisher;
 
   public Tab matchmakingChatTabRoot;
   public WebView messagesWebView;
@@ -62,11 +59,10 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    ChatService chatService,
                                    WebViewConfigurer webViewConfigurer,
                                    CountryFlagService countryFlagService,
-                                   ChatUserService chatUserService, ApplicationEventPublisher applicationEventPublisher) {
+                                   ChatUserService chatUserService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         eventBus, countryFlagService, chatUserService);
-    this.applicationEventPublisher = applicationEventPublisher;
   }
 
   @Override
@@ -125,7 +121,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   public void onDiscordButtonClicked() {
-    applicationEventPublisher.publishEvent(new JoinDiscordEvent());
+    eventBus.post(new JoinDiscordEvent());
   }
 
   @VisibleForTesting

@@ -3,23 +3,23 @@ package com.faforever.client.discord;
 
 import com.faforever.client.notification.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
 import net.arikia.dev.drpc.DiscordEventHandlers;
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRPC.DiscordReply;
 import net.arikia.dev.drpc.DiscordUser;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class DiscordEventHandler extends DiscordEventHandlers {
-  private final ApplicationEventPublisher applicationEventPublisher;
+  private final EventBus eventBus;
   private final NotificationService notificationService;
   private final ObjectMapper objectMapper;
 
-  public DiscordEventHandler(ApplicationEventPublisher applicationEventPublisher, NotificationService notificationService, ObjectMapper objectMapper) {
-    this.applicationEventPublisher = applicationEventPublisher;
+  public DiscordEventHandler(EventBus eventBus, NotificationService notificationService, ObjectMapper objectMapper) {
+    this.eventBus = eventBus;
     this.notificationService = notificationService;
     this.objectMapper = objectMapper;
     ready = this::onDiscordReady;
@@ -37,7 +37,7 @@ public class DiscordEventHandler extends DiscordEventHandlers {
   private void onJoinGame(String joinSecret) {
     try {
       DiscordJoinSecret discordJoinSecret = objectMapper.readValue(joinSecret, DiscordJoinSecret.class);
-      applicationEventPublisher.publishEvent(new DiscordJoinEvent(discordJoinSecret.getGameId()));
+      eventBus.post(new DiscordJoinEvent(discordJoinSecret.getGameId()));
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
       notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");
@@ -47,7 +47,7 @@ public class DiscordEventHandler extends DiscordEventHandlers {
   private void onSpectate(String spectateSecret) {
     try {
       DiscordSpectateSecret discordSpectateSecret = objectMapper.readValue(spectateSecret, DiscordSpectateSecret.class);
-      applicationEventPublisher.publishEvent(new DiscordSpectateEvent(discordSpectateSecret.getGameId()));
+      eventBus.post(new DiscordSpectateEvent(discordSpectateSecret.getGameId()));
     } catch (Exception e) {
       log.error("Could not join game from discord rich presence", e);
       notificationService.addImmediateErrorNotification(e, "discord.couldNotOpen");
