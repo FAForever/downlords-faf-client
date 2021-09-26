@@ -80,7 +80,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
       log.debug("Uploading map {} as {}", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.uploading"));
 
-      return fafApiAccessor.uploadFile("/maps/upload", tmpFile, byteListener, Map.of("metadata", Map.of("getRanked", isRanked))).block();
+      return fafApiAccessor.uploadFile("/maps/upload", tmpFile, byteListener, Map.of("metadata", Map.of("isRanked", isRanked))).block();
     } finally {
       Files.delete(tmpFile);
       ResourceLocks.freeUploadLock();
