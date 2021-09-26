@@ -652,6 +652,20 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testOfflineGame() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    instance.startGameOffline();
+    verify(forgedAllianceService).startGameOffline(List.of());
+  }
+
+  @Test
+  public void testOfflineGameInvalidPath() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(false);
+    instance.startGameOffline();
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
   public void runWithLiveReplayIfNoGameSet() {
     when(preferencesService.isGamePathValid()).thenReturn(false);
     instance.runWithLiveReplay(null, null, null, null);

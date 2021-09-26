@@ -1,6 +1,5 @@
 package com.faforever.client.config;
 
-import com.faforever.client.FafClientApplication;
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
@@ -13,10 +12,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("!" + FafClientApplication.PROFILE_OFFLINE)
 @AllArgsConstructor
 public class FeaturedModUpdaterConfig {
 

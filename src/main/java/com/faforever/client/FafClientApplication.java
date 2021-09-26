@@ -60,7 +60,6 @@ public class FafClientApplication extends Application {
    */
   public static final String PROFILE_RELOAD = "reload";
   public static final String PROFILE_LOCAL = "local";
-  public static final String PROFILE_OFFLINE = "offline";
   public static final String PROFILE_WINDOWS = "windows";
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";

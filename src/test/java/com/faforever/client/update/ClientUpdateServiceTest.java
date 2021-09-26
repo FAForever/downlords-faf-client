@@ -9,7 +9,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.update.ClientUpdateServiceImpl.InstallerExecutionException;
+import com.faforever.client.update.ClientUpdateService.InstallerExecutionException;
 import com.faforever.commons.io.Bytes;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,9 +32,9 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ClientUpdateServiceImplTest extends ServiceTest {
+public class ClientUpdateServiceTest extends ServiceTest {
 
-  private ClientUpdateServiceImpl instance;
+  private ClientUpdateService instance;
 
   @TempDir
   public Path fafBinDirectory;
@@ -77,7 +77,7 @@ public class ClientUpdateServiceImplTest extends ServiceTest {
     doReturn(CompletableFuture.completedFuture(betaUpdateInfo)).when(checkForBetaUpdateTask).getFuture();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    instance = new ClientUpdateServiceImpl(taskService, notificationService, i18n, platformService, applicationContext, preferencesService, eventBus);
+    instance = new ClientUpdateService(taskService, notificationService, i18n, platformService, applicationContext, preferencesService, eventBus);
   }
 
   /**

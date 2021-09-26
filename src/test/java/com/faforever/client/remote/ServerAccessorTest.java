@@ -108,7 +108,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Slf4j
-public class ServerAccessorImplTest extends ServiceTest {
+public class ServerAccessorTest extends ServiceTest {
 
   private static final long TIMEOUT = 5000;
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
@@ -132,7 +132,7 @@ public class ServerAccessorImplTest extends ServiceTest {
   @Mock
   private EventBus eventBus;
 
-  private FafServerAccessorImpl instance;
+  private FafServerAccessor instance;
   private CountDownLatch messageReceivedByClientLatch;
   private ServerMessage receivedMessage;
   private ObjectMapper objectMapper;
@@ -158,7 +158,7 @@ public class ServerAccessorImplTest extends ServiceTest {
         .setHost(disposableServer.host())
         .setPort(disposableServer.port() - 1);
 
-    instance = new FafServerAccessorImpl(notificationService, i18n, taskScheduler, clientProperties, preferencesService, uidService,
+    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, clientProperties, preferencesService, uidService,
         tokenService, eventBus, objectMapper);
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {
