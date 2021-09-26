@@ -21,7 +21,6 @@ import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationEventPublisher;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
@@ -68,8 +67,6 @@ public class MatchmakingChatControllerTest extends UITest {
   private CountryFlagService countryFlagService;
   @Mock
   private ChatUserService chatUserService;
-  @Mock
-  private ApplicationEventPublisher applicationEventPublisher;
 
   private MatchmakingChatController instance;
 
@@ -90,7 +87,7 @@ public class MatchmakingChatControllerTest extends UITest {
         i18n, imageUploadService, notificationService, reportingService,
         uiService, eventBus,
         audioService, chatService, webViewConfigurer, countryFlagService,
-        chatUserService, applicationEventPublisher);
+        chatUserService);
     loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml", clazz -> instance);
 
     instance = spy(instance);
@@ -116,7 +113,7 @@ public class MatchmakingChatControllerTest extends UITest {
   @Test
   public void testOnJoinDiscordButtonClicked() {
     instance.onDiscordButtonClicked();
-    verify(applicationEventPublisher).publishEvent(any(JoinDiscordEvent.class));
+    verify(eventBus).post(any(JoinDiscordEvent.class));
   }
 
   @Test

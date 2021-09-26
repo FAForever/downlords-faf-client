@@ -17,8 +17,8 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -106,7 +106,7 @@ public class JoinGameHelper {
     join(gameService.getByUid(gameId));
   }
 
-  @EventListener
+  @Subscribe
   public void onDiscordGameJoinEvent(DiscordJoinEvent discordJoinEvent) {
     Integer gameId = discordJoinEvent.getGameId();
     boolean disallowJoinsViaDiscord = preferencesService.getPreferences().isDisallowJoinsViaDiscord();
