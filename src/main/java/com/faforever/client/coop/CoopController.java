@@ -1,6 +1,7 @@
 package com.faforever.client.coop;
 
 import com.faforever.client.domain.CoopMissionBean;
+import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
@@ -20,13 +21,9 @@ import com.faforever.client.replay.ReplayService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.faforever.commons.api.dto.CoopResult;
-import com.faforever.commons.api.dto.GamePlayerStats;
-import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -93,14 +90,14 @@ public class CoopController extends AbstractViewController<Node> {
   public TextField titleTextField;
   public Button playButton;
   public PasswordField passwordTextField;
-  public TableView<CoopResult> leaderboardTable;
+  public TableView<CoopResultBean> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
-  public TableColumn<CoopResult, Integer> rankColumn;
-  public TableColumn<CoopResult, Integer> playerCountColumn;
-  public TableColumn<CoopResult, String> playerNamesColumn;
-  public TableColumn<CoopResult, Boolean> secondaryObjectivesColumn;
-  public TableColumn<CoopResult, Duration> timeColumn;
-  public TableColumn<CoopResult, String> replayColumn;
+  public TableColumn<CoopResultBean, Integer> rankColumn;
+  public TableColumn<CoopResultBean, Integer> playerCountColumn;
+  public TableColumn<CoopResultBean, String> playerNamesColumn;
+  public TableColumn<CoopResultBean, Boolean> secondaryObjectivesColumn;
+  public TableColumn<CoopResultBean, Duration> timeColumn;
+  public TableColumn<CoopResultBean, String> replayColumn;
 
   public void initialize() {
     missionComboBox.setCellFactory(param -> missionListCell());
@@ -124,13 +121,13 @@ public class CoopController extends AbstractViewController<Node> {
 
     playerNamesColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
-    secondaryObjectivesColumn.setCellValueFactory(param -> new SimpleBooleanProperty(param.getValue().isSecondaryObjectives()));
+    secondaryObjectivesColumn.setCellValueFactory(param -> param.getValue().secondaryObjectivesProperty());
     secondaryObjectivesColumn.setCellFactory(param -> new StringCell<>(aBoolean -> aBoolean ? i18n.get("yes") : i18n.get("no")));
 
     timeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getDuration()));
     timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
 
-    replayColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getGame().getId()));
+    replayColumn.setCellValueFactory(param -> param.getValue().getReplay().idProperty().asString());
     replayColumn.setCellFactory(param -> new NodeTableCell<>((replayId) -> {
       ReplayButtonController button = uiService.loadFxml("theme/play/coop/replay_button.fxml");
       button.setReplayId(replayId);
@@ -181,10 +178,9 @@ public class CoopController extends AbstractViewController<Node> {
     return i18n.get("coop.unknownMission");
   }
 
-  private String commaDelimitedPlayerList(CoopResult coopResult) {
-    return coopResult.getGame().getPlayerStats().stream()
-        .map(GamePlayerStats::getPlayer)
-        .map(Player::getLogin)
+  private String commaDelimitedPlayerList(CoopResultBean coopResult) {
+    return coopResult.getReplay().getTeams().values().stream()
+        .flatMap(List::stream)
         .collect(Collectors.joining(i18n.get("textSeparator")));
   }
 

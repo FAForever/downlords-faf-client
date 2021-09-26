@@ -23,6 +23,9 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -50,21 +53,29 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetLeaderboards() {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    LeaderboardBean leaderboardBean = LeaderboardBeanBuilder.create().defaultValues().get();
 
-    instance.getLeaderboards().toCompletableFuture().join();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leaderboardBean, new CycleAvoidingMappingContext())));
+
+    List<LeaderboardBean> results = instance.getLeaderboards().toCompletableFuture().join();
 
     verify(fafApiAccessor).getMany(any());
+    assertThat(results, hasSize(1));
+    assertThat(results.get(0), is(leaderboardBean));
   }
 
   @Test
   public void testGetLeaderboardEntries() {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    LeaderboardEntryBean leaderboardEntryBean = LeaderboardEntryBeanBuilder.create().defaultValues().get();
 
-    instance.getEntries(leaderboard).toCompletableFuture().join();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leaderboardEntryBean, new CycleAvoidingMappingContext())));
+
+    List<LeaderboardEntryBean> results = instance.getEntries(leaderboard).toCompletableFuture().join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("rating", false)));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.filterPresent()));
+    assertThat(results, hasSize(1));
+    assertThat(results.get(0), is(leaderboardEntryBean));
   }
 
   @Test

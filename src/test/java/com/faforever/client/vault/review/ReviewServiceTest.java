@@ -7,6 +7,10 @@ import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.builders.ModVersionReviewBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.builders.ReplayReviewBeanBuilder;
+import com.faforever.client.domain.MapVersionReviewBean;
+import com.faforever.client.domain.ModVersionReviewBean;
+import com.faforever.client.domain.ReplayReviewBean;
+import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.client.test.ElideMatchers;
@@ -39,7 +43,8 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewGameReview() throws Exception {
-    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.empty());
+    ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().get();
+    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext())));
 
     instance.saveReplayReview(ReplayReviewBeanBuilder.create().defaultValues().replay(ReplayBeanBuilder.create().defaultValues().get()).get());
     verify(fafApiAccessor).post(argThat(
@@ -49,7 +54,8 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewMapVersionReview() throws Exception {
-    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.empty());
+    MapVersionReviewBean reviewBean = MapVersionReviewBeanBuilder.create().defaultValues().get();
+    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext())));
 
     instance.saveMapVersionReview(MapVersionReviewBeanBuilder.create().defaultValues().mapVersion(MapVersionBeanBuilder.create().defaultValues().get()).get());
     verify(fafApiAccessor).post(argThat(
@@ -59,7 +65,8 @@ public class ReviewServiceTest extends ServiceTest {
 
   @Test
   public void saveNewModVersionReview() throws Exception {
-    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.empty());
+    ModVersionReviewBean reviewBean = ModVersionReviewBeanBuilder.create().defaultValues().get();
+    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext())));
 
     instance.saveModVersionReview(ModVersionReviewBeanBuilder.create().defaultValues().modVersion(ModVersionBeanBuilder.create().defaultValues().get()).get());
     verify(fafApiAccessor).post(argThat(

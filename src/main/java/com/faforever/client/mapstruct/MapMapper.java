@@ -27,6 +27,8 @@ public interface MapMapper {
   @Mapping(target = "size", expression = "java(getMapSize(dto))")
   MapVersionBean map(MapVersion dto, @Context CycleAvoidingMappingContext context);
 
+  @Mapping(target = "width", source = "size.widthInPixels")
+  @Mapping(target = "height", source = "size.heightInPixels")
   MapVersion map(MapVersionBean bean, @Context CycleAvoidingMappingContext context);
 
   default MapSize getMapSize(MapVersion dto) {
@@ -48,7 +50,7 @@ public interface MapMapper {
     return mapType.getString();
   }
 
-  default MapVersionBean mapPoolAssignment(MapPoolAssignment dto, @Context CycleAvoidingMappingContext context) {
+  default MapVersionBean mapFromPoolAssignment(MapPoolAssignment dto, @Context CycleAvoidingMappingContext context) {
     if (dto.getMapVersion() != null) {
       return map(dto.getMapVersion(), context);
     } else if (dto.getMapParams() instanceof NeroxisGeneratorParams) {

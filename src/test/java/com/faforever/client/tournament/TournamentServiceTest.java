@@ -1,6 +1,9 @@
 package com.faforever.client.tournament;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.builders.TournamentBeanBuilder;
+import com.faforever.client.domain.TournamentBean;
+import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.TournamentMapper;
 import com.faforever.client.test.ServiceTest;
@@ -13,6 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -35,9 +42,11 @@ public class TournamentServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGetClanByTag() throws Exception {
-    when(fafApiAccessor.getMany(any(), anyString(), anyInt(), any())).thenReturn(Flux.empty());
-    instance.getAllTournaments().join();
+  public void testAllTournaments() throws Exception {
+    TournamentBean tournamentBean = TournamentBeanBuilder.create().defaultValues().get();
+    when(fafApiAccessor.getMany(any(), anyString(), anyInt(), any())).thenReturn(Flux.just(tournamentMapper.map(tournamentBean, new CycleAvoidingMappingContext())));
+    List<TournamentBean> results =  instance.getAllTournaments().join();
     verify(fafApiAccessor).getMany(eq(Tournament.class), eq("/challonge/v1/tournaments.json"), eq(100), any());
+    assertThat(results, contains(tournamentBean));
   }
 }

@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,10 +62,13 @@ public class AchievementServiceTest extends ServiceTest {
 
   @Test
   public void testGetAchievementDefinitions() throws Exception {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
-    instance.getAchievementDefinitions();
+    AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
+
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(achievementDefinition));
+    List<AchievementDefinition> result = instance.getAchievementDefinitions().join();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(10000)));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
+    assertThat(result, contains(achievementDefinition));
   }
 
   @Test

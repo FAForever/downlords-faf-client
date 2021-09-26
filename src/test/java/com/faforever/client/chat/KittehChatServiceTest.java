@@ -65,6 +65,7 @@ import java.util.function.Consumer;
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -387,8 +388,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     part(defaultChannel, user1);
 
-    assertThat(chatChannel.getUsers(), hasSize(1));
-    assertThat(chatChannel.getUser(user2.getNick()), sameInstance(defaultChatUser2));
+    assertThat(chatChannel.getUsers(), contains(defaultChatUser2));
   }
 
   @Test
@@ -403,9 +403,9 @@ public class KittehChatServiceTest extends ServiceTest {
     join(defaultChannel, user1);
     join(otherChannel, user1);
 
-    assertThat(chatChannel1.getUsers(), hasSize(1));
+    assertThat(chatChannel1.getUsers(), contains(defaultChatUser1));
     assertThat(chatChannel1.getUser(user1.getNick()), sameInstance(defaultChatUser1));
-    assertThat(chatChannel2.getUsers(), hasSize(1));
+    assertThat(chatChannel2.getUsers(), contains(otherChatUser1));
     assertThat(chatChannel2.getUser(user1.getNick()), sameInstance(otherChatUser1));
 
     quit(user1);
@@ -583,14 +583,14 @@ public class KittehChatServiceTest extends ServiceTest {
     join(otherChannel, user2);
 
     List<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
-    assertThat(usersInDefaultChannel, hasSize(1));
-    assertThat(usersInDefaultChannel.iterator().next(), sameInstance(defaultChatUser1));
+    assertThat(usersInDefaultChannel, contains(defaultChatUser1));
+    assertThat(usersInDefaultChannel.get(0), sameInstance(defaultChatUser1));
 
     List<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
-    assertThat(usersInOtherChannel, hasSize(1));
+    assertThat(usersInOtherChannel, contains(defaultChatUser2));
     // It's expected to create one chat channel user per channel, so the instances should be different
-    assertThat(usersInOtherChannel.iterator().next(), not(sameInstance(defaultChatUser2)));
-    assertThat(usersInOtherChannel.iterator().next(), is(defaultChatUser2));
+    assertThat(usersInOtherChannel.get(0), not(sameInstance(defaultChatUser2)));
+    assertThat(usersInOtherChannel.get(0), is(defaultChatUser2));
   }
 
   @Test

@@ -9,9 +9,6 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static com.github.nocatch.NoCatch.noCatch;
 import static java.lang.Class.forName;
 
@@ -27,9 +24,7 @@ public class JsonApiConfig {
   private Class<?>[] findJsonApiTypes(String scanPackage) {
     ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
     provider.addIncludeFilter(new AnnotationTypeFilter(Type.class));
-    List<Class> classes = provider.findCandidateComponents(scanPackage).stream()
-        .map(beanDefinition -> noCatch(() -> (Class) forName(beanDefinition.getBeanClassName())))
-        .collect(Collectors.toList());
-    return classes.toArray(new Class<?>[classes.size()]);
+    return provider.findCandidateComponents(scanPackage).stream()
+        .map(beanDefinition -> noCatch(() -> forName(beanDefinition.getBeanClassName()))).toArray(Class<?>[]::new);
   }
 }

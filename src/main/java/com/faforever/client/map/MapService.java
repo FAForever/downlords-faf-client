@@ -620,7 +620,7 @@ public class MapService implements InitializingBean, DisposableBean {
     String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor())).replace("ex", "isnull");
     Flux<MapVersionBean> matchmakerMapsFlux = fafApiAccessor.getMany(navigator, customFilter)
         .flatMap(mapPoolAssignment -> Mono.fromCallable(() ->
-            mapMapper.mapPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
+            mapMapper.mapFromPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
         )
         .distinct()
         .sort(Comparator.comparing(MapVersionBean::getSize).thenComparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER));
@@ -679,7 +679,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getNewestMapsWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
-        .addSortingRule("updateTime", false);
+        .addSortingRule("latestVersion.createTime", false);
     return getMapPage(navigator, count, page);
   }
 

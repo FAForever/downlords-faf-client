@@ -2,8 +2,10 @@ package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.remote.FafServerAccessor;
@@ -37,6 +39,7 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -234,18 +237,22 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetPlayerByName() {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
-    instance.getPlayerByName("junit");
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext())));
+    Optional<PlayerBean> result = instance.getPlayerByName("junit").join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("junit"))));
+    assertThat(result.orElse(null), is(playerBean));
   }
 
   @Test
   public void testGetPlayersByIds() {
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
-    instance.getPlayersByIds(List.of(1,2,3,4));
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext())));
+    List<PlayerBean> result = instance.getPlayersByIds(List.of(1,2,3,4)).join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(1,2,3,4)))));
+    assertThat(result, contains(playerBean));
   }
 
   @Test

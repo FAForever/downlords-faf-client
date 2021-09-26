@@ -2,6 +2,7 @@ package com.faforever.client.test;
 
 import com.faforever.commons.api.elide.ElideEndpointBuilder;
 import com.faforever.commons.api.elide.ElideEntity;
+import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -26,7 +27,7 @@ public final class ElideMatchers {
   public static final String INCLUDE = "include=";
   public static final String SORT = "sort=";
 
-  public static ArgumentMatcher<ElideEndpointBuilder<?>> hasDtoClass(Class<? extends ElideEntity> clazz) {
+  public static ArgumentMatcher<ElideNavigator<?>> hasDtoClass(Class<? extends ElideEntity> clazz) {
     return builder -> builder.getDtoClass().equals(clazz);
   }
 
