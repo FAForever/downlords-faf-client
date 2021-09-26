@@ -310,7 +310,7 @@ public class SearchController implements Controller<Pane> {
     return categoryFilterController;
   }
 
-  public RangeFilterController addRangeFilter(String propertyName, String title, double min, double max, double tickUnit, Function<Double, Double> valueTransform) {
+  public RangeFilterController addRangeFilter(String propertyName, String title, double min, double max, double tickUnit, Function<Double, ? extends Number> valueTransform) {
     RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
     rangeFilterController.setTitle(title);
     rangeFilterController.setPropertyName(propertyName);

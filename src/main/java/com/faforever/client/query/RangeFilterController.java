@@ -36,7 +36,7 @@ public class RangeFilterController implements FilterNodeController {
   public TextField highValue;
 
   private String propertyName;
-  private Function<Double, Double> valueTransform;
+  private Function<Double, ? extends Number> valueTransform;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(menu);
@@ -154,7 +154,7 @@ public class RangeFilterController implements FilterNodeController {
     rangeSlider.setSnapToTicks(value);
   }
 
-  public void setValueTransform(Function<Double, Double> valueTransform) {
+  public void setValueTransform(Function<Double, ? extends Number> valueTransform) {
     this.valueTransform = valueTransform;
   }
 
@@ -162,5 +162,4 @@ public class RangeFilterController implements FilterNodeController {
   public Node getRoot() {
     return menu;
   }
-
 }
