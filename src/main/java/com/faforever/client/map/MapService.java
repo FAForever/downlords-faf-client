@@ -627,8 +627,7 @@ public class MapService implements InitializingBean, DisposableBean {
     return Mono.zip(
         matchmakerMapsFlux.skip((long) (page - 1) * count)
             .takeLast(count).collectList(),
-        matchmakerMapsFlux.count().map(size -> (size - 1) / count + 1)
-            .cast(Integer.class)
+        matchmakerMapsFlux.count().map(size -> (int) (size - 1) / count + 1)
     ).toFuture();
   }
 

@@ -69,6 +69,7 @@ public interface MapMapper {
     mapVersionBean.setMaxPlayers(params.getSpawns());
     mapVersionBean.setHidden(false);
     mapVersionBean.setRanked(true);
+    mapVersionBean.setMap(mapBean);
     return mapVersionBean;
   }
 }
