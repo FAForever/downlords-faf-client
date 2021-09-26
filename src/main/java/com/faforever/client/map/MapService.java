@@ -578,7 +578,7 @@ public class MapService implements InitializingBean, DisposableBean {
       return CompletableFuture.completedFuture(installed);
     }
     ElideNavigatorOnCollection<MapVersion> navigator = ElideNavigator.of(MapVersion.class).collection()
-        .setFilter(qBuilder().string("foldername").eq(folderName));
+        .setFilter(qBuilder().string("folderName").eq(folderName));
     return fafApiAccessor.getMany(navigator)
         .next()
         .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))

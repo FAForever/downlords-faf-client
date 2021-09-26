@@ -366,7 +366,7 @@ public class MapServiceTest extends UITest {
 
     instance.findByMapFolderName("test");
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("foldername").eq("test"))));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("folderName").eq("test"))));
   }
 
   @Test
