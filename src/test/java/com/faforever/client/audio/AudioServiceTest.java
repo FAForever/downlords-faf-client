@@ -10,10 +10,13 @@ import javafx.scene.media.AudioClip;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.core.io.ClassPathResource;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.nocatch.NoCatch.noCatch;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -33,6 +36,14 @@ public class AudioServiceTest extends ServiceTest {
   private UiService uiService;
 
   private Preferences preferences;
+
+  private String getThemeFile(String file) {
+    return String.format("/%s", file);
+  }
+
+  private URL getThemeFileUrl(String file) {
+    return noCatch(() -> new ClassPathResource(getThemeFile(file)).getURL());
+  }
 
   @BeforeEach
   public void setUp() throws Exception {

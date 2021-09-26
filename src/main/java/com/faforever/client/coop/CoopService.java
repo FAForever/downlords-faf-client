@@ -3,6 +3,7 @@ package com.faforever.client.coop;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.CoopMissionBean;
+import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.mapstruct.CoopMapper;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.commons.api.dto.CoopMission;
@@ -40,7 +41,7 @@ public class CoopService {
   }
 
   @Cacheable(value = CacheNames.COOP_LEADERBOARD, sync = true)
-  public CompletableFuture<List<CoopResult>> getLeaderboard(CoopMissionBean mission, int numberOfPlayers) {
+  public CompletableFuture<List<CoopResultBean>> getLeaderboard(CoopMissionBean mission, int numberOfPlayers) {
     Condition<?> filterCondition = qBuilder().intNum("mission").eq(mission.getId());
     if (numberOfPlayers > 0) {
       filterCondition = filterCondition.and().intNum("playerCount").eq(numberOfPlayers);
@@ -49,6 +50,9 @@ public class CoopService {
         .setFilter(filterCondition)
         .addSortingRule("duration", true)
         .pageSize(1000);
-    return fafApiAccessor.getMany(navigator).collectList().toFuture();
+    return fafApiAccessor.getMany(navigator)
+        .map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext()))
+        .collectList()
+        .toFuture();
   }
 }

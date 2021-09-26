@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MapperSetup {
-  private static Map<Class<?>, Object> INJECTED_MAPPERS = new HashMap<>();
+  private static final Map<Class<?>, Object> INJECTED_MAPPERS = new HashMap<>();
 
   public static <T> void injectMappers(T mapper) throws IllegalAccessException {
     Class<T> mapperClass = (Class<T>) mapper.getClass();

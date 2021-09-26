@@ -28,6 +28,7 @@ public class MapVersionBeanBuilder {
     hidden(false);
     ranked(true);
     id(0);
+    map(MapBeanBuilder.create().defaultValues().latestVersion(mapVersionBean).get());
     return this;
   }
 

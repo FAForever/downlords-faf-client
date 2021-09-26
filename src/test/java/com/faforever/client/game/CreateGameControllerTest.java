@@ -49,7 +49,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -422,8 +421,7 @@ public class CreateGameControllerTest extends UITest {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertThat(instance.featuredModListView.getItems(), hasSize(1));
-    assertThat(instance.featuredModListView.getItems().get(0), is(featuredModBean));
+    assertThat(instance.featuredModListView.getItems(), contains(featuredModBean));
   }
 
   @Test

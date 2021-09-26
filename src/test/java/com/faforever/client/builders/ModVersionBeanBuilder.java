@@ -26,6 +26,7 @@ public class ModVersionBeanBuilder {
 
   @SneakyThrows
   public ModVersionBeanBuilder defaultValues() {
+    mod(ModBeanBuilder.create().defaultValues().latestVersion(modVersionBean).get());
     imagePath(Paths.get("."));
     id(0);
     uid("id");
