@@ -27,7 +27,8 @@
             <children>
               <VBox prefWidth="600">
                 <children>
-                    <Label fx:id="seasonLabel" styleClass="season">
+                    <Label fx:id="seasonLabel" styleClass="season"/>
+                    <Label fx:id="seasonDateLabel" styleClass="seasonDate">
                         <padding>
                             <Insets bottom="20.0" />
                         </padding>

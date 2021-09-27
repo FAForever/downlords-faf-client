@@ -795,6 +795,12 @@
   -fx-font-size: 30px;
 }
 
+.seasonDate {
+  -fx-text-fill: #777777;
+  -fx-font-family: 'Source Sans Pro Semibold';
+  -fx-font-size: 20px;
+}
+
 .division-selector {
   -fx-border-width: 0;
   -fx-font-size: 20px;

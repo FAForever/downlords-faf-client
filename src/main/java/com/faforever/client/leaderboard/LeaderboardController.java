@@ -47,6 +47,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.URL;
 import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -85,6 +87,7 @@ public class LeaderboardController implements Controller<Tab> {
   public CategoryAxis xAxis;
   public NumberAxis yAxis;
   public Label placementLabel;
+  public Label seasonDateLabel;
   private LeagueSeasonBean season;
 
   @VisibleForTesting
@@ -160,6 +163,9 @@ public class LeaderboardController implements Controller<Tab> {
     this.season = season;
 
     seasonLabel.setText(i18n.getOrDefault(season.getNameKey(), String.format("leaderboard.season.%s", season.getNameKey())).toUpperCase());
+    String startDate = season.getStartDate().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+    String endDate = season.getEndDate().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+    seasonDateLabel.setText(i18n.get("leaderboard.seasonDate", startDate, endDate));
     contentPane.setVisible(false);
     searchTextField.clear();
     if (usernamesAutoCompletion != null) {
