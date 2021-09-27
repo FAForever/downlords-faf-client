@@ -29,6 +29,7 @@ import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -145,6 +146,8 @@ public class ReplayServiceTest extends ServiceTest {
   private UserService userService;
   @Mock
   private ReplayDataParser replayDataParser;
+  @Mock
+  private FileSizeReader fileSizeReader;
 
   private ReplayMapper replayMapper = Mappers.getMapper(ReplayMapper.class);
   private ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
@@ -154,8 +157,9 @@ public class ReplayServiceTest extends ServiceTest {
     MapperSetup.injectMappers(replayMapper);
     MapperSetup.injectMappers(reviewMapper);
 
+    when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
-        taskService, i18n, reportingService, applicationContext, platformService, fafApiAccessor, modService, mapService, replayMapper);
+        taskService, i18n, reportingService, applicationContext, platformService, fafApiAccessor, modService, mapService, fileSizeReader, replayMapper);
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
     replayMetadata.setUid(123);

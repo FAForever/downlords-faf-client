@@ -10,7 +10,6 @@ import org.bridj.cpp.com.shell.ITaskbarList3.TbpFlag;
 
 import java.util.concurrent.CompletableFuture;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.cpp.com.COMRuntime.newInstance;
 
 public class Scratch extends Application {
@@ -24,7 +23,13 @@ public class Scratch extends Application {
     primaryStage.setScene(new Scene(new Pane()));
     primaryStage.show();
 
-    ITaskbarList3 taskBar = CompletableFuture.supplyAsync(() -> noCatch(() -> newInstance(ITaskbarList3.class))).join();
+    ITaskbarList3 taskBar = CompletableFuture.supplyAsync(() -> {
+      try {
+        return newInstance(ITaskbarList3.class);
+      } catch (ClassNotFoundException e) {
+        return null;
+      }
+    }).join();
     long hwndVal = com.sun.jna.Pointer.nativeValue(JavaFxUtil.getNativeWindow());
     Pointer taskBarPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
     taskBar.SetProgressState(taskBarPointer, TbpFlag.TBPF_ERROR);

@@ -108,7 +108,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLogin() {
+  public void testLogin() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
@@ -126,7 +126,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testReLoginWhenConnected() {
+  public void testReLoginWhenConnected() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
@@ -143,7 +143,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginHydraCodeError() {
+  public void testLoginHydraCodeError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
@@ -162,7 +162,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginApiAuthorizeError() {
+  public void testLoginApiAuthorizeError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
@@ -182,7 +182,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginApiVerifyError() {
+  public void testLoginApiVerifyError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
@@ -202,7 +202,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginLobbyError() {
+  public void testLoginLobbyError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
@@ -223,7 +223,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginWrongUserFromServer() {
+  public void testLoginWrongUserFromServer() throws Exception {
     Player notMe = new Player(100, "notMe", null, null, "", new HashMap<>(), new HashMap<>());
     LoginSuccessResponse invalidLoginMessage = new LoginSuccessResponse(notMe);
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
@@ -272,7 +272,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginWithRefresh() {
+  public void testLoginWithRefresh() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
@@ -290,7 +290,7 @@ public class UserServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testLoginHydraTokenError() {
+  public void testLoginHydraTokenError() throws Exception {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));

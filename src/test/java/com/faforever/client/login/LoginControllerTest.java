@@ -21,7 +21,6 @@ import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
-import com.github.nocatch.NoCatchException;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -301,22 +300,12 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testOnPlayOfflineButtonClickedNoExe() throws Exception {
-    doThrow(new NoCatchException(new IOException())).when(gameService).startGameOffline();
+    doThrow(new IOException()).when(gameService).startGameOffline();
     instance.onPlayOfflineButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(gameService).startGameOffline();
-    verify(notificationService).addImmediateWarnNotification("offline.noExe");
-  }
-
-  @Test
-  public void testOnPlayOfflineButtonClickedError() throws Exception {
-    doThrow(new RuntimeException()).when(gameService).startGameOffline();
-    instance.onPlayOfflineButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(gameService).startGameOffline();
-    verify(notificationService).addImmediateErrorNotification(any(), eq("offline.error"));
+    verify(notificationService).addImmediateWarnNotification(eq("offline.noExe"));
   }
 
   @Test

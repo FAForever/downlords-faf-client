@@ -62,7 +62,6 @@ import com.google.common.eventbus.EventBus;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.LineEncoder;
 import io.netty.handler.codec.string.LineSeparator;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -207,7 +206,6 @@ public class ServerAccessorTest extends ServiceTest {
         .bindNow();
   }
 
-  @SneakyThrows
   private void assertMessageContainsComponents(String command, String... values) {
     serverMessagesReceived.filter(message -> message.contains(command)).next()
         .switchIfEmpty(Mono.error(new AssertionError("No matching messages")))
@@ -265,8 +263,7 @@ public class ServerAccessorTest extends ServiceTest {
   /**
    * Writes the specified message to the client as if it was sent by the FAF server.
    */
-  @SneakyThrows
-  private void sendFromServer(ServerMessage fafServerMessage) {
+  private void sendFromServer(ServerMessage fafServerMessage) throws JsonProcessingException {
     messageReceivedByClientLatch = new CountDownLatch(1);
     serverSentSink.tryEmitNext(objectMapper.writeValueAsString(fafServerMessage));
   }

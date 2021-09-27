@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-import static com.github.nocatch.NoCatch.noCatch;
-
 @Lazy
 @Component
 @Slf4j
@@ -71,12 +69,12 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   @Override
-  public void stop() {
+  public void stop() throws IOException {
     if (serverSocket == null) {
       return;
     }
     stoppedGracefully = true;
-    noCatch(() -> serverSocket.close());
+    serverSocket.close();
   }
 
   @Override

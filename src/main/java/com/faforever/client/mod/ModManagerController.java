@@ -155,11 +155,7 @@ public class ModManagerController implements Controller<Parent> {
 
   public List<ModVersionBean> apply() {
     List<ModVersionBean> mods = getSelectedModVersions();
-    try {
-      modService.overrideActivatedMods(mods);
-    } catch (IOException e) {
-      log.warn("Activated mods could not be updated", e);
-    }
+    modService.overrideActivatedMods(mods);
     return mods;
   }
 

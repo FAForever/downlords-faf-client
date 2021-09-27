@@ -10,10 +10,6 @@ import java.util.concurrent.CompletionException;
 @Slf4j
 public final class ConcurrentUtil {
 
-  private ConcurrentUtil() {
-    // Utility class
-  }
-
   /**
    * Executes the given task in background and calls the specified callback when finished. The callback is always called
    * on the FX application thread.

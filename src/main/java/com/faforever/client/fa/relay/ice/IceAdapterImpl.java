@@ -26,7 +26,6 @@ import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
 import com.nbarraille.jjsonrpc.TcpClient;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +92,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
    * @return the resulting list of ice servers, each ice server maps from key (e.g. username, credential, url(s)) ->
    * value where value can can be a string or list of strings
    */
-  @SneakyThrows
   private List<Map<String, Object>> toIceServers(Collection<IceServer> iceServers) {
     List<Map<String, Object>> result = new LinkedList<>();
     for (IceServer iceServer : iceServers) {

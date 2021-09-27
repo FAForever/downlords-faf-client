@@ -1,8 +1,8 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.AvatarBean;
-import lombok.SneakyThrows;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.OffsetDateTime;
 
@@ -14,10 +14,11 @@ public class AvatarBeanBuilder {
 
   private final AvatarBean avatarBean = new AvatarBean();
 
-  @SneakyThrows
-  public AvatarBeanBuilder defaultValues(){
+  public AvatarBeanBuilder defaultValues() {
     id(0);
-    url(new URL("https:google.com"));
+    try {
+      url(new URL("https:google.com"));
+    } catch (MalformedURLException ignored) {}
     description("test");
     return this;
   }

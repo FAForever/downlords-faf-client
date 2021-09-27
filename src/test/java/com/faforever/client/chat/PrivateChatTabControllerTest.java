@@ -29,10 +29,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -85,7 +83,7 @@ public class PrivateChatTabControllerTest extends UITest {
   private String playerName;
 
   @BeforeEach
-  public void setUp() throws IOException, ExecutionException, InterruptedException {
+  public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().notificationsPrefs().privateMessageToastEnabled(true).then().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 

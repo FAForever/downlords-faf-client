@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.client.util.FileSizeReader;
 import com.google.common.io.CharStreams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
@@ -39,6 +40,8 @@ public class CheckForUpdateTaskTest extends ServiceTest {
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private FileSizeReader fileSizeReader;
 
   private CountDownLatch terminateLatch;
   private ClientProperties clientProperties;
@@ -46,7 +49,7 @@ public class CheckForUpdateTaskTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     clientProperties = new ClientProperties();
-    instance = new CheckForUpdateTask(i18n, preferencesService);
+    instance = new CheckForUpdateTask(i18n, preferencesService, fileSizeReader);
 
     terminateLatch = new CountDownLatch(1);
   }

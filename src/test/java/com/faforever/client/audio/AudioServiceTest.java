@@ -13,10 +13,10 @@ import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -41,8 +41,8 @@ public class AudioServiceTest extends ServiceTest {
     return String.format("/%s", file);
   }
 
-  private URL getThemeFileUrl(String file) {
-    return noCatch(() -> new ClassPathResource(getThemeFile(file)).getURL());
+  private URL getThemeFileUrl(String file) throws IOException {
+    return new ClassPathResource(getThemeFile(file)).getURL();
   }
 
   @BeforeEach

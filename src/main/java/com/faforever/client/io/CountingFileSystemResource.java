@@ -1,7 +1,6 @@
 package com.faforever.client.io;
 
 import com.faforever.commons.io.ByteCountListener;
-import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.FileSystemResource;
 
@@ -18,7 +17,7 @@ import java.util.Optional;
  */
 public class CountingFileSystemResource extends FileSystemResource {
 
-  private ByteCountListener listener;
+  private final ByteCountListener listener;
 
   public CountingFileSystemResource(Path file, ByteCountListener listener) {
     super(file.toFile());
@@ -27,12 +26,11 @@ public class CountingFileSystemResource extends FileSystemResource {
   }
 
   @Override
-  @SneakyThrows
-  public InputStream getInputStream() {
+  public InputStream getInputStream() throws FileNotFoundException {
     return new CountingInputStream(getFile(), listener);
   }
 
-  private class CountingInputStream extends FileInputStream {
+  private static class CountingInputStream extends FileInputStream {
 
     private final ByteCountListener listener;
     private final long totalBytes;

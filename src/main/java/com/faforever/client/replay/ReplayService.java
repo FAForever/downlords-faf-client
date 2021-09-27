@@ -32,6 +32,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -46,7 +47,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.cache.annotation.Cacheable;
@@ -62,6 +62,8 @@ import reactor.util.function.Tuple2;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -69,6 +71,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -88,7 +91,6 @@ import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.net.URLDecoder.decode;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
@@ -132,6 +134,7 @@ public class ReplayService {
   private final FafApiAccessor fafApiAccessor;
   private final ModService modService;
   private final MapService mapService;
+  private final FileSizeReader fileSizeReader;
   private final ReplayMapper replayMapper;
   protected List<ReplayBean> localReplays = new ArrayList<>();
 
@@ -175,14 +178,21 @@ public class ReplayService {
 
     Path replaysDirectory = preferencesService.getReplaysDirectory();
     if (Files.notExists(replaysDirectory)) {
-      noCatch(() -> createDirectories(replaysDirectory));
+      createDirectories(replaysDirectory);
     }
 
     int skippedReplays = pageSize * (page - 1);
 
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(replaysDirectory, replayFileGlob)) {
       Stream<Path> filesStream = StreamSupport.stream(directoryStream.spliterator(), false)
-          .sorted(Comparator.comparing(path -> noCatch(() -> Files.getLastModifiedTime((Path) path))).reversed());
+          .sorted(Comparator.comparing(path -> {
+            try {
+              return Files.getLastModifiedTime((Path) path);
+            } catch (IOException e) {
+              log.warn("Could not get last modified time of file {}", path, e);
+              return FileTime.from(Instant.EPOCH);
+            }
+          }).reversed());
 
       List<Path> filesList = filesStream.collect(Collectors.toList());
       int numPages = filesList.size() / pageSize;
@@ -230,7 +240,12 @@ public class ReplayService {
 
   private void moveCorruptedReplayFile(Path replayFile) {
     Path corruptedReplaysDirectory = preferencesService.getCorruptedReplaysDirectory();
-    noCatch(() -> createDirectories(corruptedReplaysDirectory));
+    try {
+      createDirectories(corruptedReplaysDirectory);
+    } catch (IOException e) {
+      log.warn("Failed to create corrupted replays directory", e);
+      return;
+    }
 
     Path target = corruptedReplaysDirectory.resolve(replayFile.getFileName());
 
@@ -239,7 +254,7 @@ public class ReplayService {
     try {
       move(replayFile, target);
     } catch (IOException e) {
-      log.warn("Failed to move corrupt replay to " + target, e);
+      log.warn("Failed to move corrupt replay to {}", target, e);
       return;
     }
 
@@ -282,7 +297,7 @@ public class ReplayService {
         .build()
         .toUri();
 
-    noCatch(() -> runLiveReplay(uri));
+    runLiveReplay(uri);
   }
 
 
@@ -294,11 +309,10 @@ public class ReplayService {
 
     Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
 
-    String gameType = queryParams.get("mod");
-    String mapName = noCatch(() -> decode(queryParams.get("map"), UTF_8.name()));
-    Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
-
     try {
+      String gameType = queryParams.get("mod");
+      String mapName = decode(queryParams.get("map"), UTF_8.name());
+      Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
       URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
       gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
           .exceptionally(throwable -> {
@@ -310,7 +324,7 @@ public class ReplayService {
             ));
             return null;
           });
-    } catch (URISyntaxException e) {
+    } catch (URISyntaxException | UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
   }
@@ -352,16 +366,16 @@ public class ReplayService {
       }
     } catch (Exception e) {
       log.warn("Could not read replay file '{}'", path, e);
-      return;
     }
   }
 
-
-  @SneakyThrows
-  public CompletableFuture<Integer> getSize(int id) {
-    return CompletableFuture.supplyAsync(() -> noCatch(() -> new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), id))
-        .openConnection()
-        .getContentLength()));
+  public CompletableFuture<Integer> getFileSize(ReplayBean replay) {
+    try {
+      return fileSizeReader.getFileSize(new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), replay.getId())));
+    } catch (MalformedURLException e) {
+      log.warn("Could not open connection to replay download", e);
+      return CompletableFuture.completedFuture(-1);
+    }
   }
 
 

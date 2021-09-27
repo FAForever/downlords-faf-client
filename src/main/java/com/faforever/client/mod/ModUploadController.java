@@ -15,6 +15,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.api.dto.ApiException;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.notification.Severity.ERROR;
@@ -88,9 +90,16 @@ public class ModUploadController implements Controller<Node> {
   public void setModPath(Path modPath) {
     this.modPath = modPath;
     enterParsingState();
-    CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), executorService)
+    CompletableFuture.supplyAsync(() -> {
+      try {
+        return modService.extractModInfo(modPath);
+      } catch (ModLoadException e) {
+        throw new CompletionException(e);
+      }
+    }, executorService)
         .thenAccept(this::setModVersionInfo)
         .exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.warn("ModVersion could not be read", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.upload.readError");
           return null;

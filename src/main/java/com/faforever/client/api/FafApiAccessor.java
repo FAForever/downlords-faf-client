@@ -36,7 +36,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -169,7 +168,6 @@ public class FafApiAccessor implements InitializingBean {
     authorizedLatch = new CountDownLatch(1);
   }
 
-  @SneakyThrows
   public Mono<MeResult> getMe() {
     return retrieveMonoWithErrorHandling(MeResult.class, webClient.get().uri("/me"))
         .cache()
@@ -189,7 +187,6 @@ public class FafApiAccessor implements InitializingBean {
     return form;
   }
 
-  @SneakyThrows
   public Mono<Void> postMultipartForm(String endpointPath, MultiValueMap<String, Object> request) {
     return retrieveMonoWithErrorHandling(Void.class, webClient.post().uri(endpointPath)
         .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -197,7 +194,6 @@ public class FafApiAccessor implements InitializingBean {
         .doOnSuccess(aVoid -> log.debug("Posted {} to {}", request, endpointPath));
   }
 
-  @SneakyThrows
   public <T extends ElideEntity> Mono<T> post(ElideNavigatorOnCollection<T> navigator, T request) {
     Class<T> type = navigator.getDtoClass();
     String endpointPath = navigator.build();
@@ -207,7 +203,6 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(object -> log.debug("Posted {} to {} with type {}", object, endpointPath, type));
   }
 
-  @SneakyThrows
   public <T extends ElideEntity> Mono<Void> patch(ElideNavigatorOnId<T> navigator, T request) {
     String endpointPath = navigator.build();
     return retrieveMonoWithErrorHandling(Void.class, webClient.patch().uri(endpointPath)
@@ -216,14 +211,12 @@ public class FafApiAccessor implements InitializingBean {
         .doOnSuccess(aVoid -> log.debug("Patched {} at {}", request, endpointPath));
   }
 
-  @SneakyThrows
   public Mono<Void> delete(ElideNavigatorOnId<?> navigator) {
     String endpointPath = navigator.build();
     return retrieveMonoWithErrorHandling(Void.class, webClient.delete().uri(endpointPath))
         .doOnSuccess(aVoid -> log.debug("Deleted {}", endpointPath));
   }
 
-  @SneakyThrows
   public <T extends ElideEntity> Mono<T> getOne(ElideNavigatorOnId<T> navigator) {
     enrichBuilder(navigator);
 
@@ -234,7 +227,6 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(object -> log.debug("Retrieved {} from {} with type {}", object, endpointPath, type));
   }
 
-  @SneakyThrows
   public <T> Flux<T> getMany(Class<T> type, String endpointPath, int count, java.util.Map<String, Serializable> params) {
     java.util.Map<String, List<String>> multiValues = params.entrySet().stream()
         .collect(Collectors.toMap(Entry::getKey, entry -> List.of(String.valueOf(entry.getValue()))));
@@ -253,12 +245,10 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
   }
 
-  @SneakyThrows
   public <T extends ElideEntity> Flux<T> getMany(ElideNavigatorOnCollection<T> navigator) {
     return getMany(navigator, "");
   }
 
-  @SneakyThrows
   public <T extends ElideEntity> Flux<T> getMany(ElideNavigatorOnCollection<T> navigator, String customFilter) {
     enrichBuilder(navigator);
     enrichCollectionFilter(navigator);
@@ -274,12 +264,10 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(object -> log.debug("Retrieved {} from {}", object, endpointPath));
   }
 
-  @SneakyThrows
   public <T extends ElideEntity> Mono<Tuple2<List<T>, Integer>> getManyWithPageCount(ElideNavigatorOnCollection<T> navigator) {
     return getManyWithPageCount(navigator, "");
   }
 
-  @SneakyThrows
   public <T extends ElideEntity> Mono<Tuple2<List<T>, Integer>> getManyWithPageCount(ElideNavigatorOnCollection<T> navigator, String customFilter) {
     navigator.pageTotals(true);
     enrichCollectionFilter(navigator);
@@ -317,9 +305,13 @@ public class FafApiAccessor implements InitializingBean {
         .retryWhen(apiRetrySpec);
   }
 
-  @SneakyThrows
   private WebClient.ResponseSpec retrieveWithErrorHandling(WebClient.RequestHeadersSpec<?> requestSpec) {
-    authorizedLatch.await();
+    try {
+      authorizedLatch.await();
+    } catch (InterruptedException e) {
+      log.warn("Api thread interrupted while waiting for authorization, will retry", e);
+      return retrieveWithErrorHandling(requestSpec);
+    }
     return requestSpec
         .retrieve()
         .onStatus(HttpStatus::isError, response -> {

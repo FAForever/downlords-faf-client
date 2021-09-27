@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,7 +41,7 @@ public class LiveReplayControllerTest extends UITest {
   private final List<GameBean> games = List.of(openedGame, livingGame);
 
   @BeforeEach
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     Mockito.when(gameService.getGames()).thenReturn(FXCollections.observableArrayList(games));
 
     instance = new LiveReplayController(gameService, uiService, i18n, mapService, timeService);

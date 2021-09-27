@@ -7,9 +7,9 @@ import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.ModVersionReviewsSummaryBean;
 import com.faforever.commons.mod.MountInfo;
 import javafx.collections.FXCollections;
-import lombok.SneakyThrows;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -23,7 +23,6 @@ public class ModVersionBeanBuilder {
 
   private final ModVersionBean modVersionBean = new ModVersionBean();
 
-  @SneakyThrows
   public ModVersionBeanBuilder defaultValues() {
     mod(ModBeanBuilder.create().defaultValues().latestVersion(modVersionBean).get());
     imagePath(Path.of("."));
@@ -32,11 +31,15 @@ public class ModVersionBeanBuilder {
     description("This is a test mod");
     selectable(true);
     version(new ComparableVersion("1"));
-    thumbnailUrl(new URL("https://www.google.com"));
+    try {
+      thumbnailUrl(new URL("https://www.google.com"));
+    } catch (MalformedURLException ignored) { }
     comments(FXCollections.observableArrayList());
     selected(false);
     played(100);
-    downloadUrl(new URL("https://www.google.com"));
+    try {
+      downloadUrl(new URL("https://www.google.com"));
+    } catch (MalformedURLException ignored) { }
     hookDirectories(FXCollections.observableArrayList());
     modType(ModType.UI);
     filename("foo.tmp");

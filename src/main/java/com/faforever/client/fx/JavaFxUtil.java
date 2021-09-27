@@ -48,7 +48,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
 
@@ -112,24 +111,22 @@ public final class JavaFxUtil {
    * <p>
    * See <a href="https://javafx-jira.kenai.com/browse/RT-19538">https://javafx-jira.kenai.com/browse/RT-19538</a>
    */
-  public static void fixTooltipDuration() {
-    noCatch(() -> {
-      Field fieldBehavior = Tooltip.class.getDeclaredField("BEHAVIOR");
-      fieldBehavior.setAccessible(true);
-      Object objBehavior = fieldBehavior.get(null);
+  public static void fixTooltipDuration() throws NoSuchFieldException, IllegalAccessException {
+    Field fieldBehavior = Tooltip.class.getDeclaredField("BEHAVIOR");
+    fieldBehavior.setAccessible(true);
+    Object objBehavior = fieldBehavior.get(null);
 
-      Field activationTimerField = objBehavior.getClass().getDeclaredField("activationTimer");
-      activationTimerField.setAccessible(true);
-      Timeline objTimer = (Timeline) activationTimerField.get(objBehavior);
+    Field activationTimerField = objBehavior.getClass().getDeclaredField("activationTimer");
+    activationTimerField.setAccessible(true);
+    Timeline objTimer = (Timeline) activationTimerField.get(objBehavior);
 
-      objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(500)));
+    objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(500)));
 
-      Field hideTimerField = objBehavior.getClass().getDeclaredField("hideTimer");
-      hideTimerField.setAccessible(true);
-      objTimer = (Timeline) hideTimerField.get(objBehavior);
+    Field hideTimerField = objBehavior.getClass().getDeclaredField("hideTimer");
+    hideTimerField.setAccessible(true);
+    objTimer = (Timeline) hideTimerField.get(objBehavior);
 
-      objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(100000)));
-    });
+    objTimer.getKeyFrames().setAll(new KeyFrame(new Duration(100000)));
   }
 
   /**

@@ -1,5 +1,8 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.exception.MajorNotifiableException;
+import com.faforever.client.exception.MinorNotifiableException;
+import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
@@ -9,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,10 +37,7 @@ public class NotificationService {
   private final List<OnImmediateNotificationListener> onImmediateNotificationListeners = new ArrayList<>();
   private final List<OnImmediateNotificationListener> onServerNotificationListeners = new ArrayList<>();
   private final ReportingService reportingService;
-
-  // TODO fix circular reference
-  @Inject
-  private I18n i18n;
+  private final I18n i18n;
 
   /**
    * Adds a {@link PersistentNotification} to be displayed.
@@ -114,6 +113,14 @@ public class NotificationService {
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
         Arrays.asList(new CopyErrorAction(i18n, reportingService, throwable), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))));
+  }
+
+  public void addErrorNotification(NotifiableException throwable) {
+    if (throwable instanceof MajorNotifiableException) {
+      addImmediateErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
+    } else if (throwable instanceof MinorNotifiableException) {
+      addPersistentErrorNotification(throwable.getCause(), throwable.getI18nKey(), throwable.getI18nArgs());
+    }
   }
 
   public void addImmediateWarnNotification(String messageKey, Object... args) {

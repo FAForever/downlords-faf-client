@@ -293,7 +293,6 @@ dependencies {
   implementation("org.jsoup:jsoup:1.11.3")
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("com.github.luben:zstd-jni:1.4.8-1")
-  implementation("io.github.micheljung:nocatch:2.0")
   implementation("org.luaj:luaj-jse:3.0.1")
   implementation("commons-validator:commons-validator:1.6")
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")

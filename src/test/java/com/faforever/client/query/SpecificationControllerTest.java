@@ -1,11 +1,11 @@
 package com.faforever.client.query;
 
+import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.query.SearchablePropertyMappings.Property;
-import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.client.test.UITest;
-import com.faforever.client.util.ProgrammingError;
 import com.faforever.commons.api.dto.Game;
+import com.faforever.commons.api.dto.VictoryCondition;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator;
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +37,7 @@ public class SpecificationControllerTest extends UITest {
   private QBuilder qBuilder;
 
   @BeforeEach
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     instance = new SpecificationController(i18n);
 
     loadFxml("theme/vault/search/specification.fxml", clazz -> {

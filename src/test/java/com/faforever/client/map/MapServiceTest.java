@@ -20,6 +20,7 @@ import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.mapstruct.ReplayMapper;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -30,6 +31,7 @@ import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -63,6 +65,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -113,6 +116,10 @@ public class MapServiceTest extends UITest {
   private PlayerService playerService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private NotificationService notificationService;
+  @Mock
+  private FileSizeReader fileSizeReader;
 
   private MapMapper mapMapper = Mappers.getMapper(MapMapper.class);
   private ReplayMapper replayMapper = Mappers.getMapper(ReplayMapper.class);
@@ -136,9 +143,10 @@ public class MapServiceTest extends UITest {
         .get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     instance = new MapService(preferencesService, taskService, applicationContext,
         fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, clientProperties, eventBus, playerService,
-        mapMapper, replayMapper);
+        notificationService, fileSizeReader, mapMapper, replayMapper);
     instance.afterPropertiesSet();
 
     doAnswer(invocation -> {
@@ -477,7 +485,7 @@ public class MapServiceTest extends UITest {
           Path.of(getClass().getResource("/maps/" + folder).toURI()),
           mapPath
       );
-      instance.addInstalledMap(mapPath);
+      instance.tryAddInstalledMap(mapPath);
     }
   }
 

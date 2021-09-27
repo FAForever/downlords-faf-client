@@ -80,7 +80,7 @@ public class ModUploadControllerTest extends UITest {
   }
 
   @Test
-  public void testSetModPath() {
+  public void testSetModPath() throws Exception {
     when(modService.extractModInfo(any())).thenReturn(new ModVersionBean());
 
     instance.setModPath(modFolder);

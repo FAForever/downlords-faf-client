@@ -3,6 +3,8 @@ package com.faforever.client.theme;
 import ch.micheljung.fxwindow.FxStage;
 import ch.micheljung.waitomo.WaitomoTheme;
 import com.faforever.client.config.CacheNames;
+import com.faforever.client.exception.AssetLoadException;
+import com.faforever.client.exception.FxmlLoadException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -28,7 +30,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.DisposableBean;
@@ -70,7 +71,6 @@ import java.util.stream.Stream;
 
 import static com.faforever.client.io.FileUtils.deleteRecursively;
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -248,7 +248,12 @@ public class UiService implements InitializingBean, DisposableBean {
   private void watchTheme(Theme theme) {
     Path themePath = getThemeDirectory(theme);
     log.debug("Watching theme directory for changes: {}", themePath.toAbsolutePath());
-    noCatch(() -> Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath, watchService))));
+    try {
+      Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath, watchService)));
+    } catch (IOException e) {
+      throw new AssetLoadException("Unable to walk theme directory " + themePath, e, "theme.couldNotWatch");
+    }
+
   }
 
   private void onWatchEvent(WatchKey key) {
@@ -274,7 +279,11 @@ public class UiService implements InitializingBean, DisposableBean {
       return;
     }
     log.debug("Watching directory: {}", directory.toAbsolutePath());
-    noCatch(() -> watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE)));
+    try {
+      watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE));
+    } catch (IOException e) {
+      throw new AssetLoadException("Unable to watch directory " + directory, e, "theme.couldNotWatch");
+    }
   }
 
   private void reloadStylesheet() {
@@ -289,18 +298,18 @@ public class UiService implements InitializingBean, DisposableBean {
     JavaFxUtil.runLater(() -> scene.getStylesheets().setAll(styleSheets));
   }
 
-  private String getSceneStyleSheet() {
+  private String getSceneStyleSheet() throws IOException {
     return getThemeFile(STYLE_CSS);
   }
 
 
-  public String getThemeFile(String relativeFile) {
+  public String getThemeFile(String relativeFile) throws IOException {
     String strippedRelativeFile = relativeFile.replace("theme/", "");
     Path externalFile = getThemeDirectory(currentTheme.get()).resolve(strippedRelativeFile);
     if (Files.notExists(externalFile)) {
-      return noCatch(() -> new ClassPathResource("/" + relativeFile).getURL().toString());
+      return new ClassPathResource("/" + relativeFile).getURL().toString();
     }
-    return noCatch(() -> externalFile.toUri().toURL().toString());
+    return externalFile.toUri().toURL().toString();
   }
 
   /**
@@ -308,16 +317,20 @@ public class UiService implements InitializingBean, DisposableBean {
    */
   @Cacheable(value = CacheNames.THEME_IMAGES, sync = true)
   public Image getThemeImage(String relativeImage) {
-    return new Image(getThemeFile(relativeImage), true);
+    try {
+      return new Image(getThemeFile(relativeImage), true);
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not load image " + relativeImage, e, "theme.couldNotLoadImage", relativeImage);
+    }
   }
 
 
-  public URL getThemeFileUrl(String relativeFile) {
+  public URL getThemeFileUrl(String relativeFile) throws IOException {
     String themeFile = getThemeFile(relativeFile);
     if (themeFile.startsWith("file:") || themeFile.startsWith("jar:")) {
-      return noCatch(() -> new URL(themeFile));
+      return new URL(themeFile);
     }
-    return noCatch(() -> new ClassPathResource(getThemeFile(relativeFile)).getURL());
+    return new ClassPathResource(getThemeFile(relativeFile)).getURL();
   }
 
 
@@ -366,16 +379,20 @@ public class UiService implements InitializingBean, DisposableBean {
     scene.getStylesheets().setAll(getStylesheets());
   }
 
-  public String[] getStylesheets() {
-    return new String[]{
-        FxStage.BASE_CSS.toExternalForm(),
-        FxStage.UNDECORATED_CSS.toExternalForm(),
-        WaitomoTheme.WAITOMO_CSS.toExternalForm(),
-        getThemeFile("theme/colors.css"),
-        getThemeFile("theme/icons.css"),
-        getSceneStyleSheet(),
-        getThemeFile("theme/style_extension.css")
-    };
+  private String[] getStylesheets() {
+    try {
+      return new String[]{
+          FxStage.BASE_CSS.toExternalForm(),
+          FxStage.UNDECORATED_CSS.toExternalForm(),
+          WaitomoTheme.WAITOMO_CSS.toExternalForm(),
+          getThemeFile("theme/colors.css"),
+          getThemeFile("theme/icons.css"),
+          getSceneStyleSheet(),
+          getThemeFile("theme/style_extension.css")
+      };
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not retrieve stylesheets", e, "theme.stylesheets.couldNotGet");
+    }
   }
 
   /**
@@ -389,12 +406,14 @@ public class UiService implements InitializingBean, DisposableBean {
   public void loadThemes() {
     themesByFolderName.clear();
     themesByFolderName.put(DEFAULT_THEME_NAME, DEFAULT_THEME);
-    noCatch(() -> {
+    try {
       Files.createDirectories(preferencesService.getThemesDirectory());
       try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(preferencesService.getThemesDirectory())) {
         directoryStream.forEach(this::addThemeDirectory);
       }
-    });
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not load themes from " + preferencesService.getThemesDirectory(), e, "theme.couldNotLoad", e.getLocalizedMessage());
+    }
   }
 
   public Collection<Theme> getAvailableThemes() {
@@ -416,14 +435,13 @@ public class UiService implements InitializingBean, DisposableBean {
   public <T extends Controller<?>> T loadFxml(String relativePath) {
     FXMLLoader loader = new FXMLLoader();
     loader.setControllerFactory(applicationContext::getBean);
-    loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
     try {
+      loader.setLocation(getThemeFileUrl(relativePath));
       loader.load();
       return loader.getController();
     } catch (IOException e) {
-      log.warn("Could not load fxml {}", relativePath, e);
-      return null;
+      throw new FxmlLoadException("Could not load fxml " + relativePath, e, "fxml.loadError", relativePath);
     }
   }
 
@@ -431,14 +449,14 @@ public class UiService implements InitializingBean, DisposableBean {
     FXMLLoader loader = new FXMLLoader();
     loader.setControllerFactory(applicationContext::getBean);
     loader.setController(applicationContext.getBean(controllerClass));
-    loader.setLocation(getThemeFileUrl(relativePath));
     loader.setResources(resources);
     try {
+      loader.setLocation(getThemeFileUrl(relativePath));
       loader.load();
       return loader.getController();
     } catch (IOException e) {
-      log.warn("Could not load fxml {} with class {}", relativePath, controllerClass.getSimpleName(), e);
-      return null;
+      throw new FxmlLoadException("Could not load fxml " + relativePath + "with class " + controllerClass.getSimpleName(),
+          e, "fxml.loadError", relativePath);
     }
   }
 
@@ -447,33 +465,44 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private String getWebViewStyleSheet() {
-    return getThemeFileUrl(WEBVIEW_CSS_FILE).toString();
+    try {
+      return getThemeFileUrl(WEBVIEW_CSS_FILE).toString();
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not get webview stylesheet", e, "theme.couldNotLoad", e.getLocalizedMessage());
+    }
+
   }
 
-  @SneakyThrows
   private void loadWebViewsStyleSheet(String styleSheetUrl) {
-    // Always copy to a new file since WebView locks the loaded one
-    Path stylesheetsCacheDirectory = preferencesService.getCacheStylesheetsDirectory();
+    try {
+      // Always copy to a new file since WebView locks the loaded one
+      Path stylesheetsCacheDirectory = preferencesService.getCacheStylesheetsDirectory();
 
-    Files.createDirectories(stylesheetsCacheDirectory);
+      Files.createDirectories(stylesheetsCacheDirectory);
 
-    Path newTempStyleSheet = Files.createTempFile(stylesheetsCacheDirectory, "style-webview", ".css");
+      Path newTempStyleSheet = Files.createTempFile(stylesheetsCacheDirectory, "style-webview", ".css");
 
-    try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
-      Files.copy(inputStream, newTempStyleSheet, StandardCopyOption.REPLACE_EXISTING);
+      try (InputStream inputStream = new URL(styleSheetUrl).openStream()) {
+        Files.copy(inputStream, newTempStyleSheet, StandardCopyOption.REPLACE_EXISTING);
+      }
+      if (currentTempStyleSheet != null) {
+        Files.delete(currentTempStyleSheet);
+      }
+      currentTempStyleSheet = newTempStyleSheet;
+      String urlString = currentTempStyleSheet.toUri().toURL().toString();
+
+      webViews.removeIf(reference -> reference.get() != null);
+      webViews.stream()
+          .map(Reference::get)
+          .filter(Objects::nonNull)
+          .forEach(webView -> JavaFxUtil.runLater(
+              () -> {
+                webView.getEngine().setUserStyleSheetLocation(urlString);
+              }));
+      log.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not load webview stylesheet", e, "theme.webview.stylesheet.couldNotLoad", styleSheetUrl);
     }
-    if (currentTempStyleSheet != null) {
-      Files.delete(currentTempStyleSheet);
-    }
-    currentTempStyleSheet = newTempStyleSheet;
-
-    webViews.removeIf(reference -> reference.get() != null);
-    webViews.stream()
-        .map(Reference::get)
-        .filter(Objects::nonNull)
-        .forEach(webView -> JavaFxUtil.runLater(
-            () -> webView.getEngine().setUserStyleSheetLocation(noCatch(() -> currentTempStyleSheet.toUri().toURL()).toString())));
-    log.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
   }
 
   public Scene createScene(Parent root) {
@@ -515,13 +544,14 @@ public class UiService implements InitializingBean, DisposableBean {
     dialog.setContent(scrollPane);
   }
 
-  @SneakyThrows
   public boolean doesThemeNeedRestart(Theme theme) {
     if (theme.equals(DEFAULT_THEME)) {
       return true;
     }
     try (Stream<Path> stream = Files.list(getThemeDirectory(theme))) {
       return stream.anyMatch(path -> Files.isRegularFile(path) && !path.endsWith(".css") && !path.endsWith(".properties"));
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not load theme from " + theme.getDisplayName(), e, "theme.directory.readError", theme.getDisplayName());
     }
   }
 }

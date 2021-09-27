@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.serialization.ColorMixin;
 import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.serialization.PathDeserializer;
@@ -21,8 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.github.nocatch.NoCatch.NoCatchRunnable;
-import com.github.nocatch.NoCatchException;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.ListProperty;
@@ -38,7 +37,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -76,8 +74,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static com.github.nocatch.NoCatch.noCatch;
 
 @Slf4j
 @Lazy
@@ -191,7 +187,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   @Override
-  public void afterPropertiesSet() throws IOException {
+  public void afterPropertiesSet() throws IOException, InterruptedException {
     if (Files.exists(preferencesFilePath)) {
       if (!deleteFileIfEmpty()) {
         readExistingFile(preferencesFilePath);
@@ -266,7 +262,7 @@ public class PreferencesService implements InitializingBean {
     return getFafDataDirectory().resolve("repos");
   }
 
-  private void readExistingFile(Path path) {
+  private void readExistingFile(Path path) throws InterruptedException {
     Assert.checkNotNullIllegalState(preferences, "Preferences have already been initialized");
 
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
@@ -294,7 +290,7 @@ public class PreferencesService implements InitializingBean {
           }
         }
       });
-      noCatch((NoCatchRunnable) waitForUser::await);
+      waitForUser.await();
 
     }
 
@@ -396,11 +392,15 @@ public class PreferencesService implements InitializingBean {
           .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches())
           .sorted(Comparator.comparingLong(p -> ((Path) p).toFile().lastModified()).reversed())
           .skip(NUMBER_GAME_LOGS_STORED - 1)
-          .forEach(p -> noCatch(() -> Files.delete(p)));
+          .forEach(p -> {
+            try {
+              Files.delete(p);
+            } catch (IOException e) {
+              log.warn("Could not delete log file {}", p, e);
+            }
+          });
     } catch (IOException e) {
       log.error("Could not list log directory.", e);
-    } catch (NoCatchException e) {
-      log.error("Could not delete game log file");
     }
     return getFafLogDirectory().resolve(String.format("game_%d.log", gameUID));
   }
@@ -411,18 +411,22 @@ public class PreferencesService implements InitializingBean {
           .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches()).max(Comparator.comparingLong(p -> p.toFile().lastModified()));
     } catch (IOException e) {
       log.error("Could not list log directory.", e);
-    } catch (NoCatchException e) {
-      log.error("Could not delete game log file");
     }
     return Optional.empty();
   }
 
-  @SneakyThrows
   public boolean isGamePathValid() {
-    return isGamePathValidWithError(preferences.getForgedAlliance().getInstallationPath()) == null;
+    Path installationPath = preferences.getForgedAlliance().getInstallationPath();
+    try {
+      return isGamePathValidWithErrorMessage(installationPath) == null;
+    } catch (IOException e) {
+      throw new GameLaunchException("Could not load installation directory " + installationPath, e, "gamePath.select.error");
+    } catch (NoSuchAlgorithmException e) {
+      throw new GameLaunchException("Could not compute hashes of files in installation directory " + installationPath, e, "gamePath.select.error");
+    }
   }
 
-  public String isGamePathValidWithError(Path installationPath) throws IOException, NoSuchAlgorithmException {
+  public String isGamePathValidWithErrorMessage(Path installationPath) throws IOException, NoSuchAlgorithmException {
     boolean valid = installationPath != null && isGamePathValid(installationPath.resolve("bin"));
     if (!valid) {
       return "gamePath.select.noValidExe";

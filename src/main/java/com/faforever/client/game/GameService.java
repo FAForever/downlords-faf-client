@@ -12,6 +12,8 @@ import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.game.error.GameCleanupException;
+import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.map.MapService;
@@ -57,7 +59,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,6 +83,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -91,7 +93,6 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -386,7 +387,14 @@ public class GameService implements InitializingBean {
 
     return modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
-        .thenCompose(aVoid -> downloadMapIfNecessary(mapName).handleAsync((ignoredResult, throwable) -> askWhetherToStartWithOutMap(throwable)))
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapName)
+            .handleAsync((ignoredResult, throwable) -> {
+              try {
+                return askWhetherToStartWithOutMap(throwable);
+              } catch (Throwable e) {
+                throw new CompletionException(e);
+              }
+            }))
         .thenRun(() -> {
           try {
             Process processForReplay = forgedAllianceService.startReplay(path, replayId);
@@ -430,8 +438,7 @@ public class GameService implements InitializingBean {
     return gameDirectoryFuture;
   }
 
-  @SneakyThrows
-  private Void askWhetherToStartWithOutMap(Throwable throwable) {
+  private Void askWhetherToStartWithOutMap(Throwable throwable) throws Throwable {
     if (throwable == null) {
       return null;
     }
@@ -454,7 +461,7 @@ public class GameService implements InitializingBean {
   }
 
   private void notifyCantPlayReplay(@Nullable Integer replayId, Throwable throwable) {
-    if (throwable.getCause() instanceof UnsupportedOperationException) {
+    if (throwable instanceof UnsupportedOperationException) {
       notificationService.addImmediateErrorNotification(throwable, "gameUpdate.error.gameNotWritableAllowMultiOn");
     } else {
       log.error("Could not play replay '" + replayId + "'", throwable);
@@ -480,16 +487,22 @@ public class GameService implements InitializingBean {
     return modService.getFeaturedMod(gameType)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, modVersions, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
-        .thenRun(() -> noCatch(() -> {
-          Process processCreated = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
-          if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
-            return;
-          }
-          this.process = processCreated;
-          setGameRunning(true);
-          spawnTerminationListener(this.process);
-        }))
-        .exceptionally(throwable -> {
+        .thenRun(() -> {
+              Process processCreated;
+              try {
+                processCreated = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
+              } catch (IOException e) {
+                throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
+              }
+              if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
+                return;
+              }
+              this.process = processCreated;
+              setGameRunning(true);
+              spawnTerminationListener(this.process);
+            }
+        ).exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           notifyCantPlayReplay(gameId, throwable);
           return null;
         });
@@ -635,12 +648,17 @@ public class GameService implements InitializingBean {
         .thenApply(adapterPort -> {
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
           gameKilled = false;
-          process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingType,
-              adapterPort, localReplayPort, rehostRequested, getCurrentPlayer()));
+          try {
+            process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingType,
+                adapterPort, localReplayPort, rehostRequested, getCurrentPlayer());
+          } catch (IOException e) {
+            throw new GameLaunchException("Could not start game", e, "game.start.couldNotStart");
+          }
           setGameRunning(true);
           return process;
         })
         .exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.warn("Game could not be started", throwable);
           notificationService.addImmediateErrorNotification(throwable, "game.start.couldNotStart");
           iceAdapter.stop();
@@ -704,8 +722,12 @@ public class GameService implements InitializingBean {
         gameRunning.set(false);
         if (forOnlineGame) {
           fafServerAccessor.notifyGameEnded();
-          replayServer.stop();
           iceAdapter.stop();
+          try {
+            replayServer.stop();
+          } catch (IOException e) {
+            throw new GameCleanupException("Error during post-game processing", e, "replayServer.stopError");
+          }
         }
 
         if (rehostRequested) {
@@ -839,25 +861,36 @@ public class GameService implements InitializingBean {
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))
         .thenAccept(aVoid -> {
           List<String> args = Arrays.asList("/map", technicalMapName);
-          process = noCatch(() -> forgedAllianceService.startGameOffline(args));
-          setGameRunning(true);
-          spawnTerminationListener(process, false);
+          try {
+            process = forgedAllianceService.startGameOffline(args);
+            setGameRunning(true);
+            spawnTerminationListener(process, false);
+          } catch (IOException e) {
+            throw new CompletionException(e);
+          }
         })
         .exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Launching tutorials failed", throwable);
           notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
           return null;
         });
   }
 
-  public void startGameOffline() {
+  public void startGameOffline() throws IOException {
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      gameDirectoryFuture.thenAccept(path -> startGameOffline());
+      gameDirectoryFuture.thenAccept(path -> {
+        try {
+          startGameOffline();
+        } catch (IOException e) {
+          throw new CompletionException(e);
+        }
+      });
       return;
     }
 
-    process = noCatch(() -> forgedAllianceService.startGameOffline(List.of()));
+    process = forgedAllianceService.startGameOffline(List.of());
     setGameRunning(true);
     spawnTerminationListener(process, false);
   }

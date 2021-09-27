@@ -23,6 +23,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.UITest;
+import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -109,10 +110,12 @@ public class ModServiceTest extends UITest {
   private AssetService assetService;
   @Mock
   private PlatformService platformService;
+  @Mock
+  private FileSizeReader fileSizeReader;
 
   private Path modsDirectory;
   private ModService instance;
-  private ModMapper modMapper = Mappers.getMapper(ModMapper.class);
+  private final ModMapper modMapper = Mappers.getMapper(ModMapper.class);
   private Path gamePrefsPath;
 
   @BeforeEach
@@ -128,8 +131,9 @@ public class ModServiceTest extends UITest {
         .then()
         .get();
 
+    when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     instance = new ModService(fafApiAccessor, preferencesService, taskService, applicationContext, notificationService, i18n,
-        platformService, assetService, modMapper);
+        platformService, assetService, fileSizeReader, modMapper);
 
     when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
     when(preferencesService.getPreferences()).thenReturn(preferences);

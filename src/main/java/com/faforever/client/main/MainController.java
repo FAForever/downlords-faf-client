@@ -6,6 +6,8 @@ import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.exception.AssetLoadException;
+import com.faforever.client.exception.FxmlLoadException;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -79,6 +81,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -86,9 +89,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static javafx.scene.layout.Background.EMPTY;
 
 @Component
@@ -418,17 +421,22 @@ public class MainController implements Controller<Node> {
   private void setBackgroundImage(Path filepath) {
     Image image;
     if (filepath != null && Files.exists(filepath)) {
-      image = noCatch(() -> new Image(filepath.toUri().toURL().toExternalForm()));
-      mainRoot.setBackground(new Background(new BackgroundImage(
-          image,
-          BackgroundRepeat.NO_REPEAT,
-          BackgroundRepeat.NO_REPEAT,
-          BackgroundPosition.CENTER,
-          new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true)
-      )));
-    } else {
-      mainRoot.setBackground(EMPTY);
+      try {
+        image = new Image(filepath.toUri().toURL().toExternalForm());
+        mainRoot.setBackground(new Background(new BackgroundImage(
+            image,
+            BackgroundRepeat.NO_REPEAT,
+            BackgroundRepeat.NO_REPEAT,
+            BackgroundPosition.CENTER,
+            new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, false, true)
+        )));
+        return;
+      } catch (MalformedURLException e) {
+        throw new AssetLoadException("Could not load background image", e, "background.couldNotLoad", filepath);
+      }
     }
+
+    mainRoot.setBackground(EMPTY);
   }
 
   private void enterLoggedInState() {
@@ -542,7 +550,12 @@ public class MainController implements Controller<Node> {
     if (alwaysReloadTabs) {
       return uiService.loadFxml(item.getFxmlFile());
     }
-    return noCatch(() -> viewCache.get(item, () -> uiService.loadFxml(item.getFxmlFile())));
+
+    try {
+      return viewCache.get(item, () -> uiService.loadFxml(item.getFxmlFile()));
+    } catch (ExecutionException e) {
+      throw new FxmlLoadException("Could not load tab view", e, "view.couldNotLoad", i18n.get(item.getI18nKey()));
+    }
   }
 
   public void onRevealMapFolder() {

@@ -4,6 +4,7 @@ import com.faforever.client.api.TokenService;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.exception.UIDException;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
@@ -42,6 +43,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Collections;
@@ -51,8 +53,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-
-import static com.github.nocatch.NoCatch.noCatch;
 
 @Lazy
 @Component
@@ -121,7 +121,13 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
             clientProperties.getUserAgent(),
             clientProperties.getServer().getHost(),
             clientProperties.getServer().getPort() + 1,
-            sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
+            sessionId -> {
+          try {
+            return uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"));
+          } catch (IOException e) {
+            throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+          }
+        },
             1024 * 1024,
             false
         ))

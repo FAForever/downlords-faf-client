@@ -446,12 +446,8 @@ public class LoginController implements Controller<Pane> {
   public void onPlayOfflineButtonClicked() {
     try {
       gameService.startGameOffline();
-    } catch (Exception e) {
-      if (e.getCause() instanceof IOException) {
-        notificationService.addImmediateWarnNotification("offline.noExe");
-      } else {
-        notificationService.addImmediateErrorNotification(e, "offline.error");
-      }
+    } catch (IOException e) {
+      notificationService.addImmediateWarnNotification("offline.noExe");
     }
 
   }

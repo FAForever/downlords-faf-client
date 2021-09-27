@@ -2,6 +2,7 @@ package com.faforever.client.fa;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -10,7 +11,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.springframework.beans.factory.InitializingBean;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.util.concurrent.ExecutorService;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.lang.Thread.sleep;
 
 /**
@@ -66,7 +65,11 @@ public class OnGameFullNotifier implements InitializingBean {
     executorService.execute(() -> {
       platformService.startFlashingWindow(faWindowTitle);
       while (gameService.isGameRunning() && !platformService.isWindowFocused(faWindowTitle)) {
-        noCatch(() -> sleep(500));
+        try {
+          sleep(500);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
       }
       platformService.stopFlashingWindow(faWindowTitle);
     });

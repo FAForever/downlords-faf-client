@@ -5,6 +5,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -18,6 +19,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -28,7 +30,6 @@ import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
-import com.faforever.commons.mod.ModLoadException;
 import com.faforever.commons.mod.ModReader;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.DoubleProperty;
@@ -37,7 +38,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +77,6 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.Files.createDirectories;
@@ -104,6 +103,7 @@ public class ModService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final PlatformService platformService;
   private final AssetService assetService;
+  private final FileSizeReader fileSizeReader;
   private final ModMapper modMapper;
   private final ModReader modReader = new ModReader();
 
@@ -146,11 +146,9 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private Thread startDirectoryWatcher(Path modsDirectory) {
-    Thread thread = new Thread(() -> noCatch(() -> {
-      WatchService watcher = modsDirectory.getFileSystem().newWatchService();
-      modsDirectory.register(watcher, ENTRY_DELETE);
-
-      try {
+    Thread thread = new Thread(() -> {
+      try (WatchService watcher = modsDirectory.getFileSystem().newWatchService()) {
+        modsDirectory.register(watcher, ENTRY_DELETE);
         while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
           key.pollEvents().stream()
@@ -158,10 +156,12 @@ public class ModService implements InitializingBean, DisposableBean {
               .forEach(event -> removeMod(modsDirectory.resolve((Path) event.context())));
           key.reset();
         }
+      } catch (IOException e) {
+        log.warn("Could not start mods directory watcher on {}", modsDirectory);
       } catch (InterruptedException e) {
         log.debug("Watcher terminated ({})", e.getMessage());
       }
-    }));
+    });
     thread.start();
     return thread;
   }
@@ -180,7 +180,6 @@ public class ModService implements InitializingBean, DisposableBean {
     return readOnlyInstalledModVersions;
   }
 
-  @SneakyThrows
   public CompletableFuture<Void> downloadAndInstallMod(String uid) {
     return getModVersionByUid(uid)
         .thenCompose(potentialModVersion -> {
@@ -267,16 +266,17 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @NotNull
-  @SneakyThrows
-  public ModVersionBean extractModInfo(Path path) {
-    Path modInfoLua = path.resolve("mod_info.lua");
-    log.debug("Reading mod {}", path);
+  public ModVersionBean extractModInfo(Path modFolder) throws ModLoadException {
+    Path modInfoLua = modFolder.resolve("mod_info.lua");
+    log.debug("Reading mod {}", modFolder);
     if (Files.notExists(modInfoLua)) {
-      throw new ModLoadException("Missing mod_info.lua in: " + path.toAbsolutePath());
+      throw new ModLoadException("Missing mod_info.lua in: " + modFolder.toAbsolutePath(), null, "mod.load.noModInfo", modFolder.toAbsolutePath());
     }
 
     try (InputStream inputStream = Files.newInputStream(modInfoLua)) {
-      return extractModInfo(inputStream, path);
+      return extractModInfo(inputStream, modFolder);
+    } catch (IOException e) {
+      throw new ModLoadException("IO error loading: " + modFolder.toAbsolutePath(), null, "mod.load.ioError", modFolder.toAbsolutePath());
     }
   }
 
@@ -299,21 +299,9 @@ public class ModService implements InitializingBean, DisposableBean {
     return assetService.loadAndCacheImage(url, Path.of("mods"), () -> IdenticonUtil.createIdenticon(modVersion.getMod().getDisplayName()));
   }
 
-  /**
-   * Returns the download size of the specified modVersion in bytes.
-   */
-  @SneakyThrows
-  public long getModSize(ModVersionBean modVersion) {
-    HttpURLConnection conn = null;
-    try {
-      conn = (HttpURLConnection) modVersion.getDownloadUrl().openConnection();
-      conn.setRequestMethod(HttpMethod.HEAD.name());
-      return conn.getContentLength();
-    } finally {
-      if (conn != null) {
-        conn.disconnect();
-      }
-    }
+  @Async
+  public CompletableFuture<Integer> getFileSize(ModVersionBean modVersion) {
+    return fileSizeReader.getFileSize(modVersion.getDownloadUrl());
   }
 
   public List<ModVersionBean> getActivatedSimAndUIMods() throws IOException {
@@ -323,7 +311,7 @@ public class ModService implements InitializingBean, DisposableBean {
         .collect(Collectors.toList());
   }
 
-  public void overrideActivatedMods(List<ModVersionBean> modVersions) throws IOException {
+  public void overrideActivatedMods(List<ModVersionBean> modVersions) {
     Map<String, Boolean> modStates = modVersions.parallelStream().collect(Collectors.toMap(ModVersionBean::getUid, o -> true));
     writeModStates(modStates);
   }
@@ -347,41 +335,45 @@ public class ModService implements InitializingBean, DisposableBean {
     return mods;
   }
 
-  private void writeModStates(Map<String, Boolean> modStates) throws IOException {
-    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-    String preferencesContent = Files.readString(preferencesFile, US_ASCII);
+  private void writeModStates(Map<String, Boolean> modStates) {
+    try {
+      Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+      String preferencesContent = Files.readString(preferencesFile, US_ASCII);
 
-    String currentActiveModsContent = null;
-    Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
-    if (matcher.find()) {
-      currentActiveModsContent = matcher.group(0);
-    }
-
-    StringBuilder newActiveModsContentBuilder = new StringBuilder("active_mods = {");
-
-    Iterator<Map.Entry<String, Boolean>> iterator = modStates.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Map.Entry<String, Boolean> entry = iterator.next();
-      if (!entry.getValue()) {
-        continue;
+      String currentActiveModsContent = null;
+      Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
+      if (matcher.find()) {
+        currentActiveModsContent = matcher.group(0);
       }
 
-      newActiveModsContentBuilder.append("\n    ['");
-      newActiveModsContentBuilder.append(entry.getKey());
-      newActiveModsContentBuilder.append("'] = true");
-      if (iterator.hasNext()) {
-        newActiveModsContentBuilder.append(",");
+      StringBuilder newActiveModsContentBuilder = new StringBuilder("active_mods = {");
+
+      Iterator<Map.Entry<String, Boolean>> iterator = modStates.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Map.Entry<String, Boolean> entry = iterator.next();
+        if (!entry.getValue()) {
+          continue;
+        }
+
+        newActiveModsContentBuilder.append("\n    ['");
+        newActiveModsContentBuilder.append(entry.getKey());
+        newActiveModsContentBuilder.append("'] = true");
+        if (iterator.hasNext()) {
+          newActiveModsContentBuilder.append(",");
+        }
       }
-    }
-    newActiveModsContentBuilder.append("\n}");
+      newActiveModsContentBuilder.append("\n}");
 
-    if (currentActiveModsContent != null) {
-      preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContentBuilder);
-    } else {
-      preferencesContent += newActiveModsContentBuilder.toString();
-    }
+      if (currentActiveModsContent != null) {
+        preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContentBuilder);
+      } else {
+        preferencesContent += newActiveModsContentBuilder.toString();
+      }
 
-    Files.writeString(preferencesFile, preferencesContent, US_ASCII);
+      Files.writeString(preferencesFile, preferencesContent, US_ASCII);
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not update mod state", e, "mod.errorUpdatingMods");
+    }
   }
 
   private void removeMod(Path path) {
@@ -418,7 +410,6 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @Async
-  @SneakyThrows
   public CompletableFuture<List<ModVersionBean>> updateAndActivateModVersions(final List<ModVersionBean> selectedModVersions) {
     if (!preferencesService.getPreferences().getMapAndModAutoUpdate()) {
       return CompletableFuture.completedFuture(selectedModVersions);

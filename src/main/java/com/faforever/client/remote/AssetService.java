@@ -10,14 +10,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriUtils;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.function.Supplier;
-
-import static com.github.nocatch.NoCatch.noCatch;
 
 
 @Lazy
@@ -54,14 +53,14 @@ public class AssetService {
       Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
       if (Files.exists(cachePath)) {
         log.debug("Using cached image: {}", cachePath);
-        return new Image(noCatch(() -> cachePath.toUri().toURL().toExternalForm()), width, height, true, true);
+        return new Image(cachePath.toUri().toURL().toExternalForm(), width, height, true, true);
       }
 
       log.debug("Fetching image {}", url);
       Image image = new Image(urlString, width, height, true, true, true);
       JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
       return image;
-    } catch (InvalidPathException e) {
+    } catch (InvalidPathException | MalformedURLException e) {
       log.warn("Unable to load image due to invalid fileName {}", url, e);
       if (defaultSupplier == null) {
         return null;

@@ -11,7 +11,6 @@ import javafx.scene.control.TextField;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,7 +30,7 @@ public class MapFilterControllerTest extends UITest {
   );
 
   @BeforeEach
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     instance = new MapFilterController();
     loadFxml("theme/play/map_filter.fxml", clazz -> instance);
 

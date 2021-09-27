@@ -1,4 +1,4 @@
-package com.faforever.client.util;
+package com.faforever.client.exception;
 
 public class ProgrammingError extends RuntimeException {
 

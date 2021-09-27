@@ -10,6 +10,7 @@ import com.faforever.client.domain.MapBean.MapType;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -18,6 +19,7 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.ReplayMapper;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -26,6 +28,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -49,7 +52,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -68,12 +70,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
-import javax.inject.Inject;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
@@ -89,7 +92,6 @@ import java.util.stream.Stream;
 
 import static com.faforever.client.util.LuaUtil.loadFile;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.net.UrlEscapers.urlFragmentEscaper;
 import static java.lang.String.format;
 import static java.nio.file.Files.list;
@@ -115,12 +117,13 @@ public class MapService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final UiService uiService;
   private final MapGeneratorService mapGeneratorService;
-  private final ClientProperties clientProperties;
   private final EventBus eventBus;
   private final ForgedAlliancePrefs forgedAlliancePreferences;
   private final PlayerService playerService;
   private final MapMapper mapMapper;
   private final ReplayMapper replayMapper;
+  private final NotificationService notificationService;
+  private final FileSizeReader fileSizeReader;
 
   private final String mapDownloadUrlFormat;
   private final String mapPreviewUrlFormat;
@@ -137,7 +140,6 @@ public class MapService implements InitializingBean, DisposableBean {
   );
   private Thread directoryWatcherThread;
 
-  @Inject
   public MapService(PreferencesService preferencesService,
                     TaskService taskService,
                     ApplicationContext applicationContext,
@@ -148,6 +150,8 @@ public class MapService implements InitializingBean, DisposableBean {
                     MapGeneratorService mapGeneratorService,
                     ClientProperties clientProperties,
                     EventBus eventBus, PlayerService playerService,
+                    NotificationService notificationService,
+                    FileSizeReader fileSizeReader,
                     MapMapper mapMapper, ReplayMapper replayMapper) {
     this.preferencesService = preferencesService;
     this.taskService = taskService;
@@ -157,23 +161,24 @@ public class MapService implements InitializingBean, DisposableBean {
     this.i18n = i18n;
     this.uiService = uiService;
     this.mapGeneratorService = mapGeneratorService;
-    this.clientProperties = clientProperties;
     this.eventBus = eventBus;
-    forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
+    this.forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
     this.playerService = playerService;
+    this.notificationService = notificationService;
     Vault vault = clientProperties.getVault();
     this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
     this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
     this.mapMapper = mapMapper;
     this.replayMapper = replayMapper;
+    this.fileSizeReader = fileSizeReader;
   }
 
-  private static URL getDownloadUrl(String mapName, String baseUrl) {
-    return noCatch(() -> new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
+  private static URL getDownloadUrl(String mapName, String baseUrl) throws MalformedURLException {
+    return new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US)));
   }
 
-  private static URL getPreviewUrl(String mapName, String baseUrl, PreviewSize previewSize) {
-    return noCatch(() -> new URL(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US))));
+  private static URL getPreviewUrl(String mapName, String baseUrl, PreviewSize previewSize) throws MalformedURLException {
+    return new URL(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US)));
   }
 
   @Override
@@ -220,7 +225,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   private Thread startDirectoryWatcher(Path mapsDirectory) {
-    Thread thread = new Thread(() -> noCatch(() -> {
+    Thread thread = new Thread(() -> {
       try (WatchService watcher = mapsDirectory.getFileSystem().newWatchService()) {
         forgedAlliancePreferences.getCustomMapsDirectory().register(watcher, ENTRY_DELETE, ENTRY_CREATE);
         while (!Thread.interrupted()) {
@@ -237,15 +242,17 @@ public class MapService implements InitializingBean, DisposableBean {
                   } catch (InterruptedException e) {
                     log.debug("Thread interrupted ({})", e.getMessage());
                   }
-                  addInstalledMap(mapPath);
+                  tryAddInstalledMap(mapPath);
                 }
               });
           key.reset();
         }
+      } catch (IOException e) {
+        log.warn("Could not start maps directory watcher on {}", mapsDirectory);
       } catch (InterruptedException e) {
         log.debug("Watcher terminated ({})", e.getMessage());
       }
-    }));
+    });
     thread.setDaemon(true);
     thread.start();
     return thread;
@@ -271,7 +278,7 @@ public class MapService implements InitializingBean, DisposableBean {
               continue;
             }
             updateProgress(++mapsRead, totalMaps);
-            addInstalledMap(mapPath);
+            tryAddInstalledMap(mapPath);
           }
         } catch (IOException e) {
           log.warn("Maps could not be read from: " + forgedAlliancePreferences.getCustomMapsDirectory(), e);
@@ -286,7 +293,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   @VisibleForTesting
-  void addInstalledMap(Path path) throws MapLoadException {
+  void tryAddInstalledMap(Path path) {
     try {
       MapVersionBean mapVersion = readMap(path);
       pathToMap.put(path, mapVersion);
@@ -295,28 +302,29 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     } catch (MapLoadException e) {
       log.warn("Map could not be read: " + path.getFileName(), e);
+      notificationService.addPersistentErrorNotification(e, e.getI18nKey(), e.getI18nArgs());
     }
   }
 
   @Subscribe
   public void onMapGenerated(MapGeneratedEvent event) {
-    addInstalledMap(getPathForMap(event.getMapName()));
+    tryAddInstalledMap(getPathForMap(event.getMapName()));
   }
 
 
   @NotNull
   public MapVersionBean readMap(Path mapFolder) throws MapLoadException {
     if (!Files.isDirectory(mapFolder)) {
-      throw new MapLoadException("Not a folder: " + mapFolder.toAbsolutePath());
+      throw new MapLoadException("Not a folder: " + mapFolder.toAbsolutePath(), null, "map.load.notAFolder", mapFolder.toAbsolutePath());
     }
 
     try (Stream<Path> mapFolderFilesStream = list(mapFolder)) {
       Path scenarioLuaPath = mapFolderFilesStream
           .filter(file -> file.getFileName().toString().endsWith("_scenario.lua"))
           .findFirst()
-          .orElseThrow(() -> new MapLoadException("Map folder does not contain a *_scenario.lua: " + mapFolder.toAbsolutePath()));
+          .orElseThrow(() -> new MapLoadException("Map folder does not contain a *_scenario.lua: " + mapFolder.toAbsolutePath(), null, "map.load.noScenario", mapFolder.toAbsolutePath()));
 
-      LuaValue luaRoot = noCatch(() -> loadFile(scenarioLuaPath), MapLoadException.class);
+      LuaValue luaRoot = loadFile(scenarioLuaPath);
       LuaValue scenarioInfo = luaRoot.get("ScenarioInfo");
       LuaValue size = scenarioInfo.get("size");
 
@@ -336,24 +344,34 @@ public class MapService implements InitializingBean, DisposableBean {
       }
 
       return mapVersion;
-    } catch (IOException | LuaError e) {
-      throw new MapLoadException(e);
+    } catch (IOException e) {
+      throw new MapLoadException("Could not load map due to IO error" + mapFolder.toAbsolutePath(), e, "map.load.ioError", mapFolder.toAbsolutePath());
+    } catch (LuaError e) {
+      throw new MapLoadException("Could not load map due to lua error" + mapFolder.toAbsolutePath(), e, "map.load.luaError", mapFolder.toAbsolutePath());
     }
   }
 
-  @SneakyThrows(IOException.class)
-  @NotNull
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapGeneratorService.getGeneratedMapPreviewImage())")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
-    if (mapGeneratorService.isGeneratedMap(mapName)) {
-      Path previewPath = forgedAlliancePreferences.getCustomMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
-      if (Files.exists(previewPath)) {
-        return new Image(Files.newInputStream(previewPath));
-      } else {
-        return mapGeneratorService.getGeneratedMapPreviewImage();
+    if (!mapGeneratorService.isGeneratedMap(mapName)) {
+      try {
+        return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
+      } catch (MalformedURLException e) {
+        log.warn("Could not create url from {}", mapName, e);
+        return uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE);
       }
     }
-    return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
+
+    Path previewPath = forgedAlliancePreferences.getCustomMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
+    if (Files.exists(previewPath)) {
+      try (InputStream inputStream = Files.newInputStream(previewPath)) {
+        return new Image(inputStream);
+      } catch (IOException e) {
+        log.warn("Could not load image from {}", previewPath, e);
+      }
+    }
+
+    return mapGeneratorService.getGeneratedMapPreviewImage();
   }
 
 
@@ -395,8 +413,12 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<Void> download(String technicalMapName) {
-    URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
-    return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
+    try {
+      URL mapUrl = getDownloadUrl(technicalMapName, mapDownloadUrlFormat);
+      return downloadAndInstallMap(technicalMapName, mapUrl, null, null);
+    } catch (MalformedURLException e) {
+      throw new AssetLoadException("Could not download map", e, "map.download.error", technicalMapName);
+    }
   }
 
 
@@ -454,10 +476,14 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public Path getPathForMapInsensitive(String approxName) {
-    for (Path entry : noCatch(() -> Files.newDirectoryStream(getMapsDirectory(approxName)))) {
-      if (entry.getFileName().toString().equalsIgnoreCase(approxName)) {
-        return entry;
+    try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(getMapsDirectory(approxName))) {
+      for (Path entry : directoryStream) {
+        if (entry.getFileName().toString().equalsIgnoreCase(approxName)) {
+          return entry;
+        }
       }
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not open maps directory", e, "map.directory.couldNotOpen");
     }
     return null;
   }
@@ -504,9 +530,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @Async
   public CompletableFuture<Integer> getFileSize(MapVersionBean mapVersion) {
-    return CompletableFuture.completedFuture(noCatch(() -> mapVersion.getDownloadUrl()
-        .openConnection()
-        .getContentLength()));
+    return fileSizeReader.getFileSize(mapVersion.getDownloadUrl());
   }
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
@@ -532,7 +556,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
 
     return taskService.submitTask(task).getFuture()
-        .thenAccept(aVoid -> noCatch(() -> addInstalledMap(getPathForMapInsensitive(folderName))));
+        .thenAccept(aVoid -> tryAddInstalledMap(getPathForMapInsensitive(folderName)));
   }
 
   @Override

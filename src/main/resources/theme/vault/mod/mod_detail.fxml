@@ -56,7 +56,7 @@
                                                 GridPane.rowIndex="1"/>
                                         <Button fx:id="installButton" defaultButton="true" mnemonicParsing="false"
                                                 onAction="#onInstallButtonClicked" styleClass="highlighted-button"
-                                                text="%modVault.install" GridPane.columnIndex="3"
+                                                text="%modVault.installButtonFormat" GridPane.columnIndex="3"
                                                 GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
                                         <VBox GridPane.columnIndex="1" GridPane.rowIndex="1">
                                             <children>
