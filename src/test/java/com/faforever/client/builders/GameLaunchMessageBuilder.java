@@ -7,6 +7,7 @@ import com.faforever.commons.lobby.LobbyMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class GameLaunchMessageBuilder {
 
@@ -18,6 +19,7 @@ public class GameLaunchMessageBuilder {
   private Integer expectedPlayers;
   private Integer team;
   private Integer mapPosition;
+  private Map<String, String> gameOptions;
   private Faction faction;
   private LobbyMode initMode;
   private String ratingType;
@@ -37,7 +39,7 @@ public class GameLaunchMessageBuilder {
   }
 
   public GameLaunchResponse get() {
-    return new GameLaunchResponse(uid, name, mod, initMode, ratingType, args, mapname, expectedPlayers, mapPosition, team, faction);
+    return new GameLaunchResponse(uid, name, mod, initMode, ratingType, args, mapname, expectedPlayers, mapPosition, gameOptions, team, faction);
   }
 
   public GameLaunchMessageBuilder name(String name) {
@@ -82,6 +84,11 @@ public class GameLaunchMessageBuilder {
 
   public GameLaunchMessageBuilder mapPosition(int mapPosition) {
     this.mapPosition = mapPosition;
+    return this;
+  }
+
+  public GameLaunchMessageBuilder gameOptions(Map<String, String> gameOptions) {
+    this.gameOptions = gameOptions;
     return this;
   }
 
