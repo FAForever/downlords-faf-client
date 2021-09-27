@@ -156,7 +156,7 @@ public class MapUploadController implements Controller<Node> {
       notificationService.addServerNotification(new ImmediateNotification(
           i18n.get("errorTitle"), i18n.get("mapVault.upload.failed", throwable.getLocalizedMessage()), ERROR,
           asList(
-              new Action(i18n.get("mapVault.upload.retry"), event -> onUploadClicked()),
+              new GetHelpAction(i18n, reportingService),
               new DismissAction(i18n)
           )
       ));

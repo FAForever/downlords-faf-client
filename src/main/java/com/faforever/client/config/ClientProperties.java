@@ -139,6 +139,9 @@ public class ClientProperties {
     private String baseUrl;
     private String clientId;
     private String clientSecret;
+    private int retryBackoffSeconds = 5;
+    private int retryAttempts = 5;
+    private double retryJitter = .5;
     private int maxPageSize = 10000;
   }
 
