@@ -45,6 +45,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -54,10 +55,12 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 import reactor.util.function.Tuple2;
 
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -142,7 +145,14 @@ public class FafApiAccessor implements InitializingBean {
     Api apiProperties = clientProperties.getApi();
     maxPageSize = apiProperties.getMaxPageSize();
 
+    HttpClient httpClient = HttpClient.create().resolver(resolver ->
+        resolver
+            .queryTimeout(Duration.ofSeconds(30))
+            .maxQueriesPerResolve(50)
+    );
+
     webClient = WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(httpClient))
         .baseUrl(apiProperties.getBaseUrl())
         .filter(oAuthTokenFilter)
         .codecs(clientCodecConfigurer -> {
