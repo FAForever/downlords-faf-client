@@ -30,8 +30,8 @@ public class JsonApiWriter implements HttpMessageWriter<Object> {
   @Override
   public boolean canWrite(ResolvableType elementType, MediaType mediaType) {
     Class<?> clazz = elementType.toClass();
-    return (Iterable.class.isAssignableFrom(clazz) || ElideEntity.class.isAssignableFrom(clazz))
-        && (mediaType == null || getWritableMediaTypes().stream().anyMatch(readerMediaType -> readerMediaType.isCompatibleWith(mediaType)));
+    return ElideEntity.class.isAssignableFrom(clazz) && resourceConverter.isRegisteredType(clazz)
+        && getWritableMediaTypes().stream().anyMatch(readerMediaType -> readerMediaType.isCompatibleWith(mediaType));
   }
 
   @Override

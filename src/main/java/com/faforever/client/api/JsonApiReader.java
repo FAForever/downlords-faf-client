@@ -32,7 +32,7 @@ public class JsonApiReader implements HttpMessageReader<Object> {
   public boolean canRead(ResolvableType elementType, MediaType mediaType) {
     Class<?> clazz = elementType.toClass();
     return (clazz.equals(JSONAPIDocument.class)
-        || ElideEntity.class.isAssignableFrom(clazz))
+        || (ElideEntity.class.isAssignableFrom(clazz) && resourceConverter.isRegisteredType(clazz)))
         && (mediaType == null
         || getReadableMediaTypes().stream().anyMatch(readerMediaType -> readerMediaType.isCompatibleWith(mediaType)));
   }

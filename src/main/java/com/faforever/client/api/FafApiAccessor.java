@@ -124,9 +124,8 @@ public class FafApiAccessor implements InitializingBean {
 
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
-  private final JsonApiReader jsonApiReader;
-  private final JsonApiWriter jsonApiWriter;
   private final OAuthTokenFilter oAuthTokenFilter;
+  private final WebClient.Builder webClientBuilder;
 
   private CountDownLatch authorizedLatch = new CountDownLatch(1);
   private WebClient webClient;
@@ -142,13 +141,9 @@ public class FafApiAccessor implements InitializingBean {
     Api apiProperties = clientProperties.getApi();
     maxPageSize = apiProperties.getMaxPageSize();
 
-    webClient = WebClient.builder()
+    webClient = webClientBuilder
         .baseUrl(apiProperties.getBaseUrl())
         .filter(oAuthTokenFilter)
-        .codecs(clientCodecConfigurer -> {
-          clientCodecConfigurer.customCodecs().register(jsonApiReader);
-          clientCodecConfigurer.customCodecs().register(jsonApiWriter);
-        })
         .build();
 
     authorizedLatch.countDown();
