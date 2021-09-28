@@ -21,6 +21,7 @@ import com.github.jasminb.jsonapi.models.errors.Error;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.eventbus.EventBus;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -30,7 +31,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
@@ -59,7 +63,7 @@ public class FafApiAccessorTest extends ServiceTest {
 
   private ResourceConverter resourceConverter;
   private MockWebServer mockApi;
-  private ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
+  private final ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
 
   @AfterEach
   public void killServer() throws IOException {
@@ -73,13 +77,22 @@ public class FafApiAccessorTest extends ServiceTest {
     resourceConverter = new JsonApiConfig().resourceConverter(objectMapper);
     JsonApiReader jsonApiReader = new JsonApiReader(resourceConverter);
     JsonApiWriter jsonApiWriter = new JsonApiWriter(resourceConverter);
+    HttpClient httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE);
+    ReactorClientHttpConnector clientHttpConnector = new ReactorClientHttpConnector(httpClient);
+    WebClient.Builder webClientBuilder = WebClient.builder()
+        .clientConnector(clientHttpConnector)
+        .codecs(clientCodecConfigurer -> {
+          clientCodecConfigurer.customCodecs().register(jsonApiReader);
+          clientCodecConfigurer.customCodecs().register(jsonApiWriter);
+        });
+
     mockApi = new MockWebServer();
     mockApi.start();
 
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getApi().setMaxPageSize(100);
     clientProperties.getApi().setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
-    instance = new FafApiAccessor(eventBus, clientProperties, jsonApiReader, jsonApiWriter, oAuthTokenFilter);
+    instance = new FafApiAccessor(eventBus, clientProperties, oAuthTokenFilter, webClientBuilder);
     instance.afterPropertiesSet();
     instance.authorize();
   }
