@@ -411,6 +411,7 @@ public class CreateGameController implements Controller<Pane> {
       Pane root = generateMapController.getRoot();
       generateMapController.setCreateGameController(this);
       Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
+      dialog.setOnDialogClosed(event -> preferencesService.storeInBackground());
       generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
       root.requestFocus();
