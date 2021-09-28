@@ -343,8 +343,8 @@ public class PreferencesBuilder {
       return this;
     }
 
-    public GeneratorPrefsBuilder mapSize(String mapSize) {
-      generatorPrefs.setMapSize(mapSize);
+    public GeneratorPrefsBuilder mapSize(Double mapSize) {
+      generatorPrefs.setMapSizeInKm(mapSize);
       return this;
     }
 

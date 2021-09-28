@@ -2,9 +2,11 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.map.generator.GenerationType;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -15,7 +17,7 @@ public class GeneratorPrefs {
   private final StringProperty commandLineArgs;
   private final IntegerProperty spawnCount;
   private final IntegerProperty numTeams;
-  private final StringProperty mapSize;
+  private final DoubleProperty mapSizeInKm;
   private final StringProperty mapStyle;
   private final IntegerProperty waterDensity;
   private final BooleanProperty waterRandom;
@@ -34,7 +36,7 @@ public class GeneratorPrefs {
     commandLineArgs = new SimpleStringProperty("");
     spawnCount = new SimpleIntegerProperty(6);
     numTeams = new SimpleIntegerProperty(2);
-    mapSize = new SimpleStringProperty("10km");
+    mapSizeInKm = new SimpleDoubleProperty(10);
     mapStyle = new SimpleStringProperty("");
     generationType = new SimpleObjectProperty<>(GenerationType.CASUAL);
     waterDensity = new SimpleIntegerProperty(0);
@@ -87,16 +89,16 @@ public class GeneratorPrefs {
     return numTeams;
   }
 
-  public String getMapSize() {
-    return mapSize.get();
+  public double getMapSizeInKm() {
+    return mapSizeInKm.get();
   }
 
-  public void setMapSize(String mapSize) {
-    this.mapSize.set(mapSize);
+  public void setMapSizeInKm(Double mapSizeInKm) {
+    this.mapSizeInKm.set(mapSizeInKm);
   }
 
-  public StringProperty mapSizeProperty() {
-    return mapSize;
+  public DoubleProperty mapSizeInKmProperty() {
+    return mapSizeInKm;
   }
 
   public String getMapStyle() {

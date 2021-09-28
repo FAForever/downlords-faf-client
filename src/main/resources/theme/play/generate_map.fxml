@@ -65,22 +65,22 @@
         </tooltip>
     </ComboBox>
     <Label text="%game.create.spawnCount" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
-    <Spinner fx:id="spawnCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 6.5em" GridPane.columnIndex="1"
+    <Spinner fx:id="spawnCountSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
              GridPane.columnSpan="2" GridPane.rowIndex="6">
         <tooltip>
             <Tooltip text="%game.create.spawnCount"/>
         </tooltip>
     </Spinner>
     <Label text="%game.create.numTeams" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
-    <Spinner fx:id="numTeamsSpinner" maxHeight="Infinity" style="-fx-pref-width: 6.5em" GridPane.columnIndex="1"
+    <Spinner fx:id="numTeamsSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
              GridPane.columnSpan="2" GridPane.rowIndex="7">
         <tooltip>
             <Tooltip text="%game.create.numTeams"/>
         </tooltip>
     </Spinner>
     <Label text="%game.create.mapSize" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
-    <Spinner fx:id="mapSizeSpinner" maxHeight="Infinity" style="-fx-pref-width: 6.5em" GridPane.columnIndex="1"
-             GridPane.columnSpan="2" GridPane.rowIndex="8">
+    <Spinner fx:id="mapSizeSpinner" maxHeight="Infinity" style="-fx-pref-width: 7.5em" GridPane.columnIndex="1"
+             GridPane.columnSpan="2" GridPane.rowIndex="8" editable="true">
         <tooltip>
             <Tooltip text="%game.create.mapSize"/>
         </tooltip>

@@ -23,6 +23,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
@@ -51,6 +52,8 @@ import java.util.stream.IntStream;
 @Slf4j
 public class GenerateMapController implements Controller<Pane> {
 
+  public static final double MIN_MAP_SIZE_STEP = 1.25;
+  public static final double KM_TO_PIXEL_FACTOR = 51.2;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final MapGeneratorService mapGeneratorService;
@@ -65,7 +68,7 @@ public class GenerateMapController implements Controller<Pane> {
   public Label mapStyleLabel;
   public ComboBox<String> mapStyleComboBox;
   public Spinner<Integer> spawnCountSpinner;
-  public Spinner<String> mapSizeSpinner;
+  public Spinner<Double> mapSizeSpinner;
   public Slider waterSlider;
   public CheckBox waterRandom;
   public HBox waterSliderBox;
@@ -91,7 +94,6 @@ public class GenerateMapController implements Controller<Pane> {
   public HBox reclaimSliderBox;
   public HBox reclaimRandomBox;
   private Runnable onCloseButtonClickedListener;
-  private final ObservableList<String> validMapSizes = FXCollections.observableArrayList("5km", "10km", "20km");
   private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(IntStream.range(0, 17)
       .filter(value -> value != 1)
       .boxed().collect(Collectors.toList()));
@@ -100,7 +102,6 @@ public class GenerateMapController implements Controller<Pane> {
       .boxed().collect(Collectors.toList()));
   private final FilteredList<Integer> selectableSpawnCounts = new FilteredList<>(validSpawnCount);
   public Spinner<Integer> numTeamsSpinner;
-  private final int[] mapValues = new int[]{256, 512, 1024};
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(commandLineLabel, commandLineArgsText, mapStyleComboBox, mapStyleLabel);
@@ -135,6 +136,20 @@ public class GenerateMapController implements Controller<Pane> {
       @Override
       public GenerationType fromString(String s) {
         throw new UnsupportedOperationException();
+      }
+    };
+  }
+
+  private StringConverter<Double> getMapSizeConverter() {
+    return new StringConverter<>() {
+      @Override
+      public String toString(Double mapSize) {
+        return String.valueOf(mapSize);
+      }
+
+      @Override
+      public Double fromString(String s) {
+        return Math.round(Double.parseDouble(s) / MIN_MAP_SIZE_STEP) * MIN_MAP_SIZE_STEP;
       }
     };
   }
@@ -209,10 +224,10 @@ public class GenerateMapController implements Controller<Pane> {
 
   private void initMapSizeSpinner() {
     GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
-    String mapSizeProperty = generatorPrefs.getMapSize();
-    mapSizeSpinner.setValueFactory(new ListSpinnerValueFactory<>(validMapSizes));
-    mapSizeSpinner.increment(validMapSizes.indexOf(mapSizeProperty));
-    generatorPrefs.mapSizeProperty().bind(mapSizeSpinner.getValueFactory().valueProperty());
+    double mapSize = generatorPrefs.getMapSizeInKm();
+    mapSizeSpinner.setValueFactory(new DoubleSpinnerValueFactory(5, 20, mapSize, MIN_MAP_SIZE_STEP));
+    mapSizeSpinner.getValueFactory().setConverter(getMapSizeConverter());
+    generatorPrefs.mapSizeInKmProperty().bind(mapSizeSpinner.getValueFactory().valueProperty());
     mapSizeSpinner.disableProperty().bind(Bindings.isNotEmpty(previousMapName.textProperty())
         .or(Bindings.isNotEmpty(commandLineArgsText.textProperty())));
   }
@@ -284,7 +299,7 @@ public class GenerateMapController implements Controller<Pane> {
       generateFuture = mapGeneratorService.generateMapWithArgs(commandLineArgsText.getText());
     } else {
       int spawnCount = spawnCountSpinner.getValue();
-      int mapSize = mapValues[validMapSizes.indexOf(mapSizeSpinner.getValue())];
+      int mapSize = (int) (mapSizeSpinner.getValue() * KM_TO_PIXEL_FACTOR);
       int numTeams = numTeamsSpinner.getValue();
       if (mapStyleComboBox.getValue() != null && !MapGeneratorService.GENERATOR_RANDOM_STYLE.equals(mapStyleComboBox.getValue())) {
         String style = mapStyleComboBox.getValue();

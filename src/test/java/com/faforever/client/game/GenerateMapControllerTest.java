@@ -49,7 +49,7 @@ public class GenerateMapControllerTest extends UITest {
 
   public void unbindProperties() {
     preferences.getGenerator().spawnCountProperty().unbind();
-    preferences.getGenerator().mapSizeProperty().unbind();
+    preferences.getGenerator().mapSizeInKmProperty().unbind();
     preferences.getGenerator().numTeamsProperty().unbind();
     preferences.getGenerator().waterRandomProperty().unbind();
     preferences.getGenerator().plateauRandomProperty().unbind();
@@ -76,7 +76,7 @@ public class GenerateMapControllerTest extends UITest {
         .then()
         .generatorPrefs()
         .spawnCount(10)
-        .mapSize("10km")
+        .mapSize(10.0)
         .then()
         .get();
 
@@ -120,7 +120,7 @@ public class GenerateMapControllerTest extends UITest {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(instance.mapSizeSpinner.getValue(), "10km");
+    assertEquals(instance.mapSizeSpinner.getValue(), 10.0);
     assertEquals((int) instance.spawnCountSpinner.getValue(), 10);
   }
 
