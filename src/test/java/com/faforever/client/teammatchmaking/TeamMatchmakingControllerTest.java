@@ -57,6 +57,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 public class TeamMatchmakingControllerTest extends UITest {
 
@@ -134,6 +135,7 @@ public class TeamMatchmakingControllerTest extends UITest {
         CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
 
     instance.initialize();
+    waitForFxEvents();
 
     assertTrue(instance.leagueImageView.isVisible());
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));

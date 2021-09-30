@@ -6,11 +6,11 @@ import com.faforever.client.domain.SubdivisionBean;
 import java.time.OffsetDateTime;
 
 public class SubdivisionBeanBuilder {
+  private final SubdivisionBean subdivisionBean = new SubdivisionBean();
+
   public static SubdivisionBeanBuilder create() {
     return new SubdivisionBeanBuilder();
   }
-
-  private final SubdivisionBean subdivisionBean = new SubdivisionBean();
 
   public SubdivisionBeanBuilder defaultValues() {
     leagueSeasonId(0);
@@ -21,6 +21,7 @@ public class SubdivisionBeanBuilder {
     maxRating(100);
     minRating(-100);
     division(DivisionBeanBuilder.create().defaultValues().get());
+    id(1);
     return this;
   }
 

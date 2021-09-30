@@ -6,11 +6,11 @@ import com.faforever.client.domain.LeagueSeasonBean;
 import java.time.OffsetDateTime;
 
 public class DivisionBeanBuilder {
+  private final DivisionBean divisionBean = new DivisionBean();
+
   public static DivisionBeanBuilder create() {
     return new DivisionBeanBuilder();
   }
-
-  private final DivisionBean divisionBean = new DivisionBean();
 
   public DivisionBeanBuilder defaultValues() {
     index(1);

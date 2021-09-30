@@ -7,11 +7,11 @@ import com.faforever.client.domain.LeagueSeasonBean;
 import java.time.OffsetDateTime;
 
 public class LeagueSeasonBeanBuilder {
+  private final LeagueSeasonBean leagueSeasonBean = new LeagueSeasonBean();
+
   public static LeagueSeasonBeanBuilder create() {
     return new LeagueSeasonBeanBuilder();
   }
-
-  private final LeagueSeasonBean leagueSeasonBean = new LeagueSeasonBean();
 
   public LeagueSeasonBeanBuilder defaultValues() {
     league(LeagueBeanBuilder.create().defaultValues().get());

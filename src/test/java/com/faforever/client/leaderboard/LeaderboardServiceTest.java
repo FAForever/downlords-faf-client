@@ -18,6 +18,8 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
+import com.faforever.commons.api.dto.LeagueSeasonScore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -124,10 +126,10 @@ public class LeaderboardServiceTest extends ServiceTest {
     SubdivisionBean subdivisionBean3 = SubdivisionBeanBuilder.create().defaultValues().index(3).get();
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean2).get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
+    when(fafApiAccessor.getMany(argThat(ElideMatchers.hasDtoClass(LeagueSeasonScore.class)))).thenReturn(Flux.just(
         leaderboardMapper.map(leagueEntryBean1, 0, new CycleAvoidingMappingContext()),
         leaderboardMapper.map(leagueEntryBean2, 1, new CycleAvoidingMappingContext())));
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
+    when(fafApiAccessor.getMany(argThat(ElideMatchers.hasDtoClass(LeagueSeasonDivisionSubdivision.class)))).thenReturn(Flux.just(
         leaderboardMapper.map(subdivisionBean1, new CycleAvoidingMappingContext()),
         leaderboardMapper.map(subdivisionBean2, new CycleAvoidingMappingContext()),
         leaderboardMapper.map(subdivisionBean3, new CycleAvoidingMappingContext())));

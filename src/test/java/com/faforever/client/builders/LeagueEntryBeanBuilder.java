@@ -7,11 +7,11 @@ import com.faforever.client.domain.SubdivisionBean;
 import java.time.OffsetDateTime;
 
 public class LeagueEntryBeanBuilder {
+  private final LeagueEntryBean leagueEntryBean = new LeagueEntryBean();
+
   public static LeagueEntryBeanBuilder create() {
     return new LeagueEntryBeanBuilder();
   }
-
-  private final LeagueEntryBean leagueEntryBean = new LeagueEntryBean();
 
   public LeagueEntryBeanBuilder defaultValues() {
     username("junit");

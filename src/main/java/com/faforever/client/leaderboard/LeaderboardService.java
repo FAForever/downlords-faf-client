@@ -123,7 +123,6 @@ public class LeaderboardService {
           .filter(division -> SUBDIVISION_COMPARATOR.compare(division, entry.getSubdivision()) > 0)
           .forEach(division -> getSizeOfDivision(division).thenApply(rank::addAndGet));
       getEntries(entry.getSubdivision()).thenAccept(leagueEntryBeans -> {
-        leagueEntryBeans.sort(Comparator.comparing(LeagueEntryBean::getScore).reversed());
         rank.addAndGet(leagueEntryBeans.indexOf(entry) + 1);
       });
       return rank.get();
@@ -178,7 +177,8 @@ public class LeaderboardService {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder().intNum("leagueSeason.id").eq(subdivision.getLeagueSeasonId())
             .and().intNum("leagueSeasonDivisionSubdivision.subdivisionIndex").eq(subdivision.getIndex())
-            .and().intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex").eq(subdivision.getDivision().getIndex()));
+            .and().intNum("leagueSeasonDivisionSubdivision.leagueSeasonDivision.divisionIndex").eq(subdivision.getDivision().getIndex()))
+        .addSortingRule("score", false);
     return mapLeagueEntryDtoToBean(fafApiAccessor.getMany(navigator)
         .collectList()
         .toFuture()
@@ -194,14 +194,15 @@ public class LeaderboardService {
           .parallelStream()
           .map(LeagueSeasonScore::getLoginId)
           .collect(Collectors.toList());
-      return playerService.getPlayersByIds(playerIds).thenApply(playerBeans -> playerBeans
-          .parallelStream()
-          .flatMap(playerBean -> leagueSeasonScores
-              .stream()
-              .filter(leagueSeasonScore -> leagueSeasonScore.getLoginId().equals(playerBean.getId()))
-              .map(leagueSeasonScore -> leaderboardMapper.map(leagueSeasonScore, playerBean.getUsername(), new CycleAvoidingMappingContext()))
-          )
-          .collect(Collectors.toList()));
+      return playerService.getPlayersByIds(playerIds).thenApply(playerBeans ->
+          leagueSeasonScores
+              .parallelStream()
+              .flatMap(leagueSeasonScore ->
+                  playerBeans
+                      .stream()
+                      .filter(playerBean -> playerBean.getId().equals(leagueSeasonScore.getLoginId()))
+                      .map(playerBean -> leaderboardMapper.map(leagueSeasonScore, playerBean.getUsername(), new CycleAvoidingMappingContext())))
+              .collect(Collectors.toList()));
     });
   }
 

@@ -5,11 +5,11 @@ import com.faforever.client.domain.LeagueBean;
 import java.time.OffsetDateTime;
 
 public class LeagueBeanBuilder {
+  private final LeagueBean leagueBean = new LeagueBean();
+
   public static LeagueBeanBuilder create() {
     return new LeagueBeanBuilder();
   }
-
-  private final LeagueBean leagueBean = new LeagueBean();
 
   public LeagueBeanBuilder defaultValues() {
     technicalName("test");

@@ -7,7 +7,6 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -52,7 +51,7 @@ public class SubDivisionTabControllerTest extends UITest {
         leagueEntryBean2, leagueEntryBean1)));
 
     instance.populate(subdivisionBean);
-    Assertions.assertEquals(2, instance.ratingTable.getItems().size());
-    Assertions.assertEquals(leagueEntryBean1, instance.ratingTable.getItems().get(0));
+    assertEquals(2, instance.ratingTable.getItems().size());
+    assertEquals(leagueEntryBean1, instance.ratingTable.getItems().get(0));
   }
 }

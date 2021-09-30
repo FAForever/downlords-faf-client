@@ -773,7 +773,7 @@
 .score {
   -fx-font-size: 60px;
   -fx-font-weight: 700;
-  -fx-text-fill: #ffffff;
+  -fx-text-fill: -fx-text-color;
 }
 
 .heading {
@@ -785,7 +785,7 @@
 
 .search {
   -fx-font-size: 12px;
-  -fx-text-fill: #ffffff;
+  -fx-text-fill: -fx-text-color;
   -fx-font-family: 'Source Sans Pro';
 }
 
@@ -815,11 +815,11 @@
 }
 
 .subDivisionTabPane .tab-down-button {
--fx-padding: 0;
+  -fx-padding: 0;
 }
 
 .subDivisionTabPane .tab-down-button .arrow {
--fx-padding: 0;
+  -fx-padding: 0;
 }
 
 .subDivisionTabPane > .tab-header-area {
@@ -836,7 +836,8 @@
   -fx-border-insets: 0;
 }
 
-.table-view .filler, .table-view .column-header {
+.table-view .filler,
+.table-view .column-header {
   -fx-font-size: 16px;
   -fx-size: 2.2em;
 }
@@ -848,19 +849,20 @@
 }
 
 .table-cell {
-      -fx-padding: 0 0 0 15;
+  -fx-padding: 0 0 0 15;
 }
 
-.table-row-cell, .tree-table-row-cell {
+.table-row-cell,
+.tree-table-row-cell {
   -fx-cell-size: 1.6em;
 }
 
 .leaderboardChart {
-  CHART_COLOR_1: #2B71D9;
-  CHART_COLOR_2: #2B71D9;
-  CHART_COLOR_3: #2B71D9;
-  CHART_COLOR_4: #2B71D9;
-  CHART_COLOR_5: #2B71D9;
+  chart_color_1: #2B71D9;
+  chart_color_2: #2B71D9;
+  chart_color_3: #2B71D9;
+  chart_color_4: #2B71D9;
+  chart_color_5: #2B71D9;
 }
 
 /***************** Match maker *****************/

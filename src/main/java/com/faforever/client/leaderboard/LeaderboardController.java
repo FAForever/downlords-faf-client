@@ -171,7 +171,18 @@ public class LeaderboardController implements Controller<Tab> {
     if (usernamesAutoCompletion != null) {
       usernamesAutoCompletion.dispose();
     }
-    leaderboardService.getAllSubdivisions(season.getId()).thenAccept(subdivisions -> JavaFxUtil.runLater(() -> {
+    leaderboardService.getAllSubdivisions(season.getId()).thenAccept(this::setUsernamesAutoCompletion)
+        .exceptionally(throwable -> {
+          contentPane.setVisible(false);
+          log.warn("Error while loading division list", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
+          return null;
+        });
+    setCurrentPlayer(playerService.getCurrentPlayer());
+  }
+
+  private void setUsernamesAutoCompletion(List<SubdivisionBean> subdivisions) {
+    JavaFxUtil.runLater(() -> {
       majorDivisionPicker.getItems().clear();
       majorDivisionPicker.getItems().addAll(
           subdivisions.stream().filter(subdivision -> subdivision.getIndex() == 1).collect(Collectors.toList()));
@@ -188,13 +199,7 @@ public class LeaderboardController implements Controller<Tab> {
         usernamesAutoCompletion.setDelay(0);
       });
       contentPane.setVisible(true);
-    })).exceptionally(throwable -> {
-      contentPane.setVisible(false);
-      log.warn("Error while loading division list", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
-      return null;
     });
-    setCurrentPlayer(playerService.getCurrentPlayer());
   }
 
   @Override
