@@ -27,7 +27,7 @@ public final class ElideMatchers {
   public static final String INCLUDE = "include=";
   public static final String SORT = "sort=";
 
-  public static ArgumentMatcher<ElideNavigator<?>> hasDtoClass(Class<? extends ElideEntity> clazz) {
+  public static <T extends ElideEntity> ArgumentMatcher<ElideNavigator<T>> hasDtoClass(Class<? extends ElideEntity> clazz) {
     return builder -> builder.getDtoClass().equals(clazz);
   }
 
