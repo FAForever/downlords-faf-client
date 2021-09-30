@@ -90,7 +90,7 @@ public class MapDetailControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
+    currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").id(100).get();
     testMap = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).createTime(OffsetDateTime.now()).get();
     ownedMap = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().author(currentPlayer).get()).get();
     review = MapVersionReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
