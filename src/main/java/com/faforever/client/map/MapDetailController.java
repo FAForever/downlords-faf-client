@@ -135,7 +135,7 @@ public class MapDetailController implements Controller<Node> {
 
   private void renewAuthorControls() {
     PlayerBean player = playerService.getCurrentPlayer();
-    boolean viewerIsAuthor = mapVersion.getMap().getAuthor() != null && player == mapVersion.getMap().getAuthor();
+    boolean viewerIsAuthor = player.equals(mapVersion.getMap().getAuthor());
     unrankButton.setVisible(viewerIsAuthor && mapVersion.getRanked());
     hideButton.setVisible(viewerIsAuthor && !mapVersion.getHidden());
     isHiddenLabel.setText(mapVersion.getHidden() ? i18n.get("yes") : i18n.get("no"));
@@ -179,8 +179,8 @@ public class MapDetailController implements Controller<Node> {
     authorLabel.setText(Optional.ofNullable(mapVersion.getMap().getAuthor()).map(PlayerBean::getUsername).orElse(i18n.get("map.unknownAuthor")));
     maxPlayersLabel.setText(i18n.number(mapVersion.getMaxPlayers()));
     mapIdLabel.setText(i18n.get("map.id", mapVersion.getId()));
-    mapPlaysLabel.setText(i18n.number(mapVersion.getGamesPlayed()));
-    versionPlaysLabel.setText(i18n.number(mapVersion.getMap().getGamesPlayed()));
+    mapPlaysLabel.setText(i18n.number(mapVersion.getMap().getGamesPlayed()));
+    versionPlaysLabel.setText(i18n.number(mapVersion.getGamesPlayed()));
 
     MapSize mapSize = mapVersion.getSize();
     dimensionsLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
