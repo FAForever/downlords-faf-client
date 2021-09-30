@@ -1,7 +1,9 @@
 package com.faforever.client.domain;
 
 
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -19,6 +21,7 @@ public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
   ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
   @ToString.Include
   StringProperty nameKey = new SimpleStringProperty();
+  IntegerProperty placementGames = new SimpleIntegerProperty();
   ObjectProperty<OffsetDateTime> startDate = new SimpleObjectProperty<>();
   ObjectProperty<OffsetDateTime> endDate = new SimpleObjectProperty<>();
 
@@ -56,6 +59,18 @@ public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
 
   public StringProperty nameKeyProperty() {
     return nameKey;
+  }
+
+  public int getPlacementGames() {
+    return placementGames.get();
+  }
+
+  public void setPlacementGames(int placementGames) {
+    this.placementGames.set(placementGames);
+  }
+
+  public IntegerProperty placementGamesProperty() {
+    return placementGames;
   }
 
   public OffsetDateTime getStartDate() {

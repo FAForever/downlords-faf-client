@@ -17,6 +17,7 @@ public class LeagueSeasonBeanBuilder {
     league(LeagueBeanBuilder.create().defaultValues().get());
     leaderboard(LeaderboardBeanBuilder.create().defaultValues().get());
     nameKey("test_description");
+    placementGames(10);
     startDate(OffsetDateTime.now().minusDays(1));
     endDate(OffsetDateTime.now().plusDays(1));
     id(0);
@@ -35,6 +36,11 @@ public class LeagueSeasonBeanBuilder {
 
   public LeagueSeasonBeanBuilder nameKey(String nameKey) {
     leagueSeasonBean.setNameKey(nameKey);
+    return this;
+  }
+
+  public LeagueSeasonBeanBuilder placementGames(Integer placementGames) {
+    leagueSeasonBean.setPlacementGames(placementGames);
     return this;
   }
 

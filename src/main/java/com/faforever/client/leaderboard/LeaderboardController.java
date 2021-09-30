@@ -225,7 +225,7 @@ public class LeaderboardController implements Controller<Tab> {
             JavaFxUtil.runLater(() -> {
               playerDivisionNameLabel.setVisible(false);
               placementLabel.setVisible(true);
-              placementLabel.setText(i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed()));
+              placementLabel.setText(i18n.get("leaderboard.placement", leagueEntry.getGamesPlayed(), season.getPlacementGames()));
             });
             selectHighestDivision();
           } else {

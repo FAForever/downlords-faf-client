@@ -189,7 +189,7 @@ public class LeaderboardControllerTest extends UITest {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(null).get();
     when(leaderboardService.getLeagueEntryForPlayer(player, 1)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean));
-    when(i18n.get("leaderboard.placement", 100)).thenReturn("in placement");
+    when(i18n.get("leaderboard.placement", 100, 10)).thenReturn("in placement");
 
     instance.updateDisplayedPlayerStats(player);
     waitForFxEvents();
