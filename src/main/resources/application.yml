@@ -61,7 +61,7 @@ spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}
   application:
-    name: Downlord's FAF Client
+    name: FAF Client
   main:
     web-application-type: none
   codec:

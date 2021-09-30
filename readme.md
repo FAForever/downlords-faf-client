@@ -3,7 +3,7 @@
 </p>
 
 
-# Downlord's FAF Client
+# FAF Client
 [![Checks](https://github.com/FAForever/downlords-faf-client/actions/workflows/checks.yml/badge.svg?branch=develop)](https://github.com/FAForever/downlords-faf-client/actions/workflows/checks.yml)
 [![Coverage Status](https://coveralls.io/repos/github/FAForever/downlords-faf-client/badge.svg?branch=develop)](https://coveralls.io/github/FAForever/downlords-faf-client?branch=develop)
 
