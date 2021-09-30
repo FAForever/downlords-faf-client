@@ -28,7 +28,7 @@ public final class ElideMatchers {
   public static final String SORT = "sort=";
 
   public static <T extends ElideEntity> ArgumentMatcher<ElideNavigator<T>> hasDtoClass(Class<? extends ElideEntity> clazz) {
-    return builder -> builder.getDtoClass().equals(clazz);
+    return builder -> builder != null && builder.getDtoClass().equals(clazz);
   }
 
   public static ElideParamMatcher filterPresent() {
@@ -73,7 +73,7 @@ public final class ElideMatchers {
 
     @Override
     public boolean matches(ElideNavigatorOnCollection<?> argument) {
-      return matcher.matches(argument.build());
+      return argument != null && matcher.matches(argument.build());
     }
   }
 
@@ -83,7 +83,7 @@ public final class ElideMatchers {
 
     @Override
     public boolean matches(ElideNavigatorOnId<?> argument) {
-      return matcher.matches(argument.build());
+      return argument != null && matcher.matches(argument.build());
     }
   }
 
@@ -93,7 +93,7 @@ public final class ElideMatchers {
 
     @Override
     public boolean matches(ElideNavigatorOnCollection<?> argument) {
-      return matcher.matches(argument.build());
+      return argument != null && matcher.matches(argument.build());
     }
   }
 
@@ -106,6 +106,10 @@ public final class ElideMatchers {
 
     @Override
     public boolean matches(T argument) {
+      if (argument == null) {
+        return false;
+      }
+
       String endpoint = argument.build();
       assertThat(endpoint, containsString(paramPrefix));
       int startIndex = endpoint.indexOf(paramPrefix) + paramPrefix.length();
