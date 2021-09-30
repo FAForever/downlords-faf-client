@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="8.0.8" transformSequenceNumber="8">
   <directoryPresets config="./src/media/appicon" />
-  <application name="Downlord's FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="15" javaMaxVersion="15" allowBetaVM="true">
+  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="15" javaMaxVersion="15" allowBetaVM="true">
     <languages>
       <additionalLanguages>
         <language id="zh_CN" />
@@ -681,7 +681,7 @@ return console.askYesNo(message, true);
         <entry location="lib/faf-uid.exe" />
       </exclude>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive" id="333" installDir="/opt/downlords-faf-client-${compiler:sys.version}" dependencies="oracle-java8-installer" description="Downlord's FAF Client" maintainerEmail="michel.jung89@gmail.com">
+    <linuxDeb name="Linux Deb Archive" id="333" installDir="/opt/downlords-faf-client-${compiler:sys.version}" dependencies="oracle-java8-installer" description="FAF Client" maintainerEmail="michel.jung89@gmail.com">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
