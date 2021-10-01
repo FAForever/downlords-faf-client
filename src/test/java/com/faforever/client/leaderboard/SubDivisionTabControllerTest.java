@@ -7,6 +7,7 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,12 +27,14 @@ public class SubDivisionTabControllerTest extends UITest {
   private LeaderboardService leaderboardService;
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private UiService uiService;
 
   @BeforeEach
   public void setUp() throws Exception {
 
 
-    instance = new SubDivisionTabController(leaderboardService, notificationService, i18n);
+    instance = new SubDivisionTabController(leaderboardService, notificationService, i18n, uiService);
 
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> instance);
     instance.initialize();

@@ -59,15 +59,17 @@ public class LeaderboardControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     player = PlayerBeanBuilder.create().defaultValues().id(3).username("junit").get();
+    PlayerBean marcSpector = PlayerBeanBuilder.create().defaultValues().id(0).username("MarcSpector").get();
     PlayerBean sheikah = PlayerBeanBuilder.create().defaultValues().id(1).username("Sheikah").get();
+    PlayerBean zlo = PlayerBeanBuilder.create().defaultValues().id(2).username("ZLO").get();
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("seasonName");
 
     subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().index(1).get();
     subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().index(1).division(DivisionBeanBuilder.create().defaultValues().index(2).get()).get();
-    leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(0).username("MarcSpector").get();
-    leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(1).username("Sheikah").get();
-    LeagueEntryBean leagueEntryBean3 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).id(2).username("ZLO").get();
+    leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(0).player(marcSpector).get();
+    leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(1).player(sheikah).get();
+    LeagueEntryBean leagueEntryBean3 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).id(2).player(zlo).get();
 
     when(leaderboardService.getAllSubdivisions(1)).thenReturn(
         CompletableFuture.completedFuture(List.of(subdivisionBean1, subdivisionBean2)));
@@ -86,7 +88,7 @@ public class LeaderboardControllerTest extends UITest {
     when(leaderboardService.getLeagueEntryForPlayer(sheikah, 1)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean2));
 
-    subDivisionTabController = new SubDivisionTabController(leaderboardService, notificationService, i18n);
+    subDivisionTabController = new SubDivisionTabController(leaderboardService, notificationService, i18n, uiService);
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> subDivisionTabController);
     subDivisionTabController.initialize();
     when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);
@@ -118,7 +120,7 @@ public class LeaderboardControllerTest extends UITest {
 
     assertEquals(subdivisionBean1, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
     assertEquals(2, subDivisionTabController.ratingTable.getItems().size());
-    assertEquals("Sheikah", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getUsername());
+    assertEquals("Sheikah", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
   }
 
   @Test
@@ -128,7 +130,7 @@ public class LeaderboardControllerTest extends UITest {
     runOnFxThreadAndWait(() -> setSearchText("z"));
     assertEquals(subdivisionBean2, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
     assertEquals(1, subDivisionTabController.ratingTable.getItems().size());
-    assertEquals("ZLO", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getUsername());
+    assertEquals("ZLO", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
   }
 
   @Test
@@ -221,6 +223,6 @@ public class LeaderboardControllerTest extends UITest {
     assertEquals(subdivisionBean1, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
     assertEquals(1, instance.subDivisionTabPane.getTabs().size());
     assertEquals(3, subDivisionTabController.ratingTable.getItems().size());
-    assertEquals("junit", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getUsername());
+    assertEquals("junit", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
   }
 }

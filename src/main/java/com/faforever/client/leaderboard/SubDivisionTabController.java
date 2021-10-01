@@ -6,12 +6,15 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -28,12 +31,15 @@ public class SubDivisionTabController implements Controller<Tab> {
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final I18n i18n;
+  private final UiService uiService;
   public Tab subDivisionTab;
   public TableColumn<LeagueEntryBean, Number> rankColumn;
   public TableColumn<LeagueEntryBean, String> nameColumn;
   public TableColumn<LeagueEntryBean, Number> gamesPlayedColumn;
   public TableColumn<LeagueEntryBean, Number> scoreColumn;
   public TableView<LeagueEntryBean> ratingTable;
+
+  private LeaderboardContextMenuController contextMenuController;
 
   @Override
   public Tab getRoot() {
@@ -42,10 +48,13 @@ public class SubDivisionTabController implements Controller<Tab> {
 
   @Override
   public void initialize() {
+    contextMenuController = uiService.loadFxml("theme/player_context_menu.fxml", LeaderboardContextMenuController.class);
+    ratingTable.setRowFactory(param -> entriesRowFactory());
+
     rankColumn.setCellValueFactory(param -> new SimpleIntegerProperty(ratingTable.getItems().indexOf(param.getValue()) + 1));
     rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
 
-    nameColumn.setCellValueFactory(param -> param.getValue().usernameProperty());
+    nameColumn.setCellValueFactory(param -> param.getValue().getPlayer().usernameProperty());
     nameColumn.setCellFactory(param -> new StringCell<>(name -> name));
 
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
@@ -53,6 +62,21 @@ public class SubDivisionTabController implements Controller<Tab> {
 
     scoreColumn.setCellValueFactory(param -> param.getValue().scoreProperty());
     scoreColumn.setCellFactory(param -> new StringCell<>(rating -> i18n.number(rating.intValue())));
+  }
+
+  @NotNull
+  private TableRow<LeagueEntryBean> entriesRowFactory() {
+    TableRow<LeagueEntryBean> row = new TableRow<>();
+    row.setOnContextMenuRequested(event -> {
+      if (row.getItem() == null) {
+        return;
+      }
+      LeagueEntryBean  entry = row.getItem();
+      contextMenuController.setPlayer(entry.getPlayer());
+      contextMenuController.getContextMenu().show(subDivisionTab.getTabPane().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    });
+
+    return row;
   }
 
   public void populate(SubdivisionBean subdivision) {

@@ -155,7 +155,7 @@ public class LeaderboardService {
             .intNum("leagueSeason.id").eq(leagueSeasonId));
     return fafApiAccessor.getMany(navigator)
         .next()
-        .map(dto -> leaderboardMapper.map(dto, player.getUsername(), new CycleAvoidingMappingContext()))
+        .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
         .toFuture();
   }
 
@@ -166,7 +166,7 @@ public class LeaderboardService {
     return fafApiAccessor.getMany(navigator)
         // This goes all the way back. Maybe we don't want that
         .filter(leagueSeasonScore -> leagueSeasonScore.getLeagueSeason().getStartDate().isBefore(OffsetDateTime.now()))
-        .map(dto -> leaderboardMapper.map(dto, player.getUsername(), new CycleAvoidingMappingContext()))
+        .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
         .reduce((score1, score2) -> SUBDIVISION_COMPARATOR.compare(score1.getSubdivision(), score2.getSubdivision()) > 0 ? score1 : score2)
         .toFuture()
         .thenApply(Optional::ofNullable);
@@ -201,7 +201,7 @@ public class LeaderboardService {
                   playerBeans
                       .stream()
                       .filter(playerBean -> playerBean.getId().equals(leagueSeasonScore.getLoginId()))
-                      .map(playerBean -> leaderboardMapper.map(leagueSeasonScore, playerBean.getUsername(), new CycleAvoidingMappingContext())))
+                      .map(playerBean -> leaderboardMapper.map(leagueSeasonScore, playerBean, new CycleAvoidingMappingContext())))
               .collect(Collectors.toList()));
     });
   }

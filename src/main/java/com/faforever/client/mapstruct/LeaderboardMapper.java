@@ -8,6 +8,7 @@ import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.LeagueBean;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.LeagueSeasonBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.commons.api.dto.Leaderboard;
 import com.faforever.commons.api.dto.LeaderboardEntry;
@@ -77,13 +78,15 @@ public interface LeaderboardMapper {
   @Mapping(target = "leagueSeasonDivision", source = "division")
   LeagueSeasonDivisionSubdivision map(SubdivisionBean bean, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "username", source = "playerName")
   @Mapping(target = "gamesPlayed", source = "dto.gameCount")
   @Mapping(target = "subdivision", source = "dto.leagueSeasonDivisionSubdivision")
-  LeagueEntryBean map(LeagueSeasonScore dto, String playerName, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "id", source = "dto.id")
+  @Mapping(target = "createTime", source = "dto.createTime")
+  @Mapping(target = "updateTime", source = "dto.updateTime")
+  LeagueEntryBean map(LeagueSeasonScore dto, PlayerBean player, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "loginId", source = "playerId")
-  @Mapping(target = "gameCount", source = "bean.gamesPlayed")
-  @Mapping(target = "leagueSeasonDivisionSubdivision", source = "bean.subdivision")
-  LeagueSeasonScore map(LeagueEntryBean bean, int playerId, @Context CycleAvoidingMappingContext context);
+  @Mapping(target = "loginId", source = "player.id")
+  @Mapping(target = "gameCount", source = "gamesPlayed")
+  @Mapping(target = "leagueSeasonDivisionSubdivision", source = "subdivision")
+  LeagueSeasonScore map(LeagueEntryBean bean, @Context CycleAvoidingMappingContext context);
 }

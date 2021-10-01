@@ -4,8 +4,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -16,22 +14,22 @@ import lombok.Value;
 public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
   @ToString.Include
   @EqualsAndHashCode.Include
-  StringProperty username = new SimpleStringProperty();
+  ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
   IntegerProperty gamesPlayed = new SimpleIntegerProperty();
   IntegerProperty score = new SimpleIntegerProperty();
   ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
   ObjectProperty<SubdivisionBean> subdivision = new SimpleObjectProperty<>();
 
-  public String getUsername() {
-    return username.get();
+  public PlayerBean getPlayer() {
+    return player.get();
   }
 
-  public void setUsername(String username) {
-    this.username.set(username);
+  public void setPlayer(PlayerBean player) {
+    this.player.set(player);
   }
 
-  public StringProperty usernameProperty() {
-    return username;
+  public ObjectProperty<PlayerBean> playerProperty() {
+    return player;
   }
 
   public int getGamesPlayed() {

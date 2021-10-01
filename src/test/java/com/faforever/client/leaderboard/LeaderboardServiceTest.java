@@ -127,8 +127,8 @@ public class LeaderboardServiceTest extends ServiceTest {
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean2).get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMany(argThat(ElideMatchers.hasDtoClass(LeagueSeasonScore.class)))).thenReturn(Flux.just(
-        leaderboardMapper.map(leagueEntryBean1, 0, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(leagueEntryBean2, 1, new CycleAvoidingMappingContext())));
+        leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
+        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext())));
     when(fafApiAccessor.getMany(argThat(ElideMatchers.hasDtoClass(LeagueSeasonDivisionSubdivision.class)))).thenReturn(Flux.just(
         leaderboardMapper.map(subdivisionBean1, new CycleAvoidingMappingContext()),
         leaderboardMapper.map(subdivisionBean2, new CycleAvoidingMappingContext()),
@@ -158,9 +158,9 @@ public class LeaderboardServiceTest extends ServiceTest {
     SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
-        leaderboardMapper.map(leagueEntryBean, 0, new CycleAvoidingMappingContext())));
-    when(playerService.getPlayersByIds(List.of(0))).thenReturn(
-        CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().id(0).username("junit").get())));
+        leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext())));
+    when(playerService.getPlayersByIds(List.of(1))).thenReturn(
+        CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().id(1).username("junit").get())));
 
     int result = instance.getSizeOfDivision(subdivisionBean).toCompletableFuture().join();
     Assertions.assertEquals(1, result);
@@ -170,7 +170,7 @@ public class LeaderboardServiceTest extends ServiceTest {
   public void testGetLeagueEntryForPlayer() {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
-        leaderboardMapper.map(leagueEntryBean, 0, new CycleAvoidingMappingContext())));
+        leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext())));
 
     LeagueEntryBean result = instance.getLeagueEntryForPlayer(player, 2).toCompletableFuture().join();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
@@ -186,8 +186,8 @@ public class LeaderboardServiceTest extends ServiceTest {
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).get();
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
-        leaderboardMapper.map(leagueEntryBean1, 0, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(leagueEntryBean2, 0, new CycleAvoidingMappingContext())));
+        leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
+        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext())));
 
     LeagueEntryBean result = instance.getLeagueEntryForPlayer(player, 2).toCompletableFuture().join();
 
@@ -200,9 +200,9 @@ public class LeaderboardServiceTest extends ServiceTest {
     SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
-        leaderboardMapper.map(leagueEntryBean, 0, new CycleAvoidingMappingContext())));
-    when(playerService.getPlayersByIds(List.of(0))).thenReturn(
-        CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().id(0).username("junit").get())));
+        leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext())));
+    when(playerService.getPlayersByIds(List.of(1))).thenReturn(
+        CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().id(1).username("junit").get())));
 
     List<LeagueEntryBean> result = instance.getEntries(subdivisionBean).toCompletableFuture().join();
     Assertions.assertEquals(List.of(leagueEntryBean), result);

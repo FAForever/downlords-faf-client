@@ -116,14 +116,14 @@ public class LeaderboardController implements Controller<Tab> {
     } else {
       LeagueEntryBean foundPlayer = null;
       for (LeagueEntryBean leagueEntry : ratingTable.getItems()) {
-        if (leagueEntry.getUsername().toLowerCase().startsWith(searchText.toLowerCase())) {
+        if (leagueEntry.getPlayer().getUsername().toLowerCase().startsWith(searchText.toLowerCase())) {
           foundPlayer = leagueEntry;
           break;
         }
       }
       if (foundPlayer == null) {
         for (LeagueEntryBean leagueEntry : ratingTable.getItems()) {
-          if (leagueEntry.getUsername().toLowerCase().contains(searchText.toLowerCase())) {
+          if (leagueEntry.getPlayer().getUsername().toLowerCase().contains(searchText.toLowerCase())) {
             foundPlayer = leagueEntry;
             break;
           }
@@ -195,7 +195,7 @@ public class LeaderboardController implements Controller<Tab> {
       });
       CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).thenRun(() -> {
         usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField,
-            leagueEntries.stream().map(LeagueEntryBean::getUsername).collect(Collectors.toList()));
+            leagueEntries.stream().map(leagueEntryBean -> leagueEntryBean.getPlayer().getUsername()).collect(Collectors.toList()));
         usernamesAutoCompletion.setDelay(0);
       });
       contentPane.setVisible(true);
