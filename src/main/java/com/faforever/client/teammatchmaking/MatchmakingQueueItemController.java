@@ -71,7 +71,6 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
     eventBus.register(this);
     joinLeaveQueueButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
-    joinLeaveQueueButton.setEllipsisString("");
     mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
   }
 
