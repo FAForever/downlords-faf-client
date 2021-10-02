@@ -34,6 +34,7 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -60,7 +61,6 @@ import reactor.util.function.Tuple2;
 
 import java.io.Serializable;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -145,11 +145,7 @@ public class FafApiAccessor implements InitializingBean {
     Api apiProperties = clientProperties.getApi();
     maxPageSize = apiProperties.getMaxPageSize();
 
-    HttpClient httpClient = HttpClient.create().resolver(resolver ->
-        resolver
-            .queryTimeout(Duration.ofSeconds(30))
-            .maxQueriesPerResolve(50)
-    );
+    HttpClient httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE);
 
     webClient = WebClient.builder()
         .clientConnector(new ReactorClientHttpConnector(httpClient))
