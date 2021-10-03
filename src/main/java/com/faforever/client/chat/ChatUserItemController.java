@@ -181,7 +181,7 @@ public class ChatUserItemController implements Controller<Node> {
       }
     }
 
-    ChatUserContextMenuController controller = uiService.loadFxml("theme/chat/chat_user_context_menu.fxml");
+    ChatUserContextMenuController controller = uiService.loadFxml("theme/player_context_menu.fxml", ChatUserContextMenuController.class);
     controller.setChatUser(chatUser);
     controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 

@@ -1,8 +1,8 @@
 package com.faforever.client.test;
 
+import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.vault.VaultEntityController;
 import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -90,7 +90,7 @@ public abstract class UITest extends ApplicationTest {
     loadFxml(fileName, controllerFactory, null);
   }
 
-  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory, VaultEntityController<?> controller) throws IOException {
+  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory, Controller<?> controller) throws IOException {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
 

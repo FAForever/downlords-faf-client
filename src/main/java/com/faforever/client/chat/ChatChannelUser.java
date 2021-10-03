@@ -85,6 +85,9 @@ public class ChatChannelUser {
         socialStatus.unbind();
         gameStatus.unbind();
         clanTag.unbind();
+        socialStatus.set(null);
+        gameStatus.set(null);
+        clanTag.set(null);
       }
       if (player != null) {
         player.getChatChannelUsers().add(this);
