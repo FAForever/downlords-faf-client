@@ -44,6 +44,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 public class PlayerInfoWindowControllerTest extends UITest {
 
@@ -115,6 +116,7 @@ public class PlayerInfoWindowControllerTest extends UITest {
     when(eventService.getPlayerEvents(player.getId())).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
 
     instance.setPlayer(player);
+    waitForFxEvents();
 
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(player.getId());

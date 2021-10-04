@@ -22,6 +22,7 @@ public class GamePlayerStatsBeanBuilder {
     score(0);
     team(0);
     faction(Faction.CYBRAN);
+    scoreTime(OffsetDateTime.now().minusDays(1));
     return this;
   }
 
