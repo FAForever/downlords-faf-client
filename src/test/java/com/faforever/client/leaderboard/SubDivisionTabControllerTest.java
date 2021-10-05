@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class SubDivisionTabControllerTest extends UITest {
@@ -52,6 +53,7 @@ public class SubDivisionTabControllerTest extends UITest {
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
     when(leaderboardService.getEntries(subdivisionBean)).thenReturn(CompletableFuture.completedFuture(List.of(
         leagueEntryBean2, leagueEntryBean1)));
+    when(leaderboardService.getPlayerNumberInHigherDivisions(any())).thenReturn(CompletableFuture.completedFuture(0));
 
     instance.populate(subdivisionBean);
     assertEquals(2, instance.ratingTable.getItems().size());

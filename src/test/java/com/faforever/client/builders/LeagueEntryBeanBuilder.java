@@ -43,6 +43,11 @@ public class LeagueEntryBeanBuilder {
     return this;
   }
 
+  public LeagueEntryBeanBuilder rank(int rank) {
+    leagueEntryBean.setRank(rank);
+    return this;
+  }
+
   public LeagueEntryBeanBuilder subdivision(SubdivisionBean subdivisionBean) {
     leagueEntryBean.setSubdivision(subdivisionBean);
     return this;

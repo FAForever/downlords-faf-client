@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import reactor.util.function.Tuple2;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -117,15 +118,21 @@ public class LeaderboardService {
       Throwable notRanked = new Throwable("Player is not ranked");
       return CompletableFuture.failedFuture(notRanked);
     }
+    return getEntries(entry.getSubdivision()).thenCompose(leagueEntryBeans ->
+        getPlayerNumberInHigherDivisions(entry.getSubdivision()).thenApply(count -> count + 1 + leagueEntryBeans.indexOf(entry)));
+  }
+
+  public CompletableFuture<Integer> getPlayerNumberInHigherDivisions(SubdivisionBean subdivisionBean) {
     AtomicInteger rank = new AtomicInteger();
-    return getAllSubdivisions(entry.getLeagueSeason().getId()).thenApply(divisions -> {
+    List<CompletableFuture<?>> futures = new ArrayList<>();
+    return getAllSubdivisions(subdivisionBean.getLeagueSeasonId()).thenCompose(divisions -> {
       divisions.stream()
-          .filter(division -> SUBDIVISION_COMPARATOR.compare(division, entry.getSubdivision()) > 0)
-          .forEach(division -> getSizeOfDivision(division).thenApply(rank::addAndGet));
-      getEntries(entry.getSubdivision()).thenAccept(leagueEntryBeans -> {
-        rank.addAndGet(leagueEntryBeans.indexOf(entry) + 1);
-      });
-      return rank.get();
+          .filter(division -> SUBDIVISION_COMPARATOR.compare(division, subdivisionBean) > 0)
+          .forEach(division -> {
+            CompletableFuture<Integer> future = getSizeOfDivision(division);
+            futures.add(future.thenAccept(rank::addAndGet));
+          });
+      return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).thenApply(unused -> rank.get());
     });
   }
 

@@ -19,6 +19,8 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
   IntegerProperty score = new SimpleIntegerProperty();
   ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
   ObjectProperty<SubdivisionBean> subdivision = new SimpleObjectProperty<>();
+  // This doesn't get set by the api, but we set it dynamically because it is dependent on how many other entries there are.
+  IntegerProperty rank = new SimpleIntegerProperty();
 
   public PlayerBean getPlayer() {
     return player.get();
@@ -78,5 +80,17 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
 
   public ObjectProperty<SubdivisionBean> subdivisionProperty() {
     return subdivision;
+  }
+
+  public int getRank() {
+    return rank.get();
+  }
+
+  public void setRank(int rank) {
+    this.rank.set(rank);
+  }
+
+  public IntegerProperty rankProperty() {
+    return rank;
   }
 }

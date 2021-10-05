@@ -7,7 +7,6 @@ import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -51,7 +50,7 @@ public class SubDivisionTabController implements Controller<Tab> {
     contextMenuController = uiService.loadFxml("theme/player_context_menu.fxml", LeaderboardContextMenuController.class);
     ratingTable.setRowFactory(param -> entriesRowFactory());
 
-    rankColumn.setCellValueFactory(param -> new SimpleIntegerProperty(ratingTable.getItems().indexOf(param.getValue()) + 1));
+    rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
     rankColumn.setCellFactory(param -> new StringCell<>(rank -> i18n.number(rank.intValue())));
 
     nameColumn.setCellValueFactory(param -> param.getValue().getPlayer().usernameProperty());
@@ -61,7 +60,7 @@ public class SubDivisionTabController implements Controller<Tab> {
     gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));
 
     scoreColumn.setCellValueFactory(param -> param.getValue().scoreProperty());
-    scoreColumn.setCellFactory(param -> new StringCell<>(rating -> i18n.number(rating.intValue())));
+    scoreColumn.setCellFactory(param -> new StringCell<>(score -> i18n.number(score.intValue())));
   }
 
   @NotNull
@@ -82,9 +81,11 @@ public class SubDivisionTabController implements Controller<Tab> {
   public void populate(SubdivisionBean subdivision) {
     subDivisionTab.setText(subdivision.getNameKey());
 
-    leaderboardService.getEntries(subdivision).thenAccept(leagueEntryBeans ->
-        ratingTable.setItems(observableList(leagueEntryBeans))
-    ).exceptionally(throwable -> {
+    leaderboardService.getEntries(subdivision).thenAccept(leagueEntryBeans -> {
+      leaderboardService.getPlayerNumberInHigherDivisions(subdivision).thenAccept(count ->
+          leagueEntryBeans.forEach(entry -> entry.setRank(count + 1 + leagueEntryBeans.indexOf(entry))));
+      ratingTable.setItems(observableList(leagueEntryBeans));
+    }).exceptionally(throwable -> {
       log.warn("Error while loading leaderboard entries for division " + subdivision, throwable);
       notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
       return null;

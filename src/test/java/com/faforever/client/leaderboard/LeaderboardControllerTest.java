@@ -64,6 +64,8 @@ public class LeaderboardControllerTest extends UITest {
     PlayerBean zlo = PlayerBeanBuilder.create().defaultValues().id(2).username("ZLO").get();
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("seasonName");
+    when(i18n.get("leagues.divisionName.1")).thenReturn("Bronze");
+    when(i18n.get("leagues.divisionName.2")).thenReturn("Silver");
 
     subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().index(1).get();
     subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().index(1).division(DivisionBeanBuilder.create().defaultValues().index(2).get()).get();
@@ -82,6 +84,8 @@ public class LeaderboardControllerTest extends UITest {
         Optional.of(sheikah)));
     when(leaderboardService.getSizeOfDivision(subdivisionBean1)).thenReturn(CompletableFuture.completedFuture(2));
     when(leaderboardService.getSizeOfDivision(subdivisionBean2)).thenReturn(CompletableFuture.completedFuture(1));
+    when(leaderboardService.getPlayerNumberInHigherDivisions(subdivisionBean1)).thenReturn(CompletableFuture.completedFuture(1));
+    when(leaderboardService.getPlayerNumberInHigherDivisions(subdivisionBean2)).thenReturn(CompletableFuture.completedFuture(0));
     when(leaderboardService.getTotalPlayers(1)).thenReturn(CompletableFuture.completedFuture(3));
     when(leaderboardService.getLeagueEntryForPlayer(player, 1)).thenReturn(
         CompletableFuture.completedFuture(null));
@@ -212,11 +216,13 @@ public class LeaderboardControllerTest extends UITest {
     when(leaderboardService.getEntries(subdivisionBean1)).thenReturn(
         CompletableFuture.completedFuture(List.of(leagueEntryBean1, playerEntryBean, leagueEntryBean2)));
     when(i18n.number(8)).thenReturn("8");
+    when(i18n.get("leaderboard.divisionName", "Bronze", "I")).thenReturn("Bronze I");
 
     instance.updateDisplayedPlayerStats(player);
     waitForFxEvents();
 
     assertTrue(instance.playerDivisionNameLabel.isVisible());
+    assertEquals("BRONZE I", instance.playerDivisionNameLabel.getText());
     assertFalse(instance.placementLabel.isVisible());
     assertEquals(-360.0 * 0.8, instance.scoreArc.getLength());
     assertEquals("8", instance.playerScoreLabel.getText());

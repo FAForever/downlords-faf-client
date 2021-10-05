@@ -143,6 +143,29 @@ public class LeaderboardServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testGetPlayerNumberInHigherDivisions() {
+    SubdivisionBean subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().index(1).get();
+    SubdivisionBean subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().index(2).get();
+    SubdivisionBean subdivisionBean3 = SubdivisionBeanBuilder.create().defaultValues().index(3).get();
+    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean2).get();
+    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().get();
+    when(fafApiAccessor.getMany(argThat(ElideMatchers.hasDtoClass(LeagueSeasonScore.class)))).thenReturn(Flux.just(
+        leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
+        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext())));
+    when(fafApiAccessor.getMany(argThat(ElideMatchers.hasDtoClass(LeagueSeasonDivisionSubdivision.class)))).thenReturn(Flux.just(
+        leaderboardMapper.map(subdivisionBean1, new CycleAvoidingMappingContext()),
+        leaderboardMapper.map(subdivisionBean2, new CycleAvoidingMappingContext()),
+        leaderboardMapper.map(subdivisionBean3, new CycleAvoidingMappingContext())));
+    when(playerService.getPlayersByIds(any())).thenReturn(
+        CompletableFuture.completedFuture(List.of(
+            PlayerBeanBuilder.create().id(0).username("junit").get(),
+            PlayerBeanBuilder.create().id(1).username("junit2").get())));
+
+    int result = instance.getPlayerNumberInHigherDivisions(subdivisionBean2).toCompletableFuture().join();
+    Assertions.assertEquals(2, result);
+  }
+
+  @Test
   public void testGetTotalPlayers() {
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(Mono.zip(Mono.just(List.of()), Mono.just(0)));
 
