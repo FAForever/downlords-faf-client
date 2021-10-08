@@ -89,6 +89,7 @@ public class LeaderboardController implements Controller<Tab> {
   public Label placementLabel;
   public Label seasonDateLabel;
   private LeagueSeasonBean season;
+  private InvalidationListener playerRatingListener;
 
   @VisibleForTesting
   protected AutoCompletionBinding<String> usernamesAutoCompletion;
@@ -208,10 +209,8 @@ public class LeaderboardController implements Controller<Tab> {
   }
 
   private void setCurrentPlayer(PlayerBean player) {
-    InvalidationListener playerLeagueScoreListener = leagueObservable -> JavaFxUtil.runLater(() -> updateDisplayedPlayerStats(player));
-
-    JavaFxUtil.addListener(player.getLeaderboardRatings(), new WeakInvalidationListener(playerLeagueScoreListener));
-    updateDisplayedPlayerStats(player);
+    playerRatingListener = observable -> updateDisplayedPlayerStats(player);
+    JavaFxUtil.addAndTriggerListener(player.getLeaderboardRatings(), new WeakInvalidationListener(playerRatingListener));
   }
 
   @VisibleForTesting
@@ -236,7 +235,7 @@ public class LeaderboardController implements Controller<Tab> {
                   noCatch(() -> new URL(leagueEntry.getSubdivision().getImageKey())), Paths.get("divisions"), null));
               playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
                   i18n.get(leagueEntry.getSubdivision().getDivisionI18nKey()),
-                  i18n.get(leagueEntry.getSubdivision().getNameKey())));
+                  leagueEntry.getSubdivision().getNameKey()).toUpperCase());
               scoreArc.setLength(-360.0 * leagueEntry.getScore() / leagueEntry.getSubdivision().getHighestScore());
               playerScoreLabel.setText(i18n.number(leagueEntry.getScore()));
             });
@@ -264,18 +263,9 @@ public class LeaderboardController implements Controller<Tab> {
           .filter(tab -> tab.getUserData().equals(leagueEntry.getSubdivision().getIndex()))
           .findFirst().ifPresent(tab -> {
             subDivisionTabPane.getSelectionModel().select(tab);
-            // Need to test this once the api is up
             TableView<LeagueEntryBean> newTable = (TableView<LeagueEntryBean>) tab.getContent();
             newTable.scrollTo(leagueEntry);
             newTable.getSelectionModel().select(leagueEntry);
-            // Alternatively:
-//          for (LeagueEntryBean tableEntry : newTable.getItems()) {
-//            if (tableEntry.getUsername().equals(leagueEntry.getUsername())) {
-//              newTable.scrollTo(tableEntry);
-//              newTable.getSelectionModel().select(tableEntry);
-//              break;
-//            }
-//          }
       });
     });
   }
@@ -328,7 +318,7 @@ public class LeaderboardController implements Controller<Tab> {
             label.setText(subdivision.getNameKey());
             label.setFill(Color.WHITE);
             data.nodeProperty().addListener((observable, oldValue, newValue) -> {
-              if (leagueEntry != null && subdivision == leagueEntry.getSubdivision()) {
+              if (leagueEntry != null && subdivision.equals(leagueEntry.getSubdivision())) {
                 newValue.pseudoClassStateChanged(NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS, true);
               }
               addNodeOnTopOfBar(data, label);
@@ -346,7 +336,7 @@ public class LeaderboardController implements Controller<Tab> {
         JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.totalPlayers", totalPlayers)));
       } else {
         leaderboardService.getAccumulatedRank(leagueEntry)
-            .thenAccept(rank -> xAxis.labelProperty().setValue(i18n.get("leaderboard.rank", rank, totalPlayers)))
+            .thenAccept(rank -> JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.rank", rank, totalPlayers))))
             .exceptionally(throwable -> {
               log.info("Could not get player rank", throwable);
               return null;
