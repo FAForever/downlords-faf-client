@@ -117,7 +117,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     FafLobbyClient.Config config = new Config(
         tokenService.getRefreshedTokenValue(),
         Version.getCurrentVersion(),
-        "downlords-faf-client",
+        clientProperties.getUserAgent(),
         clientProperties.getServer().getHost(),
         clientProperties.getServer().getPort() + 1,
         sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
