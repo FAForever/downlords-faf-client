@@ -156,7 +156,7 @@ public class ServerAccessorTest extends ServiceTest {
     clientProperties.getServer()
         .setHost(disposableServer.host())
         .setPort(disposableServer.port() - 1);
-    clientProperties.setUserAgent("test-client");
+    clientProperties.setUserAgent("downlords-faf-client");
 
     instance = new FafServerAccessor(notificationService, i18n, taskScheduler, clientProperties, preferencesService, uidService,
         tokenService, eventBus, objectMapper);
