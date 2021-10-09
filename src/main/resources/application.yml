@@ -49,6 +49,7 @@ faf-client:
   client-config-url: https://content.faforever.com/dfc-config.json
   client-config-connect-timeout: 10s
   show-ice-adapter-debug-Window: ${SHOW_ICE_ADAPTER_DEBUG_WINDOW:false}
+  user-agent: downlords-faf-client
 
   discord:
     discord_prerelease_feedback_channel_url: https://discord.gg/fZc4BsE

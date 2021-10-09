@@ -203,7 +203,7 @@ task buildInstall4jMediaFiles(type: Install4jTask) {
   description 'Creates install4j media files'
   dependsOn 'installDist'
 
-  projectFile = file('downlords-faf-client.install4j')
+  projectFile = file('faf-client.install4j')
   release = version
 
   switch (project.ext.javafxPlatform) {

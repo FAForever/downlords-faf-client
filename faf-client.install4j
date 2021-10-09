@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="8.0.8" transformSequenceNumber="8">
   <directoryPresets config="./src/media/appicon" />
-  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="Downlord" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="15" javaMaxVersion="15" allowBetaVM="true">
+  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="15" javaMaxVersion="15" allowBetaVM="true">
     <languages>
       <additionalLanguages>
         <language id="zh_CN" />
@@ -27,7 +27,7 @@
     </mountPoints>
     <entries>
       <dirEntry mountPoint="23" file="./build/resources/native" fileMode="755" overrideFileMode="true" entryMode="subdir" subDirectory="natives" />
-      <dirEntry mountPoint="23" file="./build/install/downlords-faf-client" entryMode="subdir" subDirectory="lib">
+      <dirEntry mountPoint="23" file="./build/install/faf-client" entryMode="subdir" subDirectory="lib">
         <exclude>
           <entry location="faf-ice-adapter.jar" />
           <entry location="faf-uid" />
@@ -38,7 +38,7 @@
   </files>
   <launchers>
     <launcher name="FAF Client" id="25">
-      <executable name="downlords-faf-client" iconSet="true" executableMode="gui" changeWorkingDirectory="false" workingDirectory="bin" singleInstance="true" checkConsoleParameter="true" dpiAware="true" />
+      <executable name="faf-client" iconSet="true" executableMode="gui" changeWorkingDirectory="false" workingDirectory="bin" singleInstance="true" checkConsoleParameter="true" dpiAware="true" />
       <splashScreen show="true" width="640" height="400" bitmapFile="./src/media/splash/splash.png" textOverlay="true">
         <text>
           <statusLine x="11" y="378" fontSize="10" fontColor="255,255,255" />
@@ -275,7 +275,7 @@ return console.askOkCancel(message, true);
                 <serializedBean>
                   <property name="file">
                     <object class="java.io.File">
-                      <string>downlords-faf-client</string>
+                      <string>faf-client</string>
                     </object>
                   </property>
                   <property name="name" type="string">${compiler:sys.fullName}</property>
@@ -662,26 +662,26 @@ return console.askYesNo(message, true);
       </exclude>
       <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-15.0.1" directDownload="true" />
     </windows>
-    <windowsArchive name="Windows Archive" id="330" installDir="downlords-faf-client-${compiler:sys.version}">
+    <windowsArchive name="Windows Archive" id="330" installDir="faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter" />
         <entry location="lib/faf-uid" />
       </exclude>
       <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-15.0.1" />
     </windowsArchive>
-    <unixArchive name="Unix Archive" id="331" installDir="downlords-faf-client-${compiler:sys.version}">
+    <unixArchive name="Unix Archive" id="331" installDir="faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
     </unixArchive>
-    <linuxRPM name="Linux RPM" id="332" installDir="/opt/downlords-faf-client-${compiler:sys.version}">
+    <linuxRPM name="Linux RPM" id="332" installDir="/opt/faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
     </linuxRPM>
-    <linuxDeb name="Linux Deb Archive" id="333" installDir="/opt/downlords-faf-client-${compiler:sys.version}" dependencies="oracle-java8-installer" description="FAF Client" maintainerEmail="michel.jung89@gmail.com">
+    <linuxDeb name="Linux Deb Archive" id="333" installDir="/opt/faf-client-${compiler:sys.version}" dependencies="oracle-java8-installer" description="FAF Client" maintainerEmail="michel.jung89@gmail.com">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />

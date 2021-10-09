@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.config.ClientProperties;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import javafx.concurrent.Worker.State;
@@ -8,6 +9,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import lombok.RequiredArgsConstructor;
 import netscape.javascript.JSObject;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +21,7 @@ import org.w3c.dom.NodeList;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class WebViewConfigurer {
 
   /**
@@ -30,12 +33,7 @@ public class WebViewConfigurer {
   private final UiService uiService;
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
-
-  public WebViewConfigurer(UiService uiService, ApplicationContext applicationContext, PreferencesService preferencesService) {
-    this.uiService = uiService;
-    this.applicationContext = applicationContext;
-    this.preferencesService = preferencesService;
-  }
+  private final ClientProperties clientProperties;
 
   public void configureWebView(WebView webView) {
     WebEngine engine = webView.getEngine();
@@ -59,7 +57,7 @@ public class WebViewConfigurer {
     webView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
 
     engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
-    engine.setUserAgent("downlords-faf-client"); // removes faforever.com header and footer
+    engine.setUserAgent(clientProperties.getUserAgent()); // removes faforever.com header and footer
     uiService.registerWebView(webView);
     JavaFxUtil.addListener(engine.getLoadWorker().stateProperty(), (observable, oldValue, newValue) -> {
       if (newValue != State.SUCCEEDED) {

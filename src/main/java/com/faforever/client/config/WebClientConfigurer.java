@@ -16,12 +16,13 @@ import reactor.netty.http.client.HttpClient;
 public class WebClientConfigurer implements WebClientCustomizer {
   private final JsonApiWriter jsonApiWriter;
   private final JsonApiReader jsonApiReader;
+  private final ClientProperties clientProperties;
 
   @Override
   public void customize(WebClient.Builder webClientBuilder) {
     HttpClient httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE);
     ClientHttpConnector clientHttpConnector = new ReactorClientHttpConnector(httpClient);
-    webClientBuilder.defaultHeader("User-Agent", "downlords-faf-client")
+    webClientBuilder.defaultHeader("User-Agent", clientProperties.getUserAgent())
         .clientConnector(clientHttpConnector)
         .codecs(clientCodecConfigurer -> {
           clientCodecConfigurer.customCodecs().register(jsonApiReader);
