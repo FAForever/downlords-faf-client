@@ -34,6 +34,7 @@ import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.Faction;
@@ -144,6 +145,7 @@ public class GameService implements InitializingBean {
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Process process;
+  private boolean gameKilled;
   private boolean rehostRequested;
   private int localReplayPort;
   private boolean inOthersParty;
@@ -534,32 +536,39 @@ public class GameService implements InitializingBean {
     CompletableFuture<Void> matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
-        .thenAccept((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
-            .thenRun(() -> {
+        .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
+            .thenCompose(aVoid -> {
               addMatchmakerGameLaunchArguments(gameLaunchMessage);
 
               String ratingType = gameLaunchMessage.getLeaderboard();
 
-              startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
+              return startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
             }));
 
     matchmakerFuture.whenComplete((aVoid, throwable) -> {
-          inMatchmakerQueue = false;
-          if (throwable != null) {
-            if (throwable instanceof CancellationException) {
-              log.info("Matchmaking search has been cancelled");
-            } else {
-              log.warn("Matchmade game could not be started", throwable);
-            }
-          } else {
-            log.debug("Matchmaker queue exited");
+      if (throwable != null) {
+        throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+        if (throwable instanceof CancellationException) {
+          log.info("Matchmaking search has been cancelled");
+          notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
+          if (inMatchmakerQueue) {
+            gameKilled = true;
+            process.destroy();
           }
-        });
+        } else {
+          log.warn("Matchmade game could not be started", throwable);
+        }
+      } else {
+        log.debug("Matchmaker queue exited");
+      }
+      inMatchmakerQueue = false;
+    });
 
     return matchmakerFuture;
   }
 
-  private void addMatchmakerGameLaunchArguments(GameLaunchResponse gameLaunchMessage) {
+  @VisibleForTesting
+  void addMatchmakerGameLaunchArguments(GameLaunchResponse gameLaunchMessage) {
     List<String> args = gameLaunchMessage.getArgs();
     args.add("/team");
     args.add(String.valueOf(gameLaunchMessage.getTeam()));
@@ -610,25 +619,25 @@ public class GameService implements InitializingBean {
    * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
    * (mod/map download, connectivity check etc.)
    */
-  private void startGame(GameLaunchResponse gameLaunchMessage, Faction faction, String ratingType) {
+  private CompletableFuture<Void> startGame(GameLaunchResponse gameLaunchMessage, Faction faction, String ratingType) {
     if (isRunning()) {
       log.warn("Forged Alliance is already running, not starting game");
-      return;
+      CompletableFuture.completedFuture(null);
     }
 
     int uid = gameLaunchMessage.getUid();
-    replayServer.start(uid, () -> getByUid(uid))
+    return replayServer.start(uid, () -> getByUid(uid))
         .thenCompose(port -> {
           localReplayPort = port;
           return iceAdapter.start();
         })
-        .thenAccept(adapterPort -> {
+        .thenApply(adapterPort -> {
           List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
+          gameKilled = false;
           process = noCatch(() -> forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingType,
               adapterPort, localReplayPort, rehostRequested, getCurrentPlayer()));
           setGameRunning(true);
-
-          spawnTerminationListener(process);
+          return process;
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be started", throwable);
@@ -636,7 +645,8 @@ public class GameService implements InitializingBean {
           iceAdapter.stop();
           setGameRunning(false);
           return null;
-        });
+        })
+        .thenCompose(this::spawnTerminationListener);
   }
 
   private void onRecentlyPlayedGameEnded(GameBean game) {
@@ -666,47 +676,40 @@ public class GameService implements InitializingBean {
   }
 
   @VisibleForTesting
-  void spawnTerminationListener(Process process) {
-    spawnTerminationListener(process, true);
+  CompletableFuture<Void> spawnTerminationListener(Process process) {
+    return spawnTerminationListener(process, true);
   }
 
   @VisibleForTesting
-  void spawnTerminationListener(Process process, Boolean forOnlineGame) {
-    executorService.execute(() -> {
-      try {
-        rehostRequested = false;
-        int exitCode = process.waitFor();
-        log.info("Forged Alliance terminated with exit code {}", exitCode);
-        Optional<Path> logFile = preferencesService.getMostRecentGameLogFile();
+  CompletableFuture<Void> spawnTerminationListener(Process process, Boolean forOnlineGame) {
+    rehostRequested = false;
+    return process.onExit().thenAccept(finishedProcess -> {
+      int exitCode = finishedProcess.exitValue();
+      log.info("Forged Alliance terminated with exit code {}", exitCode);
+      Optional<Path> logFile = preferencesService.getMostRecentGameLogFile();
+      logFile.ifPresent(file -> {
+        try {
+          Files.writeString(file, logMasker.maskMessage(Files.readString(file)));
+        } catch (IOException e) {
+          log.warn("Could not open log file", e);
+        }
+      });
 
-        logFile.ifPresent(file -> {
-          try {
-            Files.writeString(file, logMasker.maskMessage(Files.readString(file)));
-          } catch (IOException e) {
-            log.warn("Could not open log file", e);
-          }
-        });
+      if (exitCode != 0 && !gameKilled) {
+        notificationService.addImmediateWarnNotification("game.crash", exitCode, logFile.map(Path::toString).orElse(""));
+      }
 
-        if (exitCode != 0) {
-          notificationService.addImmediateErrorNotification(new RuntimeException(String.format("Forged Alliance Crashed with exit code %d. " +
-                  "See %s for more information", exitCode, logFile.map(Path::toString).orElse(""))),
-              "game.crash", logFile.map(Path::toString).orElse(""));
+      synchronized (gameRunning) {
+        gameRunning.set(false);
+        if (forOnlineGame) {
+          fafServerAccessor.notifyGameEnded();
+          replayServer.stop();
+          iceAdapter.stop();
         }
 
-        synchronized (gameRunning) {
-          gameRunning.set(false);
-          if (forOnlineGame) {
-            fafServerAccessor.notifyGameEnded();
-            replayServer.stop();
-            iceAdapter.stop();
-          }
-
-          if (rehostRequested) {
-            rehost();
-          }
+        if (rehostRequested) {
+          rehost();
         }
-      } catch (InterruptedException e) {
-        log.warn("Error during post-game processing", e);
       }
     });
   }
