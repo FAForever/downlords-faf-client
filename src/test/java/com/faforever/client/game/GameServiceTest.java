@@ -57,6 +57,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -192,6 +193,12 @@ public class GameServiceTest extends ServiceTest {
   private void mockStartGameProcess(int uid, String ratingType, com.faforever.commons.lobby.Faction faction, boolean rehost, String... additionalArgs) throws IOException {
     when(forgedAllianceService.startGame(
         uid, faction, asList(additionalArgs), ratingType, GPG_PORT, LOCAL_REPLAY_PORT, rehost, junitPlayer)
+    ).thenReturn(process);
+  }
+
+  private void mockStartMatchmakerGameProcess(GameLaunchResponse gameLaunchMessage) throws IOException {
+    when(forgedAllianceService.startGame(gameLaunchMessage.getUid(), gameLaunchMessage.getFaction(), gameLaunchMessage.getArgs(), gameLaunchMessage.getLeaderboard(),
+        GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer)
     ).thenReturn(process);
   }
 
@@ -367,12 +374,14 @@ public class GameServiceTest extends ServiceTest {
     });
 
     Process process = mock(Process.class);
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
     instance.spawnTerminationListener(process);
 
     disconnectedFuture.get(5000, TimeUnit.MILLISECONDS);
 
-    verify(process).waitFor();
+    verify(process).onExit();
+    verify(process).exitValue();
   }
 
   @Test
@@ -654,6 +663,8 @@ public class GameServiceTest extends ServiceTest {
   @Test
   public void testOfflineGame() throws IOException {
     when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(forgedAllianceService.startGameOffline(any())).thenReturn(process);
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
     instance.startGameOffline();
     verify(forgedAllianceService).startGameOffline(List.of());
   }
@@ -680,29 +691,17 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
-  public void startSearchMatchmaker() throws IOException {
-    when(preferencesService.isGamePathValid()).thenReturn(true);
-    when(modService.getFeaturedMod(FAF.getTechnicalName()))
-        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    instance.startSearchMatchmaker();
-    verify(forgedAllianceService).startGame(
-        gameLaunchMessage.getUid(), null, List.of("/team", "null", "/players", "null", "/startspot", "null"),
-        gameLaunchMessage.getLeaderboard(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
-  }
-
-  @Test
   public void startSearchMatchmakerWithGameOptions() throws IOException {
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
+    when(process.exitValue()).thenReturn(0);
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    mockStartMatchmakerGameProcess(gameLaunchMessage);
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
@@ -710,6 +709,25 @@ public class GameServiceTest extends ServiceTest {
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, List.of("/team", "1", "/players", "4", "/startspot", "3", "/gameoptions", "Share:ShareUntilDeath", "UnitCap:500"),
         gameLaunchMessage.getLeaderboard(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void startSearchMatchmakerThenCancelled() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
+    when(process.exitValue()).thenReturn(1);
+    Map<String, String> gameOptions = new LinkedHashMap<>();
+    gameOptions.put("Share", "ShareUntilDeath");
+    gameOptions.put("UnitCap", "500");
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    mockStartMatchmakerGameProcess(gameLaunchMessage);
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
+    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.failedFuture(new CancellationException()));
+    instance.startSearchMatchmaker().cancel(false);
+    verify(notificationService).addServerNotification(any());
   }
 
   @Test
