@@ -10,6 +10,7 @@ import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.google.common.eventbus.EventBus;
+import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -17,6 +18,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -44,6 +46,7 @@ public class TokenServiceTest extends ServiceTest {
   private OAuth2AccessToken testToken;
 
   private Preferences preferences;
+  private MockWebServer mockApi;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -58,7 +61,7 @@ public class TokenServiceTest extends ServiceTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-    instance = new TokenService(clientProperties, preferencesService, eventBus, restTemplateBuilder);
+    instance = new TokenService(clientProperties, preferencesService, eventBus, WebClient.builder());
     instance.afterPropertiesSet();
 
     verify(eventBus).register(instance);

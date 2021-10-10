@@ -9,17 +9,12 @@ import com.google.common.eventbus.EventBus;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Collections;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @Slf4j
@@ -27,15 +22,15 @@ public class TokenService implements InitializingBean {
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
-  private final RestTemplate restTemplate;
+  private final WebClient webClient;
   private OAuth2AccessToken tokenCache;
 
-  public TokenService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus, RestTemplateBuilder restTemplateBuilder) {
+  public TokenService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus, WebClient.Builder webClientBuilder) {
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
 
-    restTemplate = restTemplateBuilder.build();
+    webClient = webClientBuilder.baseUrl(clientProperties.getOauth().getBaseUrl()).build();
   }
 
   @Override
@@ -70,10 +65,6 @@ public class TokenService implements InitializingBean {
   }
 
   public synchronized void loginWithAuthorizationCode(String code) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
     map.add("code", code);
     Oauth oauth = clientProperties.getOauth();
@@ -81,14 +72,10 @@ public class TokenService implements InitializingBean {
     map.add("redirect_uri", oauth.getRedirectUrl());
     map.add("grant_type", "authorization_code");
 
-    retrieveToken(headers, map, oauth);
+    retrieveToken(map);
   }
 
   public synchronized void loginWithRefreshToken(String refreshToken) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON_UTF8));
-
     Oauth oauth = clientProperties.getOauth();
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
     map.add("refresh_token", refreshToken);
@@ -96,17 +83,19 @@ public class TokenService implements InitializingBean {
     map.add("redirect_uri", oauth.getRedirectUrl());
     map.add("grant_type", "refresh_token");
 
-    retrieveToken(headers, map, oauth);
+    retrieveToken(map);
   }
 
-  private void retrieveToken(HttpHeaders headers, MultiValueMap<String, String> map, Oauth oauth) {
-    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+  private void retrieveToken(MultiValueMap<String, String> map) {
     log.debug("Retrieving OAuth token");
-    tokenCache = restTemplate.postForObject(
-        String.format("%s/oauth2/token", oauth.getBaseUrl()),
-        request,
-        OAuth2AccessToken.class
-    );
+    tokenCache = webClient.post()
+        .uri("/oauth2/token")
+        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+        .accept(MediaType.APPLICATION_JSON)
+        .bodyValue(map)
+        .retrieve()
+        .bodyToMono(OAuth2AccessToken.class)
+        .block();
 
     preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
     preferencesService.storeInBackground();
