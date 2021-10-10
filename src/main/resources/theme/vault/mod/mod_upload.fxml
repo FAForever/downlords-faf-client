@@ -82,7 +82,7 @@
     </VBox>
       <VBox fx:id="parseProgressPane" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
       <children>
-        <Label contentDisplay="TOP" styleClass="h2" text="%mapVault.upload.reading">
+        <Label contentDisplay="TOP" styleClass="h2" text="%modVault.upload.reading">
           <graphic>
               <ProgressIndicator prefHeight="100.0" prefWidth="100.0"/>
           </graphic>

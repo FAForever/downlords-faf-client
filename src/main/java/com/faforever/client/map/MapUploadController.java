@@ -108,6 +108,7 @@ public class MapUploadController implements Controller<Node> {
         .thenAccept(this::setMapInfo)
         .exceptionally(throwable -> {
           log.warn("Map could not be read", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "mapVault.upload.readError");
           return null;
         });
   }

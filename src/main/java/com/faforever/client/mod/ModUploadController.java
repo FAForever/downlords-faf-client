@@ -92,6 +92,7 @@ public class ModUploadController implements Controller<Node> {
         .thenAccept(this::setModVersionInfo)
         .exceptionally(throwable -> {
           log.warn("ModVersion could not be read", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "modVault.upload.readError");
           return null;
         });
   }
@@ -110,7 +111,7 @@ public class ModUploadController implements Controller<Node> {
       modNameLabel.textProperty().bind(modVersion.getMod().displayNameProperty());
       descriptionLabel.textProperty().bind(modVersion.descriptionProperty());
       versionLabel.textProperty().bind(modVersion.versionProperty().asString());
-      uidLabel.textProperty().bind(modVersion.idProperty().asString());
+      uidLabel.textProperty().bind(modVersion.uidProperty());
       thumbnailImageView.imageProperty().bind(
           Bindings.createObjectBinding(() -> modService.loadThumbnail(modVersion), modVersion.idProperty(), modVersion.imagePathProperty())
       );
