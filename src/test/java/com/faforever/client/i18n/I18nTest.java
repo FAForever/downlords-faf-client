@@ -111,7 +111,7 @@ public class I18nTest extends ServiceTest {
 
   @Test
   public void testLoadedLanguagesAreComplete() throws IOException {
-    final Path path = Paths.get("src", "main", "resources", "i18n");
+    final Path path = Path.of("src", "main", "resources", "i18n");
     try (Stream<Path> walk = Files.walk(path)) {
       final long messageFileCount = walk.filter(propertiesFile -> Files.isRegularFile(propertiesFile) && propertiesFile.getFileName().toString().endsWith(".properties")).count();
       assertThat(instance.getAvailableLanguages(), hasSize((int) messageFileCount));

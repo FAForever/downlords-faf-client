@@ -296,7 +296,7 @@ public class ModService implements InitializingBean, DisposableBean {
   public Image loadThumbnail(ModVersionBean modVersion) {
     //FIXME: reintroduce correct caching
     URL url = modVersion.getThumbnailUrl();
-    return assetService.loadAndCacheImage(url, Paths.get("mods"), () -> IdenticonUtil.createIdenticon(modVersion.getMod().getDisplayName()));
+    return assetService.loadAndCacheImage(url, Path.of("mods"), () -> IdenticonUtil.createIdenticon(modVersion.getMod().getDisplayName()));
   }
 
   /**

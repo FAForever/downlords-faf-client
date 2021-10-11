@@ -4,7 +4,7 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.Faction;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -18,9 +18,9 @@ public class LaunchCommandBuilderTest extends ServiceTest {
 
   private static LaunchCommandBuilder defaultBuilder() {
     return LaunchCommandBuilder.create()
-        .executable(Paths.get("test.exe"))
+        .executable(Path.of("test.exe"))
         .executableDecorator("%s")
-        .logFile(Paths.get("preferences.log"))
+        .logFile(Path.of("preferences.log"))
         .username("junit");
   }
 
@@ -95,14 +95,14 @@ public class LaunchCommandBuilderTest extends ServiceTest {
     String pathWithSpaces = "mypath/with space/test.exe";
     assertThat(
         defaultBuilder()
-            .executable(Paths.get(pathWithSpaces))
+            .executable(Path.of(pathWithSpaces))
             .executableDecorator("/path/to/my/wineprefix primusrun wine %s")
             .build(),
         contains(
-            "/path/to/my/wineprefix", "primusrun", "wine", Paths.get(pathWithSpaces).toAbsolutePath().toString(),
+            "/path/to/my/wineprefix", "primusrun", "wine", Path.of(pathWithSpaces).toAbsolutePath().toString(),
             "/init", "init.lua",
             "/nobugreport",
-            "/log", Paths.get("preferences.log").toAbsolutePath().toString()
+            "/log", Path.of("preferences.log").toAbsolutePath().toString()
         ));
   }
 
@@ -113,10 +113,10 @@ public class LaunchCommandBuilderTest extends ServiceTest {
             .executableDecorator("/path/to/my/wineprefix primusrun wine \"\"%s\"\"")
             .build(),
         contains(
-            "/path/to/my/wineprefix", "primusrun", "wine", Paths.get("test.exe").toAbsolutePath().toString(),
+            "/path/to/my/wineprefix", "primusrun", "wine", Path.of("test.exe").toAbsolutePath().toString(),
             "/init", "init.lua",
             "/nobugreport",
-            "/log", Paths.get("preferences.log").toAbsolutePath().toString()
+            "/log", Path.of("preferences.log").toAbsolutePath().toString()
         ));
   }
 
@@ -125,10 +125,10 @@ public class LaunchCommandBuilderTest extends ServiceTest {
     assertThat(
         defaultBuilder().rehost(true).build(),
         contains(
-            Paths.get("test.exe").toAbsolutePath().toString(),
+            Path.of("test.exe").toAbsolutePath().toString(),
             "/init", "init.lua",
             "/nobugreport",
-            "/log", Paths.get("preferences.log").toAbsolutePath().toString(),
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
             "/rehost"
         ));
   }

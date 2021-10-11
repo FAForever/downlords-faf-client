@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
@@ -24,11 +23,11 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class GamePathHandler implements InitializingBean {
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
-      Paths.get(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
-      Paths.get(System.getenv("ProgramFiles") + " (x86)\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
-      Paths.get(System.getenv("ProgramFiles") + " (x86)\\Steam\\steamapps\\common\\supreme commander forged alliance"),
-      Paths.get(System.getProperty("user.home"), ".steam", "steam", "steamapps", "common", "Supreme Commander Forged Alliance"),
-      Paths.get(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
+      Path.of(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
+      Path.of(System.getenv("ProgramFiles") + " (x86)\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
+      Path.of(System.getenv("ProgramFiles") + " (x86)\\Steam\\steamapps\\common\\supreme commander forged alliance"),
+      Path.of(System.getProperty("user.home"), ".steam", "steam", "steamapps", "common", "Supreme Commander Forged Alliance"),
+      Path.of(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
   private final NotificationService notificationService;
   private final I18n i18n;

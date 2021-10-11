@@ -5,7 +5,6 @@ import lombok.Value;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +33,7 @@ public class GeneratorCommand {
   String query;
 
   public List<String> getCommand() {
-    String javaPath = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
+    String javaPath = Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
     if (generatorExecutableFile == null) {
       throw new IllegalStateException("Map generator path not set");
     }

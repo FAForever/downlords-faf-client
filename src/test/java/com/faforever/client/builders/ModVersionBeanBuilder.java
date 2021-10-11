@@ -12,7 +12,6 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class ModVersionBeanBuilder {
   @SneakyThrows
   public ModVersionBeanBuilder defaultValues() {
     mod(ModBeanBuilder.create().defaultValues().latestVersion(modVersionBean).get());
-    imagePath(Paths.get("."));
+    imagePath(Path.of("."));
     id(0);
     uid("id");
     description("This is a test mod");

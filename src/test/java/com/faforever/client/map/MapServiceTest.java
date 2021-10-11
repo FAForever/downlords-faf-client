@@ -191,7 +191,7 @@ public class MapServiceTest extends UITest {
 
   @Test
   public void testReadMap() throws Exception {
-    MapVersionBean mapBean = instance.readMap(Paths.get(getClass().getResource("/maps/SCMP_001").toURI()));
+    MapVersionBean mapBean = instance.readMap(Path.of(getClass().getResource("/maps/SCMP_001").toURI()));
 
     assertThat(mapBean, notNullValue());
     assertThat(mapBean.getId(), nullValue());
@@ -216,7 +216,7 @@ public class MapServiceTest extends UITest {
   @Test
   public void testLoadPreview() {
     for (PreviewSize previewSize : PreviewSize.values()) {
-      Path cacheSubDir = Paths.get("maps").resolve(previewSize.folderName);
+      Path cacheSubDir = Path.of("maps").resolve(previewSize.folderName);
       when(assetService.loadAndCacheImage(any(URL.class), eq(cacheSubDir), any())).thenReturn(new Image("theme/images/unknown_map.png"));
       instance.loadPreview("preview", previewSize);
       verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), any());
@@ -474,7 +474,7 @@ public class MapServiceTest extends UITest {
       String folder = map.getFolderName();
       Path mapPath = Files.createDirectories(mapsDirectory.resolve(folder));
       FileSystemUtils.copyRecursively(
-          Paths.get(getClass().getResource("/maps/" + folder).toURI()),
+          Path.of(getClass().getResource("/maps/" + folder).toURI()),
           mapPath
       );
       instance.addInstalledMap(mapPath);

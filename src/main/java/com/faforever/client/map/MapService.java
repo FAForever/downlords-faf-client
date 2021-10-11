@@ -419,7 +419,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @Cacheable(value = CacheNames.MAP_PREVIEW)
   public Image loadPreview(URL url, PreviewSize previewSize) {
-    return assetService.loadAndCacheImage(url, Paths.get("maps").resolve(previewSize.folderName),
+    return assetService.loadAndCacheImage(url, Path.of("maps").resolve(previewSize.folderName),
         () -> uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE));
   }
 

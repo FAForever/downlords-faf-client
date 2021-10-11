@@ -11,7 +11,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;
 
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 import static org.mockito.Mockito.verify;
 
@@ -34,6 +34,6 @@ public class FileOpeningHandlerTest extends ServiceTest {
     ApplicationArguments args = new DefaultApplicationArguments("foo.fafreplay");
     instance.run(args);
 
-    verify(replayService).runReplayFile(Paths.get("foo.fafreplay"));
+    verify(replayService).runReplayFile(Path.of("foo.fafreplay"));
   }
 }

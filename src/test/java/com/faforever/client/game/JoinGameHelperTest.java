@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -96,7 +95,7 @@ public class JoinGameHelperTest extends UITest {
     when(preferencesService.isGamePathValid()).thenReturn(false).thenReturn(true);
 
     doAnswer(invocation -> {
-      ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture().ifPresent(future -> future.complete(Paths.get("")));
+      ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture().ifPresent(future -> future.complete(Path.of("")));
       return null;
     }).when(eventBus).post(any(GameDirectoryChooseEvent.class));
 
@@ -118,7 +117,7 @@ public class JoinGameHelperTest extends UITest {
     doAnswer(invocation -> {
       Optional<CompletableFuture<Path>> optional = ((GameDirectoryChooseEvent) invocation.getArgument(0)).getFuture();
       if (invocationCounter.incrementAndGet() == 1) {
-        optional.ifPresent(future -> future.complete(Paths.get("")));
+        optional.ifPresent(future -> future.complete(Path.of("")));
       } else {
         optional.ifPresent(future -> future.complete(null));
       }

@@ -6,7 +6,6 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GeneratorCommandTest extends ServiceTest {
 
-  private static final String javaPath = Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
+  private static final String javaPath = Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
 
   private static GeneratorCommandBuilder defaultBuilder() {
     return GeneratorCommand.builder()
@@ -53,7 +52,7 @@ public class GeneratorCommandTest extends ServiceTest {
   @Test
   public void testMapNameNoException() {
     List<String> command = GeneratorCommand.builder().mapFilename("neroxis_map_generator_1.0.0_0")
-        .generatorExecutableFile(Paths.get("mapGenerator_1.0.0.jar"))
+        .generatorExecutableFile(Path.of("mapGenerator_1.0.0.jar"))
         .version(new ComparableVersion("1.0.0"))
         .build()
         .getCommand();

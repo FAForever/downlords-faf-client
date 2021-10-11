@@ -52,7 +52,6 @@ import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -247,7 +246,7 @@ public class GameServiceTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
 
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    Path replayPath = Paths.get("temp.scfareplay");
+    Path replayPath = Path.of("temp.scfareplay");
     int replayId = 1234;
 
     mockGlobalStartGameProcess(gameLaunchMessage.getUid());
@@ -276,7 +275,7 @@ public class GameServiceTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
 
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    Path replayPath = Paths.get("temp.scfareplay");
+    Path replayPath = Path.of("temp.scfareplay");
     int replayId = 1234;
 
     mockGlobalStartGameProcess(gameLaunchMessage.getUid());

@@ -41,7 +41,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.ConnectException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -154,10 +153,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
       PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
-      Path workDirectory = Paths.get(nativeDir).toAbsolutePath();
+      Path workDirectory = Path.of(nativeDir).toAbsolutePath();
 
       List<String> cmd = Lists.newArrayList(
-          Paths.get(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
+          Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
           "-jar",
           getBinaryName(workDirectory),
           "--id", String.valueOf(currentPlayer.getId()),

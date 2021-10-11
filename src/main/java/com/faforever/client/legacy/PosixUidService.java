@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 
 @Lazy
@@ -18,7 +17,7 @@ public class PosixUidService implements UidService {
   @Override
   public String generate(String sessionId, Path logFile) throws IOException {
     String uidDir = System.getProperty("nativeDir", "lib");
-    Path uidPath = Paths.get(uidDir).resolve("faf-uid");
+    Path uidPath = Path.of(uidDir).resolve("faf-uid");
     return OsUtils.execAndGetOutput(uidPath.toAbsolutePath().toString(), sessionId);
   }
 }

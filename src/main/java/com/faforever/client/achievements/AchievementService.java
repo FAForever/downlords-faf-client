@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -61,7 +61,7 @@ public class AchievementService {
       case UNLOCKED -> noCatch(() -> new URL(achievementDefinition.getUnlockedIconUrl()));
       default -> throw new UnsupportedOperationException("Not yet implemented");
     };
-    return assetService.loadAndCacheImage(url, Paths.get("achievements").resolve(achievementState.name().toLowerCase()),
+    return assetService.loadAndCacheImage(url, Path.of("achievements").resolve(achievementState.name().toLowerCase()),
         null, ACHIEVEMENT_IMAGE_SIZE, ACHIEVEMENT_IMAGE_SIZE);
   }
 }

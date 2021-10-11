@@ -7,7 +7,6 @@ import org.springframework.util.FileSystemUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class StubDownloadMapTask extends DownloadMapTask {
 
@@ -32,7 +31,7 @@ public class StubDownloadMapTask extends DownloadMapTask {
   private void imitateMapDownload() throws Exception {
     String folder = mapToDownload.getFolderName();
       FileSystemUtils.copyRecursively(
-          Paths.get(getClass().getResource("/maps/" + folder).toURI()),
+          Path.of(getClass().getResource("/maps/" + folder).toURI()),
           Files.createDirectories(customMapsDirectory.resolve(folder))
       );
   }
