@@ -24,7 +24,6 @@ public class MatchmakerQueueBean extends AbstractEntityBean<MatchmakerQueueBean>
   StringProperty technicalName = new SimpleStringProperty();
   ObjectProperty<OffsetDateTime> queuePopTime= new SimpleObjectProperty<OffsetDateTime>();
   IntegerProperty teamSize = new SimpleIntegerProperty(0);
-  IntegerProperty partiesInQueue = new SimpleIntegerProperty(0);
   IntegerProperty playersInQueue = new SimpleIntegerProperty(0);
   BooleanProperty joined = new SimpleBooleanProperty(false);
   ObjectProperty<MatchingStatus> matchingStatus = new SimpleObjectProperty<>();
@@ -102,18 +101,6 @@ public class MatchmakerQueueBean extends AbstractEntityBean<MatchmakerQueueBean>
 
   public void setFeaturedMod(FeaturedModBean featuredMod) {
     this.featuredMod.set(featuredMod);
-  }
-
-  public int getPartiesInQueue() {
-    return partiesInQueue.get();
-  }
-
-  public void setPartiesInQueue(int partiesInQueue) {
-    this.partiesInQueue.set(partiesInQueue);
-  }
-
-  public IntegerProperty partiesInQueueProperty() {
-    return partiesInQueue;
   }
 
   public int getTeamSize() {
