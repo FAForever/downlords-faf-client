@@ -18,7 +18,6 @@ public class MatchmakerQueueBeanBuilder {
     technicalName("test");
     queuePopTime(OffsetDateTime.now());
     teamSize(1);
-    partiesInQueue(2);
     playersInQueue(2);
     joined(false);
     matchingStatus(null);
@@ -39,11 +38,6 @@ public class MatchmakerQueueBeanBuilder {
 
   public MatchmakerQueueBeanBuilder teamSize(int teamSize) {
     matchmakerQueueBean.setTeamSize(teamSize);
-    return this;
-  }
-
-  public MatchmakerQueueBeanBuilder partiesInQueue(int partiesInQueue) {
-    matchmakerQueueBean.setPartiesInQueue(partiesInQueue);
     return this;
   }
 
