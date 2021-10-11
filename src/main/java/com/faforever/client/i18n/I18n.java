@@ -83,7 +83,7 @@ public class I18n implements InitializingBean {
           .map(path -> MESSAGES_FILE_PATTERN.matcher(path.toString()))
           .filter(Matcher::matches)
           .forEach(matcher -> {
-            newBaseNames.add(Paths.get(matcher.group(1)).toUri().toString());
+            newBaseNames.add(Path.of(matcher.group(1)).toUri().toString());
             availableLanguages.add(new Locale(matcher.group(2), Strings.nullToEmpty(matcher.group(3))));
           });
     }

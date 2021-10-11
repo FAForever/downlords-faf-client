@@ -130,7 +130,7 @@ public class ReplayDetailControllerTest extends UITest {
         .featuredMod(new FeaturedModBean())
         .reviews(FXCollections.emptyObservableList())
         .title("test")
-        .replayFile(Paths.get("foo.tmp"))
+        .replayFile(Path.of("foo.tmp"))
         .get();
 
     instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, mapGeneratorService, playerService, clientProperties, notificationService, reviewService);
@@ -334,7 +334,7 @@ public class ReplayDetailControllerTest extends UITest {
     instance.setReplay(replay);
     WaitForAsyncUtils.waitForFxEvents();
 
-    Path tmpPath = Paths.get("foo.tmp");
+    Path tmpPath = Path.of("foo.tmp");
     when(replayService.downloadReplay(replay.getId())).thenReturn(CompletableFuture.completedFuture(tmpPath));
 
     instance.onDownloadMoreInfoClicked();

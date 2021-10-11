@@ -19,7 +19,7 @@ public class JavaFxUtilTest extends UITest {
 
   @Test
   public void testPathToStringConverter() throws Exception {
-    Path path = Paths.get(".");
+    Path path = Path.of(".");
 
     Path fromString = PATH_STRING_CONVERTER.fromString(path.toString());
     String toString = PATH_STRING_CONVERTER.toString(path);

@@ -12,7 +12,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsArrayWithSize.emptyArray;
@@ -50,7 +49,7 @@ public class ModUploadTaskTest extends UITest {
 
   @Test
   public void testProgressListenerNull() throws Exception {
-    instance.setModPath(Paths.get("."));
+    instance.setModPath(Path.of("."));
     assertThrows(NullPointerException.class, () -> instance.call());
   }
 

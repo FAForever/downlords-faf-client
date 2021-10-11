@@ -51,7 +51,6 @@ import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -295,7 +294,7 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testOnRevealLogFolder() throws Exception {
-    Path expectedPath = Paths.get("C:\\test\\path_log");
+    Path expectedPath = Path.of("C:\\test\\path_log");
     when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();
     verify(platformService).reveal(expectedPath);

@@ -24,17 +24,17 @@ public class ForgedAlliancePrefs {
   public static final String INIT_FILE_NAME = "init.lua";
 
   static {
-    FAF_VAULT_PATH = PreferencesService.FAF_DATA_DIRECTORY.resolve(Paths.get("user", "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance"));
+    FAF_VAULT_PATH = PreferencesService.FAF_DATA_DIRECTORY.resolve(Path.of("user", "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance"));
     if (org.bridj.Platform.isWindows()) {
-      GPG_VAULT_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      GPG_VAULT_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
-      STEAM_FA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
-      LOCAL_FA_DATA_PATH = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
+      STEAM_FA_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
+      LOCAL_FA_DATA_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
     } else {
       String userHome = System.getProperty("user.home");
-      GPG_VAULT_PATH = Paths.get(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
-      STEAM_FA_PATH = Paths.get(".");
-      LOCAL_FA_DATA_PATH = Paths.get(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      GPG_VAULT_PATH = Path.of(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+      STEAM_FA_PATH = Path.of(".");
+      LOCAL_FA_DATA_PATH = Path.of(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
     }
   }
 

@@ -101,7 +101,7 @@ public class PreferencesService implements InitializingBean {
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String FEATURED_MOD_CACHE_SUB_FOLDER = "featured_mod";
-  private static final String CACHE_STYLESHEETS_SUB_FOLDER = Paths.get(CACHE_SUB_FOLDER, "stylesheets").toString();
+  private static final String CACHE_STYLESHEETS_SUB_FOLDER = Path.of(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Path CACHE_DIRECTORY;
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
   private static final int NUMBER_GAME_LOGS_STORED = 10;
@@ -109,9 +109,9 @@ public class PreferencesService implements InitializingBean {
 
   static {
     if (org.bridj.Platform.isWindows()) {
-      FAF_DATA_DIRECTORY = Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+      FAF_DATA_DIRECTORY = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
     } else {
-      FAF_DATA_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+      FAF_DATA_DIRECTORY = Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
     FEATURED_MOD_CACHE_PATH = CACHE_DIRECTORY.resolve(FEATURED_MOD_CACHE_SUB_FOLDER);
@@ -185,9 +185,9 @@ public class PreferencesService implements InitializingBean {
 
   public Path getPreferencesDirectory() {
     if (org.bridj.Platform.isWindows()) {
-      return Paths.get(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
+      return Path.of(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
     }
-    return Paths.get(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+    return Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
   }
 
   @Override

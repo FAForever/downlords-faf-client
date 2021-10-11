@@ -72,7 +72,7 @@ public final class JavaFxUtil {
       if (Strings.isNullOrEmpty(string)) {
         return null;
       }
-      return Paths.get(string);
+      return Path.of(string);
     }
   };
 

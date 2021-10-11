@@ -14,7 +14,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,7 +32,7 @@ public class AvatarService implements InitializingBean {
 
   @Cacheable(value = AVATARS, sync = true)
   public Image loadAvatar(AvatarBean avatar) {
-    return assetService.loadAndCacheImage(avatar.getUrl(), Paths.get("avatars"), null);
+    return assetService.loadAndCacheImage(avatar.getUrl(), Path.of("avatars"), null);
   }
 
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {

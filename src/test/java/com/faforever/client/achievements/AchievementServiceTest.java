@@ -15,7 +15,6 @@ import reactor.core.publisher.Flux;
 
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -79,7 +78,7 @@ public class AchievementServiceTest extends ServiceTest {
   @Test
   public void testLoadAndCacheImageRevealed() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
-    Path cacheSubDir = Paths.get("achievements").resolve(AchievementState.REVEALED.name().toLowerCase());
+    Path cacheSubDir = Path.of("achievements").resolve(AchievementState.REVEALED.name().toLowerCase());
     instance.getImage(achievementDefinition, AchievementState.REVEALED);
     verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getRevealedIconUrl()), cacheSubDir, null, 128, 128);
   }
@@ -87,7 +86,7 @@ public class AchievementServiceTest extends ServiceTest {
   @Test
   public void testLoadAndCacheImageUnlocked() throws Exception {
     AchievementDefinition achievementDefinition = AchievementDefinitionBuilder.create().defaultValues().get();
-    Path cacheSubDir = Paths.get("achievements").resolve(AchievementState.UNLOCKED.name().toLowerCase());
+    Path cacheSubDir = Path.of("achievements").resolve(AchievementState.UNLOCKED.name().toLowerCase());
     instance.getImage(achievementDefinition, AchievementState.UNLOCKED);
     verify(assetService).loadAndCacheImage(new URL(achievementDefinition.getUnlockedIconUrl()), cacheSubDir, null, 128, 128);
   }

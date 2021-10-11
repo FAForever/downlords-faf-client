@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * When a file type is associated with the client and the user opens such a file, this class will handle the opening
@@ -38,7 +37,7 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
     if (parameters.split("\" \"").length > 2) {
       throw new IllegalArgumentException("Can't handle multiple files: " + parameters);
     }
-    Path filePath = Paths.get(parameters.replace("\"", ""));
+    Path filePath = Path.of(parameters.replace("\"", ""));
     runReplay(filePath);
   }
 
@@ -54,7 +53,7 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
   public void run(ApplicationArguments args) {
     String[] sourceArgs = args.getSourceArgs();
     if (sourceArgs.length > 0) {
-      runReplay(Paths.get(sourceArgs[0]));
+      runReplay(Path.of(sourceArgs[0]));
     }
   }
 }

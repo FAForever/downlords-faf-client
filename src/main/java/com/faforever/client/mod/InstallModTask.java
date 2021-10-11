@@ -21,7 +21,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -108,7 +107,7 @@ public class InstallModTask extends CompletableTask<Void> {
   private void deleteOldModIfExisting(Path tempFile, Path modsDirectory) {
     try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(tempFile))) {
       ZipEntry zipEntry = zipInputStream.getNextEntry();
-      Path pathToEntry = Paths.get(zipEntry.getName());
+      Path pathToEntry = Path.of(zipEntry.getName());
       Path topLevelDirectory = getTopLevelDirectory(pathToEntry);
       Path modDirectory = modsDirectory.resolve(topLevelDirectory);
       if (Files.isDirectory(modDirectory)) {

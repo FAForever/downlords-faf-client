@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,7 +72,7 @@ public class GenerateMapControllerTest extends UITest {
 
     preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .installationPath(Paths.get(""))
+        .installationPath(Path.of(""))
         .then()
         .generatorPrefs()
         .spawnCount(10)

@@ -46,7 +46,6 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -412,7 +411,7 @@ public class ReplayServiceTest extends ServiceTest {
 
   @Test
   public void testEnrich() throws Exception {
-    Path path = Paths.get("foo.bar");
+    Path path = Path.of("foo.bar");
     when(replayFileReader.parseReplay(path)).thenReturn(replayDataParser);
 
     instance.enrich(new ReplayBean(), path);

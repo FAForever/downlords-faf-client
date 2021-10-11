@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -48,9 +47,9 @@ public class PreferencesServiceTest extends ServiceTest {
   @Test
   public void testGetFafDataDirectory() throws Exception {
     if (Platform.isWindows()) {
-      assertThat(instance.getFafDataDirectory(), is(Paths.get(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever")));
+      assertThat(instance.getFafDataDirectory(), is(Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever")));
     } else {
-      assertThat(instance.getFafDataDirectory(), is(Paths.get(System.getProperty("user.home")).resolve(".faforever")));
+      assertThat(instance.getFafDataDirectory(), is(Path.of(System.getProperty("user.home")).resolve(".faforever")));
     }
   }
 

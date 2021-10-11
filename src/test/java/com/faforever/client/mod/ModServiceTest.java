@@ -340,7 +340,7 @@ public class ModServiceTest extends UITest {
     assertThat(modVersion.getUid(), is("9e8ea941-c306-4751-b367-a11000000502"));
     assertThat(modVersion.getModType(), equalTo(ModType.SIM));
     assertThat(modVersion.getMountPoints(), hasSize(10));
-    assertThat(modVersion.getMountPoints().get(3).getFile(), is(Paths.get("effects")));
+    assertThat(modVersion.getMountPoints().get(3).getFile(), is(Path.of("effects")));
     assertThat(modVersion.getMountPoints().get(3).getMountPoint(), is("/effects"));
     assertThat(modVersion.getHookDirectories(), contains("/blackops"));
 
@@ -407,7 +407,7 @@ public class ModServiceTest extends UITest {
 
     when(applicationContext.getBean(ModUploadTask.class)).thenReturn(modUploadTask);
 
-    Path modPath = Paths.get(".");
+    Path modPath = Path.of(".");
 
     instance.uploadMod(modPath);
 
@@ -422,7 +422,7 @@ public class ModServiceTest extends UITest {
         .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
         .get();
     instance.loadThumbnail(modVersion);
-    verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Paths.get("mods")), any());
+    verify(assetService).loadAndCacheImage(eq(modVersion.getThumbnailUrl()), eq(Path.of("mods")), any());
   }
 
   @Test

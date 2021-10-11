@@ -38,7 +38,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -109,7 +109,7 @@ public class CreateGameControllerTest extends UITest {
 
     preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .installationPath(Paths.get(""))
+        .installationPath(Path.of(""))
         .then()
         .get();
     when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));

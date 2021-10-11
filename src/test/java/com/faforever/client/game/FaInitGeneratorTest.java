@@ -15,7 +15,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -56,8 +55,8 @@ public class FaInitGeneratorTest extends ServiceTest {
   public void testGenerateInitFile() throws Exception {
     Path mountBasePath = this.mountBaseDir;
     List<MountInfo> mountPaths = Arrays.asList(
-        new MountInfo(mountBasePath, Paths.get("foobar"), "/foobar"),
-        new MountInfo(mountBasePath, Paths.get("gamedata/effects.nxt"), "/effects")
+        new MountInfo(mountBasePath, Path.of("foobar"), "/foobar"),
+        new MountInfo(mountBasePath, Path.of("gamedata/effects.nxt"), "/effects")
     );
 
     instance.generateInitFile(mountPaths, new HashSet<>(Arrays.asList("/schook", "/labwars")));

@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URL;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -51,7 +51,7 @@ public class AvatarServiceTest extends ServiceTest {
   public void testLoadAvatar() throws Exception {
     AvatarBean avatarBean = AvatarBeanBuilder.create().url(getClass().getResource("/theme/images/default_achievement.png").toURI().toURL()).get();
     instance.loadAvatar(avatarBean);
-    verify(assetService).loadAndCacheImage(avatarBean.getUrl(), Paths.get("avatars"), null);
+    verify(assetService).loadAndCacheImage(avatarBean.getUrl(), Path.of("avatars"), null);
   }
 
   @Test
