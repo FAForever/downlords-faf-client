@@ -431,13 +431,13 @@ public class MapServiceTest extends UITest {
   @Test
   public void testGetOwnedMaps() throws Exception {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersionBean.getMap(), new CycleAvoidingMappingContext())), 1));
+    when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(ApiTestUtil.apiPageOf(List.of(mapMapper.map(mapVersionBean, new CycleAvoidingMappingContext())), 1));
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
 
     List<MapVersionBean> results = instance.getOwnedMapsWithPageCount(10, 1).join().getT1();
 
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("author.id").eq(String.valueOf(player.getId())))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("map.author.id").eq(String.valueOf(player.getId())))));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
     assertThat(results, contains(mapVersionBean));
