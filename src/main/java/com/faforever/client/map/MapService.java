@@ -647,9 +647,14 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getOwnedMapsWithPageCount(int count, int page) {
-    ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
-        .setFilter(qBuilder().string("author.id").eq(String.valueOf(playerService.getCurrentPlayer().getId())));
-    return getMapPage(navigator, count, page);
+    ElideNavigatorOnCollection<MapVersion> navigator = ElideNavigator.of(MapVersion.class).collection()
+        .setFilter(qBuilder().string("map.author.id").eq(String.valueOf(playerService.getCurrentPlayer().getId())))
+        .pageNumber(page)
+        .pageSize(count);
+    return fafApiAccessor.getManyWithPageCount(navigator)
+        .map(tuple -> tuple.mapT1(mapVersions ->
+            mapMapper.mapVersionDtos(mapVersions, new CycleAvoidingMappingContext())
+        )).toFuture();
   }
 
   @Cacheable(value = CacheNames.MAPS, sync = true)
@@ -692,8 +697,8 @@ public class MapService implements InitializingBean, DisposableBean {
   private CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMapPage(ElideNavigatorOnCollection<Map> navigator, int count, int page) {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator)
-        .map(tuple -> tuple.mapT1(mods ->
-            mods.stream().map(Map::getLatestVersion).map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext())).collect(toList())
+        .map(tuple -> tuple.mapT1(maps ->
+            maps.stream().map(Map::getLatestVersion).map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext())).collect(toList())
         )).toFuture();
   }
 

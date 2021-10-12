@@ -46,6 +46,7 @@ public class MapCardController implements Controller<Node> {
 
   public ImageView thumbnailImageView;
   public Label nameLabel;
+  public Label versionLabel;
   public Node mapTileRoot;
   public Label authorLabel;
   public StarsController starsController;
@@ -94,6 +95,7 @@ public class MapCardController implements Controller<Node> {
     }
     thumbnailImageView.setImage(image);
     nameLabel.setText(mapVersion.getMap().getDisplayName());
+    versionLabel.setText(Optional.ofNullable(mapVersion.getVersion()).map(version -> i18n.get("map.versionFormat", version.getCanonical())).orElse(""));
     authorLabel.setText(Optional.ofNullable(mapVersion.getMap().getAuthor()).map(PlayerBean::getUsername).orElse(i18n.get("map.unknownAuthor")));
     numberOfPlaysLabel.setText(i18n.number(mapVersion.getMap().getGamesPlayed()));
 

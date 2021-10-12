@@ -66,6 +66,7 @@ public class MapCardControllerTest extends UITest {
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
     instance = new MapCardController(mapService, mapGeneratorService, notificationService, i18n, reportingService);
     mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).folderName("testMap").ranked(true).id(23).size(MapSize.valueOf(1, 1)).get();
+    when(i18n.get("map.versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
 
     loadFxml("theme/vault/map/map_card.fxml", param -> {
       if (param == ReviewsController.class) {
@@ -90,6 +91,7 @@ public class MapCardControllerTest extends UITest {
 
     assertThat(instance.nameLabel.getText(), is("test"));
     assertThat(instance.authorLabel.getText(), is("junit"));
+    assertThat(instance.versionLabel.getText(), is("v10"));
     assertThat(instance.thumbnailImageView.getImage(), is(notNullValue()));
   }
 
