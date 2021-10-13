@@ -13,7 +13,6 @@ import lombok.Value;
 @Value
 public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
   @ToString.Include
-  @EqualsAndHashCode.Include
   ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
   IntegerProperty gamesPlayed = new SimpleIntegerProperty();
   IntegerProperty score = new SimpleIntegerProperty();

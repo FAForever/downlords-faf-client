@@ -67,8 +67,8 @@ public class LeaderboardControllerTest extends UITest {
     when(i18n.get("leagues.divisionName.1")).thenReturn("Bronze");
     when(i18n.get("leagues.divisionName.2")).thenReturn("Silver");
 
-    subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().index(1).get();
-    subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().index(1).division(DivisionBeanBuilder.create().defaultValues().index(2).get()).get();
+    subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().id(1).index(1).get();
+    subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().id(2).index(1).division(DivisionBeanBuilder.create().defaultValues().index(2).get()).get();
     leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(0).player(marcSpector).get();
     leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(1).player(sheikah).get();
     LeagueEntryBean leagueEntryBean3 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).id(2).player(zlo).get();
@@ -101,6 +101,8 @@ public class LeaderboardControllerTest extends UITest {
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
     instance.initialize();
     instance.setSeason(LeagueSeasonBeanBuilder.create().defaultValues().id(1).get());
+    // In a test environment this doesn't get called automatically anymore, so we have to do it manually
+    instance.onMajorDivisionPicked();
   }
 
   @Test
@@ -110,6 +112,7 @@ public class LeaderboardControllerTest extends UITest {
     assertEquals("SEASONNAME", instance.seasonLabel.getText());
     assertEquals(2, instance.majorDivisionPicker.getItems().size());
     assertEquals(subdivisionBean1, instance.majorDivisionPicker.getItems().get(0));
+    assertTrue(instance.majorDivisionPicker.getSelectionModel().isSelected(1));
     assertTrue(instance.contentPane.isVisible());
     verifyNoInteractions(notificationService);
     assertNull(subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem());
@@ -120,21 +123,13 @@ public class LeaderboardControllerTest extends UITest {
   public void testFilterByNamePlayerExactMatch() {
     showDivision(subdivisionBean2);
     assertNull(subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem());
-    runOnFxThreadAndWait(() -> setSearchText("Sheikah"));
+    setSearchText("Sheikah");
+    instance.onMajorDivisionPicked();
+    waitForFxEvents();
 
     assertEquals(subdivisionBean1, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
     assertEquals(2, subDivisionTabController.ratingTable.getItems().size());
     assertEquals("Sheikah", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
-  }
-
-  @Test
-  public void testFilterByNamePlayerPartialMatch() {
-    showDivision(subdivisionBean2);
-    assertNull(subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem());
-    runOnFxThreadAndWait(() -> setSearchText("z"));
-    assertEquals(subdivisionBean2, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
-    assertEquals(1, subDivisionTabController.ratingTable.getItems().size());
-    assertEquals("ZLO", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
   }
 
   @Test
@@ -219,6 +214,7 @@ public class LeaderboardControllerTest extends UITest {
     when(i18n.get("leaderboard.divisionName", "Bronze", "I")).thenReturn("Bronze I");
 
     instance.updateDisplayedPlayerStats(player);
+    instance.onMajorDivisionPicked();
     waitForFxEvents();
 
     assertTrue(instance.playerDivisionNameLabel.isVisible());
