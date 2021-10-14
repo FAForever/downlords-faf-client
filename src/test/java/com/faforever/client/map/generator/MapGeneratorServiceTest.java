@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -97,7 +98,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
     when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
 
-    instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties);
+    instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties, WebClient.builder());
 
     instance.afterPropertiesSet();
 
