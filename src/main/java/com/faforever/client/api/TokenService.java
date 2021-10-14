@@ -30,7 +30,7 @@ public class TokenService implements InitializingBean {
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
 
-    webClient = webClientBuilder.baseUrl(clientProperties.getOauth().getBaseUrl()).build();
+    webClient = webClientBuilder.build();
   }
 
   @Override
@@ -89,7 +89,7 @@ public class TokenService implements InitializingBean {
   private void retrieveToken(MultiValueMap<String, String> map) {
     log.debug("Retrieving OAuth token");
     tokenCache = webClient.post()
-        .uri("/oauth2/token")
+        .uri(String.format("%s/oauth2/token", clientProperties.getOauth().getBaseUrl()))
         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
         .accept(MediaType.APPLICATION_JSON)
         .bodyValue(map)
