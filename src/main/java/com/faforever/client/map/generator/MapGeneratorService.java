@@ -72,7 +72,7 @@ public class MapGeneratorService implements InitializingBean {
                              TaskService taskService, ClientProperties clientProperties, WebClient.Builder webClientBuilder) {
     this.applicationContext = applicationContext;
     this.taskService = taskService;
-    webClient = WebClient.builder().build();
+    webClient = webClientBuilder.build();
 
     generatorExecutablePath = preferencesService.getFafDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
     this.clientProperties = clientProperties;

@@ -48,6 +48,16 @@ public class TokenServiceTest extends ServiceTest {
   private Preferences preferences;
   private MockWebServer mockApi;
 
+  private static final String TOKEN_STRING = """
+    {
+    "access_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InB1YmxpYzo0NmFiZmM4OC04Y2YwLTRkMzUtYTc2Zi01MzhlMTMwMTZiZmQiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOltdLCJjbGllbnRfaWQiOiJmYWYtamF2YS1jbGllbnQiLCJleHAiOjE2MzQyMjA3NjgsImV4dCI6eyJyb2xlcyI6WyJVU0VSIiwiUkVBRF9BVURJVF9MT0ciLCJXUklURV9BVkFUQVIiLCJBRE1JTl9WT1RFIiwiV1JJVEVfVVNFUl9HUk9VUCIsIlJFQURfVVNFUl9HUk9VUCIsIldSSVRFX05FV1NfUE9TVCIsIldSSVRFX01FU1NBR0UiLCJXUklURV9NQVRDSE1BS0VSX1BPT0wiLCJXUklURV9NQVRDSE1BS0VSX01BUCIsIldSSVRFX0VNQUlMX0RPTUFJTl9CQU4iLCJBRE1JTl9NQVAiLCJBRE1JTl9NT0QiXX0sImlhdCI6MTYzNDIxNzE2NywiaXNzIjoiaHR0cHM6Ly9oeWRyYS50ZXN0LmZhZm9yZXZlci5jb20vIiwianRpIjoiYWMxYzEyZDItYWM3Yi00ZTVlLWJmMjgtZTFkODNkOTc2MDY0IiwibmJmIjoxNjM0MjE3MTY3LCJzY3AiOlsib2ZmbGluZSJdLCJzdWIiOiI2NTM0MSJ9.ilQvPmb7Itd9AVqe8A4mUciWVHwoSGXnU5zsw1Qvx3swkktl-ly200gECGYOsBeh7DxvsKIqUUHPuokSZBpxfE8fwb4c7yO6t-4XbZzS5GtE4q0Vuu-3q1UXfRZZqSYFG8CispEqqheQyzw7nBjMa8JYIB5LrmwPcoa-ilEzzuiZM-MXI7Dkx_K5x5znpvQUTn8u9nKdg1C4E3_0fQHRIjZ6zzGLcMMY4j6PUSKrosJ8rQAOqyMRaH2gELB8tCZCrFr8BbXJc2Fzcp6Y0cj4eyYe2CnZDfIjN3bjqXNzADXpgrmlYPegphurUMSyoqC58eRwdd8FJtl33aNcSdhg-gLY3bYvuBhtMWE3C9P9ahPLUceJkoCU3bmba615bjd47e0j_6i9AskAOwXsNIojvOk0UcCPHzIYMG8prJJ6MVtRoujrGWZROuPs6DuXpvUOppeCf2nrEsCsOsrAK60wYA8u7S1ey-gPpFCyll7i472ENXo2WBEen6r-UZHs_WOUvS1oKCpAKcaPHpStoq2rUbtagSGsmBelhYSS5s7uak8MVqm1EQsuwL6TvgfNOk3F6PD8_2955-IcTKuHWd5RkZiPbGM-ZclAHZCoAOcuTchuMRGy72pNJ9y8iqNZJct7SwLuJ81BNRL0ByxbmN4YUyWgCy1DPJ3ubm2T82xGTlM",
+    "expires_in": 3600,
+    "refresh_token": "mmAvoed0ZGeJu_wGpaXHBicRUNyp884gMZpkljY1ax0.fpHiq5zJ1MZQvAenO4BudU_cQ0dRy_D1QPOw_jB6rj0",
+    "scope": "offline",
+    "token_type": "bearer"
+  }
+  """;
+
   @BeforeEach
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
@@ -57,6 +67,8 @@ public class TokenServiceTest extends ServiceTest {
     oauth.setRedirectUrl("");
     clientProperties.setOauth(oauth);
     preferences = PreferencesBuilder.create().defaultValues().get();
+    mockApi = new MockWebServer();
+    mockApi.start();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(restTemplateBuilder.build()).thenReturn(restTemplate);
@@ -65,6 +77,10 @@ public class TokenServiceTest extends ServiceTest {
     instance.afterPropertiesSet();
 
     verify(eventBus).register(instance);
+  }
+
+  private void prepareTokenResponse() {
+    mockApi.
   }
 
   @Test
