@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.GitHubRelease;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.scene.image.Image;
 import lombok.Getter;
@@ -15,19 +16,17 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -58,6 +57,7 @@ public class MapGeneratorService implements InitializingBean {
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
+  private final WebClient webClient;
 
   @Getter
   private final Path customMapsDirectory;
@@ -68,9 +68,11 @@ public class MapGeneratorService implements InitializingBean {
   @Setter
   private ComparableVersion generatorVersion;
 
-  public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService, TaskService taskService, ClientProperties clientProperties) {
+  public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService,
+                             TaskService taskService, ClientProperties clientProperties, WebClient.Builder webClientBuilder) {
     this.applicationContext = applicationContext;
     this.taskService = taskService;
+    webClient = webClientBuilder.build();
 
     generatorExecutablePath = preferencesService.getFafDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
     this.clientProperties = clientProperties;
@@ -115,28 +117,20 @@ public class MapGeneratorService implements InitializingBean {
   @VisibleForTesting
   @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
   public ComparableVersion queryMaxSupportedVersion() {
-    ComparableVersion version = new ComparableVersion("");
     ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
     ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMaxSupportedMajorVersion() + 1));
 
-    RestTemplate restTemplate = new RestTemplate();
-
-    LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    headers.add("Accept", "application/vnd.github.v3+json");
-    HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
-    ResponseEntity<List<GithubGeneratorRelease>> response = restTemplate.exchange(clientProperties.getMapGenerator().getQueryVersionsUrl(), HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
-    });
-    List<GithubGeneratorRelease> releases = response.getBody();
-    if (releases != null) {
-      for (GithubGeneratorRelease release : releases) {
-        version.parseVersion(release.getTagName());
-        if (version.compareTo(maxVersion) < 0 && minVersion.compareTo(version) < 0) {
-          return version;
-        }
-      }
-    }
-    throw new RuntimeException("No valid generator version found");
+    return webClient.get()
+        .uri(clientProperties.getMapGenerator().getQueryVersionsUrl())
+        .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
+        .retrieve()
+        .bodyToFlux(GitHubRelease.class)
+        .map(release -> new ComparableVersion(release.getTagName()))
+        .filter(version -> version.compareTo(maxVersion) < 0 && minVersion.compareTo(version) < 0)
+        .sort(Comparator.naturalOrder())
+        .last()
+        .switchIfEmpty(Mono.error(new RuntimeException("No valid generator version found")))
+        .block();
   }
 
   public CompletableFuture<String> generateMap(String mapName) {

@@ -6,26 +6,29 @@ import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.event.LogOutRequestEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2RefreshToken;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,86 +39,89 @@ public class TokenServiceTest extends ServiceTest {
   private PreferencesService preferencesService;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private RestTemplateBuilder restTemplateBuilder;
-  @Mock
-  private RestTemplate restTemplate;
-  @Mock
-  private OAuth2AccessToken testToken;
 
   private Preferences preferences;
+  private Oauth oauth;
+  private MockWebServer mockApi;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
   public void setUp() throws Exception {
     ClientProperties clientProperties = new ClientProperties();
-    Oauth oauth = new Oauth();
-    oauth.setBaseUrl("test.com");
-    oauth.setClientId("");
-    oauth.setRedirectUrl("");
-    clientProperties.setOauth(oauth);
+    mockApi = new MockWebServer();
+    mockApi.start();
+    oauth = clientProperties.getOauth();
+    oauth.setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
+    oauth.setClientId("test-client");
+    oauth.setRedirectUrl("test-redirect");
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-    instance = new TokenService(clientProperties, preferencesService, eventBus, restTemplateBuilder);
+    instance = new TokenService(clientProperties, preferencesService, eventBus, WebClient.builder());
     instance.afterPropertiesSet();
 
     verify(eventBus).register(instance);
   }
 
+  private void prepareTokenResponse(Map<String, String> tokenProperties) throws Exception{
+    mockApi.enqueue(new MockResponse()
+        .setBody(objectMapper.writeValueAsString(tokenProperties))
+        .addHeader("Content-Type", MediaType.APPLICATION_JSON));
+  }
+
   @Test
-  public void testLoginWithCode() {
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(testToken);
-    when(testToken.isExpired()).thenReturn(false);
-    when(testToken.getExpiresIn()).thenReturn(10);
-    when(testToken.getValue()).thenReturn("def");
+  public void testLoginWithCode() throws Exception {
+    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test");
+    prepareTokenResponse(tokenProperties);
 
     instance.loginWithAuthorizationCode("abc");
+    Map<String, String> requestParams = URLEncodedUtils.parse(mockApi.takeRequest().getBody().readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+        .stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
 
-    assertEquals(testToken.getValue(), instance.getRefreshedTokenValue());
+    assertEquals("abc", requestParams.get("code"));
+    assertEquals("authorization_code", requestParams.get("grant_type"));
+    assertEquals(oauth.getClientId(), requestParams.get("client_id"));
+    assertEquals(oauth.getRedirectUrl(), requestParams.get("redirect_uri"));
+    assertEquals(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN), instance.getRefreshedTokenValue());
   }
 
   @Test
-  public void testLoginWithRefresh() {
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(testToken);
-    when(testToken.isExpired()).thenReturn(false);
-    when(testToken.getExpiresIn()).thenReturn(10);
-    when(testToken.getValue()).thenReturn("def");
+  public void testLoginWithRefresh() throws Exception {
+    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test");
+    prepareTokenResponse(tokenProperties);
 
     instance.loginWithRefreshToken("abc");
+    Map<String, String> requestParams = URLEncodedUtils.parse(mockApi.takeRequest().getBody().readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+        .stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
 
-    assertEquals(testToken.getValue(), instance.getRefreshedTokenValue());
+    assertEquals("abc", requestParams.get("refresh_token"));
+    assertEquals("refresh_token", requestParams.get("grant_type"));
+    assertEquals(oauth.getClientId(), requestParams.get("client_id"));
+    assertEquals(oauth.getRedirectUrl(), requestParams.get("redirect_uri"));
+
+    assertEquals(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN), instance.getRefreshedTokenValue());
   }
 
   @Test
-  public void testGetRefreshedTokenExpired() {
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(testToken);
-    when(testToken.isExpired()).thenReturn(true);
-    OAuth2RefreshToken refreshToken = mock(OAuth2RefreshToken.class);
-    when(testToken.getRefreshToken()).thenReturn(refreshToken);
-    when(refreshToken.getValue()).thenReturn("qwe");
+  public void testGetRefreshedTokenExpired() throws Exception {
+    prepareTokenResponse(Map.of(OAuth2AccessToken.EXPIRES_IN, "-1", OAuth2AccessToken.REFRESH_TOKEN, "refresh"));
 
     instance.loginWithRefreshToken("abc");
 
-    OAuth2AccessToken newToken = mock(OAuth2AccessToken.class);
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(newToken);
-    when(newToken.getValue()).thenReturn("fgr");
+    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test");
+    prepareTokenResponse(tokenProperties);
 
-    assertEquals(newToken.getValue(), instance.getRefreshedTokenValue());
+    assertEquals(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN), instance.getRefreshedTokenValue());
   }
 
   @Test
-  public void testGetRefreshedTokenError() {
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(testToken);
-    when(testToken.isExpired()).thenReturn(true);
-    OAuth2RefreshToken refreshToken = mock(OAuth2RefreshToken.class);
-    when(testToken.getRefreshToken()).thenReturn(refreshToken);
-    when(refreshToken.getValue()).thenReturn("qwe");
+  public void testGetRefreshedTokenError() throws Exception {
+    prepareTokenResponse(Map.of(OAuth2AccessToken.EXPIRES_IN, "-1", OAuth2AccessToken.REFRESH_TOKEN, "refresh"));
 
     instance.loginWithRefreshToken("abc");
 
-    doThrow(new FakeTestException()).when(restTemplate).postForObject(anyString(), any(), eq(OAuth2AccessToken.class));
+    prepareTokenResponse(null);
 
     assertNull(instance.getRefreshedTokenValue());
     verify(eventBus).post(any(SessionExpiredEvent.class));
@@ -128,32 +134,27 @@ public class TokenServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testTokenIsNull() {
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(null);
-
+  public void testTokenIsNull() throws Exception {
+    prepareTokenResponse(null);
     assertThrows(TokenRetrievalException.class, () -> instance.loginWithAuthorizationCode("abc"));
   }
 
   @Test
-  public void testGetRefreshToken() {
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(testToken);
+  public void testGetRefreshToken() throws Exception {
     preferences.getLogin().setRememberMe(true);
-    OAuth2RefreshToken refreshToken = mock(OAuth2RefreshToken.class);
-    when(refreshToken.getValue()).thenReturn("qwe");
-    when(testToken.getRefreshToken()).thenReturn(refreshToken);
+    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.REFRESH_TOKEN, "refresh");
+    prepareTokenResponse(tokenProperties);
 
     instance.loginWithAuthorizationCode("abc");
 
-    assertEquals("qwe", instance.getRefreshToken());
-    assertEquals("qwe", preferences.getLogin().getRefreshToken());
+    assertEquals(tokenProperties.get(OAuth2AccessToken.REFRESH_TOKEN), instance.getRefreshToken());
+    assertEquals(tokenProperties.get(OAuth2AccessToken.REFRESH_TOKEN), preferences.getLogin().getRefreshToken());
   }
 
   @Test
-  public void testGetRefreshTokenNull() {
-    when(restTemplate.postForObject(anyString(), any(), eq(OAuth2AccessToken.class))).thenReturn(testToken);
+  public void testGetRefreshTokenNull() throws Exception {
     preferences.getLogin().setRememberMe(false);
-    OAuth2RefreshToken refreshToken = mock(OAuth2RefreshToken.class);
-    when(testToken.getRefreshToken()).thenReturn(refreshToken);
+    prepareTokenResponse(Map.of());
 
     instance.loginWithAuthorizationCode("abc");
 
