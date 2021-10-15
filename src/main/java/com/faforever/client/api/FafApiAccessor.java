@@ -142,7 +142,7 @@ public class FafApiAccessor implements InitializingBean {
     apiRetrySpec = Retry.backoff(api.getRetryAttempts(), Duration.ofSeconds(api.getRetryBackoffSeconds()))
         .jitter(api.getRetryJitter())
         .filter(error -> error instanceof UnreachableApiException)
-        .doBeforeRetry(retry -> log.info("Could not retrieve value from api retrying: Attempt #{}", retry.totalRetries()))
+        .doBeforeRetry(retry -> log.info("Could not retrieve value from api retrying: Attempt #{} of {}", retry.totalRetries(), retry.totalRetriesInARow()))
         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
             new UnreachableApiException("API is unreachable after max retries", retrySignal.failure()));
   }
@@ -322,33 +322,17 @@ public class FafApiAccessor implements InitializingBean {
     authorizedLatch.await();
     return requestSpec
         .retrieve()
-        .onStatus(HttpStatus::is4xxClientError, response -> {
+        .onStatus(HttpStatus::isError, response -> {
           HttpStatus httpStatus = response.statusCode();
-          if (httpStatus.equals(HttpStatus.NOT_FOUND) || httpStatus.equals(HttpStatus.I_AM_A_TEAPOT)) {
-            return response.createException().map(error -> new UnreachableApiException("API is unreachable", error));
-          } else if (httpStatus.equals(HttpStatus.BAD_REQUEST)) {
-            /* onStatus expects a mono which emits an exception so here we map it to a blank Exception, however
+          if (httpStatus.equals(HttpStatus.BAD_REQUEST) || httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
+            /* onStatus expects a mono which emits an exception so here we map it to an Exception, however
               this map is never executed since bodyToMono will throw its own ResourceParseException if there are
-              any errors in the jsonAPIDocument which we expect with a BAD REQUEST response so this mapping only
-              exists to satisfy the typing of onStatus*/
+              any errors in the JSONAPIDocument which we expect with a BAD REQUEST and UNPROCESSABLE response so this
+              mapping only exists to satisfy the typing of onStatus*/
             return response.bodyToMono(JSONAPIDocument.class)
-                .map(jsonapiDocument -> new Exception())
+                .flatMap(jsonapiDocument -> response.createException())
                 .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
-          } else if (httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
-            /* onStatus expects a mono which emits an exception so here we map it to a blank Exception, however
-              this map is never executed since bodyToMono will throw its own ResourceParseException if there are
-              any errors in the jsonAPIDocument which we expect with an UNPROCESSABLE ENTITY response so this mapping only
-              exists to satisfy the typing of onStatus*/
-            return response.bodyToMono(JSONAPIDocument.class)
-                .map(jsonapiDocument -> new Exception())
-                .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
-          } else {
-            return response.createException();
-          }
-        })
-        .onStatus(HttpStatus::is5xxServerError, response -> {
-          HttpStatus httpStatus = response.statusCode();
-          if (httpStatus.equals(HttpStatus.SERVICE_UNAVAILABLE)) {
+          } else if (httpStatus.equals(HttpStatus.SERVICE_UNAVAILABLE)) {
             return response.createException().map(error -> new UnreachableApiException("API is unreachable", error));
           } else {
             return response.createException();
