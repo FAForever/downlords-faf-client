@@ -2,6 +2,7 @@ package com.faforever.client;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.exception.GlobalExceptionHandler;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -107,6 +108,8 @@ public class FafClientApplication extends Application {
         .profiles(getAdditionalProfiles())
         .bannerMode(Mode.OFF)
         .run(getParameters().getRaw().toArray(new String[0]));
+
+    Thread.setDefaultUncaughtExceptionHandler(applicationContext.getBean(GlobalExceptionHandler.class));
   }
 
   @Override

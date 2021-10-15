@@ -1,8 +1,9 @@
 package com.faforever.client.config;
 
+import com.faforever.client.exception.GlobalExceptionHandler;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
-import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executors;
 @EnableScheduling
 @Configuration
 @Slf4j
+@AllArgsConstructor
 public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
 
   @Override
@@ -31,7 +33,7 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
 
   @Override
   public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-    return new SimpleAsyncUncaughtExceptionHandler();
+    return new GlobalExceptionHandler();
   }
 
   @Override
