@@ -6,7 +6,6 @@ import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.google.common.eventbus.EventBus;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.MediaType;
@@ -38,7 +37,6 @@ public class TokenService implements InitializingBean {
     eventBus.register(this);
   }
 
-  @SneakyThrows
   public synchronized String getRefreshedTokenValue() {
     if (tokenCache == null) {
       log.warn("No valid token found to be refreshed");
@@ -66,8 +64,8 @@ public class TokenService implements InitializingBean {
 
   public synchronized void loginWithAuthorizationCode(String code) {
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("code", code);
     Oauth oauth = clientProperties.getOauth();
+    map.add("code", code);
     map.add("client_id", oauth.getClientId());
     map.add("redirect_uri", oauth.getRedirectUrl());
     map.add("grant_type", "authorization_code");
