@@ -2,6 +2,7 @@ package com.faforever.client.api;
 
 import com.faforever.client.builders.ReplayReviewBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Api;
 import com.faforever.client.config.JsonApiConfig;
 import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.netty.http.client.HttpClient;
@@ -61,6 +63,7 @@ public class FafApiAccessorTest extends ServiceTest {
   @TempDir
   public Path tempDirectory;
 
+  private ClientProperties clientProperties;
   private ResourceConverter resourceConverter;
   private MockWebServer mockApi;
   private final ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
@@ -89,9 +92,11 @@ public class FafApiAccessorTest extends ServiceTest {
     mockApi = new MockWebServer();
     mockApi.start();
 
-    ClientProperties clientProperties = new ClientProperties();
-    clientProperties.getApi().setMaxPageSize(100);
-    clientProperties.getApi().setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
+    clientProperties = new ClientProperties();
+    Api api = clientProperties.getApi();
+    api.setMaxPageSize(100);
+    api.setBaseUrl(String.format("http://localhost:%s", mockApi.getPort()));
+    api.setRetryBackoffSeconds(0);
     instance = new FafApiAccessor(eventBus, clientProperties, oAuthTokenFilter, webClientBuilder);
     instance.afterPropertiesSet();
     instance.authorize();
@@ -111,10 +116,10 @@ public class FafApiAccessorTest extends ServiceTest {
         .addHeader("Content-Type", "application/vnd.api+json;charset=utf-8"));
   }
 
-  private void prepareJsonApiBadRequest(List<Error> errors) throws Exception {
+  private void prepareJsonApiErrorResponse(List<Error> errors, int responseCode) throws Exception {
     byte[] serializedObject = resourceConverter.writeDocument(JSONAPIDocument.createErrorDocument(errors));
     mockApi.enqueue(new MockResponse()
-        .setResponseCode(400)
+        .setResponseCode(responseCode)
         .setBody(new String(serializedObject))
         .addHeader("Content-Type", "application/vnd.api+json;charset=utf-8"));
   }
@@ -327,20 +332,32 @@ public class FafApiAccessorTest extends ServiceTest {
     error.setId("0");
     error.setStatus("test");
     error.setCode("400");
-    prepareJsonApiBadRequest(List.of(error));
+    prepareJsonApiErrorResponse(List.of(error), 400);
 
     StepVerifier.create(instance.getManyWithPageCount(ElideNavigator.of(Game.class).collection()))
         .verifyError(ApiException.class);
   }
 
   @Test
+  public void test422Error() throws Exception {
+    Error error = new Error();
+    error.setId("0");
+    error.setStatus("test");
+    error.setCode("422");
+    prepareJsonApiErrorResponse(List.of(error), 422);
+
+    StepVerifier.create(instance.postMultipartForm("/test/upload", new LinkedMultiValueMap<>()))
+        .verifyError(ApiException.class);
+  }
+
+  @Test
   public void test4xxError() throws Exception {
-    prepareErrorResponse(404);
+    prepareErrorResponse(403);
 
     StepVerifier.create(instance.getManyWithPageCount(ElideNavigator.of(Game.class).collection()))
         .verifyError();
 
-    prepareErrorResponse(404);
+    prepareErrorResponse(403);
 
     StepVerifier.create(instance.getMany(ElideNavigator.of(Game.class).collection()))
         .verifyError();
@@ -354,6 +371,45 @@ public class FafApiAccessorTest extends ServiceTest {
         .verifyError();
 
     prepareErrorResponse(500);
+
+    StepVerifier.create(instance.getMany(ElideNavigator.of(Game.class).collection()))
+        .verifyError();
+  }
+
+  @Test
+  public void test503ErrorRecovery() throws Exception {
+
+    for (int i = 0; i < clientProperties.getApi().getRetryAttempts(); ++i) {
+      prepareErrorResponse(503);
+    }
+    prepareJsonApiResponse(List.of());
+
+    StepVerifier.create(instance.getManyWithPageCount(ElideNavigator.of(Game.class).collection()))
+        .expectNextCount(1)
+        .verifyComplete();
+
+    for (int i = 0; i < clientProperties.getApi().getRetryAttempts(); ++i) {
+      prepareErrorResponse(503);
+    }
+    prepareJsonApiResponse(List.of());
+
+    StepVerifier.create(instance.getMany(ElideNavigator.of(Game.class).collection()))
+        .verifyComplete();
+  }
+
+  @Test
+  public void test503ErrorFailure() throws Exception {
+
+    for (int i = 0; i < clientProperties.getApi().getRetryAttempts() + 1; ++i) {
+      prepareErrorResponse(503);
+    }
+
+    StepVerifier.create(instance.getManyWithPageCount(ElideNavigator.of(Game.class).collection()))
+        .verifyError();
+
+    for (int i = 0; i < clientProperties.getApi().getRetryAttempts() + 1; ++i) {
+      prepareErrorResponse(503);
+    }
 
     StepVerifier.create(instance.getMany(ElideNavigator.of(Game.class).collection()))
         .verifyError();

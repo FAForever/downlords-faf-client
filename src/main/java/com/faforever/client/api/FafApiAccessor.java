@@ -55,9 +55,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
+import reactor.util.retry.Retry;
 
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -85,7 +87,7 @@ public class FafApiAccessor implements InitializingBean {
               "game.reviews", "game.reviews.player", "game.mapVersion", "game.mapVersion.map", "game.mapVersion.map")),
       java.util.Map.entry(Game.class,
           List.of("featuredMod", "playerStats", "playerStats.player", "playerStats.ratingChanges", "reviews", "reviews.player",
-               "mapVersion", "mapVersion.map", "mapVersion.map.versions", "reviewsSummary")),
+              "mapVersion", "mapVersion.map", "mapVersion.map.versions", "reviewsSummary")),
       java.util.Map.entry(MapVersion.class,
           List.of("map", "map.latestVersion", "map.versions",
               "map.versions.reviews", "map.versions.reviews.player", "map.reviewsSummary", "map.author")),
@@ -131,10 +133,18 @@ public class FafApiAccessor implements InitializingBean {
   private WebClient webClient;
   @Getter
   private int maxPageSize;
+  private Retry apiRetrySpec;
 
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
+    Api api = clientProperties.getApi();
+    apiRetrySpec = Retry.backoff(api.getRetryAttempts(), Duration.ofSeconds(api.getRetryBackoffSeconds()))
+        .jitter(api.getRetryJitter())
+        .filter(error -> error instanceof UnreachableApiException)
+        .doBeforeRetry(retry -> log.info("Could not retrieve value from api retrying: Attempt #{} of {}", retry.totalRetries(), retry.totalRetriesInARow()))
+        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
+            new UnreachableApiException("API is unreachable after max retries", retrySignal.failure()));
   }
 
   public void authorize() {
@@ -295,42 +305,39 @@ public class FafApiAccessor implements InitializingBean {
         .doOnNext(tuple -> log.debug("Retrieved {} from {}", tuple.getT1(), endpointPath));
   }
 
-  @SneakyThrows
   private <T> Mono<T> retrieveMonoWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
-    authorizedLatch.await();
-    return requestSpec.exchangeToMono(response -> {
-      if (response.statusCode().is2xxSuccessful()) {
-        return response.bodyToMono(type);
-      } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
-        return response.bodyToMono(type).onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
-      } else if (response.statusCode().is4xxClientError()) {
-        return response.createException().flatMap(Mono::error);
-      } else if (response.statusCode().is5xxServerError()) {
-        return response.createException().flatMap(Mono::error);
-      } else {
-        log.warn("Unknown status returned by api");
-        return response.createException().flatMap(Mono::error);
-      }
-    });
+    return retrieveWithErrorHandling(requestSpec)
+        .bodyToMono(type)
+        .retryWhen(apiRetrySpec);
+  }
+
+  private <T> Flux<T> retrieveFluxWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
+    return retrieveWithErrorHandling(requestSpec)
+        .bodyToFlux(type)
+        .retryWhen(apiRetrySpec);
   }
 
   @SneakyThrows
-  private <T> Flux<T> retrieveFluxWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {
+  private WebClient.ResponseSpec retrieveWithErrorHandling(WebClient.RequestHeadersSpec<?> requestSpec) {
     authorizedLatch.await();
-    return requestSpec.exchangeToFlux(response -> {
-      if (response.statusCode().is2xxSuccessful()) {
-        return response.bodyToFlux(type);
-      } else if (response.statusCode().equals(HttpStatus.BAD_REQUEST)) {
-        return response.bodyToFlux(type).onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
-      } else if (response.statusCode().is4xxClientError()) {
-        return response.createException().flatMapMany(Mono::error);
-      } else if (response.statusCode().is5xxServerError()) {
-        return response.createException().flatMapMany(Mono::error);
-      } else {
-        log.warn("Unknown status returned by api");
-        return response.createException().flatMapMany(Mono::error);
-      }
-    });
+    return requestSpec
+        .retrieve()
+        .onStatus(HttpStatus::isError, response -> {
+          HttpStatus httpStatus = response.statusCode();
+          if (httpStatus.equals(HttpStatus.BAD_REQUEST) || httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
+            /* onStatus expects a mono which emits an exception so here we map it to an Exception, however
+              this map is never executed since bodyToMono will throw its own ResourceParseException if there are
+              any errors in the JSONAPIDocument which we expect with a BAD REQUEST and UNPROCESSABLE response so this
+              mapping only exists to satisfy the typing of onStatus*/
+            return response.bodyToMono(JSONAPIDocument.class)
+                .flatMap(jsonapiDocument -> response.createException())
+                .onErrorMap(ResourceParseException.class, exception -> new ApiException(exception.getErrors().getErrors()));
+          } else if (httpStatus.equals(HttpStatus.SERVICE_UNAVAILABLE)) {
+            return response.createException().map(error -> new UnreachableApiException("API is unreachable", error));
+          } else {
+            return response.createException();
+          }
+        });
   }
 
   private void enrichBuilder(ElideEndpointBuilder<?> endpointBuilder) {

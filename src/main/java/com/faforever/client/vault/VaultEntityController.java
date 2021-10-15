@@ -8,8 +8,10 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
+import com.faforever.commons.api.dto.ApiException;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
@@ -264,9 +266,16 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           }
         })
         .exceptionally(throwable -> {
-          log.error("Vault search error", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
-          enterResultState();
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+          if (throwable instanceof ApiException) {
+            String query = searchController.queryTextField.getText();
+            log.warn("Bad search parameter in query {}", query, throwable);
+            notificationService.addImmediateWarnNotification("vault.badSearch", throwable.getLocalizedMessage(), query);
+          } else {
+            log.error("Vault search error", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "vault.searchError");
+          }
+          enterShowRoomState();
           return null;
         });
   }
