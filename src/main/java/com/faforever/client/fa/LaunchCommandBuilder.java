@@ -11,8 +11,10 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +42,12 @@ public class LaunchCommandBuilder {
   private String executableDecorator;
   private boolean rehost;
   private Integer localReplayPort;
+  private Integer numberOfGames;
+  private Integer expectedPlayers;
+  private Integer mapPosition;
+  private Integer team;
+  private String map;
+  private Map<String, String> gameOptions;
 
   public static LaunchCommandBuilder create() {
     return new LaunchCommandBuilder();
@@ -105,7 +113,14 @@ public class LaunchCommandBuilder {
   }
 
   public LaunchCommandBuilder additionalArgs(List<String> additionalArgs) {
-    this.additionalArgs = additionalArgs;
+    ArrayList<String> cleanedArgs = new ArrayList<>();
+
+    for (String arg : additionalArgs) {
+      String[] split = arg.split(" ");
+
+      Collections.addAll(cleanedArgs, split);
+    }
+    this.additionalArgs = cleanedArgs;
     return this;
   }
 
@@ -131,6 +146,36 @@ public class LaunchCommandBuilder {
 
   public LaunchCommandBuilder rehost(boolean rehost) {
     this.rehost = rehost;
+    return this;
+  }
+
+  public LaunchCommandBuilder numberOfGames(Integer numberOfGames) {
+    this.numberOfGames = numberOfGames;
+    return this;
+  }
+
+  public LaunchCommandBuilder team(Integer team) {
+    this.team = team;
+    return this;
+  }
+
+  public LaunchCommandBuilder expectedPlayers(Integer expectedPlayers) {
+    this.expectedPlayers = expectedPlayers;
+    return this;
+  }
+
+  public LaunchCommandBuilder mapPosition(Integer mapPosition) {
+    this.mapPosition = mapPosition;
+    return this;
+  }
+
+  public LaunchCommandBuilder map(String map) {
+    this.map = map;
+    return this;
+  }
+
+  public LaunchCommandBuilder gameOptions(Map<String, String> gameOptions) {
+    this.gameOptions = gameOptions;
     return this;
   }
 
@@ -190,7 +235,7 @@ public class LaunchCommandBuilder {
       command.add(country);
     }
 
-    if (!StringUtils.isEmpty(clan)) {
+    if (StringUtils.hasText(clan)) {
       command.add("/clan");
       command.add(clan);
     }
@@ -202,6 +247,38 @@ public class LaunchCommandBuilder {
 
     if (rehost) {
       command.add("/rehost");
+    }
+
+    if (numberOfGames != null) {
+      command.add("/numgames");
+      command.add(String.valueOf(numberOfGames));
+    }
+
+    if (team != null) {
+      command.add("/team");
+      command.add(String.valueOf(team));
+    }
+
+    if (expectedPlayers != null) {
+      command.add("/players");
+      command.add(String.valueOf(expectedPlayers));
+    }
+
+    if (mapPosition != null) {
+      command.add("/startspot");
+      command.add(String.valueOf(mapPosition));
+    }
+
+    if (StringUtils.hasText(map)) {
+      command.add("/map");
+      command.add(map);
+    }
+
+    if (gameOptions != null) {
+      command.add("/gameoptions");
+      gameOptions.entrySet().stream()
+          .map(entry -> entry.getKey() + ":" + entry.getValue())
+          .forEach(command::add);
     }
 
     if (additionalArgs != null) {

@@ -2,8 +2,9 @@ package com.faforever.client.fa;
 
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.commons.lobby.Faction;
+import com.faforever.commons.lobby.GameLaunchResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -30,40 +31,47 @@ import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANC
 @Slf4j
 public class ForgedAllianceService {
 
+  private final PlayerService playerService;
   private final PreferencesService preferencesService;
 
-  public Process startGameOffline(List<String> args) throws IOException {
+  public Process startGameOffline(String map) throws IOException {
     Path executable = getExecutable();
     List<String> launchCommand = LaunchCommandBuilder.create()
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
-        .additionalArgs(args)
+        .map(map)
         .logFile(preferencesService.getNewGameLogFile(0))
         .build();
 
     return launch(executable, launchCommand);
   }
 
-  public Process startGame(int uid, @Nullable Faction faction, @Nullable List<String> additionalArgs,
-                           String ratingType, int gpgPort, int localReplayPort, boolean rehost, PlayerBean currentPlayer) throws IOException {
+  public Process startGameOnline(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost) throws IOException {
     Path executable = getExecutable();
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRatingBean> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
-        .map(rating -> rating.get(ratingType));
+        .map(rating -> rating.get(gameLaunchMessage.getLeaderboard()));
 
     float mean = leaderboardRating.map(LeaderboardRatingBean::getMean).orElse(0f);
     float deviation = leaderboardRating.map(LeaderboardRatingBean::getDeviation).orElse(0f);
 
+    int uid = gameLaunchMessage.getUid();
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .uid(uid)
-        .faction(faction)
+        .faction(gameLaunchMessage.getFaction())
+        .mapPosition(gameLaunchMessage.getMapPosition())
+        .expectedPlayers(gameLaunchMessage.getExpectedPlayers())
+        .team(gameLaunchMessage.getTeam())
+        .gameOptions(gameLaunchMessage.getGameOptions())
         .clan(currentPlayer.getClan())
         .country(currentPlayer.getCountry())
+        .username(currentPlayer.getUsername())
+        .numberOfGames(currentPlayer.getNumberOfGames())
         .deviation(deviation)
         .mean(mean)
-        .username(currentPlayer.getUsername())
-        .additionalArgs(additionalArgs)
+        .additionalArgs(gameLaunchMessage.getArgs())
         .logFile(preferencesService.getNewGameLogFile(uid))
         .localGpgPort(gpgPort)
         .localReplayPort(localReplayPort)

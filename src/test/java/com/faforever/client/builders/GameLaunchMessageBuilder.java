@@ -5,7 +5,6 @@ import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.LobbyMode;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,14 +31,13 @@ public class GameLaunchMessageBuilder {
     name("test");
     uid(1);
     mod(KnownFeaturedMod.DEFAULT.getTechnicalName());
-    args();
     ratingType("global");
     initMode(LobbyMode.DEFAULT_LOBBY);
     return this;
   }
 
   public GameLaunchResponse get() {
-    return new GameLaunchResponse(uid, name, mod, initMode, ratingType, args, mapname, expectedPlayers, mapPosition, gameOptions, team, faction);
+    return new GameLaunchResponse(uid, name, mod, initMode, ratingType, List.of(), mapname, expectedPlayers, mapPosition, gameOptions, team, faction);
   }
 
   public GameLaunchMessageBuilder name(String name) {
@@ -94,11 +92,6 @@ public class GameLaunchMessageBuilder {
 
   public GameLaunchMessageBuilder mapname(String mapname) {
     this.mapname = mapname;
-    return this;
-  }
-
-  public GameLaunchMessageBuilder args(String... args) {
-    this.args = new ArrayList<>(List.of(args));
     return this;
   }
 }
