@@ -4,6 +4,7 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.JoinGameHelper;
@@ -46,7 +47,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PlayerContextMenuControllerTest extends UITest {
+public class OnlinePlayerContextMenuControllerTest extends UITest {
   private static final String TEST_USER_NAME = "junit";
 
   @Mock
@@ -70,7 +71,7 @@ public class PlayerContextMenuControllerTest extends UITest {
   @Mock
   private ReportDialogController reportDialogController;
 
-  private PlayerContextMenuController instance;
+  private OnlinePlayerContextMenuController instance;
   private PlayerBean player;
 
   @BeforeEach
@@ -83,7 +84,7 @@ public class PlayerContextMenuControllerTest extends UITest {
     when(moderatorService.getPermissions()).thenReturn(Collections.emptySet());
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
 
-    instance = new PlayerContextMenuController(avatarService, eventBus, i18n, joinGameHelper, moderatorService,
+    instance = new OnlinePlayerContextMenuController(avatarService, eventBus, i18n, joinGameHelper, moderatorService,
         notificationService, playerService, replayService, uiService) {};
     loadFxml("theme/player_context_menu.fxml", clazz -> instance, instance);
 
@@ -119,7 +120,7 @@ public class PlayerContextMenuControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.showUserInfo.isVisible(), is(true));
-    assertThat(instance.sendPrivateMessageItem.isVisible(), is(false));
+    assertThat(instance.sendPrivateMessageItem.isVisible(), is(true));
     assertThat(instance.copyUsernameItem.isVisible(), is(true));
     assertThat(instance.colorPickerMenuItem.isVisible(), is(false));
     assertThat(instance.inviteItem.isVisible(), is(false));
@@ -135,6 +136,13 @@ public class PlayerContextMenuControllerTest extends UITest {
     assertThat(instance.kickLobbyItem.isVisible(), is(false));
     assertThat(instance.broadcastMessage.isVisible(), is(false));
     assertThat(instance.avatarPickerMenuItem.isVisible(), is(false));
+  }
+
+  @Test
+  public void testOnSendPrivateMessage() {
+    instance.onSendPrivateMessageSelected();
+
+    verify(eventBus).post(any(InitiatePrivateChatEvent.class));
   }
 
   @Test

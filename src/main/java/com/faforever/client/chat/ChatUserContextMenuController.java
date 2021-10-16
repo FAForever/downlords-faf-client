@@ -5,7 +5,7 @@ import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlayerContextMenuController;
+import com.faforever.client.fx.OnlinePlayerContextMenuController;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -40,7 +40,7 @@ import static java.util.Locale.US;
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
-public class ChatUserContextMenuController extends PlayerContextMenuController {
+public class ChatUserContextMenuController extends OnlinePlayerContextMenuController {
 
   private final PreferencesService preferencesService;
   private final TeamMatchmakingService teamMatchmakingService;
@@ -69,7 +69,6 @@ public class ChatUserContextMenuController extends PlayerContextMenuController {
   @Override
   public void initialize() {
     super.initialize();
-    sendPrivateMessageItem.setOnAction(event -> onSendPrivateMessageSelected());
     removeCustomColorButton.setOnAction(event -> onRemoveCustomColor());
     inviteItem.setOnAction(event -> onInviteToGameSelected());
     broadcastMessage.setOnAction(this::onBroadcastMessage);
@@ -139,6 +138,7 @@ public class ChatUserContextMenuController extends PlayerContextMenuController {
     JavaFxUtil.addAndTriggerListener(chatUser.socialStatusProperty(), weakSocialStatusPropertyListener);
   }
 
+  @Override
   public void onSendPrivateMessageSelected() {
     eventBus.post(new InitiatePrivateChatEvent(chatUser.getUsername()));
   }
@@ -149,7 +149,7 @@ public class ChatUserContextMenuController extends PlayerContextMenuController {
   }
 
   public void onInviteToGameSelected() {
-    teamMatchmakingService.invitePlayer(super.player.getUsername());
+    teamMatchmakingService.invitePlayer(getPlayer().getUsername());
   }
 
   public void onBroadcastMessage(ActionEvent actionEvent) {

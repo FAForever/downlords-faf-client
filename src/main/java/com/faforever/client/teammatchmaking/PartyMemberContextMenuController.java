@@ -1,9 +1,7 @@
 package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.chat.InitiatePrivateChatEvent;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.PlayerContextMenuController;
+import com.faforever.client.fx.OnlinePlayerContextMenuController;
 import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.moderator.ModeratorService;
@@ -17,12 +15,10 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import static com.faforever.client.player.SocialStatus.SELF;
-
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
-public class PartyMemberContextMenuController extends PlayerContextMenuController {
+public class PartyMemberContextMenuController extends OnlinePlayerContextMenuController {
 
   public PartyMemberContextMenuController(AvatarService avatarService,
                                           EventBus eventBus,
@@ -35,21 +31,4 @@ public class PartyMemberContextMenuController extends PlayerContextMenuControlle
                                           UiService uiService) {
     super(avatarService, eventBus, i18n, joinGameHelper, moderatorService, notificationService, playerService, replayService, uiService);
   }
-
-  @Override
-  public void initialize() {
-    super.initialize();
-    sendPrivateMessageItem.setOnAction(event -> onSendPrivateMessageSelected());
-  }
-
-  @Override
-  public void setPlayer(PlayerBean player) {
-    super.setPlayer(player);
-    sendPrivateMessageItem.visibleProperty().bind(player.socialStatusProperty().isNotEqualTo(SELF));
-  }
-
-  public void onSendPrivateMessageSelected() {
-    eventBus.post(new InitiatePrivateChatEvent(super.player.getUsername()));
-  }
-
 }
