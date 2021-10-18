@@ -550,8 +550,8 @@ public class GameService implements InitializingBean {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         if (throwable instanceof CancellationException) {
           log.info("Matchmaking search has been cancelled");
-          notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
-          if (inMatchmakerQueue) {
+          if (inMatchmakerQueue && isRunning()) {
+            notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
             gameKilled = true;
             process.destroy();
           }
