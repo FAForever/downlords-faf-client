@@ -38,6 +38,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.security.InvalidParameterException;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,12 +146,16 @@ public class GenerateMapController implements Controller<Pane> {
     return new StringConverter<>() {
       @Override
       public String toString(Double mapSize) {
-        return String.valueOf(mapSize);
+        return NumberFormat.getInstance().format(mapSize);
       }
 
       @Override
       public Double fromString(String s) {
-        return Math.round(Double.parseDouble(s) / MIN_MAP_SIZE_STEP) * MIN_MAP_SIZE_STEP;
+        try {
+          return Math.round(NumberFormat.getInstance().parse(s).doubleValue() / MIN_MAP_SIZE_STEP) * MIN_MAP_SIZE_STEP;
+        } catch (ParseException e) {
+          throw new IllegalArgumentException("Could not parse number", e);
+        }
       }
     };
   }
