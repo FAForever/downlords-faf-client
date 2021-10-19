@@ -57,7 +57,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -695,7 +694,7 @@ public class GameServiceTest extends ServiceTest {
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
+    when(process.onExit()).thenReturn(completedFuture(process));
     when(process.exitValue()).thenReturn(0);
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
@@ -712,11 +711,12 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
-  public void startSearchMatchmakerThenCancelled() throws IOException {
+  public void startSearchMatchmakerThenCancelledWithGame() throws IOException {
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
+    when(process.isAlive()).thenReturn(true);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
     when(process.exitValue()).thenReturn(1);
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
@@ -725,9 +725,30 @@ public class GameServiceTest extends ServiceTest {
     mockStartMatchmakerGameProcess(gameLaunchMessage);
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.failedFuture(new CancellationException()));
-    instance.startSearchMatchmaker().cancel(false);
+    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    CompletableFuture<Void> future = instance.startSearchMatchmaker();
+    future.cancel(false);
     verify(notificationService).addServerNotification(any());
+  }
+
+  @Test
+  public void startSearchMatchmakerThenCancelledNoGame() throws IOException {
+    when(preferencesService.isGamePathValid()).thenReturn(true);
+    when(modService.getFeaturedMod(FAF.getTechnicalName()))
+        .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(process.isAlive()).thenReturn(false);
+    when(process.onExit()).thenReturn(new CompletableFuture<>());
+    when(process.exitValue()).thenReturn(1);
+    Map<String, String> gameOptions = new LinkedHashMap<>();
+    gameOptions.put("Share", "ShareUntilDeath");
+    gameOptions.put("UnitCap", "500");
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    mockStartMatchmakerGameProcess(gameLaunchMessage);
+    when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
+    when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
+    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    instance.startSearchMatchmaker().cancel(false);
+    verify(notificationService, never()).addServerNotification(any());
   }
 
   @Test
