@@ -157,6 +157,8 @@ public class FafClientApplication extends Application {
               })
           )));
       event.consume();
+    } else {
+      Platform.exit();
     }
   }
 
