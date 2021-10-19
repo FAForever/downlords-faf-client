@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -113,9 +112,15 @@ public class GameUpdaterImpl implements GameUpdater {
 
   @SneakyThrows
   private void createFaPathLuaFile(Path parent) {
-    Path path = preferencesService.getPreferences().getForgedAlliance().getInstallationPath();
-    String content = String.format("fa_path = \"%s\"", path.toString().replace("\\", "/"));
-    Files.write(parent.resolve("fa_path.lua"), content.getBytes(StandardCharsets.UTF_8));
+    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
+    String installationPath = forgedAlliancePrefs.getInstallationPath().toString().replace("\\", "/");
+    String vaultPath = forgedAlliancePrefs.getVaultBaseDirectory().toString().replace("\\", "/");
+    String pathFileFormat = """
+        fa_path = "%s"
+        custom_vault_path = "%s"
+        """.stripIndent();
+    String content = String.format(pathFileFormat, installationPath, vaultPath);
+    Files.writeString(parent.resolve("fa_path.lua"), content);
   }
 
   private void generateInitFile(List<PatchResult> patchResults) {
