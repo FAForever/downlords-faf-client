@@ -64,37 +64,13 @@ public class PartyMemberContextMenuControllerTest extends UITest {
     instance = new PartyMemberContextMenuController(avatarService, eventBus, i18n, joinGameHelper, moderatorService, notificationService, playerService, replayService, uiService);
     loadFxml("theme/player_context_menu.fxml", clazz -> instance, instance);
 
-    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new GameBean()).get();
+    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(OTHER).avatar(null).game(new GameBean()).get();
     instance.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
   }
 
   @Test
   public void testShowCorrectItems() {
-    assertThat(instance.showUserInfo.isVisible(), is(true));
-    assertThat(instance.sendPrivateMessageItem.isVisible(), is(false));
-    assertThat(instance.copyUsernameItem.isVisible(), is(true));
-    assertThat(instance.colorPickerMenuItem.isVisible(), is(false));
-    assertThat(instance.inviteItem.isVisible(), is(false));
-    assertThat(instance.addFriendItem.isVisible(), is(false));
-    assertThat(instance.removeFriendItem.isVisible(), is(false));
-    assertThat(instance.addFoeItem.isVisible(), is(false));
-    assertThat(instance.removeFoeItem.isVisible(), is(false));
-    assertThat(instance.reportItem.isVisible(), is(false));
-    assertThat(instance.joinGameItem.isVisible(), is(false));
-    assertThat(instance.watchGameItem.isVisible(), is(false));
-    assertThat(instance.viewReplaysItem.isVisible(), is(true));
-    assertThat(instance.kickGameItem.isVisible(), is(false));
-    assertThat(instance.kickLobbyItem.isVisible(), is(false));
-    assertThat(instance.broadcastMessage.isVisible(), is(false));
-    assertThat(instance.avatarPickerMenuItem.isVisible(), is(true));
-  }
-
-  @Test
-  public void testShowCorrectItemsForOther() {
-    player.setSocialStatus(OTHER);
-    WaitForAsyncUtils.waitForFxEvents();
-
     assertThat(instance.showUserInfo.isVisible(), is(true));
     assertThat(instance.sendPrivateMessageItem.isVisible(), is(true));
     assertThat(instance.copyUsernameItem.isVisible(), is(true));
@@ -112,5 +88,29 @@ public class PartyMemberContextMenuControllerTest extends UITest {
     assertThat(instance.kickLobbyItem.isVisible(), is(false));
     assertThat(instance.broadcastMessage.isVisible(), is(false));
     assertThat(instance.avatarPickerMenuItem.isVisible(), is(false));
+  }
+
+  @Test
+  public void testShowCorrectItemsForSelf() {
+    player.setSocialStatus(SELF);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.showUserInfo.isVisible(), is(true));
+    assertThat(instance.sendPrivateMessageItem.isVisible(), is(false));
+    assertThat(instance.copyUsernameItem.isVisible(), is(true));
+    assertThat(instance.colorPickerMenuItem.isVisible(), is(false));
+    assertThat(instance.inviteItem.isVisible(), is(false));
+    assertThat(instance.addFriendItem.isVisible(), is(false));
+    assertThat(instance.removeFriendItem.isVisible(), is(false));
+    assertThat(instance.addFoeItem.isVisible(), is(false));
+    assertThat(instance.removeFoeItem.isVisible(), is(false));
+    assertThat(instance.reportItem.isVisible(), is(false));
+    assertThat(instance.joinGameItem.isVisible(), is(false));
+    assertThat(instance.watchGameItem.isVisible(), is(false));
+    assertThat(instance.viewReplaysItem.isVisible(), is(true));
+    assertThat(instance.kickGameItem.isVisible(), is(false));
+    assertThat(instance.kickLobbyItem.isVisible(), is(false));
+    assertThat(instance.broadcastMessage.isVisible(), is(false));
+    assertThat(instance.avatarPickerMenuItem.isVisible(), is(true));
   }
 }

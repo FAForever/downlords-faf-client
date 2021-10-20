@@ -20,7 +20,6 @@ import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.ImageView;
@@ -72,9 +71,6 @@ public abstract class OnlinePlayerContextMenuController extends AbstractPlayerCo
 
     avatarComboBox.setCellFactory(param -> avatarCell());
     avatarComboBox.setButtonCell(avatarCell());
-    avatarPickerMenuItem.visibleProperty().bind(Bindings.createBooleanBinding(() ->
-            !avatarComboBox.getItems().isEmpty() && getPlayer().getSocialStatus() == SELF,
-        avatarComboBox.getItems()));
 
     initializeListener();
 
@@ -150,6 +146,7 @@ public abstract class OnlinePlayerContextMenuController extends AbstractPlayerCo
           player.setAvatar(newValue);
           avatarService.changeAvatar(Objects.requireNonNullElse(newValue, noAvatar));
         });
+        avatarPickerMenuItem.setVisible(!avatarComboBox.getItems().isEmpty());
       });
     });
   }

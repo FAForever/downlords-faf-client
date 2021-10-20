@@ -6,7 +6,6 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
-import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.JoinGameHelper;
@@ -29,7 +28,6 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -40,7 +38,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.player.SocialStatus.OTHER;
 import static com.faforever.client.player.SocialStatus.SELF;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -101,7 +98,7 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
     loadFxml("theme/player_context_menu.fxml", clazz -> instance, instance);
 
-    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(SELF).avatar(null).get();
+    player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(OTHER).avatar(null).get();
     chatUser = ChatChannelUserBuilder.create(TEST_USER_NAME).defaultValues().player(player).get();
 
     runOnFxThreadAndWait(() -> instance.setChatUser(chatUser));
@@ -109,30 +106,6 @@ public class ChatUserContextMenuControllerTest extends UITest {
 
   @Test
   public void testShowCorrectItems() {
-    assertThat(instance.showUserInfo.isVisible(), is(true));
-    assertThat(instance.sendPrivateMessageItem.isVisible(), is(false));
-    assertThat(instance.copyUsernameItem.isVisible(), is(true));
-    assertThat(instance.colorPickerMenuItem.isVisible(), is(true));
-    assertThat(instance.inviteItem.isVisible(), is(false));
-    assertThat(instance.addFriendItem.isVisible(), is(false));
-    assertThat(instance.removeFriendItem.isVisible(), is(false));
-    assertThat(instance.addFoeItem.isVisible(), is(false));
-    assertThat(instance.removeFoeItem.isVisible(), is(false));
-    assertThat(instance.reportItem.isVisible(), is(false));
-    assertThat(instance.joinGameItem.isVisible(), is(false));
-    assertThat(instance.watchGameItem.isVisible(), is(false));
-    assertThat(instance.viewReplaysItem.isVisible(), is(true));
-    assertThat(instance.kickGameItem.isVisible(), is(false));
-    assertThat(instance.kickLobbyItem.isVisible(), is(false));
-    assertThat(instance.broadcastMessage.isVisible(), is(false));
-    assertThat(instance.avatarPickerMenuItem.isVisible(), is(true));
-  }
-
-  @Test
-  public void testShowCorrectItemsForOther() {
-    player.setSocialStatus(OTHER);
-    WaitForAsyncUtils.waitForFxEvents();
-
     assertThat(instance.showUserInfo.isVisible(), is(true));
     assertThat(instance.sendPrivateMessageItem.isVisible(), is(true));
     assertThat(instance.copyUsernameItem.isVisible(), is(true));
@@ -153,18 +126,37 @@ public class ChatUserContextMenuControllerTest extends UITest {
   }
 
   @Test
-  public void testJoinGameContextMenuNotShownForIdleUser() {
-    player.setSocialStatus(OTHER);
+  public void testShowCorrectItemsForSelf() {
+    player.setSocialStatus(SELF);
     WaitForAsyncUtils.waitForFxEvents();
 
+    assertThat(instance.showUserInfo.isVisible(), is(true));
+    assertThat(instance.sendPrivateMessageItem.isVisible(), is(false));
+    assertThat(instance.copyUsernameItem.isVisible(), is(true));
+    assertThat(instance.colorPickerMenuItem.isVisible(), is(true));
+    assertThat(instance.inviteItem.isVisible(), is(false));
+    assertThat(instance.addFriendItem.isVisible(), is(false));
+    assertThat(instance.removeFriendItem.isVisible(), is(false));
+    assertThat(instance.addFoeItem.isVisible(), is(false));
+    assertThat(instance.removeFoeItem.isVisible(), is(false));
+    assertThat(instance.reportItem.isVisible(), is(false));
+    assertThat(instance.joinGameItem.isVisible(), is(false));
+    assertThat(instance.watchGameItem.isVisible(), is(false));
+    assertThat(instance.viewReplaysItem.isVisible(), is(true));
+    assertThat(instance.kickGameItem.isVisible(), is(false));
+    assertThat(instance.kickLobbyItem.isVisible(), is(false));
+    assertThat(instance.broadcastMessage.isVisible(), is(false));
+    assertThat(instance.avatarPickerMenuItem.isVisible(), is(true));
+  }
+
+  @Test
+  public void testJoinGameContextMenuNotShownForIdleUser() {
     assertFalse(instance.joinGameItem.isVisible());
   }
 
   @Test
   public void testJoinGameContextMenuShownForHostingUser() {
     GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
-
-    player.setSocialStatus(OTHER);
     player.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -175,8 +167,6 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Test
   public void testJoinGameContextMenuNotShownForMatchmakerPlayer() {
     GameBean game = GameBeanBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).status(GameStatus.OPEN).host(player.getUsername()).get();
-
-    player.setSocialStatus(OTHER);
     player.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -187,7 +177,6 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Test
   public void testInviteContextMenuShownForIdleUser() {
     player.setGame(null);
-    player.setSocialStatus(OTHER);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.inviteItem.isVisible());
@@ -196,8 +185,6 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Test
   public void testInviteContextMenuNotShownForHostingUser() {
     GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host(player.getUsername()).get();
-
-    player.setSocialStatus(OTHER);
     player.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -208,8 +195,6 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Test
   public void testInviteContextMenuNotShownForLobbyingUser() {
     GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).host("otherPlayer").get();
-
-    player.setSocialStatus(OTHER);
     player.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -224,7 +209,6 @@ public class ChatUserContextMenuControllerTest extends UITest {
     game.setStatus(GameStatus.PLAYING);
     game.setHost(player.getUsername());
 
-    player.setSocialStatus(OTHER);
     player.setGame(game);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -252,20 +236,6 @@ public class ChatUserContextMenuControllerTest extends UITest {
     instance.onInviteToGameSelected();
 
     verify(teamMatchmakingService).invitePlayer(TEST_USER_NAME);
-  }
-
-  @Test
-  public void testOnSelectAvatar() throws Exception {
-    instance.avatarComboBox.show();
-
-    WaitForAsyncUtils.waitForAsyncFx(100_000, () -> instance.avatarComboBox.getSelectionModel().select(2));
-
-    ArgumentCaptor<AvatarBean> captor = ArgumentCaptor.forClass(AvatarBean.class);
-    verify(avatarService).changeAvatar(captor.capture());
-
-    AvatarBean avatarBean = captor.getValue();
-    assertThat(avatarBean.getUrl(), equalTo(new URL("http://www.example.com/avatar2.png")));
-    assertThat(avatarBean.getDescription(), is("Avatar Number #2"));
   }
 
   @Test
