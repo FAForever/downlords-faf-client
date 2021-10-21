@@ -16,6 +16,7 @@ import com.faforever.commons.api.dto.GameReview;
 import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.jasminb.jsonapi.JSONAPIDocument;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import com.github.jasminb.jsonapi.models.errors.Error;
@@ -77,6 +78,7 @@ public class FafApiAccessorTest extends ServiceTest {
   public void setUp() throws Exception {
     MapperSetup.injectMappers(reviewMapper);
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
     resourceConverter = new JsonApiConfig().resourceConverter(objectMapper);
     JsonApiReader jsonApiReader = new JsonApiReader(resourceConverter);
     JsonApiWriter jsonApiWriter = new JsonApiWriter(resourceConverter);
