@@ -282,7 +282,7 @@ public class ModService implements InitializingBean, DisposableBean {
 
   @NotNull
   public ModVersionBean extractModInfo(InputStream inputStream, Path basePath) {
-    return modMapper.map(modReader.readModInfo(inputStream, basePath), basePath, new CycleAvoidingMappingContext());
+    return modMapper.map(modReader.readModInfo(inputStream, basePath), basePath);
   }
 
   public CompletableTask<Void> uploadMod(Path modPath) {

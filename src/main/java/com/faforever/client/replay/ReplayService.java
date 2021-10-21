@@ -219,7 +219,7 @@ public class ReplayService {
         if (mapVersion == null) {
           log.warn("Could not find map for replay file '{}'", replayFile);
         }
-        return replayMapper.map(replayMetadata, replayFile, featuredMod, mapVersion, new CycleAvoidingMappingContext());
+        return replayMapper.map(replayMetadata, replayFile, featuredMod, mapVersion);
       });
     } catch (Exception e) {
       log.warn("Could not read replay file '{}'", replayFile, e);

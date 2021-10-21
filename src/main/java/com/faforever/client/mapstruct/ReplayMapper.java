@@ -74,7 +74,7 @@ public interface ReplayMapper {
   @Mapping(target = "endTime", expression = "java(TimeUtil.fromPythonTime(metadata.getGameEnd()))")
   @Mapping(target = "host", ignore = true)
   @Mapping(target = "reviews", ignore = true)
-  ReplayBean map(ReplayMetadata metadata, Path replayFile, FeaturedModBean featuredModBean, MapVersionBean mapVersionBean, @Context CycleAvoidingMappingContext context);
+  ReplayBean map(ReplayMetadata metadata, Path replayFile, FeaturedModBean featuredModBean, MapVersionBean mapVersionBean);
 
   default OffsetDateTime mapMetaToStart(ReplayMetadata metadata) {
     return fromPythonTime(metadata.getGameTime() > 0 ? metadata.getGameTime() : metadata.getLaunchedAt());

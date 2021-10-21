@@ -24,7 +24,7 @@ public interface ModMapper {
     @Mapping(target = "mod", expression = "java(new ModBean())")
     @Mapping(target = "mod.displayName", source = "modInfo.name")
     @Mapping(target = "imagePath", expression = "java(mapImagePath(modInfo, basePath))")
-    ModVersionBean map(com.faforever.commons.mod.Mod modInfo, Path basePath, @Context CycleAvoidingMappingContext context);
+    ModVersionBean map(com.faforever.commons.mod.Mod modInfo, Path basePath);
 
     default Path mapImagePath(com.faforever.commons.mod.Mod modInfo, Path basePath) {
         return Optional.ofNullable(modInfo.getIcon())
