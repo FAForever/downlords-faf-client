@@ -69,12 +69,7 @@ public class UserService implements InitializingBean, DisposableBean {
   public CompletableFuture<Void> login(String code) {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with authorization code");
-      loginFuture = CompletableFuture.runAsync(() -> tokenService.loginWithAuthorizationCode(code))
-          .whenComplete((aVoid, throwable) -> {
-            if (throwable != null) {
-              log.warn("Could not log into the user service with code", throwable);
-            }
-          })
+      loginFuture = tokenService.loginWithAuthorizationCode(code).toFuture()
           .thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;
@@ -83,12 +78,7 @@ public class UserService implements InitializingBean, DisposableBean {
   public CompletableFuture<Void> loginWithRefreshToken(String refreshToken) {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with refresh token");
-      loginFuture = CompletableFuture.runAsync(() -> tokenService.loginWithRefreshToken(refreshToken))
-          .whenComplete((aVoid, throwable) -> {
-            if (throwable != null) {
-              log.info("Could not log into the user service with refresh token", throwable);
-            }
-          })
+      loginFuture = tokenService.loginWithRefreshToken(refreshToken).toFuture()
           .thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;

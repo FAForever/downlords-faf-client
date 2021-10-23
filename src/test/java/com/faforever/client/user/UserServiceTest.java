@@ -113,7 +113,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
 
     instance.login("abc").join();
 
@@ -130,7 +130,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
 
     instance.login("abc").join();
 
@@ -147,7 +147,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     doThrow(testException).when(tokenService).loginWithAuthorizationCode(anyString());
 
@@ -166,7 +166,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     doThrow(testException).when(fafApiAccessor).authorize();
 
@@ -185,7 +185,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(fafApiAccessor.getMe()).thenReturn(Mono.error(testException));
 
@@ -204,7 +204,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.failedFuture(testException));
 
@@ -226,7 +226,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(invalidLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.failedFuture(testException));
 
@@ -246,7 +246,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
 
     instance.login("abc").join();
 
@@ -271,7 +271,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
 
     instance.loginWithRefreshToken("abc").join();
 
@@ -288,7 +288,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn("def");
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
     doThrow(testException).when(tokenService).loginWithRefreshToken(anyString());
 

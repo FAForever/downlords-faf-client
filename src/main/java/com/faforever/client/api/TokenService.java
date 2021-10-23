@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -37,32 +38,33 @@ public class TokenService implements InitializingBean {
     eventBus.register(this);
   }
 
-  public synchronized String getRefreshedTokenValue() {
-    if (tokenCache == null) {
-      log.warn("No valid token found to be refreshed");
-      eventBus.post(new LogOutRequestEvent());
-      return null;
-    }
+  public synchronized Mono<String> getRefreshedTokenValue() {
+    return Mono.justOrEmpty(tokenCache)
+        .flatMap(token -> {
+          if (token.isExpired()) {
+            log.debug("Token expired, fetching new token");
+            return loginWithRefreshToken(token.getRefreshToken().getValue())
+                .thenReturn(token.getValue())
+                .doOnError(throwable -> {
+                  log.error("Could not login with token", throwable);
+                  tokenCache = null;
+                  preferencesService.getPreferences().getLogin().setRefreshToken(null);
+                  preferencesService.storeInBackground();
+                  eventBus.post(new SessionExpiredEvent());
+                });
+          }
 
-    try {
-      if (tokenCache.isExpired()) {
-        log.debug("Token expired, fetching new token");
-        loginWithRefreshToken(tokenCache.getRefreshToken().getValue());
-      }
-
-      log.debug("Token still valid for {} seconds", tokenCache.getExpiresIn());
-      return tokenCache.getValue();
-    } catch (Exception e) {
-      log.info("Could not login with token", e);
-      tokenCache = null;
-      preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
-      preferencesService.storeInBackground();
-      eventBus.post(new SessionExpiredEvent());
-      return null;
-    }
+          log.debug("Token still valid for {} seconds", tokenCache.getExpiresIn());
+          return Mono.just(token.getValue());
+        })
+        .switchIfEmpty(Mono.fromCallable(() -> {
+          log.warn("No valid token found to be refreshed");
+          eventBus.post(new LogOutRequestEvent());
+          throw new TokenRetrievalException("No token to log in with");
+        }));
   }
 
-  public synchronized void loginWithAuthorizationCode(String code) {
+  public synchronized Mono<Void> loginWithAuthorizationCode(String code) {
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
     Oauth oauth = clientProperties.getOauth();
     map.add("code", code);
@@ -70,10 +72,10 @@ public class TokenService implements InitializingBean {
     map.add("redirect_uri", oauth.getRedirectUrl());
     map.add("grant_type", "authorization_code");
 
-    retrieveToken(map);
+    return retrieveToken(map);
   }
 
-  public synchronized void loginWithRefreshToken(String refreshToken) {
+  public synchronized Mono<Void> loginWithRefreshToken(String refreshToken) {
     Oauth oauth = clientProperties.getOauth();
     MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
     map.add("refresh_token", refreshToken);
@@ -81,29 +83,25 @@ public class TokenService implements InitializingBean {
     map.add("redirect_uri", oauth.getRedirectUrl());
     map.add("grant_type", "refresh_token");
 
-    retrieveToken(map);
+    return retrieveToken(map);
   }
 
-  private void retrieveToken(MultiValueMap<String, String> map) {
-    log.debug("Retrieving OAuth token");
-    tokenCache = webClient.post()
+  private Mono<Void> retrieveToken(MultiValueMap<String, String> map) {
+    return webClient.post()
         .uri(String.format("%s/oauth2/token", clientProperties.getOauth().getBaseUrl()))
         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
         .accept(MediaType.APPLICATION_JSON)
         .bodyValue(map)
         .retrieve()
         .bodyToMono(OAuth2AccessToken.class)
-        .block();
-
-    preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
-    preferencesService.storeInBackground();
-
-    if (tokenCache == null) {
-      throw new TokenRetrievalException("Could not login with provided parameters");
-    }
-
-    preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
-    preferencesService.storeInBackground();
+        .doOnSubscribe(subscription -> log.debug("Retrieving OAuth token"))
+        .switchIfEmpty(Mono.error(new TokenRetrievalException("Could not login with provided parameters")))
+        .flatMap(token -> {
+          tokenCache = token;
+          preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
+          preferencesService.storeInBackground();
+          return Mono.empty();
+        });
   }
 
   public String getRefreshToken() {

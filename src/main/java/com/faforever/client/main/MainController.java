@@ -250,7 +250,6 @@ public class MainController implements Controller<Node> {
   @Subscribe
   public void onLoggedOutEvent(LoggedOutEvent event) {
     viewCache.invalidateAll();
-    contentPane.getChildren().clear();
     JavaFxUtil.runLater(this::enterLoggedOutState);
   }
 
@@ -368,6 +367,7 @@ public class MainController implements Controller<Node> {
   }
 
   private void enterLoggedOutState() {
+    contentPane.getChildren().clear();
     fxStage.getStage().setTitle(i18n.get("login.title"));
 
     LoginController loginController = uiService.loadFxml("theme/login/login.fxml");
