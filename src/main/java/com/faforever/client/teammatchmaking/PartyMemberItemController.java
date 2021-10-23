@@ -172,7 +172,7 @@ public class PartyMemberItemController implements Controller<Node> {
       }
     }
 
-    PartyMemberContextMenuController controller = uiService.loadFxml("theme/play/teammatchmaking/party_member_context_menu.fxml");
+    PartyMemberContextMenuController controller = uiService.loadFxml("theme/player_context_menu.fxml", PartyMemberContextMenuController.class);
     controller.setPlayer(player);
     controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
 
