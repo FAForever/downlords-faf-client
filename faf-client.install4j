@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="8.0.8" transformSequenceNumber="8">
+<install4j version="9.0.5" transformSequenceNumber="9">
   <directoryPresets config="./src/media/appicon" />
-  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="dfc" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="15" javaMaxVersion="15" allowBetaVM="true">
+  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="FAF" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="17" allowBetaVM="true">
     <languages>
       <additionalLanguages>
         <language id="zh_CN" />
@@ -17,7 +17,7 @@
     </languages>
     <searchSequence empty="true" />
   </application>
-  <files>
+  <files preserveSymlinks="false">
     <roots>
       <root id="506" location="${installer:sys.programDataDir}" />
     </roots>
@@ -477,11 +477,19 @@ return console.askYesNo(message, true);
           <group id="233" beanClass="com.install4j.runtime.beans.groups.VerticalFormComponentGroup" useExternalParametrization="true" externalParametrizationName="Customize banner image" externalParametrizationMode="include">
             <serializedBean>
               <property name="backgroundColor">
-                <object class="java.awt.Color">
-                  <int>255</int>
-                  <int>255</int>
-                  <int>255</int>
-                  <int>255</int>
+                <object class="com.install4j.runtime.beans.LightOrDarkColor">
+                  <object class="java.awt.Color">
+                    <int>255</int>
+                    <int>255</int>
+                    <int>255</int>
+                    <int>255</int>
+                  </object>
+                  <object class="java.awt.Color">
+                    <int>49</int>
+                    <int>52</int>
+                    <int>53</int>
+                    <int>255</int>
+                  </object>
                 </object>
               </property>
               <property name="borderSides">
@@ -490,11 +498,19 @@ return console.askYesNo(message, true);
                 </object>
               </property>
               <property name="imageEdgeBackgroundColor">
-                <object class="java.awt.Color">
-                  <int>25</int>
-                  <int>143</int>
-                  <int>220</int>
-                  <int>255</int>
+                <object class="com.install4j.runtime.beans.LightOrDarkColor">
+                  <object class="java.awt.Color">
+                    <int>25</int>
+                    <int>143</int>
+                    <int>220</int>
+                    <int>255</int>
+                  </object>
+                  <object class="java.awt.Color">
+                    <int>0</int>
+                    <int>74</int>
+                    <int>151</int>
+                    <int>255</int>
+                  </object>
                 </object>
               </property>
               <property name="imageEdgeBorder" type="boolean" value="true" />
@@ -548,11 +564,19 @@ return console.askYesNo(message, true);
               <group id="240" beanClass="com.install4j.runtime.beans.groups.VerticalFormComponentGroup" useExternalParametrization="true" externalParametrizationName="Customize title bar" externalParametrizationMode="include">
                 <serializedBean>
                   <property name="backgroundColor">
-                    <object class="java.awt.Color">
-                      <int>255</int>
-                      <int>255</int>
-                      <int>255</int>
-                      <int>255</int>
+                    <object class="com.install4j.runtime.beans.LightOrDarkColor">
+                      <object class="java.awt.Color">
+                        <int>255</int>
+                        <int>255</int>
+                        <int>255</int>
+                        <int>255</int>
+                      </object>
+                      <object class="java.awt.Color">
+                        <int>49</int>
+                        <int>52</int>
+                        <int>53</int>
+                        <int>255</int>
+                      </object>
                     </object>
                   </property>
                   <property name="borderSides">
@@ -660,32 +684,35 @@ return console.askYesNo(message, true);
         <entry location="lib/faf-uid" />
         <entry location="lib/uid" />
       </exclude>
-      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-15.0.1" directDownload="true" />
+      <jreBundle usePack200="false" jreBundleSource="preCreated" includedJre="windows-amd64-17.0.1" directDownload="true" />
     </windows>
     <windowsArchive name="Windows Archive" id="330" installDir="faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter" />
         <entry location="lib/faf-uid" />
       </exclude>
-      <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-15.0.1" />
+      <jreBundle jreBundleSource="preCreated" includedJre="windows-amd64-17.0.1" />
     </windowsArchive>
     <unixArchive name="Unix Archive" id="331" installDir="faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
+      <jreBundle jreBundleSource="none" />
     </unixArchive>
     <linuxRPM name="Linux RPM" id="332" installDir="/opt/faf-client-${compiler:sys.version}">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
+      <jreBundle jreBundleSource="none" />
     </linuxRPM>
     <linuxDeb name="Linux Deb Archive" id="333" installDir="/opt/faf-client-${compiler:sys.version}" dependencies="oracle-java8-installer" description="FAF Client" maintainerEmail="michel.jung89@gmail.com">
       <exclude>
         <entry location="lib/faf-ice-adapter.exe" />
         <entry location="lib/faf-uid.exe" />
       </exclude>
+      <jreBundle jreBundleSource="none" />
     </linuxDeb>
   </mediaSets>
 </install4j>

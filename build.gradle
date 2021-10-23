@@ -105,8 +105,8 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'distribution'
 
 
-sourceCompatibility = JavaVersion.VERSION_15
-targetCompatibility = JavaVersion.VERSION_15
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 // These are read from gradle.properties
 version "${version}"
