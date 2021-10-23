@@ -51,7 +51,7 @@ jobs:
       - name: Download Bundled JRE
         run: |
             mkdir -p "$HOME/.install4j9/jres/"
-            curl https://content.faforever.com/jre/windows-amd64-17.0.1.tar.gz -o "$HOME/.install4j9/jres/windows-amd64-17.0.1.tar.gz"
+            curl https://content.faforever.com/build/jre/windows-amd64-17.0.1.tar.gz -o "$HOME/.install4j9/jres/windows-amd64-17.0.1.tar.gz"
 
       - name: Build Windows Files
         run: |
