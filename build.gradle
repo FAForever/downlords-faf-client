@@ -94,9 +94,9 @@ tasks.withType(Test) {
 
 }
 
-//Specify jacoco version to work with java15
+//Specify jacoco version to work with java17
 jacoco {
-  toolVersion = "0.8.6"
+  toolVersion = "0.8.7"
 }
 
 apply plugin: 'java'
