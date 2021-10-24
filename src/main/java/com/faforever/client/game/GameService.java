@@ -195,7 +195,7 @@ public class GameService implements InitializingBean {
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.synchronizedObservableList(FXCollections.observableList(new ArrayList<>(),
-        item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
+        item -> new Observable[]{item.statusProperty(), item.teamsProperty(), item.numPlayersProperty()}
     ));
     forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
     inMatchmakerQueue = false;

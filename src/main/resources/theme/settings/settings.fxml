@@ -1,20 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.Group?>
-<?import javafx.scene.layout.*?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="settingsRoot" maxHeight="1.7976931348623157E308" prefHeight="600.0"
-      prefWidth="800.0" styleClass="decorated-window, settings"
-      xmlns="http://javafx.com/javafx/11.0.1" fx:controller="com.faforever.client.preferences.ui.SettingsController">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="settingsRoot" maxHeight="1.7976931348623157E308" prefHeight="800.0" prefWidth="800.0" styleClass="decorated-window, settings" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.preferences.ui.SettingsController">
     <children>
         <HBox fx:id="settingsHeader" styleClass="header">
             <children>
-                <Label text="%settings.windowTitle"/>
+                <Label text="%settings.windowTitle" />
             </children>
         </HBox>
-        <TabPane rotateGraphic="true" side="LEFT" styleClass="settings" tabClosingPolicy="UNAVAILABLE"
-                 tabMaxHeight="200.0" tabMinHeight="200.0" VBox.vgrow="ALWAYS">
+        <TabPane rotateGraphic="true" side="LEFT" styleClass="settings" tabClosingPolicy="UNAVAILABLE" tabMaxHeight="200.0" tabMinHeight="200.0" VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab>
                     <content>
@@ -24,158 +39,122 @@
                                     <children>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title" text="%settings.general.startTab"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.general.startTab.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <ComboBox fx:id="startTabChoiceBox" GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.general.startTab" />
+                                                <Label styleClass="setting-description" text="%settings.general.startTab.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <ComboBox fx:id="startTabChoiceBox" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.general.unitDatabase"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.general.unitDatabase.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <ComboBox fx:id="unitDatabaseComboBox" minHeight="-Infinity"
-                                                          minWidth="-Infinity" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.general.unitDatabase" />
+                                                <Label styleClass="setting-description" text="%settings.general.unitDatabase.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <ComboBox fx:id="unitDatabaseComboBox" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" styleClass="setting-title"
-                                                       text="%settings.general.disallowDiscordJoins"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.general.disallowDiscordJoins.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="disallowJoinsCheckBox" contentDisplay="RIGHT"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" styleClass="setting-title" text="%settings.general.disallowDiscordJoins" />
+                                                <Label styleClass="setting-description" text="%settings.general.disallowDiscordJoins.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="disallowJoinsCheckBox" contentDisplay="RIGHT" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.general.vaultFallbackLocation" wrapText="true"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.general.vaultFallbackLocation.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="secondaryVaultLocationToggle"
-                                                          GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.general.vaultFallbackLocation" wrapText="true" />
+                                                <Label styleClass="setting-description" text="%settings.general.vaultFallbackLocation.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="secondaryVaultLocationToggle" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.checkForPrerelease"
-                                                       wrapText="true"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.checkForPrerelease.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="prereleaseToggle" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.checkForPrerelease" wrapText="true" />
+                                                <Label styleClass="setting-description" text="%settings.checkForPrerelease.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="prereleaseToggle" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.prereleaseFeedback"
-                                                       wrapText="true"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.prereleaseFeedback.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <Button onMouseClicked="#openDiscordFeedbackChannel"
-                                                        text="%settings.giveFeedback" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.prereleaseFeedback" wrapText="true" />
+                                                <Label styleClass="setting-description" text="%settings.prereleaseFeedback.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <Button onMouseClicked="#openDiscordFeedbackChannel" text="%settings.giveFeedback" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.general.advancedIceLog" wrapText="true"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.general.advancedIceLog.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="advancedIceLogToggle" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.general.advancedIceLog" wrapText="true" />
+                                                <Label styleClass="setting-description" text="%settings.general.advancedIceLog.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="advancedIceLogToggle" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.general.debugLog"
-                                                       wrapText="true"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.general.debugLog.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="debugLogToggle" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.general.debugLog" wrapText="true" />
+                                                <Label styleClass="setting-description" text="%settings.general.debugLog.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="debugLogToggle" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                     </children>
@@ -188,7 +167,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.general"/>
+                                        <Label styleClass="tab-label" text="%settings.general" />
                                     </children>
                                 </VBox>
                             </children>
@@ -197,167 +176,137 @@
                 </Tab>
                 <Tab>
                     <content>
-                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308"
-                                    maxWidth="1.7976931348623157E308">
+                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                             <content>
                                 <VBox styleClass="view-content">
                                     <children>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.chat.previewImages"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.chat.previewImages.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="imagePreviewToggle" contentDisplay="GRAPHIC_ONLY"
-                                                          disable="true" mnemonicParsing="false"
-                                                          GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.chat.previewImages" />
+                                                <Label styleClass="setting-description" text="%settings.chat.previewImages.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="imagePreviewToggle" contentDisplay="GRAPHIC_ONLY" disable="true" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.chat.hideFoe"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.chat.hideFoe.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="hideFoeToggle" contentDisplay="GRAPHIC_ONLY"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.chat.hideFoe" />
+                                                <Label styleClass="setting-description" text="%settings.chat.hideFoe.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="hideFoeToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label fx:id="notifyAtMentionTitle" styleClass="setting-title"
-                                                       text="%settings.chat.notifyOnAtMentionOnly"/>
-                                                <Label fx:id="notifyAtMentionDescription"
-                                                       styleClass="setting-description"
-                                                       text="%settings.chat.notifyOnAtMentionOnly.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="notifyOnAtMentionOnlyToggle"
-                                                          contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false"
-                                                          GridPane.columnIndex="1"/>
+                                                <Label fx:id="notifyAtMentionTitle" styleClass="setting-title" text="%settings.chat.notifyOnAtMentionOnly" />
+                                                <Label fx:id="notifyAtMentionDescription" styleClass="setting-description" text="%settings.chat.notifyOnAtMentionOnly.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="notifyOnAtMentionOnlyToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.chat.maxMessages"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.chat.maxMessages.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <TextField fx:id="maxMessagesTextField"
-                                                           maxWidth="1.7976931348623157E308" prefWidth="50.0"
-                                                           GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.chat.maxMessages" />
+                                                <Label styleClass="setting-description" text="%settings.chat.maxMessages.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                                                <TextField fx:id="maxMessagesTextField" maxWidth="1.7976931348623157E308" prefWidth="50.0" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.chat.timeFormat"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.chat.timeFormat.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <ComboBox fx:id="timeComboBox" maxWidth="1.7976931348623157E308"
-                                                          onAction="#onTimeFormatSelected" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.chat.timeFormat" />
+                                                <Label styleClass="setting-description" text="%settings.chat.timeFormat.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                                                <ComboBox fx:id="timeComboBox" maxWidth="1.7976931348623157E308" onAction="#onTimeFormatSelected" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.chat.dateFormat"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.chat.dateFormat.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <ComboBox fx:id="dateComboBox" maxWidth="1.7976931348623157E308"
-                                                          onAction="#onDateFormatSelected" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.chat.dateFormat" />
+                                                <Label styleClass="setting-description" text="%settings.chat.dateFormat.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                                                <ComboBox fx:id="dateComboBox" maxWidth="1.7976931348623157E308" onAction="#onDateFormatSelected" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.chat.chatFormat"/>
-                                                <ComboBox fx:id="chatComboBox" maxWidth="1.7976931348623157E308"
-                                                          onAction="#onChatFormatSelected" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.chat.chatFormat" />
+                                                <ComboBox fx:id="chatComboBox" maxWidth="1.7976931348623157E308" onAction="#onChatFormatSelected" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.chat.colors"/>
-                                                <VBox spacing="5.0" GridPane.columnSpan="2147483647"
-                                                      GridPane.rowIndex="1">
+                                                <Label styleClass="setting-title" text="%settings.chat.colors" />
+                                                <VBox spacing="5.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
                                                     <children>
-                                                        <RadioButton fx:id="defaultColorsToggle" mnemonicParsing="false"
-                                                                     selected="true"
-                                                                     text="%settings.chat.colorMode.default">
+                                                        <RadioButton fx:id="defaultColorsToggle" mnemonicParsing="false" selected="true" text="%settings.chat.colorMode.default">
                                                             <toggleGroup>
-                                                                <ToggleGroup fx:id="colorModeToggleGroup"/>
+                                                                <ToggleGroup fx:id="colorModeToggleGroup" />
                                                             </toggleGroup>
                                                             <VBox.margin>
-                                                                <Insets left="20.0"/>
+                                                                <Insets left="20.0" />
                                                             </VBox.margin>
                                                         </RadioButton>
-                                                        <RadioButton fx:id="randomColorsToggle" mnemonicParsing="false"
-                                                                     text="%settings.chat.colorMode.random"
-                                                                     toggleGroup="$colorModeToggleGroup">
+                                                        <RadioButton fx:id="randomColorsToggle" mnemonicParsing="false" text="%settings.chat.colorMode.random" toggleGroup="$colorModeToggleGroup">
                                                             <VBox.margin>
-                                                                <Insets left="20.0"/>
+                                                                <Insets left="20.0" />
                                                             </VBox.margin>
                                                         </RadioButton>
                                                     </children>
@@ -366,37 +315,27 @@
                                         </GridPane>
                                         <GridPane hgap="10.0" styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" valignment="BOTTOM" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" valignment="BOTTOM" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.chat.autoJoinChannels"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.chat.autoJoinChannels.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                                <TextField fx:id="channelTextField" maxWidth="1.7976931348623157E308"
-                                                           onAction="#onAddAutoChannel"
-                                                           promptText="%settings.chat.autoJoinChannelPrompt"
-                                                           GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
+                                                <Label styleClass="setting-title" text="%settings.chat.autoJoinChannels" />
+                                                <Label styleClass="setting-description" text="%settings.chat.autoJoinChannels.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+                                                <TextField fx:id="channelTextField" maxWidth="1.7976931348623157E308" onAction="#onAddAutoChannel" promptText="%settings.chat.autoJoinChannelPrompt" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2">
                                                     <GridPane.margin>
-                                                        <Insets top="10.0"/>
+                                                        <Insets top="10.0" />
                                                     </GridPane.margin>
                                                 </TextField>
-                                                <Button fx:id="addChannelButton" mnemonicParsing="false"
-                                                        onAction="#onAddAutoChannel"
-                                                        text="%settings.chat.addAutoJoinChannel"
-                                                        GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                                                <ListView fx:id="autoChannelListView" maxHeight="120.0" minHeight="30.0"
-                                                          GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
+                                                <Button fx:id="addChannelButton" mnemonicParsing="false" onAction="#onAddAutoChannel" text="%settings.chat.addAutoJoinChannel" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                <ListView fx:id="autoChannelListView" maxHeight="120.0" minHeight="30.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="3">
                                                     <GridPane.margin>
-                                                        <Insets top="10.0"/>
+                                                        <Insets top="10.0" />
                                                     </GridPane.margin>
                                                 </ListView>
                                             </children>
@@ -411,7 +350,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.chat"/>
+                                        <Label styleClass="tab-label" text="%settings.chat" />
                                     </children>
                                 </VBox>
                             </children>
@@ -420,222 +359,175 @@
                 </Tab>
                 <Tab>
                     <content>
-                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308"
-                                    maxWidth="1.7976931348623157E308">
+                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                             <content>
                                 <VBox styleClass="view-content">
                                     <children>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"
-                                                                   minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title"
-                                                       text="%settings.notifications.enableNotifications"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.notifications.enableNotifications.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="enableNotificationsToggle"
-                                                          contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false"
-                                                          selected="true" GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.notifications.enableNotifications" />
+                                                <Label styleClass="setting-description" text="%settings.notifications.enableNotifications.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="enableNotificationsToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" selected="true" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"
-                                                                   minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title"
-                                                       text="%settings.notifications.position"/>
-                                                <GridPane hgap="10.0" maxHeight="-Infinity" maxWidth="-Infinity"
-                                                          prefHeight="200.0" prefWidth="400.0"
-                                                          style="-fx-border-color: white; -fx-border-radius: 5;"
-                                                          vgap="10.0" GridPane.columnSpan="2147483647"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.notifications.position" />
+                                                <GridPane hgap="10.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="200.0" prefWidth="400.0" style="-fx-border-color: white; -fx-border-radius: 5;" vgap="10.0" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowIndex="1">
                                                     <columnConstraints>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                                     </columnConstraints>
                                                     <rowConstraints>
-                                                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                                     </rowConstraints>
                                                     <children>
-                                                        <RadioButton fx:id="topLeftToastButton" graphicTextGap="0"
-                                                                     GridPane.halignment="LEFT"
-                                                                     GridPane.valignment="TOP">
+                                                        <RadioButton fx:id="topLeftToastButton" graphicTextGap="0" GridPane.halignment="LEFT" GridPane.valignment="TOP">
                                                             <toggleGroup>
-                                                                <ToggleGroup fx:id="toastPositionToggleGroup"/>
+                                                                <ToggleGroup fx:id="toastPositionToggleGroup" />
                                                             </toggleGroup>
                                                             <GridPane.margin>
-                                                                <Insets left="7.0" top="7.0"/>
+                                                                <Insets left="7.0" top="7.0" />
                                                             </GridPane.margin>
                                                         </RadioButton>
-                                                        <RadioButton fx:id="topRightToastButton" graphicTextGap="0"
-                                                                     toggleGroup="$toastPositionToggleGroup"
-                                                                     GridPane.columnIndex="1"
-                                                                     GridPane.halignment="RIGHT"
-                                                                     GridPane.valignment="TOP">
+                                                        <RadioButton fx:id="topRightToastButton" graphicTextGap="0" toggleGroup="$toastPositionToggleGroup" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
                                                             <GridPane.margin>
-                                                                <Insets top="7.0"/>
+                                                                <Insets top="7.0" />
                                                             </GridPane.margin>
                                                         </RadioButton>
-                                                        <RadioButton fx:id="bottomLeftToastButton" graphicTextGap="0"
-                                                                     toggleGroup="$toastPositionToggleGroup"
-                                                                     GridPane.halignment="LEFT" GridPane.rowIndex="1"
-                                                                     GridPane.valignment="BOTTOM">
+                                                        <RadioButton fx:id="bottomLeftToastButton" graphicTextGap="0" toggleGroup="$toastPositionToggleGroup" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM">
                                                             <GridPane.margin>
-                                                                <Insets bottom="7.0" left="7.0"/>
+                                                                <Insets bottom="7.0" left="7.0" />
                                                             </GridPane.margin>
                                                         </RadioButton>
-                                                        <RadioButton fx:id="bottomRightToastButton" graphicTextGap="0"
-                                                                     toggleGroup="$toastPositionToggleGroup"
-                                                                     GridPane.columnIndex="1"
-                                                                     GridPane.halignment="RIGHT" GridPane.rowIndex="1"
-                                                                     GridPane.valignment="BOTTOM">
+                                                        <RadioButton fx:id="bottomRightToastButton" graphicTextGap="0" toggleGroup="$toastPositionToggleGroup" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM">
                                                             <GridPane.margin>
-                                                                <Insets bottom="7.0"/>
+                                                                <Insets bottom="7.0" />
                                                             </GridPane.margin>
                                                         </RadioButton>
-                                                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" spacing="10.0"
-                                                              GridPane.columnSpan="2147483647"
-                                                              GridPane.halignment="CENTER" GridPane.rowSpan="2147483647"
-                                                              GridPane.valignment="CENTER">
+                                                        <VBox maxHeight="-Infinity" maxWidth="-Infinity" spacing="10.0" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.rowSpan="2147483647" GridPane.valignment="CENTER">
                                                             <children>
-                                                                <ComboBox fx:id="toastScreenComboBox"
-                                                                          maxWidth="1.7976931348623157E308"/>
-                                                                <Button maxWidth="1.7976931348623157E308"
-                                                                        mnemonicParsing="false"
-                                                                        onAction="#onPreviewToastButtonClicked"
-                                                                        text="%settings.notifications.toastPreview"/>
+                                                                <ComboBox fx:id="toastScreenComboBox" maxWidth="1.7976931348623157E308" />
+                                                                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onPreviewToastButtonClicked" text="%settings.notifications.toastPreview" />
                                                             </children>
                                                         </VBox>
                                                     </children>
                                                     <GridPane.margin>
-                                                        <Insets top="10.0"/>
+                                                        <Insets top="10.0" />
                                                     </GridPane.margin>
                                                 </GridPane>
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title" text="%settings.sounds.enable"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.sounds.enable.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="enableSoundsToggle" contentDisplay="GRAPHIC_ONLY"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.sounds.enable" />
+                                                <Label styleClass="setting-description" text="%settings.sounds.enable.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="enableSoundsToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane hgap="10.0" styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.notifications.displayNotification"
-                                                       GridPane.columnIndex="1" GridPane.halignment="CENTER"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.notifications.playSound" GridPane.columnIndex="2"
-                                                       GridPane.halignment="CENTER"/>
-                                                <CheckBox fx:id="displayFriendOnlineToastCheckBox"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="1"
-                                                          GridPane.valignment="CENTER"/>
-                                                <CheckBox fx:id="playFriendOnlineSoundCheckBox" disable="true"
-                                                          mnemonicParsing="false" GridPane.columnIndex="2"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="1"
-                                                          GridPane.valignment="CENTER"/>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.notifications.friendOnline"
-                                                       GridPane.rowIndex="1"/>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.notifications.friendOffline"
-                                                       GridPane.rowIndex="2"/>
-                                                <CheckBox fx:id="playFriendOfflineSoundCheckBox" disable="true"
-                                                          mnemonicParsing="false" GridPane.columnIndex="2"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="2"
-                                                          GridPane.valignment="CENTER"/>
-                                                <CheckBox fx:id="displayFriendOfflineToastCheckBox"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="2"
-                                                          GridPane.valignment="CENTER"/>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.notifications.friendJoinsGame"
-                                                       GridPane.rowIndex="3"/>
-                                                <CheckBox fx:id="playFriendJoinsGameSoundCheckBox"
-                                                          mnemonicParsing="false" GridPane.columnIndex="2"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="3"
-                                                          GridPane.valignment="CENTER"/>
-                                                <CheckBox fx:id="displayFriendJoinsGameToastCheckBox"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="3"
-                                                          GridPane.valignment="CENTER"/>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.notifications.friendPlaysGame"
-                                                       GridPane.rowIndex="4"/>
-                                                <CheckBox fx:id="displayFriendPlaysGameToastCheckBox" disable="true"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="4"
-                                                          GridPane.valignment="CENTER"/>
-                                                <CheckBox fx:id="playFriendPlaysGameSoundCheckBox"
-                                                          mnemonicParsing="false" GridPane.columnIndex="2"
-                                                          GridPane.halignment="CENTER" GridPane.rowIndex="4"
-                                                          GridPane.valignment="CENTER"/>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.notifications.pmReceived" GridPane.rowIndex="5"/>
-                                                <CheckBox fx:id="displayPmReceivedToastCheckBox" mnemonicParsing="false"
-                                                          GridPane.columnIndex="1" GridPane.halignment="CENTER"
-                                                          GridPane.rowIndex="5" GridPane.valignment="CENTER"/>
-                                                <CheckBox fx:id="playPmReceivedSoundCheckBox" mnemonicParsing="false"
-                                                          GridPane.columnIndex="2" GridPane.halignment="CENTER"
-                                                          GridPane.rowIndex="5" GridPane.valignment="CENTER"/>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.notifications.afterGameReview"
-                                                       GridPane.rowIndex="6"/>
-                                                <CheckBox fx:id="afterGameReviewCheckBox" mnemonicParsing="false"
-                                                          GridPane.columnIndex="1" GridPane.halignment="CENTER"
-                                                          GridPane.rowIndex="6" GridPane.valignment="CENTER"/>
+                                                <Label styleClass="setting-description" text="%settings.notifications.displayNotification" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                                                <Label styleClass="setting-description" text="%settings.notifications.playSound" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
+                                                <CheckBox fx:id="displayFriendOnlineToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="playFriendOnlineSoundCheckBox" disable="true" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                                <Label styleClass="setting-title" text="%settings.notifications.friendOnline" GridPane.rowIndex="1" />
+                                                <Label styleClass="setting-title" text="%settings.notifications.friendOffline" GridPane.rowIndex="2" />
+                                                <CheckBox fx:id="playFriendOfflineSoundCheckBox" disable="true" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="displayFriendOfflineToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                                <Label styleClass="setting-title" text="%settings.notifications.friendJoinsGame" GridPane.rowIndex="3" />
+                                                <CheckBox fx:id="playFriendJoinsGameSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="displayFriendJoinsGameToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+                                                <Label styleClass="setting-title" text="%settings.notifications.friendPlaysGame" GridPane.rowIndex="4" />
+                                                <CheckBox fx:id="displayFriendPlaysGameToastCheckBox" disable="true" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="playFriendPlaysGameSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="4" GridPane.valignment="CENTER" />
+                                                <Label styleClass="setting-title" text="%settings.notifications.pmReceived" GridPane.rowIndex="5" />
+                                                <CheckBox fx:id="displayPmReceivedToastCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                                                <CheckBox fx:id="playPmReceivedSoundCheckBox" mnemonicParsing="false" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                                                <Label styleClass="setting-title" text="%settings.notifications.afterGameReview" GridPane.rowIndex="6" />
+                                                <CheckBox fx:id="afterGameReviewCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
                                             </children>
                                         </GridPane>
+                              <GridPane fx:id="interestingLobbiesGrid" styleClass="setting-container">
+                                <columnConstraints>
+                                  <ColumnConstraints fillWidth="false" hgrow="SOMETIMES" minWidth="10.0" />
+                                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="220.0" prefWidth="220.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label styleClass="setting-title" text="%settings.notifications.interestingLobbies" />
+                                    <CheckBox fx:id="interestingLobbiesCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" />
+                                    <Label styleClass="setting-description" text="%settings.notifications.interestingLobbiesDescription" GridPane.rowIndex="1" />
+                                    <Label styleClass="setting-title" text="%settings.notifications.interestingLobbiesIncludeMapNames" GridPane.rowIndex="2" />
+                                    <TextField fx:id="includeMapNamesTextField" promptText="setons, wonder" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <Label styleClass="setting-description" text="%settings.notifications.interestingLobbiesIncludeMapNamesDescription" wrapText="true" GridPane.rowIndex="3" />
+                                    <Label styleClass="setting-title" text="%settings.notifications.interestingLobbiesExcludeMapNames" GridPane.rowIndex="4" />
+                                    <Label styleClass="setting-description" text="%settings.notifications.interestingLobbiesExcludeMapNamesDescription" wrapText="true" GridPane.rowIndex="5" />
+                                    <TextField fx:id="excludeMapNamesTextField" promptText="gap, astro" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                    <Label styleClass="setting-title" text="%settings.notifications.interestingLobbiesAverageRating" GridPane.rowIndex="6" />
+                                    <Label styleClass="setting-description" text="%settings.notifications.interestingLobbiesAverageRatingDescription" GridPane.rowIndex="7" />
+                                    <Label styleClass="setting-title" text="%settings.notifications.interestingLobbiesPercentFilled" GridPane.rowIndex="8" />
+                                    <Label styleClass="setting-description" text="%settings.notifications.interestingLobbiesPercentFilledDescription" GridPane.rowIndex="9" />
+                                    <Slider fx:id="lobbyPercentFilledSlider" majorTickUnit="10.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true" GridPane.columnIndex="1" GridPane.rowIndex="9" />
+                                    <Label styleClass="setting-title" text="%settings.notifications.interestingLobbiesNotifyTime" GridPane.rowIndex="10" />
+                                    <Label styleClass="setting-description" text="%settings.notifications.interestingLobbiesNotifyTimeDescription" GridPane.rowIndex="11" />
+                                    <Slider fx:id="lobbyNotifyTimeSlider" blockIncrement="1.0" majorTickUnit="1.0" max="10.0" minorTickCount="0" showTickLabels="true" showTickMarks="true" snapToTicks="true" GridPane.columnIndex="1" GridPane.rowIndex="11" />
+                                 </children>
+                              </GridPane>
                                     </children>
                                 </VBox>
                             </content>
@@ -646,7 +538,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.notifications"/>
+                                        <Label styleClass="tab-label" text="%settings.notifications" />
                                     </children>
                                 </VBox>
                             </children>
@@ -655,148 +547,106 @@
                 </Tab>
                 <Tab>
                     <content>
-                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308"
-                                    maxWidth="1.7976931348623157E308">
+                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                             <content>
                                 <VBox styleClass="view-content">
                                     <children>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"
-                                                                   minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title" text="%settings.fa.forceRelay"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.fa.forceRelay.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="forceRelayToggle" contentDisplay="GRAPHIC_ONLY"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.forceRelay" />
+                                                <Label styleClass="setting-description" text="%settings.fa.forceRelay.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="forceRelayToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane hgap="10.0" styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints halignment="RIGHT" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints halignment="RIGHT" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title" text="%settings.fa.gameLocation"/>
-                                                <TextField fx:id="gameLocationTextField"
-                                                           promptText="%settings.fa.useDefault" GridPane.rowIndex="1"/>
-                                                <Button mnemonicParsing="false" onAction="#onSelectGameLocation"
-                                                        text="%settings.fa.chooseDirectory" GridPane.columnIndex="1"
-                                                        GridPane.rowIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.gameLocation" />
+                                                <TextField fx:id="gameLocationTextField" promptText="%settings.fa.useDefault" GridPane.rowIndex="1" />
+                                                <Button mnemonicParsing="false" onAction="#onSelectGameLocation" text="%settings.fa.chooseDirectory" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"
-                                                                   minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title" text="%settings.fa.autoDownloadMaps"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.fa.autoDownloadMaps.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="autoDownloadMapsToggle" contentDisplay="GRAPHIC_ONLY"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.autoDownloadMaps" />
+                                                <Label styleClass="setting-description" text="%settings.fa.autoDownloadMaps.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="autoDownloadMapsToggle" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title"
-                                                       text="%settings.fa.executableDecorator"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.fa.executableDecorator.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <TextField fx:id="executableDecoratorField" promptText="&quot;%s&quot;"
-                                                           GridPane.rowIndex="2"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.executableDecorator" />
+                                                <Label styleClass="setting-description" text="%settings.fa.executableDecorator.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <TextField fx:id="executableDecoratorField" promptText="&quot;%s&quot;" GridPane.rowIndex="2" />
                                             </children>
                                         </GridPane>
                                         <GridPane hgap="10.0" styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title"
-                                                       text="%settings.fa.executionDirectory"/>
-                                                <TextField fx:id="executionDirectoryField"
-                                                           promptText="%settings.fa.useDefault"
-                                                           GridPane.rowIndex="2"/>
-                                                <Button disable="true" minWidth="-Infinity" mnemonicParsing="false"
-                                                        onAction="#onSelectExecutionDirectory"
-                                                        text="%settings.fa.chooseDirectory"
-                                                        GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.fa.executionDirectory.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.executionDirectory" />
+                                                <TextField fx:id="executionDirectoryField" promptText="%settings.fa.useDefault" GridPane.rowIndex="2" />
+                                                <Button disable="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onSelectExecutionDirectory" text="%settings.fa.chooseDirectory" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                <Label styleClass="setting-description" text="%settings.fa.executionDirectory.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane hgap="10.0" styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title"
-                                                       text="%settings.fa.allowReplayWhileInGame">
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.fa.allowReplayWhileInGame">
                                                     <graphic>
-                                                        <Label styleClass="button-mini-label"
-                                                               text="%settings.fa.allowReplayWhileInGame.experimental"
-                                                               GridPane.columnIndex="1"/>
+                                                        <Label styleClass="button-mini-label" text="%settings.fa.allowReplayWhileInGame.experimental" GridPane.columnIndex="1" />
                                                     </graphic>
                                                 </Label>
-                                                <Button fx:id="allowReplayWhileInGameButton" minWidth="-Infinity"
-                                                        mnemonicParsing="false"
-                                                        onAction="#onPatchGamePrefsForMultipleInstances"
-                                                        text="%settings.fa.patchGamePrefs" GridPane.rowIndex="2"/>
-                                                <CheckBox fx:id="allowReplayWhileInGameCheckBox"
-                                                          GridPane.columnIndex="1"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.fa.allowReplayWhileInGame.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                                <Button fx:id="allowReplayWhileInGameButton" minWidth="-Infinity" mnemonicParsing="false" onAction="#onPatchGamePrefsForMultipleInstances" text="%settings.fa.patchGamePrefs" GridPane.rowIndex="2" />
+                                                <CheckBox fx:id="allowReplayWhileInGameCheckBox" GridPane.columnIndex="1" />
+                                                <Label styleClass="setting-description" text="%settings.fa.allowReplayWhileInGame.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
                                             </children>
                                         </GridPane>
                                     </children>
@@ -809,7 +659,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.fa.title"/>
+                                        <Label styleClass="tab-label" text="%settings.fa.title" />
                                     </children>
                                 </VBox>
                             </children>
@@ -818,25 +668,21 @@
                 </Tab>
                 <Tab>
                     <content>
-                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308"
-                                    maxWidth="1.7976931348623157E308">
+                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                             <content>
                                 <VBox styleClass="view-content">
                                     <children>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title" text="%settings.account.goWebsite"/>
-                                                <Button maxWidth="1.7976931348623157E308" minWidth="0.0"
-                                                        onAction="#openWebsite" text="%settings.account.goWebsiteButton"
-                                                        GridPane.rowIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.account.goWebsite" />
+                                                <Button maxWidth="1.7976931348623157E308" minWidth="0.0" onAction="#openWebsite" text="%settings.account.goWebsiteButton" GridPane.rowIndex="1" />
                                             </children>
                                         </GridPane>
                                     </children>
@@ -849,7 +695,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.account"/>
+                                        <Label styleClass="tab-label" text="%settings.account" />
                                     </children>
                                 </VBox>
                             </children>
@@ -858,30 +704,24 @@
                 </Tab>
                 <Tab>
                     <content>
-                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308"
-                                    maxWidth="1.7976931348623157E308">
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                             <content>
                                 <VBox spacing="5.0" styleClass="view-content">
                                     <children>
                                         <GridPane styleClass="hint" vgap="10.0" HBox.hgrow="ALWAYS">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label maxHeight="1.7976931348623157E308"
-                                                       maxWidth="1.7976931348623157E308"
-                                                       text="%settings.language.helpUs.text" wrapText="true"/>
-                                                <Button onAction="#onHelpUsButtonClicked"
-                                                        text="%settings.language.helpUs.button"
-                                                        GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
+                                                <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="%settings.language.helpUs.text" wrapText="true" />
+                                                <Button onAction="#onHelpUsButtonClicked" text="%settings.language.helpUs.button" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
                                             </children>
                                         </GridPane>
-                                        <VBox fx:id="languagesContainer" maxHeight="1.7976931348623157E308"
-                                              spacing="5.0" VBox.vgrow="SOMETIMES"/>
+                                        <VBox fx:id="languagesContainer" maxHeight="1.7976931348623157E308" spacing="5.0" VBox.vgrow="SOMETIMES" />
                                     </children>
                                 </VBox>
                             </content>
@@ -892,7 +732,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.language"/>
+                                        <Label styleClass="tab-label" text="%settings.language" />
                                     </children>
                                 </VBox>
                             </children>
@@ -901,57 +741,43 @@
                 </Tab>
                 <Tab>
                     <content>
-                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308"
-                                    maxWidth="1.7976931348623157E308">
+                        <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                             <content>
                                 <VBox styleClass="view-content">
                                     <children>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints/>
-                                                <RowConstraints/>
+                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                                                <RowConstraints />
+                                                <RowConstraints />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.general.theme"
-                                                       GridPane.columnSpan="2147483647"/>
-                                                <ComboBox fx:id="themeComboBox" maxWidth="1.7976931348623157E308"
-                                                          GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.general.theme" GridPane.columnSpan="2147483647" />
+                                                <ComboBox fx:id="themeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane hgap="10.0" styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints/>
-                                                <RowConstraints minHeight="10.0"/>
-                                                <RowConstraints/>
+                                                <RowConstraints />
+                                                <RowConstraints minHeight="10.0" />
+                                                <RowConstraints />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.appearance.backgroundImage"
-                                                       GridPane.columnSpan="2147483647"/>
-                                                <TextField fx:id="backgroundImageLocation"
-                                                           promptText="%settings.appearance.useNone"
-                                                           GridPane.rowIndex="2"/>
-                                                <Button mnemonicParsing="false" onAction="#onUseNoBackgroundImage"
-                                                        text="%settings.general.theme.useNoImage"
-                                                        GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-                                                <Button mnemonicParsing="false" onAction="#onSelectBackgroundImage"
-                                                        text="%settings.fa.chooseDirectory" GridPane.columnIndex="1"
-                                                        GridPane.rowIndex="2"/>
-                                                <Label maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-description"
-                                                       text="%settings.appearance.backgroundImage.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.appearance.backgroundImage" GridPane.columnSpan="2147483647" />
+                                                <TextField fx:id="backgroundImageLocation" promptText="%settings.appearance.useNone" GridPane.rowIndex="2" />
+                                                <Button mnemonicParsing="false" onAction="#onUseNoBackgroundImage" text="%settings.general.theme.useNoImage" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                                <Button mnemonicParsing="false" onAction="#onSelectBackgroundImage" text="%settings.fa.chooseDirectory" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                <Label maxWidth="1.7976931348623157E308" styleClass="setting-description" text="%settings.appearance.backgroundImage.description" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
                                             </children>
                                         </GridPane>
                                     </children>
@@ -964,7 +790,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.appearance"/>
+                                        <Label styleClass="tab-label" text="%settings.appearance" />
                                     </children>
                                 </VBox>
                             </children>
@@ -980,91 +806,67 @@
                                     <children>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title" text="%settings.data.clearCache"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.data.clearCache.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <Button fx:id="clearCacheButton" disable="true"
-                                                        text="%settings.data.clearCache.button"
-                                                        GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" styleClass="setting-title" text="%settings.data.clearCache" />
+                                                <Label styleClass="setting-description" text="%settings.data.clearCache.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <Button fx:id="clearCacheButton" disable="true" text="%settings.data.clearCache.button" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label contentDisplay="RIGHT" styleClass="setting-title"
-                                                       text="%settings.data.gameDataCache"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.data.gameDataCache.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="gameDataCacheCheckBox" contentDisplay="RIGHT"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label contentDisplay="RIGHT" styleClass="setting-title" text="%settings.data.gameDataCache" />
+                                                <Label styleClass="setting-description" text="%settings.data.gameDataCache.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="gameDataCacheCheckBox" contentDisplay="RIGHT" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.data.gameDataCache.time"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.data.gameDataCache.time.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <Spinner fx:id="gameDataCacheTimeSpinner" minHeight="-Infinity"
-                                                         minWidth="-Infinity" GridPane.columnIndex="1" editable="true">
+                                                <Label styleClass="setting-title" text="%settings.data.gameDataCache.time" />
+                                                <Label styleClass="setting-description" text="%settings.data.gameDataCache.time.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <Spinner fx:id="gameDataCacheTimeSpinner" editable="true" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnIndex="1">
                                                     <valueFactory>
                                                         <!-- Works Intellij's complain is not correct -->
-                                                        <SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="60"
-                                                                                                        initialValue="30"
-                                                                                                        amountToStepBy="5"
-                                                        />
+                                                        <SpinnerValueFactory.IntegerSpinnerValueFactory amountToStepBy="5" initialValue="30" max="60" min="0" />
                                                     </valueFactory>
                                                 </Spinner>
                                             </children>
                                         </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                                             </columnConstraints>
                                             <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES" />
+                                                <RowConstraints vgrow="SOMETIMES" />
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title"
-                                                       text="%settings.data.mapAndModAutoUpdate"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.data.mapAndModAutoUpdate.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
-                                                       GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="mapAndModAutoUpdateCheckBox" contentDisplay="RIGHT"
-                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-title" text="%settings.data.mapAndModAutoUpdate" />
+                                                <Label styleClass="setting-description" text="%settings.data.mapAndModAutoUpdate.description" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+                                                <CheckBox fx:id="mapAndModAutoUpdateCheckBox" contentDisplay="RIGHT" mnemonicParsing="false" GridPane.columnIndex="1" />
                                             </children>
                                         </GridPane>
                                     </children>
@@ -1077,7 +879,7 @@
                             <children>
                                 <VBox prefWidth="200.0" rotate="90.0">
                                     <children>
-                                        <Label styleClass="tab-label" text="%settings.data"/>
+                                        <Label styleClass="tab-label" text="%settings.data" />
                                     </children>
                                 </VBox>
                             </children>

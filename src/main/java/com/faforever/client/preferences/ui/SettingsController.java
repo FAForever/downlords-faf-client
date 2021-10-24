@@ -24,6 +24,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.query.RangeFilterController;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
@@ -48,11 +49,13 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
@@ -72,6 +75,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
@@ -116,6 +120,13 @@ public class SettingsController implements Controller<Node> {
   public CheckBox displayPmReceivedToastCheckBox;
   public CheckBox playPmReceivedSoundCheckBox;
   public CheckBox afterGameReviewCheckBox;
+  public GridPane interestingLobbiesGrid;
+  public CheckBox interestingLobbiesCheckBox;
+  public TextField includeMapNamesTextField;
+  public TextField excludeMapNamesTextField;
+  public RangeFilterController averageRangeFilterController;
+  public Slider lobbyPercentFilledSlider;
+  public Slider lobbyNotifyTimeSlider;
   public Region settingsRoot;
   public ComboBox<Theme> themeComboBox;
   public ToggleGroup toastPositionToggleGroup;
@@ -284,6 +295,9 @@ public class SettingsController implements Controller<Node> {
     configureToastScreen(preferences);
     configureStartTab(preferences);
 
+    averageRangeFilterController = createRangeFilter("playerStats.ratingChanges.meanBefore", i18n.get("game.rating"),
+        0, 3000, 100, (value) -> value + 300);
+
     displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOnlineToastEnabledProperty());
     displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendOfflineToastEnabledProperty());
     displayFriendJoinsGameToastCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendJoinsGameToastEnabledProperty());
@@ -295,7 +309,13 @@ public class SettingsController implements Controller<Node> {
     playFriendPlaysGameSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().friendPlaysGameSoundEnabledProperty());
     playPmReceivedSoundCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().privateMessageSoundEnabledProperty());
     afterGameReviewCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().afterGameReviewEnabledProperty());
-
+    interestingLobbiesCheckBox.selectedProperty().bindBidirectional(preferences.getNotification().interestingLobbiesEnabledProperty());
+    includeMapNamesTextField.textProperty().bindBidirectional(preferences.getNotification().includeMapNamesProperty());
+    excludeMapNamesTextField.textProperty().bindBidirectional(preferences.getNotification().excludeMapNamesProperty());
+    averageRangeFilterController.rangeSlider.lowValueProperty().bindBidirectional(preferences.getNotification().averageRatingLowerBoundProperty());
+    averageRangeFilterController.rangeSlider.highValueProperty().bindBidirectional(preferences.getNotification().averageRatingUpperBoundProperty());
+    lobbyPercentFilledSlider.valueProperty().bindBidirectional(preferences.getNotification().lobbyPercentFilledProperty());
+    lobbyNotifyTimeSlider.valueProperty().bindBidirectional(preferences.getNotification().lobbyNotifyTimeProperty());
     notifyOnAtMentionOnlyToggle.selectedProperty().bindBidirectional(preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty());
     enableSoundsToggle.selectedProperty().bindBidirectional(preferences.getNotification().soundsEnabledProperty());
     forceRelayToggle.selectedProperty().bindBidirectional(preferences.getForgedAlliance().forceRelayProperty());
@@ -588,6 +608,20 @@ public class SettingsController implements Controller<Node> {
       log.error("Game.prefs patch failed", e);
       notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
     }
+  }
+
+  private RangeFilterController createRangeFilter(String propertyName, String title, double min, double max, double tickUnit, Function<Double, ? extends Number> valueTransform) {
+    RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
+    rangeFilterController.setTitle(title);
+    rangeFilterController.setPropertyName(propertyName);
+    rangeFilterController.setMin(min);
+    rangeFilterController.setMax(max);
+    rangeFilterController.setIncrement(tickUnit);
+    rangeFilterController.setTickUnit(tickUnit);
+    rangeFilterController.setSnapToTicks(true);
+    rangeFilterController.setValueTransform(valueTransform);
+    interestingLobbiesGrid.add(rangeFilterController.menu, 1, 6);
+    return rangeFilterController;
   }
 }
 

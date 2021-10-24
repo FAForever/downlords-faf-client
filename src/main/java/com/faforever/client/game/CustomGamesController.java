@@ -1,12 +1,17 @@
 package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
@@ -17,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
@@ -37,7 +43,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.StringTokenizer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
@@ -52,6 +62,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final GameService gameService;
   private final PreferencesService preferencesService;
+  private final NotificationService notificationService;
+  private final MapService mapService;
+  private final JoinGameHelper joinGameHelper;
   private final EventBus eventBus;
   private final I18n i18n;
 
@@ -75,12 +88,15 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public CheckBox showPasswordProtectedGamesCheckBox;
   private final ChangeListener<Boolean> filterConditionsChangedListener = (observable, oldValue, newValue) -> updateFilteredItems();
   private final ChangeListener<GameBean> gameChangeListener;
-
+  private final HashMap<Integer, Long> interestingLobbies = new HashMap<>();
   public CustomGamesController(UiService uiService, GameService gameService, PreferencesService preferencesService,
-                               EventBus eventBus, I18n i18n) {
+                               NotificationService notificationService, MapService mapService, JoinGameHelper joinGameHelper, EventBus eventBus, I18n i18n) {
     this.uiService = uiService;
     this.gameService = gameService;
     this.preferencesService = preferencesService;
+    this.notificationService = notificationService;
+    this.mapService = mapService;
+    this.joinGameHelper = joinGameHelper;
     this.eventBus = eventBus;
     this.i18n = i18n;
 
@@ -114,6 +130,18 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     ObservableList<GameBean> games = gameService.getGames();
     filteredItems = new FilteredList<>(games, getGamePredicate());
+
+    filteredItems.addListener((ListChangeListener<GameBean>) c -> {
+      while (c.next()) {
+        if (c.wasUpdated()) {
+          filteredItems.forEach(this::notifyIfLobbyIsInteresting);
+        } else {
+          for (GameBean additem : c.getAddedSubList()) {
+            notifyIfLobbyIsInteresting(additem);
+          }
+        }
+      }
+    });
 
     JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
     JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(filterConditionsChangedListener));
@@ -150,6 +178,85 @@ public class CustomGamesController extends AbstractViewController<Node> {
     toggleGameDetailPaneButton.setSelected(preferencesService.getPreferences().isShowGameDetailsSidePane());
 
     eventBus.register(this);
+  }
+
+  private void notifyIfLobbyIsInteresting(GameBean game) {
+    boolean interestingLobbiesEnabled = preferencesService.getPreferences().getNotification().isInterestingLobbiesEnabled();
+
+    if (!interestingLobbiesEnabled) return;
+    if (!mapNameIsInteresting(game)) return;
+    if (!lobbyRatingIsInteresting(game)) return;
+    if (!lobbyFillIsInteresting(game)) return;
+
+    final int id = game.getId();
+    long currentTime = System.currentTimeMillis();
+
+    if (!interestingLobbies.containsKey(id)) {
+      interestingLobbies.put(id, currentTime);
+      notifyUserAboutInterestingLobby(game);
+    } else {
+      double notifyPause = preferencesService.getPreferences().getNotification().getLobbyNotifyTime();
+      if (notifyPause == 0) return;
+      long insertTime = interestingLobbies.get(id);
+      long timeSinceLastNotify = currentTime - insertTime;
+      if (timeSinceLastNotify > notifyPause * 60000) {
+        interestingLobbies.put(id, currentTime);
+        notifyUserAboutInterestingLobby(game);
+      }
+    }
+  }
+
+  private void notifyUserAboutInterestingLobby(GameBean gameBean) {
+    String mapName = gameBean.getMapFolderName();
+    try {
+      CompletableFuture<Optional<MapVersionBean>> mapVersion = mapService.findByMapFolderName(gameBean.getMapFolderName());
+      mapName = mapVersion.get().get().getMap().getDisplayName();
+    } catch (Exception ignored) { }
+    if (mapName.contains("neroxis_map_generator")) mapName = "Map Gen";
+    TransientNotification interestingLobbyNotification = new TransientNotification(
+        i18n.get("game.interestingLobbies.notificationTitle"),
+        i18n.get("game.interestingLobbies.notificationDescription",
+            mapName,
+            gameBean.getHost(),
+            ((int) gameBean.getAverageRating() / 100 ) * 100,
+            gameBean.getNumPlayers(),
+            gameBean.getMaxPlayers()),
+        mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.SMALL),
+        event -> {
+          joinGameHelper.join(gameBean.getId());
+        }
+    );
+    notificationService.addNotification(interestingLobbyNotification);
+  }
+
+  private boolean mapNameIsInteresting(GameBean gameBean) {
+    String name = gameBean.getMapFolderName().toLowerCase(Locale.ROOT);
+
+    String includeNamesString = preferencesService.getPreferences().getNotification().getIncludeMapNames().toLowerCase(Locale.ROOT);
+    StringTokenizer multiTokenizer = new StringTokenizer(includeNamesString, ",");
+    ArrayList<String> includeNamesList = new ArrayList<>();
+    while (multiTokenizer.hasMoreTokens()) {includeNamesList.add(multiTokenizer.nextToken());}
+
+    String excludeNamesString = preferencesService.getPreferences().getNotification().getExcludeMapNames().toLowerCase(Locale.ROOT);
+    StringTokenizer multiTokenizer2 = new StringTokenizer(excludeNamesString, ",");
+    ArrayList<String> excludeNamesList = new ArrayList<>();
+    while (multiTokenizer2.hasMoreTokens()) {excludeNamesList.add(multiTokenizer2.nextToken());}
+
+    return (includeNamesList.stream().anyMatch(name::contains) || includeNamesList.isEmpty()) && (excludeNamesList.stream().noneMatch(name::contains));
+  }
+
+  private boolean lobbyRatingIsInteresting(GameBean gameBean) {
+    double average = gameBean.getAverageRating();
+    double lowerBound = preferencesService.getPreferences().getNotification().getAverageRatingLowerBound();
+    double upperBound = preferencesService.getPreferences().getNotification().getAverageRatingUpperBound();
+    return (average >= lowerBound) && (average <= upperBound);
+  }
+
+  private boolean lobbyFillIsInteresting(GameBean gameBean) {
+    double currentPlayers = gameBean.getNumPlayers();
+    double maxPlayers = gameBean.getMaxPlayers();
+    double requiredFillPercentage = preferencesService.getPreferences().getNotification().getLobbyPercentFilled();
+    return (currentPlayers / maxPlayers) * 100 >= requiredFillPercentage;
   }
 
   @Override

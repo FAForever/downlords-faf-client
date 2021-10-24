@@ -1,11 +1,15 @@
 package com.faforever.client.preferences;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class NotificationsPrefs {
 
@@ -25,6 +29,13 @@ public class NotificationsPrefs {
   private final BooleanProperty privateMessageSoundEnabled;
   private final BooleanProperty privateMessageToastEnabled;
   private final BooleanProperty friendJoinsGameToastEnabled;
+  private final BooleanProperty interestingLobbiesEnabled;
+  private final StringProperty includeMapNames;
+  private final StringProperty excludeMapNames;
+  private final DoubleProperty averageRatingLowerBound;
+  private final DoubleProperty averageRatingUpperBound;
+  private final DoubleProperty lobbyPercentFilled;
+  private final DoubleProperty lobbyNotifyTime;
   private final BooleanProperty notifyOnAtMentionOnlyEnabled;
   private final BooleanProperty afterGameReviewEnabled;
   private final ObjectProperty<ToastPosition> toastPosition;
@@ -47,6 +58,13 @@ public class NotificationsPrefs {
     friendPlaysGameSoundEnabled = new SimpleBooleanProperty(true);
     friendPlaysGameToastEnabled = new SimpleBooleanProperty(true);
     friendJoinsGameToastEnabled = new SimpleBooleanProperty(true);
+    interestingLobbiesEnabled = new SimpleBooleanProperty(false);
+    includeMapNames = new SimpleStringProperty("");
+    excludeMapNames = new SimpleStringProperty("");
+    averageRatingLowerBound = new SimpleDoubleProperty(0);
+    averageRatingUpperBound = new SimpleDoubleProperty(3000);
+    lobbyPercentFilled = new SimpleDoubleProperty(0);
+    lobbyNotifyTime = new SimpleDoubleProperty(0);
     privateMessageSoundEnabled = new SimpleBooleanProperty(true);
     privateMessageToastEnabled = new SimpleBooleanProperty(true);
     notifyOnAtMentionOnlyEnabled = new SimpleBooleanProperty(false);
@@ -305,5 +323,89 @@ public class NotificationsPrefs {
 
   public BooleanProperty afterGameReviewEnabledProperty() {
     return afterGameReviewEnabled;
+  }
+
+  public boolean isInterestingLobbiesEnabled() {
+    return interestingLobbiesEnabled.get();
+  }
+
+  public BooleanProperty interestingLobbiesEnabledProperty() {
+    return interestingLobbiesEnabled;
+  }
+
+  public void setInterestingLobbiesEnabled(boolean interestingLobbiesEnabled) {
+    this.interestingLobbiesEnabled.set(interestingLobbiesEnabled);
+  }
+
+  public String getIncludeMapNames() {
+    return includeMapNames.get();
+  }
+
+  public StringProperty includeMapNamesProperty() {
+    return includeMapNames;
+  }
+
+  public void setIncludeMapNames(String includeMapNames) {
+    this.includeMapNames.set(includeMapNames);
+  }
+
+  public String getExcludeMapNames() {
+    return excludeMapNames.get();
+  }
+
+  public StringProperty excludeMapNamesProperty() {
+    return excludeMapNames;
+  }
+
+  public void setExcludeMapNames(String excludeMapNames) {
+    this.excludeMapNames.set(excludeMapNames);
+  }
+
+  public double getAverageRatingLowerBound() {
+    return averageRatingLowerBound.get();
+  }
+
+  public DoubleProperty averageRatingLowerBoundProperty() {
+    return averageRatingLowerBound;
+  }
+
+  public void setAverageRatingLowerBound(double averageRatingLowerBound) {
+    this.averageRatingLowerBound.set(averageRatingLowerBound);
+  }
+
+  public double getAverageRatingUpperBound() {
+    return averageRatingUpperBound.get();
+  }
+
+  public DoubleProperty averageRatingUpperBoundProperty() {
+    return averageRatingUpperBound;
+  }
+
+  public void setAverageRatingUpperBound(double averageRatingUpperBound) {
+    this.averageRatingUpperBound.set(averageRatingUpperBound);
+  }
+
+  public double getLobbyPercentFilled() {
+    return lobbyPercentFilled.get();
+  }
+
+  public DoubleProperty lobbyPercentFilledProperty() {
+    return lobbyPercentFilled;
+  }
+
+  public void setLobbyPercentFilled(double lobbyPercentFilled) {
+    this.lobbyPercentFilled.set(lobbyPercentFilled);
+  }
+
+  public double getLobbyNotifyTime() {
+    return lobbyNotifyTime.get();
+  }
+
+  public DoubleProperty lobbyNotifyTimeProperty() {
+    return lobbyNotifyTime;
+  }
+
+  public void setLobbyNotifyTime(double lobbyNotifyTime) {
+    this.lobbyNotifyTime.set(lobbyNotifyTime);
   }
 }

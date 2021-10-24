@@ -4,6 +4,8 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
@@ -38,6 +40,12 @@ public class CustomGamesControllerTest extends UITest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
+  private NotificationService notificationService;
+  @Mock
+  private MapService mapService;
+  @Mock
+  private JoinGameHelper joinGameHelper;
+  @Mock
   private UiService uiService;
   @Mock
   private GamesTableController gamesTableController;
@@ -57,7 +65,7 @@ public class CustomGamesControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CustomGamesController(uiService, gameService, preferencesService, eventBus, i18n);
+    instance = new CustomGamesController(uiService, gameService, preferencesService, notificationService, mapService, joinGameHelper, eventBus, i18n);
 
     games = FXCollections.observableArrayList();
 
