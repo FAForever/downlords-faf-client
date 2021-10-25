@@ -39,29 +39,27 @@ public class TokenService implements InitializingBean {
   }
 
   public synchronized Mono<String> getRefreshedTokenValue() {
-    return Mono.justOrEmpty(tokenCache)
-        .flatMap(token -> {
-          if (token.isExpired()) {
-            log.debug("Token expired, fetching new token");
-            return loginWithRefreshToken(token.getRefreshToken().getValue())
-                .thenReturn(token.getValue())
-                .doOnError(throwable -> {
-                  log.error("Could not login with token", throwable);
-                  tokenCache = null;
-                  preferencesService.getPreferences().getLogin().setRefreshToken(null);
-                  preferencesService.storeInBackground();
-                  eventBus.post(new SessionExpiredEvent());
-                });
-          }
+    if (tokenCache == null) {
+      log.warn("No valid token found to be refreshed");
+      eventBus.post(new LogOutRequestEvent());
+      return Mono.error(new TokenRetrievalException("No token to log in with"));
+    }
 
-          log.debug("Token still valid for {} seconds", tokenCache.getExpiresIn());
-          return Mono.just(token.getValue());
-        })
-        .switchIfEmpty(Mono.fromCallable(() -> {
-          log.warn("No valid token found to be refreshed");
-          eventBus.post(new LogOutRequestEvent());
-          throw new TokenRetrievalException("No token to log in with");
-        }));
+    if (tokenCache.isExpired()) {
+      log.debug("Token expired, fetching new token");
+      return loginWithRefreshToken(tokenCache.getRefreshToken().getValue())
+          .thenReturn(tokenCache.getValue())
+          .doOnError(throwable -> {
+            log.error("Could not login with token", throwable);
+            tokenCache = null;
+            preferencesService.getPreferences().getLogin().setRefreshToken(null);
+            preferencesService.storeInBackground();
+            eventBus.post(new SessionExpiredEvent());
+          });
+    }
+
+    log.debug("Token still valid for {} seconds", tokenCache.getExpiresIn());
+    return Mono.just(tokenCache.getValue());
   }
 
   public synchronized Mono<Void> loginWithAuthorizationCode(String code) {
