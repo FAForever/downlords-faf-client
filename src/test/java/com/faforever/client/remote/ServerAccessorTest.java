@@ -143,7 +143,7 @@ public class ServerAccessorTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(tokenService.getRefreshedTokenValue()).thenReturn(token);
+    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
     objectMapper = new ObjectMapper()
         .registerModule(new KotlinModule())
         .registerModule(new JavaTimeModule())

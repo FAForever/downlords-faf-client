@@ -114,18 +114,18 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
     connectionState.setValue(ConnectionState.CONNECTING);
-    FafLobbyClient.Config config = new Config(
-        tokenService.getRefreshedTokenValue(),
-        Version.getCurrentVersion(),
-        clientProperties.getUserAgent(),
-        clientProperties.getServer().getHost(),
-        clientProperties.getServer().getPort() + 1,
-        sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
-        1024 * 1024,
-        false
-    );
-
-    return lobbyClient.connectAndLogin(config)
+    return tokenService.getRefreshedTokenValue()
+        .map(token -> new Config(
+            token,
+            Version.getCurrentVersion(),
+            clientProperties.getUserAgent(),
+            clientProperties.getServer().getHost(),
+            clientProperties.getServer().getPort() + 1,
+            sessionId -> noCatch(() -> uidService.generate(String.valueOf(sessionId), preferencesService.getFafDataDirectory().resolve("uid.log"))),
+            1024 * 1024,
+            false
+        ))
+        .flatMap(lobbyClient::connectAndLogin)
         .doOnNext(loginMessage -> connectionState.setValue(ConnectionState.CONNECTED))
         .toFuture();
   }

@@ -405,6 +405,7 @@ public class LoginController implements Controller<Pane> {
     showLoginProgess();
     userService.login(code)
         .exceptionally(throwable -> {
+          log.warn("Could not log in with code", throwable);
           showLoginForm();
           notificationService.addImmediateErrorNotification(throwable, "login.failed");
           return null;
@@ -415,6 +416,7 @@ public class LoginController implements Controller<Pane> {
     showLoginProgess();
     userService.loginWithRefreshToken(refreshToken)
         .exceptionally(throwable -> {
+          log.warn("Could not log in with refresh", throwable);
           showLoginForm();
           if (!(throwable.getCause() instanceof HttpClientErrorException.BadRequest
               || throwable.getCause() instanceof HttpClientErrorException.Unauthorized)) {
