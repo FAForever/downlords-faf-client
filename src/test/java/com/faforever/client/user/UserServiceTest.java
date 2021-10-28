@@ -327,7 +327,7 @@ public class UserServiceTest extends ServiceTest {
 
   @Test
   public void testOnSessionExpired() {
-    instance.onSessionExpired(new SessionExpiredEvent(new FakeTestException()));
+    instance.onSessionExpired(new SessionExpiredEvent());
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }

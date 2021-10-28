@@ -45,7 +45,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -420,7 +420,7 @@ public class LoginController implements Controller<Pane> {
           showLoginForm();
 
           log.warn("Could not log in with refresh", throwable);
-          if (!(throwable instanceof HttpClientErrorException.BadRequest || throwable instanceof HttpClientErrorException.Unauthorized)) {
+          if (!(throwable instanceof WebClientResponseException.BadRequest || throwable instanceof WebClientResponseException.Unauthorized)) {
             notificationService.addImmediateErrorNotification(throwable, "login.failed");
           }
           return null;

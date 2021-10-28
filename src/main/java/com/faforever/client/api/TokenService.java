@@ -19,6 +19,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+
+import java.time.Duration;
 
 @Service
 @Slf4j
@@ -29,8 +32,9 @@ public class TokenService implements InitializingBean {
   private final WebClient webClient;
   private final LoginPrefs loginPrefs;
   private final Mono<String> refreshedTokenMono;
+  private final Mono<OAuth2AccessToken> tokenRetrievalMono;
+  private final Sinks.Many<Long> logoutSink = Sinks.many().multicast().directBestEffort();
 
-  private Mono<OAuth2AccessToken> tokenRetrievalMono;
   private String refreshTokenValue;
   private MultiValueMap<String, String> hydraPropertiesMap;
 
@@ -42,24 +46,27 @@ public class TokenService implements InitializingBean {
     loginPrefs = preferencesService.getPreferences().getLogin();
     webClient = webClientBuilder.build();
 
-    resetRetrievalMono();
+    tokenRetrievalMono = Mono.defer(this::retrieveToken)
+        .cacheInvalidateWhen(token ->
+            Mono.firstWithSignal(
+                Mono.delay(Duration.ofSeconds(token.getExpiresIn() - 30)),
+                logoutSink.asFlux().next()
+            ).then())
+        .doOnNext(token -> log.debug("Token still valid for {} seconds", token.getExpiresIn()));
+
     refreshedTokenMono = Mono.defer(this::refreshAccess)
         .map(OAuth2AccessToken::getValue)
         .doOnError(throwable -> {
-          resetRetrievalMono();
-          eventBus.post(new SessionExpiredEvent(throwable));
+          log.warn("Could not log in with token", throwable);
+          loginPrefs.setRefreshToken(null);
+          refreshTokenValue = null;
+          eventBus.post(new SessionExpiredEvent());
         });
   }
 
   @Override
   public void afterPropertiesSet() throws Exception {
     eventBus.register(this);
-  }
-
-  private void resetRetrievalMono() {
-    tokenRetrievalMono = Mono.defer(this::retrieveToken)
-        .cacheInvalidateIf(OAuth2AccessToken::isExpired)
-        .doOnNext(token -> log.debug("Token still valid for {} seconds", token.getExpiresIn()));
   }
 
   public Mono<String> getRefreshedTokenValue() {
@@ -115,6 +122,7 @@ public class TokenService implements InitializingBean {
         .doOnSubscribe(subscription -> log.debug("Retrieving OAuth token"))
         .switchIfEmpty(Mono.fromCallable(() -> {
           loginPrefs.setRefreshToken(null);
+          refreshTokenValue = null;
           throw new TokenRetrievalException("Could not login with provided parameters");
         }))
         .doOnNext(token -> {
@@ -127,6 +135,6 @@ public class TokenService implements InitializingBean {
 
   @Subscribe
   public void onLogOut(LoggedOutEvent event) {
-    resetRetrievalMono();
+    logoutSink.tryEmitNext(0L);
   }
 }
