@@ -45,7 +45,7 @@ public class TokenService implements InitializingBean {
 
     loginPrefs = preferencesService.getPreferences().getLogin();
     webClient = webClientBuilder.build();
-    logoutSink = Sinks.many().multicast().directBestEffort()
+    logoutSink = Sinks.many().multicast().directBestEffort();
 
     tokenRetrievalMono = Mono.defer(this::retrieveToken)
         .cacheInvalidateWhen(token ->
