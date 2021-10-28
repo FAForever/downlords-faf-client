@@ -22,6 +22,7 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ui.SettingsController;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -302,7 +303,7 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testOnSessionExpired() throws Exception {
-    runOnFxThreadAndWait(() -> instance.onSessionExpiredEvent(new SessionExpiredEvent()));
+    runOnFxThreadAndWait(() -> instance.onSessionExpiredEvent(new SessionExpiredEvent(new FakeTestException())));
     verify(uiService, times(2)).loadFxml("theme/login/login.fxml");
   }
 }

@@ -39,7 +39,7 @@ import java.util.concurrent.CompletionException;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserService implements InitializingBean, DisposableBean {
+public class UserService implements InitializingBean {
 
   private final ObjectProperty<MeResult> ownUser = new SimpleObjectProperty<>();
   private final ObjectProperty<Player> ownPlayer = new SimpleObjectProperty<>();
@@ -75,10 +75,10 @@ public class UserService implements InitializingBean, DisposableBean {
     return loginFuture;
   }
 
-  public CompletableFuture<Void> loginWithRefreshToken(String refreshToken) {
+  public CompletableFuture<Void> loginWithRefreshToken() {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with refresh token");
-      loginFuture = tokenService.loginWithRefreshToken(refreshToken).toFuture()
+      loginFuture = tokenService.loginWithRefreshToken().toFuture()
           .thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;
@@ -131,12 +131,6 @@ public class UserService implements InitializingBean, DisposableBean {
 
   public Integer getUserId() {
     return Integer.parseInt(getOwnUser().getUserId());
-  }
-
-  @Override
-  public void destroy() {
-    preferencesService.getPreferences().getLogin().setRefreshToken(tokenService.getRefreshToken());
-    preferencesService.storeInBackground();
   }
 
   private void logOut() {

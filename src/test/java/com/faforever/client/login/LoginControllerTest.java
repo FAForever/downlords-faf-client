@@ -119,7 +119,7 @@ public class LoginControllerTest extends UITest {
     String refreshToken = "asd";
     preferences.getLogin().setRefreshToken(refreshToken);
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken(refreshToken);
+    verify(userService).loginWithRefreshToken();
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
   }
@@ -175,12 +175,12 @@ public class LoginControllerTest extends UITest {
   public void testLoginRefreshFailsBadToken() {
     clientProperties.setUseRemotePreferences(true);
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
-    String refreshToken = "asd";
-    preferences.getLogin().setRefreshToken(refreshToken);
-    when(userService.loginWithRefreshToken(refreshToken)).thenReturn(CompletableFuture.failedFuture(
+    preferences.getLogin().setRememberMe(true);
+    preferences.getLogin().setRefreshToken("abc");
+    when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
         new CompletionException(HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "", HttpHeaders.EMPTY, new byte[]{}, null))));
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken(refreshToken);
+    verify(userService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -190,12 +190,12 @@ public class LoginControllerTest extends UITest {
   public void testLoginRefreshFailsUnauthorized() {
     clientProperties.setUseRemotePreferences(true);
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
-    String refreshToken = "asd";
-    preferences.getLogin().setRefreshToken(refreshToken);
-    when(userService.loginWithRefreshToken(refreshToken)).thenReturn(CompletableFuture.failedFuture(
+    preferences.getLogin().setRememberMe(true);
+    preferences.getLogin().setRefreshToken("abc");
+    when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
         new CompletionException(HttpClientErrorException.create(HttpStatus.UNAUTHORIZED, "", HttpHeaders.EMPTY, new byte[]{}, null))));
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken(refreshToken);
+    verify(userService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -205,11 +205,11 @@ public class LoginControllerTest extends UITest {
   public void testLoginRefreshFails() {
     clientProperties.setUseRemotePreferences(true);
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
-    String refreshToken = "asd";
-    preferences.getLogin().setRefreshToken(refreshToken);
-    when(userService.loginWithRefreshToken(refreshToken)).thenReturn(CompletableFuture.failedFuture(new CompletionException(new Exception())));
+    preferences.getLogin().setRememberMe(true);
+    preferences.getLogin().setRefreshToken("abc");
+    when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(new CompletionException(new Exception())));
     runOnFxThreadAndWait(() -> instance.initialize());
-    verify(userService).loginWithRefreshToken(refreshToken);
+    verify(userService).loginWithRefreshToken();
     verify(notificationService).addImmediateErrorNotification(any(), anyString());
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());

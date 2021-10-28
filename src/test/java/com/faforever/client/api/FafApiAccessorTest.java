@@ -8,6 +8,7 @@ import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReviewMapper;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.commons.api.dto.ApiException;
@@ -141,7 +142,7 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @Test
   public void testSessionExpired() {
-    instance.onSessionExpiredEvent(new SessionExpiredEvent());
+    instance.onSessionExpiredEvent(new SessionExpiredEvent(new FakeTestException()));
     RuntimeException exception = assertThrows(RuntimeException.class, () -> WaitForAsyncUtils.waitForAsync(1000, () -> instance.getMe()));
     assertEquals(TimeoutException.class, exception.getCause().getClass());
   }

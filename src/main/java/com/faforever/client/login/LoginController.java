@@ -22,6 +22,7 @@ import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -110,7 +111,7 @@ public class LoginController implements Controller<Pane> {
     errorPane.setVisible(false);
     loginErrorLabel.setVisible(false);
     serverConfigPane.setVisible(false);
-    rememberMeCheckBox.setSelected(loginPrefs.getRememberMe());
+    rememberMeCheckBox.setSelected(loginPrefs.isRememberMe());
     loginPrefs.rememberMeProperty().bindBidirectional(rememberMeCheckBox.selectedProperty());
 
     resetPageFuture = new CompletableFuture<>();
@@ -178,10 +179,9 @@ public class LoginController implements Controller<Pane> {
           }).exceptionally(throwable -> {
             log.warn("Could not read remote preferences", throwable);
             return null;
-          }).thenRunAsync(() -> {
-            String refreshToken = loginPrefs.getRefreshToken();
-            if (refreshToken != null) {
-              loginWithToken(refreshToken);
+          }).thenRun(() -> {
+            if (loginPrefs.isRememberMe() && loginPrefs.getRefreshToken() != null) {
+              loginWithToken();
             }
           });
     } else {
@@ -412,14 +412,15 @@ public class LoginController implements Controller<Pane> {
         });
   }
 
-  private void loginWithToken(String refreshToken) {
+  private void loginWithToken() {
     showLoginProgess();
-    userService.loginWithRefreshToken(refreshToken)
+    userService.loginWithRefreshToken()
         .exceptionally(throwable -> {
-          log.warn("Could not log in with refresh", throwable);
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           showLoginForm();
-          if (!(throwable.getCause() instanceof HttpClientErrorException.BadRequest
-              || throwable.getCause() instanceof HttpClientErrorException.Unauthorized)) {
+
+          log.warn("Could not log in with refresh", throwable);
+          if (!(throwable instanceof HttpClientErrorException.BadRequest || throwable instanceof HttpClientErrorException.Unauthorized)) {
             notificationService.addImmediateErrorNotification(throwable, "login.failed");
           }
           return null;

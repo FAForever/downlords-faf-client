@@ -2,14 +2,18 @@ package com.faforever.client.api;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
+import com.faforever.client.login.NoRefreshTokenException;
 import com.faforever.client.login.TokenRetrievalException;
+import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.user.event.LogOutRequestEvent;
+import com.faforever.client.user.event.LoggedOutEvent;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -23,14 +27,28 @@ public class TokenService implements InitializingBean {
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final WebClient webClient;
-  private OAuth2AccessToken tokenCache;
+  private final LoginPrefs loginPrefs;
+  private final Mono<String> refreshedTokenMono;
+
+  private Mono<OAuth2AccessToken> tokenRetrievalMono;
+  private String refreshTokenValue;
+  private MultiValueMap<String, String> hydraPropertiesMap;
 
   public TokenService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus, WebClient.Builder webClientBuilder) {
     this.clientProperties = clientProperties;
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
 
+    loginPrefs = preferencesService.getPreferences().getLogin();
     webClient = webClientBuilder.build();
+
+    resetRetrievalMono();
+    refreshedTokenMono = Mono.defer(this::refreshAccess)
+        .map(OAuth2AccessToken::getValue)
+        .doOnError(throwable -> {
+          resetRetrievalMono();
+          eventBus.post(new SessionExpiredEvent(throwable));
+        });
   }
 
   @Override
@@ -38,77 +56,77 @@ public class TokenService implements InitializingBean {
     eventBus.register(this);
   }
 
-  public synchronized Mono<String> getRefreshedTokenValue() {
-    if (tokenCache == null) {
-      log.warn("No valid token found to be refreshed");
-      eventBus.post(new LogOutRequestEvent());
-      return Mono.error(new TokenRetrievalException("No token to log in with"));
+  private void resetRetrievalMono() {
+    tokenRetrievalMono = Mono.defer(this::retrieveToken)
+        .cacheInvalidateIf(OAuth2AccessToken::isExpired)
+        .doOnNext(token -> log.debug("Token still valid for {} seconds", token.getExpiresIn()));
+  }
+
+  public Mono<String> getRefreshedTokenValue() {
+    return refreshedTokenMono;
+  }
+
+  public Mono<Void> loginWithAuthorizationCode(String code) {
+    return Mono.fromRunnable(() -> {
+          MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+          Oauth oauth = clientProperties.getOauth();
+          map.add("code", code);
+          map.add("client_id", oauth.getClientId());
+          map.add("redirect_uri", oauth.getRedirectUrl());
+          map.add("grant_type", "authorization_code");
+          hydraPropertiesMap = map;
+        })
+        .then(tokenRetrievalMono)
+        .then();
+  }
+
+  public Mono<Void> loginWithRefreshToken() {
+    refreshTokenValue = loginPrefs.getRefreshToken();
+    return refreshedTokenMono.then();
+  }
+
+  private Mono<OAuth2AccessToken> refreshAccess() {
+    if (refreshTokenValue == null) {
+      loginPrefs.setRefreshToken(null);
+      preferencesService.storeInBackground();
+      return Mono.error(new NoRefreshTokenException("No refresh token to log in with"));
     }
 
-    if (tokenCache.isExpired()) {
-      log.debug("Token expired, fetching new token");
-      return loginWithRefreshToken(tokenCache.getRefreshToken().getValue())
-          .thenReturn(tokenCache.getValue())
-          .doOnError(throwable -> {
-            log.error("Could not login with token", throwable);
-            tokenCache = null;
-            preferencesService.getPreferences().getLogin().setRefreshToken(null);
-            preferencesService.storeInBackground();
-            eventBus.post(new SessionExpiredEvent());
-          });
-    }
-
-    log.debug("Token still valid for {} seconds", tokenCache.getExpiresIn());
-    return Mono.just(tokenCache.getValue());
+    return Mono.fromRunnable(() -> {
+          Oauth oauth = clientProperties.getOauth();
+          MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+          map.add("refresh_token", refreshTokenValue);
+          map.add("client_id", oauth.getClientId());
+          map.add("redirect_uri", oauth.getRedirectUrl());
+          map.add("grant_type", "refresh_token");
+          hydraPropertiesMap = map;
+        })
+        .then(tokenRetrievalMono);
   }
 
-  public synchronized Mono<Void> loginWithAuthorizationCode(String code) {
-    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    Oauth oauth = clientProperties.getOauth();
-    map.add("code", code);
-    map.add("client_id", oauth.getClientId());
-    map.add("redirect_uri", oauth.getRedirectUrl());
-    map.add("grant_type", "authorization_code");
-
-    return retrieveToken(map);
-  }
-
-  public synchronized Mono<Void> loginWithRefreshToken(String refreshToken) {
-    Oauth oauth = clientProperties.getOauth();
-    MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-    map.add("refresh_token", refreshToken);
-    map.add("client_id", oauth.getClientId());
-    map.add("redirect_uri", oauth.getRedirectUrl());
-    map.add("grant_type", "refresh_token");
-
-    return retrieveToken(map);
-  }
-
-  private Mono<Void> retrieveToken(MultiValueMap<String, String> map) {
+  private Mono<OAuth2AccessToken> retrieveToken() {
     return webClient.post()
         .uri(String.format("%s/oauth2/token", clientProperties.getOauth().getBaseUrl()))
         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
         .accept(MediaType.APPLICATION_JSON)
-        .bodyValue(map)
+        .bodyValue(hydraPropertiesMap)
         .retrieve()
         .bodyToMono(OAuth2AccessToken.class)
         .doOnSubscribe(subscription -> log.debug("Retrieving OAuth token"))
-        .switchIfEmpty(Mono.error(new TokenRetrievalException("Could not login with provided parameters")))
-        .flatMap(token -> {
-          tokenCache = token;
-          preferencesService.getPreferences().getLogin().setRefreshToken(getRefreshToken());
+        .switchIfEmpty(Mono.fromCallable(() -> {
+          loginPrefs.setRefreshToken(null);
+          throw new TokenRetrievalException("Could not login with provided parameters");
+        }))
+        .doOnNext(token -> {
+          OAuth2RefreshToken refreshToken = token.getRefreshToken();
+          refreshTokenValue = refreshToken != null ? refreshToken.getValue() : null;
+          loginPrefs.setRefreshToken(loginPrefs.isRememberMe() ? refreshTokenValue : null);
           preferencesService.storeInBackground();
-          return Mono.empty();
         });
   }
 
-  public String getRefreshToken() {
-    if (tokenCache == null
-        || tokenCache.getRefreshToken() == null
-        || !preferencesService.getPreferences().getLogin().getRememberMe()) {
-      return null;
-    }
-
-    return tokenCache.getRefreshToken().getValue();
+  @Subscribe
+  public void onLogOut(LoggedOutEvent event) {
+    resetRetrievalMono();
   }
 }
