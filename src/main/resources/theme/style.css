@@ -796,7 +796,7 @@
 }
 
 .seasonDate {
-  -fx-text-fill: #777777;
+  -fx-text-fill: #777;
   -fx-font-family: 'Source Sans Pro Semibold';
   -fx-font-size: 20px;
 }
@@ -858,11 +858,11 @@
 }
 
 .leaderboardChart {
-  chart_color_1: #2B71D9;
-  chart_color_2: #2B71D9;
-  chart_color_3: #2B71D9;
-  chart_color_4: #2B71D9;
-  chart_color_5: #2B71D9;
+  chart_color_1: #2b71d9;
+  chart_color_2: #2b71d9;
+  chart_color_3: #2b71d9;
+  chart_color_4: #2b71d9;
+  chart_color_5: #2b71d9;
 }
 
 /***************** Match maker *****************/
