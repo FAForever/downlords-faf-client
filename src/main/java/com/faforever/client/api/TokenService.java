@@ -33,7 +33,7 @@ public class TokenService implements InitializingBean {
   private final LoginPrefs loginPrefs;
   private final Mono<String> refreshedTokenMono;
   private final Mono<OAuth2AccessToken> tokenRetrievalMono;
-  private final Sinks.Many<Long> logoutSink = Sinks.many().multicast().directBestEffort();
+  private final Sinks.Many<Long> logoutSink;
 
   private String refreshTokenValue;
   private MultiValueMap<String, String> hydraPropertiesMap;
@@ -45,6 +45,7 @@ public class TokenService implements InitializingBean {
 
     loginPrefs = preferencesService.getPreferences().getLogin();
     webClient = webClientBuilder.build();
+    logoutSink = Sinks.many().multicast().directBestEffort()
 
     tokenRetrievalMono = Mono.defer(this::retrieveToken)
         .cacheInvalidateWhen(token ->
