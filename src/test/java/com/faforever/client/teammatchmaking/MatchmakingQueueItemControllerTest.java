@@ -13,6 +13,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -21,6 +22,8 @@ import javafx.event.ActionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -62,6 +65,9 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
     when(playerService.getCurrentPlayer()).thenReturn(player);
+    Player ownPlayer = new Player(0, "junit", null, null, "us", null, Map.of());
+    when(userService.getOwnPlayer()).thenReturn(ownPlayer);
+    when(userService.ownPlayerProperty()).thenReturn(new SimpleObjectProperty<>(ownPlayer));
     when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 

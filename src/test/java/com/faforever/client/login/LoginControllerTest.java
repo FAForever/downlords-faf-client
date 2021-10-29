@@ -30,7 +30,7 @@ import org.mockito.Mock;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.testfx.assertions.api.Assertions;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
@@ -178,7 +178,7 @@ public class LoginControllerTest extends UITest {
     preferences.getLogin().setRememberMe(true);
     preferences.getLogin().setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
-        new CompletionException(HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "", HttpHeaders.EMPTY, new byte[]{}, null))));
+        new CompletionException(WebClientResponseException.create(HttpStatus.BAD_REQUEST.value(), "", HttpHeaders.EMPTY, new byte[]{}, null))));
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(userService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());
@@ -193,7 +193,7 @@ public class LoginControllerTest extends UITest {
     preferences.getLogin().setRememberMe(true);
     preferences.getLogin().setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
-        new CompletionException(HttpClientErrorException.create(HttpStatus.UNAUTHORIZED, "", HttpHeaders.EMPTY, new byte[]{}, null))));
+        new CompletionException(WebClientResponseException.create(HttpStatus.UNAUTHORIZED.value(), "", HttpHeaders.EMPTY, new byte[]{}, null))));
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(userService).loginWithRefreshToken();
     verify(notificationService, never()).addImmediateErrorNotification(any(), anyString());

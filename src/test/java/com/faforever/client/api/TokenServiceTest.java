@@ -122,7 +122,7 @@ public class TokenServiceTest extends ServiceTest {
     StepVerifier.create(instance.loginWithRefreshToken())
         .verifyComplete();
 
-    Thread.sleep(10);
+    Thread.sleep(100);
 
     Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "new");
     prepareTokenResponse(tokenProperties);
@@ -139,7 +139,7 @@ public class TokenServiceTest extends ServiceTest {
     StepVerifier.create(instance.loginWithRefreshToken())
         .verifyComplete();
 
-    Thread.sleep(10);
+    Thread.sleep(100);
 
     prepareTokenResponse(null);
 
