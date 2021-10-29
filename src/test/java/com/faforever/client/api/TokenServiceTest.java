@@ -8,6 +8,7 @@ import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.client.user.event.LoggedOutEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import okhttp3.mockwebserver.MockResponse;
@@ -72,7 +73,7 @@ public class TokenServiceTest extends ServiceTest {
 
   @Test
   public void testLoginWithCode() throws Exception {
-    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test", OAuth2AccessToken.REFRESH_TOKEN, "refresh");
+    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test", OAuth2AccessToken.REFRESH_TOKEN, "refresh", OAuth2AccessToken.EXPIRES_IN, "90");
     prepareTokenResponse(tokenProperties);
 
     StepVerifier.create(instance.loginWithAuthorizationCode("abc"))
@@ -85,6 +86,8 @@ public class TokenServiceTest extends ServiceTest {
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
     assertEquals(oauth.getRedirectUrl(), requestParams.get("redirect_uri"));
 
+    Thread.sleep(10);
+
     StepVerifier.create(instance.getRefreshedTokenValue())
         .expectNext(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN))
         .verifyComplete();
@@ -92,7 +95,7 @@ public class TokenServiceTest extends ServiceTest {
 
   @Test
   public void testLoginWithRefresh() throws Exception {
-    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test", OAuth2AccessToken.REFRESH_TOKEN, "refresh");
+    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test", OAuth2AccessToken.REFRESH_TOKEN, "refresh", OAuth2AccessToken.EXPIRES_IN, "90");
     prepareTokenResponse(tokenProperties);
 
     StepVerifier.create(instance.loginWithRefreshToken())
@@ -104,6 +107,8 @@ public class TokenServiceTest extends ServiceTest {
     assertEquals("refresh_token", requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
     assertEquals(oauth.getRedirectUrl(), requestParams.get("redirect_uri"));
+
+    Thread.sleep(10);
 
     StepVerifier.create(instance.getRefreshedTokenValue())
             .expectNext(tokenProperties.get(OAuth2AccessToken.ACCESS_TOKEN))
@@ -117,7 +122,9 @@ public class TokenServiceTest extends ServiceTest {
     StepVerifier.create(instance.loginWithRefreshToken())
         .verifyComplete();
 
-    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "test");
+    Thread.sleep(10);
+
+    Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.ACCESS_TOKEN, "new");
     prepareTokenResponse(tokenProperties);
 
     StepVerifier.create(instance.getRefreshedTokenValue())
@@ -131,6 +138,27 @@ public class TokenServiceTest extends ServiceTest {
 
     StepVerifier.create(instance.loginWithRefreshToken())
         .verifyComplete();
+
+    Thread.sleep(10);
+
+    prepareTokenResponse(null);
+
+    StepVerifier.create(instance.getRefreshedTokenValue())
+        .verifyError(TokenRetrievalException.class);
+
+    verify(eventBus).post(any(SessionExpiredEvent.class));
+  }
+
+  @Test
+  public void testLogOutInvalidates() throws Exception {
+    prepareTokenResponse(Map.of(OAuth2AccessToken.EXPIRES_IN, "3600", OAuth2AccessToken.REFRESH_TOKEN, "refresh", OAuth2AccessToken.ACCESS_TOKEN, "test"));
+
+    StepVerifier.create(instance.loginWithRefreshToken())
+        .verifyComplete();
+
+    Thread.sleep(10);
+
+    instance.onLogOut(new LoggedOutEvent());
 
     prepareTokenResponse(null);
 
