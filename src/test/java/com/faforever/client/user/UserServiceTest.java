@@ -112,7 +112,7 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
+    when(tokenService.loginWithRefreshToken()).thenReturn(Mono.empty());
     when(tokenService.loginWithAuthorizationCode("abc")).thenReturn(Mono.empty());
 
     instance.login("abc").join();
@@ -130,7 +130,6 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
-    when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     when(tokenService.loginWithAuthorizationCode("abc")).thenReturn(Mono.empty());
 
     instance.login("abc").join();
@@ -278,13 +277,13 @@ public class UserServiceTest extends ServiceTest {
     when(fafApiAccessor.getMe()).thenReturn(Mono.just(meResult));
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
-    when(tokenService.loginWithRefreshToken("abc")).thenReturn(Mono.empty());
+    when(tokenService.loginWithRefreshToken()).thenReturn(Mono.empty());
 
-    instance.loginWithRefreshToken("abc").join();
+    instance.loginWithRefreshToken().join();
 
     assertEquals(Integer.parseInt(meResult.getUserId()), (int) instance.getUserId());
     assertEquals(meResult.getUserName(), instance.getUsername());
-    verify(tokenService).loginWithRefreshToken("abc");
+    verify(tokenService).loginWithRefreshToken();
     verify(fafApiAccessor).authorize();
     verify(fafServerAccessor).connectAndLogIn();
     verify(eventBus).post(any(LoginSuccessEvent.class));
@@ -297,27 +296,16 @@ public class UserServiceTest extends ServiceTest {
     when(fafServerAccessor.connectAndLogIn()).thenReturn(CompletableFuture.completedFuture(validLoginMessage));
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just("def"));
     FakeTestException testException = new FakeTestException("failed");
-    when(tokenService.loginWithRefreshToken("abc")).thenReturn(Mono.error(testException));
+    when(tokenService.loginWithRefreshToken()).thenReturn(Mono.error(testException));
 
-    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.loginWithRefreshToken("abc").join());
+    CompletionException thrown = assertThrows(CompletionException.class, () -> instance.loginWithRefreshToken().join());
 
     assertEquals(testException, thrown.getCause());
     assertNull(instance.getOwnUser());
-    verify(tokenService).loginWithRefreshToken("abc");
+    verify(tokenService).loginWithRefreshToken();
     verify(fafApiAccessor, never()).authorize();
     verify(fafServerAccessor, never()).connectAndLogIn();
     verify(eventBus, never()).post(any(LoginSuccessEvent.class));
-  }
-
-  @Test
-  public void testPreferencesSavedOnClose() {
-    when(tokenService.getRefreshToken()).thenReturn("abe");
-
-    instance.destroy();
-
-    verify(tokenService).getRefreshToken();
-    verify(preferencesService).storeInBackground();
-    assertEquals("abe", preferencesService.getPreferences().getLogin().getRefreshToken());
   }
 
   @Test

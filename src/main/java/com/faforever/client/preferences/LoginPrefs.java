@@ -4,11 +4,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@Value
 public class LoginPrefs {
   StringProperty refreshToken = new SimpleStringProperty();
   BooleanProperty rememberMe = new SimpleBooleanProperty(true);
@@ -25,7 +21,7 @@ public class LoginPrefs {
     return refreshToken;
   }
 
-  public boolean getRememberMe() {
+  public boolean isRememberMe() {
     return rememberMe.get();
   }
 

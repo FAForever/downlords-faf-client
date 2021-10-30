@@ -6,7 +6,6 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
-import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
@@ -112,12 +111,12 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     JavaFxUtil.addListener(queue.teamSizeProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
-    JavaFxUtil.addListener(userService.connectionStateProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addListener(userService.ownPlayerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addAndTriggerListener(queue.joinedProperty(), new WeakInvalidationListener(queueStateInvalidationListener));
   }
 
   private void setQueueButtonState() {
-    boolean disable = userService.getConnectionState() != ConnectionState.CONNECTED
+    boolean disable = userService.getOwnPlayer() == null
         || teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
         || teamMatchmakingService.partyMembersNotReady()
         || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer());
