@@ -181,13 +181,17 @@ public class PlayerService implements InitializingBean {
           newPlayer.setSocialStatus(OTHER);
         }
       }
-      eventBus.post(new PlayerOnlineEvent(newPlayer));
       return newPlayer;
     });
     synchronized (player) {
       playerMapper.update(playerInfo, player);
     }
-    player.setIdleSince(Instant.now());
+
+    if (player.getIdleSince() == null) {
+      eventBus.post(new PlayerOnlineEvent(player));
+    }
+
+    resetIdleTime(player);
   }
 
   public Set<String> getPlayerNames() {

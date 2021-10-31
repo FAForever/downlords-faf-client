@@ -45,7 +45,7 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   ObjectProperty<PlayerStatus> status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
   ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
-  ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>(Instant.now());
+  ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
   ObservableList<NameRecordBean> names = FXCollections.observableArrayList();
   InvalidationListener gameStatusListener = observable -> updateGameStatus();
 
