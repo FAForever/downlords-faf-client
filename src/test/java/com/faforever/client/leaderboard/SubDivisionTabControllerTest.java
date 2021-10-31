@@ -49,14 +49,16 @@ public class SubDivisionTabControllerTest extends UITest {
   @Test
   public void testPopulate() {
     SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
-    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean).get();
+    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().id(2).subdivision(subdivisionBean).get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean).get();
     when(leaderboardService.getEntries(subdivisionBean)).thenReturn(CompletableFuture.completedFuture(List.of(
-        leagueEntryBean2, leagueEntryBean1)));
-    when(leaderboardService.getPlayerNumberInHigherDivisions(any())).thenReturn(CompletableFuture.completedFuture(0));
+        leagueEntryBean1, leagueEntryBean2)));
+    when(leaderboardService.getPlayerNumberInHigherDivisions(any())).thenReturn(CompletableFuture.completedFuture(10));
 
     instance.populate(subdivisionBean);
     assertEquals(2, instance.ratingTable.getItems().size());
     assertEquals(leagueEntryBean1, instance.ratingTable.getItems().get(0));
+    assertEquals(11, leagueEntryBean1.getRank());
+    assertEquals(12, leagueEntryBean2.getRank());
   }
 }

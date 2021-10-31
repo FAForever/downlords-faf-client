@@ -304,22 +304,8 @@ public class LeaderboardController implements Controller<Tab> {
           }));
       JavaFxUtil.runLater(() -> ratingDistributionChart.getData().add(series));
     });
-    setXAxisLabel(leagueEntry);
-  }
-
-  private void setXAxisLabel(LeagueEntryBean leagueEntry) {
-    leaderboardService.getTotalPlayers(season.getId()).thenAccept(totalPlayers -> {
-      if (leagueEntry == null || leagueEntry.getSubdivision() == null) {
-        JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.totalPlayers", totalPlayers)));
-      } else {
-        leaderboardService.getAccumulatedRank(leagueEntry)
-            .thenAccept(rank -> JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.rank", rank, totalPlayers))))
-            .exceptionally(throwable -> {
-              log.info("Could not get player rank", throwable);
-              return null;
-            });
-      }
-    });
+    leaderboardService.getTotalPlayers(season.getId()).thenAccept(totalPlayers ->
+        JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.totalPlayers", totalPlayers))));
   }
 
   private void addNodeOnTopOfBar(XYChart.Data<String, Integer> data, Node nodeToAdd) {

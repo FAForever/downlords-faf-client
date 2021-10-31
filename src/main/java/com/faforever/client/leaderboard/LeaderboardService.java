@@ -104,15 +104,6 @@ public class LeaderboardService {
         .toFuture();
   }
 
-  public CompletableFuture<Integer> getAccumulatedRank(LeagueEntryBean entry) {
-    if (entry.getSubdivision() == null) {
-      Throwable notRanked = new Throwable("Player is not ranked");
-      return CompletableFuture.failedFuture(notRanked);
-    }
-    return getEntries(entry.getSubdivision()).thenCompose(leagueEntryBeans ->
-        getPlayerNumberInHigherDivisions(entry.getSubdivision()).thenApply(count -> count + 1 + leagueEntryBeans.indexOf(entry)));
-  }
-
   public CompletableFuture<Integer> getPlayerNumberInHigherDivisions(SubdivisionBean subdivisionBean) {
     AtomicInteger rank = new AtomicInteger();
     List<CompletableFuture<?>> futures = new ArrayList<>();

@@ -89,7 +89,7 @@
                                      AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0"
                                      AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                                <xAxis>
-                                   <CategoryAxis fx:id="xAxis" animated="false" label="%leaderboard.rank" side="BOTTOM" tickLabelGap="0.0" />
+                                   <CategoryAxis fx:id="xAxis" animated="false" label="%leaderboard.totalPlayers" side="BOTTOM" tickLabelGap="0.0" />
                                </xAxis>
                                <yAxis>
                                    <NumberAxis fx:id="yAxis" side="LEFT" label="%coop.leaderboard.players"/>
