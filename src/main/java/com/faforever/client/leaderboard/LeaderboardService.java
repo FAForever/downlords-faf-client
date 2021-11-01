@@ -62,18 +62,6 @@ public class LeaderboardService {
   }
 
   @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
-  public CompletableFuture<List<LeaderboardEntryBean>> getEntries(LeaderboardBean leaderboard) {
-    ElideNavigatorOnCollection<LeaderboardEntry> navigator = ElideNavigator.of(LeaderboardEntry.class).collection()
-        .setFilter(qBuilder().string("leaderboard.technicalName").eq(leaderboard.getTechnicalName())
-            .and().instant("updateTime").after(OffsetDateTime.now().minusMonths(1).toInstant(), false))
-        .addSortingRule("rating", false);
-    return fafApiAccessor.getMany(navigator)
-        .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
-        .toFuture();
-  }
-
-  @Cacheable(value = CacheNames.LEADERBOARD, sync = true)
   public CompletableFuture<List<LeaderboardEntryBean>> getEntriesForPlayer(PlayerBean player) {
     ElideNavigatorOnCollection<LeaderboardEntry> navigator = ElideNavigator.of(LeaderboardEntry.class).collection()
         .setFilter(qBuilder().intNum("player.id").eq(player.getId()));

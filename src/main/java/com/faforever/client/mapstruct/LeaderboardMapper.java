@@ -37,10 +37,6 @@ public interface LeaderboardMapper {
   @Mapping(target = "totalGames", source = "gamesPlayed")
   LeaderboardEntry map(LeaderboardEntryBean bean, @Context CycleAvoidingMappingContext context);
 
-  List<LeaderboardEntryBean> mapDtoEntries(List<LeaderboardEntry> dtos, @Context CycleAvoidingMappingContext context);
-
-  List<LeaderboardEntry> mapBeanEntries(List<LeaderboardEntryBean> beans, @Context CycleAvoidingMappingContext context);
-
   LeaderboardRatingJournalBean map(LeaderboardRatingJournal dto, @Context CycleAvoidingMappingContext context);
 
   LeaderboardRatingJournal map(LeaderboardRatingJournalBean bean, @Context CycleAvoidingMappingContext context);

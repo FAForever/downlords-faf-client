@@ -76,20 +76,6 @@ public class LeaderboardServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGetLeaderboardEntries() {
-    LeaderboardEntryBean leaderboardEntryBean = LeaderboardEntryBeanBuilder.create().defaultValues().get();
-
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leaderboardEntryBean, new CycleAvoidingMappingContext())));
-
-    List<LeaderboardEntryBean> results = instance.getEntries(leaderboard).toCompletableFuture().join();
-
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("rating", false)));
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.filterPresent()));
-    assertThat(results, hasSize(1));
-    assertThat(results.get(0), is(leaderboardEntryBean));
-  }
-
-  @Test
   public void testGetEntriesForPlayer() {
     LeaderboardEntryBean leaderboardEntryBean = LeaderboardEntryBeanBuilder.create().defaultValues().get();
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
