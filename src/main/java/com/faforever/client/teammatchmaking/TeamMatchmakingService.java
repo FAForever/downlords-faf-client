@@ -179,12 +179,12 @@ public class TeamMatchmakingService implements InitializingBean {
           leaveQueueTimeouts.forEach(f -> f.cancel(false));
 
               if (message.getState().equals(MatchmakerState.START)) {
-                matchmakingGameFuture = gameService.startSearchMatchmaker();
-
                 party.getMembers().stream()
                     .filter(partyMember -> Objects.equals(partyMember.getPlayer(), playerService.getCurrentPlayer()))
                     .findFirst()
                     .ifPresent(member -> sendFactionSelection(member.getFactions()));
+
+                matchmakingGameFuture = gameService.startSearchMatchmaker();
               }
             }
         );

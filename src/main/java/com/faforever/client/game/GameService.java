@@ -145,11 +145,11 @@ public class GameService implements InitializingBean {
   private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Process process;
+  private CompletableFuture<Void> matchmakerFuture;
   private boolean gameKilled;
   private boolean rehostRequested;
   private int localReplayPort;
   private boolean inOthersParty;
-  private boolean inMatchmakerQueue;
 
   public GameService(ClientProperties clientProperties,
                      FafServerAccessor fafServerAccessor,
@@ -198,7 +198,6 @@ public class GameService implements InitializingBean {
         item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
     ));
     forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
-    inMatchmakerQueue = false;
     inOthersParty = false;
   }
 
@@ -294,7 +293,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
     }
 
-    if (inMatchmakerQueue) {
+    if (isInMatchmakerQueue()) {
       addAlreadyInQueueNotification();
       return completedFuture(null);
     }
@@ -326,7 +325,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> joinGame(game, password));
     }
 
-    if (inMatchmakerQueue) {
+    if (isInMatchmakerQueue()) {
       addAlreadyInQueueNotification();
       return completedFuture(null);
     }
@@ -412,7 +411,7 @@ public class GameService implements InitializingBean {
       log.warn("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
-    } else if (inMatchmakerQueue) {
+    } else if (isInMatchmakerQueue()) {
       log.warn("In matchmaker queue, not starting replay");
       notificationService.addImmediateWarnNotification("replay.inQueue");
       return false;
@@ -520,9 +519,9 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    if (inMatchmakerQueue) {
+    if (isInMatchmakerQueue()) {
       log.debug("Matchmaker search has already been started, ignoring call");
-      return completedFuture(null);
+      return matchmakerFuture;
     }
 
     if (!preferencesService.isGamePathValid()) {
@@ -531,9 +530,8 @@ public class GameService implements InitializingBean {
     }
 
     log.info("Matchmaking search has been started");
-    inMatchmakerQueue = true;
 
-    CompletableFuture<Void> matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
+    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
@@ -550,7 +548,7 @@ public class GameService implements InitializingBean {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         if (throwable instanceof CancellationException) {
           log.info("Matchmaking search has been cancelled");
-          if (inMatchmakerQueue && isRunning()) {
+          if (isRunning()) {
             notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
             gameKilled = true;
             process.destroy();
@@ -561,7 +559,6 @@ public class GameService implements InitializingBean {
       } else {
         log.debug("Matchmaker queue exited");
       }
-      inMatchmakerQueue = false;
     });
 
     return matchmakerFuture;
@@ -613,6 +610,10 @@ public class GameService implements InitializingBean {
     synchronized (gameRunning) {
       gameRunning.set(running);
     }
+  }
+
+  public boolean isInMatchmakerQueue() {
+    return matchmakerFuture != null && !matchmakerFuture.isDone();
   }
 
   /**

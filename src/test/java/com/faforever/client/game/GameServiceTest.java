@@ -81,6 +81,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -517,7 +518,6 @@ public class GameServiceTest extends ServiceTest {
     GameInfo = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
     GameInfoListenerCaptor.getValue().accept(GameInfo);
 
-
     assertThat(instance.getGames(), empty());
   }
 
@@ -538,20 +538,50 @@ public class GameServiceTest extends ServiceTest {
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
     String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
-    mockStartGameProcess(uid, LADDER_1v1_RATING_TYPE, com.faforever.commons.lobby.Faction.CYBRAN, false, additionalArgs);
+    mockStartMatchmakerGameProcess(gameLaunchMessage);
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
-    instance.startSearchMatchmaker().toCompletableFuture();
+    instance.startSearchMatchmaker().join();
 
     verify(fafServerAccessor).startSearchMatchmaker();
     verify(mapService).download(map);
     verify(replayService).start(eq(uid), any());
     verify(forgedAllianceService).startGame(
         uid, com.faforever.commons.lobby.Faction.CYBRAN, asList(additionalArgs), LADDER_1v1_RATING_TYPE, GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
+  }
+
+  @Test
+  public void testStartSearchLadderTwiceReturnsSameFutureWhenSearching() throws Exception {
+    int uid = 123;
+    String map = "scmp_037";
+    GameLaunchResponse gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
+        .uid(uid).mod("FAF").mapname(map)
+        .expectedPlayers(2)
+        .faction(com.faforever.commons.lobby.Faction.CYBRAN)
+        .initMode(LobbyMode.AUTO_LOBBY)
+        .mapPosition(4)
+        .team(1)
+        .ratingType(LADDER_1v1_RATING_TYPE)
+        .get();
+
+    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
+
+    mockStartMatchmakerGameProcess(gameLaunchMessage);
+    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
+    when(mapService.isInstalled(map)).thenReturn(false);
+    when(mapService.download(map)).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process).newIncompleteFuture());
+
+    CompletableFuture<Void> matchmakerFuture = instance.startSearchMatchmaker();
+
+    assertSame(matchmakerFuture, instance.startSearchMatchmaker());
   }
 
   @Test
@@ -577,7 +607,7 @@ public class GameServiceTest extends ServiceTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchMatchmaker();
+    instance.startSearchMatchmaker().join();
 
     verify(notificationService).addImmediateWarnNotification("game.gameRunning");
   }
@@ -704,7 +734,7 @@ public class GameServiceTest extends ServiceTest {
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    instance.startSearchMatchmaker();
+    instance.startSearchMatchmaker().join();
     verify(forgedAllianceService).startGame(
         gameLaunchMessage.getUid(), null, List.of("/team", "1", "/players", "4", "/startspot", "3", "/gameoptions", "Share:ShareUntilDeath", "UnitCap:500"),
         gameLaunchMessage.getLeaderboard(), GPG_PORT, LOCAL_REPLAY_PORT, false, junitPlayer);
