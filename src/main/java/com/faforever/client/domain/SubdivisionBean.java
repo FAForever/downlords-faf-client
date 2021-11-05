@@ -9,7 +9,12 @@ import javafx.beans.property.StringProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+@Slf4j
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
 @Data
@@ -124,18 +129,30 @@ public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
     return String.format("leagues.divisionName.%s", getDivision().getIndex());
   }
 
-  public String getImageKey() {
-    return String.format("https://content.faforever.com/divisions/icons/%s%s.png",
+  public URL getImageUrl() {
+    String url = String.format("https://content.faforever.com/divisions/icons/%s%s.png",
         getDivision().getNameKey(), getNameKey());
+    return getUrlFromString(url);
   }
 
-  public String getMediumImageKey() {
-    return String.format("https://content.faforever.com/divisions/icons/medium/%s%s_medium.png",
+  public URL getMediumImageUrl() {
+    String url = String.format("https://content.faforever.com/divisions/icons/medium/%s%s_medium.png",
         getDivision().getNameKey(), getNameKey());
+    return getUrlFromString(url);
   }
 
-  public String getSmallImageKey() {
-    return String.format("https://content.faforever.com/divisions/icons/small/%s%s_small.png",
+  public URL getSmallImageUrl() {
+    String url = String.format("https://content.faforever.com/divisions/icons/small/%s%s_small.png",
         getDivision().getNameKey(), getNameKey());
+    return getUrlFromString(url);
+  }
+
+  private URL getUrlFromString(String url) {
+    try {
+      return new URL(url);
+    } catch (MalformedURLException e) {
+      log.warn("Unable to load image due to invalid fileName {}", url, e);
+      return null;
+    }
   }
 }

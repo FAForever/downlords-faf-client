@@ -45,7 +45,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.net.URL;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -53,8 +52,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import static com.github.nocatch.NoCatch.noCatch;
 
 
 @Slf4j
@@ -202,7 +199,7 @@ public class LeaderboardController implements Controller<Tab> {
             selectHighestDivision();
           } else {
             Image divisionImage = assetService.loadAndCacheImage(
-                noCatch(() -> new URL(leagueEntry.getSubdivision().getImageKey())), Path.of("divisions"), null);
+                leagueEntry.getSubdivision().getImageUrl(), Path.of("divisions"), null);
             JavaFxUtil.runLater(() -> {
               playerDivisionNameLabel.setVisible(true);
               placementLabel.setVisible(false);

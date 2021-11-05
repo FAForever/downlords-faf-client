@@ -51,7 +51,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,7 +59,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
-import static com.github.nocatch.NoCatch.noCatch;
 
 @Component
 @RequiredArgsConstructor
@@ -192,8 +190,8 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         leagueLabel.setText(i18n.get("leaderboard.divisionName",
             i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
             leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
-        leagueImageView.setImage(assetService.loadAndCacheImage(noCatch(() ->
-            new URL(leagueEntry.get().getSubdivision().getMediumImageKey())), Paths.get("divisions"), null
+        leagueImageView.setImage(assetService.loadAndCacheImage(
+            leagueEntry.get().getSubdivision().getMediumImageUrl(), Paths.get("divisions"), null
         ));
         leagueImageView.setVisible(true);
       }
