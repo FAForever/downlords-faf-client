@@ -109,6 +109,19 @@ public class LeaderboardController implements Controller<Tab> {
 
     searchTextField.textProperty().addListener((observable, oldValue, newValue) ->
         processSearchInput(newValue));
+
+    subDivisionTabPane.widthProperty().addListener((observable, oldValue, newValue) ->
+        setTabWidth((double) newValue, subDivisionTabPane.getTabs().size()));
+  }
+
+  private void setTabWidth(double tabPaneWidth, int tabNumber) {
+    // The tabs always appear 40px wider, maybe because of some obscure padding rule.
+    // We also need to subtract the tab area padding to prevent horizontal scrolling.
+    double tabWidth = Math.floor((tabPaneWidth - 20.0) / tabNumber) - 40.0;
+    JavaFxUtil.runLater(() -> {
+      subDivisionTabPane.setTabMinWidth(tabWidth);
+      subDivisionTabPane.setTabMaxWidth(tabWidth);
+    });
   }
 
   private void processSearchInput(String searchText) {
@@ -252,11 +265,7 @@ public class LeaderboardController implements Controller<Tab> {
               subDivisionTabPane.getSelectionModel().selectLast();
             });
           });
-      // The tabs always appear 40px wider than they should for whatever reason. We add a little more to prevent horizontal scrolling
-      JavaFxUtil.runLater(() -> {
-        subDivisionTabPane.setTabMinWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0);
-        subDivisionTabPane.setTabMaxWidth(subDivisionTabPane.getWidth() / subDivisionTabPane.getTabs().size() - 45.0);
-      });
+      setTabWidth(subDivisionTabPane.getWidth(), subDivisionTabPane.getTabs().size());
       if (entryToSelect != null && correctDivisionSelected()) {
         selectAssociatedTab();
       }
