@@ -60,6 +60,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -68,7 +69,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.net.ConnectionState.CONNECTED;
 import static javafx.scene.layout.BackgroundPosition.CENTER;
 import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 
@@ -211,27 +211,29 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void setCreateGameButtonState() {
-    boolean disable = titleTextField.getText().isEmpty()
-        || featuredModListView.getSelectionModel().getSelectedItem() == null
-        || userService.getConnectionState() != CONNECTED;
+    String title = titleTextField.getText();
 
     ConnectionState lobbyConnectionState = userService.getConnectionState();
-    String createGameButtonText = switch (lobbyConnectionState) {
-      case DISCONNECTED -> i18n.get("game.create.disconnected");
-      case CONNECTING -> i18n.get("game.create.connecting");
+    String createGameTextKey = switch (lobbyConnectionState) {
+      case DISCONNECTED -> "game.create.disconnected";
+      case CONNECTING -> "game.create.connecting";
       case CONNECTED -> {
-        if (Strings.isNullOrEmpty(titleTextField.getText())) {
-          yield i18n.get("game.create.titleMissing");
+        if (Strings.isNullOrEmpty(title)) {
+          yield "game.create.titleMissing";
+        } else if (!StandardCharsets.US_ASCII.newEncoder().canEncode(title)) {
+          yield "game.create.titleNotAscii";
         } else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
-          yield i18n.get("game.create.featuredModMissing");
+          yield "game.create.featuredModMissing";
         } else {
-          yield i18n.get("game.create.create");
+          yield "game.create.create";
         }
       }
     };
 
-    JavaFxUtil.runLater(() -> createGameButton.setDisable(disable));
-    JavaFxUtil.runLater(() -> createGameButton.setText(createGameButtonText));
+    JavaFxUtil.runLater(() -> {
+      createGameButton.setDisable(!Objects.equals(createGameTextKey, "game.create.create"));
+      createGameButton.setText(i18n.get(createGameTextKey));
+    });
   }
 
   private void initMapFilterPopup() {
@@ -248,7 +250,8 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void validateTitle(String gameTitle) {
-    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, Strings.isNullOrEmpty(gameTitle));
+    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, Strings.isNullOrEmpty(gameTitle)
+        || !StandardCharsets.US_ASCII.newEncoder().canEncode(gameTitle));
   }
 
   private void initPassword() {

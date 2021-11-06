@@ -231,6 +231,18 @@ public class CreateGameControllerTest extends UITest {
   }
 
   @Test
+  public void testButtonBindingIfTitleNotAscii() {
+
+    when(i18n.get("game.create.titleNotAscii")).thenReturn("title not ascii");
+    instance.titleTextField.setText("ты");
+    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertThat(instance.titleTextField.getText(), is("ты"));
+    assertThat(instance.createGameButton.getText(), is("title not ascii"));
+  }
+
+  @Test
   public void testButtonBindingIfNotConnected() {
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
     when(userService.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
