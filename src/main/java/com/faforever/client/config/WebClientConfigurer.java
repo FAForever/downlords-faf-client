@@ -2,6 +2,7 @@ package com.faforever.client.config;
 
 import com.faforever.client.api.JsonApiReader;
 import com.faforever.client.api.JsonApiWriter;
+import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -19,7 +20,8 @@ public class WebClientConfigurer implements WebClientCustomizer {
   @Override
   public void customize(WebClient.Builder webClientBuilder) {
     webClientBuilder.defaultHeader("User-Agent", clientProperties.getUserAgent())
-        .clientConnector(new ReactorClientHttpConnector(HttpClient.newConnection()))
+        .clientConnector(new ReactorClientHttpConnector(HttpClient.newConnection()
+            .resolver(DefaultAddressResolverGroup.INSTANCE)))
         .codecs(clientCodecConfigurer -> {
           clientCodecConfigurer.customCodecs().register(jsonApiReader);
           clientCodecConfigurer.customCodecs().register(jsonApiWriter);
