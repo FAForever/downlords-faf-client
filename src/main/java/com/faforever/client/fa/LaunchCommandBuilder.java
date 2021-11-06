@@ -115,11 +115,14 @@ public class LaunchCommandBuilder {
   public LaunchCommandBuilder additionalArgs(List<String> additionalArgs) {
     ArrayList<String> cleanedArgs = new ArrayList<>();
 
-    for (String arg : additionalArgs) {
-      String[] split = arg.split(" ");
+    if (additionalArgs != null) {
+      for (String arg : additionalArgs) {
+        String[] split = arg.split(" ");
 
-      Collections.addAll(cleanedArgs, split);
+        Collections.addAll(cleanedArgs, split);
+      }
     }
+
     this.additionalArgs = cleanedArgs;
     return this;
   }

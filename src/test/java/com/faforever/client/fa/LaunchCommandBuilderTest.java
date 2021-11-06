@@ -77,6 +77,11 @@ public class LaunchCommandBuilderTest extends ServiceTest {
   }
 
   @Test
+  public void testAdditionalArgsNullThrowsNoException() throws Exception {
+    defaultBuilder().additionalArgs(null).build();
+  }
+
+  @Test
   public void testClanNullThrowsNoException() throws Exception {
     defaultBuilder().clan(null).build();
   }

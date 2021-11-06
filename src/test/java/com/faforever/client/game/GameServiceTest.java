@@ -30,7 +30,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.replay.ReplayServer;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -130,8 +129,6 @@ public class GameServiceTest extends ServiceTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
-  @Mock
-  private ReportingService reportingService;
   @Mock
   private PlatformService platformService;
   @Mock
@@ -516,8 +513,7 @@ public class GameServiceTest extends ServiceTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    String[] additionalArgs = {"/team", "1", "/players", "2", "/startspot", "4"};
-    mockStartMatchmakerGameProcess(gameLaunchMessage);
+    mockStartGameProcess(gameLaunchMessage, false);
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
@@ -549,7 +545,7 @@ public class GameServiceTest extends ServiceTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    mockStartMatchmakerGameProcess(gameLaunchMessage);
+    mockStartGameProcess(gameLaunchMessage, false);
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, null, Collections.emptyMap(), Collections.emptySet())).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
@@ -748,7 +744,7 @@ public class GameServiceTest extends ServiceTest {
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
-    mockStartMatchmakerGameProcess(gameLaunchMessage);
+    mockStartGameProcess(gameLaunchMessage, false);
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
