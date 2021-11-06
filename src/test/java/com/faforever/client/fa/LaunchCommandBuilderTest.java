@@ -4,13 +4,16 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.Faction;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -36,22 +39,22 @@ public class LaunchCommandBuilderTest extends ServiceTest {
 
   @Test
   public void testUidNullAllowed() throws Exception {
-    defaultBuilder().uid(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().uid(null).build());
   }
 
   @Test
   public void testMeanNullAllowed() throws Exception {
-    defaultBuilder().mean(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().mean(null).build());
   }
 
   @Test
   public void testDeviationNullAllowed() throws Exception {
-    defaultBuilder().deviation(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().deviation(null).build());
   }
 
   @Test
   public void testCountryNullAllowed() throws Exception {
-    defaultBuilder().country(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().country(null).build());
   }
 
   @Test
@@ -61,27 +64,57 @@ public class LaunchCommandBuilderTest extends ServiceTest {
 
   @Test
   public void testUsernameNullAllowedIfUidNotSet() throws Exception {
-    defaultBuilder().uid(null).username(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().uid(null).username(null).build());
   }
 
   @Test
   public void testFactionNullAllowed() throws Exception {
-    defaultBuilder().faction(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().faction(null).build());
   }
 
   @Test
   public void testLogFileNullAllowed() throws Exception {
-    defaultBuilder().logFile(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().logFile(null).build());
   }
 
   @Test
   public void testAdditionalArgsNullThrowsNoException() throws Exception {
-    defaultBuilder().additionalArgs(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().additionalArgs(null).build());
   }
 
   @Test
   public void testClanNullThrowsNoException() throws Exception {
-    defaultBuilder().clan(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().clan(null).build());
+  }
+
+  @Test
+  public void testExpectedPlayersNullThrowsNoException() throws Exception {
+    assertDoesNotThrow(() -> defaultBuilder().expectedPlayers(null).build());
+  }
+
+  @Test
+  public void testNumberOfGamesNullThrowsNoException() throws Exception {
+    assertDoesNotThrow(() -> defaultBuilder().numberOfGames(null).build());
+  }
+
+  @Test
+  public void testTeamNullThrowsNoException() throws Exception {
+    assertDoesNotThrow(() -> defaultBuilder().team(null).build());
+  }
+
+  @Test
+  public void testMapPositionNullThrowsNoException() throws Exception {
+    assertDoesNotThrow(() -> defaultBuilder().mapPosition(null).build());
+  }
+
+  @Test
+  public void testMapNullThrowsNoException() throws Exception {
+    assertDoesNotThrow(() -> defaultBuilder().map(null).build());
+  }
+
+  @Test
+  public void testGameOptionsNullThrowsNoException() throws Exception {
+    assertDoesNotThrow(() -> defaultBuilder().gameOptions(null).build());
   }
 
   @Test
@@ -132,6 +165,191 @@ public class LaunchCommandBuilderTest extends ServiceTest {
             "/rehost"
         ));
   }
+
+  @Test
+  public void testGpgPort() throws Exception {
+    assertThat(
+        defaultBuilder().localGpgPort(0).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/gpgnet", "127.0.0.1:0"
+        ));
+  }
+
+  @Test
+  public void testReplayPort() throws Exception {
+    assertThat(
+        defaultBuilder().uid(0).localReplayPort(0).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/savereplay",
+            "gpgnet://127.0.0.1:0/0/junit.SCFAreplay"
+        ));
+  }
+
+  @Test
+  public void testCountryPort() throws Exception {
+    assertThat(
+        defaultBuilder().country("USA").build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/country", "USA"
+        ));
+  }
+
+  @Test
+  public void testClan() throws Exception {
+    assertThat(
+        defaultBuilder().clan("USA").build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/clan", "USA"
+        ));
+  }
+
+  @Test
+  public void testReplayId() throws Exception {
+    assertThat(
+        defaultBuilder().replayId(0).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/replayid", "0"
+        ));
+  }
+
+  @Test
+  public void testNumberOfGames() throws Exception {
+    assertThat(
+        defaultBuilder().numberOfGames(0).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/numgames", "0"
+        ));
+  }
+
+  @Test
+  public void testTeam() throws Exception {
+    assertThat(
+        defaultBuilder().team(0).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/team", "0"
+        ));
+  }
+
+  @Test
+  public void testExpectedPlayers() throws Exception {
+    assertThat(
+        defaultBuilder().expectedPlayers(0).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/players", "0"
+        ));
+  }
+
+  @Test
+  public void testMapPosition() throws Exception {
+    assertThat(
+        defaultBuilder().mapPosition(0).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/startspot", "0"
+        ));
+  }
+
+  @Test
+  public void testMap() throws Exception {
+    assertThat(
+        defaultBuilder().map("hello").build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/map", "hello"
+        ));
+  }
+
+  @Test
+  public void testGameOptions() throws Exception {
+    assertThat(
+        defaultBuilder().gameOptions(Map.of("test", "option")).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/gameoptions", "test:option"
+        ));
+  }
+
+  @Test
+  public void testRating() throws Exception {
+    assertThat(
+        defaultBuilder().mean(0f).deviation(0f).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/mean", "0.0",
+            "/deviation", "0.0"
+        ));
+  }
+
+  @Test
+  public void testReplay() throws Exception {
+    assertThat(
+        defaultBuilder().replayFile(Path.of("here")).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/replay", Path.of("here").toAbsolutePath().toString()
+        ));
+
+    URI uri = URI.create("test");
+    
+    assertThat(
+        defaultBuilder().replayUri(uri).build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/replay", uri.toASCIIString()
+        ));
+  }
+  
+  
 
   @Test
   public void testUseDefaultExecutableDecoratorOnEmptyString() throws Exception {

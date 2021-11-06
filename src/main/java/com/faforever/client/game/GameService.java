@@ -5,7 +5,6 @@ import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -33,13 +32,11 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.replay.ReplayServer;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
@@ -74,7 +71,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +83,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -129,9 +124,7 @@ public class GameService implements InitializingBean {
   private final GameUpdater gameUpdater;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final ExecutorService executorService;
   private final PlayerService playerService;
-  private final ReportingService reportingService;
   private final EventBus eventBus;
   private final IceAdapter iceAdapter;
   private final ModService modService;
@@ -160,9 +153,7 @@ public class GameService implements InitializingBean {
                      GameUpdater gameUpdater,
                      NotificationService notificationService,
                      I18n i18n,
-                     ExecutorService executorService,
                      PlayerService playerService,
-                     ReportingService reportingService,
                      EventBus eventBus,
                      IceAdapter iceAdapter,
                      ModService modService,
@@ -178,9 +169,7 @@ public class GameService implements InitializingBean {
     this.gameUpdater = gameUpdater;
     this.notificationService = notificationService;
     this.i18n = i18n;
-    this.executorService = executorService;
     this.playerService = playerService;
-    this.reportingService = reportingService;
     this.eventBus = eventBus;
     this.iceAdapter = iceAdapter;
     this.modService = modService;
@@ -302,12 +291,7 @@ public class GameService implements InitializingBean {
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchMessage -> {
-
-          String ratingType = gameLaunchMessage.getLeaderboard();
-
-          startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
-        });
+        .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage));
   }
 
   private void addAlreadyInQueueNotification() {
@@ -353,9 +337,7 @@ public class GameService implements InitializingBean {
             currentGame.set(game);
           }
 
-          String ratingType = gameLaunchMessage.getLeaderboard();
-
-          startGame(gameLaunchMessage, null, ratingType);
+          startGame(gameLaunchMessage);
         })
         .exceptionally(throwable -> {
           log.warn("Game could not be joined", throwable);
@@ -490,7 +472,7 @@ public class GameService implements InitializingBean {
         .thenRun(() -> {
               Process processCreated;
               try {
-                processCreated = forgedAllianceService.startReplay(replayUrl, gameId, getCurrentPlayer());
+                processCreated = forgedAllianceService.startReplay(replayUrl, gameId, playerService.getCurrentPlayer());
               } catch (IOException e) {
                 throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
               }
@@ -506,11 +488,6 @@ public class GameService implements InitializingBean {
           notifyCantPlayReplay(gameId, throwable);
           return null;
         });
-  }
-
-  @NotNull
-  private PlayerBean getCurrentPlayer() {
-    return playerService.getCurrentPlayer();
   }
 
   public ObservableList<GameBean> getGames() {
@@ -548,13 +525,7 @@ public class GameService implements InitializingBean {
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
-            .thenCompose(aVoid -> {
-              addMatchmakerGameLaunchArguments(gameLaunchMessage);
-
-              String ratingType = gameLaunchMessage.getLeaderboard();
-
-              return startGame(gameLaunchMessage, gameLaunchMessage.getFaction(), ratingType);
-            }));
+            .thenCompose(aVoid -> startGame(gameLaunchMessage)));
 
     matchmakerFuture.whenComplete((aVoid, throwable) -> {
       if (throwable != null) {
@@ -575,24 +546,6 @@ public class GameService implements InitializingBean {
     });
 
     return matchmakerFuture;
-  }
-
-  @VisibleForTesting
-  void addMatchmakerGameLaunchArguments(GameLaunchResponse gameLaunchMessage) {
-    List<String> args = gameLaunchMessage.getArgs();
-    args.add("/team");
-    args.add(String.valueOf(gameLaunchMessage.getTeam()));
-    args.add("/players");
-    args.add(String.valueOf(gameLaunchMessage.getExpectedPlayers()));
-    args.add("/startspot");
-    args.add(String.valueOf(gameLaunchMessage.getMapPosition()));
-    Optional.ofNullable(gameLaunchMessage.getGameOptions())
-        .ifPresent(gameOptions -> {
-          args.add("/gameoptions");
-          gameOptions.entrySet().stream()
-              .map(entry -> entry.getKey() + ":" + entry.getValue())
-              .forEach(args::add);
-        });
   }
 
   /**
@@ -633,7 +586,7 @@ public class GameService implements InitializingBean {
    * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
    * (mod/map download, connectivity check etc.)
    */
-  private CompletableFuture<Void> startGame(GameLaunchResponse gameLaunchMessage, Faction faction, String ratingType) {
+  private CompletableFuture<Void> startGame(GameLaunchResponse gameLaunchMessage) {
     if (isRunning()) {
       log.warn("Forged Alliance is already running, not starting game");
       CompletableFuture.completedFuture(null);
@@ -646,11 +599,10 @@ public class GameService implements InitializingBean {
           return iceAdapter.start();
         })
         .thenApply(adapterPort -> {
-          List<String> args = fixMalformedArgs(gameLaunchMessage.getArgs());
           gameKilled = false;
           try {
-            process = forgedAllianceService.startGame(gameLaunchMessage.getUid(), faction, args, ratingType,
-                adapterPort, localReplayPort, rehostRequested, getCurrentPlayer());
+            process = forgedAllianceService.startGameOnline(gameLaunchMessage,
+                adapterPort, localReplayPort, rehostRequested);
           } catch (IOException e) {
             throw new GameLaunchException("Could not start game", e, "game.start.couldNotStart");
           }
@@ -677,21 +629,6 @@ public class GameService implements InitializingBean {
     notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()),
         Severity.INFO,
         singletonList(new Action(i18n.get("game.rate"), actionEvent -> eventBus.post(new ShowReplayEvent(game.getId()))))));
-  }
-
-  /**
-   * A correct argument list looks like ["/ratingcolor", "d8d8d8d8", "/numgames", "236"]. However, the FAF server sends
-   * it as ["/ratingcolor d8d8d8d8", "/numgames 236"]. This method fixes this.
-   */
-  private List<String> fixMalformedArgs(List<String> gameLaunchMessage) {
-    ArrayList<String> fixedArgs = new ArrayList<>();
-
-    for (String combinedArg : gameLaunchMessage) {
-      String[] split = combinedArg.split(" ");
-
-      Collections.addAll(fixedArgs, split);
-    }
-    return fixedArgs;
   }
 
   @VisibleForTesting
@@ -860,9 +797,8 @@ public class GameService implements InitializingBean {
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))
         .thenAccept(aVoid -> {
-          List<String> args = Arrays.asList("/map", technicalMapName);
           try {
-            process = forgedAllianceService.startGameOffline(args);
+            process = forgedAllianceService.startGameOffline(technicalMapName);
             setGameRunning(true);
             spawnTerminationListener(process, false);
           } catch (IOException e) {
@@ -890,7 +826,7 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    process = forgedAllianceService.startGameOffline(List.of());
+    process = forgedAllianceService.startGameOffline(null);
     setGameRunning(true);
     spawnTerminationListener(process, false);
   }
