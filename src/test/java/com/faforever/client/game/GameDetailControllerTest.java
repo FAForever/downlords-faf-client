@@ -102,6 +102,11 @@ public class GameDetailControllerTest extends UITest {
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.UNKNOWN));
     assertFalse(instance.watchButton.isVisible());
     assertFalse(instance.joinButton.isVisible());
+    game.setStartTime(null);
+    runOnFxThreadAndWait(() -> game.setStatus(GameStatus.PLAYING));
+    assertFalse(instance.watchButton.isVisible());
+    assertFalse(instance.joinButton.isVisible());
+
   }
 
   @Test

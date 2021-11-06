@@ -91,9 +91,11 @@ public class GameDetailController implements Controller<Pane> {
         case PLAYING -> {
           JavaFxUtil.runLater(() -> {
             joinButton.setVisible(false);
-            watchButton.setVisible(true);
+            watchButton.setVisible(game.getStartTime() != null);
           });
-          watchButtonController.setGame(game);
+          if (game.getStartTime() != null) {
+            watchButtonController.setGame(game);
+          }
         }
         case OPEN -> JavaFxUtil.runLater(() -> {
           joinButton.setVisible(true);
