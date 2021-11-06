@@ -13,6 +13,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -38,22 +39,22 @@ public class LaunchCommandBuilderTest extends ServiceTest {
 
   @Test
   public void testUidNullAllowed() throws Exception {
-    defaultBuilder().uid(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().uid(null).build());
   }
 
   @Test
   public void testMeanNullAllowed() throws Exception {
-    defaultBuilder().mean(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().mean(null).build());
   }
 
   @Test
   public void testDeviationNullAllowed() throws Exception {
-    defaultBuilder().deviation(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().deviation(null).build());
   }
 
   @Test
   public void testCountryNullAllowed() throws Exception {
-    defaultBuilder().country(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().country(null).build());
   }
 
   @Test
@@ -63,57 +64,57 @@ public class LaunchCommandBuilderTest extends ServiceTest {
 
   @Test
   public void testUsernameNullAllowedIfUidNotSet() throws Exception {
-    defaultBuilder().uid(null).username(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().uid(null).username(null).build());
   }
 
   @Test
   public void testFactionNullAllowed() throws Exception {
-    defaultBuilder().faction(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().faction(null).build());
   }
 
   @Test
   public void testLogFileNullAllowed() throws Exception {
-    defaultBuilder().logFile(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().logFile(null).build());
   }
 
   @Test
   public void testAdditionalArgsNullThrowsNoException() throws Exception {
-    defaultBuilder().additionalArgs(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().additionalArgs(null).build());
   }
 
   @Test
   public void testClanNullThrowsNoException() throws Exception {
-    defaultBuilder().clan(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().clan(null).build());
   }
 
   @Test
   public void testExpectedPlayersNullThrowsNoException() throws Exception {
-    defaultBuilder().expectedPlayers(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().expectedPlayers(null).build());
   }
 
   @Test
   public void testNumberOfGamesNullThrowsNoException() throws Exception {
-    defaultBuilder().numberOfGames(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().numberOfGames(null).build());
   }
 
   @Test
   public void testTeamNullThrowsNoException() throws Exception {
-    defaultBuilder().team(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().team(null).build());
   }
 
   @Test
   public void testMapPositionNullThrowsNoException() throws Exception {
-    defaultBuilder().mapPosition(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().mapPosition(null).build());
   }
 
   @Test
   public void testMapNullThrowsNoException() throws Exception {
-    defaultBuilder().map(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().map(null).build());
   }
 
   @Test
   public void testGameOptionsNullThrowsNoException() throws Exception {
-    defaultBuilder().gameOptions(null).build();
+    assertDoesNotThrow(() -> defaultBuilder().gameOptions(null).build());
   }
 
   @Test
