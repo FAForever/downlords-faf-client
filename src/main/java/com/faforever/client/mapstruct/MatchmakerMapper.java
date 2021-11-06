@@ -21,7 +21,6 @@ public interface MatchmakerMapper {
     MatchmakerQueueBean map(MatchmakerQueue dto, @Context CycleAvoidingMappingContext context);
     MatchmakerQueue map(MatchmakerQueueBean bean, @Context CycleAvoidingMappingContext context);
 
-    @Mapping(target = "partiesInQueue", expression = "java(dto.getBoundary75s().size())")
     @Mapping(target = "playersInQueue", source = "numberOfPlayers")
     @Mapping(target = "queuePopTime", source = "popTime")
     MatchmakerQueueBean update(MatchmakerInfo.MatchmakerQueue dto, @MappingTarget MatchmakerQueueBean bean);
