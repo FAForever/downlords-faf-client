@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.io.IOException;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,7 +26,7 @@ public class InvitePlayerControllerTest extends UITest {
   private InvitePlayerController instance;
 
   @BeforeEach
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     when(playerService.getPlayerNames())
         .thenReturn(Set.of("axel12", "TrustTheFall", "nInPrisonForWhat", "Sheikah"));
     when(playerService.getCurrentPlayer())

@@ -1,5 +1,6 @@
 package com.faforever.client.notification;
 
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.ServiceTest;
 import javafx.collections.SetChangeListener;
@@ -22,10 +23,12 @@ public class NotificationServiceTest extends ServiceTest {
 
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private I18n i18n;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new NotificationService(reportingService);
+    instance = new NotificationService(reportingService, i18n);
   }
 
   @Test

@@ -3,7 +3,6 @@ package com.faforever.client.discord;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.event.EventListener;
@@ -18,6 +17,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 @Component
 @RequiredArgsConstructor
@@ -28,7 +28,7 @@ public class JoinDiscordEventHandler {
   private final PlatformService platformService;
 
   @EventListener(value = JoinDiscordEvent.class)
-  public void onJoin() {
+  public void onJoin() throws URISyntaxException {
     String joinUrl = clientProperties.getDiscord().getJoinUrl();
     joinViaDiscord(joinUrl);
   }
@@ -37,8 +37,7 @@ public class JoinDiscordEventHandler {
     platformService.showDocument(joinUrl);
   }
 
-  @SneakyThrows
-  private void joinViaDiscord(String joinUrl) {
+  private void joinViaDiscord(String joinUrl) throws URISyntaxException {
     StandardWebSocketClient client = new StandardWebSocketClient();
     HttpHeaders headers = new HttpHeaders();
     headers.add("Origin", "https://discord.com");

@@ -4,8 +4,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
+import com.faforever.client.util.FileSizeReader;
 import com.google.common.annotations.VisibleForTesting;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -24,24 +24,18 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
 
   private final I18n i18n;
   private final PreferencesService preferencesService;
-  public CheckForUpdateTask(I18n i18n, PreferencesService preferencesService) {
+  private final FileSizeReader fileSizeReader;
+
+  public CheckForUpdateTask(I18n i18n, PreferencesService preferencesService, FileSizeReader fileSizeReader) {
     super(Priority.LOW);
     this.i18n = i18n;
     this.preferencesService = preferencesService;
+    this.fileSizeReader  = fileSizeReader;
   }
 
   @VisibleForTesting
-  int getFileSize(URL url) throws IOException {
-    URLConnection connection = url.openConnection();
-    Assert.state(connection instanceof HttpURLConnection, "Unexpected connection type: " + connection.getClass());
-
-    HttpURLConnection httpConnection = (HttpURLConnection) connection;
-    httpConnection.setRequestMethod("HEAD");
-
-    int fileSize = httpConnection.getContentLength();
-    httpConnection.disconnect();
-
-    return fileSize;
+  int getFileSize(URL url) {
+    return fileSizeReader.getFileSize(url).join();
   }
 
   @Override
@@ -79,11 +73,5 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
         latestRelease.getReleaseNotesUrl(),
         false
     );
-  }
-
-  // TODO make this available as a bean and use it in MapService as well
-  @VisibleForTesting
-  interface FileSizeReader {
-    Integer read(URL url) throws IOException;
   }
 }

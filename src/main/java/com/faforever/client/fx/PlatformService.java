@@ -7,7 +7,7 @@ import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,9 +17,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.regex.Pattern;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static org.bridj.Platform.show;
 
+@Slf4j
 public class PlatformService {
   /**
    * Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
@@ -37,7 +37,7 @@ public class PlatformService {
   /**
    * Opens the specified URI in a new browser window or tab.
    */
-  
+
   public void showDocument(String url) {
     hostServices.showDocument(url);
   }
@@ -45,18 +45,20 @@ public class PlatformService {
   /**
    * Show a file in its parent directory, if possible selecting the file (not possible on all platforms).
    */
-  @SneakyThrows
   public void reveal(Path path) {
-    if (isWindows) {
-      Path finalPath = path;
-      noCatch(() -> show(finalPath.toFile()));
-    } else if (Platform.isLinux()) {
-      //Might not work on all linux distros but let's give it a try
-      if (Files.isRegularFile(path)) {
-        path = path.getParent();
+    try {
+      if (isWindows) {
+        show(path.toFile());
+      } else if (Platform.isLinux()) {
+        //Might not work on all linux distros but let's give it a try
+        if (Files.isRegularFile(path)) {
+          path = path.getParent();
+        }
+        ProcessBuilder builder = new ProcessBuilder("xdg-open", path.toAbsolutePath().toString());
+        builder.start();
       }
-      ProcessBuilder builder = new ProcessBuilder("xdg-open", path.toAbsolutePath().toString());
-      builder.start();
+    } catch (IOException | NoSuchMethodException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -65,7 +67,7 @@ public class PlatformService {
    * Show a Window, restore it to it's state before minimizing (normal/restored or maximized) and move it to foreground
    * will only work on windows systems
    */
-  
+
   public void focusWindow(String windowTitle) {
     if (!isWindows) {
       return;
@@ -95,7 +97,7 @@ public class PlatformService {
     }
   }
 
-  
+
   public void startFlashingWindow(String windowTitle) {
     if (!isWindows) {
       return;
@@ -113,7 +115,7 @@ public class PlatformService {
     User32.INSTANCE.FlashWindowEx(flashwinfo);
   }
 
-  
+
   public void stopFlashingWindow(String windowTitle) {
     if (!isWindows) {
       return;
@@ -146,7 +148,7 @@ public class PlatformService {
     return new String(textBuffer).trim();
   }
 
-  
+
   public boolean isWindowFocused(String windowTitle) {
     return windowTitle.equals(getForegroundWindowTitle());
   }
@@ -155,7 +157,7 @@ public class PlatformService {
     // client needs executable bit for running and the writeable bit set to alter the version
     if (SystemUtils.IS_OS_UNIX) {
       Files.setPosixFilePermissions(exePath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ,
-    				  PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));
+          PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));
     }
   }
 }

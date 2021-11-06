@@ -4,6 +4,7 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean.MapType;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DualStringListCell;
@@ -24,6 +25,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -442,6 +444,15 @@ public class CreateGameController implements Controller<Pane> {
               return selectedModVersions;
             }), (mapBean, mods) -> {
           hostGame(mapBean, getUUIDsFromModVersions(mods));
+          return null;
+        }).exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+          log.warn("Game could not be hosted", throwable);
+          if (throwable instanceof NotifiableException) {
+            notificationService.addErrorNotification((NotifiableException) throwable);
+          } else {
+            notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
+          }
           return null;
         });
 

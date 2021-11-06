@@ -1,15 +1,16 @@
 package com.faforever.client.player;
 
+import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.i18n.I18n;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,7 +62,6 @@ public class CountryFlagService {
     return localName.startsWith(startsWithLowered);
   }
 
-  @SneakyThrows
   public Optional<URL> getCountryFlagUrl(String country) {
     if (country == null) {
       return Optional.empty();
@@ -78,6 +78,11 @@ public class CountryFlagService {
     if (!classPathResource.exists()) {
       return Optional.empty();
     }
-    return Optional.of(classPathResource.getURL());
+
+    try {
+      return Optional.of(classPathResource.getURL());
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not open classpath resource " + classPathResource.getPath(), e, "flag.loadError", country);
+    }
   }
 }

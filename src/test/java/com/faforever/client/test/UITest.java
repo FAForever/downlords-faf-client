@@ -3,7 +3,6 @@ package com.faforever.client.test;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.ui.StageHolder;
-import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -24,10 +23,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-
-import static com.github.nocatch.NoCatch.noCatch;
 
 @ExtendWith({MockitoExtension.class})
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -86,11 +82,11 @@ public abstract class UITest extends ApplicationTest {
     return stage;
   }
 
-  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory) throws IOException {
+  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory) throws IOException, InterruptedException {
     loadFxml(fileName, controllerFactory, null);
   }
 
-  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory, Controller<?> controller) throws IOException {
+  protected void loadFxml(String fileName, Callback<Class<?>, Object> controllerFactory, Controller<?> controller) throws IOException, InterruptedException {
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
     messageSource.setBasename("i18n.messages");
 
@@ -111,13 +107,13 @@ public abstract class UITest extends ApplicationTest {
     CountDownLatch latch = new CountDownLatch(1);
     JavaFxUtil.runLater(() -> {
       try {
-        noCatch((Callable<Object>) loader::load);
+        loader.load();
       } catch (Exception e) {
         loadExceptionWrapper.setLoadException(e);
       }
       latch.countDown();
     });
-    noCatch((NoCatchRunnable) latch::await);
+    latch.await();
     if (loadExceptionWrapper.getLoadException() != null) {
       throw new RuntimeException("Loading FXML failed", loadExceptionWrapper.getLoadException());
     }
@@ -127,8 +123,8 @@ public abstract class UITest extends ApplicationTest {
     return String.format("/%s", file);
   }
 
-  protected URL getThemeFileUrl(String file) {
-    return noCatch(() -> new ClassPathResource(getThemeFile(file)).getURL());
+  protected URL getThemeFileUrl(String file) throws IOException {
+    return new ClassPathResource(getThemeFile(file)).getURL();
   }
 
   protected void runOnFxThreadAndWait(Runnable runnable) {

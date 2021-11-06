@@ -1,8 +1,8 @@
 package com.faforever.client.query;
 
+import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.util.ProgrammingError;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;

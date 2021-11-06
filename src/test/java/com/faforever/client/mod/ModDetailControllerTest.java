@@ -85,6 +85,7 @@ public class ModDetailControllerTest extends UITest {
     instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService, uiService);
 
     installedModVersions = FXCollections.observableArrayList();
+    when(modService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get("modVault.details.author", modVersion.getMod().getAuthor())).thenReturn(modVersion.getMod().getAuthor());
     when(i18n.get("modVault.details.uploader", modVersion.getMod().getUploader().getUsername())).thenReturn(modVersion.getMod().getUploader().getUsername());
@@ -121,7 +122,7 @@ public class ModDetailControllerTest extends UITest {
     assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
     assertEquals(modVersion.getMod().getUploader().getUsername(), instance.uploaderLabel.getText());
     assertNotNull(instance.thumbnailImageView.getImage());
-    verify(modService).getModSize(modVersion);
+    verify(modService).getFileSize(modVersion);
     verify(modService).loadThumbnail(modVersion);
     verify(reviewsController).setOwnReview(review);
   }

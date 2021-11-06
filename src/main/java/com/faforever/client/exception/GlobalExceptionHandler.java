@@ -1,5 +1,6 @@
 package com.faforever.client.exception;
 
+import com.faforever.client.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -13,14 +14,25 @@ import java.lang.reflect.Method;
 @Component
 @RequiredArgsConstructor
 public class GlobalExceptionHandler implements UncaughtExceptionHandler, AsyncUncaughtExceptionHandler {
+  private final NotificationService notificationService;
 
   @Override
   public void uncaughtException(Thread t, Throwable ex) {
-    log.warn("Uncaught exception on {}: ", t, ex);
+    if (ex instanceof NotifiableException) {
+      log.error("Exception on Thread {}: ", t, ex);
+      notificationService.addErrorNotification((NotifiableException) ex);
+    } else {
+      log.warn("Uncaught exception on {}: ", t, ex);
+    }
   }
 
   @Override
   public void handleUncaughtException(@NotNull Throwable ex, @NotNull Method method, Object @NotNull ... params) {
-    log.error("Uncaught Exception on Method {} with parameters {}: ", method.getName(), params, ex);
+    if (ex instanceof NotifiableException) {
+      log.error("Exception on Method {} with parameters {}: ", method.getName(), params, ex);
+      notificationService.addErrorNotification((NotifiableException) ex);
+    } else {
+      log.error("Uncaught Exception on Method {} with parameters {}: ", method.getName(), params, ex);
+    }
   }
 }

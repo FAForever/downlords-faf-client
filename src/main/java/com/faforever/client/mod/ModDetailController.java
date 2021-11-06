@@ -10,6 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -141,7 +142,20 @@ public class ModDetailController implements Controller<Node> {
     setInstalled(modService.isModInstalled(modVersion.getUid()));
 
     updatedLabel.setText(timeService.asDate(modVersion.getUpdateTime()));
-    sizeLabel.setText(Bytes.formatSize(getModSize(), i18n.getUserSpecificLocale()));
+    modService.getFileSize(modVersion)
+        .thenAccept(modFileSize -> JavaFxUtil.runLater(() -> {
+          if (modFileSize > -1) {
+            String size = Bytes.formatSize(modFileSize, i18n.getUserSpecificLocale());
+            installButton.setText(i18n.get("modVault.installButtonFormat", size));
+            installButton.setDisable(false);
+            sizeLabel.setText(size);
+          } else {
+            installButton.setText(i18n.get("notAvailable"));
+            installButton.setDisable(true);
+            sizeLabel.setText(i18n.get("notAvailable"));
+          }
+        }));
+
     versionLabel.setText(modVersion.getVersion().toString());
 
     PlayerBean player = playerService.getCurrentPlayer();
@@ -203,10 +217,6 @@ public class ModDetailController implements Controller<Node> {
           notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
-  }
-
-  private long getModSize() {
-    return modService.getModSize(modVersion);
   }
 
   public void onInstallButtonClicked() {

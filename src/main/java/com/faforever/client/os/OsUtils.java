@@ -1,5 +1,7 @@
 package com.faforever.client.os;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,9 +9,9 @@ import java.io.InputStreamReader;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@Slf4j
 public final class OsUtils {
 
   private OsUtils() {
@@ -24,14 +26,16 @@ public final class OsUtils {
   }
 
   public static void gobbleLines(InputStream stream, Consumer<String> lineConsumer) {
-    Thread thread = new Thread(() -> noCatch(() -> {
+    Thread thread = new Thread(() -> {
       try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream))) {
         String line;
         while ((line = bufferedReader.readLine()) != null) {
           lineConsumer.accept(line);
         }
+      } catch (IOException e) {
+        throw new RuntimeException("Could not open input stream reader", e);
       }
-    }));
+    });
     thread.setDaemon(true);
     thread.start();
   }

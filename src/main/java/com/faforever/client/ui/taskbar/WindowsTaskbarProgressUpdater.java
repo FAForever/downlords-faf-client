@@ -8,6 +8,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
 import javafx.scene.control.ProgressIndicator;
+import lombok.extern.slf4j.Slf4j;
 import org.bridj.Pointer;
 import org.bridj.PointerIO;
 import org.bridj.cpp.com.COMRuntime;
@@ -21,11 +22,10 @@ import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import static com.github.nocatch.NoCatch.noCatch;
-
 /**
  * Updates the progress in the Windows 7+ task bar, if available.
  */
+@Slf4j
 @Component
 @Profile(FafClientApplication.PROFILE_WINDOWS)
 public class WindowsTaskbarProgressUpdater implements InitializingBean {
@@ -63,7 +63,13 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
   @SuppressWarnings("unchecked")
   public void initTaskBar() {
     try {
-      executorService.execute(() -> noCatch(() -> taskBarList = COMRuntime.newInstance(ITaskbarList3.class)));
+      executorService.execute(() -> {
+        try {
+          taskBarList = COMRuntime.newInstance(ITaskbarList3.class);
+        } catch (ClassNotFoundException e) {
+          log.warn("Could not initialize TaskBar", e);
+        }
+      });
       long hwndVal = com.sun.jna.Pointer.nativeValue(JavaFxUtil.getNativeWindow());
       taskBarPointer = Pointer.pointerToAddress(hwndVal, (PointerIO) null);
     } catch (NoClassDefFoundError e) {

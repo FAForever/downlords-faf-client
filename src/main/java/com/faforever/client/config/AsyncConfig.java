@@ -1,6 +1,7 @@
 package com.faforever.client.config;
 
 import com.faforever.client.exception.GlobalExceptionHandler;
+import com.faforever.client.notification.NotificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
@@ -26,6 +27,8 @@ import java.util.concurrent.Executors;
 @AllArgsConstructor
 public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
 
+  private final NotificationService notificationService;
+
   @Override
   public Executor getAsyncExecutor() {
     return taskExecutor();
@@ -33,7 +36,7 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
 
   @Override
   public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-    return new GlobalExceptionHandler();
+    return new GlobalExceptionHandler(notificationService);
   }
 
   @Override

@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.game.FaInitGenerator;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.mod.ModService;
@@ -8,14 +9,14 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
-import com.faforever.client.util.ProgrammingError;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.mod.MountInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.context.ApplicationContext;
 
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +28,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,22 +82,27 @@ public class GameUpdaterImpl implements GameUpdater {
     return future
         .thenCompose(s -> updateGameBinaries(patchResults.get(patchResults.size() - 1).getVersion()))
         .thenRun(() -> {
-          if (patchResults.stream().noneMatch(patchResult -> patchResult.getLegacyInitFile() != null)) {
-            generateInitFile(patchResults);
-          } else {
-            Path initFile = patchResults.stream()
-                .map(PatchResult::getLegacyInitFile)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElseThrow(() -> new ProgrammingError("No legacy init file is available"));
+          try {
+            if (patchResults.stream().noneMatch(patchResult -> patchResult.getLegacyInitFile() != null)) {
+              generateInitFile(patchResults);
+            } else {
+              Path initFile = patchResults.stream()
+                  .map(PatchResult::getLegacyInitFile)
+                  .filter(Objects::nonNull)
+                  .findFirst()
+                  .orElseThrow(() -> new ProgrammingError("No legacy init file is available"));
 
-            createFaPathLuaFile(initFile.getParent().getParent());
-            copyLegacyInitFile(initFile);
+
+              createFaPathLuaFile(initFile.getParent().getParent());
+              copyLegacyInitFile(initFile);
+            }
+          } catch (IOException e) {
+            throw new CompletionException(e);
           }
-        })
-        .exceptionally(throwable -> {
+        }).exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           boolean allowReplaysWhileInGame = preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame();
-          if (throwable.getCause().getCause() instanceof AccessDeniedException && allowReplaysWhileInGame) {
+          if (throwable.getCause() instanceof AccessDeniedException && allowReplaysWhileInGame) {
             log.info("Unable to update files and experimental replay feature is turned on " +
                 "that allows multiple game instances to run in parallel this is most likely the cause.");
             throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
@@ -110,8 +117,7 @@ public class GameUpdaterImpl implements GameUpdater {
         });
   }
 
-  @SneakyThrows
-  private void createFaPathLuaFile(Path parent) {
+  private void createFaPathLuaFile(Path parent) throws IOException {
     ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
     String installationPath = forgedAlliancePrefs.getInstallationPath().toString().replace("\\", "/");
     String vaultPath = forgedAlliancePrefs.getVaultBaseDirectory().toString().replace("\\", "/");
@@ -123,7 +129,7 @@ public class GameUpdaterImpl implements GameUpdater {
     Files.writeString(parent.resolve("fa_path.lua"), content);
   }
 
-  private void generateInitFile(List<PatchResult> patchResults) {
+  private void generateInitFile(List<PatchResult> patchResults) throws IOException {
     List<MountInfo> mountPoints = patchResults.stream()
         .flatMap(patchResult -> Optional.ofNullable(patchResult.getMountInfos()).orElseThrow(() -> new ProgrammingError("No mount infos where available")).stream())
         .collect(Collectors.toList());
@@ -135,8 +141,7 @@ public class GameUpdaterImpl implements GameUpdater {
     faInitGenerator.generateInitFile(mountPoints, hookDirectories);
   }
 
-  @SneakyThrows
-  private void copyLegacyInitFile(Path initFile) {
+  private void copyLegacyInitFile(Path initFile) throws IOException {
     Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.INIT_FILE_NAME), StandardCopyOption.REPLACE_EXISTING);
   }
 

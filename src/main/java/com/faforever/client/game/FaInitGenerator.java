@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +21,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -41,7 +41,7 @@ public class FaInitGenerator {
    *
    * @return the path of the generated init file.
    */
-  public Path generateInitFile(List<MountInfo> mountInfos, Set<String> hookDirectories) {
+  public Path generateInitFile(List<MountInfo> mountInfos, Set<String> hookDirectories) throws IOException {
     Path initFile = preferencesService.getFafBinDirectory().resolve(ForgedAlliancePrefs.INIT_FILE_NAME);
     String faPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath().toAbsolutePath().toString().replaceAll("[/\\\\]", "\\\\\\\\");
 
@@ -58,18 +58,16 @@ public class FaInitGenerator {
         .collect(Collectors.toList());
     CharSequence hooksLuaTable = Joiner.on(",\r\n    ").join(hookStrings);
 
-    noCatch(() -> {
-      Files.createDirectories(initFile.getParent());
-      try (BufferedReader reader = new BufferedReader(new InputStreamReader(INIT_TEMPLATE.getInputStream()));
-           BufferedWriter writer = Files.newBufferedWriter(initFile, UTF_8)) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-          line = line.replace("((fa_path))", faPath);
-          writer.write(line.replace("--[[ ${mountSpecsTable} --]]", mountPointsLuaTable)
-              .replace("--[[ ${hooksTable} --]]", hooksLuaTable) + "\r\n");
-        }
+    Files.createDirectories(initFile.getParent());
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(INIT_TEMPLATE.getInputStream()));
+         BufferedWriter writer = Files.newBufferedWriter(initFile, UTF_8)) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        line = line.replace("((fa_path))", faPath);
+        writer.write(line.replace("--[[ ${mountSpecsTable} --]]", mountPointsLuaTable)
+            .replace("--[[ ${hooksTable} --]]", hooksLuaTable) + "\r\n");
       }
-    });
+    }
     return initFile;
   }
 

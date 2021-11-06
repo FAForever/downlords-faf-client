@@ -1,8 +1,8 @@
 package com.faforever.client.query;
 
+import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.util.ProgrammingError;
 import com.faforever.client.util.ReflectionUtil;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -24,7 +24,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -66,6 +66,7 @@ import static com.github.rutledgepaulv.qbuilders.operators.ComparisonOperator.RE
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Slf4j
 public class SpecificationController implements Controller<Node> {
 
   private static final Map<ComparisonOperator, String> operatorToI18nKey = ImmutableMap.<ComparisonOperator, String>builder()
@@ -265,26 +266,29 @@ public class SpecificationController implements Controller<Node> {
     return Optional.ofNullable(getStringCondition(comparisonOperator, value, propertyClass, (StringProperty) property));
   }
 
-  @SneakyThrows
   private Class<?> getPropertyClass(String propertyName) {
     Assert.state(rootType != null, "rootType has not been set");
     Class<?> targetClass = rootType;
 
     List<String> path = new ArrayList<>(Arrays.asList(propertyName.split("\\.")));
 
-    String fieldName;
-    while (!path.isEmpty()) {
-      fieldName = path.remove(0);
-      Class<?> clazz = ReflectionUtil.getDeclaredField(fieldName, targetClass);
+    try {
+      String fieldName;
+      while (!path.isEmpty()) {
+        fieldName = path.remove(0);
+        Class<?> clazz = ReflectionUtil.getDeclaredField(fieldName, targetClass);
 
-      if (Iterable.class.isAssignableFrom(clazz)) {
-        ParameterizedType genericType = (ParameterizedType) targetClass.getDeclaredField(fieldName).getGenericType();
-        targetClass = (Class<?>) genericType.getActualTypeArguments()[0];
-      } else {
-        targetClass = clazz;
+        if (Iterable.class.isAssignableFrom(clazz)) {
+          ParameterizedType genericType = (ParameterizedType) targetClass.getDeclaredField(fieldName).getGenericType();
+          targetClass = (Class<?>) genericType.getActualTypeArguments()[0];
+        } else {
+          targetClass = clazz;
+        }
       }
+      return targetClass;
+    } catch (NoSuchFieldException e) {
+      throw new RuntimeException(e);
     }
-    return targetClass;
   }
 
   private Property getProperty(QBuilder<?> qBuilder, String property, Class<?> fieldType) {

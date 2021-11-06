@@ -34,8 +34,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static com.github.nocatch.NoCatch.noCatch;
-
 @Lazy
 @Service
 @Slf4j
@@ -105,7 +103,13 @@ public class MapGeneratorService implements InitializingBean {
         listOfMapFiles
             .filter(Files::isDirectory)
             .filter(p -> GENERATED_MAP_PATTERN.matcher(p.getFileName().toString()).matches())
-            .forEach(p -> noCatch(() -> FileUtils.deleteRecursively(p)));
+            .forEach(p -> {
+              try {
+                FileUtils.deleteRecursively(p);
+              } catch (IOException e) {
+                log.warn("Could not delete generated map directory {}", p, e);
+              }
+            });
       } catch (IOException e) {
         log.error("Could not list custom maps directory for deleting leftover generated maps.", e);
       } catch (RuntimeException e) {

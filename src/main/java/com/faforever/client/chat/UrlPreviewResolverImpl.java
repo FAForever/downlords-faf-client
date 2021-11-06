@@ -8,7 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -28,6 +28,7 @@ import static com.faforever.commons.io.Bytes.formatSize;
 @Lazy
 @Component
 @RequiredArgsConstructor
+@Slf4j
 // TODO reintroduce once it's working better
 public class UrlPreviewResolverImpl implements UrlPreviewResolver {
 
@@ -51,36 +52,39 @@ public class UrlPreviewResolverImpl implements UrlPreviewResolver {
   @Override
   @Cacheable(value = CacheNames.URL_PREVIEW, sync = true)
   @Async
-  @SneakyThrows
   public CompletableFuture<Optional<Preview>> resolvePreview(String urlString) {
     String guessedUrl = guessUrl(urlString);
 
-    URL url = new URL(guessedUrl);
+    try {
+      URL url = new URL(guessedUrl);
+      String protocol = url.getProtocol();
 
-    String protocol = url.getProtocol();
+      if (!"http".equals(protocol) && !"https".equals(protocol)) {
+        log.warn("Unhandled protocol `{}` used to load image {}", protocol, urlString);
+        return CompletableFuture.completedFuture(Optional.empty());
+      }
 
-    if (!"http".equals(protocol) && !"https".equals(protocol)) {
-      // TODO log unhandled protocol
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+      connection.setInstanceFollowRedirects(true);
+
+      long contentLength = connection.getContentLengthLong();
+      String contentType = connection.getContentType();
+
+      Node root = uiService.loadFxml("theme/image_preview.fxml");
+      ImageView imageView = (ImageView) root.lookup("#imageView");
+
+      if (MediaType.JPEG.toString().equals(contentType)
+          || MediaType.PNG.toString().equals(contentType)) {
+        imageView.setImage(new Image(guessedUrl));
+      }
+
+      String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getUserSpecificLocale()));
+
+      return CompletableFuture.completedFuture(Optional.of(new Preview(imageView, description)));
+    } catch (IOException e) {
+      log.warn("Could not load image from {}", urlString, e);
       return CompletableFuture.completedFuture(Optional.empty());
     }
-
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    connection.setInstanceFollowRedirects(true);
-
-    long contentLength = connection.getContentLengthLong();
-    String contentType = connection.getContentType();
-
-    Node root = uiService.loadFxml("theme/image_preview.fxml");
-    ImageView imageView = (ImageView) root.lookup("#imageView");
-
-    if (MediaType.JPEG.toString().equals(contentType)
-        || MediaType.PNG.toString().equals(contentType)) {
-      imageView.setImage(new Image(guessedUrl));
-    }
-
-    String description = i18n.get("urlPreviewDescription", contentType, formatSize(contentLength, i18n.getUserSpecificLocale()));
-
-    return CompletableFuture.completedFuture(Optional.of(new Preview(imageView, description)));
   }
 
   private String guessUrl(String urlString) {

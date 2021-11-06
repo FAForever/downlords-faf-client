@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +48,7 @@ public class TeamCardControllerTest extends UITest {
   }
 
   @BeforeEach
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     player = PlayerBeanBuilder.create().defaultValues().id(1).get();
     instance = new TeamCardController(uiService, i18n);
     playerList = new ArrayList<>();

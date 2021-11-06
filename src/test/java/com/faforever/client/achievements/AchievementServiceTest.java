@@ -2,6 +2,7 @@ package com.faforever.client.achievements;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.builders.AchievementDefinitionBuilder;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -39,11 +40,13 @@ public class AchievementServiceTest extends ServiceTest {
   private FafApiAccessor fafApiAccessor;
   @Mock
   private AssetService assetService;
+  @Mock
+  private NotificationService notificationService;
 
   @BeforeEach
   public void setUp() throws Exception {
     when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
-    instance = new AchievementService(fafApiAccessor, assetService);
+    instance = new AchievementService(fafApiAccessor, assetService, notificationService);
   }
 
   @Test

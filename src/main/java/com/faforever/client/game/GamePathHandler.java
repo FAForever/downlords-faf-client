@@ -71,7 +71,7 @@ public class GamePathHandler implements InitializingBean {
 
     String gamePathValidWithError;
     try {
-      gamePathValidWithError = preferencesService.isGamePathValidWithError(gamePath);
+      gamePathValidWithError = preferencesService.isGamePathValidWithErrorMessage(gamePath);
     } catch (Exception e) {
       log.error("Game path selection error", e);
       notificationService.addImmediateErrorNotification(e, "gamePath.select.error");

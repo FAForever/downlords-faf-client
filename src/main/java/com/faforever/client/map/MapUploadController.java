@@ -2,6 +2,7 @@ package com.faforever.client.map;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -15,6 +16,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.CompletableTask;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.map.PreviewGenerator;
 import com.google.common.eventbus.EventBus;
@@ -27,17 +29,19 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import lombok.SneakyThrows;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.notification.Severity.ERROR;
@@ -46,6 +50,7 @@ import static java.util.Arrays.asList;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class MapUploadController implements Controller<Node> {
 
   private final MapService mapService;
@@ -79,17 +84,6 @@ public class MapUploadController implements Controller<Node> {
   private CompletableTask<Void> uploadMapTask;
   private Runnable cancelButtonClickedListener;
 
-  public MapUploadController(MapService mapService, ExecutorService executorService, NotificationService notificationService, ReportingService reportingService, PlatformService platformService, I18n i18n, EventBus eventBus, ClientProperties clientProperties) {
-    this.mapService = mapService;
-    this.executorService = executorService;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
-    this.platformService = platformService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.clientProperties = clientProperties;
-  }
-
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(mapInfoPane, uploadCompletePane, parseProgressPane, uploadProgressPane);
 
@@ -104,9 +98,16 @@ public class MapUploadController implements Controller<Node> {
   public void setMapPath(Path mapPath) {
     this.mapPath = mapPath;
     enterParsingState();
-    CompletableFuture.supplyAsync(() -> mapService.readMap(mapPath), executorService)
+    CompletableFuture.supplyAsync(() -> {
+          try {
+            return mapService.readMap(mapPath);
+          } catch (MapLoadException e) {
+            throw new CompletionException(e);
+          }
+        }, executorService)
         .thenAccept(this::setMapInfo)
         .exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.warn("Map could not be read", throwable);
           notificationService.addImmediateErrorNotification(throwable, "mapVault.upload.readError");
           return null;
@@ -120,9 +121,12 @@ public class MapUploadController implements Controller<Node> {
     uploadCompletePane.setVisible(false);
   }
 
-  @SneakyThrows
-  private static WritableImage generatePreview(Path mapPath) {
-    return SwingFXUtils.toFXImage(PreviewGenerator.generatePreview(mapPath, 256, 256), new WritableImage(256, 256));
+  private WritableImage generatePreview(Path mapPath) {
+    try {
+      return SwingFXUtils.toFXImage(PreviewGenerator.generatePreview(mapPath, 256, 256), new WritableImage(256, 256));
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not generate preview from", e, "map.preview.generateError", mapPath);
+    }
   }
 
   private void setMapInfo(MapVersionBean mapInfo) {

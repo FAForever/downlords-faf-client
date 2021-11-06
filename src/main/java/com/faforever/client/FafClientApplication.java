@@ -17,7 +17,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import com.faforever.client.util.WindowsUtil;
-import com.github.nocatch.NoCatch.NoCatchRunnable;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -45,7 +44,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
-import static com.github.nocatch.NoCatch.noCatch;
 import static java.util.Arrays.asList;
 
 @Configuration
@@ -87,7 +85,7 @@ public class FafClientApplication extends Application {
   }
 
   @Override
-  public void init() {
+  public void init() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
     if (org.bridj.Platform.isWindows() && WindowsUtil.isAdmin()) {
       CountDownLatch waitForUserInput = new CountDownLatch(1);
       JavaFxUtil.runLater(() -> {
@@ -98,7 +96,7 @@ public class FafClientApplication extends Application {
         }
         waitForUserInput.countDown();
       });
-      noCatch((NoCatchRunnable) waitForUserInput::await);
+      waitForUserInput.await();
     }
 
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
@@ -170,7 +168,7 @@ public class FafClientApplication extends Application {
     Thread timeoutThread = new Thread(() -> {
       try {
         Thread.sleep(Duration.ofSeconds(10).toMillis());
-      } catch (InterruptedException e) {
+      } catch (InterruptedException ignored) {
       }
 
       Set<Entry<Thread, StackTraceElement[]>> threads = Thread.getAllStackTraces().entrySet();
@@ -188,7 +186,7 @@ public class FafClientApplication extends Application {
 
       try {
         Thread.sleep(Duration.ofSeconds(1).toMillis());
-      } catch (InterruptedException e) {
+      } catch (InterruptedException ignored) {
       }
 
       System.exit(-1);

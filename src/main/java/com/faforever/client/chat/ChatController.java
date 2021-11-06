@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.JoinChannelEvent;
@@ -11,7 +12,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
-import com.faforever.client.util.ProgrammingError;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.collections.ListChangeListener;

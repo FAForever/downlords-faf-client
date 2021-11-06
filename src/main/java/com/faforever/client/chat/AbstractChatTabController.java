@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -70,7 +71,6 @@ import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.UiService.CHAT_SECTION_EXTENDED;
 import static com.faforever.client.theme.UiService.CHAT_TEXT_COMPACT;
 import static com.faforever.client.theme.UiService.CHAT_TEXT_EXTENDED;
-import static com.github.nocatch.NoCatch.noCatch;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
@@ -495,14 +495,16 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private void addMessage(ChatMessage chatMessage) {
     JavaFxUtil.assertApplicationThread();
-    noCatch(() -> {
+    try {
       if (requiresNewChatSection(chatMessage)) {
         appendChatMessageSection(chatMessage);
       } else {
         appendMessage(chatMessage);
       }
       lastMessage = chatMessage;
-    });
+    } catch (IOException e) {
+      throw new AssetLoadException("Could not add message", e, "chat.message.addError");
+    }
   }
 
   private boolean requiresNewChatSection(ChatMessage chatMessage) {

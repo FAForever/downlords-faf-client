@@ -139,7 +139,7 @@ public class ReplayDetailControllerTest extends UITest {
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(PlayerBeanBuilder.create().defaultValues().get())));
-    when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(12));
+    when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(12));
     when(replayService.replayChangedRating(onlineReplay)).thenReturn(true);
     when(timeService.asDate(onlineReplay.getStartTime())).thenReturn("Min Date");
     when(timeService.asShortTime(onlineReplay.getStartTime())).thenReturn("Min Time");
@@ -178,7 +178,7 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void setReplayOnline() {
-    when(replayService.getSize(onlineReplay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
+    when(replayService.getFileSize(onlineReplay)).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(onlineReplay)).thenReturn(0.427);
     when(i18n.get(eq("percentage"), eq(Math.round(0.427 * 100)))).thenReturn("42");
 
@@ -297,7 +297,7 @@ public class ReplayDetailControllerTest extends UITest {
         .teamPlayerStats(FXCollections.observableMap(PlayerStatsMapBuilder.create().defaultValues().get()))
         .get();
 
-    when(replayService.getSize(replay.getId())).thenReturn(CompletableFuture.completedFuture(1024));
+    when(replayService.getFileSize(replay)).thenReturn(CompletableFuture.completedFuture(1024));
     when(ratingService.calculateQuality(replay)).thenReturn(0.427);
     when(i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()))).thenReturn("Reason: HAS_AI");
 
@@ -310,7 +310,7 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void tickTimeDisplayed() {
-    when(replayService.getSize(anyInt())).thenReturn(CompletableFuture.completedFuture(1024));
+    when(replayService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     when(timeService.shortDuration(any())).thenReturn("16min 40s");
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().replayTicks(10_000).get();
 
@@ -325,7 +325,7 @@ public class ReplayDetailControllerTest extends UITest {
 
   @Test
   public void onDownloadMoreInfoClicked() {
-    when(replayService.getSize(anyInt())).thenReturn(CompletableFuture.completedFuture(1024));
+    when(replayService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(PlayerBeanBuilder.create().defaultValues().get()).get();
     replay.getReviews().add(review);

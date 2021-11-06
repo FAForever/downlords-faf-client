@@ -230,7 +230,7 @@ public class ReplayDetailController implements Controller<Node> {
 
     if (replay.getReplayFile() == null) {
       if (replay.getReplayAvailable()) {
-        replayService.getSize(replay.getId())
+        replayService.getFileSize(replay)
             .thenAccept(replaySize -> JavaFxUtil.runLater(() -> {
               String humanReadableSize = Bytes.formatSize(replaySize, i18n.getUserSpecificLocale());
               downloadMoreInfoButton.setText(i18n.get("game.downloadMoreInfo", humanReadableSize));
