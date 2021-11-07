@@ -11,7 +11,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 
 @Slf4j
@@ -28,6 +27,9 @@ public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
   IntegerProperty maxRating = new SimpleIntegerProperty();
   IntegerProperty minRating = new SimpleIntegerProperty();
   ObjectProperty<DivisionBean> division = new SimpleObjectProperty<>();
+  ObjectProperty<URL> imageUrl = new SimpleObjectProperty<>();
+  ObjectProperty<URL> mediumImageUrl = new SimpleObjectProperty<>();
+  ObjectProperty<URL> smallImageUrl = new SimpleObjectProperty<>();
 
   public int getLeagueSeasonId() {
     return leagueSeasonId.get();
@@ -125,34 +127,43 @@ public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
     return division;
   }
 
-  public String getDivisionI18nKey() {
-    return String.format("leagues.divisionName.%s", getDivision().getIndex());
+  public URL getImageUrl() {
+    return imageUrl.get();
   }
 
-  public URL getImageUrl() {
-    String url = String.format("https://content.faforever.com/divisions/icons/%s%s.png",
-        getDivision().getNameKey(), getNameKey());
-    return getUrlFromString(url);
+  public void setImageUrl(URL imageUrl) {
+    this.imageUrl.set(imageUrl);
+  }
+
+  public ObjectProperty<URL> imageUrlProperty() {
+    return imageUrl;
   }
 
   public URL getMediumImageUrl() {
-    String url = String.format("https://content.faforever.com/divisions/icons/medium/%s%s_medium.png",
-        getDivision().getNameKey(), getNameKey());
-    return getUrlFromString(url);
+    return mediumImageUrl.get();
+  }
+
+  public void setMediumImageUrl(URL mediumImageUrl) {
+    this.mediumImageUrl.set(mediumImageUrl);
+  }
+
+  public ObjectProperty<URL> mediumImageUrlProperty() {
+    return mediumImageUrl;
   }
 
   public URL getSmallImageUrl() {
-    String url = String.format("https://content.faforever.com/divisions/icons/small/%s%s_small.png",
-        getDivision().getNameKey(), getNameKey());
-    return getUrlFromString(url);
+    return smallImageUrl.get();
   }
 
-  private URL getUrlFromString(String url) {
-    try {
-      return new URL(url);
-    } catch (MalformedURLException e) {
-      log.warn("Unable to load image due to invalid fileName {}", url, e);
-      return null;
-    }
+  public void setSmallImageUrl(URL smallImageUrl) {
+    this.smallImageUrl.set(smallImageUrl);
+  }
+
+  public ObjectProperty<URL> smallImageUrlProperty() {
+    return smallImageUrl;
+  }
+
+  public String getDivisionI18nKey() {
+    return String.format("leagues.divisionName.%s", getDivision().getIndex());
   }
 }

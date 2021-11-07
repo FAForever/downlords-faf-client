@@ -3,6 +3,8 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.DivisionBean;
 import com.faforever.client.domain.SubdivisionBean;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.OffsetDateTime;
 
 public class SubdivisionBeanBuilder {
@@ -21,6 +23,15 @@ public class SubdivisionBeanBuilder {
     maxRating(100);
     minRating(-100);
     division(DivisionBeanBuilder.create().defaultValues().get());
+    try {
+      imageUrl(new URL("https:example.com/test_nameI.png"));
+    } catch (MalformedURLException ignored) {}
+    try {
+      mediumImageUrl(new URL("https:example.com/medium/test_nameI.png"));
+    } catch (MalformedURLException ignored) {}
+    try {
+      smallImageUrl(new URL("https:example.com/small/test_nameI.png"));
+    } catch (MalformedURLException ignored) {}
     id(1);
     return this;
   }
@@ -62,6 +73,21 @@ public class SubdivisionBeanBuilder {
 
   public SubdivisionBeanBuilder division(DivisionBean division) {
     subdivisionBean.setDivision(division);
+    return this;
+  }
+
+  public SubdivisionBeanBuilder imageUrl(URL imageUrl) {
+    subdivisionBean.setImageUrl(imageUrl);
+    return this;
+  }
+
+  public SubdivisionBeanBuilder mediumImageUrl(URL mediumImageUrl) {
+    subdivisionBean.setMediumImageUrl(mediumImageUrl);
+    return this;
+  }
+
+  public SubdivisionBeanBuilder smallImageUrl(URL smallImageUrl) {
+    subdivisionBean.setSmallImageUrl(smallImageUrl);
     return this;
   }
 

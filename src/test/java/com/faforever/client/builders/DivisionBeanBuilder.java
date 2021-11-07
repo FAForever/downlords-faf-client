@@ -14,8 +14,8 @@ public class DivisionBeanBuilder {
 
   public DivisionBeanBuilder defaultValues() {
     index(1);
-    nameKey("test_description");
-    descriptionKey("test_name");
+    nameKey("test_name");
+    descriptionKey("test_description");
     leagueSeason(LeagueSeasonBeanBuilder.create().defaultValues().get());
     return this;
   }
