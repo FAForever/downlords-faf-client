@@ -164,6 +164,6 @@ public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
   }
 
   public String getDivisionI18nKey() {
-    return String.format("leagues.divisionName.%s", getDivision().getIndex());
+    return String.format("leagues.divisionName.%s", getDivision().getNameKey());
   }
 }
