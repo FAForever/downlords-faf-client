@@ -217,7 +217,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     JavaFxUtil.addListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> setCrownVisibility());
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> renderPartyMembers());
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getMatchmakerQueues(), (InvalidationListener) observable -> renderQueues());
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.currentlyInQueueProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.currentlyInQueueProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addAndTriggerListener(player.statusProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));

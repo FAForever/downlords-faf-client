@@ -198,7 +198,7 @@ public class TeamMatchmakingControllerTest extends UITest {
 
   @Test
   public void testQueueHeadingListener() {
-    verify(i18n, times(2)).get("teammatchmaking.queueTitle");
+    verify(i18n, times(1)).get("teammatchmaking.queueTitle");
 
     runOnFxThreadAndWait(() -> player.setGame(GameBeanBuilder.create().defaultValues().get()));
     verify(i18n).get("teammatchmaking.queueTitle.inGame");

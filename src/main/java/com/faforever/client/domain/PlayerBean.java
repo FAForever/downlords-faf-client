@@ -185,6 +185,8 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
       game.setGameStatusListener(gameStatusListener);
       game.setHostListener(gameStatusListener);
     }
+
+    updateGameStatus();
   }
 
   public ObjectProperty<GameBean> gameProperty() {
