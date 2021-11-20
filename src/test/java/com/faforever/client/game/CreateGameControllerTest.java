@@ -221,18 +221,19 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testButtonBindingIfTitleNotSet() {
-
-    when(i18n.get("game.create.titleMissing")).thenReturn("title missing");
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
-
+    String message = "title missing";
+    when(i18n.get("game.create.titleMissing")).thenReturn(message);
+    runOnFxThreadAndWait(() -> instance.initialize());
     assertThat(instance.titleTextField.getText(), is(""));
-    assertThat(instance.createGameButton.getText(), is("title missing"));
+    assertThat(instance.createGameButton.getText(), is(message));
+
+    runOnFxThreadAndWait(() -> instance.titleTextField.setText(" "));
+    assertThat(instance.titleTextField.getText(), is(" "));
+    assertThat(instance.createGameButton.getText(), is(message));
   }
 
   @Test
   public void testButtonBindingIfTitleNotAscii() {
-
     when(i18n.get("game.create.titleNotAscii")).thenReturn("title not ascii");
     instance.titleTextField.setText("ты");
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());

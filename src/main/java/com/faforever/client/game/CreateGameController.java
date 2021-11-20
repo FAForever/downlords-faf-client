@@ -53,6 +53,7 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -218,7 +219,7 @@ public class CreateGameController implements Controller<Pane> {
       case DISCONNECTED -> "game.create.disconnected";
       case CONNECTING -> "game.create.connecting";
       case CONNECTED -> {
-        if (Strings.isNullOrEmpty(title)) {
+        if (StringUtils.isBlank(title)) {
           yield "game.create.titleMissing";
         } else if (!StandardCharsets.US_ASCII.newEncoder().canEncode(title)) {
           yield "game.create.titleNotAscii";
@@ -250,7 +251,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void validateTitle(String gameTitle) {
-    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, Strings.isNullOrEmpty(gameTitle)
+    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, StringUtils.isBlank(gameTitle)
         || !StandardCharsets.US_ASCII.newEncoder().canEncode(gameTitle));
   }
 
@@ -484,7 +485,7 @@ public class CreateGameController implements Controller<Pane> {
     enforceRating = enforceRankingCheckBox.isSelected();
 
     NewGameInfo newGameInfo = new NewGameInfo(
-        titleTextField.getText(),
+        titleTextField.getText().trim(),
         Strings.emptyToNull(passwordTextField.getText()),
         featuredModListView.getSelectionModel().getSelectedItem(),
         mapVersion.getFolderName(),
