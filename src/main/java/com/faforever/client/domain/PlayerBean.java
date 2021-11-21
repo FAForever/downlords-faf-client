@@ -51,20 +51,20 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   private void updateGameStatus() {
     GameBean game = getGame();
-    if (game != null) {
-      GameStatus gameStatus = game.getStatus();
-      if (gameStatus == GameStatus.OPEN) {
-        if (game.getHost().equalsIgnoreCase(username.get())) {
-          status.set(PlayerStatus.HOSTING);
-        } else {
-          status.set(PlayerStatus.LOBBYING);
-        }
-      } else if (gameStatus == GameStatus.PLAYING) {
-        status.set(PlayerStatus.PLAYING);
+    if (game == null) {
+      status.set(PlayerStatus.IDLE);
+      return;
+    }
+
+    GameStatus gameStatus = game.getStatus();
+    if (gameStatus == GameStatus.OPEN) {
+      if (game.getHost().equalsIgnoreCase(username.get())) {
+        status.set(PlayerStatus.HOSTING);
       } else {
-        setGame(null);
-        status.set(PlayerStatus.IDLE);
+        status.set(PlayerStatus.LOBBYING);
       }
+    } else if (gameStatus == GameStatus.PLAYING) {
+      status.set(PlayerStatus.PLAYING);
     } else {
       status.set(PlayerStatus.IDLE);
     }
@@ -171,15 +171,22 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   public void setGame(GameBean game) {
     GameBean currentGame = this.game.get();
-    if ((game == null || game.getStatus() == GameStatus.CLOSED) && currentGame != null) {
+    if (currentGame == game) {
+      return;
+    }
+
+    if (currentGame != null) {
       currentGame.removeListeners();
-      this.game.set(null);
-      status.set(PlayerStatus.IDLE);
-    } else if (game != null) {
-      this.game.set(game);
+    }
+
+    this.game.set(game);
+
+    if (game != null) {
       game.setGameStatusListener(gameStatusListener);
       game.setHostListener(gameStatusListener);
     }
+
+    updateGameStatus();
   }
 
   public ObjectProperty<GameBean> gameProperty() {

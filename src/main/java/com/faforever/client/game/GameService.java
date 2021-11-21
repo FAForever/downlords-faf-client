@@ -715,12 +715,11 @@ public class GameService implements InitializingBean {
     }
 
     Integer gameId = gameInfoMessage.getUid();
-    gameIdToGame.computeIfAbsent(gameId, integer -> {
-      GameBean game = new GameBean();
-      game.setTeamsListener(observable -> game.setAverageRating(calcAverageRating(game)));
-      return game;
+    GameBean game = gameIdToGame.computeIfAbsent(gameId, integer -> {
+      GameBean newGame = new GameBean();
+      newGame.setTeamsListener(observable -> newGame.setAverageRating(calcAverageRating(newGame)));
+      return newGame;
     });
-    GameBean game = gameIdToGame.get(gameId);
     gameMapper.update(gameInfoMessage, game);
     playerService.updatePlayersInGame(game);
     if (game.getStatus() == GameStatus.CLOSED) {

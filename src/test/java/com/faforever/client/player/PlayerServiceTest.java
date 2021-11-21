@@ -12,7 +12,6 @@ import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
-import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
@@ -258,27 +257,6 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   public void testEventBusRegistered() {
     verify(eventBus).register(instance);
-  }
-
-  @Test
-  public void testGameRemovedFromPlayerIfGameClosed() {
-    Map<String, List<String>> teams = Map.of("1", List.of(playerInfo1.getLogin()), "2", List.of(playerInfo2.getLogin()));
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
-
-    PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
-
-    instance.updatePlayersInGame(game);
-
-    assertThat(player1.getGame(), is(game));
-    assertThat(player2.getGame(), is(game));
-
-    game.setStatus(GameStatus.CLOSED);
-
-    instance.updatePlayersInGame(game);
-
-    assertThat(player1.getGame(), is(nullValue()));
-    assertThat(player2.getGame(), is(nullValue()));
   }
 
   @Test

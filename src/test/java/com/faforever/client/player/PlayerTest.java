@@ -1,5 +1,6 @@
 package com.faforever.client.player;
 
+import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
@@ -42,9 +43,11 @@ public class PlayerTest extends ServiceTest {
   private void checkStatusSetCorrectly(GameStatus gameStatus, PlayerStatus playerStatus, String playerName) {
     GameBean game = null;
     if (gameStatus != null) {
-      game = new GameBean();
-      game.setStatus(gameStatus);
-      game.setHost(playerName);
+      game = GameBeanBuilder.create()
+          .defaultValues()
+          .status(gameStatus)
+          .host(playerName)
+          .get();
     }
     instance.setGame(game);
     assertSame(instance.getStatus(), playerStatus);
@@ -52,12 +55,13 @@ public class PlayerTest extends ServiceTest {
 
   @Test
   public void testPlayerStateChangedOnGameStatusChanged() {
+    instance.setGame(null);
+    assertSame(instance.getStatus(), PlayerStatus.IDLE);
     GameBean game = new GameBean();
     game.setStatus(GameStatus.PLAYING);
     instance.setGame(game);
     assertSame(instance.getStatus(), PlayerStatus.PLAYING);
     game.setStatus(GameStatus.CLOSED);
-    instance.setGame(null);
     assertSame(instance.getStatus(), PlayerStatus.IDLE);
   }
 }
