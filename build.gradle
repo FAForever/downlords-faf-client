@@ -132,6 +132,9 @@ jacocoTestReport {
 
 test {
   useJUnitPlatform()
+  testLogging {
+    exceptionFormat = 'full'
+  }
   systemProperties = [
           'junit.jupiter.execution.parallel.enabled': true
   ]
