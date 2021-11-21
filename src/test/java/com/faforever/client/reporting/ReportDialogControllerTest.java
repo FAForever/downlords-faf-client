@@ -80,6 +80,7 @@ public class ReportDialogControllerTest extends UITest {
 
   @Test
   public void testOnReport() {
+
     instance.onReportButtonClicked();
 
     verify(moderationService).postModerationReport(any(ModerationReportBean.class));
