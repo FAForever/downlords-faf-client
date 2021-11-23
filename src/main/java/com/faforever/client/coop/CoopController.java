@@ -13,12 +13,9 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
@@ -39,7 +36,7 @@ import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
@@ -75,16 +72,13 @@ public class CoopController extends AbstractViewController<Node> {
   private final CoopService coopService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final ReportingService reportingService;
-  private final MapService mapService;
   private final UiService uiService;
   private final TimeService timeService;
   private final WebViewConfigurer webViewConfigurer;
   private final ModService modService;
 
-  public Node coopRoot;
+  public GridPane coopRoot;
   public ComboBox<CoopMissionBean> missionComboBox;
-  public ImageView mapImageView;
   public WebView descriptionWebView;
   public Pane gameViewContainer;
   public TextField titleTextField;
@@ -148,6 +142,8 @@ public class CoopController extends AbstractViewController<Node> {
       JavaFxUtil.runLater(() -> {
         missionComboBox.setItems(observableList(coopMaps));
         GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
+        gamesTableController.getMapPreviewColumn().setVisible(false); // remove it when map preview images from API will be fixed
+        gamesTableController.getRatingRangeColumn().setVisible(false);
 
         Function<String, String> coopMissionNameProvider = (mapFolderName -> coopMissionFromFolderNamer(coopMaps, mapFolderName));
 
@@ -244,11 +240,7 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void setSelectedMission(CoopMissionBean mission) {
-    JavaFxUtil.runLater(() -> {
-      descriptionWebView.getEngine().loadContent(mission.getDescription());
-      mapImageView.setImage(mapService.loadPreview(mission.getMapFolderName(), PreviewSize.SMALL));
-    });
-
+    JavaFxUtil.runLater(() -> descriptionWebView.getEngine().loadContent(mission.getDescription()));
     loadLeaderboard();
   }
 

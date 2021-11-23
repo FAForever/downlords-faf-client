@@ -8,11 +8,9 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
@@ -20,12 +18,10 @@ import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
@@ -41,9 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CoopControllerTest extends UITest {
-  @TempDir
-  public Path cacheDirectory;
-  private CoopController instance;
+
   @Mock
   private CoopService coopService;
   @Mock
@@ -53,27 +47,24 @@ public class CoopControllerTest extends UITest {
   @Mock
   private GamesTableController gamesTableController;
   @Mock
-  private MapService mapService;
-  @Mock
   private I18n i18n;
   @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private ModService modService;
-
   @Mock
   private ReplayService replayService;
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReportingService reportingService;
-  @Mock
   private TimeService timeService;
+
+  private CoopController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, reportingService,
-        mapService, uiService, timeService, webViewConfigurer, modService);
+    instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, uiService,
+        timeService, webViewConfigurer, modService);
 
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));
