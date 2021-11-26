@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class LeaderboardsControllerTest extends UITest {
@@ -38,7 +38,7 @@ public class LeaderboardsControllerTest extends UITest {
   public void setUp() throws Exception {
     when(leaderboardService.getLeagues()).thenReturn(
         CompletableFuture.completedFuture(List.of(LeagueBeanBuilder.create().defaultValues().get())));
-    when(leaderboardService.getLatestSeason(anyInt())).thenReturn(
+    when(leaderboardService.getLatestSeason(any())).thenReturn(
         CompletableFuture.completedFuture(LeagueSeasonBeanBuilder.create().defaultValues().get()));
 
     instance = new LeaderboardsController(eventBus, i18n, leaderboardService, notificationService, uiService);

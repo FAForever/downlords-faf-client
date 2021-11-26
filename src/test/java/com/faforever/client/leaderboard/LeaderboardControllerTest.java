@@ -6,6 +6,7 @@ import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.domain.LeagueEntryBean;
+import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.i18n.I18n;
@@ -56,6 +57,7 @@ public class LeaderboardControllerTest extends UITest {
   private SubdivisionBean subdivisionBean2;
   private LeagueEntryBean leagueEntryBean1;
   private LeagueEntryBean leagueEntryBean2;
+  private LeagueSeasonBean season;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -68,13 +70,14 @@ public class LeaderboardControllerTest extends UITest {
     when(i18n.get("leagues.divisionName.1")).thenReturn("Bronze");
     when(i18n.get("leagues.divisionName.2")).thenReturn("Silver");
 
+    season = LeagueSeasonBeanBuilder.create().defaultValues().get();
     subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().id(1).index(1).get();
     subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().id(2).index(1).division(DivisionBeanBuilder.create().defaultValues().index(2).get()).get();
     leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(0).player(marcSpector).get();
     leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(1).player(sheikah).get();
     LeagueEntryBean leagueEntryBean3 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).id(2).player(zlo).get();
 
-    when(leaderboardService.getAllSubdivisions(1)).thenReturn(
+    when(leaderboardService.getAllSubdivisions(season)).thenReturn(
         CompletableFuture.completedFuture(List.of(subdivisionBean1, subdivisionBean2)));
     when(leaderboardService.getEntries(subdivisionBean1)).thenReturn(
         CompletableFuture.completedFuture(List.of(leagueEntryBean1, leagueEntryBean2)));
@@ -87,10 +90,10 @@ public class LeaderboardControllerTest extends UITest {
     when(leaderboardService.getSizeOfDivision(subdivisionBean2)).thenReturn(CompletableFuture.completedFuture(1));
     when(leaderboardService.getPlayerNumberInHigherDivisions(subdivisionBean1)).thenReturn(CompletableFuture.completedFuture(1));
     when(leaderboardService.getPlayerNumberInHigherDivisions(subdivisionBean2)).thenReturn(CompletableFuture.completedFuture(0));
-    when(leaderboardService.getTotalPlayers(1)).thenReturn(CompletableFuture.completedFuture(3));
-    when(leaderboardService.getLeagueEntryForPlayer(player, 1)).thenReturn(
+    when(leaderboardService.getTotalPlayers(season)).thenReturn(CompletableFuture.completedFuture(3));
+    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
         CompletableFuture.completedFuture(null));
-    when(leaderboardService.getLeagueEntryForPlayer(sheikah, 1)).thenReturn(
+    when(leaderboardService.getLeagueEntryForPlayer(sheikah, season)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean2));
 
     subDivisionTabController = new SubDivisionTabController(leaderboardService, notificationService, i18n, uiService);
@@ -101,7 +104,7 @@ public class LeaderboardControllerTest extends UITest {
     instance = new LeaderboardController(assetService, i18n, leaderboardService, notificationService, playerService, uiService);
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
     instance.initialize();
-    instance.setSeason(LeagueSeasonBeanBuilder.create().defaultValues().id(1).get());
+    instance.setSeason(season);
     // In a test environment this doesn't get called automatically anymore, so we have to do it manually
     instance.onMajorDivisionPicked();
   }
@@ -191,7 +194,7 @@ public class LeaderboardControllerTest extends UITest {
   @Disabled("Fails in ci pipeline for unknown reasons")
   public void testNotPlaced() {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(null).get();
-    when(leaderboardService.getLeagueEntryForPlayer(player, 1)).thenReturn(
+    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean));
     when(i18n.get("leaderboard.placement", 100, 10)).thenReturn("in placement");
 
@@ -210,7 +213,7 @@ public class LeaderboardControllerTest extends UITest {
   @Disabled("Fails in ci pipeline for unknown reasons")
   public void testWithLeagueEntry() {
     LeagueEntryBean playerEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean1).get();
-    when(leaderboardService.getLeagueEntryForPlayer(player, 1)).thenReturn(
+    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
         CompletableFuture.completedFuture(playerEntryBean));
     when(leaderboardService.getEntries(subdivisionBean1)).thenReturn(
         CompletableFuture.completedFuture(List.of(leagueEntryBean1, playerEntryBean, leagueEntryBean2)));

@@ -47,7 +47,7 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   @Override
   public void initialize() {
     leaderboardService.getLeagues().thenAccept(leagues -> leagues.forEach(league ->
-        leaderboardService.getLatestSeason(league.getId()).thenAccept(season -> {
+        leaderboardService.getLatestSeason(league).thenAccept(season -> {
           LeaderboardController controller = uiService.loadFxml("theme/leaderboard/leaderboard.fxml");
           controller.setSeason(season);
           controller.getRoot().setText(i18n.get(String.format("leaderboard.%s", league.getTechnicalName())));

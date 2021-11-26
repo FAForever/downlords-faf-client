@@ -123,7 +123,7 @@ public class LeaderboardController implements Controller<Tab> {
 
   private void processSearchInput(String searchText) {
     playerService.getPlayerByName(searchText).thenAccept(playerBeanOptional -> playerBeanOptional.ifPresent(player ->
-      leaderboardService.getLeagueEntryForPlayer(player, season.getId()).thenAccept(leagueEntry -> {
+      leaderboardService.getLeagueEntryForPlayer(player, season).thenAccept(leagueEntry -> {
         if (leagueEntry == null) {
           return;
         }
@@ -143,7 +143,7 @@ public class LeaderboardController implements Controller<Tab> {
     if (usernamesAutoCompletion != null) {
       usernamesAutoCompletion.dispose();
     }
-    leaderboardService.getAllSubdivisions(season.getId()).thenAccept(this::setUsernamesAutoCompletion)
+    leaderboardService.getAllSubdivisions(season).thenAccept(this::setUsernamesAutoCompletion)
         .exceptionally(throwable -> {
           contentPane.setVisible(false);
           log.warn("Error while loading division list", throwable);
@@ -185,8 +185,8 @@ public class LeaderboardController implements Controller<Tab> {
 
   @VisibleForTesting
   protected void updateDisplayedPlayerStats(PlayerBean player) {
-    leaderboardService.getAllSubdivisions(season.getId()).thenAccept(divisions ->
-      leaderboardService.getLeagueEntryForPlayer(player, season.getId()).thenAccept(leagueEntry -> {
+    leaderboardService.getAllSubdivisions(season).thenAccept(divisions ->
+      leaderboardService.getLeagueEntryForPlayer(player, season).thenAccept(leagueEntry -> {
         if (leagueEntry == null) {
           selectHighestDivision();
         } else {
@@ -249,7 +249,7 @@ public class LeaderboardController implements Controller<Tab> {
   }
 
   public void onMajorDivisionPicked() {
-    leaderboardService.getAllSubdivisions(season.getId()).thenAccept(subdivisions -> {
+    leaderboardService.getAllSubdivisions(season).thenAccept(subdivisions -> {
       JavaFxUtil.runLater(() -> subDivisionTabPane.getTabs().clear());
       subdivisions.stream()
           .filter(subdivision -> subdivision.getDivision().getIndex() == majorDivisionPicker.getValue().getDivision().getIndex())
@@ -310,7 +310,7 @@ public class LeaderboardController implements Controller<Tab> {
           }));
       JavaFxUtil.runLater(() -> ratingDistributionChart.getData().add(series));
     });
-    leaderboardService.getTotalPlayers(season.getId()).thenAccept(totalPlayers ->
+    leaderboardService.getTotalPlayers(season).thenAccept(totalPlayers ->
         JavaFxUtil.runLater(() -> xAxis.labelProperty().setValue(i18n.get("leaderboard.totalPlayers", totalPlayers))));
   }
 

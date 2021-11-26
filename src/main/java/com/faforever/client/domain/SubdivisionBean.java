@@ -18,7 +18,6 @@ import java.net.URL;
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
 @Data
 public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
-  IntegerProperty leagueSeasonId = new SimpleIntegerProperty();
   @ToString.Include
   StringProperty NameKey = new SimpleStringProperty();
   StringProperty descriptionKey = new SimpleStringProperty();
@@ -30,18 +29,6 @@ public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
   ObjectProperty<URL> imageUrl = new SimpleObjectProperty<>();
   ObjectProperty<URL> mediumImageUrl = new SimpleObjectProperty<>();
   ObjectProperty<URL> smallImageUrl = new SimpleObjectProperty<>();
-
-  public int getLeagueSeasonId() {
-    return leagueSeasonId.get();
-  }
-
-  public void setLeagueSeasonId(int id) {
-    this.leagueSeasonId.set(id);
-  }
-
-  public IntegerProperty leagueSeasonIdProperty() {
-    return leagueSeasonId;
-  }
 
   public String getNameKey() {
     return NameKey.get();

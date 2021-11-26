@@ -65,7 +65,6 @@ public interface LeaderboardMapper {
   @Mapping(target = "divisionIndex", source = "index")
   LeagueSeasonDivision map (DivisionBean bean, @Context CycleAvoidingMappingContext context);
 
-  @Mapping(target = "leagueSeasonId", expression = "java(Integer.parseInt(dto.getLeagueSeasonDivision().getLeagueSeason().getId()))")
   @Mapping(target = "index", source = "subdivisionIndex")
   @Mapping(target = "division", source = "leagueSeasonDivision")
   SubdivisionBean map(LeagueSeasonDivisionSubdivision dto, @Context CycleAvoidingMappingContext context);

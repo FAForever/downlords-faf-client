@@ -15,7 +15,6 @@ public class SubdivisionBeanBuilder {
   }
 
   public SubdivisionBeanBuilder defaultValues() {
-    leagueSeasonId(0);
     index(1);
     nameKey("I");
     descriptionKey("test_description");
@@ -33,11 +32,6 @@ public class SubdivisionBeanBuilder {
       smallImageUrl(new URL("https:example.com/small/test_nameI.png"));
     } catch (MalformedURLException ignored) {}
     id(1);
-    return this;
-  }
-
-  public SubdivisionBeanBuilder leagueSeasonId(int leagueSeasonId) {
-    subdivisionBean.setLeagueSeasonId(leagueSeasonId);
     return this;
   }
 
