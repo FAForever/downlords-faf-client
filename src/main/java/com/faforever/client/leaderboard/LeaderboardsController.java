@@ -7,6 +7,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLeaderboardEvent;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -36,7 +37,8 @@ public class LeaderboardsController extends AbstractViewController<Node> {
   public TabPane leaderboardRoot;
 
   private boolean isHandlingEvent;
-  private final List<LeaderboardController> controllers = new ArrayList<>();
+  @VisibleForTesting
+  protected final List<LeaderboardController> controllers = new ArrayList<>();
   private Tab lastTab;
 
   @Override
@@ -46,32 +48,32 @@ public class LeaderboardsController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    leaderboardService.getLeagues().thenAccept(leagues -> leagues.forEach(league ->
-        leaderboardService.getLatestSeason(league).thenAccept(season -> {
-          LeaderboardController controller = uiService.loadFxml("theme/leaderboard/leaderboard.fxml");
-          controller.setSeason(season);
-          controller.getRoot().setText(i18n.get(String.format("leaderboard.%s", league.getTechnicalName())));
-          controller.getRoot().setUserData(league.getId());
-          JavaFxUtil.runLater(() -> leaderboardRoot.getTabs().add(controller.getRoot()));
-          controllers.add(controller);
-        }).thenRun(() -> {
-          if (controllers.isEmpty()) {
-            log.info("Api returned no leagues");
-            notificationService.addImmediateErrorNotification(null, "leaderboard.noLeaderboards");
-          }
-          JavaFxUtil.runLater(() -> {
+    leaderboardService.getLeagues().thenAccept(leagues -> {
+      leagues.forEach(league ->
+          leaderboardService.getLatestSeason(league).thenAccept(season -> {
+            LeaderboardController controller = uiService.loadFxml("theme/leaderboard/leaderboard.fxml");
+            controller.setSeason(season);
+            controller.getRoot().setText(i18n.getOrDefault(league.getTechnicalName(), String.format("leaderboard.%s", league.getTechnicalName())));
+            controller.getRoot().setUserData(league.getId());
+            JavaFxUtil.runLater(() -> leaderboardRoot.getTabs().add(controller.getRoot()));
+            controllers.add(controller);
+          }).thenRun(() -> JavaFxUtil.runLater(() -> {
             leaderboardRoot.getTabs().sort(Comparator.comparing(tab -> (int) tab.getUserData()));
             leaderboardRoot.getSelectionModel().select(0);
             lastTab = leaderboardRoot.getTabs().get(0);
-          });
-        }).exceptionally(throwable -> {
-          log.warn("Error while loading seasons", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "leaderboard.noLeaderboards");
-          return null;
-        })
-    )).exceptionally(throwable -> {
+          })).exceptionally(throwable -> {
+            log.warn("Error while loading seasons", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadLeaderboards");
+            return null;
+          })
+      );
+      if (leagues.isEmpty()) {
+        log.info("Api returned no leagues");
+        notificationService.addImmediateWarnNotification("leaderboard.noLeaderboards");
+      }
+    }).exceptionally(throwable -> {
       log.warn("Error while loading leagues", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "leaderboard.noLeaderboards");
+      notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadLeaderboards");
       return null;
     });
 

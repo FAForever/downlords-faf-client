@@ -125,10 +125,11 @@ public class LeaderboardControllerTest extends UITest {
   }
 
   @Test
-  public void testFilterByNamePlayerExactMatch() {
+  public void testSelectSearchedPlayer() {
     showDivision(subdivisionBean2);
     assertNull(subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem());
     setSearchText("Sheikah");
+    instance.processSearchInput();
     instance.onMajorDivisionPicked();
     waitForFxEvents(10);
 
@@ -194,11 +195,9 @@ public class LeaderboardControllerTest extends UITest {
   @Disabled("Fails in ci pipeline for unknown reasons")
   public void testNotPlaced() {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(null).get();
-    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
-        CompletableFuture.completedFuture(leagueEntryBean));
     when(i18n.get("leaderboard.placement", 100, 10)).thenReturn("in placement");
 
-    instance.updateDisplayedPlayerStats(player);
+    instance.updateDisplayedPlayerStats();
     waitForFxEvents(10);
 
     assertFalse(instance.playerDivisionNameLabel.isVisible());
@@ -213,14 +212,12 @@ public class LeaderboardControllerTest extends UITest {
   @Disabled("Fails in ci pipeline for unknown reasons")
   public void testWithLeagueEntry() {
     LeagueEntryBean playerEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean1).get();
-    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
-        CompletableFuture.completedFuture(playerEntryBean));
     when(leaderboardService.getEntries(subdivisionBean1)).thenReturn(
         CompletableFuture.completedFuture(List.of(leagueEntryBean1, playerEntryBean, leagueEntryBean2)));
     when(i18n.number(8)).thenReturn("8");
     when(i18n.get("leaderboard.divisionName", "Bronze", "I")).thenReturn("Bronze I");
 
-    instance.updateDisplayedPlayerStats(player);
+    instance.updateDisplayedPlayerStats();
     instance.onMajorDivisionPicked();
     waitForFxEvents(10);
 

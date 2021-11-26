@@ -200,7 +200,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public void setPlayer(PlayerBean player) {
     if (player.getLeaderboardRatings().isEmpty()) {
       log.info("no ratings found");
-      updateRatings(player).thenAccept(player1 -> JavaFxUtil.runLater(() -> setOnlinePlayer(player1)));
+      updateRatings(player).thenAccept(updatedPlayer -> JavaFxUtil.runLater(() -> setOnlinePlayer(updatedPlayer)));
     } else {
       setOnlinePlayer(player);
     }

@@ -111,6 +111,7 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(teamMatchmakingService.getMatchmakerQueues()).thenReturn(matchmakerQueues);
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(i18n.get(anyString())).thenReturn("");
+    when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
     when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
     when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> {

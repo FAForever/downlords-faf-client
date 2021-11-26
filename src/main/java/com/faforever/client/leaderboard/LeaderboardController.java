@@ -2,7 +2,6 @@ package com.faforever.client.leaderboard;
 
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.LeagueSeasonBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -38,6 +37,7 @@ import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +49,9 @@ import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -104,9 +106,6 @@ public class LeaderboardController implements Controller<Tab> {
     majorDivisionPicker.setConverter(divisionStringConverter());
     yAxis.setTickLabelFormatter(integerStringConverter());
 
-    searchTextField.textProperty().addListener((observable, oldValue, newValue) ->
-        processSearchInput(newValue));
-
     subDivisionTabPane.widthProperty().addListener((observable, oldValue, newValue) ->
         setTabWidth((double) newValue, subDivisionTabPane.getTabs().size()));
   }
@@ -121,7 +120,12 @@ public class LeaderboardController implements Controller<Tab> {
     });
   }
 
-  private void processSearchInput(String searchText) {
+  public void processSearchInput() {
+    String searchText = searchTextField.getText();
+    if (StringUtils.isEmpty(searchText)) {
+      return;
+    }
+
     playerService.getPlayerByName(searchText).thenAccept(playerBeanOptional -> playerBeanOptional.ifPresent(player ->
       leaderboardService.getLeagueEntryForPlayer(player, season).thenAccept(leagueEntry -> {
         if (leagueEntry == null) {
@@ -147,10 +151,12 @@ public class LeaderboardController implements Controller<Tab> {
         .exceptionally(throwable -> {
           contentPane.setVisible(false);
           log.warn("Error while loading division list", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
+          notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadDivisions");
           return null;
         });
-    setListener(playerService.getCurrentPlayer());
+
+    playerRatingListener = observable -> updateDisplayedPlayerStats();
+    JavaFxUtil.addAndTriggerListener(playerService.getCurrentPlayer().getLeaderboardRatings(), new WeakInvalidationListener(playerRatingListener));
   }
 
   private void setUsernamesAutoCompletion(List<SubdivisionBean> subdivisions) {
@@ -159,16 +165,20 @@ public class LeaderboardController implements Controller<Tab> {
       majorDivisionPicker.getItems().addAll(
           subdivisions.stream().filter(subdivision -> subdivision.getIndex() == 1).collect(Collectors.toList()));
     });
-    List<LeagueEntryBean> leagueEntries = new ArrayList<>();
+    Set<String> leagueEntryNames = new HashSet<>();
     List<CompletableFuture<?>> futures = new ArrayList<>();
     subdivisions.forEach(subdivision -> {
-      CompletableFuture<List<LeagueEntryBean>> future = leaderboardService.getEntries(subdivision);
-      futures.add(future.thenAccept(leagueEntries::addAll));
+      CompletableFuture<Void> future = leaderboardService.getEntries(subdivision).thenAccept(entries ->
+          entries.stream()
+              .map(leagueEntryBean -> leagueEntryBean.getPlayer().getUsername())
+              .forEach(leagueEntryNames::add));
+      futures.add(future);
     });
     CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).thenRun(() -> {
       usernamesAutoCompletion = TextFields.bindAutoCompletion(searchTextField,
-          leagueEntries.stream().map(leagueEntryBean -> leagueEntryBean.getPlayer().getUsername()).collect(Collectors.toList()));
+          leagueEntryNames);
       usernamesAutoCompletion.setDelay(0);
+      usernamesAutoCompletion.setOnAutoCompleted(event -> processSearchInput());
       JavaFxUtil.runLater(() -> contentPane.setVisible(true));
     });
   }
@@ -178,15 +188,10 @@ public class LeaderboardController implements Controller<Tab> {
     return leaderboardRoot;
   }
 
-  private void setListener(PlayerBean player) {
-    playerRatingListener = observable -> updateDisplayedPlayerStats(player);
-    JavaFxUtil.addAndTriggerListener(player.getLeaderboardRatings(), new WeakInvalidationListener(playerRatingListener));
-  }
-
   @VisibleForTesting
-  protected void updateDisplayedPlayerStats(PlayerBean player) {
+  protected void updateDisplayedPlayerStats() {
     leaderboardService.getAllSubdivisions(season).thenAccept(divisions ->
-      leaderboardService.getLeagueEntryForPlayer(player, season).thenAccept(leagueEntry -> {
+      leaderboardService.getLeagueEntryForPlayer(playerService.getCurrentPlayer(), season).thenAccept(leagueEntry -> {
         if (leagueEntry == null) {
           selectHighestDivision();
         } else {
@@ -235,20 +240,23 @@ public class LeaderboardController implements Controller<Tab> {
     entryToSelect = leagueEntry;
     // When selecting an item from majorDivisionPicker, onMajorDivisionPicked gets called automatically,
     // but only if the selection actually changes
-    if (majorDivisionPicker.getValue() != null && correctDivisionSelected()) {
+    if (majorDivisionPicker.getValue() != null && hasSameDivisionIndex(entryToSelect, majorDivisionPicker.getValue())) {
       selectAssociatedTab();
     } else {
       majorDivisionPicker.getItems().stream()
-          .filter(item -> item.getDivision().getIndex() == entryToSelect.getSubdivision().getDivision().getIndex())
+          .filter(item -> hasSameDivisionIndex(entryToSelect, item))
           .findFirst().ifPresent(item -> JavaFxUtil.runLater(() -> majorDivisionPicker.getSelectionModel().select(item)));
     }
   }
 
-  private boolean correctDivisionSelected() {
-    return entryToSelect.getSubdivision().getDivision().getIndex() == majorDivisionPicker.getValue().getDivision().getIndex();
+  private boolean hasSameDivisionIndex(LeagueEntryBean entry, SubdivisionBean subdivision) {
+    return entry.getSubdivision().getDivision().getIndex() == subdivision.getDivision().getIndex();
   }
 
   public void onMajorDivisionPicked() {
+    if (majorDivisionPicker.getValue() == null) {
+      throw new IllegalStateException("majorDivisionPicker has no item selected");
+    }
     leaderboardService.getAllSubdivisions(season).thenAccept(subdivisions -> {
       JavaFxUtil.runLater(() -> subDivisionTabPane.getTabs().clear());
       subdivisions.stream()
@@ -263,7 +271,7 @@ public class LeaderboardController implements Controller<Tab> {
             });
           });
       setTabWidth(subDivisionTabPane.getWidth(), subDivisionTabPane.getTabs().size());
-      if (entryToSelect != null && correctDivisionSelected()) {
+      if (entryToSelect != null && hasSameDivisionIndex(entryToSelect, majorDivisionPicker.getValue())) {
         selectAssociatedTab();
       }
     });

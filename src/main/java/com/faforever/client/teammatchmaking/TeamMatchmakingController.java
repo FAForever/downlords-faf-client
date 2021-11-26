@@ -7,6 +7,7 @@ import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
@@ -187,11 +188,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
         leagueImageView.setVisible(false);
       } else {
+        SubdivisionBean subdivision = leagueEntry.get().getSubdivision();
         leagueLabel.setText(i18n.get("leaderboard.divisionName",
-            i18n.get(leagueEntry.get().getSubdivision().getDivisionI18nKey()),
-            leagueEntry.get().getSubdivision().getNameKey()).toUpperCase());
+            i18n.getOrDefault(subdivision.getDivision().getNameKey(), subdivision.getDivisionI18nKey()),
+            subdivision.getNameKey()).toUpperCase());
         leagueImageView.setImage(assetService.loadAndCacheImage(
-            leagueEntry.get().getSubdivision().getMediumImageUrl(), Paths.get("divisions"), null
+            subdivision.getMediumImageUrl(), Paths.get("divisions"), null
         ));
         leagueImageView.setVisible(true);
       }

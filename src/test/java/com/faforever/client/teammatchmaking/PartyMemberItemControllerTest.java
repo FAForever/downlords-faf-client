@@ -71,6 +71,7 @@ public class PartyMemberItemControllerTest extends UITest {
     PartyMember partyMember = PartyMemberBuilder.create(player).defaultValues().get();
     party.getMembers().add(partyMember);
     when(i18n.get(anyString())).thenReturn("");
+    when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In placement");
     when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
     when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
