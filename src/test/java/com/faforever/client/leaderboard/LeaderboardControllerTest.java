@@ -5,6 +5,7 @@ import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
+import com.faforever.client.domain.DivisionBean;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.PlayerBean;
@@ -13,10 +14,10 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -24,12 +25,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
@@ -67,12 +73,13 @@ public class LeaderboardControllerTest extends UITest {
     PlayerBean zlo = PlayerBeanBuilder.create().defaultValues().id(2).username("ZLO").get();
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("seasonName");
-    when(i18n.get("leagues.divisionName.1")).thenReturn("Bronze");
-    when(i18n.get("leagues.divisionName.2")).thenReturn("Silver");
+    when(i18n.get("leagues.divisionName.test_name")).thenReturn("Bronze");
+    when(i18n.get("leagues.divisionName.silver")).thenReturn("Silver");
 
     season = LeagueSeasonBeanBuilder.create().defaultValues().get();
     subdivisionBean1 = SubdivisionBeanBuilder.create().defaultValues().id(1).index(1).get();
-    subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().id(2).index(1).division(DivisionBeanBuilder.create().defaultValues().index(2).get()).get();
+    DivisionBean division = DivisionBeanBuilder.create().defaultValues().nameKey("silver").index(2).get();
+    subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().id(2).index(1).division(division).get();
     leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(0).player(marcSpector).get();
     leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).id(1).player(sheikah).get();
     LeagueEntryBean leagueEntryBean3 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).id(2).player(zlo).get();
@@ -103,16 +110,14 @@ public class LeaderboardControllerTest extends UITest {
 
     instance = new LeaderboardController(assetService, i18n, leaderboardService, notificationService, playerService, uiService);
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
-    instance.initialize();
     instance.setSeason(season);
     // In a test environment this doesn't get called automatically anymore, so we have to do it manually
-    instance.onMajorDivisionPicked();
+    runOnFxThreadAndWait(() -> instance.onMajorDivisionPicked());
   }
 
   @Test
-  @Disabled("Fails in ci pipeline for unknown reasons")
   public void testSetSeason() {
-    waitForFxEvents(10);
+    waitForFxEvents();
 
     assertEquals("SEASONNAME", instance.seasonLabel.getText());
     assertEquals(2, instance.majorDivisionPicker.getItems().size());
@@ -125,13 +130,21 @@ public class LeaderboardControllerTest extends UITest {
   }
 
   @Test
+  public void testInitializeWithSeasonError() {
+    when(leaderboardService.getAllSubdivisions(season)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.setSeason(season);
+
+    verify(notificationService, times(2)).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadDivisions"));
+  }
+
+  @Test
   public void testSelectSearchedPlayer() {
     showDivision(subdivisionBean2);
     assertNull(subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem());
     setSearchText("Sheikah");
     instance.processSearchInput();
-    instance.onMajorDivisionPicked();
-    waitForFxEvents(10);
+    runOnFxThreadAndWait(() -> instance.onMajorDivisionPicked());
 
     assertEquals(subdivisionBean1, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
     assertEquals(2, subDivisionTabController.ratingTable.getItems().size());
@@ -181,7 +194,7 @@ public class LeaderboardControllerTest extends UITest {
   @Test
   public void testNoLeagueEntry() {
     when(i18n.get("leaderboard.noEntry")).thenReturn("Play matchmaker games to get assigned to a division");
-    waitForFxEvents(10);
+    waitForFxEvents();
 
     assertFalse(instance.playerDivisionNameLabel.isVisible());
     assertTrue(instance.placementLabel.isVisible());
@@ -192,13 +205,14 @@ public class LeaderboardControllerTest extends UITest {
   }
 
   @Test
-  @Disabled("Fails in ci pipeline for unknown reasons")
   public void testNotPlaced() {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(null).get();
+    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
+        CompletableFuture.completedFuture(leagueEntryBean));
     when(i18n.get("leaderboard.placement", 100, 10)).thenReturn("in placement");
 
     instance.updateDisplayedPlayerStats();
-    waitForFxEvents(10);
+    waitForFxEvents();
 
     assertFalse(instance.playerDivisionNameLabel.isVisible());
     assertTrue(instance.placementLabel.isVisible());
@@ -209,17 +223,17 @@ public class LeaderboardControllerTest extends UITest {
   }
 
   @Test
-  @Disabled("Fails in ci pipeline for unknown reasons")
   public void testWithLeagueEntry() {
     LeagueEntryBean playerEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(subdivisionBean1).get();
     when(leaderboardService.getEntries(subdivisionBean1)).thenReturn(
         CompletableFuture.completedFuture(List.of(leagueEntryBean1, playerEntryBean, leagueEntryBean2)));
+    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
+        CompletableFuture.completedFuture(playerEntryBean));
     when(i18n.number(8)).thenReturn("8");
     when(i18n.get("leaderboard.divisionName", "Bronze", "I")).thenReturn("Bronze I");
 
     instance.updateDisplayedPlayerStats();
-    instance.onMajorDivisionPicked();
-    waitForFxEvents(10);
+    runOnFxThreadAndWait(() -> instance.onMajorDivisionPicked());
 
     assertTrue(instance.playerDivisionNameLabel.isVisible());
     assertEquals("BRONZE I", instance.playerDivisionNameLabel.getText());
@@ -230,5 +244,23 @@ public class LeaderboardControllerTest extends UITest {
     assertEquals(1, instance.subDivisionTabPane.getTabs().size());
     assertEquals(3, subDivisionTabController.ratingTable.getItems().size());
     assertEquals("junit", subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
+  }
+
+  @Test
+  public void testUpdateDisplayedPlayerStatsWithDivisionError() {
+    when(leaderboardService.getAllSubdivisions(season)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.updateDisplayedPlayerStats();
+
+    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadDivisions"));
+  }
+
+  @Test
+  public void testUpdateDisplayedPlayerStatsWithLeagueEntryError() {
+    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.updateDisplayedPlayerStats();
+
+    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadEntry"));
   }
 }

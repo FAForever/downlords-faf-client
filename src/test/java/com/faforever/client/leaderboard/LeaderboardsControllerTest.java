@@ -3,7 +3,9 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.builders.LeagueBeanBuilder;
 import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenLeaderboardEvent;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -14,6 +16,7 @@ import org.mockito.Mock;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -78,8 +81,33 @@ public class LeaderboardsControllerTest extends UITest {
   }
 
   @Test
+  public void testInitializeWithLeagueError() {
+    when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.initialize();
+
+    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
+  }
+
+  @Test
+  public void testInitializeWithSeasonError() {
+    when(leaderboardService.getLatestSeason(any())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.initialize();
+
+    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
+  }
+
+  @Test
   public void testGetRoot() throws Exception {
     assertEquals(instance.getRoot(), instance.leaderboardRoot);
     assertNull(instance.getRoot().getParent());
+  }
+
+  @Test
+  public void testOnDisplay() {
+    instance.onDisplay(new OpenLeaderboardEvent(controller.getRoot()));
+
+    assertEquals(instance.leaderboardRoot.getSelectionModel().getSelectedItem(), controller.getRoot());
   }
 }

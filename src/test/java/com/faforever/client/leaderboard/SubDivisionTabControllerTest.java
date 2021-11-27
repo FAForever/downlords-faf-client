@@ -6,6 +6,7 @@ import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,9 +15,12 @@ import org.mockito.Mock;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SubDivisionTabControllerTest extends UITest {
@@ -33,8 +37,6 @@ public class SubDivisionTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-
-
     instance = new SubDivisionTabController(leaderboardService, notificationService, i18n, uiService);
 
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> instance);
@@ -60,5 +62,15 @@ public class SubDivisionTabControllerTest extends UITest {
     assertEquals(leagueEntryBean1, instance.ratingTable.getItems().get(0));
     assertEquals(11, leagueEntryBean1.getRank());
     assertEquals(12, leagueEntryBean2.getRank());
+  }
+
+  @Test
+  public void testPopulateWithError() {
+    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
+    when(leaderboardService.getEntries(subdivisionBean)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.populate(subdivisionBean);
+
+    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoad"));
   }
 }
