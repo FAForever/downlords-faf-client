@@ -4,9 +4,10 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.VBox?>
-<Tab fx:id="subDivisionTab" styleClass="main-navigation-button" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+<Tab fx:id="subDivisionTab" styleClass="main-navigation-button"
+     xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
      fx:controller="com.faforever.client.leaderboard.SubDivisionTabController">
-    <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS">
+    <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS" styleClass="division-table">
         <columns>
             <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
             <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />

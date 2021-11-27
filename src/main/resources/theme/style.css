@@ -836,24 +836,24 @@
   -fx-border-insets: 0;
 }
 
-.table-view .filler,
-.table-view .column-header {
+.division-table .filler,
+.division-table .column-header {
   -fx-font-size: 16px;
   -fx-size: 2.2em;
 }
 
 
-.table-row-cell {
+.division-table .table-row-cell {
   -fx-font-family: 'Source Sans Pro';
   -fx-font-size: 16px;
 }
 
-.table-cell {
+.division-table .table-cell {
   -fx-padding: 0 0 0 15;
 }
 
-.table-row-cell,
-.tree-table-row-cell {
+.division-table .table-row-cell,
+.division-table .tree-table-row-cell {
   -fx-cell-size: 1.6em;
 }
 
