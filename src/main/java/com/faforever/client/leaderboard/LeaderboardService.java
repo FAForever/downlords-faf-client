@@ -89,7 +89,6 @@ public class LeaderboardService {
             .instant("startDate").before(OffsetDateTime.now().toInstant(), false))
         .addSortingRule("startDate", false);
     return fafApiAccessor.getMany(navigator)
-        .filter(leagueSeason -> leagueSeason.getStartDate().isBefore(OffsetDateTime.now()))
         .next()
         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
         .toFuture();

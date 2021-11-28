@@ -122,7 +122,7 @@ public class LeaderboardController implements Controller<Tab> {
 
   public void processSearchInput() {
     String searchText = searchTextField.getText();
-    if (StringUtils.isEmpty(searchText)) {
+    if (StringUtils.isBlank(searchText)) {
       return;
     }
 
