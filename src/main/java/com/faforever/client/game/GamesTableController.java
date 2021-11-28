@@ -258,4 +258,12 @@ public class GamesTableController implements Controller<Node> {
       return i18n.get("game.ratingFormat.maxOnly", ratingRange.getMax());
     });
   }
+
+  public TableColumn<GameBean, Image> getMapPreviewColumn() {
+    return mapPreviewColumn;
+  }
+
+  public TableColumn<GameBean, RatingRange> getRatingRangeColumn() {
+    return ratingRangeColumn;
+  }
 }
