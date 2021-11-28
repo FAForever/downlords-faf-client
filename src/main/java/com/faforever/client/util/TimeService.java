@@ -86,10 +86,14 @@ public class TimeService {
   }
 
   public String asDate(TemporalAccessor temporalAccessor) {
+    return asDate(temporalAccessor, FormatStyle.SHORT);
+  }
+
+  public String asDate(TemporalAccessor temporalAccessor, FormatStyle formatStyle) {
     if (temporalAccessor == null) {
       return i18n.get("noDateAvailable");
     }
-    return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+    return DateTimeFormatter.ofLocalizedDate(formatStyle)
         .withLocale(getCurrentDateLocale())
         .withZone(TimeZone.getDefault().toZoneId())
         .format(temporalAccessor);
@@ -120,11 +124,11 @@ public class TimeService {
   }
 
   private Locale getCurrentDateLocale() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    if (chatPrefs.getDateFormat().equals(DateInfo.AUTO)) {
+    DateInfo dateInfo = preferencesService.getPreferences().getLocalization().getDateFormat();
+    if (dateInfo.equals(DateInfo.AUTO)) {
       return i18n.getUserSpecificLocale();
     }
-    return preferencesService.getPreferences().getChat().getDateFormat().getUsedLocale();
+    return dateInfo.getUsedLocale();
 
   }
 

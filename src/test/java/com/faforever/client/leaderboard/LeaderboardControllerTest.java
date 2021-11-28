@@ -17,6 +17,7 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.TimeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -54,6 +55,8 @@ public class LeaderboardControllerTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private PlayerService playerService;
+  @Mock
+  private TimeService timeService;
   @Mock
   private UiService uiService;
 
@@ -108,7 +111,7 @@ public class LeaderboardControllerTest extends UITest {
     subDivisionTabController.initialize();
     when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);
 
-    instance = new LeaderboardController(assetService, i18n, leaderboardService, notificationService, playerService, uiService);
+    instance = new LeaderboardController(assetService, i18n, leaderboardService, notificationService, playerService, timeService, uiService);
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
     instance.setSeason(season);
     // In a test environment this doesn't get called automatically anymore, so we have to do it manually

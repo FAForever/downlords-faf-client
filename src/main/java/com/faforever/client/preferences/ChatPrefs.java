@@ -51,7 +51,6 @@ public class ChatPrefs {
   private final BooleanProperty hideFoeMessages;
   private final BooleanProperty playerListShown;
   private final ObjectProperty<TimeInfo> timeFormat;
-  private final ObjectProperty<DateInfo> dateFormat;
   private final ObjectProperty<ChatFormat> chatFormat;
   private final ListProperty<String> autoJoinChannels;
   /**
@@ -61,7 +60,6 @@ public class ChatPrefs {
 
   public ChatPrefs() {
     timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
-    dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
     maxMessages = new SimpleIntegerProperty(500);
     zoom = new SimpleDoubleProperty(1);
     learnedAutoComplete = new SimpleBooleanProperty(false);
@@ -95,14 +93,6 @@ public class ChatPrefs {
 
   public void setTimeFormat(TimeInfo time) {
     this.timeFormat.set(time);
-  }
-
-  public DateInfo getDateFormat() {
-    return dateFormat.get();
-  }
-
-  public void setDateFormat(DateInfo date) {
-    this.dateFormat.set(date);
   }
 
   public ChatFormat getChatFormat() {

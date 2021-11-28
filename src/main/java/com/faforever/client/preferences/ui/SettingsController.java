@@ -430,13 +430,13 @@ public class SettingsController implements Controller<Node> {
     dateComboBox.setItems(FXCollections.observableArrayList(DateInfo.values()));
     dateComboBox.setDisable(false);
     dateComboBox.setFocusTraversable(true);
-    dateComboBox.getSelectionModel().select(preferences.getChat().getDateFormat());
+    dateComboBox.getSelectionModel().select(preferences.getLocalization().getDateFormat());
   }
 
   public void onDateFormatSelected() {
     log.debug("A new date format was selected: {}", dateComboBox.getValue());
     Preferences preferences = preferencesService.getPreferences();
-    preferences.getChat().setDateFormat(dateComboBox.getValue());
+    preferences.getLocalization().setDateFormat(dateComboBox.getValue());
     preferencesService.storeInBackground();
   }
 

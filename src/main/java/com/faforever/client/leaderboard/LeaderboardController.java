@@ -10,6 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -46,7 +47,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -69,6 +69,7 @@ public class LeaderboardController implements Controller<Tab> {
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final PlayerService playerService;
+  private final TimeService timeService;
   private final UiService uiService;
   public Tab leaderboardRoot;
   public TextField searchTextField;
@@ -138,9 +139,11 @@ public class LeaderboardController implements Controller<Tab> {
   public void setSeason(LeagueSeasonBean season) {
     this.season = season;
 
-    seasonLabel.setText(i18n.getOrDefault(season.getNameKey(), String.format("leaderboard.season.%s", season.getNameKey())).toUpperCase());
-    String startDate = season.getStartDate().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
-    String endDate = season.getEndDate().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
+    seasonLabel.setText(i18n.getOrDefault(
+        season.getNameKey(), String.format("leaderboard.season.%s", season.getNameKey())
+    ).toUpperCase());
+    String startDate = timeService.asDate(season.getStartDate(), FormatStyle.MEDIUM);
+    String endDate = timeService.asDate(season.getEndDate(), FormatStyle.MEDIUM);
     seasonDateLabel.setText(i18n.get("leaderboard.seasonDate", startDate, endDate));
     contentPane.setVisible(false);
     searchTextField.clear();
