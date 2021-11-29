@@ -61,6 +61,7 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -590,6 +591,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
     text = convertUrlsToHyperlinks(text);
     text = replaceChannelNamesWithHyperlinks(text);
+    text = transformEmoticonShortcodesToImages(text);
 
     Matcher matcher = mentionPattern.matcher(text);
     if (matcher.find()) {
@@ -602,6 +604,27 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         .replace("{inline-style}", getInlineStyle(login))
         // Always replace text last in case the message contains one of the placeholders.
         .replace("{text}", text);
+  }
+
+  private Pattern EMOTICONS_PATTERN;
+  private final String emoticonImgTemplate = "<img src=\"%s\" width=\"24\" height=\"24\" />";
+
+  private String transformEmoticonShortcodesToImages(String text) {
+    HashMap<String, String> shortcodes = chatUserService.getEmoticonShortcodes();
+    if (EMOTICONS_PATTERN == null) {
+      String regex = String.join("|", shortcodes.keySet());
+      EMOTICONS_PATTERN = Pattern.compile(regex);
+    }
+
+    return EMOTICONS_PATTERN.matcher(text).replaceAll((matchResult) -> {
+      String shortcode = matchResult.group();
+      try {
+        return String.format(emoticonImgTemplate, uiService.getThemeFileUrl(shortcodes.get(shortcode)));
+      } catch (IOException e) {
+        log.error("cannot load emoticon image from path `" + shortcodes.get(shortcode) + "`", e);
+        return shortcode;
+      }
+    });
   }
 
   @VisibleForTesting

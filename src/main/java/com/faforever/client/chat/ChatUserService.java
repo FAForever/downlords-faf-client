@@ -1,9 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.chat.emojis.Emoticon;
+import com.faforever.client.chat.emojis.EmoticonsGroup;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -12,16 +15,26 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
@@ -33,6 +46,8 @@ import static java.util.Locale.US;
 @RequiredArgsConstructor
 public class ChatUserService implements InitializingBean {
 
+  private static final ClassPathResource EMOTICONS_JSON_FILE_RESOURCE = new ClassPathResource("images/emoticons/emoticons.json");
+
   private final UiService uiService;
   private final MapService mapService;
   private final AvatarService avatarService;
@@ -42,9 +57,44 @@ public class ChatUserService implements InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
 
+  private List<EmoticonsGroup> emoticonsGroups;
+  private HashMap<String, String> emoticonShortcodes;
+
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
+    loadAndVerifyEmoticons();
+  }
+
+  private void loadAndVerifyEmoticons() {
+    try {
+      emoticonsGroups = new ObjectMapper().readValue(EMOTICONS_JSON_FILE_RESOURCE.getFile(),
+          TypeFactory.defaultInstance().constructCollectionType(List.class, EmoticonsGroup.class));
+      emoticonShortcodes = new HashMap<>();
+      List<Emoticon> emoticons = emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream()).collect(Collectors.toList());
+      for (Emoticon emoticon : emoticons) {
+        String shortcode = emoticon.getShortcode();
+        if (emoticonShortcodes.containsKey(shortcode)) {
+          throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
+        }
+        emoticonShortcodes.put(shortcode, emoticon.getSvgFilePath());
+      }
+    } catch (IOException e) {
+      log.error("cannot read emoticons.json file", e);
+      emoticonsGroups = Collections.emptyList();
+    } catch (ProgrammingError e) {
+      log.error(e.getMessage(), e);
+      emoticonsGroups = Collections.emptyList();
+    }
+    log.info("Emoticons verified and loaded");
+  }
+
+  public List<EmoticonsGroup> getEmoticonsGroups() {
+    return emoticonsGroups;
+  }
+
+  public HashMap<String, String> getEmoticonShortcodes() {
+    return emoticonShortcodes;
   }
 
   private void populateClan(ChatChannelUser chatChannelUser) {

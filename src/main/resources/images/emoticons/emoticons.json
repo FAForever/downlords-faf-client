@@ -1,0 +1,42 @@
+[
+  {
+    "name": "FAF",
+    "attribution": "",
+    "emoticons": [
+      {
+        "shortcode": ":uef:",
+        "svgFilePath": "images/emoticons/faf/uef.svg"
+      },
+      {
+        "shortcode": ":aeon:",
+        "svgFilePath": "images/emoticons/faf/aeon.svg"
+      },
+      {
+        "shortcode": ":cybran:",
+        "svgFilePath": "images/emoticons/faf/cybran.svg"
+      },
+      {
+        "shortcode": ":seraphim:",
+        "svgFilePath": "images/emoticons/faf/seraphim.svg"
+      }
+    ]
+  },
+  {
+    "name": "Common",
+    "attribution": "twemoji.twitter.com",
+    "emoticons": [
+      {
+        "shortcode": ":grinning:",
+        "svgFilePath": "images/emoticons/common/1f600.svg"
+      },
+      {
+        "shortcode": ":smiley:",
+        "svgFilePath": "images/emoticons/common/1f603.svg"
+      },
+      {
+        "shortcode": ":smile:",
+        "svgFilePath": "images/emoticons/common/1f604.svg"
+      }
+    ]
+  }
+]

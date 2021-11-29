@@ -1196,3 +1196,14 @@
 .player-rating-chart-tooltip {
   -fx-background-color: -fx-base;
 }
+
+.emojis-window {
+  -fx-background-color: #383838;
+  -fx-border-color: grey;
+  -fx-border-width: 1;
+  -fx-border-radius: 5;
+}
+
+.emoticon-image-view:hover {
+  -fx-background-color: grey;
+}

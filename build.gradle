@@ -323,6 +323,7 @@ dependencies {
   implementation("com.github.1-alex98:discord-rpc:${discordRpcVersion}")
   implementation("org.controlsfx:controlsfx:${controlsfxVersion}")
   implementation("org.fxmisc.flowless:flowless:${flowlessVersion}")
+  implementation("de.codecentric.centerdevice:javafxsvg:1.3.0")
 
   implementation(project(":webview-patch"))
   implementation("org.javassist:javassist:${project.ext['javassist.version']}")

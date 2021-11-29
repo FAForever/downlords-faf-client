@@ -53,9 +53,16 @@
                           </ToggleButton>
                       </children>
                   </AnchorPane>
-                   <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
-                              promptText="%chat.messagePrompt">
-                   </TextField>
+                   <HBox>
+                       <children>
+                           <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" promptText="%chat.messagePrompt" HBox.hgrow="ALWAYS">
+                               <HBox.margin>
+                                   <Insets right="10.0" />
+                               </HBox.margin>
+                           </TextField>
+                           <Button fx:id="emoticonsButton" mnemonicParsing="false" onAction="#showEmoticonsPopupWindow" text="Emoticons" />
+                       </children>
+                   </HBox>
                </children>
             </VBox>
 

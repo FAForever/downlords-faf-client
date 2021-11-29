@@ -49,6 +49,7 @@ import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.extern.slf4j.Slf4j;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -58,6 +59,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -122,6 +124,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public WebView messagesWebView;
   public TextField userSearchTextField;
   public TextField messageTextField;
+  public Button emoticonsButton;
   public VBox chatUserListViewBox;
   public VBox topicPane;
   public TextFlow topicText;
@@ -131,6 +134,7 @@ public class ChannelTabController extends AbstractChatTabController {
   private Popup filterUserPopup;
   private ChatUserFilterController chatUserFilterController;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
+  private WeakReference<Popup> emoticonsPopupWindowWeakReference;
 
   // TODO cut dependencies
   public ChannelTabController(UserService userService, ChatService chatService,
@@ -395,7 +399,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void associateChatUserWithPlayer(PlayerBean player, ChatChannelUser chatUser) {
     chatUserService.associatePlayerToChatUser(chatUser, player);
-
     updateCssClass(chatUser);
     updateChatUserListItemsForCategories(chatUser);
   }
@@ -594,5 +597,41 @@ public class ChannelTabController extends AbstractChatTabController {
     long foundItems = getChatUserItemsByCategory(category).stream()
         .map(userItem -> userItem.getUser().getUsername()).filter(names::contains).count();
     return foundItems == names.size();
+  }
+
+  public void showEmoticonsPopupWindow() {
+    Bounds screenBounds = emoticonsButton.localToScreen(emoticonsButton.getBoundsInLocal());
+    double anchorX = screenBounds.getMaxX() - 5;
+    double anchorY = screenBounds.getMinY() - 5;
+
+    if (emoticonsPopupWindowWeakReference != null) {
+      PopupWindow window = emoticonsPopupWindowWeakReference.get();
+      if (window != null) {
+        window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+        return;
+      }
+    }
+
+    EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticons_window.fxml");
+    controller.associateWith(messageTextField());
+    Popup window = new Popup();
+    window.setConsumeAutoHidingEvents(false);
+    window.setAutoHide(true);
+    window.setAutoFix(false);
+    window.setAnchorLocation(AnchorLocation.WINDOW_BOTTOM_RIGHT);
+    window.getContent().setAll(controller.getRoot());
+    window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+    emoticonsPopupWindowWeakReference = new WeakReference<>(window);
+  }
+
+  @Override
+  public void onSendMessage() {
+    super.onSendMessage();
+    if (emoticonsPopupWindowWeakReference != null) {
+      PopupWindow window = emoticonsPopupWindowWeakReference.get();
+      if (window != null && window.isShowing()) {
+        window.hide();
+      }
+    }
   }
 }
