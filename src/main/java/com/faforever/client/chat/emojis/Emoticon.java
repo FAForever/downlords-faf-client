@@ -6,5 +6,5 @@ import lombok.Data;
 public class Emoticon {
 
   private String shortcode;
-  private String svgFilePath;
+  private String base64SvgContent;
 }

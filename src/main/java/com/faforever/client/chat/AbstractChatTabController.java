@@ -607,7 +607,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private Pattern EMOTICONS_PATTERN;
-  private final String emoticonImgTemplate = "<img src=\"%s\" width=\"24\" height=\"24\" />";
+  private final String emoticonImgTemplate = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
 
   private String transformEmoticonShortcodesToImages(String text) {
     HashMap<String, String> shortcodes = chatUserService.getEmoticonShortcodes();
@@ -615,16 +615,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       String regex = String.join("|", shortcodes.keySet());
       EMOTICONS_PATTERN = Pattern.compile(regex);
     }
-
-    return EMOTICONS_PATTERN.matcher(text).replaceAll((matchResult) -> {
-      String shortcode = matchResult.group();
-      try {
-        return String.format(emoticonImgTemplate, uiService.getThemeFileUrl(shortcodes.get(shortcode)));
-      } catch (IOException e) {
-        log.error("cannot load emoticon image from path `" + shortcodes.get(shortcode) + "`", e);
-        return shortcode;
-      }
-    });
+    return EMOTICONS_PATTERN.matcher(text).replaceAll((matchResult) ->
+        String.format(emoticonImgTemplate, shortcodes.get(matchResult.group())));
   }
 
   @VisibleForTesting

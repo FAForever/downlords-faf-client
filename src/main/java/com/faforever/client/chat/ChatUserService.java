@@ -29,11 +29,9 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
@@ -77,7 +75,7 @@ public class ChatUserService implements InitializingBean {
         if (emoticonShortcodes.containsKey(shortcode)) {
           throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
         }
-        emoticonShortcodes.put(shortcode, emoticon.getSvgFilePath());
+        emoticonShortcodes.put(shortcode, emoticon.getBase64SvgContent());
       }
     } catch (IOException e) {
       log.error("cannot read emoticons.json file", e);
