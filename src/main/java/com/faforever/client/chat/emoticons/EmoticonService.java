@@ -34,13 +34,12 @@ public class EmoticonService implements InitializingBean {
     emoticonsGroups = Arrays.asList(objectMapper.readValue(EMOTICONS_JSON_FILE_RESOURCE.getFile(), EmoticonsGroup[].class));
     allEmoticonShortcodes = new HashMap<>();
     emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
-        .forEach(emoticon -> {
-          String shortcode = emoticon.getShortcode();
+        .forEach(emoticon -> emoticon.getShortcodes().forEach(shortcode -> {
           if (allEmoticonShortcodes.containsKey(shortcode)) {
             throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
           }
           allEmoticonShortcodes.put(shortcode, emoticon.getBase64SvgContent());
-        });
+        }));
   }
 
   public List<EmoticonsGroup> getEmoticonsGroups() {

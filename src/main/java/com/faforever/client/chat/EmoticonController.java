@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.Base64.Decoder;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -39,14 +40,14 @@ public class EmoticonController implements Controller<AnchorPane> {
   public void setEmoticon(Emoticon emoticon, Consumer<String> onAction) {
     String base64Content = emoticon.getBase64SvgContent();
     emoticonImageView.setImage(new Image(IOUtils.toInputStream(new String(decoder.decode(base64Content)))));
-    emoticonImageView.setOnMouseClicked(event -> onAction.accept(emoticon.getShortcode()));
+    emoticonImageView.setOnMouseClicked(event -> onAction.accept(emoticon.getShortcodes().get(0)));
 
-    displayShortcodesOnHover(emoticon.getShortcode());
+    displayShortcodesOnHover(emoticon.getShortcodes());
   }
 
-  private void displayShortcodesOnHover(String shortcodes) {
+  private void displayShortcodesOnHover(List<String> shortcodes) {
     Tooltip tooltip = new Tooltip();
-    tooltip.setText(shortcodes);
+    tooltip.setText(String.join("\t",shortcodes));
     tooltip.setFont(shortcodesFont);
     tooltip.setShowDuration(Duration.seconds(10));
     tooltip.setShowDelay(Duration.ZERO);
