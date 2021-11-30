@@ -40,10 +40,22 @@
                 </padding>
             </HBox>
             <Separator maxWidth="1.7976931348623157E308" />
-            <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS" minHeight="100.0" minWidth="100.0" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-            <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
-                       promptText="%chat.messagePrompt" styleClass="tmm-chat">
-            </TextField>
+            <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
+                     prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                     AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+            <StackPane>
+                <children>
+                    <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
+                               promptText="%chat.messagePrompt" styleClass="channel-chat-text-field">
+                    </TextField>
+                    <Button fx:id="emoticonsButton" mnemonicParsing="false" onAction="#openEmoticonsPopupWindow"
+                            styleClass="open-emoticons-window" StackPane.alignment="CENTER_RIGHT">
+                        <graphic>
+                            <Region styleClass="icon,friend-icon"/>
+                        </graphic>
+                    </Button>
+                </children>
+            </StackPane>
         </children>
     </VBox>
 </Tab>

@@ -31,7 +31,7 @@ public class EmoticonsWindowController implements Controller<VBox> {
   public void initialize() {
     List<Node> nodes = new ArrayList<>();
     chatUserService.getEmoticonsGroups().forEach(group -> {
-      EmoticonsGroupController controller = uiService.loadFxml("theme/chat/emoticons_group.fxml");
+      EmoticonsGroupController controller = uiService.loadFxml("theme/chat/emoticon/emoticons_group.fxml");
       controller.setGroup(group, shortcode -> {
         textInputControl.appendText(" ".concat(shortcode).concat(" "));
         textInputControl.requestFocus();

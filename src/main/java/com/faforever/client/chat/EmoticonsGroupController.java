@@ -36,7 +36,7 @@ public class EmoticonsGroupController implements Controller<VBox> {
   public void setGroup(EmoticonsGroup group, Consumer<String> onEmoticonAction) {
     groupLabel.setText(group.getName());
     List<AnchorPane> emoticonViewList = group.getEmoticons().stream().map(emoticon -> {
-      EmoticonController controller = uiService.loadFxml("theme/chat/emoticon.fxml");
+      EmoticonController controller = uiService.loadFxml("theme/chat/emoticon/emoticon.fxml");
       controller.setEmoticon(emoticon, onEmoticonAction);
       return controller.getRoot();
     }).collect(Collectors.toList());

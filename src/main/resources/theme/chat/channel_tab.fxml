@@ -53,16 +53,19 @@
                           </ToggleButton>
                       </children>
                   </AnchorPane>
-                   <HBox>
+                   <StackPane>
                        <children>
-                           <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" promptText="%chat.messagePrompt" HBox.hgrow="ALWAYS">
-                               <HBox.margin>
-                                   <Insets right="10.0" />
-                               </HBox.margin>
+                           <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"
+                                      onAction="#onSendMessage" promptText="%chat.messagePrompt" styleClass="channel-chat-text-field">
                            </TextField>
-                           <Button fx:id="emoticonsButton" mnemonicParsing="false" onAction="#showEmoticonsPopupWindow" text="Emoticons" />
+                           <Button fx:id="emoticonsButton" mnemonicParsing="false" onAction="#openEmoticonsPopupWindow"
+                                   styleClass="open-emoticons-window" StackPane.alignment="CENTER_RIGHT">
+                               <graphic>
+                                   <Region styleClass="icon,friend-icon"/>
+                               </graphic>
+                           </Button>
                        </children>
-                   </HBox>
+                   </StackPane>
                </children>
             </VBox>
 

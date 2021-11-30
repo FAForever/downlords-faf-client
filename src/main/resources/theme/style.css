@@ -749,12 +749,6 @@
   -fx-border-color: #424242;
 }
 
-.tmm-chat {
-  -fx-background-color: transparent;
-  -fx-border-width: 2 0 0 0;
-  -fx-border-color: #424242;
-}
-
 .discord-color {
   -fx-background-color: DISCORD_COLOR;
 }
@@ -1197,7 +1191,9 @@
   -fx-background-color: -fx-base;
 }
 
-.emojis-window {
+/***************** Emoticons Window ***************************/
+
+.emoticons-window {
   -fx-background-color: #383838;
   -fx-border-color: grey;
   -fx-border-width: 1;
@@ -1206,4 +1202,16 @@
 
 .emoticon-image-view:hover {
   -fx-background-color: grey;
+}
+
+/***************** Chat Channel ***************************/
+
+.open-emoticons-window {
+  -fx-background-color: transparent;
+}
+
+.channel-chat-text-field {
+  -fx-background-color: transparent;
+  -fx-border-width: 2 0 0 0;
+  -fx-border-color: #424242;
 }

@@ -34,7 +34,9 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
@@ -46,6 +48,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
+import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import netscape.javascript.JSObject;
@@ -57,6 +62,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -136,6 +142,10 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private final ChangeListener<Boolean> stageFocusedListener;
   private int lastEntryId;
   private boolean isChatReady;
+  
+  public TextInputControl messageTextField;
+  public Button emoticonsButton;
+  private WeakReference<Popup> emoticonsPopupWindowWeakReference;
   /**
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
@@ -187,12 +197,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (getRoot() != null
           && getRoot().getTabPane() != null
           && getRoot().getTabPane().isVisible()) {
-        JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+        JavaFxUtil.runLater(() -> messageTextField.requestFocus());
       }
     };
     tabPaneFocusedListener = (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
       if (newTabPaneFocus) {
-        JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+        JavaFxUtil.runLater(() -> messageTextField.requestFocus());
       }
     };
   }
@@ -282,7 +292,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       if (newValue) {
         // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
         // So let's schedule the focus to be executed afterwards
-        JavaFxUtil.runLater(messageTextField()::requestFocus);
+        JavaFxUtil.runLater(messageTextField::requestFocus);
       }
     });
 
@@ -296,7 +306,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void addImagePasteListener() {
-    TextInputControl messageTextField = messageTextField();
     messageTextField.setOnKeyReleased(event -> {
       if (isPaste(event)
           && Clipboard.getSystemClipboard().hasImage()) {
@@ -305,15 +314,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     });
   }
 
-  protected abstract TextInputControl messageTextField();
-
   private boolean isPaste(KeyEvent event) {
     return (event.getCode() == KeyCode.V && event.isShortcutDown())
         || (event.getCode() == KeyCode.INSERT && event.isShiftDown());
   }
 
   private void pasteImage() {
-    TextInputControl messageTextField = messageTextField();
     int currentCaretPosition = messageTextField.getCaretPosition();
 
     messageTextField.setDisable(true);
@@ -396,8 +402,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   public void onSendMessage() {
-    TextInputControl messageTextField = messageTextField();
-
     String text = messageTextField.getText();
     if (StringUtils.isEmpty(text)) {
       return;
@@ -414,10 +418,20 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     } else {
       sendMessage();
     }
+
+    hideEmoticonsWindow();
+  }
+
+  private void hideEmoticonsWindow() {
+    if (emoticonsPopupWindowWeakReference != null) {
+      PopupWindow window = emoticonsPopupWindowWeakReference.get();
+      if (window != null && window.isShowing()) {
+        window.hide();
+      }
+    }
   }
 
   private void sendMessage() {
-    TextInputControl messageTextField = messageTextField();
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
@@ -693,7 +707,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Subclasses may override in order to perform actions when the view is being displayed.
    */
   protected void onDisplay() {
-    JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+    JavaFxUtil.runLater(() -> messageTextField.requestFocus());
   }
 
   /**
@@ -701,5 +715,30 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   protected void onHide() {
 
+  }
+
+  public void openEmoticonsPopupWindow() {
+    Bounds screenBounds = emoticonsButton.localToScreen(emoticonsButton.getBoundsInLocal());
+    double anchorX = screenBounds.getMaxX() - 5;
+    double anchorY = screenBounds.getMinY() - 5;
+
+    if (emoticonsPopupWindowWeakReference != null) {
+      PopupWindow window = emoticonsPopupWindowWeakReference.get();
+      if (window != null) {
+        window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+        return;
+      }
+    }
+
+    EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticon/emoticons_window.fxml");
+    controller.associateWith(messageTextField);
+    Popup window = new Popup();
+    window.setConsumeAutoHidingEvents(false);
+    window.setAutoHide(true);
+    window.setAutoFix(false);
+    window.setAnchorLocation(AnchorLocation.WINDOW_BOTTOM_RIGHT);
+    window.getContent().setAll(controller.getRoot());
+    window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+    emoticonsPopupWindowWeakReference = new WeakReference<>(window);
   }
 }
