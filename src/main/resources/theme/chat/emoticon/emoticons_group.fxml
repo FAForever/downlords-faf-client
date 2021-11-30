@@ -33,7 +33,8 @@
                                         <Insets right="4.0"/>
                                     </HBox.margin>
                                 </Label>
-                                <Hyperlink fx:id="attributionHyperlink" styleClass="attribution-hyperlink">
+                                <Hyperlink fx:id="attributionHyperlink" styleClass="attribution-hyperlink"
+                                           focusTraversable="false">
                                     <font>
                                         <Font size="10.0"/>
                                     </font>

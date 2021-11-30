@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
@@ -78,6 +79,8 @@ public class PrivateChatTabControllerTest extends UITest {
   private ChatUserService chatUserService;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private EmoticonService emoticonService;
 
   private PrivateChatTabController instance;
   private String playerName;
@@ -89,7 +92,7 @@ public class PrivateChatTabControllerTest extends UITest {
 
     instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
         i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,
-        audioService, chatService, webViewConfigurer, countryFlagService, chatUserService);
+        audioService, chatService, webViewConfigurer, countryFlagService, chatUserService, emoticonService);
 
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
