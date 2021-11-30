@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.AssetLoadException;
@@ -128,6 +129,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
   protected final ChatUserService chatUserService;
+  protected final EmoticonService emoticonService;
   private final ImageUploadService imageUploadService;
   private final CountryFlagService countryFlagService;
 
@@ -164,7 +166,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
                                    TimeService timeService, I18n i18n,
                                    ImageUploadService imageUploadService,
                                    NotificationService notificationService, ReportingService reportingService, UiService uiService,
-                                   EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService) {
+                                   EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService,
+                                   EmoticonService emoticonService) {
 
     this.webViewConfigurer = webViewConfigurer;
     this.uiService = uiService;
@@ -181,6 +184,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.eventBus = eventBus;
     this.countryFlagService = countryFlagService;
     this.chatUserService = chatUserService;
+    this.emoticonService = emoticonService;
 
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
@@ -624,7 +628,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private final String emoticonImgTemplate = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
 
   private String transformEmoticonShortcodesToImages(String text) {
-    HashMap<String, String> shortcodes = chatUserService.getEmoticonShortcodes();
+    HashMap<String, String> shortcodes = emoticonService.getAllEmoticonShortcodes();
     if (EMOTICONS_PATTERN == null) {
       String regex = String.join("|", shortcodes.keySet());
       EMOTICONS_PATTERN = Pattern.compile(regex);

@@ -1,4 +1,4 @@
-package com.faforever.client.chat.emojis;
+package com.faforever.client.chat.emoticons;
 
 import lombok.Data;
 

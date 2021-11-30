@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.emojis.Emoticon;
+import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.fx.Controller;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;

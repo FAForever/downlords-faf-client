@@ -1,6 +1,6 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.emojis.EmoticonsGroup;
+import com.faforever.client.chat.emoticons.EmoticonsGroup;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.Label;
