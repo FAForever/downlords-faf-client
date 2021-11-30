@@ -1200,7 +1200,7 @@
   -fx-border-radius: 5;
 }
 
-.emoticon-image-view:hover {
+.emoticon-view:hover {
   -fx-background-color: grey;
 }
 
