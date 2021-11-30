@@ -1204,6 +1204,11 @@
   -fx-background-color: grey;
 }
 
+.attribution-hyperlink {
+  -fx-border-color: transparent;
+  -fx-padding: 4 0 4 0;
+}
+
 /***************** Chat Channel ***************************/
 
 .open-emoticons-window {

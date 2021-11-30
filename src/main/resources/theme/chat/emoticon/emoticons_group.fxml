@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.FlowPane?>
@@ -8,24 +9,50 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="400.0" spacing="10.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.EmoticonsGroupController">
+<VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+      prefWidth="400.0" spacing="10.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.chat.EmoticonsGroupController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <children>
                 <Label fx:id="groupLabel" text="Group Name">
                     <font>
-                        <Font size="18.0" />
+                        <Font size="18.0"/>
                     </font>
                 </Label>
-                <Separator prefWidth="200.0" HBox.hgrow="ALWAYS" />
+                <VBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Separator prefWidth="200.0" VBox.vgrow="ALWAYS"/>
+                        <HBox fx:id="attributionPane" alignment="CENTER_RIGHT" visible="false">
+                            <children>
+                                <Label text="%attribution.takenFrom">
+                                    <font>
+                                        <Font size="10.0"/>
+                                    </font>
+                                    <HBox.margin>
+                                        <Insets right="4.0"/>
+                                    </HBox.margin>
+                                </Label>
+                                <Hyperlink fx:id="attributionHyperlink" styleClass="attribution-hyperlink">
+                                    <font>
+                                        <Font size="10.0"/>
+                                    </font>
+                                    <HBox.margin>
+                                        <Insets/>
+                                    </HBox.margin>
+                                </Hyperlink>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
             </children>
             <VBox.margin>
-                <Insets />
+                <Insets/>
             </VBox.margin>
         </HBox>
-        <FlowPane fx:id="emoticonsPane" hgap="10.0" vgap="10.0" />
+        <FlowPane fx:id="emoticonsPane" hgap="10.0" vgap="10.0"/>
     </children>
     <padding>
-        <Insets left="10.0" right="10.0" top="10.0" />
+        <Insets left="10.0" right="10.0" top="10.0"/>
     </padding>
 </VBox>
