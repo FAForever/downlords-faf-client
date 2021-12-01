@@ -11,6 +11,7 @@ import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -65,5 +66,10 @@ public class EmoticonsGroupControllerTest extends UITest {
       instance.attributionHyperlink.fire();
     });
     verify(platformService).showDocument(emoticonsGroup.getAttribution());
+  }
+
+  @Test
+  public void testGetRoot() {
+    assertNotNull(instance.getRoot());
   }
 }
