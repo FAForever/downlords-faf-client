@@ -1,4 +1,4 @@
-package com.faforever.client.chat;
+package com.faforever.client.chat.emoticons;
 
 import com.faforever.client.chat.emoticons.Emoticon;
 import com.faforever.client.fx.Controller;

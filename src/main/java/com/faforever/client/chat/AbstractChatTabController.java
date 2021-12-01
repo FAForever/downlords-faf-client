@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.AssetLoadException;
@@ -68,7 +69,6 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -738,7 +738,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       }
     }
 
-    EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticon/emoticons_window.fxml");
+    EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml");
     controller.associateWith(messageTextField());
     messageTextField().requestFocus();
     Popup window = new Popup();

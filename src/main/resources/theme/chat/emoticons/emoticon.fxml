@@ -7,7 +7,7 @@
 
 
 <AnchorPane fx:id="root" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.faforever.client.chat.EmoticonController" styleClass="emoticon-view">
+            fx:controller="com.faforever.client.chat.emoticons.EmoticonController" styleClass="emoticon-view">
     <children>
         <ImageView fx:id="emoticonImageView" fitHeight="36.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true"
                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"

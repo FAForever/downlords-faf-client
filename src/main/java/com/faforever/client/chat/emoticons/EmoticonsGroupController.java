@@ -1,6 +1,5 @@
-package com.faforever.client.chat;
+package com.faforever.client.chat.emoticons;
 
-import com.faforever.client.chat.emoticons.EmoticonsGroup;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -51,7 +50,7 @@ public class EmoticonsGroupController implements Controller<VBox> {
       attributionPane.setVisible(true);
     }
     List<AnchorPane> emoticonViewList = group.getEmoticons().stream().map(emoticon -> {
-      EmoticonController controller = uiService.loadFxml("theme/chat/emoticon/emoticon.fxml");
+      EmoticonController controller = uiService.loadFxml("theme/chat/emoticons/emoticon.fxml");
       controller.setEmoticon(emoticon, onEmoticonAction);
       return controller.getRoot();
     }).collect(Collectors.toList());

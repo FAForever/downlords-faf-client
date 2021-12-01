@@ -1,9 +1,7 @@
-package com.faforever.client.chat.emoticon;
+package com.faforever.client.chat.emoticons;
 
 import com.faforever.client.builders.EmoticonBuilder;
 import com.faforever.client.builders.EmoticonGroupBuilder;
-import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.chat.emoticons.EmoticonsGroup;
 import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.test.ServiceTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
