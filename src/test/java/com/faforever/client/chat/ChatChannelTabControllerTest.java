@@ -143,6 +143,11 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   @Test
+  public void testGetMessageTextField() {
+    assertNotNull(instance.messageTextField());
+  }
+
+  @Test
   public void testSetChannelName() {
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
     verify(chatService).addUsersListener(eq(CHANNEL_NAME), any());

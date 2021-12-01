@@ -19,7 +19,6 @@ import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.MapChangeListener;
-import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -39,6 +38,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   public Tab matchmakingChatTabRoot;
   public WebView messagesWebView;
+  public TextInputControl messageTextField;
   public TextFlow topicText;
   public Hyperlink discordLink;
 
@@ -100,6 +100,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
   public void closeChannel() {
     chatService.leaveChannel(channel.getName());
     chatService.removeUsersListener(channel.getName(), usersChangeListener);
+  }
+
+  @Override
+  protected TextInputControl messageTextField() {
+    return messageTextField;
   }
 
   @Override

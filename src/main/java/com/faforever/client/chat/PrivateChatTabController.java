@@ -20,7 +20,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
@@ -41,6 +40,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   public Tab privateChatTabRoot;
   public WebView messagesWebView;
+  public TextInputControl messageTextField;
   public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
 
@@ -100,6 +100,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
         onPlayerConnected(change.getKey());
       }
     });
+  }
+
+  @Override
+  protected TextInputControl messageTextField() {
+    return messageTextField;
   }
 
   @Override

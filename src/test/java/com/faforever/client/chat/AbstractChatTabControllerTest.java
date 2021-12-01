@@ -123,10 +123,16 @@ public class AbstractChatTabControllerTest extends UITest {
         uiService, eventBus, countryFlagService, chatUserService, emoticonService) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
+      private final TextInputControl messageTextField = new TextField();
 
       @Override
       public Tab getRoot() {
         return root;
+      }
+
+      @Override
+      protected TextInputControl messageTextField() {
+        return messageTextField;
       }
 
       @Override
@@ -152,22 +158,22 @@ public class AbstractChatTabControllerTest extends UITest {
   public void testOnSendMessageSuccessful() {
     String receiver = "receiver";
     String message = "Some message";
-    instance.messageTextField.setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
     when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
-    assertThat(instance.messageTextField.getText(), is(isEmptyString()));
-    assertThat(instance.messageTextField.isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(isEmptyString()));
+    assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageFailed() {
     String receiver = "receiver";
     String message = "Some message";
-    instance.messageTextField.setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
 
     CompletableFuture<String> future = new CompletableFuture<>();
@@ -177,30 +183,30 @@ public class AbstractChatTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendMessageInBackground(receiver, message);
-    assertThat(instance.messageTextField.getText(), is(message));
-    assertThat(instance.messageTextField.isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(message));
+    assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageSendActionSuccessful() {
     String receiver = "receiver";
     String message = "/me is happy";
-    instance.messageTextField.setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
     when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
 
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
-    assertThat(instance.messageTextField.getText(), is(isEmptyString()));
-    assertThat(instance.messageTextField.isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(isEmptyString()));
+    assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageSendActionFailed() {
     String receiver = "receiver";
     String message = "/me is happy";
-    instance.messageTextField.setText(message);
+    instance.messageTextField().setText(message);
     instance.setReceiver(receiver);
 
     CompletableFuture<String> future = new CompletableFuture<>();
@@ -210,8 +216,8 @@ public class AbstractChatTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendActionInBackground(receiver, "is happy");
-    assertThat(instance.messageTextField.getText(), is(message));
-    assertThat(instance.messageTextField.isDisable(), is(false));
+    assertThat(instance.messageTextField().getText(), is(message));
+    assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @NotNull
@@ -259,12 +265,12 @@ public class AbstractChatTabControllerTest extends UITest {
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
-      instance.messageTextField.getOnKeyReleased().handle(
+      instance.messageTextField().getOnKeyReleased().handle(
           keyEvent(KeyCode.V, singletonList(modifier))
       );
     });
 
-    assertThat(instance.messageTextField.getText(), is(url));
+    assertThat(instance.messageTextField().getText(), is(url));
   }
 
   @Test
@@ -279,12 +285,12 @@ public class AbstractChatTabControllerTest extends UITest {
       clipboardContent.putImage(image);
       Clipboard.getSystemClipboard().setContent(clipboardContent);
 
-      instance.messageTextField.getOnKeyReleased().handle(
+      instance.messageTextField().getOnKeyReleased().handle(
           keyEvent(KeyCode.INSERT, singletonList(KeyCode.SHIFT))
       );
     });
 
-    assertThat(instance.messageTextField.getText(), is(url));
+    assertThat(instance.messageTextField().getText(), is(url));
   }
 
   @Test

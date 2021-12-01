@@ -122,6 +122,7 @@ public class ChannelTabController extends AbstractChatTabController {
   public Tab channelTabRoot;
   public WebView messagesWebView;
   public TextField userSearchTextField;
+  public TextField messageTextField;
   public VBox chatUserListViewBox;
   public VBox topicPane;
   public TextFlow topicText;
@@ -264,7 +265,7 @@ public class ChannelTabController extends AbstractChatTabController {
     VBox.setVgrow(chatUserScrollPane, Priority.ALWAYS);
     chatUserListViewBox.getChildren().add(chatUserScrollPane);
 
-    autoCompletionHelper.bindTo(messageTextField);
+    autoCompletionHelper.bindTo(messageTextField());
 
     initializeSideToggle();
   }
@@ -301,6 +302,11 @@ public class ChannelTabController extends AbstractChatTabController {
   @Override
   public Tab getRoot() {
     return channelTabRoot;
+  }
+
+  @Override
+  protected TextInputControl messageTextField() {
+    return messageTextField;
   }
 
   @Override
