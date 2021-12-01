@@ -24,7 +24,7 @@ public class EmoticonsGroupControllerTest extends UITest {
   @Mock
   private PlatformService platformService;
   @Mock
-  EmoticonController emoticonController;
+  private EmoticonController emoticonController;
 
   private EmoticonsGroupController instance;
 

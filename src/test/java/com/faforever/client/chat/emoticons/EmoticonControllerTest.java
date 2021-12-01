@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 public class EmoticonControllerTest extends UITest {
 
   @Mock
-  Consumer<String> onAction;
+  private Consumer<String> onAction;
 
   private EmoticonController instance;
 

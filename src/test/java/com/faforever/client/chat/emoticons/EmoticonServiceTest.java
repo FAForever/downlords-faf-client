@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class EmoticonServiceTest extends ServiceTest {
 
   @Mock
-  ObjectMapper objectMapper;
+  private ObjectMapper objectMapper;
 
   private EmoticonService instance;
 
