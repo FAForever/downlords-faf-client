@@ -735,12 +735,14 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       PopupWindow window = emoticonsPopupWindowWeakReference.get();
       if (window != null) {
         window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+        messageTextField.requestFocus();
         return;
       }
     }
 
     EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticon/emoticons_window.fxml");
     controller.associateWith(messageTextField);
+    messageTextField.requestFocus();
     Popup window = new Popup();
     window.setConsumeAutoHidingEvents(false);
     window.setAutoHide(true);
