@@ -25,7 +25,7 @@ public class EmoticonService implements InitializingBean {
   private final ObjectMapper objectMapper;
 
   private List<EmoticonsGroup> emoticonsGroups;
-  private HashMap<String, String> allEmoticonShortcodes;
+  private final HashMap<String, String> shortcodeToBase64SvgContent = new HashMap<>();
   private Pattern emoticonShortcodeDetectorPattern;
 
   @Override
@@ -34,32 +34,31 @@ public class EmoticonService implements InitializingBean {
     initializePattern();
   }
 
-  private void initializePattern() {
-    String regex = allEmoticonShortcodes.keySet().stream().map(Pattern::quote).collect(Collectors.joining("|"));
-    emoticonShortcodeDetectorPattern = Pattern.compile(regex);
-  }
-
   private void loadAndVerifyEmoticons() throws IOException, ProgrammingError {
     emoticonsGroups = Arrays.asList(objectMapper.readValue(EMOTICONS_JSON_FILE_RESOURCE.getFile(), EmoticonsGroup[].class));
-    allEmoticonShortcodes = new HashMap<>();
     emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
         .forEach(emoticon -> emoticon.getShortcodes().forEach(shortcode -> {
-          if (allEmoticonShortcodes.containsKey(shortcode)) {
+          if (shortcodeToBase64SvgContent.containsKey(shortcode)) {
             throw new ProgrammingError("Shortcode `" + shortcode + "` is already taken");
           }
-          allEmoticonShortcodes.put(shortcode, emoticon.getBase64SvgContent());
+          shortcodeToBase64SvgContent.put(shortcode, emoticon.getBase64SvgContent());
         }));
+  }
+
+  private void initializePattern() {
+    emoticonShortcodeDetectorPattern = Pattern.compile(shortcodeToBase64SvgContent.keySet().stream()
+        .map(Pattern::quote).collect(Collectors.joining("|")));
   }
 
   public List<EmoticonsGroup> getEmoticonsGroups() {
     return emoticonsGroups;
   }
 
-  public HashMap<String, String> getAllEmoticonShortcodes() {
-    return allEmoticonShortcodes;
-  }
-
   public Pattern getEmoticonShortcodeDetectorPattern() {
     return emoticonShortcodeDetectorPattern;
+  }
+
+  public String getBase64SvgContentByShortcode(String shortcode) {
+    return shortcodeToBase64SvgContent.get(shortcode);
   }
 }

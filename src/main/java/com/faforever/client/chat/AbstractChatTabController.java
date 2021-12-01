@@ -110,7 +110,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private final String emoticonImgTemplate = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
   private final Pattern EMOTICON_SHORTCODE_DETECTOR_PATTERN;
-  private final HashMap<String, String> allEmoticonsShortcodes;
 
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
@@ -190,7 +189,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.emoticonService = emoticonService;
 
     EMOTICON_SHORTCODE_DETECTOR_PATTERN = emoticonService.getEmoticonShortcodeDetectorPattern();
-    allEmoticonsShortcodes = emoticonService.getAllEmoticonShortcodes();
 
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
@@ -639,7 +637,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private String transformEmoticonShortcodesToImages(String text) {
     return EMOTICON_SHORTCODE_DETECTOR_PATTERN.matcher(text).replaceAll((matchResult) ->
-        String.format(emoticonImgTemplate, allEmoticonsShortcodes.get(matchResult.group())));
+        String.format(emoticonImgTemplate, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
   }
 
   @VisibleForTesting
