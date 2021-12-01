@@ -73,7 +73,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
@@ -110,8 +109,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private static final Pattern CHANNEL_USER_PATTERN = Pattern.compile("(^|\\s)#[a-zA-Z]\\S+", CASE_INSENSITIVE);
 
   private final String emoticonImgTemplate = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
-  private static Pattern EMOTICON_SHORTCODE_DETECTOR_PATTERN;
-  private static HashMap<String, String> emoticonShortcodes;
+  private final Pattern EMOTICON_SHORTCODE_DETECTOR_PATTERN;
+  private final HashMap<String, String> allEmoticonsShortcodes;
 
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
@@ -191,6 +190,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.chatUserService = chatUserService;
     this.emoticonService = emoticonService;
 
+    EMOTICON_SHORTCODE_DETECTOR_PATTERN = emoticonService.getEmoticonShortcodeDetectorPattern();
+    allEmoticonsShortcodes = emoticonService.getAllEmoticonShortcodes();
+
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
     resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
@@ -214,14 +216,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         JavaFxUtil.runLater(() -> messageTextField.requestFocus());
       }
     };
-
-    initializeEmoticonShortcodeDetectorPattern();
-  }
-
-  private void initializeEmoticonShortcodeDetectorPattern() {
-    emoticonShortcodes = emoticonService.getAllEmoticonShortcodes();
-    String regex = emoticonShortcodes.keySet().stream().map(Pattern::quote).collect(Collectors.joining("|"));
-    EMOTICON_SHORTCODE_DETECTOR_PATTERN = Pattern.compile(regex);
   }
 
   /**
@@ -639,7 +633,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private String transformEmoticonShortcodesToImages(String text) {
     return EMOTICON_SHORTCODE_DETECTOR_PATTERN.matcher(text).replaceAll((matchResult) ->
-        String.format(emoticonImgTemplate, emoticonShortcodes.get(matchResult.group())));
+        String.format(emoticonImgTemplate, allEmoticonsShortcodes.get(matchResult.group())));
   }
 
   @VisibleForTesting

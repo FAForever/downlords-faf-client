@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,10 +26,17 @@ public class EmoticonService implements InitializingBean {
 
   private List<EmoticonsGroup> emoticonsGroups;
   private HashMap<String, String> allEmoticonShortcodes;
+  private Pattern emoticonShortcodeDetectorPattern;
 
   @Override
   public void afterPropertiesSet() throws IOException {
     loadAndVerifyEmoticons();
+    initializePattern();
+  }
+
+  private void initializePattern() {
+    String regex = allEmoticonShortcodes.keySet().stream().map(Pattern::quote).collect(Collectors.joining("|"));
+    emoticonShortcodeDetectorPattern = Pattern.compile(regex);
   }
 
   private void loadAndVerifyEmoticons() throws IOException, ProgrammingError {
@@ -48,5 +57,9 @@ public class EmoticonService implements InitializingBean {
 
   public HashMap<String, String> getAllEmoticonShortcodes() {
     return allEmoticonShortcodes;
+  }
+
+  public Pattern getEmoticonShortcodeDetectorPattern() {
+    return emoticonShortcodeDetectorPattern;
   }
 }
