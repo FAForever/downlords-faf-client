@@ -10,7 +10,7 @@
 <?import javafx.scene.text.Font?>
 
 <VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-      prefWidth="400.0" spacing="10.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
+      prefWidth="410.0" spacing="10.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.faforever.client.chat.EmoticonsGroupController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="10.0">
