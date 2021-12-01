@@ -149,7 +149,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private boolean isChatReady;
 
   public Button emoticonsButton;
-  private WeakReference<Popup> emoticonsPopupWindowWeakReference;
+  @VisibleForTesting
+  protected WeakReference<Popup> emoticonsPopupWindowWeakReference;
   /**
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
@@ -635,7 +636,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         .replace("{text}", text);
   }
 
-  private String transformEmoticonShortcodesToImages(String text) {
+  @VisibleForTesting
+  protected String transformEmoticonShortcodesToImages(String text) {
     return EMOTICON_SHORTCODE_DETECTOR_PATTERN.matcher(text).replaceAll((matchResult) ->
         String.format(emoticonImgTemplate, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
   }
@@ -724,7 +726,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   }
 
+  public Button getEmoticonsButton() {
+    return emoticonsButton;
+  }
+
   public void openEmoticonsPopupWindow() {
+    Button emoticonsButton = getEmoticonsButton();
     Bounds screenBounds = emoticonsButton.localToScreen(emoticonsButton.getBoundsInLocal());
     double anchorX = screenBounds.getMaxX() - 5;
     double anchorY = screenBounds.getMinY() - 5;
