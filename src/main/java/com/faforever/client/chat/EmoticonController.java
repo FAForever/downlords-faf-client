@@ -33,14 +33,10 @@ public class EmoticonController implements Controller<AnchorPane> {
 
   private final Decoder decoder = Base64.getDecoder();
 
-  @Override
-  public void initialize() {
-  }
-
   public void setEmoticon(Emoticon emoticon, Consumer<String> onAction) {
     String base64Content = emoticon.getBase64SvgContent();
     emoticonImageView.setImage(new Image(IOUtils.toInputStream(new String(decoder.decode(base64Content)))));
-    emoticonImageView.setOnMouseClicked(event -> onAction.accept(emoticon.getShortcodes().get(0)));
+    root.setOnMouseClicked(event -> onAction.accept(emoticon.getShortcodes().get(0)));
 
     displayShortcodesOnHover(emoticon.getShortcodes());
   }
