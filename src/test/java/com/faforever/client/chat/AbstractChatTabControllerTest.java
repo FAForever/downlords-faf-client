@@ -130,7 +130,6 @@ public class AbstractChatTabControllerTest extends UITest {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
-      private final Button emoticonsButton = new Button();
 
       @Override
       public Tab getRoot() {
@@ -140,11 +139,6 @@ public class AbstractChatTabControllerTest extends UITest {
       @Override
       protected TextInputControl messageTextField() {
         return messageTextField;
-      }
-
-      @Override
-      public Button getEmoticonsButton() {
-        return emoticonsButton;
       }
 
       @Override
@@ -163,6 +157,7 @@ public class AbstractChatTabControllerTest extends UITest {
       }
     });
 
+    instance.emoticonsButton = new Button();
     instance.initialize();
   }
 
@@ -393,7 +388,7 @@ public class AbstractChatTabControllerTest extends UITest {
     when(controller.getRoot()).thenReturn(new VBox());
 
     runOnFxThreadAndWait(() -> {
-      instance.getRoot().setContent(instance.getEmoticonsButton());
+      instance.getRoot().setContent(instance.emoticonsButton);
       instance.openEmoticonsPopupWindow();
     });
     assertTrue(instance.emoticonsPopupWindowWeakReference != null && instance.emoticonsPopupWindowWeakReference.get() != null);

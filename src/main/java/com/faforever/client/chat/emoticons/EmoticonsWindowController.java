@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -27,6 +28,7 @@ public class EmoticonsWindowController implements Controller<VBox> {
 
   public VBox root;
 
+  @Setter
   private TextInputControl textInputControl;
 
   @Override
@@ -43,14 +45,10 @@ public class EmoticonsWindowController implements Controller<VBox> {
   @VisibleForTesting
   protected Consumer<String> onEmoticonClicked() {
     return shortcode -> {
-      textInputControl.appendText(" ".concat(shortcode).concat(" "));
+      textInputControl.appendText(" " + shortcode + " ");
       textInputControl.requestFocus();
       textInputControl.selectEnd();
     };
-  }
-
-  public void associateWith(TextInputControl textInputControl) {
-    this.textInputControl = textInputControl;
   }
 
   @Override

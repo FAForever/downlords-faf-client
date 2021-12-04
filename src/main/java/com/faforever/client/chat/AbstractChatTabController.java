@@ -109,7 +109,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private static final Pattern CHANNEL_USER_PATTERN = Pattern.compile("(^|\\s)#[a-zA-Z]\\S+", CASE_INSENSITIVE);
 
   private final String emoticonImgTemplate = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
-  private final Pattern EMOTICON_SHORTCODE_DETECTOR_PATTERN;
 
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
@@ -188,8 +187,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.countryFlagService = countryFlagService;
     this.chatUserService = chatUserService;
     this.emoticonService = emoticonService;
-
-    EMOTICON_SHORTCODE_DETECTOR_PATTERN = emoticonService.getEmoticonShortcodeDetectorPattern();
 
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
@@ -638,7 +635,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   @VisibleForTesting
   protected String transformEmoticonShortcodesToImages(String text) {
-    return EMOTICON_SHORTCODE_DETECTOR_PATTERN.matcher(text).replaceAll((matchResult) ->
+    return emoticonService.getEmoticonShortcodeDetectorPattern().matcher(text).replaceAll((matchResult) ->
         String.format(emoticonImgTemplate, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
   }
 
@@ -726,12 +723,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   }
 
-  public Button getEmoticonsButton() {
-    return emoticonsButton;
-  }
-
   public void openEmoticonsPopupWindow() {
-    Button emoticonsButton = getEmoticonsButton();
     Bounds screenBounds = emoticonsButton.localToScreen(emoticonsButton.getBoundsInLocal());
     double anchorX = screenBounds.getMaxX() - 5;
     double anchorY = screenBounds.getMinY() - 5;
@@ -746,7 +738,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
 
     EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml");
-    controller.associateWith(messageTextField());
+    controller.setTextInputControl(messageTextField());
     messageTextField().requestFocus();
     Popup window = new Popup();
     window.setConsumeAutoHidingEvents(false);

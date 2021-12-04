@@ -31,7 +31,6 @@ public class EmoticonService implements InitializingBean {
   @Override
   public void afterPropertiesSet() throws IOException {
     loadAndVerifyEmoticons();
-    initializePattern();
   }
 
   private void loadAndVerifyEmoticons() throws IOException, ProgrammingError {
@@ -43,11 +42,8 @@ public class EmoticonService implements InitializingBean {
           }
           shortcodeToBase64SvgContent.put(shortcode, emoticon.getBase64SvgContent());
         }));
-  }
-
-  private void initializePattern() {
-    emoticonShortcodeDetectorPattern = Pattern.compile(shortcodeToBase64SvgContent.keySet().stream()
-        .map(Pattern::quote).collect(Collectors.joining("|")));
+    emoticonShortcodeDetectorPattern = Pattern.compile(shortcodeToBase64SvgContent.keySet().stream().map(Pattern::quote)
+        .collect(Collectors.joining("|")));
   }
 
   public List<EmoticonsGroup> getEmoticonsGroups() {
