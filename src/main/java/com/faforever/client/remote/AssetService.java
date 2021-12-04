@@ -53,7 +53,7 @@ public class AssetService {
       Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
       if (Files.exists(cachePath)) {
         log.debug("Using cached image: {}", cachePath);
-        return new Image(cachePath.toUri().toURL().toExternalForm(), width, height, true, true);
+        return new Image(cachePath.toUri().toURL().toExternalForm(), width, height, true, true, true);
       }
 
       log.debug("Fetching image {}", url);

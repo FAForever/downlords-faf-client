@@ -86,7 +86,7 @@ public class LeaderboardController implements Controller<Tab> {
   public Label seasonDateLabel;
   private LeagueSeasonBean season;
   private LeagueEntryBean entryToSelect;
-  private InvalidationListener playerRatingListener;
+  private final InvalidationListener playerRatingListener = observable -> updateDisplayedPlayerStats();;
 
   @VisibleForTesting
   protected AutoCompletionBinding<String> usernamesAutoCompletion;
@@ -153,7 +153,6 @@ public class LeaderboardController implements Controller<Tab> {
           return null;
         });
 
-    playerRatingListener = observable -> updateDisplayedPlayerStats();
     JavaFxUtil.addAndTriggerListener(playerService.getCurrentPlayer().getLeaderboardRatings(), new WeakInvalidationListener(playerRatingListener));
   }
 
