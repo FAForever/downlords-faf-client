@@ -7,13 +7,16 @@ faf-client:
     draw-probability: 0.1
 
   links:
-    linksTecHelpDiscord: https://discord.gg/BMDMUKS
+    linksTecHelpDiscord: https://discord.gg/6W6HKfzcsj
     linksTecHelpForum: https://forum.faforever.com/category/4/i-need-help
     linksRules: ${faf-client.website.base-url}/rules
     linksModerationReport: ${faf-client.website.base-url}/account/report
     linksFacebook: https://www.facebook.com/ForgedAllianceForever/
-    linksDevNews: https://faforeverdevblog.tumblr.com
     linksYoutube: https://www.youtube.com/channel/UCkAWiUu4QE172kv-ZuyR42w
+    twitch: https://twitch.tv/faflive
+    patreon: https://www.patreon.com/faf
+    twitter: https://twitter.com/FAFOfficial_
+    wiki: https://wikijs.faforever.com/
 
   vault:
     map_rules_url: https://forum.faforever.com/topic/323/faf-map-vault-rules-regulations

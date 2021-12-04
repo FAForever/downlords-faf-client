@@ -8,7 +8,7 @@
       minWidth="-Infinity" spacing="10.0" xmlns="http://javafx.com/javafx/10.0.2"
       fx:controller="com.faforever.client.main.LinkDetailController">
     <padding>
-        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+        <Insets bottom="10.0" left="10.0" right="10.0"/>
     </padding>
     <children>
         <Label fx:id="name" maxHeight="1.7976931348623157E308" prefWidth="200.0" text="Label" wrapText="true"/>
