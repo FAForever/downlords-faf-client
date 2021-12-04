@@ -36,7 +36,7 @@
                     <HBox fx:id="box" spacing="10.0">
                         <children>
                             <ComboBox fx:id="majorDivisionPicker" styleClass="division-selector" onAction="#onMajorDivisionPicked"
-                                      promptText="Tiers" minWidth="200.0" />
+                                      promptText="Tiers" minWidth="225.0" />
                             <Pane HBox.hgrow="ALWAYS" />
                             <HBox alignment="CENTER_LEFT" spacing="10.0">
                                 <Label contentDisplay="RIGHT" graphicTextGap="10.0" maxWidth="1.7976931348623157E308">
@@ -44,14 +44,14 @@
                                         <Region styleClass="icon,search-icon" />
                                     </graphic>
                                 </Label>
-                                <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="150.0"
-                                           prefWidth="150.0" promptText="%leaderboard.searchPrompt"
+                                <TextField fx:id="searchTextField" maxWidth="1.7976931348623157E308" minWidth="120.0"
+                                           prefWidth="130.0" promptText="%leaderboard.searchPrompt"
                                            onAction="#processSearchInput" styleClass="search"/>
                             </HBox>
                         </children>
                     </HBox>
                     <TabPane fx:id="subDivisionTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="subDivisionTabPane"
-                             maxWidth="600.0" prefHeight="10000" >
+                             minWidth="400.0" maxWidth="600.0" prefHeight="10000" >
                     </TabPane>
                 </children>
                 <padding>

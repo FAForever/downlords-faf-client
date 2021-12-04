@@ -7,12 +7,12 @@
 <Tab fx:id="subDivisionTab" styleClass="main-navigation-button"
      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
      fx:controller="com.faforever.client.leaderboard.SubDivisionTabController">
-    <TableView fx:id="ratingTable" minWidth="350.0" VBox.vgrow="ALWAYS" styleClass="division-table">
+    <TableView fx:id="ratingTable" VBox.vgrow="ALWAYS" styleClass="division-table">
         <columns>
-            <TableColumn fx:id="rankColumn" prefWidth="60" text="RANK" />
-            <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 220}" text="NAME" />
-            <TableColumn fx:id="scoreColumn" prefWidth="80" text="SCORE" />
-            <TableColumn fx:id="gamesPlayedColumn" prefWidth="80" text="GAMES" />
+            <TableColumn fx:id="rankColumn" prefWidth="70" text="RANK" />
+            <TableColumn fx:id="nameColumn" prefWidth="${ratingTable.width - 250}" text="NAME" />
+            <TableColumn fx:id="scoreColumn" prefWidth="90" text="SCORE" />
+            <TableColumn fx:id="gamesPlayedColumn" prefWidth="90" text="GAMES" />
         </columns>
     </TableView>
 </Tab>

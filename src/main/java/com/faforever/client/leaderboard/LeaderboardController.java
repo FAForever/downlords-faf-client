@@ -96,8 +96,7 @@ public class LeaderboardController implements Controller<Tab> {
     scoreLabel.setText(i18n.get("leaderboard.score").toUpperCase());
     searchTextField.setPromptText(i18n.get("leaderboard.searchPrompt").toUpperCase());
 
-    JavaFxUtil.bindManagedToVisible(contentPane);
-    JavaFxUtil.bindManagedToVisible(connectionProgressPane);
+    JavaFxUtil.bindManagedToVisible(contentPane, connectionProgressPane);
     connectionProgressPane.visibleProperty().bind(contentPane.visibleProperty().not());
 
     majorDivisionPicker.setConverter(divisionStringConverter());

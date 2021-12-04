@@ -6,9 +6,9 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URL;
@@ -16,7 +16,7 @@ import java.net.URL;
 @Slf4j
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
-@Data
+@Value
 public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
   @ToString.Include
   StringProperty NameKey = new SimpleStringProperty();

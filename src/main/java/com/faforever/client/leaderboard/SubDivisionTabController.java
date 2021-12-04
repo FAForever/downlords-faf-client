@@ -3,6 +3,7 @@ package com.faforever.client.leaderboard;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -79,7 +80,7 @@ public class SubDivisionTabController implements Controller<Tab> {
   }
 
   public void populate(SubdivisionBean subdivision) {
-    subDivisionTab.setText(subdivision.getNameKey());
+    JavaFxUtil.runLater(() -> subDivisionTab.setText(subdivision.getNameKey()));
 
     leaderboardService.getEntries(subdivision).thenAccept(leagueEntryBeans -> {
       leaderboardService.getPlayerNumberInHigherDivisions(subdivision).thenAccept(count ->
