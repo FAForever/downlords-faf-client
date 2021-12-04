@@ -8,6 +8,7 @@ import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.chat.ChatMessage;
 import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.chat.event.ChatMessageEvent;
@@ -20,7 +21,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
@@ -63,8 +63,6 @@ public class TeamMatchmakingControllerTest extends UITest {
 
   @Mock
   private CountryFlagService countryFlagService;
-  @Mock
-  private AssetService assetService;
   @Mock
   private AvatarService avatarService;
   @Mock
@@ -119,7 +117,7 @@ public class TeamMatchmakingControllerTest extends UITest {
       when(controller.getRoot()).thenReturn(new Tab());
       return controller;
     });
-    instance = new TeamMatchmakingController(assetService, countryFlagService, avatarService, leaderboardService,
+    instance = new TeamMatchmakingController(countryFlagService, avatarService, leaderboardService,
         preferencesService, playerService, i18n, uiService, teamMatchmakingService, eventBus);
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> instance);
   }
@@ -140,6 +138,7 @@ public class TeamMatchmakingControllerTest extends UITest {
 
     assertTrue(instance.leagueImageView.isVisible());
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
+    verify(leaderboardService).loadDivisionImage(SubdivisionBeanBuilder.create().defaultValues().get().getMediumImageUrl());
   }
 
   @Test

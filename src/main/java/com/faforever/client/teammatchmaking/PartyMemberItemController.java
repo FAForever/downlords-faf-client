@@ -11,7 +11,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.AssetService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
@@ -35,7 +34,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
-import java.nio.file.Paths;
 
 @Slf4j
 @Component
@@ -46,7 +44,6 @@ public class PartyMemberItemController implements Controller<Node> {
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass PLAYING_PSEUDO_CLASS = PseudoClass.getPseudoClass("playing");
 
-  private final AssetService assetService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final LeaderboardService leaderboardService;
@@ -153,9 +150,7 @@ public class PartyMemberItemController implements Controller<Node> {
         leagueLabel.setText(i18n.get("leaderboard.divisionName",
             i18n.getOrDefault(subdivision.getDivision().getNameKey(), subdivision.getDivisionI18nKey()),
             subdivision.getNameKey()).toUpperCase());
-        leagueImageView.setImage(assetService.loadAndCacheImage(
-            subdivision.getMediumImageUrl(), Paths.get("divisions"), null
-        ));
+        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
         leagueImageView.setVisible(true);
       }
     }));

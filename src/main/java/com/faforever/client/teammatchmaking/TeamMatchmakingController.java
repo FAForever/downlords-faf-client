@@ -16,7 +16,6 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.remote.AssetService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -52,7 +51,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -70,7 +68,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public static final PseudoClass LEADER_PSEUDO_CLASS = PseudoClass.getPseudoClass("leader");
   public static final PseudoClass CHAT_AT_BOTTOM_PSEUDO_CLASS = PseudoClass.getPseudoClass("bottom");
 
-  private final AssetService assetService;
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final LeaderboardService leaderboardService;
@@ -192,9 +189,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         leagueLabel.setText(i18n.get("leaderboard.divisionName",
             i18n.getOrDefault(subdivision.getDivision().getNameKey(), subdivision.getDivisionI18nKey()),
             subdivision.getNameKey()).toUpperCase());
-        leagueImageView.setImage(assetService.loadAndCacheImage(
-            subdivision.getMediumImageUrl(), Paths.get("divisions"), null
-        ));
+        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
         leagueImageView.setVisible(true);
       }
     }));

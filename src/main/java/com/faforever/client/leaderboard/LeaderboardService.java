@@ -12,6 +12,7 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.commons.api.dto.Leaderboard;
 import com.faforever.commons.api.dto.LeaderboardEntry;
 import com.faforever.commons.api.dto.League;
@@ -20,12 +21,15 @@ import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
 import com.faforever.commons.api.dto.LeagueSeasonScore;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
+import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.util.function.Tuple2;
 
+import java.net.URL;
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +48,7 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 @RequiredArgsConstructor
 public class LeaderboardService {
 
+  private final AssetService assetService;
   private final FafApiAccessor fafApiAccessor;
   private final LeaderboardMapper leaderboardMapper;
   private final PlayerService playerService;
@@ -205,5 +210,10 @@ public class LeaderboardService {
         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
         .collectList()
         .toFuture();
+  }
+
+  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
+  public Image loadDivisionImage(URL url) {
+    return assetService.loadAndCacheImage(url, Path.of("divisions"), null);
   }
 }

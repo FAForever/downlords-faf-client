@@ -20,6 +20,7 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
@@ -32,6 +33,7 @@ import org.mockito.Mock;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -47,6 +49,8 @@ import static org.mockito.Mockito.when;
 
 public class LeaderboardServiceTest extends ServiceTest {
 
+  @Mock
+  private AssetService assetService;
   @Mock
   private FafApiAccessor fafApiAccessor;
   @Mock
@@ -64,7 +68,7 @@ public class LeaderboardServiceTest extends ServiceTest {
     player = PlayerBeanBuilder.create().defaultValues().id(1).username("junit").get();
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
 
-    instance = new LeaderboardService(fafApiAccessor, leaderboardMapper, playerService);
+    instance = new LeaderboardService(assetService, fafApiAccessor, leaderboardMapper, playerService);
   }
 
   @Test
@@ -222,5 +226,12 @@ public class LeaderboardServiceTest extends ServiceTest {
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(
         qBuilder().string("leagueSeasonDivision.leagueSeason.id").eq("0"))));
     Assertions.assertEquals(List.of(subdivisionBean), result);
+  }
+
+  @Test
+  public void testLoadDivisionImage() {
+    SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
+    instance.loadDivisionImage(subdivisionBean.getImageUrl());
+    verify(assetService).loadAndCacheImage(subdivisionBean.getImageUrl(), Path.of("divisions"), null);
   }
 }

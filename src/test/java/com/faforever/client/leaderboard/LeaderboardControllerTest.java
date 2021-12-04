@@ -13,7 +13,6 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -45,8 +44,6 @@ public class LeaderboardControllerTest extends UITest {
 
   private LeaderboardController instance;
 
-  @Mock
-  private AssetService assetService;
   @Mock
   private I18n i18n;
   @Mock
@@ -111,7 +108,7 @@ public class LeaderboardControllerTest extends UITest {
     subDivisionTabController.initialize();
     when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);
 
-    instance = new LeaderboardController(assetService, i18n, leaderboardService, notificationService, playerService, timeService, uiService);
+    instance = new LeaderboardController(i18n, leaderboardService, notificationService, playerService, timeService, uiService);
     loadFxml("theme/leaderboard/leaderboard.fxml", clazz -> instance);
     instance.setSeason(season);
     // In a test environment this doesn't get called automatically anymore, so we have to do it manually

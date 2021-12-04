@@ -7,6 +7,7 @@ import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
@@ -14,7 +15,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.AssetService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
@@ -41,8 +41,6 @@ import static org.mockito.Mockito.when;
 
 public class PartyMemberItemControllerTest extends UITest {
 
-  @Mock
-  private AssetService assetService;
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
@@ -80,7 +78,7 @@ public class PartyMemberItemControllerTest extends UITest {
     when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
 
-    instance = new PartyMemberItemController(assetService, countryFlagService, avatarService, leaderboardService, playerService, teamMatchmakingService,
+    instance = new PartyMemberItemController(countryFlagService, avatarService, leaderboardService, playerService, teamMatchmakingService,
         uiService, i18n);
     loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml", clazz -> instance);
     runOnFxThreadAndWait(() -> instance.setMember(partyMember));
@@ -101,6 +99,7 @@ public class PartyMemberItemControllerTest extends UITest {
 
     assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
     assertTrue(instance.leagueImageView.isVisible());
+    verify(leaderboardService).loadDivisionImage(SubdivisionBeanBuilder.create().defaultValues().get().getMediumImageUrl());
   }
 
   @Test

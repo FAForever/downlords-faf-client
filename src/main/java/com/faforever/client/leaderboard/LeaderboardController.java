@@ -8,7 +8,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.remote.AssetService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,7 +28,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -46,7 +44,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -64,7 +61,6 @@ public class LeaderboardController implements Controller<Tab> {
 
   private static final PseudoClass NOTIFICATION_HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("highlighted-bar");
 
-  private final AssetService assetService;
   private final I18n i18n;
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
@@ -206,12 +202,11 @@ public class LeaderboardController implements Controller<Tab> {
             });
             selectHighestDivision();
           } else {
-            Image divisionImage = assetService.loadAndCacheImage(
-                leagueEntry.getSubdivision().getImageUrl(), Path.of("divisions"), null);
             JavaFxUtil.runLater(() -> {
               playerDivisionNameLabel.setVisible(true);
               placementLabel.setVisible(false);
-              playerDivisionImageView.setImage(divisionImage);
+              playerDivisionImageView.setImage(
+                  leaderboardService.loadDivisionImage(leagueEntry.getSubdivision().getImageUrl()));
               playerDivisionNameLabel.setText(i18n.get("leaderboard.divisionName",
                   i18n.get(leagueEntry.getSubdivision().getDivisionI18nKey()),
                   leagueEntry.getSubdivision().getNameKey()).toUpperCase());
