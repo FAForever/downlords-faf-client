@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.domain.PlayerBean;
@@ -141,11 +142,11 @@ public class ChannelTabController extends AbstractChatTabController {
                               UiService uiService, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer,
                               CountryFlagService countryFlagService, PlatformService platformService,
-                              ChatUserService chatUserService) {
+                              ChatUserService chatUserService, EmoticonService emoticonService) {
 
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
-        eventBus, countryFlagService, chatUserService);
+        eventBus, countryFlagService, chatUserService, emoticonService);
     this.platformService = platformService;
 
     categoriesToUserListItems = new HashMap<>();
@@ -395,7 +396,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
   private void associateChatUserWithPlayer(PlayerBean player, ChatChannelUser chatUser) {
     chatUserService.associatePlayerToChatUser(chatUser, player);
-
     updateCssClass(chatUser);
     updateChatUserListItemsForCategories(chatUser);
   }

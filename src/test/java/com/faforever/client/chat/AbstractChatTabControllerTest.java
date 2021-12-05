@@ -3,6 +3,8 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -22,6 +24,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.concurrent.Worker;
+import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
@@ -31,21 +34,21 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import org.bridj.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 
 import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT_ONLY;
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -61,14 +64,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends UITest {
 
   private static final long TIMEOUT = 5000;
-  @TempDir
-  public Path tempDir;
+
   @Mock
   private ChatService chatService;
   @Mock
@@ -99,6 +102,8 @@ public class AbstractChatTabControllerTest extends UITest {
   private CountryFlagService countryFlagService;
   @Mock
   private ChatUserService chatUserService;
+  @Mock
+  private EmoticonService emoticonService;
 
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
@@ -114,10 +119,14 @@ public class AbstractChatTabControllerTest extends UITest {
     when(timeService.asShortTime(any())).thenReturn("123");
     when(userService.getUsername()).thenReturn("junit");
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(":uef:|:aeon:"));
+    when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
+    when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
+
 
     instance = new AbstractChatTabController(webViewConfigurer, userService, chatService, preferencesService,
         playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService,
-        uiService, eventBus, countryFlagService, chatUserService) {
+        uiService, eventBus, countryFlagService, chatUserService, emoticonService) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -148,6 +157,7 @@ public class AbstractChatTabControllerTest extends UITest {
       }
     });
 
+    instance.emoticonsButton = new Button();
     instance.initialize();
   }
 
@@ -350,6 +360,14 @@ public class AbstractChatTabControllerTest extends UITest {
   }
 
   @Test
+  public void testTransformEmoticonShortcodesToImages() {
+    String text = ":uef: Hello, world :aeon:";
+    assertEquals("<img src=\"data:image/svg+xml;base64,uefBase64Content\" width=\"24\" height=\"24\" /> " +
+        "Hello, world <img src=\"data:image/svg+xml;base64,aeonBase64Content\" width=\"24\" height=\"24\" />",
+        instance.transformEmoticonShortcodesToImages(text));
+  }
+
+  @Test
   public void testMentionPattern() {
     when(userService.getUsername()).thenReturn("-Box-");
     runOnFxThreadAndWait(() -> instance.initialize());
@@ -361,5 +379,19 @@ public class AbstractChatTabControllerTest extends UITest {
     assertFalse(instance.mentionPattern.matcher("").find());
     assertFalse(instance.mentionPattern.matcher("-Box-h").find());
     assertFalse(instance.mentionPattern.matcher("h-Box-").find());
+  }
+
+  @Test
+  public void testOpenEmoticonsPopupWindow() {
+    EmoticonsWindowController controller = mock(EmoticonsWindowController.class);
+    when(uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml")).thenReturn(controller);
+    when(controller.getRoot()).thenReturn(new VBox());
+
+    runOnFxThreadAndWait(() -> {
+      instance.getRoot().setContent(instance.emoticonsButton);
+      instance.openEmoticonsPopupWindow();
+    });
+    assertTrue(instance.emoticonsPopupWindowWeakReference != null && instance.emoticonsPopupWindowWeakReference.get() != null);
+    assertTrue(instance.emoticonsPopupWindowWeakReference.get().isShowing());
   }
 }

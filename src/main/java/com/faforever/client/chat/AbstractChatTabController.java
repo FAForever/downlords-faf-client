@@ -1,6 +1,8 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.chat.emoticons.EmoticonsWindowController;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.AssetLoadException;
@@ -34,7 +36,9 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
@@ -46,6 +50,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
+import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import netscape.javascript.JSObject;
@@ -57,6 +64,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -100,6 +108,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private static final Pattern CHANNEL_USER_PATTERN = Pattern.compile("(^|\\s)#[a-zA-Z]\\S+", CASE_INSENSITIVE);
 
+  private final String emoticonImgTemplate = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
+
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
   private static final String WHOIS_PREFIX = "/whois ";
@@ -121,6 +131,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
   protected final ChatUserService chatUserService;
+  protected final EmoticonService emoticonService;
   private final ImageUploadService imageUploadService;
   private final CountryFlagService countryFlagService;
 
@@ -135,6 +146,10 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private final ChangeListener<Boolean> stageFocusedListener;
   private int lastEntryId;
   private boolean isChatReady;
+
+  public Button emoticonsButton;
+  @VisibleForTesting
+  protected WeakReference<Popup> emoticonsPopupWindowWeakReference;
   /**
    * Either a channel like "#aeolus" or a user like "Visionik".
    */
@@ -153,7 +168,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
                                    TimeService timeService, I18n i18n,
                                    ImageUploadService imageUploadService,
                                    NotificationService notificationService, ReportingService reportingService, UiService uiService,
-                                   EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService) {
+                                   EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService,
+                                   EmoticonService emoticonService) {
 
     this.webViewConfigurer = webViewConfigurer;
     this.uiService = uiService;
@@ -170,6 +186,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.eventBus = eventBus;
     this.countryFlagService = countryFlagService;
     this.chatUserService = chatUserService;
+    this.emoticonService = emoticonService;
 
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();
@@ -413,6 +430,17 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     } else {
       sendMessage();
     }
+
+    hideEmoticonsWindow();
+  }
+
+  private void hideEmoticonsWindow() {
+    if (emoticonsPopupWindowWeakReference != null) {
+      PopupWindow window = emoticonsPopupWindowWeakReference.get();
+      if (window != null && window.isShowing()) {
+        window.hide();
+      }
+    }
   }
 
   private void sendMessage() {
@@ -590,6 +618,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String text = htmlEscaper().escape(chatMessage.getMessage()).replace("\\", "\\\\");
     text = convertUrlsToHyperlinks(text);
     text = replaceChannelNamesWithHyperlinks(text);
+    text = transformEmoticonShortcodesToImages(text);
 
     Matcher matcher = mentionPattern.matcher(text);
     if (matcher.find()) {
@@ -602,6 +631,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         .replace("{inline-style}", getInlineStyle(login))
         // Always replace text last in case the message contains one of the placeholders.
         .replace("{text}", text);
+  }
+
+  @VisibleForTesting
+  protected String transformEmoticonShortcodesToImages(String text) {
+    return emoticonService.getEmoticonShortcodeDetectorPattern().matcher(text).replaceAll((matchResult) ->
+        String.format(emoticonImgTemplate, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
   }
 
   @VisibleForTesting
@@ -686,5 +721,32 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   protected void onHide() {
 
+  }
+
+  public void openEmoticonsPopupWindow() {
+    Bounds screenBounds = emoticonsButton.localToScreen(emoticonsButton.getBoundsInLocal());
+    double anchorX = screenBounds.getMaxX() - 5;
+    double anchorY = screenBounds.getMinY() - 5;
+
+    if (emoticonsPopupWindowWeakReference != null) {
+      PopupWindow window = emoticonsPopupWindowWeakReference.get();
+      if (window != null) {
+        window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+        messageTextField().requestFocus();
+        return;
+      }
+    }
+
+    EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml");
+    controller.setTextInputControl(messageTextField());
+    messageTextField().requestFocus();
+    Popup window = new Popup();
+    window.setConsumeAutoHidingEvents(false);
+    window.setAutoHide(true);
+    window.setAutoFix(false);
+    window.setAnchorLocation(AnchorLocation.WINDOW_BOTTOM_RIGHT);
+    window.getContent().setAll(controller.getRoot());
+    window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
+    emoticonsPopupWindowWeakReference = new WeakReference<>(window);
   }
 }

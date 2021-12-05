@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.discord.JoinDiscordEvent;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -67,6 +68,8 @@ public class MatchmakingChatControllerTest extends UITest {
   private CountryFlagService countryFlagService;
   @Mock
   private ChatUserService chatUserService;
+  @Mock
+  private EmoticonService emoticonService;
 
   private MatchmakingChatController instance;
 
@@ -87,7 +90,7 @@ public class MatchmakingChatControllerTest extends UITest {
         i18n, imageUploadService, notificationService, reportingService,
         uiService, eventBus,
         audioService, chatService, webViewConfigurer, countryFlagService,
-        chatUserService);
+        chatUserService, emoticonService);
     loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml", clazz -> instance);
 
     instance = spy(instance);

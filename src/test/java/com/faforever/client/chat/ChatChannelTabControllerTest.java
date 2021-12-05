@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.domain.PlayerBean;
@@ -103,6 +104,8 @@ public class ChatChannelTabControllerTest extends UITest {
   private PlatformService platformService;
   @Mock
   private ChatUserService chatUserService;
+  @Mock
+  private EmoticonService emoticonService;
 
   private Preferences preferences;
   private ChatChannel defaultChatChannel;
@@ -114,7 +117,7 @@ public class ChatChannelTabControllerTest extends UITest {
         audioService, timeService, i18n, imageUploadService,
         notificationService, reportingService,
         uiService, eventBus, webViewConfigurer, countryFlagService,
-        platformService, chatUserService);
+        platformService, chatUserService, emoticonService);
     chatUserFilterController = new ChatUserFilterController(i18n, countryFlagService);
 
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
