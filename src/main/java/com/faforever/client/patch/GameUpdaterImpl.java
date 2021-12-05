@@ -2,6 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -82,18 +83,22 @@ public class GameUpdaterImpl implements GameUpdater {
         }).exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           boolean allowReplaysWhileInGame = preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame();
-          if (throwable.getCause() instanceof AccessDeniedException && allowReplaysWhileInGame) {
+          if (allowReplaysWhileInGame) {
             log.info("Unable to update files and experimental replay feature is turned on " +
                 "that allows multiple game instances to run in parallel this is most likely the cause.");
-            throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
-                "due to conflicting version running", throwable);
-          } else if (throwable instanceof UnsupportedOperationException) {
-            throw new CompletionException(throwable);
-          } else if (!allowReplaysWhileInGame) {
+            if (throwable.getCause() instanceof AccessDeniedException) {
+              throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
+                  "due to conflicting version running", throwable);
+            } else if (throwable.getCause() instanceof ChecksumMismatchException) {
+              throw new CompletionException(throwable.getCause());
+            } else if (throwable instanceof UnsupportedOperationException) {
+              throw new CompletionException(throwable);
+            } else {
+              log.info("Launching anyway", throwable);
+            }
+          } else {
             log.warn("Game files not accessible", throwable);
             notificationService.addImmediateErrorNotification(throwable, "error.game.filesNotAccessible");
-          } else {
-            log.info("Game files not accessible most likely due to concurrent game instances", throwable);
           }
           return null;
         });

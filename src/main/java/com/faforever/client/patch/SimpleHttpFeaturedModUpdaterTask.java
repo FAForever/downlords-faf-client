@@ -2,6 +2,7 @@ package com.faforever.client.patch;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.io.FeaturedModFileCacheService;
 import com.faforever.client.mod.ModService;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Objects;
 
@@ -76,7 +78,8 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
               }
               featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
             }
-          } catch (IOException e) {
+          }
+          catch (IOException | NoSuchAlgorithmException | ChecksumMismatchException e) {
             log.error("Error on updating featured mod file: {}", featuredModFile, e);
             throw new RuntimeException(e);
           }
@@ -105,12 +108,13 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
         && Objects.equals(featuredModFile.getMd5(), featuredModFileCacheService.readHashFromFile(targetPath));
   }
 
-  private void downloadFeaturedModFile(FeaturedModFile featuredModFile, Path targetPath) throws java.io.IOException {
+  private void downloadFeaturedModFile(FeaturedModFile featuredModFile, Path targetPath) throws IOException, NoSuchAlgorithmException, ChecksumMismatchException {
     Files.createDirectories(targetPath.getParent());
     updateMessage(i18n.get("updater.downloadingFile", featuredModFile.getName()));
 
     String url = featuredModFile.getUrl();
-    downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
+    String md5sum = featuredModFile.getMd5();
+    downloadService.downloadFileWithMirrors(new URL(url), targetPath, this::updateProgress, md5sum);
   }
 
   public void setFeaturedMod(FeaturedModBean featuredMod) {
