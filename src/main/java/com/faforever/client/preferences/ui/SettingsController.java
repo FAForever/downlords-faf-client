@@ -66,7 +66,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -315,7 +318,7 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
     autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
     autoChannelListView.getItems().addListener((ListChangeListener<String>) c -> preferencesService.storeInBackground());
-    autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(autoChannelListView);
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
 
     mirrorURLsListView.setSelectionModel(new NoSelectionModel<>());
@@ -323,7 +326,7 @@ public class SettingsController implements Controller<Node> {
     mirrorURLsListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
     mirrorURLsListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
     mirrorURLsListView.getItems().addListener((ListChangeListener<URI>) c -> preferencesService.storeInBackground());
-    mirrorURLsListView.managedProperty().bind(mirrorURLsListView.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(mirrorURLsListView);
     mirrorURLsListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !mirrorURLsListView.getItems().isEmpty(), mirrorURLsListView.getItems()));
 
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
@@ -575,7 +578,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onAddAutoChannel() {
-    if (channelTextField.getText().isEmpty() || autoChannelListView.getItems().contains(channelTextField.getText())) {
+    if (channelTextField.getText().isBlank() || autoChannelListView.getItems().contains(channelTextField.getText())) {
       return;
     }
     if (!channelTextField.getText().startsWith("#")) {
@@ -602,14 +605,19 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onAddMirrorURL() {
-    URI uri = URI.create(mirrorURITextField.getText());
-    if (mirrorURITextField.getText().isEmpty() || mirrorURLsListView.getItems().contains(uri)) {
+    String text = mirrorURITextField.getText();
+    if (text.isBlank()) {
       return;
     }
+
+    URI uri = null;
     try {
-      uri.toURL();
-    } catch (Exception e) {
-      log.debug("Failed to add invalid URL: " + uri, e);
+      uri = new URL(text).toURI();
+    } catch (URISyntaxException | MalformedURLException e) {
+      log.debug("Failed to add invalid URL: {}", text, e);
+    }
+
+    if (mirrorURLsListView.getItems().contains(uri)) {
       return;
     }
     preferencesService.getPreferences().getMirror().getMirrorURLs().add(uri);

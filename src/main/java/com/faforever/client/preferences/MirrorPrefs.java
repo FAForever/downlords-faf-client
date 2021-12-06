@@ -1,20 +1,18 @@
 package com.faforever.client.preferences;
 
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.net.URI;
 
 public class MirrorPrefs {
-  private final ListProperty<URI> mirrorURLs;
+  private final ObservableList<URI> mirrorURLs;
 
   public MirrorPrefs() {
-    mirrorURLs = new SimpleListProperty<>(FXCollections.observableArrayList());
+    mirrorURLs = FXCollections.observableArrayList();
   }
 
   public ObservableList<URI> getMirrorURLs() {
-    return mirrorURLs.get();
+    return mirrorURLs;
   }
 }

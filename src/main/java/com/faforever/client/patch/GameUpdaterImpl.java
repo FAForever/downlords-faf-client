@@ -94,7 +94,7 @@ public class GameUpdaterImpl implements GameUpdater {
             } else if (throwable instanceof UnsupportedOperationException) {
               throw new CompletionException(throwable);
             } else {
-              log.info("Launching anyway", throwable);
+              log.info("Ignored error while updating featured mod", throwable);
             }
           } else {
             log.warn("Game files not accessible", throwable);

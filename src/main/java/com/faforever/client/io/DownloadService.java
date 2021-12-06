@@ -45,11 +45,11 @@ public class DownloadService {
         downloadFile(mirrorUrl, targetFile, progressListener, md5sum);
         return;
       } catch (FileNotFoundException e) {
-        log.warn("Could not download file at " + mirrorUrl);
+        log.warn("Could not download file at {}", mirrorUrl);
       } catch (ChecksumMismatchException e) {
-        log.warn(String.format("Checksum downloaded from %s did not match. Expected %s got %s", mirrorUrl, e.getExpected(), e.getActual()));
+        log.warn("Checksum did not match for {}", mirrorUrl, e);
       } catch (IOException e) {
-        log.warn("Could not download file at " + mirrorUrl, e);
+        log.warn("Could not download file at {}", mirrorUrl, e);
       }
     }
 
@@ -63,7 +63,7 @@ public class DownloadService {
    */
   public void downloadFile(URL url, Path targetFile, ByteCountListener progressListener, String md5sum) throws IOException, NoSuchAlgorithmException, ChecksumMismatchException {
     Path tempFile = Files.createTempFile(targetFile.getParent(), "download", null);
-    log.debug("Downloading file " + url + " to " + tempFile);
+    log.debug("Downloading file {} to {}", url, tempFile);
 
     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
@@ -103,8 +103,7 @@ public class DownloadService {
   public List<URL> getMirrorsFor(URL url) {
     return preferencesService.getPreferences().getMirror().getMirrorURLs().stream()
         .map(mirror -> getMirrorURL(mirror, url))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .collect(Collectors.toList());
   }
 
