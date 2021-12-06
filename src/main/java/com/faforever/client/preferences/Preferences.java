@@ -52,6 +52,8 @@ public class Preferences {
   DeveloperPrefs developer = new DeveloperPrefs();
   @Getter
   VaultPrefs vault = new VaultPrefs();
+  @Getter
+  MirrorPrefs mirror = new MirrorPrefs();
   StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
   BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);
   BooleanProperty mapAndModAutoUpdate = new SimpleBooleanProperty(true);

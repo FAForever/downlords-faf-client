@@ -1,8 +1,10 @@
 package com.faforever.client.io;
 
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
 import com.faforever.commons.io.ByteCountListener;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,6 @@ import java.nio.file.StandardCopyOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,14 +32,9 @@ import java.util.stream.Collectors;
 @Service
 @Lazy
 @Slf4j
+@RequiredArgsConstructor
 public class DownloadService {
-
-  private List<URI> mirrorURLs = Collections.singletonList(URI.create("https://faf-mirror.askaholic.io"));
-
-  // TODO: Use client preferences
-  public void setMirrorURLs(List<URI> mirrorURLs) {
-    this.mirrorURLs = mirrorURLs;
-  }
+  private final PreferencesService preferencesService;
 
   /*
    * Download file first trying each mirror in order. If all mirrors fail then try the original URL.
@@ -105,10 +101,11 @@ public class DownloadService {
    * Get URLs to the same file on all available mirrors.
    */
   public List<URL> getMirrorsFor(URL url) {
-    return mirrorURLs.stream().map(mirror -> getMirrorURL(mirror, url))
-      .filter(Optional::isPresent)
-      .map(Optional::get)
-      .collect(Collectors.toList());
+    return preferencesService.getPreferences().getMirror().getMirrorURLs().stream()
+        .map(mirror -> getMirrorURL(mirror, url))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   public Optional<URL> getMirrorURL(URI mirror, URL url) {

@@ -66,6 +66,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -149,6 +150,8 @@ public class SettingsController implements Controller<Node> {
   public Button allowReplayWhileInGameButton;
   public CheckBox debugLogToggle;
   public CheckBox mapAndModAutoUpdateCheckBox;
+  public TextField mirrorURITextField;
+  public ListView<URI> mirrorURLsListView;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -310,10 +313,18 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setSelectionModel(new NoSelectionModel<>());
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
-    autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController>loadFxml("theme/settings/removable_cell.fxml"));
+    autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
     autoChannelListView.getItems().addListener((ListChangeListener<String>) c -> preferencesService.storeInBackground());
     autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
     autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
+
+    mirrorURLsListView.setSelectionModel(new NoSelectionModel<>());
+    mirrorURLsListView.setFocusTraversable(false);
+    mirrorURLsListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
+    mirrorURLsListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
+    mirrorURLsListView.getItems().addListener((ListChangeListener<URI>) c -> preferencesService.storeInBackground());
+    mirrorURLsListView.managedProperty().bind(mirrorURLsListView.visibleProperty());
+    mirrorURLsListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !mirrorURLsListView.getItems().isEmpty(), mirrorURLsListView.getItems()));
 
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
@@ -588,6 +599,22 @@ public class SettingsController implements Controller<Node> {
       log.error("Game.prefs patch failed", e);
       notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
     }
+  }
+
+  public void onAddMirrorURL() {
+    URI uri = URI.create(mirrorURITextField.getText());
+    if (mirrorURITextField.getText().isEmpty() || mirrorURLsListView.getItems().contains(uri)) {
+      return;
+    }
+    try {
+      uri.toURL();
+    } catch (Exception e) {
+      log.debug("Failed to add invalid URL: " + uri, e);
+      return;
+    }
+    preferencesService.getPreferences().getMirror().getMirrorURLs().add(uri);
+    preferencesService.storeInBackground();
+    mirrorURITextField.clear();
   }
 }
 
