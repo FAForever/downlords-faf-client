@@ -21,6 +21,7 @@ public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
   ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
   @ToString.Include
   StringProperty nameKey = new SimpleStringProperty();
+  IntegerProperty seasonNumber = new SimpleIntegerProperty();
   IntegerProperty placementGames = new SimpleIntegerProperty();
   ObjectProperty<OffsetDateTime> startDate = new SimpleObjectProperty<>();
   ObjectProperty<OffsetDateTime> endDate = new SimpleObjectProperty<>();
@@ -59,6 +60,18 @@ public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
 
   public StringProperty nameKeyProperty() {
     return nameKey;
+  }
+
+  public int getSeasonNumber() {
+    return seasonNumber.get();
+  }
+
+  public void setSeasonNumber(int seasonNumber) {
+    this.seasonNumber.set(seasonNumber);
+  }
+
+  public IntegerProperty seasonNumberProperty() {
+    return seasonNumber;
   }
 
   public int getPlacementGames() {

@@ -135,7 +135,7 @@ public class LeaderboardController implements Controller<Tab> {
     this.season = season;
 
     seasonLabel.setText(i18n.getOrDefault(
-        season.getNameKey(), String.format("leaderboard.season.%s", season.getNameKey())
+        season.getNameKey(), String.format("leaderboard.season.%s", season.getNameKey()), season.getSeasonNumber()
     ).toUpperCase());
     String startDate = timeService.asDate(season.getStartDate(), FormatStyle.MEDIUM);
     String endDate = timeService.asDate(season.getEndDate(), FormatStyle.MEDIUM);

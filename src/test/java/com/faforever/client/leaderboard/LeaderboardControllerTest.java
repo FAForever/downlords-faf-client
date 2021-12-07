@@ -72,7 +72,7 @@ public class LeaderboardControllerTest extends UITest {
     PlayerBean sheikah = PlayerBeanBuilder.create().defaultValues().id(1).username("Sheikah").get();
     PlayerBean zlo = PlayerBeanBuilder.create().defaultValues().id(2).username("ZLO").get();
     when(i18n.get(anyString())).thenReturn("");
-    when(i18n.getOrDefault(anyString(), anyString())).thenReturn("seasonName");
+    when(i18n.getOrDefault("seasonName", "leaderboard.season.seasonName", 1)).thenReturn("seasonName 1");
     when(i18n.get("leagues.divisionName.test_name")).thenReturn("Bronze");
     when(i18n.get("leagues.divisionName.silver")).thenReturn("Silver");
 
@@ -119,7 +119,7 @@ public class LeaderboardControllerTest extends UITest {
   public void testSetSeason() {
     waitForFxEvents();
 
-    assertEquals("SEASONNAME", instance.seasonLabel.getText());
+    assertEquals("SEASONNAME 1", instance.seasonLabel.getText());
     assertEquals(2, instance.majorDivisionPicker.getItems().size());
     assertEquals(subdivisionBean1, instance.majorDivisionPicker.getItems().get(0));
     assertTrue(instance.majorDivisionPicker.getSelectionModel().isSelected(1));
