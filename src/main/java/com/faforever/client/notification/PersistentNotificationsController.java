@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Controller for pane that displays all persistent notifications.
@@ -33,7 +32,7 @@ public class PersistentNotificationsController implements Controller<Node> {
   public Pane persistentNotificationsRoot;
 
   public void initialize() {
-    addNotifications(notificationService.getPersistentNotifications());
+    notificationService.getPersistentNotifications().forEach(this::addNotification);
     notificationService.addPersistentNotificationListener(change -> {
       if (change.wasAdded()) {
         PersistentNotification addedNotifications = change.getElementAdded();
@@ -42,10 +41,6 @@ public class PersistentNotificationsController implements Controller<Node> {
         removeNotification(change.getElementRemoved());
       }
     });
-  }
-
-  private void addNotifications(Set<PersistentNotification> persistentNotifications) {
-    persistentNotifications.forEach(this::addNotification);
   }
 
   private void addNotification(PersistentNotification notification) {
@@ -74,17 +69,9 @@ public class PersistentNotificationsController implements Controller<Node> {
 
   private void playNotificationSound(PersistentNotification notification) {
     switch (notification.getSeverity()) {
-      case INFO:
-        audioService.playInfoNotificationSound();
-        break;
-
-      case WARN:
-        audioService.playWarnNotificationSound();
-        break;
-
-      case ERROR:
-        audioService.playErrorNotificationSound();
-        break;
+      case INFO -> audioService.playInfoNotificationSound();
+      case WARN -> audioService.playWarnNotificationSound();
+      case ERROR -> audioService.playErrorNotificationSound();
     }
   }
 
