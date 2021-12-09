@@ -3,10 +3,12 @@ package com.faforever.client.teammatchmaking;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -26,6 +28,7 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -43,6 +46,7 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
+  private final LeaderboardService leaderboardService;
   private final PlayerService playerService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final UiService uiService;
@@ -90,9 +94,6 @@ public class PartyMemberItemController implements Controller<Node> {
       return;
     }
 
-    // TODO: replace this with divisionproperty once it is available
-    leagueImageView.setVisible(false);
-    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase());
     playerStatusImageView.setImage(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING));
 
     addListeners();
@@ -127,6 +128,7 @@ public class PartyMemberItemController implements Controller<Node> {
     Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
     Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
     String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
+    setLeagueInfo();
     JavaFxUtil.runLater(() -> {
       countryImageView.setImage(countryFlag);
       avatarImageView.setImage(avatarImage);
@@ -135,6 +137,23 @@ public class PartyMemberItemController implements Controller<Node> {
       gameCountLabel.setText(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase());
       usernameLabel.setText(player.getUsername());
     });
+  }
+
+  @VisibleForTesting
+  protected void setLeagueInfo() {
+    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
+      if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
+        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+        leagueImageView.setVisible(false);
+      } else {
+        SubdivisionBean subdivision = leagueEntry.get().getSubdivision();
+        leagueLabel.setText(i18n.get("leaderboard.divisionName",
+            i18n.getOrDefault(subdivision.getDivision().getNameKey(), subdivision.getDivisionI18nKey()),
+            subdivision.getNameKey()).toUpperCase());
+        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
+        leagueImageView.setVisible(true);
+      }
+    }));
   }
 
   private void addListeners() {

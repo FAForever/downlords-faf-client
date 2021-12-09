@@ -198,6 +198,14 @@ public class PlayerInfoWindowController implements Controller<Node> {
   }
 
   public void setPlayer(PlayerBean player) {
+    if (player.getLeaderboardRatings().isEmpty()) {
+      updateRatings(player).thenAccept(updatedPlayer -> JavaFxUtil.runLater(() -> setOnlinePlayer(updatedPlayer)));
+    } else {
+      setOnlinePlayer(player);
+    }
+  }
+
+  public void setOnlinePlayer(PlayerBean player) {
     this.player = player;
 
     usernameLabel.setText(player.getUsername());
@@ -223,6 +231,21 @@ public class PlayerInfoWindowController implements Controller<Node> {
           notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
           return null;
         });
+  }
+
+  public CompletableFuture<PlayerBean> updateRatings(PlayerBean player) {
+    return leaderboardService.getEntriesForPlayer(player).thenApply(leaderboardEntryBeans -> {
+      Map<String, LeaderboardRatingBean> ratingMap = new HashMap<>();
+      leaderboardEntryBeans.forEach(leaderboardEntryBean -> {
+        LeaderboardRatingBean rating = new LeaderboardRatingBean();
+        rating.setDeviation(0);
+        rating.setMean((float) leaderboardEntryBean.getRating());
+        rating.setNumberOfGames(leaderboardEntryBean.getGamesPlayed());
+        ratingMap.put(leaderboardEntryBean.getLeaderboard().getTechnicalName(), rating);
+      });
+      player.setLeaderboardRatings(ratingMap);
+      return player;
+    });
   }
 
   private void updateRatingGrids() {
@@ -401,7 +424,9 @@ public class PlayerInfoWindowController implements Controller<Node> {
     if (ratingTypeComboBox.getValue() != null) {
       ratingHistoryChart.setVisible(false);
       loadingHistoryPane.setVisible(true);
-      loadStatistics(ratingTypeComboBox.getValue()).thenRun(() -> JavaFxUtil.runLater(this::plotPlayerRatingGraph));
+      if (player != null) {
+        loadStatistics(ratingTypeComboBox.getValue()).thenRun(() -> JavaFxUtil.runLater(this::plotPlayerRatingGraph));
+      }
     }
   }
 

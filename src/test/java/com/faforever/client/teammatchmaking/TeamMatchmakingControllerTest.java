@@ -2,11 +2,13 @@ package com.faforever.client.teammatchmaking;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.chat.ChatMessage;
 import com.faforever.client.chat.MatchmakingChatController;
 import com.faforever.client.chat.event.ChatMessageEvent;
@@ -14,6 +16,7 @@ import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
@@ -36,6 +39,8 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.teammatchmaking.PartyMemberItemController.LEADER_PSEUDO_CLASS;
 import static com.faforever.client.teammatchmaking.TeamMatchmakingController.CHAT_AT_BOTTOM_PSEUDO_CLASS;
@@ -52,6 +57,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 public class TeamMatchmakingControllerTest extends UITest {
 
@@ -59,6 +65,8 @@ public class TeamMatchmakingControllerTest extends UITest {
   private CountryFlagService countryFlagService;
   @Mock
   private AvatarService avatarService;
+  @Mock
+  private LeaderboardService leaderboardService;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -93,20 +101,44 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(teamMatchmakingService.getParty()).thenReturn(party);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
+    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+        CompletableFuture.completedFuture(Optional.empty()));
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
     when(teamMatchmakingService.getMatchmakerQueues()).thenReturn(matchmakerQueues);
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(i18n.get(anyString())).thenReturn("");
+    when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
+    when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
+    when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
     when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> {
       MatchmakingChatController controller = mock(MatchmakingChatController.class);
       when(controller.getRoot()).thenReturn(new Tab());
       return controller;
     });
-    instance = new TeamMatchmakingController(countryFlagService, avatarService, preferencesService, playerService, i18n, uiService,
-        teamMatchmakingService, eventBus);
+    instance = new TeamMatchmakingController(countryFlagService, avatarService, leaderboardService,
+        preferencesService, playerService, i18n, uiService, teamMatchmakingService, eventBus);
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> instance);
+  }
+
+  @Test
+  public void testLeagueNotSet() {
+    assertFalse(instance.leagueImageView.isVisible());
+    assertThat(instance.leagueLabel.getText(), is("IN PLACEMENT"));
+  }
+
+  @Test
+  public void testLeagueSet() {
+    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+        CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
+
+    instance.initialize();
+    waitForFxEvents();
+
+    assertTrue(instance.leagueImageView.isVisible());
+    assertThat(instance.leagueLabel.getText(), is("DIVISION V"));
+    verify(leaderboardService).loadDivisionImage(SubdivisionBeanBuilder.create().defaultValues().get().getMediumImageUrl());
   }
 
   @Test

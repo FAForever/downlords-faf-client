@@ -21,6 +21,7 @@ public class LeaderboardRatingJournalBeanBuilder {
     meanBefore(100d);
     deviationBefore(10d);
     leaderboard(LeaderboardBeanBuilder.create().defaultValues().get());
+    gamePlayerStats(GamePlayerStatsBeanBuilder.create().defaultValues().get());
     return this;
   }
 

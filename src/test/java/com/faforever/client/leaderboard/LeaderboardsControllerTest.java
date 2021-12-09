@@ -1,132 +1,113 @@
 package com.faforever.client.leaderboard;
 
-import com.faforever.client.builders.LeaderboardBeanBuilder;
-import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.LeaderboardBean;
-import com.faforever.client.domain.LeaderboardEntryBean;
+import com.faforever.client.builders.LeagueBeanBuilder;
+import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenLeaderboardEvent;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
+import com.google.common.eventbus.EventBus;
+import javafx.scene.control.Tab;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 public class LeaderboardsControllerTest extends UITest {
 
   private LeaderboardsController instance;
 
   @Mock
+  private EventBus eventBus;
+  @Mock
+  private I18n i18n;
+  @Mock
   private LeaderboardService leaderboardService;
   @Mock
   private NotificationService notificationService;
   @Mock
-  private I18n i18n;
+  private UiService uiService;
 
-  private final LeaderboardBean leaderboardGlobal = LeaderboardBeanBuilder.create().defaultValues().id(1).technicalName("global").get();
-  private final List<LeaderboardEntryBean> entriesGlobal = List.of(
-      LeaderboardEntryBeanBuilder.create().defaultValues().id(0).player(PlayerBeanBuilder.create().defaultValues().username("MarcSpector").id(0).get()).get(),
-      LeaderboardEntryBeanBuilder.create().defaultValues().id(1).player(PlayerBeanBuilder.create().defaultValues().username("Sheikah").id(1).get()).get(),
-      LeaderboardEntryBeanBuilder.create().defaultValues().id(2).player(PlayerBeanBuilder.create().defaultValues().username("ZLO").id(2).get()).get()
-  );
+  @Mock
+  private LeaderboardController controller;
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(leaderboardService.getLeaderboards())
-        .thenReturn(CompletableFuture.completedFuture(List.of(leaderboardGlobal)));
-    when(leaderboardService.getEntries(leaderboardGlobal)).thenReturn(CompletableFuture.completedFuture(entriesGlobal));
+    when(leaderboardService.getLeagues()).thenReturn(
+        CompletableFuture.completedFuture(List.of(LeagueBeanBuilder.create().defaultValues().get())));
+    when(leaderboardService.getLatestSeason(any())).thenReturn(
+        CompletableFuture.completedFuture(LeagueSeasonBeanBuilder.create().defaultValues().get()));
+    when(i18n.getOrDefault(anyString(), anyString())).thenReturn("league");
+    when(uiService.loadFxml("theme/leaderboard/leaderboard.fxml")).thenReturn(controller);
+    Tab tab = new Tab();
+    when(controller.getRoot()).thenReturn(tab);
 
-    instance = new LeaderboardsController(leaderboardService, notificationService, i18n);
+    instance = new LeaderboardsController(eventBus, i18n, leaderboardService, notificationService, uiService);
 
     loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> instance);
   }
 
   @Test
-  public void testOnDisplay() {
-    showLeaderboard(leaderboardGlobal);
-    assertTrue(instance.contentPane.isVisible());
-    assertEquals(3, instance.ratingTable.getItems().size());
-    verifyNoInteractions(notificationService);
+  public void testInitialize() {
+    waitForFxEvents();
+
+    assertEquals("league", controller.getRoot().getText());
+    assertEquals(1, instance.leaderboardRoot.getTabs().size());
+    assertEquals(1, instance.controllers.size());
+    assertEquals(controller, instance.controllers.get(0));
   }
 
   @Test
-  public void testOnDisplayWhenThrowException() {
-    Exception exception = new RuntimeException("error of loading leaderboard entries");
-    when(leaderboardService.getEntries(leaderboardGlobal))
-        .thenReturn(CompletableFuture.failedFuture(exception));
-    showLeaderboard(leaderboardGlobal);
-    assertFalse(instance.contentPane.isVisible());
-    verify(notificationService).addImmediateErrorNotification(any(), any());
+  public void testNoLeagues() {
+    when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.completedFuture(List.of()));
+
+    instance.initialize();
+
+    verify(notificationService).addImmediateWarnNotification(eq("leaderboard.noLeaderboards"));
   }
 
   @Test
-  public void testFilterByNamePlayerExactMatch() {
-    showLeaderboard(leaderboardGlobal);
-    assertNull(instance.ratingTable.getSelectionModel().getSelectedItem());
-    runOnFxThreadAndWait(() -> setSearchText("Sheikah"));
-    assertEquals(3, instance.ratingTable.getItems().size());
-    assertEquals("Sheikah", instance.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
+  public void testInitializeWithLeagueError() {
+    when(leaderboardService.getLeagues()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+
+    instance.initialize();
+
+    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test
-  public void testFilterByNamePlayerPartialMatch() {
-    showLeaderboard(leaderboardGlobal);
-    assertNull(instance.ratingTable.getSelectionModel().getSelectedItem());
-    runOnFxThreadAndWait(() -> setSearchText("z"));
-    assertEquals(3, instance.ratingTable.getItems().size());
-    assertEquals("ZLO", instance.ratingTable.getSelectionModel().getSelectedItem().getPlayer().getUsername());
-  }
+  public void testInitializeWithSeasonError() {
+    when(leaderboardService.getLatestSeason(any())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
 
-  @Test
-  public void testAutoCompletionSuggestions() {
-    showLeaderboard(leaderboardGlobal);
-    settingAutoCompletionForTestEnvironment();
-    setSearchText("o");
-    assertSearchSuggestions("MarcSpector", "ZLO");
-    setSearchText("ei");
-    assertSearchSuggestions("Sheikah");
-  }
+    instance.initialize();
 
-  private void showLeaderboard(LeaderboardBean leaderboard) {
-    runOnFxThreadAndWait(() -> {
-      instance.leaderboardComboBox.setValue(leaderboard);
-      instance.onLeaderboardSelected();
-    });
-  }
-
-  private void setSearchText(String text) {
-    runOnFxThreadAndWait(() -> instance.searchTextField.setText(text));
-  }
-
-  private void settingAutoCompletionForTestEnvironment() {
-    runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.searchTextField);
-      instance.usernamesAutoCompletion.getAutoCompletionPopup().setOpacity(0.0);
-    });
-  }
-
-  private void assertSearchSuggestions(String... expectedSuggestions) {
-    List<String> actualSuggestions = instance.usernamesAutoCompletion.getAutoCompletionPopup().getSuggestions();
-    assertEquals(expectedSuggestions.length,  actualSuggestions.size());
-    assertTrue(actualSuggestions.containsAll(Arrays.asList(expectedSuggestions)));
+    verify(notificationService).addImmediateErrorNotification(any(CompletionException.class), eq("leaderboard.failedToLoadLeaderboards"));
   }
 
   @Test
   public void testGetRoot() throws Exception {
     assertEquals(instance.getRoot(), instance.leaderboardRoot);
     assertNull(instance.getRoot().getParent());
+  }
+
+  @Test
+  public void testOnDisplay() {
+    instance.onDisplay(new OpenLeaderboardEvent(controller.getRoot()));
+
+    assertEquals(instance.leaderboardRoot.getSelectionModel().getSelectedItem(), controller.getRoot());
   }
 }

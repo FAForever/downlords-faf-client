@@ -11,6 +11,9 @@ import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.dto.LeaderboardEntry;
 import com.faforever.commons.api.dto.LeaderboardRatingJournal;
+import com.faforever.commons.api.dto.LeagueSeason;
+import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
+import com.faforever.commons.api.dto.LeagueSeasonScore;
 import com.faforever.commons.api.dto.Map;
 import com.faforever.commons.api.dto.MapPoolAssignment;
 import com.faforever.commons.api.dto.MapReviewsSummary;
@@ -87,6 +90,9 @@ public class FafApiAccessor implements InitializingBean {
       java.util.Map.entry(Game.class,
           List.of("featuredMod", "playerStats", "playerStats.player", "playerStats.ratingChanges", "reviews", "reviews.player",
               "mapVersion", "mapVersion.map", "mapVersion.map.versions", "reviewsSummary")),
+      java.util.Map.entry(LeagueSeason.class, List.of("leaderboard", "league")),
+      java.util.Map.entry(LeagueSeasonScore.class, List.of("leagueSeason", "leagueSeasonDivisionSubdivision", "leagueSeasonDivisionSubdivision.leagueSeasonDivision")),
+      java.util.Map.entry(LeagueSeasonDivisionSubdivision.class, List.of("leagueSeasonDivision", "leagueSeasonDivision.leagueSeason")),
       java.util.Map.entry(MapVersion.class,
           List.of("map", "map.latestVersion", "map.versions",
               "map.versions.reviews", "map.versions.reviews.player", "map.reviewsSummary", "map.author")),

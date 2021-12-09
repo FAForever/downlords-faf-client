@@ -239,11 +239,6 @@ public class PreferencesBuilder {
       return this;
     }
 
-    public ChatPrefsBuilder dateFormat(DateInfo dateFormat) {
-      chatPrefs.setDateFormat(dateFormat);
-      return this;
-    }
-
     public ChatPrefsBuilder chatFormat(ChatFormat chatFormat) {
       chatPrefs.setChatFormat(chatFormat);
       return this;
@@ -447,6 +442,11 @@ public class PreferencesBuilder {
 
     public LocalizationPrefsBuilder language(Locale language) {
       localizationPrefs.setLanguage(language);
+      return this;
+    }
+
+    public LocalizationPrefsBuilder dateFormat(DateInfo dateFormat) {
+      localizationPrefs.setDateFormat(dateFormat);
       return this;
     }
   }

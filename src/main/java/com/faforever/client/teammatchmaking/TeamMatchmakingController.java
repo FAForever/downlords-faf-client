@@ -7,10 +7,12 @@ import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -68,6 +70,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
+  private final LeaderboardService leaderboardService;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
   private final I18n i18n;
@@ -129,9 +132,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     selectFactions(factions);
     teamMatchmakingService.sendFactionSelection(factions);
     teamMatchmakingService.requestMatchmakerInfo();
-
-    // TODO: Use when leagues implemented
-    leagueImageView.setVisible(false);
   }
 
   private void initializeDynamicChatPosition() {
@@ -161,8 +161,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     partyHeadingLabel.setText(i18n.get("teammatchmaking.partyTitle").toUpperCase());
     invitePlayerButton.setText(i18n.get("teammatchmaking.invitePlayer").toUpperCase());
     leavePartyButton.setText(i18n.get("teammatchmaking.leaveParty").toUpperCase());
-    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase()); // TODO: replace this with divisionproperty once it is available
-    leagueLabel.setText(i18n.get("leaderboard.divisionName").toUpperCase());
   }
 
   private void setQueueHeadingLabel() {
@@ -181,6 +179,22 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     JavaFxUtil.runLater(() -> queueHeadingLabel.setText(labelText));
   }
 
+  private void setLeagueInfo() {
+    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
+      if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
+        leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+        leagueImageView.setVisible(false);
+      } else {
+        SubdivisionBean subdivision = leagueEntry.get().getSubdivision();
+        leagueLabel.setText(i18n.get("leaderboard.divisionName",
+            i18n.getOrDefault(subdivision.getDivision().getNameKey(), subdivision.getDivisionI18nKey()),
+            subdivision.getNameKey()).toUpperCase());
+        leagueImageView.setImage(leaderboardService.loadDivisionImage(subdivision.getMediumImageUrl()));
+        leagueImageView.setVisible(true);
+      }
+    }));
+  }
+
   private void initializeListeners() {
     matchmakingQueuesLabelInvalidationListener = observable -> setQueueHeadingLabel();
 
@@ -188,6 +202,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
       Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
       String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
+      setLeagueInfo();
       JavaFxUtil.runLater(() -> {
         countryImageView.setImage(countryFlag);
         avatarImageView.setImage(avatarImage);
