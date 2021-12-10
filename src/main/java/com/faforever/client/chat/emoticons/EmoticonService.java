@@ -2,6 +2,7 @@ package com.faforever.client.chat.emoticons;
 
 import com.faforever.client.exception.ProgrammingError;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -20,7 +21,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EmoticonService implements InitializingBean {
 
-  private static final ClassPathResource EMOTICONS_JSON_FILE_RESOURCE = new ClassPathResource("images/emoticons/emoticons.json");
+  @VisibleForTesting
+  static final ClassPathResource EMOTICONS_JSON_FILE_RESOURCE = new ClassPathResource("images/emoticons/emoticons.json");
 
   private final ObjectMapper objectMapper;
 

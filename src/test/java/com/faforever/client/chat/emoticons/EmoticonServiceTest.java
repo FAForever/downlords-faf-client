@@ -10,11 +10,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.io.InputStream;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -32,28 +36,61 @@ public class EmoticonServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testAllShortcodesAreUnique() throws Exception {
-    EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{
-        EmoticonGroupBuilder.create().defaultValues().get(),
-        EmoticonGroupBuilder.create().defaultValues().emoticons(
-            EmoticonBuilder.create().shortcodes(":value3:").get(),
-            EmoticonBuilder.create().shortcodes(":value4:").get())
-            .get()};
-    when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
+  public void testAllProductionShortcodesAreUnique() throws Exception {
+    when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class)))
+        .thenReturn(new ObjectMapper().readValue(EmoticonService.EMOTICONS_JSON_FILE_RESOURCE.getInputStream(), EmoticonsGroup[].class));
 
     assertDoesNotThrow(() -> instance.afterPropertiesSet());
-    assertEquals("\\Q:value1:\\E|\\Q:value3:\\E|\\Q:value2:\\E|\\Q:value4:\\E", instance.getEmoticonShortcodeDetectorPattern().pattern());
-    assertEquals(List.of(emoticonsGroupsArray), instance.getEmoticonsGroups());
+    String shortcodePattern = instance.getEmoticonShortcodeDetectorPattern().pattern();
+    assertFalse(shortcodePattern.isBlank());
+    assertFalse(instance.getEmoticonsGroups().isEmpty());
+    instance.getEmoticonsGroups().stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
+        .flatMap(emoticon -> emoticon.getShortcodes().stream())
+        .forEach(shortcode -> {
+          assertTrue(shortcodePattern.contains(shortcode));
+          assertFalse(instance.getBase64SvgContentByShortcode(shortcode).isBlank());
+        });
   }
 
   @Test
-  public void testThrowWhenShortcodesAreNotUnique() throws Exception {
+  public void testAllProductionGroupsAreUnique() throws Exception {
+    EmoticonsGroup[] groups = new ObjectMapper().readValue(EmoticonService.EMOTICONS_JSON_FILE_RESOURCE.getInputStream(), EmoticonsGroup[].class);
+
+    Set<String> groupNames = Arrays.stream(groups).map(EmoticonsGroup::getName).collect(Collectors.toSet());
+    assertEquals(groupNames.size(), groups.length);
+  }
+
+  @Test
+  public void testThrowWhenShortcodesAreNotUniqueInEmoticon() throws Exception {
+    EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{
+        EmoticonGroupBuilder.create().defaultValues().get(),
+        EmoticonGroupBuilder.create().defaultValues().emoticons(
+            EmoticonBuilder.create().shortcodes(":value3:", ":value3:").get()
+        ).get()};
+    when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
+
+    assertThrows(ProgrammingError.class, () -> instance.afterPropertiesSet());
+  }
+
+  @Test
+  public void testThrowWhenShortcodesAreNotUniqueInGroup() throws Exception {
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{
         EmoticonGroupBuilder.create().defaultValues().get(),
         EmoticonGroupBuilder.create().defaultValues().emoticons(
             EmoticonBuilder.create().shortcodes(":value3:").get(),
             EmoticonBuilder.create().shortcodes(":value3:").get())
             .get()};
+    when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
+
+    assertThrows(ProgrammingError.class, () -> instance.afterPropertiesSet());
+  }
+
+  @Test
+  public void testThrowWhenShortcodesAreNotUniqueAcrossGroups() throws Exception {
+    EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{
+        EmoticonGroupBuilder.create().defaultValues().emoticons(EmoticonBuilder.create().shortcodes(":value3:").get()).get(),
+        EmoticonGroupBuilder.create().defaultValues().emoticons(EmoticonBuilder.create().shortcodes(":value3:").get()).get()
+    };
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
     assertThrows(ProgrammingError.class, () -> instance.afterPropertiesSet());
@@ -68,5 +105,9 @@ public class EmoticonServiceTest extends ServiceTest {
 
     instance.afterPropertiesSet();
     assertEquals(emoticon.getBase64SvgContent(), instance.getBase64SvgContentByShortcode(emoticon.getShortcodes().get(0)));
+    emoticon.getShortcodes().forEach(shortcode -> {
+      assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode));
+    });
+    assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains("|"));
   }
 }
