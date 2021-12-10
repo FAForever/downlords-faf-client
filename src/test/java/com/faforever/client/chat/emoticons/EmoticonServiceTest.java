@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -39,7 +39,7 @@ public class EmoticonServiceTest extends ServiceTest {
             EmoticonBuilder.create().shortcodes(":value3:").get(),
             EmoticonBuilder.create().shortcodes(":value4:").get())
             .get()};
-    when(objectMapper.readValue(any(File.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
+    when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
     assertDoesNotThrow(() -> instance.afterPropertiesSet());
     assertEquals("\\Q:value1:\\E|\\Q:value3:\\E|\\Q:value2:\\E|\\Q:value4:\\E", instance.getEmoticonShortcodeDetectorPattern().pattern());
@@ -54,7 +54,7 @@ public class EmoticonServiceTest extends ServiceTest {
             EmoticonBuilder.create().shortcodes(":value3:").get(),
             EmoticonBuilder.create().shortcodes(":value3:").get())
             .get()};
-    when(objectMapper.readValue(any(File.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
+    when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
     assertThrows(ProgrammingError.class, () -> instance.afterPropertiesSet());
   }
@@ -64,7 +64,7 @@ public class EmoticonServiceTest extends ServiceTest {
     EmoticonsGroup emoticonsGroup = EmoticonGroupBuilder.create().defaultValues().get();
     Emoticon emoticon = emoticonsGroup.getEmoticons().get(0);
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{emoticonsGroup};
-    when(objectMapper.readValue(any(File.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
+    when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
     instance.afterPropertiesSet();
     assertEquals(emoticon.getBase64SvgContent(), instance.getBase64SvgContentByShortcode(emoticon.getShortcodes().get(0)));
