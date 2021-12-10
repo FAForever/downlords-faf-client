@@ -34,7 +34,7 @@ public class EmoticonService implements InitializingBean {
   }
 
   private void loadAndVerifyEmoticons() throws IOException, ProgrammingError {
-    emoticonsGroups = Arrays.asList(objectMapper.readValue(EMOTICONS_JSON_FILE_RESOURCE.getFile(), EmoticonsGroup[].class));
+    emoticonsGroups = Arrays.asList(objectMapper.readValue(EMOTICONS_JSON_FILE_RESOURCE.getInputStream(), EmoticonsGroup[].class));
     emoticonsGroups.stream().flatMap(emoticonsGroup -> emoticonsGroup.getEmoticons().stream())
         .forEach(emoticon -> emoticon.getShortcodes().forEach(shortcode -> {
           if (shortcodeToBase64SvgContent.containsKey(shortcode)) {
