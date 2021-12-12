@@ -297,7 +297,7 @@ dependencies {
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("com.github.luben:zstd-jni:1.4.8-1")
   implementation("org.luaj:luaj-jse:3.0.1")
-  implementation("commons-validator:commons-validator:1.6")
+  implementation("commons-validator:commons-validator:1.7")
   implementation("com.github.micheljung:JJsonRpc:01a7fba5f4")
   implementation("javax.inject:javax.inject:1")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
