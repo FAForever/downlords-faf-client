@@ -206,7 +206,7 @@ public class MainController implements Controller<Node> {
 
     transientNotificationsController.getRoot().getChildren().addListener(new ToastDisplayer(transientNotificationsController));
 
-    updateNotificationsButton(Collections.emptyList());
+    updateNotificationsButton(notificationService.getPersistentNotifications());
     notificationService.addPersistentNotificationListener(change -> JavaFxUtil.runLater(() -> updateNotificationsButton(change.getSet())));
     notificationService.addImmediateNotificationListener(notification -> JavaFxUtil.runLater(() -> displayImmediateNotification(notification)));
     notificationService.addServerNotificationListener(notification -> JavaFxUtil.runLater(() -> displayServerNotification(notification)));
