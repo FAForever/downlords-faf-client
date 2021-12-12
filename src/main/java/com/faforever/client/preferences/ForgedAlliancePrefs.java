@@ -25,7 +25,7 @@ public class ForgedAlliancePrefs {
   public static final String INIT_FILE_NAME = "init.lua";
 
   static {
-    FAF_VAULT_PATH = PreferencesService.FAF_DATA_DIRECTORY.resolve(Path.of("user", "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance"));
+    FAF_VAULT_PATH = PreferencesService.FAF_DATA_DIRECTORY.resolve(Path.of("vault"));
     if (org.bridj.Platform.isWindows()) {
       GPG_VAULT_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
@@ -62,15 +62,6 @@ public class ForgedAlliancePrefs {
   ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
 
   public ForgedAlliancePrefs() {
-    bindVaultPath();
-  }
-
-  /**
-   * Needs to be called after gson deserialization again. Because otherwise the both are bound to the default vaultBaseDirectory and not the one loaded by Gson.
-   */
-  void bindVaultPath() {
-    mapsDirectory.unbind();
-    modsDirectory.unbind();
     mapsDirectory.bind(Bindings.createObjectBinding(() -> getVaultBaseDirectory().resolve("maps"), vaultBaseDirectory));
     modsDirectory.bind(Bindings.createObjectBinding(() -> getVaultBaseDirectory().resolve("mods"), vaultBaseDirectory));
   }

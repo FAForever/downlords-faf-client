@@ -293,10 +293,6 @@ public class PreferencesService implements InitializingBean {
       waitForUser.await();
 
     }
-
-    if (preferences != null) {
-      preferences.getForgedAlliance().bindVaultPath();
-    }
   }
 
   public Preferences getPreferences() {
