@@ -49,7 +49,7 @@ public class PreferencesBuilder {
   }
 
   public PreferencesBuilder defaultValues() {
-    return this;
+    return forgedAlliancePrefs().installationPath(ForgedAlliancePrefs.STEAM_FA_PATH).then();
   }
 
   public PreferencesBuilder themeName(String themeName) {

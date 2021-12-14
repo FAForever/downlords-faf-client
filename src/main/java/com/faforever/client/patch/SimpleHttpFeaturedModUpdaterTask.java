@@ -70,10 +70,10 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
           try {
             if (fileAlreadyLoaded(featuredModFile, targetPath)) {
               log.debug("Featured mod file already prepared: {}", featuredModFile);
-            } else if (featuredModFileCacheService.isCached(featuredModFile)) {
-              featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
             } else {
-              downloadFeaturedModFile(featuredModFile, featuredModFileCacheService.getCachedFilePath(featuredModFile));
+              if (!featuredModFileCacheService.isCached(featuredModFile)) {
+                downloadFeaturedModFile(featuredModFile, featuredModFileCacheService.getCachedFilePath(featuredModFile));
+              }
               featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
             }
           } catch (IOException e) {
@@ -97,7 +97,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
         .max()
         .orElseThrow(() -> new IllegalStateException("No version found for featured mod: " + featuredMod.getTechnicalName()));
 
-    return PatchResult.withLegacyInitFile(new ComparableVersion(String.valueOf(maxVersion)), initFile);
+    return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), initFile);
   }
 
   private boolean fileAlreadyLoaded(FeaturedModFile featuredModFile, Path targetPath) throws IOException {

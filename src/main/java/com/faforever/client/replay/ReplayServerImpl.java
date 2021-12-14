@@ -28,6 +28,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -180,7 +181,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.setNumPlayers(game.getNumPlayers());
     replayInfo.setSimMods(game.getSimMods());
     replayInfo.setTeams(game.getTeams());
-    replayInfo.setFeaturedModVersions(game.getFeaturedModVersions());
+    replayInfo.setFeaturedModVersions(Map.of());
     replayInfo.setGameEnd(pythonTime());
     replayInfo.setRecorder(userService.getUsername());
     // TODO: Use enum when setter is fixed in java commons
