@@ -3,6 +3,7 @@ package com.faforever.client.patch;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -93,6 +95,18 @@ public class GameUpdaterImplTest extends ServiceTest {
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), 0, Set.of()).join());
     assertEquals(UnsupportedOperationException.class, exception.getCause().getClass());
+    assertFalse(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
+    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+  }
+
+  @Test
+  public void badChecksumTest() throws Exception {
+    when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
+    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any()))
+        .thenAnswer(invocation -> CompletableFuture.failedFuture(new ChecksumMismatchException(new URL("http://google.com"), "asd", "qwe")));
+    instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
+    CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), 0, Set.of()).join());
+    assertEquals(ChecksumMismatchException.class, exception.getCause().getClass());
     assertFalse(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
     assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
   }

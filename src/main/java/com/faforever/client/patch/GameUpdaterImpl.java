@@ -83,24 +83,22 @@ public class GameUpdaterImpl implements GameUpdater {
         }).exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           boolean allowReplaysWhileInGame = preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame();
-          if (allowReplaysWhileInGame) {
+
+          if (throwable instanceof UnsupportedOperationException || throwable instanceof ChecksumMismatchException) {
+            throw new CompletionException(throwable);
+          } else if (allowReplaysWhileInGame) {
             log.info("Unable to update files and experimental replay feature is turned on " +
                 "that allows multiple game instances to run in parallel this is most likely the cause.");
             if (throwable.getCause() instanceof AccessDeniedException) {
               throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
                   "due to conflicting version running", throwable);
-            } else if (throwable.getCause() instanceof ChecksumMismatchException) {
-              throw new CompletionException(throwable.getCause());
-            } else if (throwable instanceof UnsupportedOperationException) {
-              throw new CompletionException(throwable);
             } else {
-              log.info("Ignored error while updating featured mod", throwable);
+              log.info("Ignored error while updating featured mod due to likely concurrent versions", throwable);
+              return null;
             }
           } else {
-            log.warn("Game files not accessible", throwable);
-            notificationService.addImmediateErrorNotification(throwable, "error.game.filesNotAccessible");
+            throw new CompletionException(throwable);
           }
-          return null;
         });
   }
 
