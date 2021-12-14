@@ -308,7 +308,7 @@ dependencies {
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("com.github.ben-manes.caffeine:caffeine")
   implementation("org.apache.httpcomponents:httpclient")
-  implementation("io.github.micheljung:fxstage:3.5.0")
+  implementation("io.github.micheljung:fxstage:0.8.1")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:8.0.0")
   implementation("org.mapstruct:mapstruct:${mapStructVersion}")
