@@ -126,8 +126,6 @@
                                             <children>
                                                 <Label maxHeight="1.7976931348623157E308" text="%map.ranked"/>
                                                 <Label fx:id="isRankedLabel" maxHeight="1.7976931348623157E308"/>
-                                                <Button fx:id="unrankButton" mnemonicParsing="false"
-                                                        onAction="#unrankMap" text="%map.unrank"/>
                                             </children>
                                         </HBox>
                                         <HBox fx:id="hideBox" spacing="10.0" GridPane.columnIndex="1"

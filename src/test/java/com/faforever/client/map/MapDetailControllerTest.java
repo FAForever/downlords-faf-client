@@ -167,14 +167,13 @@ public class MapDetailControllerTest extends UITest {
   }
 
   @Test
-  public void testSetRankedVisibleOwnedMap() {
+  public void testSetVisibleOwnedMap() {
     when(mapService.isInstalled(testMap.getFolderName())).thenReturn(true);
 
     instance.setMapVersion(ownedMap);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
-    assertTrue(instance.unrankButton.isVisible());
     assertTrue(instance.hideButton.isVisible());
     assertEquals("no", instance.isHiddenLabel.getText());
     assertEquals("yes", instance.isRankedLabel.getText());
@@ -182,7 +181,7 @@ public class MapDetailControllerTest extends UITest {
   }
 
   @Test
-  public void testSetUnRankedHiddenOwnedMap() {
+  public void testSetHiddenOwnedMap() {
     when(mapService.isInstalled(ownedMap.getFolderName())).thenReturn(true);
 
     ownedMap.setRanked(false);
@@ -192,7 +191,6 @@ public class MapDetailControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertNotEquals(instance.hideRow.getPrefHeight(), 0);
-    assertFalse(instance.unrankButton.isVisible());
     assertFalse(instance.hideButton.isVisible());
     assertEquals("yes", instance.isHiddenLabel.getText());
     assertEquals("no", instance.isRankedLabel.getText());
@@ -215,7 +213,6 @@ public class MapDetailControllerTest extends UITest {
     assertEquals(0.0, instance.hideRow.getPrefHeight(), 0);
     assertTrue(instance.uninstallButton.isVisible());
     assertFalse(instance.installButton.isVisible());
-    assertFalse(instance.unrankButton.isVisible());
     assertFalse(instance.hideButton.isVisible());
   }
 
@@ -283,37 +280,6 @@ public class MapDetailControllerTest extends UITest {
 
     verify(mapService).uninstallMap(testMap);
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyString(), anyString());
-  }
-
-  @Test
-  public void testOnUnRankButtonClicked() {
-    when(mapService.unrankMapVersion(ownedMap)).thenReturn(CompletableFuture.completedFuture(null));
-
-    instance.setMapVersion(ownedMap);
-    instance.unrankMap();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(mapService).unrankMapVersion(any(MapVersionBean.class));
-    assertFalse(ownedMap.getRanked());
-    assertFalse(instance.unrankButton.isVisible());
-  }
-
-  @Test
-  public void testOnUnRankButtonClickedInstallingMapThrowsException() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new FakeTestException());
-    when(mapService.unrankMapVersion(any(MapVersionBean.class))).thenReturn(future);
-
-    instance.setMapVersion(ownedMap);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.unrankMap();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(ownedMap.getRanked());
-    assertTrue(instance.unrankButton.isVisible());
-    verify(mapService).unrankMapVersion(any(MapVersionBean.class));
-    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
   }
 
   @Test

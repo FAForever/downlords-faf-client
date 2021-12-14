@@ -89,7 +89,6 @@ public class MapDetailController implements Controller<Node> {
   public VBox loadingContainer;
   public RowConstraints hideRow;
   public Button hideButton;
-  public Button unrankButton;
   public HBox hideBox;
   public Label mapIdLabel;
 
@@ -98,7 +97,7 @@ public class MapDetailController implements Controller<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, hideButton,
-        unrankButton, loadingContainer, hideBox, getRoot());
+        loadingContainer, hideBox, getRoot());
     JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
@@ -136,7 +135,6 @@ public class MapDetailController implements Controller<Node> {
   private void renewAuthorControls() {
     PlayerBean player = playerService.getCurrentPlayer();
     boolean viewerIsAuthor = player.equals(mapVersion.getMap().getAuthor());
-    unrankButton.setVisible(viewerIsAuthor && mapVersion.getRanked());
     hideButton.setVisible(viewerIsAuthor && !mapVersion.getHidden());
     isHiddenLabel.setText(mapVersion.getHidden() ? i18n.get("yes") : i18n.get("no"));
     isRankedLabel.setText(mapVersion.getRanked() ? i18n.get("yes") : i18n.get("no"));
