@@ -290,7 +290,7 @@ dependencies {
   implementation("net.java.dev.jna:jna:${jnaVersion}")
   implementation("net.java.dev.jna:jna-platform:${jnaVersion}")
   implementation("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
-  implementation("org.jetbrains:annotations:20.1.0")
+  implementation("org.jetbrains:annotations:23.0.0")
   implementation("com.neovisionaries:nv-i18n:1.23")
   implementation("com.rometools:rome:1.11.1")
   implementation("org.jsoup:jsoup:1.14.3")
