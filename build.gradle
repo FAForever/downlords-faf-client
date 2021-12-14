@@ -302,7 +302,7 @@ dependencies {
     exclude module: 'guava'
   }
   implementation("com.google.guava:guava:30.0-jre")
-  implementation("org.apache.commons:commons-compress:1.20")
+  implementation("org.apache.commons:commons-compress:1.21")
   implementation("net.java.dev.jna:jna:${jnaVersion}")
   implementation("net.java.dev.jna:jna-platform:${jnaVersion}")
   implementation("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
