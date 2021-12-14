@@ -310,7 +310,7 @@ dependencies {
   implementation("org.apache.httpcomponents:httpclient")
   implementation("io.github.micheljung:fxstage:0.8.0")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
-  implementation("org.kitteh.irc:client-lib:7.3.0")
+  implementation("org.kitteh.irc:client-lib:8.0.0")
   implementation("org.mapstruct:mapstruct:${mapStructVersion}")
 
   implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
