@@ -336,7 +336,7 @@ dependencies {
   testImplementation("org.testfx:testfx-core:4.0.16-alpha") {
     exclude module: 'guava'
   }
-  testImplementation("io.projectreactor.netty:reactor-netty:1.0.4")
+  testImplementation("io.projectreactor.netty:reactor-netty:1.0.13")
   testImplementation("org.testfx:testfx-junit5:4.0.16-alpha")
   testImplementation("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
