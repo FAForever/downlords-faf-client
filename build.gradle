@@ -308,7 +308,7 @@ dependencies {
   implementation("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
   implementation("org.jetbrains:annotations:23.0.0")
   implementation("com.neovisionaries:nv-i18n:1.29")
-  implementation("com.rometools:rome:1.11.1")
+  implementation("com.rometools:rome:1.16.0")
   implementation("org.jsoup:jsoup:1.14.3")
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("com.github.luben:zstd-jni:1.5.0-4")
