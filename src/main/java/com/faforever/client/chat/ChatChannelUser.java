@@ -418,7 +418,8 @@ public class ChatChannelUser {
       ChatUserCategory category = switch (socialStatus.get()) {
         case FRIEND -> ChatUserCategory.FRIEND;
         case FOE -> ChatUserCategory.FOE;
-        case OTHER, SELF -> ChatUserCategory.OTHER;
+        case OTHER -> ChatUserCategory.OTHER;
+        case SELF -> ChatUserCategory.SELF;
       };
       userCategories.add(category);
     }

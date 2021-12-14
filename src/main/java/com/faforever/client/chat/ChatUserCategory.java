@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 public enum ChatUserCategory {
+  SELF("chat.category.self"),
   MODERATOR("chat.category.moderators"),
   FRIEND("chat.category.friends"),
   OTHER("chat.category.others"),

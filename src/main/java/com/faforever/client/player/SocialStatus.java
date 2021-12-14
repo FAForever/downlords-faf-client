@@ -6,7 +6,7 @@ public enum SocialStatus {
   OTHER("other"),
   SELF("self");
 
-  private String cssClass;
+  private final String cssClass;
 
   SocialStatus(String cssClass) {
     this.cssClass = cssClass;
