@@ -294,7 +294,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-logging")
   implementation("org.springframework.boot:spring-boot-starter-websocket")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
-  implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.5.5")
+  implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.6.1")
   implementation("org.springframework:spring-web")
   implementation("org.springframework:spring-websocket")
 
