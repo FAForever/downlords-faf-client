@@ -17,5 +17,5 @@ jar {
 }
 
 dependencies {
-  implementation("org.javassist:javassist:3.23.1-GA")
+  implementation("org.javassist:javassist:3.28.0-GA")
 }
