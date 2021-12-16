@@ -338,7 +338,7 @@ dependencies {
   implementation("org.openjfx:javafx-media:15.0.1:${javafxPlatform}")
   implementation("com.github.1-alex98:discord-rpc:1.6.2-jna")
   implementation("org.controlsfx:controlsfx:11.0.3")
-  implementation("org.fxmisc.flowless:flowless:0.6.2")
+  implementation("org.fxmisc.flowless:flowless:0.6.7")
   implementation("de.codecentric.centerdevice:javafxsvg:1.3.0")
 
   implementation(project(":webview-patch"))
