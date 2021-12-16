@@ -301,7 +301,7 @@ dependencies {
   implementation("com.github.FAForever:faf-java-commons:067586f4582daaf2a0702da0f8f61d15484a4e47") {
     exclude module: 'guava'
   }
-  implementation("com.google.guava:guava:30.0-jre")
+  implementation("com.google.guava:guava:31.0.1-jre")
   implementation("org.apache.commons:commons-compress:1.21")
   implementation("net.java.dev.jna:jna:5.10.0")
   implementation("net.java.dev.jna:jna-platform:5.10.0")
