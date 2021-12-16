@@ -522,19 +522,29 @@ public class ChatChannelTabControllerTest extends UITest {
     String username1 = "player1";
     PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(OTHER).get();
     ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(OTHER).get();
-    String username2 = "player2";
-    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().username(username2).socialStatus(SELF).get();
-    ChatChannelUser user2 = ChatChannelUserBuilder.create(username2).socialStatus(SELF).get();
-    defaultChatChannel.addUsers(Arrays.asList(user1, user2));
+    defaultChatChannel.addUsers(List.of(user1));
 
     when(playerService.getPlayerByNameIfOnline(username1)).thenReturn(Optional.of(player1));
-    when(playerService.getPlayerByNameIfOnline(username2)).thenReturn(Optional.of(player2));
     runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
 
     List<CategoryOrChatUserListItem> users = instance.getChatUserItemsByCategory(ChatUserCategory.OTHER);
     assertTrue(users.stream().anyMatch(userItem -> userItem.getUser().equals(user1)));
-    assertTrue(users.stream().anyMatch(userItem -> userItem.getUser().equals(user2)));
-    assertEquals(2, users.size());
+    assertEquals(1, users.size());
+  }
+
+  @Test
+  public void testSelfPlayerIsInSelfList() {
+    String username1 = "player1";
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().username(username1).socialStatus(SELF).get();
+    ChatChannelUser user1 = ChatChannelUserBuilder.create(username1).socialStatus(SELF).get();
+    defaultChatChannel.addUsers(List.of(user1));
+
+    when(playerService.getPlayerByNameIfOnline(username1)).thenReturn(Optional.of(player1));
+    runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
+
+    List<CategoryOrChatUserListItem> users = instance.getChatUserItemsByCategory(ChatUserCategory.SELF);
+    assertTrue(users.stream().anyMatch(userItem -> userItem.getUser().equals(user1)));
+    assertEquals(1, users.size());
   }
 
   @Test

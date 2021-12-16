@@ -12,7 +12,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -30,6 +29,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.geometry.Bounds;
@@ -65,6 +65,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -83,21 +84,7 @@ public class ChannelTabController extends AbstractChatTabController {
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
   private static final String USER_CSS_CLASS_FORMAT = "user-%s";
-  private static final Comparator<CategoryOrChatUserListItem> CHAT_USER_ITEM_COMPARATOR = (o1, o2) -> {
-    ChatChannelUser left = o1.getUser();
-    ChatChannelUser right = o2.getUser();
 
-    Assert.state(left != null, "Only users must be compared");
-    Assert.state(right != null, "Only users must be compared");
-
-    if (isSelf(left)) {
-      return 1;
-    }
-    if (isSelf(right)) {
-      return -1;
-    }
-    return right.getUsername().compareToIgnoreCase(left.getUsername());
-  };
   @VisibleForTesting
   /** Maps a chat user category to a list of all user items that belong to it. */
   final Map<ChatUserCategory, List<CategoryOrChatUserListItem>> categoriesToUserListItems;
@@ -152,8 +139,12 @@ public class ChannelTabController extends AbstractChatTabController {
     categoriesToUserListItems = new HashMap<>();
     categoriesToCategoryListItems = new HashMap<>();
     userNamesToListItems = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    chatUserListItems = FXCollections.observableArrayList();
-    filteredChatUserList = new FilteredList<>(chatUserListItems);
+    chatUserListItems = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+    SortedList<CategoryOrChatUserListItem> sortedChatUserListItems = new SortedList<>(chatUserListItems, Comparator.comparing(CategoryOrChatUserListItem::getCategory)
+        .thenComparing(categoryOrChatUserListItem -> Optional.ofNullable(categoryOrChatUserListItem.getUser())
+            .map(chatChannelUser -> chatChannelUser.getUsername().toLowerCase(Locale.ROOT))
+            .orElse("")));
+    filteredChatUserList = new FilteredList<>(sortedChatUserListItems);
 
     autoCompletionHelper = new AutoCompletionHelper(
         currentWord -> userNamesToListItems.keySet().stream()
@@ -162,16 +153,12 @@ public class ChannelTabController extends AbstractChatTabController {
             .collect(Collectors.toList())
     );
 
-    List<CategoryOrChatUserListItem> categoryObjects = createCategoryTreeObjects();
+    List<CategoryOrChatUserListItem> categoryObjects = createCategoryOnlyListItems();
     categoryObjects.forEach(categoryItem -> {
       categoriesToCategoryListItems.put(categoryItem.getCategory(), categoryItem);
       categoriesToUserListItems.put(categoryItem.getCategory(), new ArrayList<>());
     });
-    chatUserListItems.addAll(categoryObjects);
-  }
-
-  private static boolean isSelf(ChatChannelUser chatUser) {
-    return chatUser.getPlayer().isPresent() && chatUser.getPlayer().get().getSocialStatus() == SocialStatus.SELF;
+    JavaFxUtil.runLater(() -> chatUserListItems.addAll(categoryObjects));
   }
 
   public void setChatChannel(ChatChannel chatChannel) {
@@ -287,7 +274,7 @@ public class ChannelTabController extends AbstractChatTabController {
   }
 
   @NotNull
-  private List<CategoryOrChatUserListItem> createCategoryTreeObjects() {
+  private List<CategoryOrChatUserListItem> createCategoryOnlyListItems() {
     return Arrays.stream(ChatUserCategory.values())
         .map(CategoryOrChatUserListItem::new)
         .collect(Collectors.toList());
@@ -425,7 +412,7 @@ public class ChannelTabController extends AbstractChatTabController {
             CategoryOrChatUserListItem userItem = new CategoryOrChatUserListItem(chatUser, category);
             userListItems.add(userItem);
             categoryUserList.add(userItem);
-            addToTreeItemSorted(userItem);
+            JavaFxUtil.runLater(() -> chatUserListItems.add(userItem));
           } else if (!chatUserCategorySet.contains(category) && userListItems.stream().anyMatch(categoryUserList::contains)) {
             List<CategoryOrChatUserListItem> itemsToRemove = userListItems.stream().filter(categoryUserList::contains).collect(Collectors.toList());
             userListItems.removeAll(itemsToRemove);
@@ -435,37 +422,17 @@ public class ChannelTabController extends AbstractChatTabController {
         });
   }
 
-  private void addToTreeItemSorted(CategoryOrChatUserListItem child) {
-    ChatUserCategory category = child.getCategory();
-    CategoryOrChatUserListItem parent = categoriesToCategoryListItems.get(category);
-    JavaFxUtil.runLater(() -> {
-      synchronized (chatUserListItems) {
-        for (int index = chatUserListItems.indexOf(parent) + 1; index < chatUserListItems.size(); index++) {
-          CategoryOrChatUserListItem otherItem = chatUserListItems.get(index);
-
-          if (otherItem.getCategory() != category || CHAT_USER_ITEM_COMPARATOR.compare(child, otherItem) > 0) {
-            chatUserListItems.add(index, child);
-            return;
-          }
-        }
-        chatUserListItems.add(child);
-      }
-    });
-  }
-
   private void updateCssClass(ChatChannelUser chatUser) {
-    JavaFxUtil.runLater(() -> {
-      if (chatUser.getPlayer().isPresent()) {
-        removeUserMessageClass(chatUser, CSS_CLASS_CHAT_ONLY);
-      } else {
-        addUserMessageClass(chatUser, CSS_CLASS_CHAT_ONLY);
-      }
-      if (chatUser.isModerator()) {
-        addUserMessageClass(chatUser, CSS_CLASS_MODERATOR);
-      } else {
-        removeUserMessageClass(chatUser, CSS_CLASS_MODERATOR);
-      }
-    });
+    if (chatUser.getPlayer().isPresent()) {
+      removeUserMessageClass(chatUser, CSS_CLASS_CHAT_ONLY);
+    } else {
+      addUserMessageClass(chatUser, CSS_CLASS_CHAT_ONLY);
+    }
+    if (chatUser.isModerator()) {
+      addUserMessageClass(chatUser, CSS_CLASS_MODERATOR);
+    } else {
+      removeUserMessageClass(chatUser, CSS_CLASS_MODERATOR);
+    }
   }
 
   private void onUserLeft(String username) {
@@ -479,15 +446,6 @@ public class ChannelTabController extends AbstractChatTabController {
           .forEach(categoryOrChatUserListItems -> listItemsToBeRemoved.forEach(categoryOrChatUserListItems::remove));
     }
   }
-
-  // FIXME use this again
-//  private void updateRandomColorsAllowed(ChatUserHeader parent, ChatChannelUser chatUser, ChatUserItemController chatUserItemController) {
-//    chatUserItemController.setRandomColorAllowed(
-//        (parent == othersTreeItem || parent == chatOnlyTreeItem)
-//            && chatUser.getPlayer().isPresent()
-//            && chatUser.getPlayer().get().getSocialStatus() != SELF
-//    );
-//  }
 
   public void onKeyReleased(KeyEvent event) {
     if (event.getCode() == KeyCode.ESCAPE) {
