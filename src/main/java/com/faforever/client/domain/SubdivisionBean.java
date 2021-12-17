@@ -19,7 +19,7 @@ import java.net.URL;
 @Value
 public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
   @ToString.Include
-  StringProperty NameKey = new SimpleStringProperty();
+  StringProperty nameKey = new SimpleStringProperty();
   StringProperty descriptionKey = new SimpleStringProperty();
   IntegerProperty index = new SimpleIntegerProperty();
   IntegerProperty highestScore = new SimpleIntegerProperty();
@@ -31,15 +31,15 @@ public class SubdivisionBean extends AbstractEntityBean<SubdivisionBean> {
   ObjectProperty<URL> smallImageUrl = new SimpleObjectProperty<>();
 
   public String getNameKey() {
-    return NameKey.get();
+    return nameKey.get();
   }
 
   public void setNameKey(String nameKey) {
-    this.NameKey.set(nameKey);
+    this.nameKey.set(nameKey);
   }
 
   public StringProperty nameKeyProperty() {
-    return NameKey;
+    return nameKey;
   }
 
   public String getDescriptionKey() {

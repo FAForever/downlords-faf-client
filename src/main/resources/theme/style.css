@@ -767,7 +767,7 @@
 .score-circle {
   -fx-fill: transparent;
   -fx-stroke-width: 20;
-  -fx-stroke: #1e1e1e;
+  -fx-stroke: #1e1e1e99;
 }
 
 .score {
@@ -804,8 +804,7 @@
 .division-selector {
   -fx-border-width: 0;
   -fx-font-size: 20px;
-  -fx-background-color: #1e1e1e;
-  -fx-background-radius: 10;
+  -fx-background-color: #1e1e1ebb;
   -fx-font-family: 'Source Sans Pro Semibold';
 }
 
@@ -857,6 +856,11 @@
   -fx-cell-size: 1.6em;
 }
 
+.division-table *.scroll-bar:horizontal *.increment-button,
+.division-table *.scroll-bar:horizontal *.decrement-button {
+  -fx-padding: 0;
+}
+
 .leaderboardChart {
   chart_color_1: #2b71d9;
   chart_color_2: #2b71d9;
@@ -865,18 +869,17 @@
   chart_color_5: #2b71d9;
 }
 
-/***************** Match maker *****************/
-
-.player-card {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #636363;
-  -fx-background-radius: 9;
-  -fx-border-radius: 9;
-  -fx-border-width: 1;
-  -fx-font-family: 'Source Sans Pro';
-  -fx-font-size: 14px;
+.leaderboardChart .chart-plot-background {
+  -fx-background-color: #24242499;
 }
 
+.leaderboardChart .chart-vertical-grid-lines {
+  -fx-stroke: transparent;
+}
+
+.leaderboardChart .chart-horizontal-grid-lines {
+  -fx-stroke: transparent;
+}
 
 /***************** Match maker *****************/
 
