@@ -14,6 +14,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameCleanupException;
 import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.logging.LoggingService;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.GameMapper;
@@ -120,6 +121,7 @@ public class GameService implements InitializingBean {
   private final ForgedAllianceService forgedAllianceService;
   private final MapService mapService;
   private final PreferencesService preferencesService;
+  private final LoggingService loggingService;
   private final GameUpdater gameUpdater;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -149,6 +151,7 @@ public class GameService implements InitializingBean {
                      ForgedAllianceService forgedAllianceService,
                      MapService mapService,
                      PreferencesService preferencesService,
+                     LoggingService loggingService,
                      GameUpdater gameUpdater,
                      NotificationService notificationService,
                      I18n i18n,
@@ -165,6 +168,7 @@ public class GameService implements InitializingBean {
     this.forgedAllianceService = forgedAllianceService;
     this.mapService = mapService;
     this.preferencesService = preferencesService;
+    this.loggingService = loggingService;
     this.gameUpdater = gameUpdater;
     this.notificationService = notificationService;
     this.i18n = i18n;
@@ -639,7 +643,7 @@ public class GameService implements InitializingBean {
     return process.onExit().thenAccept(finishedProcess -> {
       int exitCode = finishedProcess.exitValue();
       log.info("Forged Alliance terminated with exit code {}", exitCode);
-      Optional<Path> logFile = preferencesService.getMostRecentGameLogFile();
+      Optional<Path> logFile = loggingService.getMostRecentGameLogFile();
       logFile.ifPresent(file -> {
         try {
           Files.writeString(file, logMasker.maskMessage(Files.readString(file)));

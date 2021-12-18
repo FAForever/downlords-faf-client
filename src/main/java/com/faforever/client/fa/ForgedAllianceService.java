@@ -2,6 +2,7 @@ package com.faforever.client.fa;
 
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.lobby.GameLaunchResponse;
@@ -33,6 +34,7 @@ public class ForgedAllianceService {
 
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
+  private final LoggingService loggingService;
 
   public Process startGameOffline(String map) throws IOException {
     Path executable = getExecutable();
@@ -40,7 +42,7 @@ public class ForgedAllianceService {
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
         .map(map)
-        .logFile(preferencesService.getNewGameLogFile(0))
+        .logFile(loggingService.getNewGameLogFile(0))
         .build();
 
     return launch(executable, launchCommand);
@@ -72,7 +74,7 @@ public class ForgedAllianceService {
         .deviation(deviation)
         .mean(mean)
         .additionalArgs(gameLaunchMessage.getArgs())
-        .logFile(preferencesService.getNewGameLogFile(uid))
+        .logFile(loggingService.getNewGameLogFile(uid))
         .localGpgPort(gpgPort)
         .localReplayPort(localReplayPort)
         .rehost(rehost)
@@ -84,12 +86,13 @@ public class ForgedAllianceService {
 
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
+    replayId = replayId == null ? -1 : replayId;
 
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .replayFile(path)
         .replayId(replayId)
-        .logFile(preferencesService.getNewGameLogFile(replayId))
+        .logFile(loggingService.getNewGameLogFile(replayId))
         .build();
 
     return launch(executable, launchCommand);
@@ -103,7 +106,7 @@ public class ForgedAllianceService {
         .executable(executable)
         .replayUri(replayUri)
         .replayId(replayId)
-        .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
+        .logFile(LoggingService.FAF_LOG_DIRECTORY.resolve("replay.log"))
         .username(currentPlayer.getUsername())
         .build();
 

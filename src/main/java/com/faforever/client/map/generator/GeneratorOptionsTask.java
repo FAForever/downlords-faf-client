@@ -2,7 +2,6 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.os.OsUtils;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 public class GeneratorOptionsTask extends CompletableTask<List<String>> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
-  private final PreferencesService preferencesService;
   private final I18n i18n;
 
   private ComparableVersion version;
@@ -36,10 +34,9 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
   private List<String> options;
 
   @Inject
-  public GeneratorOptionsTask(PreferencesService preferencesService, I18n i18n) {
+  public GeneratorOptionsTask(I18n i18n) {
     super(Priority.HIGH);
 
-    this.preferencesService = preferencesService;
     this.i18n = i18n;
   }
 
@@ -62,7 +59,6 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
 
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.command(command);
-      processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().toAbsolutePath().toString());
 
       log.info("Starting map generator in directory: {} with command: {}",
           processBuilder.directory(), String.join(" ", processBuilder.command()));

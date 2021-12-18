@@ -49,8 +49,9 @@ public class PreferencesServiceTest extends ServiceTest {
 
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
 
-  @Mock
+
   private PreferencesService instance;
+
   @Mock
   private EventBus eventBus;
   @Mock

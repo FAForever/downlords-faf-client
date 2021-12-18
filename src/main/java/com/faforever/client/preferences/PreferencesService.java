@@ -1,7 +1,5 @@
 package com.faforever.client.preferences;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.error.GameLaunchException;
@@ -38,8 +36,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -50,7 +46,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -64,15 +59,11 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @Slf4j
 @Lazy
@@ -98,8 +89,6 @@ public class PreferencesService implements InitializingBean {
   private static final String FEATURED_MOD_CACHE_SUB_FOLDER = "featured_mod";
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Path.of(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final Path CACHE_DIRECTORY;
-  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
-  private static final int NUMBER_GAME_LOGS_STORED = 10;
   private static final Path FEATURED_MOD_CACHE_PATH;
 
   static {
@@ -110,32 +99,6 @@ public class PreferencesService implements InitializingBean {
     }
     CACHE_DIRECTORY = FAF_DATA_DIRECTORY.resolve(CACHE_SUB_FOLDER);
     FEATURED_MOD_CACHE_PATH = CACHE_DIRECTORY.resolve(FEATURED_MOD_CACHE_SUB_FOLDER);
-
-    System.setProperty("LOG_FILE", PreferencesService.FAF_DATA_DIRECTORY
-        .resolve("logs")
-        .resolve("client.log")
-        .toString());
-    // duplicated, see getFafLogDirectory; make getFafLogDirectory or log dir static?
-
-    System.setProperty("ICE_ADVANCED_LOG", PreferencesService.FAF_DATA_DIRECTORY
-        .resolve("logs/iceAdapterLogs")
-        .resolve("advanced-ice-adapter.log")
-        .toString());
-    // duplicated, see getIceAdapterLogDirectory; make getIceAdapterLogDirectory or ice log dir static?
-
-    System.setProperty("MAP_GENERATOR_LOG", PreferencesService.FAF_DATA_DIRECTORY
-        .resolve("logs")
-        .resolve("map-generator.log")
-        .toString());
-    // duplicated, see getIRCLogDirectory; make getIRCLogDirectory or ice log dir static?
-
-    System.setProperty("IRC_LOG", PreferencesService.FAF_DATA_DIRECTORY
-        .resolve("logs")
-        .resolve("irc.log")
-        .toString());
-
-    SLF4JBridgeHandler.removeHandlersForRootLogger();
-    SLF4JBridgeHandler.install();
   }
 
   private final Path preferencesFilePath;
@@ -195,9 +158,6 @@ public class PreferencesService implements InitializingBean {
       preferences = new Preferences();
     }
 
-    setLoggingLevel();
-    JavaFxUtil.addListener(preferences.debugLogEnabledProperty(), (observable, oldValue, newValue) -> setLoggingLevel());
-
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
     if (Files.notExists(gamePrefs)) {
       log.info("Initializing game preferences file: {}", gamePrefs);
@@ -213,11 +173,6 @@ public class PreferencesService implements InitializingBean {
   private void migratePreferences(Preferences preferences) {
     preferences.getLocalization().setDateFormat(preferences.getChat().getDateFormat());
     storeInBackground();
-  }
-
-  public static void configureLogging() {
-    // Calling this method causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
-    log.debug("Logger initialized");
   }
 
 
@@ -241,10 +196,6 @@ public class PreferencesService implements InitializingBean {
 
   public Path getFafDataDirectory() {
     return FAF_DATA_DIRECTORY;
-  }
-
-  public Path getIceAdapterLogDirectory() {
-    return getFafLogDirectory().resolve("iceAdapterLogs");
   }
 
   /**
@@ -374,41 +325,8 @@ public class PreferencesService implements InitializingBean {
     return FEATURED_MOD_CACHE_PATH;
   }
 
-  public Path getFafLogDirectory() {
-    return getFafDataDirectory().resolve("logs");
-  }
-
   public Path getThemesDirectory() {
     return getFafDataDirectory().resolve("themes");
-  }
-
-  public Path getNewGameLogFile(int gameUID) {
-    try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
-      listOfLogFiles
-          .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches())
-          .sorted(Comparator.comparingLong(p -> ((Path) p).toFile().lastModified()).reversed())
-          .skip(NUMBER_GAME_LOGS_STORED - 1)
-          .forEach(p -> {
-            try {
-              Files.delete(p);
-            } catch (IOException e) {
-              log.warn("Could not delete log file {}", p, e);
-            }
-          });
-    } catch (IOException e) {
-      log.error("Could not list log directory.", e);
-    }
-    return getFafLogDirectory().resolve(String.format("game_%d.log", gameUID));
-  }
-
-  public Optional<Path> getMostRecentGameLogFile() {
-    try (Stream<Path> listOfLogFiles = Files.list(getFafLogDirectory())) {
-      return listOfLogFiles
-          .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches()).max(Comparator.comparingLong(p -> p.toFile().lastModified()));
-    } catch (IOException e) {
-      log.error("Could not list log directory.", e);
-    }
-    return Optional.empty();
   }
 
   public boolean isGamePathValid() {
@@ -504,20 +422,5 @@ public class PreferencesService implements InitializingBean {
         throw new CompletionException(e);
       }
     });
-  }
-
-  public void setLoggingLevel() {
-    storeInBackground();
-    Level targetLogLevel = preferences.isDebugLogEnabled() ? Level.DEBUG : Level.INFO;
-    final LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())).getLoggerContext();
-    loggerContext.getLoggerList()
-        .stream()
-        .filter(logger -> logger.getName().startsWith("com.faforever"))
-        .forEach(logger -> ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger.getName())).setLevel(targetLogLevel));
-
-    log.info("Switching FA Forever logging configuration to {}", targetLogLevel.levelStr);
-    if (targetLogLevel == Level.DEBUG) {
-      log.debug("Confirming debug logging");
-    }
   }
 }

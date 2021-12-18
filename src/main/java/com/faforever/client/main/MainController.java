@@ -14,6 +14,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.logging.LoggingService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -569,7 +570,7 @@ public class MainController implements Controller<Node> {
   }
 
   public void onRevealLogFolder() {
-    Path logPath = preferencesService.getFafLogDirectory();
+    Path logPath = LoggingService.FAF_LOG_DIRECTORY;
     this.platformService.reveal(logPath);
   }
 
