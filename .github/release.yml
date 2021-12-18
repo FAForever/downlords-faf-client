@@ -13,8 +13,8 @@ changelog:
       labels:
         - "*"
       exclude:
-        authors:
-          - "dependabot"
+        labels:
+          - dependencies
     - title: Dependency Updates
       labels:
         - dependencies
