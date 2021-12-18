@@ -75,9 +75,8 @@ jobs:
       - name: Create Draft Release
         id: create_release
         uses: ncipollo/release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          commit: ${{ github.sha }}
           tag: v${{ github.event.inputs.version }}
           name: v${{ github.event.inputs.version }}
           draft: true
