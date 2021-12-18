@@ -81,7 +81,7 @@ jobs:
           tag: v${{ github.event.inputs.version }}
           name: v${{ github.event.inputs.version }}
           draft: true
-          prerelease: ${{ steps.tag_check.outputs.major_release ~= 'true'}}
+          prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
           generateReleaseNotes: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
