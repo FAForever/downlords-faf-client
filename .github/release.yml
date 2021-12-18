@@ -16,5 +16,5 @@ changelog:
         authors:
           - "dependabot"
     - title: Dependency Updates
-        labels:
-          - dependencies
+      labels:
+        - dependencies
