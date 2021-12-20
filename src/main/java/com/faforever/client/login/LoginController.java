@@ -163,11 +163,7 @@ public class LoginController implements Controller<Pane> {
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
             if (minimumVersion != null) {
-              try {
-                shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
-              } catch (Exception e) {
-                log.error("Error occurred checking for update", e);
-              }
+              shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
 
               if (shouldUpdate) {
                 JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
