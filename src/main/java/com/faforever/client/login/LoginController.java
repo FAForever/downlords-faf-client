@@ -155,32 +155,31 @@ public class LoginController implements Controller<Pane> {
 
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
-          .thenAccept(clientConfiguration -> {
+          .thenApply(clientConfiguration -> {
             ServerEndpoints defaultEndpoint = clientConfiguration.getEndpoints().get(0);
 
             clientProperties.updateFromEndpoint(defaultEndpoint);
 
             String minimumVersion = clientConfiguration.getLatestRelease().getMinimumVersion();
             boolean shouldUpdate = false;
-            try {
+            if (minimumVersion != null) {
               shouldUpdate = Version.shouldUpdate(Version.getCurrentVersion(), minimumVersion);
-            } catch (Exception e) {
-              log.error("Error occurred checking for update", e);
-            }
 
-            if (minimumVersion != null && shouldUpdate) {
-              JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
+              if (shouldUpdate) {
+                JavaFxUtil.runLater(() -> showClientOutdatedPane(minimumVersion));
+              }
             }
 
             JavaFxUtil.runLater(() -> {
               environmentComboBox.getItems().addAll(clientConfiguration.getEndpoints());
               environmentComboBox.getSelectionModel().select(defaultEndpoint);
             });
+            return shouldUpdate;
           }).exceptionally(throwable -> {
             log.warn("Could not read remote preferences", throwable);
-            return null;
-          }).thenRun(() -> {
-            if (loginPrefs.isRememberMe() && loginPrefs.getRefreshToken() != null) {
+            return false;
+          }).thenAccept(shouldUpdate -> {
+            if (!shouldUpdate && loginPrefs.isRememberMe() && loginPrefs.getRefreshToken() != null) {
               loginWithToken();
             }
           });

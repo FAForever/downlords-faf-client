@@ -245,7 +245,43 @@ public class LoginControllerTest extends UITest {
   }
 
   @Test
-  public void testInitializeWithMandatoryUpdate() throws Exception {
+  public void testInitializeWithMandatoryUpdateWithAutoLogin() throws Exception {
+    UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
+    ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
+        .defaultValues()
+        .latestRelease()
+        .minimumVersion("2.1.2")
+        .then()
+        .get();
+
+    preferences.getLogin().setRememberMe(true);
+    preferences.getLogin().setRefreshToken("abc");
+
+    VersionTest.setCurrentVersion("1.2.0");
+
+    when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
+    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
+
+    clientProperties.setUseRemotePreferences(true);
+
+    assertThat(instance.loginErrorLabel.isVisible(), is(false));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(false));
+    assertThat(instance.loginFormPane.isDisable(), is(false));
+
+    runOnFxThreadAndWait(() -> instance.initialize());
+
+    assertThat(instance.loginErrorLabel.isVisible(), is(true));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(true));
+    assertThat(instance.loginFormPane.isDisable(), is(true));
+
+    verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
+    verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
+    verify(userService, never()).loginWithRefreshToken();
+    verify(userService, never()).login(anyString());
+  }
+
+  @Test
+  public void testInitializeWithMandatoryUpdateNoAutoLogin() throws Exception {
     UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
         .defaultValues()
@@ -273,6 +309,8 @@ public class LoginControllerTest extends UITest {
 
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
+    verify(userService, never()).loginWithRefreshToken();
+    verify(userService, never()).login(anyString());
   }
 
   @Test
