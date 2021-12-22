@@ -2,6 +2,7 @@ package com.faforever.client.config;
 
 import com.faforever.client.exception.ConfigurationException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jasminb.jsonapi.ResourceConverter;
 import com.github.jasminb.jsonapi.annotations.Type;
@@ -19,7 +20,9 @@ public class JsonApiConfig {
 
   @Bean
   public ResourceConverter resourceConverter(ObjectMapper objectMapper) {
-    return new ResourceConverter(objectMapper.copy().setSerializationInclusion(Include.NON_NULL),
+    return new ResourceConverter(objectMapper.copy()
+        .setSerializationInclusion(Include.NON_NULL)
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE),
         findJsonApiTypes("com.faforever.commons.api.dto"));
   }
 
