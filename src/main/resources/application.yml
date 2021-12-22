@@ -68,6 +68,7 @@ spring:
     name: FAF Client
   main:
     web-application-type: none
+    allow-circular-references: true
   codec:
     max-in-memory-size: 16MB
 

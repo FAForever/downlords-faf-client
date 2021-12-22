@@ -46,7 +46,7 @@ public class FriendOnlineNotifierTest extends ServiceTest {
 
     instance.onPlayerOnline(new PlayerOnlineEvent(PlayerBeanBuilder.create().defaultValues().username("axel12").get()));
 
-    Mockito.verifyZeroInteractions(notificationService, audioService);
+    Mockito.verifyNoInteractions(notificationService, audioService);
   }
 
 }

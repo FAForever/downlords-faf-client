@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class OnGameFullNotifierTest extends ServiceTest {
@@ -85,6 +85,6 @@ public class OnGameFullNotifierTest extends ServiceTest {
 
     instance.onGameFull(new GameFullEvent());
 
-    verifyZeroInteractions(notificationService);
+    verifyNoInteractions(notificationService);
   }
 }

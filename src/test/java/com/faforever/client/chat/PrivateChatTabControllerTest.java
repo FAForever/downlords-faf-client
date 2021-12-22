@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PrivateChatTabControllerTest extends UITest {
@@ -140,7 +140,7 @@ public class PrivateChatTabControllerTest extends UITest {
   @Test
   public void testOnChatMessageFocusedDoesntTriggersNotification() {
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
-    verifyZeroInteractions(notificationService);
+    verifyNoInteractions(notificationService);
   }
 
   @Test
