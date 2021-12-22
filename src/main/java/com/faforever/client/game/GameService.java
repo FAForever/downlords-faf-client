@@ -89,7 +89,6 @@ import java.util.regex.Pattern;
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
 import static java.nio.charset.StandardCharsets.US_ASCII;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -288,10 +287,10 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, Map.of(), newGameInfo.getSimMods())
+    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
-        .thenAccept(gameLaunchMessage -> startGame(gameLaunchMessage));
+        .thenAccept(this::startGame);
   }
 
   private void addAlreadyInQueueNotification() {
@@ -317,10 +316,9 @@ public class GameService implements InitializingBean {
 
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
-    Map<String, Integer> featuredModVersions = game.getFeaturedModVersions();
     Set<String> simModUIds = game.getSimMods().keySet();
     return modService.getFeaturedMod(game.getFeaturedMod())
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, featuredModVersions, simModUIds))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, simModUIds))
         .thenAccept(aVoid -> {
           try {
             modService.enableSimMods(simModUIds);
@@ -368,7 +366,7 @@ public class GameService implements InitializingBean {
     }
 
     return modService.getFeaturedMod(featuredMod)
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, modVersions, simMods))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, simMods))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName)
             .handleAsync((ignoredResult, throwable) -> {
               try {
@@ -463,11 +461,10 @@ public class GameService implements InitializingBean {
 
     GameBean game = getByUid(gameId);
 
-    Map<String, Integer> modVersions = game.getFeaturedModVersions();
     Set<String> simModUids = game.getSimMods().keySet();
 
     return modService.getFeaturedMod(gameType)
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, modVersions, simModUids))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
               Process processCreated;
@@ -522,7 +519,7 @@ public class GameService implements InitializingBean {
     log.info("Matchmaking search has been started");
 
     matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
-        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
+        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
             .thenCompose(aVoid -> startGame(gameLaunchMessage)));
@@ -562,8 +559,8 @@ public class GameService implements InitializingBean {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, @Nullable Integer version, @NotNull Map<String, Integer> featuredModVersions, @NotNull Set<String> simModUids) {
-    return gameUpdater.update(featuredModBean, version, featuredModVersions, simModUids);
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, @Nullable Integer version, @NotNull Set<String> simModUids) {
+    return gameUpdater.update(featuredModBean, version, simModUids);
   }
 
   public boolean isGameRunning() {
@@ -793,7 +790,7 @@ public class GameService implements InitializingBean {
     }
 
     modService.getFeaturedMod(TUTORIALS.getTechnicalName())
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptyMap(), emptySet()))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptySet()))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))
         .thenAccept(aVoid -> {
           try {

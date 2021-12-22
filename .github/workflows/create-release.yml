@@ -78,10 +78,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          commitish: ${{ github.sha }}
           tag_name: v${{ github.event.inputs.version }}
           release_name: v${{ github.event.inputs.version }}
           draft: true
-          prerelease: true
+          prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
+          generate_release_notes: true
 
       - name: Get Artifact Paths
         id: artifact_paths

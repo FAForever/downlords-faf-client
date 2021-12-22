@@ -381,7 +381,7 @@ public class SearchController implements Controller<Pane> {
     if (!conditions.isEmpty()) {
       return qBuilder.and(conditions);
     } else {
-      return qBuilder.and(List.of());
+      return null;
     }
   }
 

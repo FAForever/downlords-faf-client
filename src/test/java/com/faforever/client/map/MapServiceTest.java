@@ -62,7 +62,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -91,10 +90,9 @@ import static org.mockito.Mockito.when;
 public class MapServiceTest extends UITest {
 
   @TempDir
-  public Path gameDirectory;
+  public Path mapsDirectory;
 
   private MapService instance;
-  private Path mapsDirectory;
 
   @Mock
   private PreferencesService preferencesService;
@@ -133,12 +131,10 @@ public class MapServiceTest extends UITest {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
     clientProperties.getVault().setMapDownloadUrlFormat("http://127.0.0.1:65534/fakeDownload/%s");
-    mapsDirectory = Files.createDirectories(gameDirectory.resolve("maps"));
 
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
         .customMapsDirectory(mapsDirectory)
-        .installationPath(gameDirectory)
         .then()
         .get();
 

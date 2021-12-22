@@ -38,7 +38,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -107,11 +106,7 @@ public class CreateGameControllerTest extends UITest {
 
     mapList = FXCollections.observableArrayList();
 
-    preferences = PreferencesBuilder.create().defaultValues()
-        .forgedAlliancePrefs()
-        .installationPath(Path.of(""))
-        .then()
-        .get();
+    preferences = PreferencesBuilder.create().defaultValues().get();
     when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
     when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
     when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());

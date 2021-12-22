@@ -25,7 +25,6 @@ public class GameBeanBuilder {
     passwordProtected(false);
     password("");
     featuredMod(KnownFeaturedMod.DEFAULT.getTechnicalName());
-    featuredModVersions(FXCollections.emptyObservableMap());
     victoryCondition(VictoryCondition.DEMORALIZATION);
     host("Host");
     mapFolderName("mapName");
@@ -145,11 +144,6 @@ public class GameBeanBuilder {
 
   public GameBeanBuilder teams(Map<String, List<String>> teams) {
     gameBean.setTeams(teams);
-    return this;
-  }
-
-  public GameBeanBuilder featuredModVersions(Map<String, Integer> featuredModVersions) {
-    gameBean.setFeaturedModVersions(featuredModVersions);
     return this;
   }
 

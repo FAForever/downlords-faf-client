@@ -142,6 +142,25 @@ public class SearchControllerTest extends UITest {
   }
 
   @Test
+  public void testBuildQueryEmpty() throws Exception {
+    CheckBox checkBox = new CheckBox();
+    doAnswer(invocation -> {
+          checkBox.selectedProperty().addListener((InvalidationListener) invocation.getArgument(0));
+          return null;
+        }
+    ).when(filterNodeController).addQueryListener(any(InvalidationListener.class));
+    when(filterNodeController.getRoot()).thenReturn(checkBox);
+
+    instance.addFilterNode(filterNodeController);
+
+    when(filterNodeController.getCondition()).thenReturn(Optional.empty());
+
+    checkBox.setSelected(true);
+
+    assertTrue(instance.queryTextField.getText().isBlank());
+  }
+
+  @Test
   public void testBuildQueryWithFilter() throws Exception {
     CheckBox checkBox = new CheckBox();
     doAnswer(invocation -> {
