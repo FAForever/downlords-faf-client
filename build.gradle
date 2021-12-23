@@ -301,7 +301,7 @@ dependencies {
   implementation("org.springframework:spring-web")
   implementation("org.springframework:spring-websocket")
 
-  implementation("com.github.FAForever:faf-java-commons:016488e71a4872716a9c8e79f051a60723a4e56f") {
+  implementation("com.github.FAForever:faf-java-commons:b57165999d0d5eebb389768ed193c8515403837d") {
     exclude module: 'guava'
   }
   implementation("com.google.guava:guava:31.0.1-jre")
