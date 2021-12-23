@@ -238,7 +238,7 @@ public class MapService implements InitializingBean, DisposableBean {
                 } else if (event.kind() == ENTRY_CREATE) {
                   Path mapPath = mapsDirectory.resolve((Path) event.context());
                   try {
-                    Thread.sleep(1000);
+                    Thread.sleep(5000);
                   } catch (InterruptedException e) {
                     log.debug("Thread interrupted ({})", e.getMessage());
                   }
