@@ -641,6 +641,7 @@ public class MapService implements InitializingBean, DisposableBean {
     conditions.add(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
     conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating").lte(meanRating).or()
         .floatNum("mapPool.matchmakerQueueMapPool.minRating").ne(null));
+    // The api doesn't support the ne operation so we manually replace it with isnull which rsql does not support
     String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor())).replace("ex", "isnull");
     Flux<MapVersionBean> matchmakerMapsFlux = fafApiAccessor.getMany(navigator, customFilter)
         .flatMap(mapPoolAssignment -> Mono.fromCallable(() ->
@@ -650,7 +651,7 @@ public class MapService implements InitializingBean, DisposableBean {
         .sort(Comparator.comparing(MapVersionBean::getSize).thenComparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER));
     return Mono.zip(
         matchmakerMapsFlux.skip((long) (page - 1) * count)
-            .takeLast(count).collectList(),
+            .take(count).collectList(),
         matchmakerMapsFlux.count().map(size -> (int) (size - 1) / count + 1)
     ).toFuture();
   }

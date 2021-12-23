@@ -414,6 +414,30 @@ public class MapServiceTest extends UITest {
   }
 
   @Test
+  public void testGetMatchMakerMapsWithPagination() throws Exception {
+    MapPoolAssignmentBean mapPoolAssignment1 = MapPoolAssignmentBeanBuilder.create().defaultValues()
+        .mapVersion(MapVersionBeanBuilder.create().defaultValues().id(1).map(MapBeanBuilder.create().defaultValues().displayName("a").get()).size(MapSize.valueOf(512, 512)).get())
+        .get();
+    MapPoolAssignmentBean mapPoolAssignment2 = MapPoolAssignmentBeanBuilder.create().defaultValues()
+        .mapVersion(MapVersionBeanBuilder.create().defaultValues().id(2).map(MapBeanBuilder.create().defaultValues().displayName("b").get()).size(MapSize.valueOf(512, 512)).get())
+        .get();
+    MapPoolAssignmentBean mapPoolAssignment3 = MapPoolAssignmentBeanBuilder.create().defaultValues()
+        .mapVersion(MapVersionBeanBuilder.create().defaultValues().id(3).map(MapBeanBuilder.create().defaultValues().displayName("c").get()).size(MapSize.valueOf(1024, 1024)).get())
+        .get();
+
+    when(fafApiAccessor.getMany(any(), anyString()))
+        .thenReturn(Flux.fromIterable(matchmakerMapper.mapAssignmentBeans(List.of(mapPoolAssignment1, mapPoolAssignment2, mapPoolAssignment3), new CycleAvoidingMappingContext())));
+    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
+
+    Tuple2<List<MapVersionBean>, Integer> results = instance.getMatchmakerMapsWithPageCount(MatchmakerQueueBeanBuilder.create().defaultValues().get(), 1, 2).join();
+
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(MapPoolAssignment.class)), anyString());
+    assertThat(results.getT1(), hasSize(1));
+    assertThat(results.getT1().get(0).getId(), is(2));
+    assertThat(results.getT2(), is(3));
+  }
+
+  @Test
   public void testHasPlayedMap() throws Exception {
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
 
