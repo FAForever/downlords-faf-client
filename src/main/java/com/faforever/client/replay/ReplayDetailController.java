@@ -17,10 +17,14 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.reporting.ReportDialogController;
@@ -60,6 +64,7 @@ import java.io.FileNotFoundException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +124,7 @@ public class ReplayDetailController implements Controller<Node> {
   public ScrollPane scrollPane;
   public Button showRatingChangeButton;
   public Button reportButton;
+  public Button deleteButton;
   public Label notRatedReasonLabel;
   private ReplayBean replay;
   private ObservableMap<String, List<GamePlayerStatsBean>> teams;
@@ -166,6 +172,7 @@ public class ReplayDetailController implements Controller<Node> {
     playerCountLabel.setTooltip(new Tooltip(i18n.get("replay.playerCountTooltip")));
     ratingLabel.setTooltip(new Tooltip(i18n.get("replay.ratingTooltip")));
     qualityLabel.setTooltip(new Tooltip(i18n.get("replay.qualityTooltip")));
+    deleteButton.setTooltip(new Tooltip(i18n.get("replay.deleteTooltip")));
     reviewsController.setReviewSupplier(ReplayReviewBean::new);
   }
 
@@ -279,6 +286,8 @@ public class ReplayDetailController implements Controller<Node> {
       chatTable.setItems(replay.getChatMessages());
       optionsTable.setItems(replay.getGameOptions());
       moreInformationPane.setVisible(true);
+      deleteButton.setVisible(true);
+      deleteButton.setManaged(true);
     }
   }
 
@@ -425,6 +434,20 @@ public class ReplayDetailController implements Controller<Node> {
       reportDialogController.setOwnerWindow(scene.getWindow());
     }
     reportDialogController.show();
+  }
+
+  public void onDelete() {
+    notificationService.addNotification(new ImmediateNotification(
+        String.format("%s %s", i18n.get("replay.deleteLocal"), replay.getTitle()), i18n.get("replay.deleteWarn"), Severity.INFO, Arrays.asList(
+        new Action(i18n.get("cancel")),
+        new Action(i18n.get("delete"), event -> deleteReplay())
+    )));
+  }
+
+  private void deleteReplay() {
+    replayService.deleteReplayFile(replay.getReplayFile());
+    getRoot().fireEvent(new DeleteLocalReplayEvent());
+    onCloseButtonClicked();
   }
 
   @Override

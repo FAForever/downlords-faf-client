@@ -76,6 +76,7 @@ import java.util.stream.StreamSupport;
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.delete;
 import static java.nio.file.Files.move;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
@@ -235,6 +236,14 @@ public class ReplayService {
             new Action(i18n.get("corruptedReplayFiles.show"), event -> platformService.reveal(replayFile))
         )
     ));
+  }
+
+  public void deleteReplayFile(Path replayFile) {
+    try {
+      delete(replayFile);
+    } catch (IOException e) {
+      log.error("Failed to delete local replay file {}", replayFile, e);
+    }
   }
 
   public void runReplay(ReplayBean item) {

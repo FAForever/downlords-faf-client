@@ -138,9 +138,12 @@
                              </children>
                          </HBox>
                          <HBox fx:id="teamsContainer" alignment="TOP_CENTER" spacing="20.0"/>
-                         <HBox alignment="CENTER_RIGHT">
+                         <HBox alignment="CENTER_RIGHT" spacing="20.0">
                              <Button fx:id="reportButton" alignment="CENTER_RIGHT" mnemonicParsing="false"
                                      onAction="#onReport" text="%game.report"/>
+                             <Button fx:id="deleteButton" alignment="CENTER_RIGHT" mnemonicParsing="false"
+                                     onAction="#onDelete" text="%replay.delete"
+                                     style="-fx-background-color: #8b0000" visible="false" managed="false" />
                          </HBox>
                          <Separator fx:id="ratingSeparator" layoutX="10.0" layoutY="251.0"
                                     maxWidth="1.7976931348623157E308"/>

@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.notification.NotificationService;
@@ -50,8 +51,13 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   protected void onDisplayDetails(ReplayBean replay) {
     JavaFxUtil.assertApplicationThread();
     replayDetailController.setReplay(replay);
+    replayDetailController.getRoot().addEventHandler(DeleteLocalReplayEvent.DELETE_LOCAL_REPLAY_EVENT_TYPE, event -> onLocalReplayDeleted());
     replayDetailController.getRoot().setVisible(true);
     replayDetailController.getRoot().requestFocus();
+  }
+
+  private void onLocalReplayDeleted() {
+    onPageChange(searchController.getLastSearchConfig(), false);
   }
 
   @Override

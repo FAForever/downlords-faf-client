@@ -197,6 +197,8 @@ public class ReplayDetailControllerTest extends UITest {
     assertTrue(instance.downloadMoreInfoButton.isVisible());
     assertTrue(instance.showRatingChangeButton.isVisible());
     assertFalse(instance.showRatingChangeButton.isDisabled());
+    assertFalse(instance.deleteButton.isVisible());
+    assertFalse(instance.deleteButton.isManaged());
     assertNotEquals("-", instance.ratingLabel.getText());
     assertEquals("Min Date", instance.dateLabel.getText());
     assertEquals("Min Time", instance.timeLabel.getText());
@@ -224,6 +226,8 @@ public class ReplayDetailControllerTest extends UITest {
     assertFalse(instance.teamsInfoBox.isVisible());
     assertFalse(instance.downloadMoreInfoButton.isVisible());
     assertFalse(instance.showRatingChangeButton.isVisible());
+    assertTrue(instance.deleteButton.isVisible());
+    assertTrue(instance.deleteButton.isManaged());
     assertTrue(instance.optionsTable.isVisible());
     assertTrue(instance.chatTable.isVisible());
     assertTrue(instance.moreInformationPane.isVisible());
