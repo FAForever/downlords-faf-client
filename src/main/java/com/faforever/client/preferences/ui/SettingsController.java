@@ -326,8 +326,7 @@ public class SettingsController implements Controller<Node> {
     mirrorURLsListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
     mirrorURLsListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
     mirrorURLsListView.getItems().addListener((ListChangeListener<URI>) c -> preferencesService.storeInBackground());
-    JavaFxUtil.bindManagedToVisible(mirrorURLsListView);
-    mirrorURLsListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !mirrorURLsListView.getItems().isEmpty(), mirrorURLsListView.getItems()));
+    mirrorURLsListView.getItems().addListener((ListChangeListener<URI>) c -> mirrorURLsListView.setVisible(!mirrorURLsListView.getItems().isEmpty()));
 
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
