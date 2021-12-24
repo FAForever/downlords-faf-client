@@ -45,7 +45,8 @@ public class DownloadService {
         downloadFile(mirrorUrl, targetFile, progressListener, md5sum);
         return;
       } catch (FileNotFoundException e) {
-        log.warn("Could not download file at {}", mirrorUrl);
+        // URL throws FileNotFoundException when it encounters HTTP errors such as 404
+        log.info("Could not find file at {}", mirrorUrl);
       } catch (ChecksumMismatchException e) {
         log.warn("Checksum did not match for {}", mirrorUrl, e);
       } catch (IOException e) {
@@ -92,7 +93,7 @@ public class DownloadService {
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {
-        log.warn("Could not delete temporary file: " + tempFile.toAbsolutePath(), e);
+        log.warn("Could not delete temporary file: {}", tempFile.toAbsolutePath(), e);
       }
     }
   }
@@ -112,7 +113,7 @@ public class DownloadService {
       try {
         return Optional.of(uri.toURL());
       } catch (MalformedURLException e) {
-        log.warn("Failed to create URL from URI: " + uri);
+        log.warn("Failed to create URL from URI: {}", uri);
         return Optional.empty();
       }
   }

@@ -120,7 +120,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     if (fileAlreadyLoaded(featuredModFile, tempFile)) {
       // Hash matches so use the patched version
       Files.move(tempFile, cachedFilePath, StandardCopyOption.REPLACE_EXISTING);
-      log.debug(String.format("Using locally patched %s for version %d", featuredModFile.getName(), version));
+      log.debug("Using locally patched {} for version {}", featuredModFile.getName(), version);
       return;
     }
 
