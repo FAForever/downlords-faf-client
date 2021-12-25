@@ -1,16 +1,15 @@
 package com.faforever.client.io;
 
+import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCountListener;
-import javafx.collections.FXCollections;
 import org.assertj.core.api.Assertions;
-import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.Answers;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -21,10 +20,11 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -35,14 +35,16 @@ import static org.mockito.Mockito.when;
 
 public class DownloadServiceTest extends ServiceTest {
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  @Mock
   private PreferencesService preferencesService;
 
   private DownloadService instance;
+  private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.openMocks(this);
+    preferences = PreferencesBuilder.create().defaultValues().get();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     instance = new DownloadService(preferencesService);
   }
@@ -64,43 +66,39 @@ public class DownloadServiceTest extends ServiceTest {
 
   @Test
   public void testMirrorUrlList() throws Exception {
-    when(preferencesService.getPreferences().getMirror().getMirrorURLs()).thenReturn(
-        FXCollections.observableArrayList(Arrays.asList(
-            URI.create("https://mirror1.example.com"),
-            URI.create("https://mirror2.example.com/"),
-            URI.create("https://mirror3.example.com/subdirectory"),
-            URI.create("https://mirror4.com"),
-            URI.create("https://mirror5.example.com:8080"),
-            URI.create("https://mirror6.example.com:8080/"),
-            URI.create("https://user:pass@mirror7.example.com:8080/"),
-            URI.create("http://mirror8.example.com/"),
-            URI.create("ftp://mirror9.example.com")
-        )
-    ));
+    preferences.getMirror().getMirrorURLs().setAll(
+        URI.create("https://mirror1.example.com"),
+        URI.create("https://mirror2.example.com/"),
+        URI.create("https://mirror3.example.com/subdirectory"),
+        URI.create("https://mirror4.com"),
+        URI.create("https://mirror5.example.com:8080"),
+        URI.create("https://mirror6.example.com:8080/"),
+        URI.create("https://user:pass@mirror7.example.com:8080/"),
+        URI.create("http://mirror8.example.com/"),
+        URI.create("ftp://mirror9.example.com")
+    );
 
     Assertions.assertThat(instance.getMirrorsFor(new URL("http://content.faforever.com/foo/bar.exe"))).isEqualTo(
-        Arrays.asList(
-            URI.create("https://mirror1.example.com/foo/bar.exe"),
-            URI.create("https://mirror2.example.com/foo/bar.exe"),
-            URI.create("https://mirror3.example.com/subdirectory/foo/bar.exe"),
-            URI.create("https://mirror4.com/foo/bar.exe"),
-            URI.create("https://mirror5.example.com:8080/foo/bar.exe"),
-            URI.create("https://mirror6.example.com:8080/foo/bar.exe"),
-            URI.create("https://user:pass@mirror7.example.com:8080/foo/bar.exe"),
-            URI.create("http://mirror8.example.com/foo/bar.exe")
+        List.of(
+            URI.create("https://mirror1.example.com/foo/bar.exe").toURL(),
+            URI.create("https://mirror2.example.com/foo/bar.exe").toURL(),
+            URI.create("https://mirror3.example.com/subdirectory/foo/bar.exe").toURL(),
+            URI.create("https://mirror4.com/foo/bar.exe").toURL(),
+            URI.create("https://mirror5.example.com:8080/foo/bar.exe").toURL(),
+            URI.create("https://mirror6.example.com:8080/foo/bar.exe").toURL(),
+            URI.create("https://user:pass@mirror7.example.com:8080/foo/bar.exe").toURL(),
+            URI.create("http://mirror8.example.com/foo/bar.exe").toURL()
         )
     );
   }
 
   @Test
   public void testDownloadWithNoMirrors() throws Exception {
-    when(preferencesService.getPreferences().getMirror().getMirrorURLs()).thenReturn(FXCollections.observableArrayList());
-
     DownloadService downloadServiceSpy = Mockito.spy(instance);
 
     URL url = new URL("https://example.com/foo");
     Path targetFile = Paths.get("/some/target");
-    ByteCountListener progressListener = (a, b) -> {return;};
+    ByteCountListener progressListener = (processed, total) -> {};
     String md5sum = "asdf";
     downloadServiceSpy.downloadFileWithMirrors(url, targetFile, progressListener, md5sum);
 
@@ -109,13 +107,11 @@ public class DownloadServiceTest extends ServiceTest {
 
   @Test
   public void testDownloadWithMirrors() throws Exception {
-    when(preferencesService.getPreferences().getMirror().getMirrorURLs()).thenReturn(FXCollections.observableArrayList(
-        Arrays.asList(
-            URI.create("https://mirror1.example.com/"),
-            URI.create("https://mirror2.example.com/"),
-            URI.create("https://mirror3.com/foo")
-        )
-    ));
+    preferences.getMirror().getMirrorURLs().setAll(
+        URI.create("https://mirror1.example.com/"),
+        URI.create("https://mirror2.example.com/"),
+        URI.create("https://mirror3.com/foo")
+    );
 
     DownloadService downloadServiceSpy = Mockito.spy(instance);
     doThrow(IOException.class).when(downloadServiceSpy).downloadFile(any(URL.class), any(Path.class), any(), anyString());
@@ -124,7 +120,7 @@ public class DownloadServiceTest extends ServiceTest {
 
     URL url = new URL("https://example.com/bar");
     Path targetFile = Paths.get("/some/target");
-    ByteCountListener progressListener = (a, b) -> {return;};
+    ByteCountListener progressListener = (processed, total) -> {};
     String md5sum = "asdf";
     downloadServiceSpy.downloadFileWithMirrors(url, targetFile, progressListener, md5sum);
 
@@ -145,13 +141,13 @@ public class DownloadServiceTest extends ServiceTest {
     when(url.openConnection()).thenReturn(urlConnection);
 
     Path temp = Files.createTempFile("download", ".dat");
-    instance.downloadFile(url, temp, (a, b) -> {}, "00000000000000000000000000000000");
+    instance.downloadFile(url, temp, (processed, total) -> {}, "00000000000000000000000000000000");
 
     byte[] data = Files.readAllBytes(temp);
     assertEquals(data, DATA);
   }
 
-  @Test(expected = ChecksumMismatchException.class)
+  @Test
   public void testDownloadFileBadChecksum() throws Exception {
     URL url = mock(URL.class);
     URLConnection urlConnection = mock(URLConnection.class);
@@ -162,6 +158,7 @@ public class DownloadServiceTest extends ServiceTest {
     when(url.openConnection()).thenReturn(urlConnection);
 
     Path temp = Files.createTempFile("download", ".dat");
-    instance.downloadFile(url, temp, (a, b) -> {}, "00000000000000000000000000000000");
+    assertThrows(ChecksumMismatchException.class, () -> instance.downloadFile(url, temp, (processed, total) -> {
+    }, "00000000000000000000000000000000"));
   }
 }
