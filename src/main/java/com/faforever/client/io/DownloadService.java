@@ -14,10 +14,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -66,7 +67,7 @@ public class DownloadService {
     Path tempFile = Files.createTempFile(targetFile.getParent(), "download", null);
     log.debug("Downloading file {} to {}", url, tempFile);
 
-    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+    URLConnection urlConnection = url.openConnection();
 
     ResourceLocks.acquireDownloadLock();
     MessageDigest messageDigest = MessageDigest.getInstance("MD5");
@@ -109,11 +110,11 @@ public class DownloadService {
   }
 
   public Optional<URL> getMirrorURL(URI mirror, URL url) {
-      URI uri = mirror.resolve(url.getPath());
       try {
-        return Optional.of(uri.toURL());
-      } catch (MalformedURLException e) {
-        log.warn("Failed to create URL from URI: {}", uri);
+        URI uri = new URL(mirror.toURL(), "." + url.getPath()).toURI();
+        return Optional.of(uri.normalize().toURL());
+      } catch (MalformedURLException | URISyntaxException e) {
+        log.warn("Failed to create mirror URL: mirror='{}', url='{}'", mirror, url, e);
         return Optional.empty();
       }
   }

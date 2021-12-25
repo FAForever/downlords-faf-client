@@ -608,6 +608,9 @@ public class SettingsController implements Controller<Node> {
     if (text.isBlank()) {
       return;
     }
+    if (!text.endsWith("/")) {
+      text = text + "/";
+    }
 
     URI uri = null;
     try {

@@ -195,9 +195,9 @@ public class SettingsControllerTest extends UITest {
   @Test
   public void testOnAddMirrorButtonPressed() {
     preferences.getMirror().getMirrorURLs().clear();
-    instance.mirrorURITextField.setText("https://faf-mirror.example.com");
+    instance.mirrorURITextField.setText("https://faf-mirror.example.com/");
     instance.onAddMirrorURL();
-    List<URI> expected = Collections.singletonList(URI.create("https://faf-mirror.example.com"));
+    List<URI> expected = Collections.singletonList(URI.create("https://faf-mirror.example.com/"));
     assertThat(preferences.getMirror().getMirrorURLs(), is(expected));
     assertThat(instance.mirrorURITextField.getText(), is(""));
   }
@@ -212,7 +212,7 @@ public class SettingsControllerTest extends UITest {
     instance.onAddMirrorURL();
     assertThat(instance.mirrorURITextField.getText(), is("https://faf-mirror.example.com"));
     instance.onAddMirrorURL();
-    List<URI> expected = Collections.singletonList(URI.create("https://faf-mirror.example.com"));
+    List<URI> expected = Collections.singletonList(URI.create("https://faf-mirror.example.com/"));
     assertThat(preferences.getMirror().getMirrorURLs(), is(expected));
     assertThat(instance.mirrorURITextField.getText(), is("https://faf-mirror.example.com"));
   }
@@ -233,5 +233,9 @@ public class SettingsControllerTest extends UITest {
     instance.onAddMirrorURL();
     assertThat(preferences.getMirror().getMirrorURLs(), is(Collections.emptyList()));
     assertThat(instance.mirrorURITextField.getText(), is("faf-mirror.example.com"));
+    instance.mirrorURITextField.setText("spam://faf-mirror.example.com");
+    instance.onAddMirrorURL();
+    assertThat(preferences.getMirror().getMirrorURLs(), is(Collections.emptyList()));
+    assertThat(instance.mirrorURITextField.getText(), is("spam://faf-mirror.example.com"));
   }
 }
