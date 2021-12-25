@@ -12,10 +12,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -25,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -128,5 +132,36 @@ public class DownloadServiceTest extends ServiceTest {
     verify(downloadServiceSpy).downloadFile(new URL("https://mirror2.example.com/bar"), targetFile, progressListener, md5sum);
     verify(downloadServiceSpy).downloadFile(new URL("https://mirror1.example.com/foo/bar"), targetFile, progressListener, md5sum);
     verify(downloadServiceSpy).downloadFile(new URL("https://example.com/bar"), targetFile, progressListener, md5sum);
+  }
+
+  @Test
+  public void testDownloadFile() throws Exception {
+    URL url = mock(URL.class);
+    URLConnection urlConnection = mock(URLConnection.class);
+
+    byte[] DATA = "some content".getBytes();
+    when(url.openStream()).thenReturn(new ByteArrayInputStream(DATA));
+    when(urlConnection.getContentLength()).thenReturn(DATA.length);
+    when(url.openConnection()).thenReturn(urlConnection);
+
+    Path temp = Files.createTempFile("download", ".dat");
+    instance.downloadFile(url, temp, (a, b) -> {}, "00000000000000000000000000000000");
+
+    byte[] data = Files.readAllBytes(temp);
+    assertEquals(data, DATA);
+  }
+
+  @Test(expected = ChecksumMismatchException.class)
+  public void testDownloadFileBadChecksum() throws Exception {
+    URL url = mock(URL.class);
+    URLConnection urlConnection = mock(URLConnection.class);
+
+    byte[] DATA = "some content".getBytes();
+    when(url.openStream()).thenReturn(new ByteArrayInputStream(DATA));
+    when(urlConnection.getContentLength()).thenReturn(DATA.length);
+    when(url.openConnection()).thenReturn(urlConnection);
+
+    Path temp = Files.createTempFile("download", ".dat");
+    instance.downloadFile(url, temp, (a, b) -> {}, "00000000000000000000000000000000");
   }
 }

@@ -614,6 +614,7 @@ public class SettingsController implements Controller<Node> {
       uri = new URL(text).toURI();
     } catch (URISyntaxException | MalformedURLException e) {
       log.debug("Failed to add invalid URL: {}", text, e);
+      return;
     }
 
     if (mirrorURLsListView.getItems().contains(uri)) {
