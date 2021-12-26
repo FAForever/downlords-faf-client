@@ -163,6 +163,7 @@ public class LeaderboardService {
         );
     return fafApiAccessor.getMany(navigator)
         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
+        .filter(leagueEntryBean -> leagueEntryBean.getSubdivision() != null)
         .reduce((score1, score2) -> SUBDIVISION_COMPARATOR.compare(score1.getSubdivision(), score2.getSubdivision()) > 0 ? score1 : score2)
         .toFuture()
         .thenApply(Optional::ofNullable);
