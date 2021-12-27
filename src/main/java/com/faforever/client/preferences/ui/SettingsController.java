@@ -317,16 +317,19 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
     autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
-    autoChannelListView.getItems().addListener((ListChangeListener<String>) c -> preferencesService.storeInBackground());
-    JavaFxUtil.bindManagedToVisible(autoChannelListView);
-    autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
+    JavaFxUtil.addListener(autoChannelListView.getItems(), (ListChangeListener<String>) c -> {
+      preferencesService.storeInBackground();
+      autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty());
+    });
 
     mirrorURLsListView.setSelectionModel(new NoSelectionModel<>());
     mirrorURLsListView.setFocusTraversable(false);
     mirrorURLsListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
     mirrorURLsListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
-    mirrorURLsListView.getItems().addListener((ListChangeListener<URI>) c -> preferencesService.storeInBackground());
-    mirrorURLsListView.getItems().addListener((ListChangeListener<URI>) c -> mirrorURLsListView.setVisible(!mirrorURLsListView.getItems().isEmpty()));
+    JavaFxUtil.addListener(mirrorURLsListView.getItems(), (ListChangeListener<URI>) c -> {
+      preferencesService.storeInBackground();
+      mirrorURLsListView.setVisible(!mirrorURLsListView.getItems().isEmpty());
+    });
 
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
