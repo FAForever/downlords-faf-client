@@ -181,15 +181,30 @@ public class LeaderboardServiceTest extends ServiceTest {
     SubdivisionBean subdivisionBean2 = SubdivisionBeanBuilder.create().defaultValues().index(3).get();
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean1).get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(subdivisionBean2).get();
+    LeagueEntryBean leagueEntryBean3 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(null).get();
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
         leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
-        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext())));
+        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext()),
+        leaderboardMapper.map(leagueEntryBean3, new CycleAvoidingMappingContext())));
 
     Optional<LeagueEntryBean> result = instance.getHighestLeagueEntryForPlayer(player).toCompletableFuture().join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
     Assertions.assertEquals(leagueEntryBean2, result.orElse(null));
+  }
+
+  @Test
+  public void testGetHighestLeagueEntryForPlayerNoSubdivision() {
+    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().subdivision(null).get();
+
+    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(
+        leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext())));
+
+    Optional<LeagueEntryBean> result = instance.getHighestLeagueEntryForPlayer(player).toCompletableFuture().join();
+
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
+    Assertions.assertTrue(result.isEmpty());
   }
 
   @Test
