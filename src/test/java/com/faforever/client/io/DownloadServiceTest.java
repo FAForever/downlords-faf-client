@@ -35,6 +35,7 @@ import static org.mockito.Mockito.when;
 
 public class DownloadServiceTest extends ServiceTest {
   private static final ClassPathResource SAMPLE_FILE = new ClassPathResource("/io/sample-file.txt");
+  private static final String SAMPLE_FILE_CHECKSUM = "b53227da4280f0e18270f21dd77c91d0";
 
   @Mock
   private PreferencesService preferencesService;
@@ -156,7 +157,7 @@ public class DownloadServiceTest extends ServiceTest {
   @Test
   public void testDownloadFile() throws Exception {
     Path temp = Files.createTempFile("download", ".dat");
-    instance.downloadFile(SAMPLE_FILE.getURL(), temp, (processed, total) -> {}, "b53227da4280f0e18270f21dd77c91d0");
+    instance.downloadFile(SAMPLE_FILE.getURL(), temp, (processed, total) -> {}, SAMPLE_FILE_CHECKSUM);
 
     byte[] data = Files.readAllBytes(temp);
     assertArrayEquals(data, "Some content".getBytes());
