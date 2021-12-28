@@ -615,20 +615,20 @@ public class SettingsController implements Controller<Node> {
       text = text + "/";
     }
 
-    URI uri = null;
     try {
-      uri = new URL(text).toURI();
+      URI uri = new URL(text).toURI();
+
+      if (mirrorURLsListView.getItems().contains(uri)) {
+        return;
+      }
+      preferencesService.getPreferences().getMirror().getMirrorURLs().add(uri);
+      preferencesService.storeInBackground();
+      mirrorURITextField.clear();
     } catch (URISyntaxException | MalformedURLException e) {
       log.debug("Failed to add invalid URL: {}", text, e);
+      notificationService.addImmediateWarnNotification("settings.data.mirrorURLs.add.error", e.getMessage());
       return;
     }
-
-    if (mirrorURLsListView.getItems().contains(uri)) {
-      return;
-    }
-    preferencesService.getPreferences().getMirror().getMirrorURLs().add(uri);
-    preferencesService.storeInBackground();
-    mirrorURITextField.clear();
   }
 }
 
