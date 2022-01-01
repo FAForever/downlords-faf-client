@@ -56,7 +56,7 @@ public class VaultPrefs {
   }
 
   public ObservableMap<String, String> getSavedReplayQueries() {
-    return savedReplayQueries;
+    return savedReplayQueries.get();
   }
 
   public void setSavedReplayQueries(ObservableMap<String, String> savedReplayQueries) {
