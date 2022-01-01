@@ -6,54 +6,32 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import lombok.Value;
 
+@Value
 public class NotificationsPrefs {
 
-  private final BooleanProperty soundsEnabled;
-  private final BooleanProperty transientNotificationsEnabled;
-  private final BooleanProperty mentionSoundEnabled;
-  private final BooleanProperty infoSoundEnabled;
-  private final BooleanProperty warnSoundEnabled;
-  private final BooleanProperty errorSoundEnabled;
-  private final BooleanProperty friendOnlineToastEnabled;
-  private final BooleanProperty friendOfflineToastEnabled;
-  private final BooleanProperty friendOnlineSoundEnabled;
-  private final BooleanProperty friendOfflineSoundEnabled;
-  private final BooleanProperty friendJoinsGameSoundEnabled;
-  private final BooleanProperty friendPlaysGameSoundEnabled;
-  private final BooleanProperty friendPlaysGameToastEnabled;
-  private final BooleanProperty privateMessageSoundEnabled;
-  private final BooleanProperty privateMessageToastEnabled;
-  private final BooleanProperty friendJoinsGameToastEnabled;
-  private final BooleanProperty notifyOnAtMentionOnlyEnabled;
-  private final BooleanProperty afterGameReviewEnabled;
-  private final ObjectProperty<ToastPosition> toastPosition;
-  private final IntegerProperty toastScreen;
-  private final IntegerProperty toastDisplayTime;
-
-  public NotificationsPrefs() {
-    soundsEnabled = new SimpleBooleanProperty(true);
-    mentionSoundEnabled = new SimpleBooleanProperty(true);
-    infoSoundEnabled = new SimpleBooleanProperty(true);
-    warnSoundEnabled = new SimpleBooleanProperty(true);
-    errorSoundEnabled = new SimpleBooleanProperty(true);
-    transientNotificationsEnabled = new SimpleBooleanProperty(true);
-    toastPosition = new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT);
-    friendOnlineToastEnabled = new SimpleBooleanProperty(true);
-    friendOfflineToastEnabled = new SimpleBooleanProperty(true);
-    friendOnlineSoundEnabled = new SimpleBooleanProperty(true);
-    friendOfflineSoundEnabled = new SimpleBooleanProperty(true);
-    friendJoinsGameSoundEnabled = new SimpleBooleanProperty(true);
-    friendPlaysGameSoundEnabled = new SimpleBooleanProperty(true);
-    friendPlaysGameToastEnabled = new SimpleBooleanProperty(true);
-    friendJoinsGameToastEnabled = new SimpleBooleanProperty(true);
-    privateMessageSoundEnabled = new SimpleBooleanProperty(true);
-    privateMessageToastEnabled = new SimpleBooleanProperty(true);
-    notifyOnAtMentionOnlyEnabled = new SimpleBooleanProperty(false);
-    toastScreen = new SimpleIntegerProperty(0);
-    toastDisplayTime = new SimpleIntegerProperty(5000);
-    afterGameReviewEnabled = new SimpleBooleanProperty(true);
-  }
+  BooleanProperty soundsEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty mentionSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty infoSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty warnSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty errorSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty transientNotificationsEnabled = new SimpleBooleanProperty(true);
+  ObjectProperty<ToastPosition> toastPosition = new SimpleObjectProperty<>(ToastPosition.BOTTOM_RIGHT);
+  BooleanProperty friendOnlineToastEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty friendOfflineToastEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty friendOnlineSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty friendOfflineSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty friendJoinsGameSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty friendPlaysGameSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty friendPlaysGameToastEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty friendJoinsGameToastEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty privateMessageSoundEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty privateMessageToastEnabled = new SimpleBooleanProperty(true);
+  BooleanProperty notifyOnAtMentionOnlyEnabled = new SimpleBooleanProperty(false);
+  IntegerProperty toastScreen = new SimpleIntegerProperty(0);
+  IntegerProperty toastDisplayTime = new SimpleIntegerProperty(5000);
+  BooleanProperty afterGameReviewEnabled = new SimpleBooleanProperty(true);
 
   public boolean isSoundsEnabled() {
     return soundsEnabled.get();

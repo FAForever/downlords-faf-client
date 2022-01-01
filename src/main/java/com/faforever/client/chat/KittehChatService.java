@@ -26,6 +26,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.Hashing;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -34,7 +35,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
@@ -141,10 +141,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     JavaFxUtil.addListener(chatPrefs.userToColorProperty(),
-        (MapChangeListener<? super String, ? super Color>) change -> preferencesService.storeInBackground()
+        (InvalidationListener) change -> preferencesService.storeInBackground()
     );
     JavaFxUtil.addListener(chatPrefs.groupToColorProperty(),
-        (MapChangeListener<? super ChatUserCategory, ? super Color>) change -> {
+        (InvalidationListener) change -> {
           preferencesService.storeInBackground();
           updateUserColors(chatPrefs.getChatColorMode());
         }

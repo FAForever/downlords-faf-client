@@ -2,19 +2,15 @@ package com.faforever.client.preferences;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import lombok.Value;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
-
+@Value
 public class LocalizationPrefs {
-  private final ObjectProperty<Locale> language;
-  private final ObjectProperty<DateInfo> dateFormat;
-
-  public LocalizationPrefs() {
-    language = new SimpleObjectProperty<>();
-    dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
-  }
+  ObjectProperty<Locale> language = new SimpleObjectProperty<>();
+  ObjectProperty<DateInfo> dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
 
   @Nullable
   public Locale getLanguage() {

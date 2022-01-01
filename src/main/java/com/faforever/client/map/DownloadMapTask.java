@@ -46,7 +46,7 @@ public class DownloadMapTask extends CompletableTask<Void> {
     URLConnection urlConnection = mapUrl.openConnection();
     int bytesToRead = urlConnection.getContentLength();
 
-    Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    Path targetDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
 
     try (InputStream inputStream = urlConnection.getInputStream()) {
       Unzipper.from(inputStream)

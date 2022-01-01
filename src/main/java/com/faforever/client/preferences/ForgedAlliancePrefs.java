@@ -10,11 +10,12 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.Value;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
+@Value
 public class ForgedAlliancePrefs {
 
   public static final Path FAF_VAULT_PATH;
@@ -38,20 +39,16 @@ public class ForgedAlliancePrefs {
     }
   }
 
-  private final ObjectProperty<Path> installationPath;
-  private final ObjectProperty<Path> preferencesFile;
-  private final ObjectProperty<Path> vaultBaseDirectory;
+  ObjectProperty<Path> installationPath;
+  ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
+  ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>(FAF_VAULT_PATH);
   @JsonIgnore
-  private final ObjectProperty<Path> customMapsDirectory;
+  ObjectProperty<Path> mapsDirectory = new SimpleObjectProperty<>();
   @JsonIgnore
-  private final ObjectProperty<Path> modsDirectory;
-  private final BooleanProperty forceRelay;
-  private final BooleanProperty autoDownloadMaps;
-  private final BooleanProperty allowReplaysWhileInGame;
-  /**
-   * Saves if the client checked for special cases in which it needs to set the fallback vault location. See {@link
-   */
-  private final BooleanProperty vaultCheckDone;
+  ObjectProperty<Path> modsDirectory = new SimpleObjectProperty<>();
+  BooleanProperty forceRelay = new SimpleBooleanProperty(false);
+  BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
+  BooleanProperty allowReplaysWhileInGame = new SimpleBooleanProperty(false);
 
   /**
    * String format to use when building the launch command. Takes exact one parameter; the executable path. <p>
@@ -61,35 +58,25 @@ public class ForgedAlliancePrefs {
    * <pre>wine "C:\Game\ForgedAlliance.exe"</pre>
    * </p>
    */
-  private final StringProperty executableDecorator;
-  private final ObjectProperty<Path> executionDirectory;
+  StringProperty executableDecorator = new SimpleStringProperty();
+  ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
 
   public ForgedAlliancePrefs() {
-    forceRelay = new SimpleBooleanProperty(false);
     if (Files.isRegularFile(STEAM_FA_PATH.resolve("bin").resolve(PreferencesService.SUPREME_COMMANDER_EXE))) {
       installationPath = new SimpleObjectProperty<>(STEAM_FA_PATH);
     } else {
       installationPath = new SimpleObjectProperty<>();
     }
-    vaultBaseDirectory = new SimpleObjectProperty<>(FAF_VAULT_PATH);
-    customMapsDirectory = new SimpleObjectProperty<>();
-    modsDirectory = new SimpleObjectProperty<>();
-    preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
-    autoDownloadMaps = new SimpleBooleanProperty(true);
-    executableDecorator = new SimpleStringProperty();
-    executionDirectory = new SimpleObjectProperty<>();
-    vaultCheckDone = new SimpleBooleanProperty(false);
     bindVaultPath();
-    allowReplaysWhileInGame = new SimpleBooleanProperty(false);
   }
 
   /**
    * Needs to be called after gson deserialization again. Because otherwise the both are bound to the default vaultBaseDirectory and not the one loaded by Gson.
    */
   void bindVaultPath() {
-    customMapsDirectory.unbind();
+    mapsDirectory.unbind();
     modsDirectory.unbind();
-    customMapsDirectory.bind(Bindings.createObjectBinding(() -> getVaultBaseDirectory().resolve("maps"), vaultBaseDirectory));
+    mapsDirectory.bind(Bindings.createObjectBinding(() -> getVaultBaseDirectory().resolve("maps"), vaultBaseDirectory));
     modsDirectory.bind(Bindings.createObjectBinding(() -> getVaultBaseDirectory().resolve("mods"), vaultBaseDirectory));
   }
 
@@ -141,16 +128,16 @@ public class ForgedAlliancePrefs {
     return modsDirectory;
   }
 
-  public Path getCustomMapsDirectory() {
-    return customMapsDirectory.get();
+  public Path getMapsDirectory() {
+    return mapsDirectory.get();
   }
 
-  public void setCustomMapsDirectory(Path customMapsDirectory) {
-    this.customMapsDirectory.set(customMapsDirectory);
+  public void setMapsDirectory(Path mapsDirectory) {
+    this.mapsDirectory.set(mapsDirectory);
   }
 
-  public ObjectProperty<Path> customMapsDirectoryProperty() {
-    return customMapsDirectory;
+  public ObjectProperty<Path> mapsDirectoryProperty() {
+    return mapsDirectory;
   }
 
   public String getExecutableDecorator() {
@@ -199,18 +186,6 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> vaultBaseDirectoryProperty() {
     return vaultBaseDirectory;
-  }
-
-  public boolean isVaultCheckDone() {
-    return vaultCheckDone.get();
-  }
-
-  public void setVaultCheckDone(boolean vaultCheckDone) {
-    this.vaultCheckDone.set(vaultCheckDone);
-  }
-
-  public BooleanProperty vaultCheckDoneProperty() {
-    return vaultCheckDone;
   }
 
   public boolean isAllowReplaysWhileInGame() {

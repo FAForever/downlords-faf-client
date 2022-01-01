@@ -185,7 +185,7 @@ public class MapService implements InitializingBean, DisposableBean {
   public void afterPropertiesSet() {
     eventBus.register(this);
     JavaFxUtil.addListener(forgedAlliancePreferences.installationPathProperty(), observable -> tryLoadMaps());
-    JavaFxUtil.addListener(forgedAlliancePreferences.customMapsDirectoryProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(forgedAlliancePreferences.mapsDirectoryProperty(), observable -> tryLoadMaps());
     installedMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
       while (change.next()) {
         for (MapVersionBean mapVersion : change.getRemoved()) {
@@ -205,7 +205,7 @@ public class MapService implements InitializingBean, DisposableBean {
       return;
     }
 
-    Path mapsDirectory = forgedAlliancePreferences.getCustomMapsDirectory();
+    Path mapsDirectory = forgedAlliancePreferences.getMapsDirectory();
     if (mapsDirectory == null) {
       log.warn("Could not load maps: custom map directory is not set");
       return;
@@ -227,7 +227,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> {
       try (WatchService watcher = mapsDirectory.getFileSystem().newWatchService()) {
-        forgedAlliancePreferences.getCustomMapsDirectory().register(watcher, ENTRY_DELETE, ENTRY_CREATE);
+        forgedAlliancePreferences.getMapsDirectory().register(watcher, ENTRY_DELETE, ENTRY_CREATE);
         while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
           key.pollEvents().stream()
@@ -264,7 +264,7 @@ public class MapService implements InitializingBean, DisposableBean {
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
         Path officialMapsPath = forgedAlliancePreferences.getInstallationPath().resolve("maps");
-        try (Stream<Path> customMapsDirectoryStream = list(forgedAlliancePreferences.getCustomMapsDirectory())) {
+        try (Stream<Path> customMapsDirectoryStream = list(forgedAlliancePreferences.getMapsDirectory())) {
           List<Path> mapPaths = new ArrayList<>();
           customMapsDirectoryStream.collect(toCollection(() -> mapPaths));
           officialMaps.stream()
@@ -281,7 +281,7 @@ public class MapService implements InitializingBean, DisposableBean {
             tryAddInstalledMap(mapPath);
           }
         } catch (IOException e) {
-          log.warn("Maps could not be read from: " + forgedAlliancePreferences.getCustomMapsDirectory(), e);
+          log.warn("Maps could not be read from: " + forgedAlliancePreferences.getMapsDirectory(), e);
         }
         return null;
       }
@@ -362,7 +362,7 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     }
 
-    Path previewPath = forgedAlliancePreferences.getCustomMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
+    Path previewPath = forgedAlliancePreferences.getMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
     if (Files.exists(previewPath)) {
       try (InputStream inputStream = Files.newInputStream(previewPath)) {
         return new Image(inputStream);
@@ -464,7 +464,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (isOfficialMap(technicalName)) {
       return forgedAlliancePreferences.getInstallationPath().resolve("maps");
     }
-    return forgedAlliancePreferences.getCustomMapsDirectory();
+    return forgedAlliancePreferences.getMapsDirectory();
   }
 
   public Path getPathForMap(String technicalName) {

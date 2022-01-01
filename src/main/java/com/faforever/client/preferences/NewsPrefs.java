@@ -2,13 +2,11 @@ package com.faforever.client.preferences;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.Value;
 
+@Value
 public class NewsPrefs {
-  private final StringProperty lastReadNewsUrl;
-
-  public NewsPrefs() {
-    lastReadNewsUrl = new SimpleStringProperty();
-  }
+  StringProperty lastReadNewsUrl = new SimpleStringProperty();
 
   public String getLastReadNewsUrl() {
     return lastReadNewsUrl.get();

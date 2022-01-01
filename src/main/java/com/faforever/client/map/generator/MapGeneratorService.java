@@ -82,7 +82,7 @@ public class MapGeneratorService implements InitializingBean {
       }
     }
 
-    customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
 
     try {
       generatedMapPreviewImage = new Image(new ClassPathResource("/images/generatedMapIcon.png").getURL().toString(), true);

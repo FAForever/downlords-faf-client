@@ -8,25 +8,16 @@ import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import org.jetbrains.annotations.Nullable;
+import lombok.Value;
 
+@Value
 public class VaultPrefs {
-  private final ObjectProperty<SortConfig> onlineReplaySortConfig;
-  private final ObjectProperty<SortConfig> mapSortConfig;
-  private final ObjectProperty<SortConfig> modVaultConfig;
-  private final MapProperty<String, String> savedReplayQueries;
-  private final MapProperty<String, String> savedMapQueries;
-  private final MapProperty<String, String> savedModQueries;
-
-
-  public VaultPrefs() {
-    onlineReplaySortConfig = new SimpleObjectProperty<>(new SortConfig("startTime", SortOrder.DESC));
-    mapSortConfig = new SimpleObjectProperty<>(new SortConfig("gamesPlayed", SortOrder.DESC));
-    modVaultConfig = new SimpleObjectProperty<>(new SortConfig("latestVersion.createTime", SortOrder.DESC));
-    savedReplayQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    savedMapQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    savedModQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
-  }
+  ObjectProperty<SortConfig> onlineReplaySortConfig = new SimpleObjectProperty<>(new SortConfig("startTime", SortOrder.DESC));
+  ObjectProperty<SortConfig> mapSortConfig = new SimpleObjectProperty<>(new SortConfig("gamesPlayed", SortOrder.DESC));
+  ObjectProperty<SortConfig> modVaultConfig = new SimpleObjectProperty<>(new SortConfig("latestVersion.createTime", SortOrder.DESC));
+  MapProperty<String, String> savedReplayQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  MapProperty<String, String> savedMapQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  MapProperty<String, String> savedModQueries = new SimpleMapProperty<>(FXCollections.observableHashMap());
 
   public SortConfig getOnlineReplaySortConfig() {
     return onlineReplaySortConfig.get();
@@ -64,20 +55,18 @@ public class VaultPrefs {
     return modVaultConfig;
   }
 
-  @Nullable
   public ObservableMap<String, String> getSavedReplayQueries() {
-    return savedReplayQueries.get();
+    return savedReplayQueries;
   }
 
   public void setSavedReplayQueries(ObservableMap<String, String> savedReplayQueries) {
     this.savedReplayQueries.set(savedReplayQueries);
   }
 
-  public MapProperty savedReplayQueriesProperty() {
+  public MapProperty<String, String> savedReplayQueriesProperty() {
     return savedReplayQueries;
   }
 
-  @Nullable
   public ObservableMap<String, String> getSavedMapQueries() {
     return savedMapQueries.get();
   }
@@ -86,11 +75,10 @@ public class VaultPrefs {
     this.savedMapQueries.set(savedMapQueries);
   }
 
-  public MapProperty savedMapQueriesProperty() {
+  public MapProperty<String, String> savedMapQueriesProperty() {
     return savedMapQueries;
   }
 
-  @Nullable
   public ObservableMap<String, String> getSavedModQueries() {
     return savedModQueries.get();
   }
@@ -99,7 +87,7 @@ public class VaultPrefs {
     this.savedModQueries.set(savedModQueries);
   }
 
-  public MapProperty savedModQueriesProperty() {
+  public MapProperty<String, String> savedModQueriesProperty() {
     return savedModQueries;
   }
 }
