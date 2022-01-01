@@ -38,7 +38,7 @@ public class ForgedAlliancePrefs {
     }
   }
 
-  ObjectProperty<Path> installationPath = new SimpleObjectProperty<>();;
+  ObjectProperty<Path> installationPath = new SimpleObjectProperty<>(STEAM_FA_PATH);
   ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
   ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>(FAF_VAULT_PATH);
   @JsonIgnore
