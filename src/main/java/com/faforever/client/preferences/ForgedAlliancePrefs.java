@@ -12,7 +12,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.Value;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Value
@@ -39,7 +38,7 @@ public class ForgedAlliancePrefs {
     }
   }
 
-  ObjectProperty<Path> installationPath;
+  ObjectProperty<Path> installationPath = new SimpleObjectProperty<>();;
   ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
   ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>(FAF_VAULT_PATH);
   @JsonIgnore
@@ -62,11 +61,6 @@ public class ForgedAlliancePrefs {
   ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
 
   public ForgedAlliancePrefs() {
-    if (Files.isRegularFile(STEAM_FA_PATH.resolve("bin").resolve(PreferencesService.SUPREME_COMMANDER_EXE))) {
-      installationPath = new SimpleObjectProperty<>(STEAM_FA_PATH);
-    } else {
-      installationPath = new SimpleObjectProperty<>();
-    }
     bindVaultPath();
   }
 
