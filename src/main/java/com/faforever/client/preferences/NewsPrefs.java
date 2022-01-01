@@ -2,9 +2,10 @@ package com.faforever.client.preferences;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
-@Value
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class NewsPrefs {
   StringProperty lastReadNewsUrl = new SimpleStringProperty();
 

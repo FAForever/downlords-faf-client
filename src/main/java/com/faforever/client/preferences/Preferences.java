@@ -16,28 +16,41 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.collections.FXCollections.observableHashMap;
 
-@Value
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class Preferences {
 
   public static final String DEFAULT_THEME_NAME = "default";
 
+  @Getter
   WindowPrefs mainWindow = new WindowPrefs();
+  @Getter
   GeneratorPrefs generator = new GeneratorPrefs();
+  @Getter
   ForgedAlliancePrefs forgedAlliance = new ForgedAlliancePrefs();
+  @Getter
   LoginPrefs login = new LoginPrefs();
+  @Getter
   ChatPrefs chat = new ChatPrefs();
+  @Getter
   NotificationsPrefs notification = new NotificationsPrefs();
+  @Getter
   LocalizationPrefs localization = new LocalizationPrefs();
+  @Getter
   LastGamePrefs lastGame = new LastGamePrefs();
+  @Getter
   MatchmakerPrefs matchmaker = new MatchmakerPrefs();
+  @Getter
   NewsPrefs news = new NewsPrefs();
+  @Getter
   DeveloperPrefs developer = new DeveloperPrefs();
+  @Getter
   VaultPrefs vault = new VaultPrefs();
   StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
   BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);
@@ -110,18 +123,6 @@ public class Preferences {
 
   public ListProperty<String> ignoredNotificationsProperty() {
     return ignoredNotifications;
-  }
-
-  public MatchmakerPrefs getMatchmaker() {
-    return matchmaker;
-  }
-
-  public NewsPrefs getNews() {
-    return news;
-  }
-
-  public DeveloperPrefs getDeveloper() {
-    return developer;
   }
 
   public ObservableMap<String, SortType> getGameTableSorting() {

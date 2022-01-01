@@ -21,7 +21,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -31,7 +32,7 @@ import static com.faforever.client.preferences.LanguageChannel.FRENCH;
 import static com.faforever.client.preferences.LanguageChannel.GERMAN;
 import static com.faforever.client.preferences.LanguageChannel.RUSSIAN;
 
-@Value
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class ChatPrefs {
 
   @VisibleForTesting

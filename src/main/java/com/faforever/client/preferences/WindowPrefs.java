@@ -9,11 +9,12 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 import java.nio.file.Path;
 
-@Value
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class WindowPrefs {
 
   IntegerProperty width = new SimpleIntegerProperty(800);

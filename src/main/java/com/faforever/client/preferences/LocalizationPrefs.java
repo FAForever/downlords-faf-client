@@ -2,12 +2,13 @@ package com.faforever.client.preferences;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import lombok.Value;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
-@Value
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class LocalizationPrefs {
   ObjectProperty<Locale> language = new SimpleObjectProperty<>();
   ObjectProperty<DateInfo> dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
