@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Vault;
-import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapBean.MapType;
 import com.faforever.client.domain.MapVersionBean;
@@ -634,12 +633,12 @@ public class MapService implements InitializingBean, DisposableBean {
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
   public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakerQueueBean matchmakerQueue, int count, int page) {
     PlayerBean player = playerService.getCurrentPlayer();
-    float meanRating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
-        .map(LeaderboardRatingBean::getMean).orElse(0f);
+    float rating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
+        .map(ratingBean -> ratingBean.getMean() - 3 * ratingBean.getDeviation()).orElse(0f);
     ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection();
     List<Condition<?>> conditions = new ArrayList<>();
     conditions.add(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
-    conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating").lte(meanRating).or()
+    conditions.add(qBuilder().floatNum("mapPool.matchmakerQueueMapPool.minRating").lte(rating).or()
         .floatNum("mapPool.matchmakerQueueMapPool.minRating").ne(null));
     // The api doesn't support the ne operation so we manually replace it with isnull which rsql does not support
     String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor())).replace("ex", "isnull");
