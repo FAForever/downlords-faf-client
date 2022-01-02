@@ -21,6 +21,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.paint.Color;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -30,6 +32,7 @@ import static com.faforever.client.preferences.LanguageChannel.FRENCH;
 import static com.faforever.client.preferences.LanguageChannel.GERMAN;
 import static com.faforever.client.preferences.LanguageChannel.RUSSIAN;
 
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class ChatPrefs {
 
   @VisibleForTesting
@@ -40,42 +43,26 @@ public class ChatPrefs {
       .put(new Locale("be"), RUSSIAN)
       .build();
 
-  private final DoubleProperty zoom;
-  private final BooleanProperty learnedAutoComplete;
-  private final BooleanProperty previewImageUrls;
-  private final IntegerProperty maxMessages;
-  private final ObjectProperty<ChatColorMode> chatColorMode;
-  private final IntegerProperty channelTabScrollPaneWidth;
-  private final MapProperty<String, Color> userToColor;
-  private final MapProperty<ChatUserCategory, Color> groupToColor;
-  private final BooleanProperty hideFoeMessages;
-  private final BooleanProperty playerListShown;
-  private final ObjectProperty<TimeInfo> timeFormat;
-  private final ObjectProperty<DateInfo> dateFormat;
-  private final ObjectProperty<ChatFormat> chatFormat;
-  private final ListProperty<String> autoJoinChannels;
+  DoubleProperty zoom = new SimpleDoubleProperty(1);
+  BooleanProperty learnedAutoComplete = new SimpleBooleanProperty(false);
+  BooleanProperty previewImageUrls = new SimpleBooleanProperty(true);
+  IntegerProperty maxMessages = new SimpleIntegerProperty(500);
+  ObjectProperty<ChatColorMode> chatColorMode = new SimpleObjectProperty<>(DEFAULT);
+  IntegerProperty channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
+  MapProperty<String, Color> userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  MapProperty<ChatUserCategory, Color> groupToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  BooleanProperty hideFoeMessages = new SimpleBooleanProperty(true);
+  BooleanProperty playerListShown = new SimpleBooleanProperty(true);
+  ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
+  ObjectProperty<DateInfo> dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
+  ObjectProperty<ChatFormat> chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
+  ListProperty<String> autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
   /**
    * Time in minutes a player has to be inactive to be considered idle.
    */
-  private final IntegerProperty idleThreshold;
+  IntegerProperty idleThreshold = new SimpleIntegerProperty(10);
 
   public ChatPrefs() {
-    timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
-    dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
-    maxMessages = new SimpleIntegerProperty(500);
-    zoom = new SimpleDoubleProperty(1);
-    learnedAutoComplete = new SimpleBooleanProperty(false);
-    previewImageUrls = new SimpleBooleanProperty(true);
-    hideFoeMessages = new SimpleBooleanProperty(true);
-    channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
-    userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    groupToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
-    chatColorMode = new SimpleObjectProperty<>(DEFAULT);
-    idleThreshold = new SimpleIntegerProperty(10);
-    chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
-    autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
-    playerListShown = new SimpleBooleanProperty(true);
-
     Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
     Optional.ofNullable(LOCALE_LANGUAGES_TO_CHANNELS.get(localeLanguage))
         .ifPresent(channel -> autoJoinChannels.get().add(channel.getChannelName()));

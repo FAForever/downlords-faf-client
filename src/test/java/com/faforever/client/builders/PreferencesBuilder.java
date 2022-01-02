@@ -283,8 +283,8 @@ public class PreferencesBuilder {
     }
 
     public ForgedAlliancePrefsBuilder customMapsDirectory(Path customMapsDirectory) {
-      forgedAlliancePrefs.customMapsDirectoryProperty().unbind();
-      forgedAlliancePrefs.setCustomMapsDirectory(customMapsDirectory);
+      forgedAlliancePrefs.mapsDirectoryProperty().unbind();
+      forgedAlliancePrefs.setMapsDirectory(customMapsDirectory);
       return this;
     }
 
@@ -306,11 +306,6 @@ public class PreferencesBuilder {
 
     public ForgedAlliancePrefsBuilder allowReplaysWhileInGame(boolean allowReplaysWhileInGame) {
       forgedAlliancePrefs.setAllowReplaysWhileInGame(allowReplaysWhileInGame);
-      return this;
-    }
-
-    public ForgedAlliancePrefsBuilder vaultCheckDone(boolean vaultCheckDone) {
-      forgedAlliancePrefs.setVaultCheckDone(vaultCheckDone);
       return this;
     }
 

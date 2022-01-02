@@ -559,7 +559,7 @@ public class MainController implements Controller<Node> {
   }
 
   public void onRevealMapFolder() {
-    Path mapPath = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    Path mapPath = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
     this.platformService.reveal(mapPath);
   }
 

@@ -88,7 +88,7 @@ public class GenerateMapTask extends CompletableTask<String> {
         .commandLineArgs(commandLineArgs)
         .build();
 
-    Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory();
+    Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
 
     try {
       List<String> command = generatorCommand.getCommand();

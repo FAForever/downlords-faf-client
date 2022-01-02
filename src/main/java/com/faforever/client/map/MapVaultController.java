@@ -139,7 +139,7 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   public void onUploadButtonClicked() {
     JavaFxUtil.runLater(() -> {
       DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setInitialDirectory(preferencesService.getPreferences().getForgedAlliance().getCustomMapsDirectory().toFile());
+      directoryChooser.setInitialDirectory(preferencesService.getPreferences().getForgedAlliance().getMapsDirectory().toFile());
       directoryChooser.setTitle(i18n.get("mapVault.upload.chooseDirectory"));
       File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
 

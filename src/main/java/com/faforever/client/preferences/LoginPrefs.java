@@ -4,7 +4,11 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
+
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class LoginPrefs {
   StringProperty refreshToken = new SimpleStringProperty();
   BooleanProperty rememberMe = new SimpleBooleanProperty(true);

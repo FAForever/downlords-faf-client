@@ -11,47 +11,29 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
+@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class GeneratorPrefs {
-  private final ObjectProperty<GenerationType> generationType;
-  private final StringProperty commandLineArgs;
-  private final IntegerProperty spawnCount;
-  private final IntegerProperty numTeams;
-  private final DoubleProperty mapSizeInKm;
-  private final StringProperty mapStyle;
-  private final IntegerProperty waterDensity;
-  private final BooleanProperty waterRandom;
-  private final IntegerProperty plateauDensity;
-  private final BooleanProperty plateauRandom;
-  private final IntegerProperty mountainDensity;
-  private final BooleanProperty mountainRandom;
-  private final IntegerProperty rampDensity;
-  private final BooleanProperty rampRandom;
-  private final IntegerProperty mexDensity;
-  private final BooleanProperty mexRandom;
-  private final IntegerProperty reclaimDensity;
-  private final BooleanProperty reclaimRandom;
-
-  public GeneratorPrefs() {
-    commandLineArgs = new SimpleStringProperty("");
-    spawnCount = new SimpleIntegerProperty(6);
-    numTeams = new SimpleIntegerProperty(2);
-    mapSizeInKm = new SimpleDoubleProperty(10);
-    mapStyle = new SimpleStringProperty("");
-    generationType = new SimpleObjectProperty<>(GenerationType.CASUAL);
-    waterDensity = new SimpleIntegerProperty(0);
-    waterRandom = new SimpleBooleanProperty(true);
-    plateauDensity = new SimpleIntegerProperty(0);
-    plateauRandom = new SimpleBooleanProperty(true);
-    mountainDensity = new SimpleIntegerProperty(0);
-    mountainRandom = new SimpleBooleanProperty(true);
-    rampDensity = new SimpleIntegerProperty(0);
-    rampRandom = new SimpleBooleanProperty(true);
-    mexDensity = new SimpleIntegerProperty(0);
-    mexRandom = new SimpleBooleanProperty(true);
-    reclaimDensity = new SimpleIntegerProperty(0);
-    reclaimRandom = new SimpleBooleanProperty(true);
-  }
+  ObjectProperty<GenerationType> generationType = new SimpleObjectProperty<>(GenerationType.CASUAL);
+  StringProperty commandLineArgs = new SimpleStringProperty("");
+  IntegerProperty spawnCount = new SimpleIntegerProperty(6);
+  IntegerProperty numTeams = new SimpleIntegerProperty(2);
+  DoubleProperty mapSizeInKm = new SimpleDoubleProperty(10);
+  StringProperty mapStyle = new SimpleStringProperty("");
+  IntegerProperty waterDensity = new SimpleIntegerProperty(0);
+  BooleanProperty waterRandom = new SimpleBooleanProperty(true);
+  IntegerProperty plateauDensity = new SimpleIntegerProperty(0);
+  BooleanProperty plateauRandom = new SimpleBooleanProperty(true);
+  IntegerProperty mountainDensity = new SimpleIntegerProperty(0);
+  BooleanProperty mountainRandom = new SimpleBooleanProperty(true);
+  IntegerProperty rampDensity = new SimpleIntegerProperty(0);
+  BooleanProperty rampRandom = new SimpleBooleanProperty(true);
+  IntegerProperty mexDensity = new SimpleIntegerProperty(0);
+  BooleanProperty mexRandom = new SimpleBooleanProperty(true);
+  IntegerProperty reclaimDensity = new SimpleIntegerProperty(0);
+  BooleanProperty reclaimRandom = new SimpleBooleanProperty(true);
 
   public String getCommandLineArgs() {
     return commandLineArgs.get();

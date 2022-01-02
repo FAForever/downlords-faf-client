@@ -283,7 +283,7 @@ public class MainControllerTest extends UITest {
   @Test
   public void testOnRevealMapFolder() throws Exception {
     instance.onRevealMapFolder();
-    verify(platformService).reveal(preferences.getForgedAlliance().getCustomMapsDirectory());
+    verify(platformService).reveal(preferences.getForgedAlliance().getMapsDirectory());
   }
 
   @Test

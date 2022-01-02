@@ -6,7 +6,7 @@ import lombok.Value;
 @Value
 @AllArgsConstructor
 public class MissingGamePathEvent {
-  private boolean immediateUserActionRequired;
+  boolean immediateUserActionRequired;
 
   public MissingGamePathEvent() {
     this(false);
