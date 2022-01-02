@@ -1,7 +1,9 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.io.FeaturedModFileCacheService;
 import com.faforever.client.mod.ModService;
@@ -18,6 +20,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Objects;
 
@@ -72,11 +76,17 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
               log.debug("Featured mod file already prepared: {}", featuredModFile);
             } else {
               if (!featuredModFileCacheService.isCached(featuredModFile)) {
-                downloadFeaturedModFile(featuredModFile, featuredModFileCacheService.getCachedFilePath(featuredModFile));
+                Path cachedFilePath = featuredModFileCacheService.getCachedFilePath(featuredModFile);
+                if (PreferencesService.FORGED_ALLIANCE_EXE.equals(featuredModFile.getName())) {
+                  patchOrDownloadForgedAllianceExe(featuredModFile, cachedFilePath, targetPath);
+                } else {
+                  downloadFeaturedModFile(featuredModFile, cachedFilePath);
+                }
               }
               featuredModFileCacheService.copyFeaturedModFileFromCache(featuredModFile, targetPath);
             }
-          } catch (IOException e) {
+          }
+          catch (IOException | NoSuchAlgorithmException | ChecksumMismatchException e) {
             log.error("Error on updating featured mod file: {}", featuredModFile, e);
             throw new RuntimeException(e);
           }
@@ -100,17 +110,35 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     return new PatchResult(new ComparableVersion(String.valueOf(maxVersion)), initFile);
   }
 
+  private void patchOrDownloadForgedAllianceExe(FeaturedModFile featuredModFile, Path cachedFilePath, Path targetPath) throws IOException, ChecksumMismatchException, NoSuchAlgorithmException {
+    Path tempFile = Files.createTempFile(targetPath.getParent(), "download", null);
+    // Make a copy of the currently installed ForgedAlliance.exe
+    Files.copy(targetPath, tempFile, StandardCopyOption.REPLACE_EXISTING);
+    int version = Integer.parseInt(featuredModFile.getVersion());
+    ForgedAllianceExePatcher.patchVersion(tempFile, version);
+
+    if (fileAlreadyLoaded(featuredModFile, tempFile)) {
+      // Hash matches so use the patched version
+      Files.move(tempFile, cachedFilePath, StandardCopyOption.REPLACE_EXISTING);
+      log.debug("Using locally patched {} for version {}", featuredModFile.getName(), version);
+      return;
+    }
+
+    downloadFeaturedModFile(featuredModFile, cachedFilePath);
+  }
+
   private boolean fileAlreadyLoaded(FeaturedModFile featuredModFile, Path targetPath) throws IOException {
     return Files.exists(targetPath)
         && Objects.equals(featuredModFile.getMd5(), featuredModFileCacheService.readHashFromFile(targetPath));
   }
 
-  private void downloadFeaturedModFile(FeaturedModFile featuredModFile, Path targetPath) throws java.io.IOException {
+  private void downloadFeaturedModFile(FeaturedModFile featuredModFile, Path targetPath) throws IOException, NoSuchAlgorithmException, ChecksumMismatchException {
     Files.createDirectories(targetPath.getParent());
     updateMessage(i18n.get("updater.downloadingFile", featuredModFile.getName()));
 
     String url = featuredModFile.getUrl();
-    downloadService.downloadFile(new URL(url), targetPath, this::updateProgress);
+    String md5sum = featuredModFile.getMd5();
+    downloadService.downloadFileWithMirrors(new URL(url), targetPath, this::updateProgress, md5sum);
   }
 
   public void setFeaturedMod(FeaturedModBean featuredMod) {

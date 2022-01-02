@@ -15,6 +15,7 @@ import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.MatchmakerPrefs;
+import com.faforever.client.preferences.MirrorPrefs;
 import com.faforever.client.preferences.NewsPrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.Preferences;
@@ -31,6 +32,7 @@ import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.paint.Color;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -642,6 +644,15 @@ public class PreferencesBuilder {
 
     public WindowPrefsBuilder backgroundImagePath(Path backgroundImagePath) {
       windowPrefs.setBackgroundImagePath(backgroundImagePath);
+      return this;
+    }
+  }
+
+  public class MirrorPrefsBuilder extends SubPreferencesBuilder {
+    private final MirrorPrefs mirrorPrefs = preferences.getMirror();
+
+    public MirrorPrefsBuilder mirrorUrls(List<URI> mirrorUrls) {
+      mirrorPrefs.getMirrorURLs().setAll(mirrorUrls.toArray(new URI[]{}));
       return this;
     }
   }

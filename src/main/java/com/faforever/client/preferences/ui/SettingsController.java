@@ -66,6 +66,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Collections;
@@ -149,6 +153,8 @@ public class SettingsController implements Controller<Node> {
   public Button allowReplayWhileInGameButton;
   public CheckBox debugLogToggle;
   public CheckBox mapAndModAutoUpdateCheckBox;
+  public TextField mirrorURITextField;
+  public ListView<URI> mirrorURLsListView;
 
   private final InvalidationListener availableLanguagesListener;
 
@@ -310,10 +316,20 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setSelectionModel(new NoSelectionModel<>());
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
-    autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController>loadFxml("theme/settings/removable_cell.fxml"));
-    autoChannelListView.getItems().addListener((ListChangeListener<String>) c -> preferencesService.storeInBackground());
-    autoChannelListView.managedProperty().bind(autoChannelListView.visibleProperty());
-    autoChannelListView.visibleProperty().bind(Bindings.createBooleanBinding(() -> !autoChannelListView.getItems().isEmpty(), autoChannelListView.getItems()));
+    autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
+    JavaFxUtil.addListener(autoChannelListView.getItems(), (ListChangeListener<String>) c -> {
+      preferencesService.storeInBackground();
+      autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty());
+    });
+
+    mirrorURLsListView.setSelectionModel(new NoSelectionModel<>());
+    mirrorURLsListView.setFocusTraversable(false);
+    mirrorURLsListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
+    mirrorURLsListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
+    JavaFxUtil.addListener(mirrorURLsListView.getItems(), (ListChangeListener<URI>) c -> {
+      preferencesService.storeInBackground();
+      mirrorURLsListView.setVisible(!mirrorURLsListView.getItems().isEmpty());
+    });
 
     secondaryVaultLocationToggle.setSelected(preferences.getForgedAlliance().getVaultBaseDirectory().equals(preferencesService.getFAFVaultLocation()));
     secondaryVaultLocationToggle.selectedProperty().addListener(observable -> {
@@ -564,7 +580,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onAddAutoChannel() {
-    if (channelTextField.getText().isEmpty() || autoChannelListView.getItems().contains(channelTextField.getText())) {
+    if (channelTextField.getText().isBlank() || autoChannelListView.getItems().contains(channelTextField.getText())) {
       return;
     }
     if (!channelTextField.getText().startsWith("#")) {
@@ -587,6 +603,31 @@ public class SettingsController implements Controller<Node> {
     } catch (Exception e) {
       log.error("Game.prefs patch failed", e);
       notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
+    }
+  }
+
+  public void onAddMirrorURL() {
+    String text = mirrorURITextField.getText();
+    if (text.isBlank()) {
+      return;
+    }
+    if (!text.endsWith("/")) {
+      text = text + "/";
+    }
+
+    try {
+      URI uri = new URL(text).toURI();
+
+      if (mirrorURLsListView.getItems().contains(uri)) {
+        return;
+      }
+      preferencesService.getPreferences().getMirror().getMirrorURLs().add(uri);
+      preferencesService.storeInBackground();
+      mirrorURITextField.clear();
+    } catch (URISyntaxException | MalformedURLException e) {
+      log.debug("Failed to add invalid URL: {}", text, e);
+      notificationService.addImmediateWarnNotification("settings.data.mirrorURLs.add.error", e.getMessage());
+      return;
     }
   }
 }
