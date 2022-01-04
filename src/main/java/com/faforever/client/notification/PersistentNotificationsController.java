@@ -32,7 +32,6 @@ public class PersistentNotificationsController implements Controller<Node> {
   public Pane persistentNotificationsRoot;
 
   public void initialize() {
-    notificationService.getPersistentNotifications().forEach(this::addNotification);
     notificationService.addPersistentNotificationListener(change -> {
       if (change.wasAdded()) {
         PersistentNotification addedNotifications = change.getElementAdded();
@@ -41,6 +40,7 @@ public class PersistentNotificationsController implements Controller<Node> {
         removeNotification(change.getElementRemoved());
       }
     });
+    notificationService.getPersistentNotifications().forEach(this::addNotification);
   }
 
   private void addNotification(PersistentNotification notification) {

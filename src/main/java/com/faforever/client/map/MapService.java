@@ -302,7 +302,6 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     } catch (MapLoadException e) {
       log.warn("Map could not be read: " + path.getFileName(), e);
-      notificationService.addPersistentErrorNotification(e, e.getI18nKey(), e.getI18nArgs());
     }
   }
 
