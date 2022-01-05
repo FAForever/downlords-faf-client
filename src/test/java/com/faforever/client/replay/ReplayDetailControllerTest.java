@@ -35,6 +35,7 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import com.faforever.commons.api.dto.Validity;
+import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -80,6 +81,8 @@ public class ReplayDetailControllerTest extends UITest {
   private TimeService timeService;
   @Mock
   private I18n i18n;
+  @Mock
+  private EventBus eventBus;
   @Mock
   private UiService uiService;
   @Mock
@@ -138,6 +141,8 @@ public class ReplayDetailControllerTest extends UITest {
         .title("test")
         .replayFile(Path.of("foo.tmp"))
         .get();
+
+    instance = new ReplayDetailController(timeService, i18n, eventBus, uiService, replayService, ratingService, mapService, mapGeneratorService, playerService, clientProperties, notificationService, reviewService);
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));

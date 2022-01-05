@@ -19,6 +19,45 @@
   -fx-graphic-text-gap: 0.666667em;
 }
 
+.primary-button {
+    -fx-background-color: -fx-accent;
+}
+
+.primary-button:hover {
+    -fx-background-color: derive(-fx-accent, -30%);
+}
+
+.primary-button:armed, .primary-button:selected, .primary-button:focused:selected {
+    -fx-background-color: derive(-fx-accent, -60%);
+}
+
+
+.delete-button {
+    -fx-background-color: -fx-delete-color;
+}
+
+.delete-button:hover {
+    -fx-background-color: derive(-fx-delete-color, -30%);
+}
+
+.delete-button:armed, .delete-button:selected, .delete-button:focused:selected {
+    -fx-background-color: derive(-fx-delete-color, -60%);
+}
+
+/**.main-navigation-button:highlighted {
+  -fx-background-color: -fx-accent;
+}
+
+.main-navigation-button:hover {
+  -fx-border-color: -fx-selection-bar-non-focused;
+  -fx-background: #FFFFFF12;
+}
+
+.main-navigation-button:armed, .main-navigation-button:selected, .main-navigation-button:focused:selected {
+  -fx-background-color: #FFFFFF33;
+  -fx-border-color: -fx-accent;
+}*//
+
 /***************** Split Pane *****************/
 
 .split-pane > .split-pane-divider {

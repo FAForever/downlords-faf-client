@@ -238,12 +238,15 @@ public class ReplayService {
     ));
   }
 
-  public void deleteReplayFile(Path replayFile) {
+  public boolean deleteReplayFile(Path replayFile) {
     try {
       delete(replayFile);
+      return true;
     } catch (IOException e) {
       log.error("Failed to delete local replay file {}", replayFile, e);
+      notificationService.addImmediateErrorNotification(e, "replay.couldNotDeleteLocal");
     }
+    return false;
   }
 
   public void runReplay(ReplayBean item) {

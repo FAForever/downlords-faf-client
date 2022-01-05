@@ -38,6 +38,7 @@ import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.Validity;
 import com.faforever.commons.io.Bytes;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -80,6 +81,7 @@ public class ReplayDetailController implements Controller<Node> {
 
   private final TimeService timeService;
   private final I18n i18n;
+  private final EventBus eventBus;
   private final UiService uiService;
   private final ReplayService replayService;
   private final RatingService ratingService;
@@ -172,7 +174,7 @@ public class ReplayDetailController implements Controller<Node> {
     playerCountLabel.setTooltip(new Tooltip(i18n.get("replay.playerCountTooltip")));
     ratingLabel.setTooltip(new Tooltip(i18n.get("replay.ratingTooltip")));
     qualityLabel.setTooltip(new Tooltip(i18n.get("replay.qualityTooltip")));
-    deleteButton.setTooltip(new Tooltip(i18n.get("replay.deleteTooltip")));
+    deleteButton.setTooltip(new Tooltip(i18n.get("replay.deleteButton.tooltip")));
     reviewsController.setReviewSupplier(ReplayReviewBean::new);
   }
 
@@ -436,17 +438,20 @@ public class ReplayDetailController implements Controller<Node> {
     reportDialogController.show();
   }
 
-  public void onDelete() {
+  public void onDeleteButtonClicked() {
     notificationService.addNotification(new ImmediateNotification(
-        String.format("%s %s", i18n.get("replay.deleteLocal"), replay.getTitle()), i18n.get("replay.deleteWarn"), Severity.INFO, Arrays.asList(
-        new Action(i18n.get("cancel")),
-        new Action(i18n.get("delete"), event -> deleteReplay())
+      String.format("%s %s",
+        i18n.get("replay.deleteNotification.heading"),
+        replay.getTitle()),
+        i18n.get("replay.deleteNotification.warning"),
+        Severity.INFO, Arrays.asList(
+          new Action(i18n.get("cancel")),
+          new Action(i18n.get("delete"), event -> deleteReplay())
     )));
   }
 
   private void deleteReplay() {
-    replayService.deleteReplayFile(replay.getReplayFile());
-    getRoot().fireEvent(new DeleteLocalReplayEvent());
+    eventBus.post(new DeleteLocalReplayEvent(replay.getReplayFile()));
     onCloseButtonClicked();
   }
 

@@ -14,6 +14,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.commons.api.dto.Game;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Component
@@ -29,12 +32,14 @@ import java.util.List;
 public class LocalReplayVaultController extends VaultEntityController<ReplayBean> {
 
   private final ReplayService replayService;
-
+  private final EventBus eventBus;
   private ReplayDetailController replayDetailController;
 
-  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
+
+  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, EventBus eventBus, PreferencesService preferencesService, ReportingService reportingService) {
     super(uiService, notificationService, i18n, preferencesService, reportingService);
     this.replayService = replayService;
+    this.eventBus = eventBus;
   }
 
   @Override
@@ -44,20 +49,22 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     backButton.setVisible(false);
     searchBox.setVisible(false);
     searchSeparator.setVisible(false);
-
+    this.eventBus.register(this);
   }
 
   @Override
   protected void onDisplayDetails(ReplayBean replay) {
     JavaFxUtil.assertApplicationThread();
     replayDetailController.setReplay(replay);
-    replayDetailController.getRoot().addEventHandler(DeleteLocalReplayEvent.DELETE_LOCAL_REPLAY_EVENT_TYPE, event -> onLocalReplayDeleted());
     replayDetailController.getRoot().setVisible(true);
     replayDetailController.getRoot().requestFocus();
   }
 
-  private void onLocalReplayDeleted() {
-    onPageChange(searchController.getLastSearchConfig(), false);
+  @Subscribe
+  private void onLocalReplayDeleted(DeleteLocalReplayEvent event) throws ExecutionException, InterruptedException {
+    if (replayService.deleteReplayFile(event.getReplayFile())) {
+      onPageChange(searchController.getLastSearchConfig(), false);
+    }
   }
 
   @Override
