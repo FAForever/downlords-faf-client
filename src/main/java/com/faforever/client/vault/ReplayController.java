@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ReplayController extends AbstractViewController<Node> {
-  // TODO change to spring event bus
   private final EventBus eventBus;
   private final UiService uiService;
   public TabPane vaultRoot;
