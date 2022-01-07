@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -14,10 +15,10 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import java.lang.String?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308"
-            maxWidth="1.7976931348623157E308" onMouseClicked="#onDimmerClicked" styleClass="dimmer"
-            xmlns="http://javafx.com/javafx/11.0.1" fx:controller="com.faforever.client.map.MapDetailController">
+
+<AnchorPane fx:id="mapDetailRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+            onMouseClicked="#onDimmerClicked" styleClass="dimmer" xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.map.MapDetailController">
     <children>
         <AnchorPane onMouseClicked="#onContentPaneClicked" styleClass="modal-popup" AnchorPane.bottomAnchor="50.0"
                     AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
@@ -58,24 +59,27 @@
                                                 <Label fx:id="mapIdLabel" text="#&lt;id&gt;"/>
                                             </children>
                                         </VBox>
-                                        <Label fx:id="dimensionsLabel" text="&lt;Dimensions&gt;"
-                                               GridPane.columnIndex="1" GridPane.rowIndex="2">
-                                            <graphic>
-                                                <Region styleClass="icon,map-size-icon"/>
-                                            </graphic>
-                                        </Label>
-                                        <Label fx:id="maxPlayersLabel" graphicTextGap="10.0" text="&lt;Max Players&gt;"
-                                               GridPane.columnIndex="2" GridPane.rowIndex="2">
-                                            <graphic>
-                                                <Region styleClass="icon,players-icon"/>
-                                            </graphic>
-                                        </Label>
-                                        <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;"
-                                               GridPane.columnIndex="3" GridPane.rowIndex="2">
-                                            <graphic>
-                                                <Region styleClass="icon,date-icon"/>
-                                            </graphic>
-                                        </Label>
+                                        <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.columnSpan="5"
+                                              GridPane.rowIndex="2">
+                                            <children>
+                                                <Label fx:id="dimensionsLabel" text="&lt;Dimensions&gt;">
+                                                    <graphic>
+                                                        <Region styleClass="icon,map-size-icon"/>
+                                                    </graphic>
+                                                </Label>
+                                                <Label fx:id="maxPlayersLabel" graphicTextGap="10.0"
+                                                       text="&lt;Max Players&gt;">
+                                                    <graphic>
+                                                        <Region styleClass="icon,players-icon"/>
+                                                    </graphic>
+                                                </Label>
+                                                <Label fx:id="dateLabel" graphicTextGap="10.0" text="&lt;Date&gt;">
+                                                    <graphic>
+                                                        <Region styleClass="icon,date-icon"/>
+                                                    </graphic>
+                                                </Label>
+                                            </children>
+                                        </HBox>
                                         <VBox alignment="TOP_RIGHT" spacing="10.0" GridPane.columnIndex="5"
                                               GridPane.columnSpan="2147483647">
                                             <HBox alignment="TOP_RIGHT" spacing="10.0">
@@ -100,7 +104,7 @@
                                             </VBox>
                                         </VBox>
                                         <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.columnIndex="1"
-                                              GridPane.columnSpan="3" GridPane.rowIndex="1">
+                                              GridPane.columnSpan="5" GridPane.rowIndex="1">
                                             <children>
                                                 <Label fx:id="authorLabel" styleClass="secondary"
                                                        text="&lt;Author&gt;"/>
@@ -108,9 +112,8 @@
                                                 <Label maxWidth="1.7976931348623157E308" styleClass="secondary"
                                                        text="%map.version"/>
                                                 <Label fx:id="mapVersionLabel" maxWidth="1.7976931348623157E308"
-                                                       minWidth="0.0"
-                                                       styleClass="secondary" text="&lt;Version&gt;" wrapText="true"
-                                                />
+                                                       minWidth="0.0" styleClass="secondary" text="&lt;Version&gt;"
+                                                       wrapText="true"/>
                                             </children>
                                         </HBox>
                                         <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%map.description"
@@ -129,7 +132,7 @@
                                             </children>
                                         </HBox>
                                         <HBox fx:id="hideBox" spacing="10.0" GridPane.columnIndex="1"
-                                              GridPane.columnSpan="2147483647" GridPane.rowIndex="5">
+                                              GridPane.columnSpan="5" GridPane.rowIndex="5">
                                             <children>
                                                 <Label maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
                                                        text="%map.hidden"/>
@@ -138,8 +141,8 @@
                                                         mnemonicParsing="false" onAction="#hideMap" text="%map.hide"/>
                                             </children>
                                         </HBox>
-                                        <HBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="10.0"
-                                              GridPane.columnSpan="4">
+                                        <HBox spacing="10.0" GridPane.columnIndex="1" GridPane.columnSpan="5"
+                                              GridPane.rowIndex="3">
                                             <Label text="%map.all"/>
                                             <Label fx:id="mapPlaysLabel" styleClass="secondary"
                                                    text="&lt;Map Plays&gt;">
