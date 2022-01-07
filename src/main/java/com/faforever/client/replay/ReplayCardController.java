@@ -86,8 +86,8 @@ public class ReplayCardController implements Controller<Node> {
     } else {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
+    JavaFxUtil.bindManagedToVisible(deleteButton);
     if (replay.getReplayFile() != null) {
-      deleteButton.setManaged(true);
       deleteButton.setVisible(true);
     }
     watchButton.setDisable(!replay.getReplayAvailable());

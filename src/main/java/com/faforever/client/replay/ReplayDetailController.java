@@ -152,7 +152,7 @@ public class ReplayDetailController implements Controller<Node> {
     optionValueColumn.setCellFactory(param -> new StringCell<>(String::toString));
 
     JavaFxUtil.bindManagedToVisible(downloadMoreInfoButton, moreInformationPane, teamsInfoBox,
-        reviewsContainer, ratingSeparator, reviewSeparator, getRoot());
+        reviewsContainer, ratingSeparator, reviewSeparator, deleteButton, getRoot());
 
     replayDetailRoot.setOnKeyPressed(keyEvent -> {
       if (keyEvent.getCode() == KeyCode.ESCAPE) {
@@ -289,7 +289,6 @@ public class ReplayDetailController implements Controller<Node> {
       optionsTable.setItems(replay.getGameOptions());
       moreInformationPane.setVisible(true);
       deleteButton.setVisible(true);
-      deleteButton.setManaged(true);
     }
   }
 

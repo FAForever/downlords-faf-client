@@ -1,12 +1,10 @@
 package com.faforever.client.main.event;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import java.nio.file.Path;
 
-@RequiredArgsConstructor
+@Value
 public class DeleteLocalReplayEvent {
-  @Getter
-  private final Path replayFile;
+  Path replayFile;
 }
