@@ -28,6 +28,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -88,7 +89,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     startTimeColumn.setCellValueFactory(param -> param.getValue().startTimeProperty());
     startTimeColumn.setCellFactory(param -> new StringCell<>(this.timeService::asShortTime));
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
-    gameTitleColumn.setCellFactory(param -> new StringCell<>(title -> title));
+    gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
     playersColumn.setCellValueFactory(param -> param.getValue().numPlayersProperty());
     playersColumn.setCellFactory(param -> new StringCell<>(number -> i18n.number(number.intValue())));
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
