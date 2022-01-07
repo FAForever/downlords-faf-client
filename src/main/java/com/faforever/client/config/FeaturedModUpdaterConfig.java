@@ -21,11 +21,10 @@ public class FeaturedModUpdaterConfig {
   private final TaskService taskService;
   private final SimpleHttpFeaturedModUpdater httpFeaturedModUpdater;
   private final PreferencesService preferencesService;
-  private final NotificationService notificationService;
 
   @Bean
   GameUpdater gameUpdater() {
-    return new GameUpdaterImpl(modService, applicationContext, taskService, preferencesService, notificationService)
+    return new GameUpdaterImpl(modService, applicationContext, taskService, preferencesService)
         .addFeaturedModUpdater(httpFeaturedModUpdater);
   }
 }

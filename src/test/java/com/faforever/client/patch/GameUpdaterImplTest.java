@@ -5,12 +5,12 @@ import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.client.update.Version;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,8 +52,6 @@ public class GameUpdaterImplTest extends ServiceTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private NotificationService notificationService;
-  @Mock
   private GameBinariesUpdateTaskImpl gameBinariesUpdateTask;
 
   private Path fafDataDirectory;
@@ -78,7 +76,7 @@ public class GameUpdaterImplTest extends ServiceTest {
       int version = Objects.requireNonNullElse(invocation.getArgument(1, Integer.class), Integer.MAX_VALUE);
       return CompletableFuture.completedFuture(new PatchResult(new ComparableVersion(String.valueOf(version)), initFile));
     });
-    instance = new GameUpdaterImpl(modService, applicationContext, taskService, preferencesService, notificationService);
+    instance = new GameUpdaterImpl(modService, applicationContext, taskService, preferencesService);
   }
 
   @Test
@@ -198,6 +196,22 @@ public class GameUpdaterImplTest extends ServiceTest {
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 
+  @Test
+  public void testCheckFaPathFileContent() throws Exception {
+    String gameType = FAF.getTechnicalName();
+    Integer gameVersion = 3711;
+    String clientVersion = Version.getCurrentVersion();
 
+    when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
+    FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(gameType).get();
+    when(modService.getFeaturedMod(gameType)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
+    instance.update(updatedMod, gameVersion, Set.of()).join();
+
+    String content = Files.readString(fafDataDirectory.resolve("fa_path.lua"));
+    assertTrue(content.contains("GameType = \"" + gameType + "\""));
+    assertTrue(content.contains("GameVersion = \"" + gameVersion + "\""));
+    assertTrue(content.contains("ClientVersion = \"" + clientVersion + "\""));
+  }
 
 }
