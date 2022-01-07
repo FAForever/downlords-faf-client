@@ -4,10 +4,10 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.update.Version;
 import com.faforever.client.util.ConcurrentUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,9 @@ public class GameUpdaterImpl implements GameUpdater {
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final PreferencesService preferencesService;
-  private final NotificationService notificationService;
+
+  private ComparableVersion gameVersion;
+  private String gameType;
 
   @Override
   public GameUpdater addFeaturedModUpdater(FeaturedModUpdater featuredModUpdater) {
@@ -56,6 +58,8 @@ public class GameUpdaterImpl implements GameUpdater {
 
   @Override
   public CompletableFuture<Void> update(FeaturedModBean featuredMod, Integer version, Set<String> simModUIDs) {
+    gameType = featuredMod.getTechnicalName();
+
     // The following ugly code is sponsored by the featured-mod-mess. FAF and Coop are both featured mods - but others,
     // (except fafbeta and fafdevelop) implicitly depend on FAF. So if a non-base mod is being played, make sure FAF is
     // installed.
@@ -109,8 +113,11 @@ public class GameUpdaterImpl implements GameUpdater {
     String pathFileFormat = """
         fa_path = "%s"
         custom_vault_path = "%s"
+        GameType = "%s"
+        GameVersion = "%s"
+        ClientVersion = "%s"
         """.stripIndent();
-    String content = String.format(pathFileFormat, installationPath, vaultPath);
+    String content = String.format(pathFileFormat, installationPath, vaultPath, gameType, gameVersion.toString(), Version.getCurrentVersion());
     Files.writeString(preferencesService.getFafDataDirectory().resolve("fa_path.lua"), content);
   }
 
@@ -141,6 +148,7 @@ public class GameUpdaterImpl implements GameUpdater {
   private CompletableFuture<Void> updateGameBinaries(ComparableVersion version) {
     GameBinariesUpdateTask binariesUpdateTask = applicationContext.getBean(GameBinariesUpdateTaskImpl.class);
     binariesUpdateTask.setVersion(version);
+    gameVersion = version;
     return taskService.submitTask(binariesUpdateTask).getFuture();
   }
 }
