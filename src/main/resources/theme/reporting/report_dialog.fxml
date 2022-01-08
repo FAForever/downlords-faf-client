@@ -58,7 +58,7 @@
                styleClass="h3"/>
         <TextField fx:id="gameTime" maxHeight="Infinity" promptText="%report.gamePrompt"
                    GridPane.rowIndex="3" GridPane.columnIndex="3" GridPane.halignment="CENTER"/>
-        <Button defaultButton="true" onAction="#onReportButtonClicked" text="%report.submit" GridPane.columnIndex="0"
+        <Button fx:id="reportButton" defaultButton="true" onAction="#onReportButtonClicked" text="%report.submit" GridPane.columnIndex="0"
                 GridPane.rowIndex="5"
                 GridPane.columnSpan="4" GridPane.halignment="CENTER"/>
         <Separator GridPane.columnSpan="4" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
