@@ -11,18 +11,14 @@ import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class WatchGameMenuItemTest extends UITest {
 
-  @Mock
-  private ApplicationContext applicationContext;
   @Mock
   private I18n i18n;
   @Mock
@@ -30,14 +26,12 @@ public class WatchGameMenuItemTest extends UITest {
   @Mock
   private ReplayService replayService;
 
-  PlayerBean player;
-  WatchGameMenuItem instance;
+  private PlayerBean player;
+  private WatchGameMenuItem instance;
 
   @BeforeEach
   public void setUp() {
-    when(applicationContext.getBean(I18n.class)).thenReturn(i18n);
-    when(applicationContext.getBean(ReplayService.class)).thenReturn(replayService);
-    when(applicationContext.getBean(NotificationService.class)).thenReturn(notificationService);
+
   }
 
   @Test
@@ -85,8 +79,7 @@ public class WatchGameMenuItemTest extends UITest {
   }
 
   private void initializeInstance() {
-    instance = new WatchGameMenuItem();
+    instance = new WatchGameMenuItem(i18n, replayService, notificationService);
     instance.setObject(player);
-    instance.setContext(applicationContext);
   }
 }

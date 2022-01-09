@@ -162,7 +162,7 @@ public class PartyMemberItemControllerTest extends UITest {
 
   @Test
   public void testOnKickPlayerButtonClicked() {
-    instance.onKickPlayerButtonClicked(null);
+    instance.onKickPlayerButtonClicked();
 
     verify(teamMatchmakingService).kickPlayerFromParty(player);
   }

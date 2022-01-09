@@ -14,24 +14,24 @@ public class ContextMenuBuilder {
 
   public static class Builder {
 
-    private final ApplicationContext context;
+    private final ApplicationContext applicationContext;
 
     private final ContextMenu contextMenu = new ContextMenu();
     private SeparatorMenuItem separator;
     private BooleanProperty firstItemVisibleProperty;
     private BooleanBinding totalVisibleBinding;
 
-    private Builder(ApplicationContext context) {
-      this.context = context;
+    private Builder(ApplicationContext applicationContext) {
+      this.applicationContext = applicationContext;
     }
 
-    public <T> Builder addItem(AbstractMenuItem<T> item) {
-      return addItem(item, null);
+    public <T, B extends AbstractMenuItem<T>> Builder addItem(Class<B> clazz) {
+      return addItem(clazz, null);
     }
 
-    public <T> Builder addItem(AbstractMenuItem<T> item, T object) {
+    public <T, B extends AbstractMenuItem<T>> Builder addItem(Class<B> clazz, T object) {
+      B item = applicationContext.getBean(clazz);
       item.setObject(object);
-      item.setContext(context);
       contextMenu.getItems().add(item);
       bindVisiblePropertyToSeparator(item.visibleProperty());
       return this;
@@ -48,7 +48,7 @@ public class ContextMenuBuilder {
       return this;
     }
 
-    private <T> void bindVisiblePropertyToSeparator(BooleanProperty visibleProperty) {
+    private void bindVisiblePropertyToSeparator(BooleanProperty visibleProperty) {
       if (separator != null) {
         if (firstItemVisibleProperty == null) {
           separator.visibleProperty().bind(visibleProperty);

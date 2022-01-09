@@ -108,7 +108,7 @@ public class LeaderboardControllerTest extends UITest {
     when(leaderboardService.getLeagueEntryForPlayer(sheikah, season)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean2));
 
-    subDivisionTabController = new SubDivisionTabController(applicationContext, leaderboardService, notificationService, i18n, uiService);
+    subDivisionTabController = new SubDivisionTabController(applicationContext, leaderboardService, notificationService, i18n);
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> subDivisionTabController);
     subDivisionTabController.initialize();
     when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);

@@ -6,14 +6,12 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
-import com.faforever.client.theme.UiService;
-import javafx.scene.control.ContextMenu;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -39,7 +37,6 @@ public class SubDivisionTabController implements Controller<Tab> {
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final UiService uiService;
   public Tab subDivisionTab;
   public TableColumn<LeagueEntryBean, Number> rankColumn;
   public TableColumn<LeagueEntryBean, String> nameColumn;
@@ -76,15 +73,15 @@ public class SubDivisionTabController implements Controller<Tab> {
       if (row.getItem() == null) {
         return;
       }
-      LeagueEntryBean  entry = row.getItem();
+      LeagueEntryBean entry = row.getItem();
       PlayerBean player = entry.getPlayer();
-      ContextMenu contextMenu = ContextMenuBuilder.newBuilder(context)
-          .addItem(new ShowPlayerInfoMenuItem(), player)
-          .addItem(new CopyUsernameMenuItem(), player.getUsername())
+      ContextMenuBuilder.newBuilder(context)
+          .addItem(ShowPlayerInfoMenuItem.class, player)
+          .addItem(CopyUsernameMenuItem.class, player.getUsername())
           .addSeparator()
-          .addItem(new ViewReplaysMenuItem(), player)
-          .build();
-      contextMenu.show(subDivisionTab.getTabPane().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+          .addItem(ViewReplaysMenuItem.class, player)
+          .build()
+          .show(subDivisionTab.getTabPane().getScene().getWindow(), event.getScreenX(), event.getScreenY());
     });
 
     return row;

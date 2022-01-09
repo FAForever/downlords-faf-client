@@ -6,17 +6,17 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.game.PlayerStatus;
-import com.faforever.client.i18n.I18n;
-import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
 import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
+import com.faforever.client.game.PlayerStatus;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.player.CountryFlagService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
@@ -24,10 +24,8 @@ import com.google.common.base.Strings;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -40,8 +38,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.lang.ref.WeakReference;
 
 @Slf4j
 @Component
@@ -79,7 +75,6 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private PlayerBean player;
-  private WeakReference<ContextMenu> contextMenuWeakReference = null;
   private InvalidationListener playerStatusInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
   private InvalidationListener partyOwnerInvalidationListener;
@@ -187,29 +182,20 @@ public class PartyMemberItemController implements Controller<Node> {
         .noneMatch(member -> member.getPlayer() == player && member.getFactions().contains(faction));
   }
 
-  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
+  public void onKickPlayerButtonClicked() {
     teamMatchmakingService.kickPlayerFromParty(player);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuWeakReference != null) {
-      ContextMenu contextMenu = contextMenuWeakReference.get();
-      if (contextMenu != null) {
-        contextMenu.show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        return;
-      }
-    }
-
-    ContextMenu contextMenu = ContextMenuBuilder.newBuilder(context)
-        .addItem(new ShowPlayerInfoMenuItem(), player)
-        .addItem(new SendPrivateMessageMenuItem(), player.getUsername())
-        .addItem(new CopyUsernameMenuItem(), player.getUsername())
+    ContextMenuBuilder.newBuilder(context)
+        .addItem(ShowPlayerInfoMenuItem.class, player)
+        .addItem(SendPrivateMessageMenuItem.class, player.getUsername())
+        .addItem(CopyUsernameMenuItem.class, player.getUsername())
         .addSeparator()
-        .addItem(new ReportPlayerMenuItem(), player)
+        .addItem(ReportPlayerMenuItem.class, player)
         .addSeparator()
-        .addItem(new ViewReplaysMenuItem(), player)
-        .build();
-    contextMenu.show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-    contextMenuWeakReference = new WeakReference<>(contextMenu);
+        .addItem(ViewReplaysMenuItem.class, player)
+        .build()
+        .show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 }
