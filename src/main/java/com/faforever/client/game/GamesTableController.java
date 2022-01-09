@@ -37,6 +37,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -120,7 +121,7 @@ public class GamesTableController implements Controller<Node> {
     ));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
-    gameTitleColumn.setCellFactory(param -> new StringCell<>(title -> title));
+    gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
     playersColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
         () -> new PlayerFill(param.getValue().getNumPlayers(), param.getValue().getMaxPlayers()),
         param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty())

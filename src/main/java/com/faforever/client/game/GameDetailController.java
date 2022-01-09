@@ -113,7 +113,7 @@ public class GameDetailController implements Controller<Pane> {
     GameBean game = this.game.get();
     if (game != null) {
       JavaFxUtil.runLater(() -> {
-        gameTitleLabel.setText(game.getTitle());
+        gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
         hostLabel.setText(game.getHost());
         mapLabel.setText(game.getMapFolderName());
         mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));

@@ -76,7 +76,7 @@ public class GameTileController implements Controller<Node> {
 
   private void onGamePropertyChanged() {
     JavaFxUtil.runLater(() -> {
-      gameTitleLabel.setText(game.getTitle());
+      gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
       hostLabel.setText(game.getHost());
       gameMapLabel.setText(game.getMapFolderName());
       mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
