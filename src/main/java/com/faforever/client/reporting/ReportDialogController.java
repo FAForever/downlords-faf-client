@@ -20,6 +20,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -59,6 +60,7 @@ public class ReportDialogController implements Controller<Node> {
 
   public VBox reportDialogRoot;
   public Label reportLabel;
+  public Button reportButton;
   public TextField offender;
   public TextArea reportDescription;
   public TextField gameId;
@@ -169,16 +171,25 @@ public class ReportDialogController implements Controller<Node> {
         return CompletableFuture.completedFuture(null);
       }
 
+      setSendingReport(true);
       return moderationService.postModerationReport(report);
     }).thenAccept(postedReport -> {
       if (postedReport != null) {
         updateReportTable();
         clearReport();
+        notificationService.addImmediateInfoNotification("report.success");
       }
     }).exceptionally(throwable -> {
       log.warn("Error submitting moderation report", throwable);
       notificationService.addImmediateErrorNotification(throwable, "report.error");
       return null;
+    }).whenComplete((aVoid, throwable) -> setSendingReport(false));
+  }
+
+  private void setSendingReport(boolean sending) {
+    JavaFxUtil.runLater(() -> {
+      reportDialogRoot.setDisable(sending);
+      reportButton.setText(i18n.get(sending ? "report.sending" : "report.submit"));
     });
   }
 

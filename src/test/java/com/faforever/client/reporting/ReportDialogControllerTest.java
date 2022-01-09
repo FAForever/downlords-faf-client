@@ -17,6 +17,8 @@ import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,13 +83,35 @@ public class ReportDialogControllerTest extends UITest {
 
   @Test
   public void testOnReport() {
-    instance.onReportButtonClicked();
+    when(i18n.get("report.submit")).thenReturn("submit");
+
+    runOnFxThreadAndWait(() -> instance.onReportButtonClicked());
 
     verify(moderationService).postModerationReport(any(ModerationReportBean.class));
+    verify(notificationService).addImmediateInfoNotification("report.success");
+    assertEquals("submit", instance.reportButton.getText());
+    assertFalse(instance.reportDialogRoot.isDisabled());
     assertTrue(instance.offender.getText().isBlank());
     assertTrue(instance.reportDescription.getText().isBlank());
     assertTrue(instance.gameTime.getText().isBlank());
     assertTrue(instance.gameId.getText().isBlank());
+  }
+
+  @Test void testSendingReportProcess() {
+    when(i18n.get("report.sending")).thenReturn("sending...");
+    final Boolean[] disabledRootInteraction = new Boolean[1];
+    final Boolean[] updatedButtonText = new Boolean[1];
+    Mockito.doAnswer(invocation -> {
+      WaitForAsyncUtils.waitForFxEvents();
+      disabledRootInteraction[0] = instance.reportDialogRoot.isDisabled();
+      updatedButtonText[0] = instance.reportButton.getText().equals("sending...");
+      return invocation;
+    }).when(moderationService).postModerationReport(any());
+
+    runOnFxThreadAndWait(() -> instance.onReportButtonClicked());
+
+    assertTrue(disabledRootInteraction[0]);
+    assertTrue(updatedButtonText[0]);
   }
 
   @Test
