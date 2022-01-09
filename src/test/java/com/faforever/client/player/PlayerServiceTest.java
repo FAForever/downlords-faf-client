@@ -22,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Flux;
 
 import java.util.HashMap;
@@ -72,7 +71,6 @@ public class PlayerServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
-    MockitoAnnotations.initMocks(this);
     when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, null, "", new HashMap<>(), new HashMap<>());

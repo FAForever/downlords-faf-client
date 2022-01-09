@@ -22,6 +22,7 @@
                   <children>
                           <MenuButton focusTraversable="false" mnemonicParsing="false" styleClass="main-menu-button">
                               <items>
+                                  <MenuItem onAction="#onRevealDataFolder" text="%menu.revealDataFolder"/>
                                   <MenuItem onAction="#onRevealLogFolder" text="%menu.revealLogFolder" />
                                   <MenuItem onAction="#onRevealMapFolder" text="%menu.revealMapFolder" />
                                   <MenuItem onAction="#onRevealModFolder" text="%menu.revealModFolder" />

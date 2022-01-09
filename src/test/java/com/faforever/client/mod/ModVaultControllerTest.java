@@ -4,6 +4,7 @@ import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -63,6 +64,8 @@ public class ModVaultControllerTest extends UITest {
   private SpecificationController specificationController;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private PlatformService platformService;
 
   private Preferences preferences;
   private ModDetailController modDetailController;
@@ -77,7 +80,7 @@ public class ModVaultControllerTest extends UITest {
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(i18n.get(anyString())).thenReturn("test");
 
-    instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
+    instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService, platformService);
 
     doAnswer(invocation -> {
       modDetailController = mock(ModDetailController.class);

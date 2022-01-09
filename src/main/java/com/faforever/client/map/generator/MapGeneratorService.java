@@ -2,7 +2,6 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.GitHubRelease;
@@ -12,13 +11,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 @Lazy
 @Service
 @Slf4j
-public class MapGeneratorService implements InitializingBean {
+public class MapGeneratorService implements DisposableBean {
 
   /**
    * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
@@ -55,10 +55,8 @@ public class MapGeneratorService implements InitializingBean {
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
+  private final PreferencesService preferencesService;
   private final WebClient webClient;
-
-  @Getter
-  private final Path customMapsDirectory;
 
   @Getter
   private Image generatedMapPreviewImage;
@@ -70,9 +68,10 @@ public class MapGeneratorService implements InitializingBean {
                              TaskService taskService, ClientProperties clientProperties, WebClient.Builder webClientBuilder) {
     this.applicationContext = applicationContext;
     this.taskService = taskService;
+    this.preferencesService = preferencesService;
     webClient = webClientBuilder.build();
 
-    generatorExecutablePath = preferencesService.getFafDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
+    generatorExecutablePath = preferencesService.getPreferences().getData().getBaseDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
     this.clientProperties = clientProperties;
     if (!Files.exists(generatorExecutablePath)) {
       try {
@@ -82,8 +81,6 @@ public class MapGeneratorService implements InitializingBean {
       }
     }
 
-    customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
-
     try {
       generatedMapPreviewImage = new Image(new ClassPathResource("/images/generatedMapIcon.png").getURL().toString(), true);
     } catch (IOException | NoClassDefFoundError | ExceptionInInitializerError e) {
@@ -92,12 +89,13 @@ public class MapGeneratorService implements InitializingBean {
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
+  public void destroy() throws Exception {
     deleteGeneratedMaps();
   }
 
   private void deleteGeneratedMaps() {
     log.info("Deleting leftover generated maps...");
+    Path customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
     if (customMapsDirectory != null && customMapsDirectory.toFile().exists()) {
       try (Stream<Path> listOfMapFiles = Files.list(customMapsDirectory)) {
         listOfMapFiles
@@ -105,7 +103,7 @@ public class MapGeneratorService implements InitializingBean {
             .filter(p -> GENERATED_MAP_PATTERN.matcher(p.getFileName().toString()).matches())
             .forEach(p -> {
               try {
-                FileUtils.deleteRecursively(p);
+                FileSystemUtils.deleteRecursively(p);
               } catch (IOException e) {
                 log.warn("Could not delete generated map directory {}", p, e);
               }

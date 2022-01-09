@@ -2,6 +2,7 @@ package com.faforever.client.fa;
 
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.lobby.GameLaunchResponse;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
@@ -33,6 +35,7 @@ public class ForgedAllianceService {
 
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
+  private final LoggingService loggingService;
 
   public Process startGameOffline(String map) throws IOException {
     Path executable = getExecutable();
@@ -40,7 +43,7 @@ public class ForgedAllianceService {
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(executable)
         .map(map)
-        .logFile(preferencesService.getNewGameLogFile(0))
+        .logFile(loggingService.getNewGameLogFile(0))
         .build();
 
     return launch(executable, launchCommand);
@@ -72,7 +75,7 @@ public class ForgedAllianceService {
         .deviation(deviation)
         .mean(mean)
         .additionalArgs(gameLaunchMessage.getArgs())
-        .logFile(preferencesService.getNewGameLogFile(uid))
+        .logFile(loggingService.getNewGameLogFile(uid))
         .localGpgPort(gpgPort)
         .localReplayPort(localReplayPort)
         .rehost(rehost)
@@ -84,34 +87,35 @@ public class ForgedAllianceService {
 
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
+    int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .replayFile(path)
-        .replayId(replayId)
-        .logFile(preferencesService.getNewGameLogFile(replayId))
+        .replayId(checkedReplayId)
+        .logFile(loggingService.getNewGameLogFile(checkedReplayId))
         .build();
 
     return launch(executable, launchCommand);
   }
 
 
-  public Process startReplay(URI replayUri, Integer replayId, PlayerBean currentPlayer) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .replayUri(replayUri)
         .replayId(replayId)
-        .logFile(preferencesService.getFafLogDirectory().resolve("replay.log"))
-        .username(currentPlayer.getUsername())
+        .logFile(loggingService.getNewGameLogFile(replayId))
+        .username(playerService.getCurrentPlayer().getUsername())
         .build();
 
     return launch(executable, launchCommand);
   }
 
   private Path getExecutable() {
-    return preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+    return preferencesService.getPreferences().getData().getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
   private LaunchCommandBuilder defaultLaunchCommand() {

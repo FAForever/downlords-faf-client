@@ -90,7 +90,7 @@ import static org.mockito.Mockito.when;
 public class MapServiceTest extends UITest {
 
   @TempDir
-  public Path mapsDirectory;
+  public Path tempDirectory;
 
   private MapService instance;
 
@@ -122,6 +122,7 @@ public class MapServiceTest extends UITest {
   private MapMapper mapMapper = Mappers.getMapper(MapMapper.class);
   private ReplayMapper replayMapper = Mappers.getMapper(ReplayMapper.class);
   private MatchmakerMapper matchmakerMapper = Mappers.getMapper(MatchmakerMapper.class);
+  private Path mapsDirectory;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -131,10 +132,11 @@ public class MapServiceTest extends UITest {
     ClientProperties clientProperties = new ClientProperties();
     clientProperties.getVault().setMapPreviewUrlFormat("http://127.0.0.1:65534/preview/%s/%s");
     clientProperties.getVault().setMapDownloadUrlFormat("http://127.0.0.1:65534/fakeDownload/%s");
+    mapsDirectory = Files.createDirectory(tempDirectory.resolve("maps"));
 
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .customMapsDirectory(mapsDirectory)
+        .vaultBaseDirectory(tempDirectory)
         .then()
         .get();
 

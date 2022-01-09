@@ -59,12 +59,13 @@ public class GameUpdaterImplTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    fafDataDirectory = tempDir.resolve("faf_temp_data");
-    binDirectory = fafDataDirectory.resolve("bin");
-    Files.createDirectories(fafDataDirectory);
-    Files.createDirectories(binDirectory);
-    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getFafDataDirectory()).thenReturn(fafDataDirectory);
+    Preferences preferences = PreferencesBuilder.create()
+        .dataPrefs()
+        .dataDirectory(tempDir.resolve("faf_temp_data"))
+        .then()
+        .get();
+    fafDataDirectory = Files.createDirectories(preferences.getData().getBaseDataDirectory());
+    binDirectory = Files.createDirectories(preferences.getData().getBinDirectory());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(GameBinariesUpdateTaskImpl.class)).thenReturn(gameBinariesUpdateTask);
     when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);

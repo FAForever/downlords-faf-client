@@ -20,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.util.ReflectionUtils;
 
 import static com.natpryce.hamcrest.reflection.HasAnnotationMatcher.hasAnnotation;
@@ -51,8 +50,6 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new FriendJoinedGameNotifier(notificationService, i18n, eventBus, joinGameHelper, preferencesService, audioService);
 
     preferences = PreferencesBuilder.create().defaultValues().get();

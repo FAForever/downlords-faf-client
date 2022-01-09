@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.testfx.util.WaitForAsyncUtils;
 
 import static org.mockito.Mockito.mock;
 
@@ -18,7 +17,7 @@ public class FafClientApplicationTest extends UITest {
 
   @Test
   public void testDoesItSmoke() throws Exception {
-    WaitForAsyncUtils.asyncFx(() -> {
+    runOnFxThreadAndWait(() -> {
       Stopwatch stopwatch = Stopwatch.createStarted();
       try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
         context.getBeanFactory().registerSingleton("hostService", mock(PlatformService.class));
@@ -29,6 +28,5 @@ public class FafClientApplicationTest extends UITest {
         log.debug("Loading application context took {}", stopwatch.stop());
       }
     });
-    WaitForAsyncUtils.waitForFxEvents();
   }
 }

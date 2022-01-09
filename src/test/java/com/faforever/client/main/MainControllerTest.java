@@ -8,8 +8,8 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
-import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.logging.LoggingService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -18,7 +18,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.play.PlayController;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ui.SettingsController;
@@ -28,7 +27,6 @@ import com.faforever.client.ui.StageHolder;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
@@ -49,8 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
-
-import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -75,15 +71,11 @@ public class MainControllerTest extends UITest {
   @Mock
   private PlatformService platformService;
   @Mock
-  private PlayerService playerService;
-  @Mock
   private SettingsController settingsController;
   @Mock
   private I18n i18n;
   @Mock
   private NotificationService notificationService;
-  @Mock
-  private GameService gameService;
   @Mock
   private TransientNotificationsController transientNotificationsController;
   @Mock
@@ -101,7 +93,6 @@ public class MainControllerTest extends UITest {
   @Mock
   private Environment environment;
   private MainController instance;
-  private BooleanProperty gameRunningProperty;
   private Preferences preferences;
   @Mock
   private FxStage fxStage;
@@ -294,10 +285,14 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testOnRevealLogFolder() throws Exception {
-    Path expectedPath = Path.of("C:\\test\\path_log");
-    when(preferencesService.getFafLogDirectory()).thenReturn(expectedPath);
     instance.onRevealLogFolder();
-    verify(platformService).reveal(expectedPath);
+    verify(platformService).reveal(LoggingService.FAF_LOG_DIRECTORY);
+  }
+
+  @Test
+  public void testOnRevealReplayFolder() throws Exception {
+    instance.onRevealReplayFolder();
+    verify(platformService).reveal(preferences.getData().getReplaysDirectory());
   }
 
   @Test

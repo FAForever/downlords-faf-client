@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.builders.MapVersionBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.builders.ReplayReviewsSummaryBeanBuilder;
 import com.faforever.client.config.ClientProperties;
@@ -21,6 +22,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
@@ -110,9 +112,9 @@ public class ReplayServiceTest extends ServiceTest {
   private static final String TEST_MAP_NAME_GENERATED = "neroxis_map_generator_1.0.0_ABcd";
 
   @TempDir
-  public Path replayDirectory;
-  @TempDir
+  public Path tempDirectory;
   public Path cacheDirectory;
+  public Path replayDirectory;
   private ReplayService instance;
   @Mock
   private I18n i18n;
@@ -157,6 +159,17 @@ public class ReplayServiceTest extends ServiceTest {
     MapperSetup.injectMappers(replayMapper);
     MapperSetup.injectMappers(reviewMapper);
 
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .dataPrefs()
+        .dataDirectory(tempDirectory)
+        .then()
+        .get();
+
+    cacheDirectory = Files.createDirectories(preferences.getData().getCacheDirectory());
+    replayDirectory = Files.createDirectories(preferences.getData().getReplaysDirectory());
+
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+
     when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     instance = new ReplayService(new ClientProperties(), preferencesService, userService, replayFileReader, notificationService, gameService, playerService,
         taskService, i18n, reportingService, applicationContext, platformService, fafApiAccessor, modService, mapService, fileSizeReader, replayMapper);
@@ -176,10 +189,6 @@ public class ReplayServiceTest extends ServiceTest {
     when(replayDataParser.getMods()).thenReturn(Map.of());
     when(replayDataParser.getMap()).thenReturn(TEST_MAP_PATH);
     when(replayDataParser.getReplayPatchFieldId()).thenReturn(TEST_VERSION_STRING);
-    when(preferencesService.getReplaysDirectory()).thenReturn(replayDirectory);
-    Path corruptDirectory = Files.createDirectories(replayDirectory.resolve("corrupt"));
-    when(preferencesService.getCorruptedReplaysDirectory()).thenReturn(corruptDirectory);
-    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory);
     doAnswer(invocation -> invocation.getArgument(0)).when(taskService).submitTask(any());
   }
 

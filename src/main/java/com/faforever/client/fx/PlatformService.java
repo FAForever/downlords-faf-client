@@ -1,5 +1,6 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.ui.StageHolder;
 import com.google.common.collect.Sets;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.win32.User32;
@@ -7,14 +8,19 @@ import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
+import javafx.stage.DirectoryChooser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import static org.bridj.Platform.show;
@@ -159,6 +165,30 @@ public class PlatformService {
       Files.setPosixFilePermissions(exePath, Sets.immutableEnumSet(PosixFilePermission.OWNER_READ,
           PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE));
     }
+  }
+
+  public Optional<Path> askForPath(String title) {
+    return askForPath(title, null);
+  }
+
+  public Optional<Path> askForPath(String title, Path initialDirectory) {
+    AtomicReference<File> result = new AtomicReference<>();
+    CountDownLatch waitForUserInput = new CountDownLatch(1);
+    JavaFxUtil.runLater(() -> {
+      DirectoryChooser directoryChooser = new DirectoryChooser();
+      directoryChooser.setTitle(title);
+      if (initialDirectory != null) {
+        directoryChooser.setInitialDirectory(initialDirectory.toFile());
+      }
+      result.set(directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow()));
+      waitForUserInput.countDown();
+    });
+    try {
+      waitForUserInput.await();
+    } catch (InterruptedException e) {
+      log.warn("Thread interrupted while waiting for user file selection", e);
+    }
+    return Optional.ofNullable(result.get()).map(File::toPath);
   }
 }
 

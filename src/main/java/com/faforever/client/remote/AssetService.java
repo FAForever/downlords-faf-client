@@ -50,7 +50,7 @@ public class AssetService {
       String urlString = url.toString();
       urlString = urlValidator.isValid(urlString) ? urlString : UriUtils.encodePath(urlString, StandardCharsets.UTF_8);
       String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
-      Path cachePath = preferencesService.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
+      Path cachePath = preferencesService.getPreferences().getData().getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
       if (Files.exists(cachePath)) {
         log.debug("Using cached image: {}", cachePath);
         return new Image(cachePath.toUri().toURL().toExternalForm(), width, height, true, true, true);

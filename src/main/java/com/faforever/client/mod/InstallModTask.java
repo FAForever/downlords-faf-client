@@ -1,7 +1,6 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
@@ -12,6 +11,7 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.FileSystemUtils;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -49,7 +49,7 @@ public class InstallModTask extends CompletableTask<Void> {
   protected Void call() throws Exception {
     Objects.requireNonNull(url, "url has not been set");
 
-    Path tempFile = Files.createTempFile(preferencesService.getCacheDirectory(), "mod", null);
+    Path tempFile = Files.createTempFile(preferencesService.getPreferences().getData().getCacheDirectory(), "mod", null);
 
     log.info("Downloading mod {} to {}", url, tempFile);
     updateTitle(i18n.get("downloadingModTask.downloading", url));
@@ -111,7 +111,7 @@ public class InstallModTask extends CompletableTask<Void> {
       Path topLevelDirectory = getTopLevelDirectory(pathToEntry);
       Path modDirectory = modsDirectory.resolve(topLevelDirectory);
       if (Files.isDirectory(modDirectory)) {
-        FileUtils.deleteRecursively(modDirectory);
+        FileSystemUtils.deleteRecursively(modDirectory);
         log.debug("Deleting old version of the mod stored in {}", modDirectory);
       }
     } catch (Exception e) {

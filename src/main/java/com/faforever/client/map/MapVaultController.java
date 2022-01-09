@@ -3,6 +3,7 @@ package com.faforever.client.map;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenMapVaultEvent;
@@ -20,13 +21,11 @@ import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.scene.Node;
-import javafx.stage.DirectoryChooser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -42,6 +41,7 @@ import java.util.Random;
 public class MapVaultController extends VaultEntityController<MapVersionBean> {
 
   private final MapService mapService;
+  private final PlatformService platformService;
   private final EventBus eventBus;
 
   private MapDetailController mapDetailController;
@@ -49,10 +49,12 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   private MatchmakerQueueBean matchmakerQueue;
 
   public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
-                            UiService uiService, NotificationService notificationService, ReportingService reportingService) {
+                            UiService uiService, NotificationService notificationService, ReportingService reportingService,
+                            PlatformService platformService) {
     super(uiService, notificationService, i18n, preferencesService, reportingService);
     this.mapService = mapService;
     this.eventBus = eventBus;
+    this.platformService = platformService;
   }
 
   @Override
@@ -137,17 +139,8 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   }
 
   public void onUploadButtonClicked() {
-    JavaFxUtil.runLater(() -> {
-      DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setInitialDirectory(preferencesService.getPreferences().getForgedAlliance().getMapsDirectory().toFile());
-      directoryChooser.setTitle(i18n.get("mapVault.upload.chooseDirectory"));
-      File result = directoryChooser.showDialog(getRoot().getScene().getWindow());
-
-      if (result == null) {
-        return;
-      }
-      openUploadWindow(result.toPath());
-    });
+    platformService.askForPath(i18n.get("mapVault.upload.chooseDirectory"), preferencesService.getPreferences().getForgedAlliance().getMapsDirectory())
+        .ifPresent(this::openUploadWindow);
   }
 
   @Override

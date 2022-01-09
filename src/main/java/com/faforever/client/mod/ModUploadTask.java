@@ -49,7 +49,7 @@ public class ModUploadTask extends CompletableTask<Void> {
     Validator.notNull(modPath, "modPath must not be null");
 
     ResourceLocks.acquireUploadLock();
-    Path cacheDirectory = preferencesService.getCacheDirectory();
+    Path cacheDirectory = preferencesService.getPreferences().getData().getCacheDirectory();
     Files.createDirectories(cacheDirectory);
     Path tmpFile = createTempFile(cacheDirectory, "mod", ".zip");
 

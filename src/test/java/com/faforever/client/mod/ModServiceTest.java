@@ -53,7 +53,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -92,7 +91,7 @@ public class ModServiceTest extends UITest {
   private static final TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
 
   @TempDir
-  public Path faDataDirectory;
+  public Path tempDirectory;
 
   @Mock
   private PreferencesService preferencesService;
@@ -121,13 +120,13 @@ public class ModServiceTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(modMapper);
-    modsDirectory = faDataDirectory.resolve("mods");
+    modsDirectory = tempDirectory.resolve("mods");
     Files.createDirectories(modsDirectory);
-    gamePrefsPath = faDataDirectory.resolve("game.prefs");
+    gamePrefsPath = tempDirectory.resolve("game.prefs");
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
         .preferencesFile(gamePrefsPath)
-        .modsDirectory(modsDirectory)
+        .vaultBaseDirectory(tempDirectory)
         .then()
         .get();
 

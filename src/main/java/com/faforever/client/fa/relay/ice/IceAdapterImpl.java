@@ -7,6 +7,7 @@ import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
+import com.faforever.client.logging.LoggingService;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -177,7 +178,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workDirectory.toFile());
         processBuilder.command(cmd);
-        processBuilder.environment().put("LOG_DIR", preferencesService.getIceAdapterLogDirectory().toAbsolutePath().toString());
+        processBuilder.environment().put("LOG_DIR", LoggingService.FAF_ICE_LOG_DIRECTORY.toAbsolutePath().toString());
 
         log.info("Starting ICE adapter with command: {}", cmd);
         boolean advancedIceLogEnabled = preferencesService.getPreferences().isAdvancedIceLogEnabled();

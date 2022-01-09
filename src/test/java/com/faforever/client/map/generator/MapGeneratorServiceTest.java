@@ -54,9 +54,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
   private final String testMapNameTooOldVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionGeneratorTooOld, seed);
   private final String testMapNameTooNewVersion = String.format(MapGeneratorService.GENERATED_MAP_NAME, versionNoGeneratorTooNew, seed);
   @TempDir
-  public Path vaultBaseDir;
-  @TempDir
-  public Path fafDataDirectory;
+  public Path tempDirectory;
 
   private MapGeneratorService instance;
   @Mock
@@ -78,17 +76,19 @@ public class MapGeneratorServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Files.createDirectories(fafDataDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY));
-    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    Files.createFile(fafDataDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
-
-    when(preferencesService.getFafDataDirectory()).thenReturn(fafDataDirectory);
-
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
+    Preferences preferences = PreferencesBuilder.create()
+        .dataPrefs()
+        .dataDirectory(tempDirectory)
+        .then()
         .forgedAlliancePrefs()
-        .vaultBaseDirectory(vaultBaseDir)
+        .vaultBaseDirectory(tempDirectory)
         .then()
         .get();
+
+    Files.createDirectories(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY));
+    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
+    Files.createFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(applicationContext.getBean(DownloadMapGeneratorTask.class)).thenReturn(downloadMapGeneratorTask);
@@ -99,8 +99,6 @@ public class MapGeneratorServiceTest extends ServiceTest {
     when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
 
     instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties, WebClient.builder());
-
-    instance.afterPropertiesSet();
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
@@ -134,7 +132,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     verify(generateMapTask).setMapFilename(testMapNameGenerator);
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
 
     verifyNoMoreInteractions(taskService);
   }
@@ -164,7 +162,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setSpawnCount(spawnCount);
     verify(generateMapTask).setMapSize(mapSize);
@@ -185,7 +183,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setSpawnCount(spawnCount);
     verify(generateMapTask).setMapSize(mapSize);
@@ -200,7 +198,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    verify(generateMapTask).setGeneratorExecutableFile(fafDataDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setCommandLineArgs("--help");
   }
@@ -212,7 +210,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     future.join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    verify(generatorOptionsTask).setGeneratorExecutableFile(fafDataDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
+    verify(generatorOptionsTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
     verify(generatorOptionsTask).setVersion(versionGeneratorPresent);
     verify(generatorOptionsTask).setQuery("--styles");
   }

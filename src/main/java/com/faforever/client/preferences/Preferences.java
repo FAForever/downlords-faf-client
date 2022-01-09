@@ -1,6 +1,7 @@
 package com.faforever.client.preferences;
 
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
+import com.fasterxml.jackson.annotation.JsonMerge;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -20,39 +21,57 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Map;
+
 import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.collections.FXCollections.observableHashMap;
 
-@FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class Preferences {
 
   public static final String DEFAULT_THEME_NAME = "default";
 
   @Getter
+  @JsonMerge
+  DataPrefs data = new DataPrefs();
+  @Getter
+  @JsonMerge
   WindowPrefs mainWindow = new WindowPrefs();
   @Getter
+  @JsonMerge
   GeneratorPrefs generator = new GeneratorPrefs();
   @Getter
+  @JsonMerge
   ForgedAlliancePrefs forgedAlliance = new ForgedAlliancePrefs();
   @Getter
+  @JsonMerge
   LoginPrefs login = new LoginPrefs();
   @Getter
+  @JsonMerge
   ChatPrefs chat = new ChatPrefs();
   @Getter
+  @JsonMerge
   NotificationsPrefs notification = new NotificationsPrefs();
   @Getter
+  @JsonMerge
   LocalizationPrefs localization = new LocalizationPrefs();
   @Getter
+  @JsonMerge
   LastGamePrefs lastGame = new LastGamePrefs();
   @Getter
+  @JsonMerge
   MatchmakerPrefs matchmaker = new MatchmakerPrefs();
   @Getter
+  @JsonMerge
   NewsPrefs news = new NewsPrefs();
   @Getter
+  @JsonMerge
   DeveloperPrefs developer = new DeveloperPrefs();
   @Getter
+  @JsonMerge
   VaultPrefs vault = new VaultPrefs();
   @Getter
+  @JsonMerge
   MirrorPrefs mirror = new MirrorPrefs();
   StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
   BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);
@@ -129,6 +148,11 @@ public class Preferences {
 
   public ObservableMap<String, SortType> getGameTableSorting() {
     return gameTableSorting.get();
+  }
+
+  public void setGameTableSorting(Map<String, SortType> gameTableSorting) {
+    this.gameTableSorting.clear();
+    this.gameTableSorting.putAll(gameTableSorting);
   }
 
   public UnitDataBaseType getUnitDataBaseType() {

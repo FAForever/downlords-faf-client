@@ -56,7 +56,6 @@ public class WebViewConfigurer {
     };
     webView.addEventHandler(MouseEvent.MOUSE_MOVED, moveHandler);
 
-    engine.setUserDataDirectory(preferencesService.getCacheDirectory().toFile());
     engine.setUserAgent(clientProperties.getUserAgent()); // removes faforever.com header and footer
     uiService.registerWebView(webView);
     JavaFxUtil.addListener(engine.getLoadWorker().stateProperty(), (observable, oldValue, newValue) -> {

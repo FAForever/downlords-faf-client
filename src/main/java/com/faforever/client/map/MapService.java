@@ -184,7 +184,7 @@ public class MapService implements InitializingBean, DisposableBean {
   public void afterPropertiesSet() {
     eventBus.register(this);
     JavaFxUtil.addListener(forgedAlliancePreferences.installationPathProperty(), observable -> tryLoadMaps());
-    JavaFxUtil.addListener(forgedAlliancePreferences.mapsDirectoryProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(forgedAlliancePreferences.vaultBaseDirectoryProperty(), observable -> tryLoadMaps());
     installedMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
       while (change.next()) {
         for (MapVersionBean mapVersion : change.getRemoved()) {

@@ -46,7 +46,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -54,12 +53,10 @@ import reactor.util.function.Tuple2;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
@@ -126,11 +123,11 @@ public class ModService implements InitializingBean, DisposableBean {
       @Override
       protected Void call() throws Exception {
         updateTitle(i18n.get("modVault.loadingMods"));
-        modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty());
+        modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().vaultBaseDirectoryProperty());
         return null;
       }
     });
-    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().modsDirectoryProperty(), modDirectoryChangedListener);
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().vaultBaseDirectoryProperty(), modDirectoryChangedListener);
   }
 
   private void onModDirectoryReady() {

@@ -96,7 +96,6 @@ public class GenerateMapTask extends CompletableTask<String> {
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.directory(workingDirectory.toFile());
       processBuilder.command(command);
-      processBuilder.environment().put("LOG_DIR", preferencesService.getFafLogDirectory().toAbsolutePath().toString());
 
       log.info("Starting map generator in directory: {} with command: {}",
           processBuilder.directory(), String.join(" ", processBuilder.command()));

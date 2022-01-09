@@ -5,6 +5,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.ChatPrefs;
@@ -12,10 +13,13 @@ import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
+import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
@@ -27,15 +31,18 @@ import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -54,6 +61,8 @@ public class SettingsControllerTest extends UITest {
   private static final Theme SECOND_THEME = new Theme("Second", "none", 1, "1");
 
   private SettingsController instance;
+  @Mock
+  private ApplicationContext applicationContext;
   @Mock
   private UserService userService;
   @Mock
@@ -74,6 +83,8 @@ public class SettingsControllerTest extends UITest {
   private ClientProperties clientProperties;
   @Mock
   private ClientUpdateService clientUpdateService;
+  @Mock
+  private TaskService taskService;
 
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
@@ -95,19 +106,19 @@ public class SettingsControllerTest extends UITest {
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService, gameService);
+    instance = new SettingsController(applicationContext, userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService, gameService, taskService);
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
 
   @Test
-  public void testThemesDisplayed() {
+  public void testThemesDisplayed() throws Exception{
     assertThat(instance.themeComboBox.getSelectionModel().getSelectedItem(), is(FIRST_THEME));
     assertThat(instance.themeComboBox.getItems(), hasItem(FIRST_THEME));
     assertThat(instance.themeComboBox.getItems(), hasItem(SECOND_THEME));
   }
 
   @Test
-  public void testSelectingSecondThemeCausesReloadAndRestartPrompt() {
+  public void testSelectingSecondThemeCausesReloadAndRestartPrompt() throws Exception {
     when(uiService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(true);
     instance.themeComboBox.getSelectionModel().select(SECOND_THEME);
     WaitForAsyncUtils.waitForFxEvents();
@@ -116,7 +127,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testSelectingDefaultThemeDoesNotCausesRestartPrompt() {
+  public void testSelectingDefaultThemeDoesNotCausesRestartPrompt() throws Exception {
     when(uiService.doesThemeNeedRestart(SECOND_THEME)).thenReturn(false);
     instance.themeComboBox.getSelectionModel().select(SECOND_THEME);
     WaitForAsyncUtils.waitForFxEvents();
@@ -125,7 +136,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testSearchForBetaUpdateIfOptionIsTurnedOn() {
+  public void testSearchForBetaUpdateIfOptionIsTurnedOn() throws Exception {
     instance.prereleaseToggle.setSelected(true);
     verify(clientUpdateService).checkForUpdateInBackground();
     instance.prereleaseToggle.setSelected(false);
@@ -133,7 +144,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnLanguageSelected() {
+  public void testOnLanguageSelected() throws Exception {
     preferences.getLocalization().setLanguage(Locale.US);
     instance.onLanguageSelected(Locale.GERMAN);
 
@@ -141,7 +152,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnLanguageSelectedThatIsAlreadySet() {
+  public void testOnLanguageSelectedThatIsAlreadySet() throws Exception {
     preferences.getLocalization().setLanguage(Locale.GERMAN);
     instance.onLanguageSelected(Locale.GERMAN);
 
@@ -149,7 +160,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnTimeSelected() {
+  public void testOnTimeSelected() throws Exception {
     instance.timeComboBox.setValue(TimeInfo.AUTO);
 
     instance.onTimeFormatSelected();
@@ -158,7 +169,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testAvailableLanguagesChange() {
+  public void testAvailableLanguagesChange() throws Exception {
     LanguageItemController languageItemController = mock(LanguageItemController.class);
     when(languageItemController.getRoot()).thenReturn(new Pane());
     when(uiService.loadFxml("theme/settings/language_item.fxml")).thenReturn(languageItemController);
@@ -172,7 +183,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAddChannelButtonPressed() {
+  public void testOnAddChannelButtonPressed() throws Exception {
     preferences.getChat().getAutoJoinChannels().clear();
     instance.channelTextField.setText("#newbie");
     instance.onAddAutoChannel();
@@ -181,7 +192,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testLanguageChannels() {
+  public void testLanguageChannels() throws Exception {
     Map<Locale, LanguageChannel> languagesToChannels = ChatPrefs.LOCALE_LANGUAGES_TO_CHANNELS;
     Entry<Locale, LanguageChannel> firstEntry = languagesToChannels.entrySet().iterator().next();
     Locale.setDefault(firstEntry.getKey());
@@ -193,7 +204,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAddMirrorButtonPressed() {
+  public void testOnAddMirrorButtonPressed() throws Exception {
     preferences.getMirror().getMirrorURLs().clear();
     instance.mirrorURITextField.setText("https://faf-mirror.example.com/");
     instance.onAddMirrorURL();
@@ -203,7 +214,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAddMirrorButtonPressedDuplicate() {
+  public void testOnAddMirrorButtonPressedDuplicate() throws Exception {
     preferences.getMirror().getMirrorURLs().clear();
     instance.mirrorURITextField.setText("https://faf-mirror.example.com");
     instance.onAddMirrorURL();
@@ -218,7 +229,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAddMirrorButtonPressedEmpty() {
+  public void testOnAddMirrorButtonPressedEmpty() throws Exception {
     preferences.getMirror().getMirrorURLs().clear();
     instance.mirrorURITextField.setText("");
     instance.onAddMirrorURL();
@@ -227,7 +238,7 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAddMirrorButtonPressedBadUrl() {
+  public void testOnAddMirrorButtonPressedBadUrl() throws Exception {
     preferences.getMirror().getMirrorURLs().clear();
     instance.mirrorURITextField.setText("faf-mirror.example.com");
     instance.onAddMirrorURL();
@@ -237,5 +248,42 @@ public class SettingsControllerTest extends UITest {
     instance.onAddMirrorURL();
     assertThat(preferences.getMirror().getMirrorURLs(), is(Collections.emptyList()));
     assertThat(instance.mirrorURITextField.getText(), is("spam://faf-mirror.example.com"));
+  }
+
+  @Test
+  public void testSetVaultLocation() throws Exception {
+    MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
+    Path newVaultLocation = Path.of(".");
+    when(platformService.askForPath(any())).thenReturn(Optional.of(newVaultLocation));
+    when(applicationContext.getBean(MoveDirectoryTask.class)).thenReturn(moveDirectoryTask);
+
+    instance.onSelectVaultLocation();
+
+    verify(moveDirectoryTask).setOldDirectory(preferences.getForgedAlliance().getVaultBaseDirectory());
+    verify(moveDirectoryTask).setNewDirectory(newVaultLocation);
+    verify(platformService).askForPath(any());
+    verify(notificationService).addNotification(any(ImmediateNotification.class));
+  }
+
+  @Test
+  public void testSetDataLocation() throws Exception {
+    MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
+    Path newDataLocation = Path.of(".");
+    when(platformService.askForPath(any())).thenReturn(Optional.of(newDataLocation));
+    when(applicationContext.getBean(MoveDirectoryTask.class)).thenReturn(moveDirectoryTask);
+
+    instance.onSelectDataLocation();
+
+    verify(moveDirectoryTask).setOldDirectory(preferences.getData().getBaseDataDirectory());
+    verify(moveDirectoryTask).setNewDirectory(newDataLocation);
+    verify(platformService).askForPath(any());
+    verify(taskService).submitTask(moveDirectoryTask);
+  }
+
+  @Test
+  public void testSetGameLocation() throws Exception {
+    instance.onSelectGameLocation();
+
+    verify(eventBus).post(any(GameDirectoryChooseEvent.class));
   }
 }
