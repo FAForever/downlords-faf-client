@@ -473,7 +473,7 @@ public class GameService implements InitializingBean {
         .thenRun(() -> {
               Process processCreated;
               try {
-                processCreated = forgedAllianceService.startReplay(replayUrl, gameId, playerService.getCurrentPlayer());
+                processCreated = forgedAllianceService.startReplay(replayUrl, gameId);
               } catch (IOException e) {
                 throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
               }

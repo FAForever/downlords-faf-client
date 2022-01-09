@@ -8,8 +8,6 @@ import org.mockito.Mock;
 
 import java.util.regex.Pattern;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LoggingServiceTest extends ServiceTest {
@@ -23,11 +21,6 @@ public class LoggingServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     instance = new LoggingService(preferencesService);
-  }
-
-  @Test
-  public void testGetFafLogDirectory() throws Exception {
-    assertThat(LoggingService.FAF_LOG_DIRECTORY, is(LoggingService.FAF_LOG_DIRECTORY));
   }
 
   @Test

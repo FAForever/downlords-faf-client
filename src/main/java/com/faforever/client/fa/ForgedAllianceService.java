@@ -99,15 +99,15 @@ public class ForgedAllianceService {
   }
 
 
-  public Process startReplay(URI replayUri, Integer replayId, PlayerBean currentPlayer) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     Path executable = getExecutable();
 
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .replayUri(replayUri)
         .replayId(replayId)
-        .logFile(LoggingService.FAF_LOG_DIRECTORY.resolve("replay.log"))
-        .username(currentPlayer.getUsername())
+        .logFile(loggingService.getNewGameLogFile(replayId))
+        .username(playerService.getCurrentPlayer().getUsername())
         .build();
 
     return launch(executable, launchCommand);
