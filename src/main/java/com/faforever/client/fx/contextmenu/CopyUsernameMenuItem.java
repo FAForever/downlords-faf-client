@@ -16,13 +16,13 @@ public class CopyUsernameMenuItem extends AbstractMenuItem<String> {
   private final I18n i18n;
 
   @Override
-  protected void onClicked(String username) {
-    ClipboardUtil.copyToClipboard(username);
+  protected void onClicked() {
+    ClipboardUtil.copyToClipboard(getObject());
   }
 
   @Override
-  protected boolean isItemVisible(String username) {
-    return !StringUtils.isBlank(username);
+  protected boolean isItemVisible() {
+    return !StringUtils.isBlank(getObject());
   }
 
   @Override

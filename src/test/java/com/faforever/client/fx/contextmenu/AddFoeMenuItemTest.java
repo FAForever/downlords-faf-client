@@ -33,7 +33,8 @@ public class AddFoeMenuItemTest extends UITest {
   public void testAddFoeIfPlayerIsFriend() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.FRIEND).get();
 
-    instance.onClicked(player);
+    instance.setObject(player);
+    instance.onClicked();
 
     verify(playerService).removeFriend(player);
     verify(playerService).addFoe(player);
@@ -43,7 +44,8 @@ public class AddFoeMenuItemTest extends UITest {
   public void testAddFoeIfPlayerIsOther() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get();
 
-    instance.onClicked(player);
+    instance.setObject(player);
+    instance.onClicked();
 
     verify(playerService, never()).removeFriend(player);
     verify(playerService).addFoe(player);

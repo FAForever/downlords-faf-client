@@ -10,7 +10,6 @@ import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -33,7 +32,10 @@ public class JoinGameMenuItemTest extends UITest {
   public void testJoinGame() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit")
         .game(GameBeanBuilder.create().host("junit").status(GameStatus.OPEN).get()).get();
-    instance.onClicked(player);
+
+    instance.setObject(player);
+    instance.onClicked();
+
     verify(joinGameHelper).join(player.getGame());
   }
 

@@ -17,16 +17,20 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
   }
 
   private void startItemInitialization() {
-    setOnAction(event -> onClicked(object));
+    setOnAction(event -> onClicked());
     setText(getItemText());
-    setVisible(isItemVisible(object));
+    setVisible(isItemVisible());
   }
 
-  protected abstract void onClicked(T object);
+  protected abstract void onClicked();
 
   protected abstract String getItemText();
 
-  protected boolean isItemVisible(T object) {
+  protected boolean isItemVisible() {
     return true; // by-default;
+  }
+
+  protected T getObject() {
+    return object;
   }
 }

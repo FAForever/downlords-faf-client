@@ -23,7 +23,8 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
   private final NotificationService notificationService;
 
   @Override
-  protected void onClicked(PlayerBean player) {
+  protected void onClicked() {
+    PlayerBean player = getObject();
     Assert.notNull(player, "No player has been set");
     try {
       replayService.runLiveReplay(player.getGame().getId());
@@ -34,7 +35,8 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible(PlayerBean player) {
+  protected boolean isItemVisible() {
+    PlayerBean player = getObject();
     return player != null && player.getStatus() == PlayerStatus.PLAYING;
   }
 

@@ -21,17 +21,18 @@ public class KickLobbyMenuItem extends AbstractMenuItem<PlayerBean> {
   private final ModeratorService moderatorService;
 
   @Override
-  protected void onClicked(PlayerBean player) {
+  protected void onClicked() {
+    PlayerBean player = getObject();
     Assert.notNull(player, "No player has been set");
     moderatorService.closePlayersLobby(player);
   }
 
   @Override
-  protected boolean isItemVisible(PlayerBean player) {
+  protected boolean isItemVisible() {
+    PlayerBean player = getObject();
     if (player == null) {
       return false;
     }
-
     boolean notSelf = !player.getSocialStatus().equals(SELF);
     return notSelf & moderatorService.getPermissions().contains(GroupPermission.ADMIN_KICK_SERVER);
   }

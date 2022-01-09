@@ -24,17 +24,18 @@ public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
   private final JoinGameHelper joinGameHelper;
 
   @Override
-  protected void onClicked(PlayerBean player) {
+  protected void onClicked() {
+    PlayerBean player = getObject();
     Assert.notNull(player, "No player has been set");
     joinGameHelper.join(player.getGame());
   }
 
   @Override
-  protected boolean isItemVisible(PlayerBean player) {
+  protected boolean isItemVisible() {
+    PlayerBean player = getObject();
     if (player == null) {
       return false;
     }
-
     SocialStatus socialStatus = player.getSocialStatus();
     PlayerStatus playerStatus = player.getStatus();
     GameBean game = player.getGame();

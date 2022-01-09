@@ -81,7 +81,7 @@ public class ContextMenuBuilderTest extends UITest {
   private AbstractMenuItem<Object> stubMenuItem() {
     return new AbstractMenuItem<>() {
       @Override
-      protected void onClicked(Object object) {
+      protected void onClicked() {
 
       }
 

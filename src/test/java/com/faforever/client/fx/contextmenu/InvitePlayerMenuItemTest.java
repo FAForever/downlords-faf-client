@@ -2,7 +2,6 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
@@ -32,7 +31,10 @@ public class InvitePlayerMenuItemTest extends UITest {
   @Test
   public void testInvitePlayer() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    instance.onClicked(player);
+
+    instance.setObject(player);
+    instance.onClicked();
+
     Mockito.verify(teamMatchmakingService).invitePlayer(player.getUsername());
   }
 

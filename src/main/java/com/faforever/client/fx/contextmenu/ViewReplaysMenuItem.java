@@ -19,14 +19,15 @@ public class ViewReplaysMenuItem extends AbstractMenuItem<PlayerBean> {
   private final EventBus eventBus;
 
   @Override
-  protected void onClicked(PlayerBean player) {
+  protected void onClicked() {
+    PlayerBean player = getObject();
     Assert.notNull(player, "No player has been set");
     eventBus.post(new ShowUserReplaysEvent(player.getId()));
   }
 
   @Override
-  protected boolean isItemVisible(PlayerBean player) {
-    return player != null;
+  protected boolean isItemVisible() {
+    return getObject() != null;
   }
 
   @Override

@@ -23,7 +23,8 @@ public class AddFoeMenuItem extends AbstractMenuItem<PlayerBean> {
   private final I18n i18n;
 
   @Override
-  protected void onClicked(PlayerBean player) {
+  protected void onClicked() {
+    PlayerBean player = getObject();
     Assert.notNull(player, "No player has been set");
     if (player.getSocialStatus() == FRIEND) {
       playerService.removeFriend(player);
@@ -32,7 +33,8 @@ public class AddFoeMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible(PlayerBean player) {
+  protected boolean isItemVisible() {
+    PlayerBean player = getObject();
     if (player == null) {
       return false;
     }

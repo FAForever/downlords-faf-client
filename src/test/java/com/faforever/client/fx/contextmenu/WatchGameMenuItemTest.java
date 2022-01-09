@@ -38,7 +38,7 @@ public class WatchGameMenuItemTest extends UITest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues()
         .game(GameBeanBuilder.create().status(GameStatus.PLAYING).get()).get();
     instance.setObject(player);
-    instance.onClicked(player);
+    instance.onClicked();
 
     verify(replayService).runLiveReplay(player.getGame().getId());
   }
@@ -51,7 +51,7 @@ public class WatchGameMenuItemTest extends UITest {
     doThrow(e).when(replayService).runLiveReplay(player.getGame().getId());
 
     instance.setObject(player);
-    instance.onClicked(player);
+    instance.onClicked();
 
     verify(notificationService).addImmediateErrorNotification(e, "replays.live.loadFailure.message");
   }

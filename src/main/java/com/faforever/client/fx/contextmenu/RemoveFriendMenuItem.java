@@ -20,7 +20,8 @@ public class RemoveFriendMenuItem extends AbstractMenuItem<PlayerBean> {
   private final PlayerService playerService;
 
   @Override
-  protected void onClicked(PlayerBean player) {
+  protected void onClicked() {
+    PlayerBean player = getObject();
     Assert.notNull(player, "No player has been set");
     playerService.removeFriend(player);
   }
@@ -31,7 +32,8 @@ public class RemoveFriendMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible(PlayerBean player) {
+  protected boolean isItemVisible() {
+    PlayerBean player = getObject();
     return player != null && player.getSocialStatus() == FRIEND;
   }
 }

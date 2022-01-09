@@ -21,13 +21,15 @@ public class InvitePlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   private final TeamMatchmakingService teamMatchmakingService;
 
   @Override
-  protected void onClicked(PlayerBean player) {
+  protected void onClicked() {
+    PlayerBean player = getObject();
     Assert.notNull(player, "No player has been set");
     teamMatchmakingService.invitePlayer(player.getUsername());
   }
 
   @Override
-  protected boolean isItemVisible(PlayerBean player) {
+  protected boolean isItemVisible() {
+    PlayerBean player = getObject();
     if (player == null) {
       return false;
     }

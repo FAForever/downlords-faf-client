@@ -21,13 +21,15 @@ public class SendPrivateMessageMenuItem extends AbstractMenuItem<String> {
   private final PlayerService playerService;
 
   @Override
-  protected void onClicked(String username) {
+  protected void onClicked() {
+    String username = getObject();
     Assert.isTrue(!StringUtils.isBlank(username), "No username has been set");
     eventBus.post(new InitiatePrivateChatEvent(username));
   }
 
   @Override
-  protected boolean isItemVisible(String username) {
+  protected boolean isItemVisible() {
+    String username = getObject();
     return !StringUtils.isBlank(username) && !playerService.getCurrentPlayer().getUsername().equals(username);
   }
 

@@ -20,7 +20,7 @@ public class BroadcastMessageMenuItem extends AbstractMenuItem<Object> {
   private final ModeratorService moderatorService;
 
   @Override
-  protected void onClicked(Object ignored) {
+  protected void onClicked() {
     TextInputDialog broadcastMessageInputDialog = new TextInputDialog();
     broadcastMessageInputDialog.setTitle(i18n.get("chat.userContext.broadcast"));
 
@@ -37,7 +37,7 @@ public class BroadcastMessageMenuItem extends AbstractMenuItem<Object> {
   }
 
   @Override
-  protected boolean isItemVisible(Object ignored) {
+  protected boolean isItemVisible() {
     return moderatorService.getPermissions().contains(GroupPermission.ROLE_WRITE_MESSAGE);
   }
 
