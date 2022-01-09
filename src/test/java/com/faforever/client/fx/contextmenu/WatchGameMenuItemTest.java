@@ -31,15 +31,13 @@ public class WatchGameMenuItemTest extends UITest {
 
   @BeforeEach
   public void setUp() {
-
+    instance = new WatchGameMenuItem(i18n, replayService, notificationService);
   }
 
   @Test
   public void testWatchGame() {
-    player = PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().status(GameStatus.PLAYING).get()).get();
-
-    initializeInstance();
+    instance.setObject(PlayerBeanBuilder.create().defaultValues()
+        .game(GameBeanBuilder.create().status(GameStatus.PLAYING).get()).get());
     instance.onClicked(player);
 
     verify(replayService).runLiveReplay(player.getGame().getId());
@@ -47,13 +45,12 @@ public class WatchGameMenuItemTest extends UITest {
 
   @Test
   public void testRunReplayWithError() {
+    Exception e = new RuntimeException();
+    doThrow(e).when(replayService).runLiveReplay(player.getGame().getId());
     player = PlayerBeanBuilder.create().defaultValues()
         .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get();
 
-    Exception e = new RuntimeException();
-    doThrow(e).when(replayService).runLiveReplay(player.getGame().getId());
-
-    initializeInstance();
+    instance.setObject(player);
     instance.onClicked(player);
 
     verify(notificationService).addImmediateErrorNotification(e, "replays.live.loadFailure.message");
@@ -61,25 +58,16 @@ public class WatchGameMenuItemTest extends UITest {
 
   @Test
   public void testVisibleItem() {
-    player = PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get();
-
-    initializeInstance();
+    instance.setObject(PlayerBeanBuilder.create().defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get());
 
     assertTrue(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItem() {
-    player = PlayerBeanBuilder.create().defaultValues().game(null).get();
-
-    initializeInstance();
+    instance.setObject(PlayerBeanBuilder.create().defaultValues().game(null).get());
 
     assertFalse(instance.isVisible());
-  }
-
-  private void initializeInstance() {
-    instance = new WatchGameMenuItem(i18n, replayService, notificationService);
-    instance.setObject(player);
   }
 }
