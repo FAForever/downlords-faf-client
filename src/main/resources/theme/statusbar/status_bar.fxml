@@ -17,7 +17,7 @@
         <HBox fx:id="taskPane" alignment="CENTER_LEFT" spacing="20.0" HBox.hgrow="ALWAYS">
             <children>
                 <Pane HBox.hgrow="SOMETIMES" />
-                <Label fx:id="taskProgressLabel" prefWidth="480.0" text="Label">
+                <Label fx:id="taskProgressLabel" HBox.hgrow="ALWAYS" text="Label">
                     <graphic>
                         <ProgressIndicator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                                            prefHeight="20.0"/>

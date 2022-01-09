@@ -1,6 +1,7 @@
 package com.faforever.client.preferences.tasks;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.task.CompletableTask;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.Objects;
 public class MoveDirectoryTask extends CompletableTask<Void> {
 
   private final I18n i18n;
+  private final NotificationService notificationService;
 
   @Setter
   private Path oldDirectory;
@@ -31,9 +33,10 @@ public class MoveDirectoryTask extends CompletableTask<Void> {
   private Runnable afterCopyAction = () -> {};
 
   @Inject
-  public MoveDirectoryTask(I18n i18n) {
+  public MoveDirectoryTask(I18n i18n, NotificationService notificationService) {
     super(Priority.HIGH);
     this.i18n = i18n;
+    this.notificationService = notificationService;
   }
 
   @Override
@@ -47,16 +50,19 @@ public class MoveDirectoryTask extends CompletableTask<Void> {
     } catch (IOException e) {
       FileSystemUtils.deleteRecursively(newDirectory);
       log.warn("Could not copy files to new directory {}", newDirectory, e);
+      notificationService.addImmediateErrorNotification(e, "directory.move.failed", oldDirectory, newDirectory);
       return null;
     }
 
     afterCopyAction.run();
 
     if (!preserveOldDirectory) {
+      updateTitle(i18n.get("directory.delete", oldDirectory));
       try {
         FileSystemUtils.deleteRecursively(oldDirectory);
       } catch (IOException e) {
         log.warn("Could not delete files from old directory {}", oldDirectory, e);
+        notificationService.addImmediateErrorNotification(e, "directory.delete.failed", oldDirectory);
       }
     }
 

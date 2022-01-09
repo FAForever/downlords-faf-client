@@ -584,6 +584,11 @@ public class MainController implements Controller<Node> {
     this.platformService.reveal(gamePrefsPath);
   }
 
+  public void onRevealDataFolder() {
+    Path dataPath = preferencesService.getPreferences().getData().getBaseDataDirectory();
+    this.platformService.reveal(dataPath);
+  }
+
   public void onChat(ActionEvent actionEvent) {
     chatButton.pseudoClassStateChanged(HIGHLIGHTED, false);
     onNavigateButtonClicked(actionEvent);
