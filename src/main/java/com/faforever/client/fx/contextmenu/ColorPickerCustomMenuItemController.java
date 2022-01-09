@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static java.util.Locale.US;

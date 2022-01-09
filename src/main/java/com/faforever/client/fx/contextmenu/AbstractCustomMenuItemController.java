@@ -2,7 +2,6 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.fx.Controller;
 import javafx.scene.control.CustomMenuItem;
-import lombok.Getter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
