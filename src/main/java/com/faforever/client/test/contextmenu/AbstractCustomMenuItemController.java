@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public abstract class AbstractCustomMenuController<T> implements Controller<CustomMenuItem> {
+public abstract class AbstractCustomMenuItemController<T> implements Controller<CustomMenuItem> {
 
   public CustomMenuItem root;
 

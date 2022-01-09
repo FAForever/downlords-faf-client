@@ -18,8 +18,8 @@ public class ContextMenuBuilder {
 
     private final ContextMenu contextMenu = new ContextMenu();
     private SeparatorMenuItem separator;
-    private BooleanProperty separatorVisibleProperty;
-    private BooleanBinding booleanBinding;
+    private BooleanProperty firstItemVisibleProperty;
+    private BooleanBinding totalVisibleBinding;
 
     private Builder(ApplicationContext context) {
       this.context = context;
@@ -37,11 +37,11 @@ public class ContextMenuBuilder {
       return this;
     }
 
-    public <T> Builder addCustomItem(AbstractCustomMenuController<T> item) {
+    public <T> Builder addCustomItem(AbstractCustomMenuItemController<T> item) {
       return addCustomItem(item, null);
     }
 
-    public <T> Builder addCustomItem(AbstractCustomMenuController<T> item, T object) {
+    public <T> Builder addCustomItem(AbstractCustomMenuItemController<T> item, T object) {
       item.setObject(object);
       contextMenu.getItems().add(item.getRoot());
       bindVisiblePropertyToSeparator(item.getRoot().visibleProperty());
@@ -50,24 +50,24 @@ public class ContextMenuBuilder {
 
     private <T> void bindVisiblePropertyToSeparator(BooleanProperty visibleProperty) {
       if (separator != null) {
-        if (separatorVisibleProperty == null) {
+        if (firstItemVisibleProperty == null) {
           separator.visibleProperty().bind(visibleProperty);
-          separatorVisibleProperty = visibleProperty;
+          firstItemVisibleProperty = visibleProperty;
         } else {
-          if (booleanBinding == null) {
-            booleanBinding = separatorVisibleProperty.or(visibleProperty);
+          if (totalVisibleBinding == null) {
+            totalVisibleBinding = firstItemVisibleProperty.or(visibleProperty);
           } else {
-            booleanBinding = booleanBinding.or(visibleProperty);
+            totalVisibleBinding = totalVisibleBinding.or(visibleProperty);
           }
-          separator.visibleProperty().bind(booleanBinding);
+          separator.visibleProperty().bind(totalVisibleBinding);
         }
       }
     }
 
     public Builder addSeparator() {
       separator = new SeparatorMenuItem();
-      separatorVisibleProperty = null;
-      booleanBinding = null;
+      firstItemVisibleProperty = null;
+      totalVisibleBinding = null;
       contextMenu.getItems().add(separator);
       return this;
     }

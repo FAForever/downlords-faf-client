@@ -14,7 +14,6 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.contextmenu.AddFoeMenuItem;
 import com.faforever.client.test.contextmenu.AddFriendMenuItem;
 import com.faforever.client.test.contextmenu.BroadcastMessageMenuItem;
-import com.faforever.client.test.contextmenu.ColorPickerMenuController;
 import com.faforever.client.test.contextmenu.ContextMenuBuilder;
 import com.faforever.client.test.contextmenu.CopyUsernameMenuItem;
 import com.faforever.client.test.contextmenu.InvitePlayerMenuItem;
@@ -220,6 +219,7 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(new KickGameMenuItem(), player)
         .addItem(new KickLobbyMenuItem(), player)
         .addItem(new BroadcastMessageMenuItem())
+        .addCustomItem(uiService.loadFxml("theme/avatar_picker_menu_item.fxml"), player)
         .build();
     contextMenu.show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
     contextMenuWeakReference = new WeakReference<>(contextMenu);

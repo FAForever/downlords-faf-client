@@ -20,7 +20,7 @@ import static com.faforever.client.player.SocialStatus.SELF;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class AvatarPickerMenuItemController extends AbstractCustomMenuController<PlayerBean> {
+public class AvatarPickerMenuItemController extends AbstractCustomMenuItemController<PlayerBean> {
 
   private final AvatarService avatarService;
   private final I18n i18n;

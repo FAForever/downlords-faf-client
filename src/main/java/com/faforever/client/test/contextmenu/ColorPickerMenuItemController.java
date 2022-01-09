@@ -19,7 +19,7 @@ import static java.util.Locale.US;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ColorPickerMenuController extends AbstractCustomMenuController<ChatChannelUser> {
+public class ColorPickerMenuItemController extends AbstractCustomMenuItemController<ChatChannelUser> {
 
   public ColorPicker colorPicker;
   public Button removeCustomColorButton;
