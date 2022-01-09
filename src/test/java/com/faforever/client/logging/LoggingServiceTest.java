@@ -39,6 +39,7 @@ public class LoggingServiceTest extends ServiceTest {
 
   @Test
   public void testGetMostRecentLogFile() throws Exception {
+    Files.createDirectories(LoggingService.FAF_LOG_DIRECTORY);
     Files.write(instance.getNewGameLogFile(0), new byte[]{});
     Files.write(instance.getNewGameLogFile(1), new byte[]{});
     Thread.sleep(10);
