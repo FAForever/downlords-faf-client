@@ -24,7 +24,7 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   protected void onClicked() {
     PlayerBean player = getObject();
     ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
-    reportDialogController.setOffender(getObject());
+    reportDialogController.setOffender(player);
     reportDialogController.setOwnerWindow(getParentPopup().getOwnerWindow());
     reportDialogController.show();
   }
