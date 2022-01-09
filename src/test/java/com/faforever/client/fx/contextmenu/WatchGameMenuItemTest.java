@@ -26,7 +26,6 @@ public class WatchGameMenuItemTest extends UITest {
   @Mock
   private ReplayService replayService;
 
-  private PlayerBean player;
   private WatchGameMenuItem instance;
 
   @BeforeEach
@@ -36,8 +35,9 @@ public class WatchGameMenuItemTest extends UITest {
 
   @Test
   public void testWatchGame() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().status(GameStatus.PLAYING).get()).get());
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues()
+        .game(GameBeanBuilder.create().status(GameStatus.PLAYING).get()).get();
+    instance.setObject(player);
     instance.onClicked(player);
 
     verify(replayService).runLiveReplay(player.getGame().getId());
@@ -45,10 +45,10 @@ public class WatchGameMenuItemTest extends UITest {
 
   @Test
   public void testRunReplayWithError() {
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get();
     Exception e = new RuntimeException();
     doThrow(e).when(replayService).runLiveReplay(player.getGame().getId());
-    player = PlayerBeanBuilder.create().defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get();
 
     instance.setObject(player);
     instance.onClicked(player);
