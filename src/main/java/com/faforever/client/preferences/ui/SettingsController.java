@@ -34,7 +34,6 @@ import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.list.NoSelectionModel;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
@@ -63,8 +62,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
@@ -74,19 +71,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
@@ -562,25 +556,18 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectVaultLocation() {
-    JavaFxUtil.runLater(() -> {
-      DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setTitle(i18n.get("settings.vault.select"));
-      File result = directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow());
-
-      log.info("User changed vault directory to: {}", result);
-
-      Path newVaultDirectory = Optional.ofNullable(result).map(File::toPath).orElse(null);
-
-      if (newVaultDirectory == null) {
-        return;
-      }
+    platformService.askForPath(i18n.get("settings.vault.select")).ifPresent(newVaultDirectory -> {
+      log.info("User changed vault directory to: {}", newVaultDirectory);
 
       ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
 
       MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
       moveDirectoryTask.setOldDirectory(forgedAlliancePrefs.getVaultBaseDirectory());
       moveDirectoryTask.setNewDirectory(newVaultDirectory);
-      moveDirectoryTask.setAfterCopyAction(() -> forgedAlliancePrefs.setVaultBaseDirectory(newVaultDirectory));
+      moveDirectoryTask.setAfterCopyAction(() -> {
+        forgedAlliancePrefs.setVaultBaseDirectory(newVaultDirectory);
+        preferencesService.storeInBackground();
+      });
       notificationService.addNotification(new ImmediateNotification(i18n.get("settings.vault.change"), i18n.get("settings.vault.change.message"), Severity.INFO,
           List.of(
               new Action(i18n.get("no"), event -> {
@@ -593,32 +580,22 @@ public class SettingsController implements Controller<Node> {
               }),
               new CancelAction(i18n)
           )));
-      preferencesService.storeInBackground();
     });
   }
 
   public void onSelectDataLocation() {
-    JavaFxUtil.runLater(() -> {
-      DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setTitle(i18n.get("settings.vault.select"));
-      File result = directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow());
-
-      log.info("User changed data directory to: {}", result);
-
-      Path newDataDirectory = Optional.ofNullable(result).map(File::toPath).orElse(null);
-
-      if (newDataDirectory == null) {
-        return;
-      }
-
+    platformService.askForPath(i18n.get("settings.data.select")).ifPresent(newDataDirectory -> {
+      log.info("User changed data directory to: {}", newDataDirectory);
       DataPrefs dataPrefs = preferencesService.getPreferences().getData();
 
       MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
       moveDirectoryTask.setNewDirectory(newDataDirectory);
       moveDirectoryTask.setOldDirectory(dataPrefs.getBaseDataDirectory());
-      moveDirectoryTask.setAfterCopyAction(() -> dataPrefs.setBaseDataDirectory(newDataDirectory));
+      moveDirectoryTask.setAfterCopyAction(() -> {
+        dataPrefs.setBaseDataDirectory(newDataDirectory);
+        preferencesService.storeInBackground();
+      });
       taskService.submitTask(moveDirectoryTask);
-      preferencesService.storeInBackground();
     });
   }
 
@@ -638,15 +615,8 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectBackgroundImage() {
-    JavaFxUtil.runLater(() -> {
-      FileChooser directoryChooser = new FileChooser();
-      directoryChooser.setTitle(i18n.get("settings.appearance.chooseImage"));
-      File result = directoryChooser.showOpenDialog(getRoot().getScene().getWindow());
-
-      if (result == null) {
-        return;
-      }
-      preferencesService.getPreferences().getMainWindow().setBackgroundImagePath(result.toPath());
+    platformService.askForPath(i18n.get("settings.appearance.chooseImage")).ifPresent(newImagePath -> {
+      preferencesService.getPreferences().getMainWindow().setBackgroundImagePath(newImagePath);
       preferencesService.storeInBackground();
     });
   }
@@ -712,7 +682,6 @@ public class SettingsController implements Controller<Node> {
     } catch (URISyntaxException | MalformedURLException e) {
       log.debug("Failed to add invalid URL: {}", text, e);
       notificationService.addImmediateWarnNotification("settings.data.mirrorURLs.add.error", e.getMessage());
-      return;
     }
   }
 }

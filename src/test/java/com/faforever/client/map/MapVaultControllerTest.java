@@ -3,6 +3,7 @@ package com.faforever.client.map;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
@@ -60,6 +61,8 @@ public class MapVaultControllerTest extends UITest {
   private SpecificationController specificationController;
   @Mock
   private ReportingService reportingService;
+  @Mock
+  private PlatformService platformService;
 
   private MapVaultController instance;
   private SearchConfig standardSearchConfig;
@@ -78,7 +81,7 @@ public class MapVaultControllerTest extends UITest {
 
     when(mapService.getRecommendedMapPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
 
-    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService);
+    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService, platformService);
     SortConfig sortOrder = preferencesService.getPreferences().getVault().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
