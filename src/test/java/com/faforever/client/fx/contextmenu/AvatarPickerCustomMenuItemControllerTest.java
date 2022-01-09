@@ -22,19 +22,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class AvatarPickerMenuItemControllerTest extends UITest {
+public class AvatarPickerCustomMenuItemControllerTest extends UITest {
 
   @Mock
   private AvatarService avatarService;
   @Mock
   private I18n i18n;
 
-  private AvatarPickerMenuItemController instance;
+  private AvatarPickerCustomMenuItemController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new AvatarPickerMenuItemController(avatarService, i18n);
-    loadFxml("theme/avatar_picker_menu_item.fxml", clazz -> instance);
+    instance = new AvatarPickerCustomMenuItemController(avatarService, i18n);
+    loadFxml("theme/chat/avatar_picker_menu_item.fxml", clazz -> instance);
   }
 
   @Test

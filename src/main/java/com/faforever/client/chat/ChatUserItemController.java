@@ -192,7 +192,7 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(ShowPlayerInfoMenuItem.class, player)
         .addItem(SendPrivateMessageMenuItem.class, player != null ? player.getUsername() : chatUser.getUsername())
         .addItem(CopyUsernameMenuItem.class, player != null ? player.getUsername() : chatUser.getUsername())
-        .addCustomItem(uiService.loadFxml("theme/color_picker_menu_item.fxml"), chatUser)
+        .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml"), chatUser)
         .addSeparator()
         .addItem(InvitePlayerMenuItem.class, player)
         .addItem(AddFriendMenuItem.class, player)
@@ -208,7 +208,7 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(KickGameMenuItem.class, player)
         .addItem(KickLobbyMenuItem.class, player)
         .addItem(BroadcastMessageMenuItem.class)
-        .addCustomItem(uiService.loadFxml("theme/avatar_picker_menu_item.fxml"), player)
+        .addCustomItem(uiService.loadFxml("theme/chat/avatar_picker_menu_item.fxml"), player)
         .build()
         .show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
