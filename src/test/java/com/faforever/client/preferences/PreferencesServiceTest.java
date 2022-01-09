@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.SetProperty;
@@ -34,7 +33,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 import java.nio.file.Path;
-import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,13 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class PreferencesServiceTest extends ServiceTest {
 
-  private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
-
 
   private PreferencesService instance;
 
-  @Mock
-  private EventBus eventBus;
   @Mock
   private ClientProperties clientProperties;
   private ObjectMapper objectMapper;

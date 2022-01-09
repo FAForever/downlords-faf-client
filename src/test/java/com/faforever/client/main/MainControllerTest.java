@@ -69,8 +69,6 @@ public class MainControllerTest extends UITest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private LoggingService loggingService;
-  @Mock
   private PlatformService platformService;
   @Mock
   private SettingsController settingsController;
@@ -289,6 +287,12 @@ public class MainControllerTest extends UITest {
   public void testOnRevealLogFolder() throws Exception {
     instance.onRevealLogFolder();
     verify(platformService).reveal(LoggingService.FAF_LOG_DIRECTORY);
+  }
+
+  @Test
+  public void testOnRevealReplayFolder() throws Exception {
+    instance.onRevealReplayFolder();
+    verify(platformService).reveal(preferences.getData().getReplaysDirectory());
   }
 
   @Test

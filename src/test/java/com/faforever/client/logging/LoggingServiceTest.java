@@ -44,6 +44,10 @@ public class LoggingServiceTest extends ServiceTest {
     Thread.sleep(10);
     Files.write(instance.getNewGameLogFile(2), new byte[]{});
     assertEquals("game_2.log", instance.getMostRecentGameLogFile().get().getFileName().toString());
+
+    Files.delete(instance.getNewGameLogFile(0));
+    Files.delete(instance.getNewGameLogFile(1));
+    Files.delete(instance.getNewGameLogFile(2));
   }
 
   @Test

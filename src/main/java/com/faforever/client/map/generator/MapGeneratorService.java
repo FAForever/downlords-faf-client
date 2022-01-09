@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 @Lazy
 @Service
 @Slf4j
-public class MapGeneratorService implements InitializingBean {
+public class MapGeneratorService implements DisposableBean {
 
   /**
    * Naming template for generated maps. It is all lower case because server expects lower case names for maps.
@@ -55,10 +55,8 @@ public class MapGeneratorService implements InitializingBean {
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
+  private final PreferencesService preferencesService;
   private final WebClient webClient;
-
-  @Getter
-  private final Path customMapsDirectory;
 
   @Getter
   private Image generatedMapPreviewImage;
@@ -70,6 +68,7 @@ public class MapGeneratorService implements InitializingBean {
                              TaskService taskService, ClientProperties clientProperties, WebClient.Builder webClientBuilder) {
     this.applicationContext = applicationContext;
     this.taskService = taskService;
+    this.preferencesService = preferencesService;
     webClient = webClientBuilder.build();
 
     generatorExecutablePath = preferencesService.getPreferences().getData().getBaseDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
@@ -82,8 +81,6 @@ public class MapGeneratorService implements InitializingBean {
       }
     }
 
-    customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
-
     try {
       generatedMapPreviewImage = new Image(new ClassPathResource("/images/generatedMapIcon.png").getURL().toString(), true);
     } catch (IOException | NoClassDefFoundError | ExceptionInInitializerError e) {
@@ -92,12 +89,13 @@ public class MapGeneratorService implements InitializingBean {
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
+  public void destroy() throws Exception {
     deleteGeneratedMaps();
   }
 
   private void deleteGeneratedMaps() {
     log.info("Deleting leftover generated maps...");
+    Path customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
     if (customMapsDirectory != null && customMapsDirectory.toFile().exists()) {
       try (Stream<Path> listOfMapFiles = Files.list(customMapsDirectory)) {
         listOfMapFiles

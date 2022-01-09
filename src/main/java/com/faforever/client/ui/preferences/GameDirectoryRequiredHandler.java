@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 
 @Component
@@ -26,7 +25,6 @@ public class GameDirectoryRequiredHandler implements InitializingBean {
 
   private final EventBus eventBus;
   private final I18n i18n;
-  private CompletableFuture<Path> future;
 
   @Override
   public void afterPropertiesSet() {

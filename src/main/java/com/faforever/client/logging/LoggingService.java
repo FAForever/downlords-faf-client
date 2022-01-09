@@ -108,8 +108,8 @@ public class LoggingService implements InitializingBean {
           .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches()).max(Comparator.comparingLong(p -> p.toFile().lastModified()));
     } catch (IOException e) {
       log.error("Could not list log directory.", e);
+      return Optional.empty();
     }
-    return Optional.empty();
   }
 
   public void setLoggingLevel() {
@@ -122,7 +122,7 @@ public class LoggingService implements InitializingBean {
         .forEach(logger -> ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger.getName())).setLevel(targetLogLevel));
 
     log.info("Switching FA Forever logging configuration to {}", targetLogLevel.levelStr);
-    if (targetLogLevel == Level.DEBUG) {
+    if (Level.DEBUG.equals(targetLogLevel)) {
       log.debug("Confirming debug logging");
     }
   }

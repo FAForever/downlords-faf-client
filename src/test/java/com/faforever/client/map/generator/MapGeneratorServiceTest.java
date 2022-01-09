@@ -100,8 +100,6 @@ public class MapGeneratorServiceTest extends ServiceTest {
 
     instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties, WebClient.builder());
 
-    instance.afterPropertiesSet();
-
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generatorOptionsTask.getFuture()).thenReturn(CompletableFuture.completedFuture(new ArrayList<>(List.of("TEST"))));

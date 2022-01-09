@@ -23,7 +23,6 @@ public class InstallModTaskTest extends UITest {
 
   @TempDir
   public Path tempDirectory;
-  private Path cacheDirectory;
   private Path modsDirectory;
   private InstallModTask instance;
   @Mock
@@ -42,7 +41,7 @@ public class InstallModTaskTest extends UITest {
         .then()
         .get();
 
-    cacheDirectory = Files.createDirectories(preferences.getData().getCacheDirectory());
+    Files.createDirectories(preferences.getData().getCacheDirectory());
     modsDirectory = Files.createDirectories(preferences.getForgedAlliance().getModsDirectory());
 
     instance = new InstallModTask(preferencesService, i18n);

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
@@ -86,13 +87,13 @@ public class ForgedAllianceService {
 
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     Path executable = getExecutable();
-    replayId = replayId == null ? -1 : replayId;
+    int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
     List<String> launchCommand = defaultLaunchCommand()
         .executable(executable)
         .replayFile(path)
-        .replayId(replayId)
-        .logFile(loggingService.getNewGameLogFile(replayId))
+        .replayId(checkedReplayId)
+        .logFile(loggingService.getNewGameLogFile(checkedReplayId))
         .build();
 
     return launch(executable, launchCommand);

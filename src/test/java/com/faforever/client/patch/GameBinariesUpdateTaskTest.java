@@ -81,7 +81,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
     // Expected all files except splash.png to be copied
     assertThat(resultFiles.size(), is(GameBinariesUpdateTaskImpl.BINARIES_TO_COPY.size()));
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
-      assertTrue(java.nio.file.Files.exists(fafBinDirectory.resolve(fileName)));
+      assertTrue(Files.exists(fafBinDirectory.resolve(fileName)));
     }
   }
 
