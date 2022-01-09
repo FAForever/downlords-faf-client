@@ -56,6 +56,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -90,6 +91,7 @@ public class CreateGameController implements Controller<Pane> {
   private final UserService userService;
   private final MapGeneratorService mapGeneratorService;
   private final UiService uiService;
+  private final ApplicationContext applicationContext;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -119,7 +121,7 @@ public class CreateGameController implements Controller<Pane> {
   private InvalidationListener createButtonStateListener;
 
   public void initialize() {
-    JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
+    JavaFxUtil.addCopyLabelContextMenus(applicationContext, mapNameLabel, mapDescriptionLabel);
     JavaFxUtil.bindManagedToVisible(versionLabel);
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
     modManagerController.setCloseable(false);

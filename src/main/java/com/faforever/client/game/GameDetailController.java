@@ -23,6 +23,7 @@ import javafx.scene.layout.VBox;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +38,7 @@ public class GameDetailController implements Controller<Pane> {
   private final PlayerService playerService;
   private final UiService uiService;
   private final JoinGameHelper joinGameHelper;
+  private final ApplicationContext applicationContext;
 
   public Pane gameDetailRoot;
   public Label gameTypeLabel;
@@ -57,13 +59,14 @@ public class GameDetailController implements Controller<Pane> {
   private InvalidationListener featuredModInvalidationListener;
 
   public GameDetailController(I18n i18n, MapService mapService, ModService modService, PlayerService playerService,
-                              UiService uiService, JoinGameHelper joinGameHelper) {
+                              UiService uiService, JoinGameHelper joinGameHelper, ApplicationContext applicationContext) {
     this.i18n = i18n;
     this.mapService = mapService;
     this.modService = modService;
     this.playerService = playerService;
     this.uiService = uiService;
     this.joinGameHelper = joinGameHelper;
+    this.applicationContext = applicationContext;
 
     game = new ReadOnlyObjectWrapper<>();
   }
@@ -71,7 +74,7 @@ public class GameDetailController implements Controller<Pane> {
   public void initialize() {
     watchButton = watchButtonController.getRoot();
 
-    JavaFxUtil.addLabelContextMenus(uiService, gameTitleLabel, mapLabel, gameTypeLabel);
+    JavaFxUtil.addCopyLabelContextMenus(applicationContext, gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
         mapImageView, gameTypeLabel);
     gameDetailRoot.parentProperty().addListener(observable -> {

@@ -8,9 +8,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.reporting.ReportingService;
-import com.faforever.client.theme.UiService;
-import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -31,6 +28,7 @@ import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -45,11 +43,10 @@ public class ModDetailController implements Controller<Node> {
   private final ModService modService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final ReportingService reportingService;
   private final TimeService timeService;
   private final ReviewService reviewService;
   private final PlayerService playerService;
-  private final UiService uiService;
+  private final ApplicationContext applicationContext;
 
   public Label updatedLabel;
   public Label sizeLabel;
@@ -75,7 +72,7 @@ public class ModDetailController implements Controller<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
-    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
+    JavaFxUtil.addCopyLabelContextMenus(applicationContext, nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());

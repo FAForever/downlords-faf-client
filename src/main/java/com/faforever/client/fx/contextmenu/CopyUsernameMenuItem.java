@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CopyUsernameMenuItem extends AbstractMenuItem<String> {
 
-  private final I18n i18n;
+  protected final I18n i18n;
 
   @Override
   protected void onClicked() {
