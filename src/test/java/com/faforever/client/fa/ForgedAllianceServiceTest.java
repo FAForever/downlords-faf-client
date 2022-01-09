@@ -49,7 +49,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   @Test
   public void testStartGameOffline() throws Exception {
     IOException throwable = assertThrows(IOException.class, () -> instance.startGameOffline("test"));
-    assertThat(throwable.getCause().getMessage(), containsString("CreateProcess error=2"));
+    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
     verify(preferencesService, times(3)).getPreferences();
@@ -59,7 +59,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   public void testStartGameOnline() throws Exception {
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
     IOException throwable = assertThrows(IOException.class, () -> instance.startGameOnline(gameLaunchMessage, 0, 0, false));
-    assertThat(throwable.getCause().getMessage(), containsString("CreateProcess error=2"));
+    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewGameLogFile(gameLaunchMessage.getUid());
@@ -69,7 +69,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   @Test
   public void testStartReplay() throws Exception {
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0));
-    assertThat(throwable.getCause().getMessage(), containsString("CreateProcess error=2"));
+    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
     verify(preferencesService, times(3)).getPreferences();
@@ -78,7 +78,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   @Test
   public void testStartOnlineReplay() throws Exception {
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0));
-    assertThat(throwable.getCause().getMessage(), containsString("CreateProcess error=2"));
+    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewGameLogFile(0);
