@@ -42,6 +42,8 @@ public class ModUploadTaskTest extends UITest {
         .then()
         .get();
 
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+
     instance = new ModUploadTask(preferencesService, fafApiAccessor, i18n);
 
     Files.createDirectories(preferences.getData().getCacheDirectory());

@@ -48,8 +48,6 @@ import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.nio.file.Path;
-
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -289,10 +287,8 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testOnRevealLogFolder() throws Exception {
-    Path expectedPath = Path.of("C:\\test\\path_log");
-    when(LoggingService.FAF_LOG_DIRECTORY).thenReturn(expectedPath);
     instance.onRevealLogFolder();
-    verify(platformService).reveal(expectedPath);
+    verify(platformService).reveal(LoggingService.FAF_LOG_DIRECTORY);
   }
 
   @Test

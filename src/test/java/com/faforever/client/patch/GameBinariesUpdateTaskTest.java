@@ -67,7 +67,6 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
 
   @Test
   public void testCopyGameFilesToFafBinDirectory() throws Exception {
-    Path fafBinPath = fafBinDirectory;
     Path faBinPath = Files.createDirectories(tempDirectory.resolve("bin"));
 
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
@@ -77,12 +76,12 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
 
     instance.copyGameFilesToFafBinDirectory();
 
-    List<Path> resultFiles = Files.list(fafBinPath).filter(file -> !file.toFile().isDirectory()).collect(Collectors.toList());
+    List<Path> resultFiles = Files.list(fafBinDirectory).filter(file -> !file.toFile().isDirectory()).collect(Collectors.toList());
 
     // Expected all files except splash.png to be copied
     assertThat(resultFiles.size(), is(GameBinariesUpdateTaskImpl.BINARIES_TO_COPY.size()));
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
-      assertTrue(java.nio.file.Files.exists(fafBinPath.resolve(fileName)));
+      assertTrue(java.nio.file.Files.exists(fafBinDirectory.resolve(fileName)));
     }
   }
 

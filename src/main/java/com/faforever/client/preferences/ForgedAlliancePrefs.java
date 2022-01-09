@@ -30,8 +30,8 @@ public class ForgedAlliancePrefs {
       STEAM_FA_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
       LOCAL_FA_DATA_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
     } else {
-      DEFAULT_VAULT_DIRECTORY = Path.of(System.getProperty("user.home")).resolve(".faforever");
       String userHome = System.getProperty("user.home");
+      DEFAULT_VAULT_DIRECTORY = Path.of(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
       STEAM_FA_PATH = Path.of(".");
       LOCAL_FA_DATA_PATH = Path.of(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
     }

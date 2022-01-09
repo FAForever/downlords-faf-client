@@ -165,8 +165,8 @@ public class ReplayServiceTest extends ServiceTest {
         .then()
         .get();
 
-    cacheDirectory = preferences.getData().getCacheDirectory();
-    replayDirectory = preferences.getData().getReplaysDirectory();
+    cacheDirectory = Files.createDirectories(preferences.getData().getCacheDirectory());
+    replayDirectory = Files.createDirectories(preferences.getData().getReplaysDirectory());
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
 

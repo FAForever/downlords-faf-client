@@ -58,6 +58,8 @@ public class ReplayFileWriterImplTest extends ServiceTest {
         .then()
         .get();
 
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+
     instance = new ReplayFileWriterImpl(i81n, clientProperties, preferencesService);
     when(clientProperties.getReplay()).thenReturn(replay);
     when(replay.getReplayFileFormat()).thenReturn(replayFileFormat);

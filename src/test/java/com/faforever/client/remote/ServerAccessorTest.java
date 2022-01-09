@@ -17,7 +17,6 @@ import com.faforever.client.legacy.UidService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
@@ -148,7 +147,12 @@ public class ServerAccessorTest extends ServiceTest {
         .dataPrefs()
         .dataDirectory(tempDirectory)
         .then()
+        .loginPrefs()
+        .refreshToken("junit")
+        .then()
         .get();
+
+    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
     objectMapper = new ObjectMapper()
@@ -172,8 +176,6 @@ public class ServerAccessorTest extends ServiceTest {
       receivedMessage = serverMessage;
       messageReceivedByClientLatch.countDown();
     });
-    LoginPrefs loginPrefs = new LoginPrefs();
-    loginPrefs.setRefreshToken("junit");
 
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
 
