@@ -7,6 +7,7 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.DeveloperPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -51,7 +52,7 @@ public class PreferencesBuilder {
   }
 
   public PreferencesBuilder defaultValues() {
-    return forgedAlliancePrefs().installationPath(ForgedAlliancePrefs.STEAM_FA_PATH).then();
+    return this;
   }
 
   public PreferencesBuilder themeName(String themeName) {
@@ -173,6 +174,14 @@ public class PreferencesBuilder {
     return new VaultPrefsBuilder();
   }
 
+  public MirrorPrefsBuilder mirrorPrefs() {
+    return new MirrorPrefsBuilder();
+  }
+
+  public DataPrefsBuilder dataPrefs() {
+    return new DataPrefsBuilder();
+  }
+
   public Preferences get() {
     return preferences;
   }
@@ -281,18 +290,6 @@ public class PreferencesBuilder {
 
     public ForgedAlliancePrefsBuilder vaultBaseDirectory(Path vaultBaseDirectory) {
       forgedAlliancePrefs.setVaultBaseDirectory(vaultBaseDirectory);
-      return this;
-    }
-
-    public ForgedAlliancePrefsBuilder customMapsDirectory(Path customMapsDirectory) {
-      forgedAlliancePrefs.mapsDirectoryProperty().unbind();
-      forgedAlliancePrefs.setMapsDirectory(customMapsDirectory);
-      return this;
-    }
-
-    public ForgedAlliancePrefsBuilder modsDirectory(Path modsDirectory) {
-      forgedAlliancePrefs.modsDirectoryProperty().unbind();
-      forgedAlliancePrefs.setModsDirectory(modsDirectory);
       return this;
     }
 
@@ -652,7 +649,16 @@ public class PreferencesBuilder {
     private final MirrorPrefs mirrorPrefs = preferences.getMirror();
 
     public MirrorPrefsBuilder mirrorUrls(List<URI> mirrorUrls) {
-      mirrorPrefs.getMirrorURLs().setAll(mirrorUrls.toArray(new URI[]{}));
+      mirrorPrefs.getMirrorURLs().setAll(mirrorUrls);
+      return this;
+    }
+  }
+
+  public class DataPrefsBuilder extends SubPreferencesBuilder {
+    private final DataPrefs dataPrefs = preferences.getData();
+
+    public DataPrefsBuilder dataDirectory(Path dataDirectory) {
+      dataPrefs.setDataDirectory(dataDirectory);
       return this;
     }
   }

@@ -6,6 +6,7 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
@@ -17,6 +18,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
@@ -57,7 +59,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule.Builder;
 import com.google.common.eventbus.EventBus;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.LineEncoder;
@@ -113,7 +115,7 @@ public class ServerAccessorTest extends ServiceTest {
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
   @TempDir
-  public Path faDirectory;
+  public Path tempDirectory;
 
   @Mock
   private PreferencesService preferencesService;
@@ -142,9 +144,15 @@ public class ServerAccessorTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    Preferences preferences = PreferencesBuilder.create()
+        .dataPrefs()
+        .dataDirectory(tempDirectory)
+        .then()
+        .get();
+
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
     objectMapper = new ObjectMapper()
-        .registerModule(new KotlinModule())
+        .registerModule(new Builder().build())
         .registerModule(new JavaTimeModule())
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
@@ -167,7 +175,6 @@ public class ServerAccessorTest extends ServiceTest {
     LoginPrefs loginPrefs = new LoginPrefs();
     loginPrefs.setRefreshToken("junit");
 
-    when(preferencesService.getFafDataDirectory()).thenReturn(faDirectory);
     when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
 
     connectAndLogIn();

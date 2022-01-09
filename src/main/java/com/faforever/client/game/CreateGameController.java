@@ -19,8 +19,8 @@ import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LastGamePrefs;
-import com.faforever.client.preferences.PreferenceUpdateListener;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
@@ -60,7 +60,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
@@ -116,13 +115,13 @@ public class CreateGameController implements Controller<Pane> {
   @VisibleForTesting
   FilteredList<MapVersionBean> filteredMaps;
   private Runnable onCloseButtonClickedListener;
-  private PreferenceUpdateListener preferenceUpdateListener;
   private MapFilterController mapFilterController;
   private InvalidationListener createButtonStateListener;
+  private InvalidationListener installationPathListener;
   /**
    * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
    */
-  private boolean initialized;
+  private boolean installationPathSet = false;
 
   public void initialize() {
     JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
@@ -171,18 +170,15 @@ public class CreateGameController implements Controller<Pane> {
       selectLastOrDefaultGameType();
     }));
 
-    if (preferencesService.getPreferences().getForgedAlliance().getInstallationPath() == null) {
-      preferenceUpdateListener = preferences -> {
-        if (!initialized && preferencesService.getPreferences().getForgedAlliance().getInstallationPath() != null) {
-          initialized = true;
+    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
+    installationPathListener = observable -> {
+      if (!installationPathSet && forgedAlliancePrefs.getInstallationPath() != null) {
+        JavaFxUtil.runLater(this::init);
+        installationPathSet = true;
+      }
+    };
 
-          JavaFxUtil.runLater(this::init);
-        }
-      };
-      preferencesService.addUpdateListener(new WeakReference<>(preferenceUpdateListener));
-    } else {
-      init();
-    }
+    JavaFxUtil.addAndTriggerListener(forgedAlliancePrefs.installationPathProperty(), new WeakInvalidationListener(installationPathListener));
   }
 
   public void onCloseButtonClicked() {

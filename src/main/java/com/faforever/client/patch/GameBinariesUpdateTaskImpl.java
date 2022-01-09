@@ -81,7 +81,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     Assert.checkNullIllegalState(version, "Field 'version' must not be null");
     log.info("Updating binaries to {}", version);
 
-    Path exePath = preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+    Path exePath = preferencesService.getPreferences().getData().getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
@@ -118,7 +118,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   void copyGameFilesToFafBinDirectory() {
     log.debug("Copying Forged Alliance binaries FAF folder");
 
-    Path fafBinDirectory = preferencesService.getFafBinDirectory();
+    Path fafBinDirectory = preferencesService.getPreferences().getData().getBinDirectory();
 
     Path faBinPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath().resolve("bin");
 

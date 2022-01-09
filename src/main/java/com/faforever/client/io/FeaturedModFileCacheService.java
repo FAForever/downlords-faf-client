@@ -39,7 +39,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
   }
 
   private Path getCachedFilePath(String hash, String group) {
-    return preferencesService.getFeaturedModCachePath()
+    return preferencesService.getPreferences().getData().getFeaturedModCacheDirectory()
         .resolve(group)
         .resolve(hash);
   }
@@ -62,7 +62,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
         moveFeaturedModFileToCache(targetPath);
       }
       Files.copy(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
-      UpdaterUtil.extractMoviesIfPresent(targetPath, preferencesService.getFafDataDirectory());
+      UpdaterUtil.extractMoviesIfPresent(targetPath, preferencesService.getPreferences().getData().getDataDirectory());
     } finally {
       ResourceLocks.freeDiskLock();
     }
@@ -77,7 +77,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
    */
   @Override
   public void afterPropertiesSet() {
-    Path cacheDirectory = preferencesService.getFeaturedModCachePath();
+    Path cacheDirectory = preferencesService.getPreferences().getData().getFeaturedModCacheDirectory();
     if (!Files.isDirectory(cacheDirectory)) {
       try {
         Files.createDirectories(cacheDirectory);
@@ -91,7 +91,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
   }
 
   private void cleanUnusedFilesFromCache() {
-    try (Stream<Path> pathElements = Files.walk(preferencesService.getFeaturedModCachePath())) {
+    try (Stream<Path> pathElements = Files.walk(preferencesService.getPreferences().getData().getFeaturedModCacheDirectory())) {
       pathElements
           .filter(Files::isRegularFile)
           .forEach(this::deleteCachedFileIfNeeded);

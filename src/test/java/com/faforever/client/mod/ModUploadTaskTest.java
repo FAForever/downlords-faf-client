@@ -1,7 +1,9 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +25,7 @@ import static org.mockito.Mockito.when;
 public class ModUploadTaskTest extends UITest {
 
   @TempDir
-  public Path tempFolder;
+  public Path tempDirectory;
   private ModUploadTask instance;
   @Mock
   private PreferencesService preferencesService;
@@ -34,10 +36,15 @@ public class ModUploadTaskTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    Preferences preferences = PreferencesBuilder.create()
+        .dataPrefs()
+        .dataDirectory(tempDirectory)
+        .then()
+        .get();
+
     instance = new ModUploadTask(preferencesService, fafApiAccessor, i18n);
 
-    Path cacheDirectory = Files.createDirectories(tempFolder.resolve("cache"));
-    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory);
+    Files.createDirectories(preferences.getData().getCacheDirectory());
     when(i18n.get(any())).thenReturn("");
     when(fafApiAccessor.uploadFile(any(), any(), any(), any())).thenReturn(Mono.empty());
   }
@@ -55,12 +62,12 @@ public class ModUploadTaskTest extends UITest {
 
   @Test
   public void testCall() throws Exception {
-    instance.setModPath(Files.createDirectories(tempFolder.resolve("test-mod")));
+    instance.setModPath(Files.createDirectories(tempDirectory.resolve("test-mod")));
 
     instance.call();
 
     verify(fafApiAccessor).uploadFile(any(), any(), any(), any());
 
-    assertThat(Files.list(preferencesService.getCacheDirectory()).toArray(), emptyArray());
+    assertThat(Files.list(preferencesService.getPreferences().getData().getCacheDirectory()).toArray(), emptyArray());
   }
 }

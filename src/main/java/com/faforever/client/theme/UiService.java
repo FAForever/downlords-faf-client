@@ -42,6 +42,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.support.MessageSourceResourceBundle;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +70,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
-import static com.faforever.client.io.FileUtils.deleteRecursively;
 import static com.faforever.client.preferences.Preferences.DEFAULT_THEME_NAME;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -169,7 +169,7 @@ public class UiService implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() throws IOException {
     resources = new MessageSourceResourceBundle(messageSource, i18n.getUserSpecificLocale());
-    Path themesDirectory = preferencesService.getThemesDirectory();
+    Path themesDirectory = preferencesService.getPreferences().getData().getThemesDirectory();
     startWatchService(themesDirectory);
     deleteStylesheetsCacheDirectory();
     loadThemes();
@@ -186,10 +186,10 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private void deleteStylesheetsCacheDirectory() {
-    Path cacheStylesheetsDirectory = preferencesService.getCacheStylesheetsDirectory();
+    Path cacheStylesheetsDirectory = preferencesService.getPreferences().getData().getCacheStylesheetsDirectory();
     if (Files.exists(cacheStylesheetsDirectory)) {
       try {
-        deleteRecursively(cacheStylesheetsDirectory);
+        FileSystemUtils.deleteRecursively(cacheStylesheetsDirectory);
       } catch (IOException e) {
         log.warn("Missing permission to delete style sheets cache directory '{}'", cacheStylesheetsDirectory);
       }
@@ -407,12 +407,12 @@ public class UiService implements InitializingBean, DisposableBean {
     themesByFolderName.clear();
     themesByFolderName.put(DEFAULT_THEME_NAME, DEFAULT_THEME);
     try {
-      Files.createDirectories(preferencesService.getThemesDirectory());
-      try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(preferencesService.getThemesDirectory())) {
+      Files.createDirectories(preferencesService.getPreferences().getData().getThemesDirectory());
+      try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(preferencesService.getPreferences().getData().getThemesDirectory())) {
         directoryStream.forEach(this::addThemeDirectory);
       }
     } catch (IOException e) {
-      throw new AssetLoadException("Could not load themes from " + preferencesService.getThemesDirectory(), e, "theme.couldNotLoad", e.getLocalizedMessage());
+      throw new AssetLoadException("Could not load themes from " + preferencesService.getPreferences().getData().getThemesDirectory(), e, "theme.couldNotLoad", e.getLocalizedMessage());
     }
   }
 
@@ -461,7 +461,7 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private Path getThemeDirectory(Theme theme) {
-    return preferencesService.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
+    return preferencesService.getPreferences().getData().getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 
   private String getWebViewStyleSheet() {
@@ -476,7 +476,7 @@ public class UiService implements InitializingBean, DisposableBean {
   private void loadWebViewsStyleSheet(String styleSheetUrl) {
     try {
       // Always copy to a new file since WebView locks the loaded one
-      Path stylesheetsCacheDirectory = preferencesService.getCacheStylesheetsDirectory();
+      Path stylesheetsCacheDirectory = preferencesService.getPreferences().getData().getCacheStylesheetsDirectory();
 
       Files.createDirectories(stylesheetsCacheDirectory);
 

@@ -56,7 +56,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
     Validator.notNull(isRanked, "isRanked must not be null");
 
     ResourceLocks.acquireUploadLock();
-    Path cacheDirectory = preferencesService.getCacheDirectory();
+    Path cacheDirectory = preferencesService.getPreferences().getData().getCacheDirectory();
     Files.createDirectories(cacheDirectory);
     Path tmpFile = createTempFile(cacheDirectory, "map", ".zip");
 

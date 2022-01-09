@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -29,9 +28,9 @@ import static org.mockito.Mockito.when;
 
 public class GameBinariesUpdateTaskTest extends ServiceTest {
   @TempDir
-  public Path faDirectory;
-  @TempDir
-  public Path fafBinDirectory;
+  public Path tempDirectory;
+  private Path fafBinDirectory;
+  private Path faDirectory;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -43,20 +42,21 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
-    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService, platformService, new ClientProperties());
-
-    Path faPath = faDirectory;
+    Path faPath = tempDirectory.resolve("fa");
     Files.createDirectories(faPath.resolve("bin"));
 
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
+    Preferences preferences = PreferencesBuilder.create()
+        .dataPrefs()
+        .dataDirectory(tempDirectory)
+        .then()
         .forgedAlliancePrefs()
         .installationPath(faPath)
         .then()
         .get();
 
-    when(preferencesService.getFafBinDirectory()).thenReturn(fafBinDirectory);
+    fafBinDirectory = Files.createDirectories(preferences.getData().getDataDirectory());
+
+    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService, platformService, new ClientProperties());
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 
@@ -68,7 +68,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   @Test
   public void testCopyGameFilesToFafBinDirectory() throws Exception {
     Path fafBinPath = fafBinDirectory;
-    Path faBinPath = Files.createDirectories(faDirectory.resolve("bin"));
+    Path faBinPath = Files.createDirectories(tempDirectory.resolve("bin"));
 
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
       createFileWithSize(faBinPath.resolve(fileName), 1024);

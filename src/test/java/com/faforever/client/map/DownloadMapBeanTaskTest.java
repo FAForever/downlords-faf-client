@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class DownloadMapBeanTaskTest extends UITest {
 
   @TempDir
-  public Path customMapsDirectory;
+  public Path tempDirectory;
 
   private DownloadMapTask instance;
 
@@ -31,12 +31,14 @@ public class DownloadMapBeanTaskTest extends UITest {
   @Mock
   private I18n i18n;
 
+  private Path mapsDirectory;
 
   @BeforeEach
   public void setUp() throws Exception {
+    mapsDirectory = Files.createDirectory(tempDirectory.resolve("maps"));
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
-        .customMapsDirectory(customMapsDirectory)
+        .vaultBaseDirectory(tempDirectory)
         .then()
         .get();
 
@@ -64,6 +66,6 @@ public class DownloadMapBeanTaskTest extends UITest {
     instance.setFolderName("");
     instance.call();
 
-    assertTrue(Files.exists(customMapsDirectory.resolve("theta_passage_5.v0001").resolve("theta_passage_5_scenario.lua")));
+    assertTrue(Files.exists(mapsDirectory.resolve("theta_passage_5.v0001").resolve("theta_passage_5_scenario.lua")));
   }
 }

@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 public class FriendOnlineNotifierTest extends ServiceTest {
   @Mock
@@ -32,7 +31,6 @@ public class FriendOnlineNotifierTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
     preferencesService = new PreferencesService(new ClientProperties());
     preferencesService.afterPropertiesSet();
 

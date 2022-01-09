@@ -114,7 +114,7 @@ public class ForgedAllianceService {
   }
 
   private Path getExecutable() {
-    return preferencesService.getFafBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+    return preferencesService.getPreferences().getData().getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
   private LaunchCommandBuilder defaultLaunchCommand() {

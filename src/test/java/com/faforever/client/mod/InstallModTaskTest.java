@@ -23,8 +23,8 @@ public class InstallModTaskTest extends UITest {
 
   @TempDir
   public Path tempDirectory;
-  public Path cacheDirectory;
-  public Path modsDirectory;
+  private Path cacheDirectory;
+  private Path modsDirectory;
   private InstallModTask instance;
   @Mock
   private I18n i18n;
@@ -33,17 +33,20 @@ public class InstallModTaskTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    cacheDirectory = Files.createDirectories(tempDirectory.resolve("cache"));
-    modsDirectory = Files.createDirectories(tempDirectory.resolve("mods"));
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
+    Preferences preferences = PreferencesBuilder.create()
+        .dataPrefs()
+        .dataDirectory(tempDirectory)
+        .then()
         .forgedAlliancePrefs()
-        .modsDirectory(modsDirectory)
+        .vaultBaseDirectory(tempDirectory)
         .then()
         .get();
 
+    cacheDirectory = Files.createDirectories(preferences.getData().getCacheDirectory());
+    modsDirectory = Files.createDirectories(preferences.getForgedAlliance().getModsDirectory());
+
     instance = new InstallModTask(preferencesService, i18n);
 
-    when(preferencesService.getCacheDirectory()).thenReturn(cacheDirectory);
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 

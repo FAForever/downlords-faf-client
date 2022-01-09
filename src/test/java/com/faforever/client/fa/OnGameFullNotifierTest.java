@@ -15,7 +15,6 @@ import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -45,8 +44,6 @@ public class OnGameFullNotifierTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new OnGameFullNotifier(platformService, executorService, notificationService, i18n,
         mapService, eventBus, gameService, new ClientProperties());
     instance.afterPropertiesSet();

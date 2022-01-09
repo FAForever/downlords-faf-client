@@ -17,6 +17,7 @@ import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.logging.LoggingService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mapstruct.MapperSetup;
@@ -135,6 +136,8 @@ public class GameServiceTest extends ServiceTest {
   @Mock
   private DiscordRichPresenceService discordRichPresenceService;
   @Mock
+  private LoggingService loggingService;
+  @Mock
   private Process process;
 
   @Captor
@@ -171,7 +174,7 @@ public class GameServiceTest extends ServiceTest {
     }).when(executorService).execute(any());
 
     instance = new GameService(clientProperties, fafServerAccessor, forgedAllianceService, mapService,
-        preferencesService, gameUpdater, notificationService, i18n, playerService,
+        preferencesService, loggingService, gameUpdater, notificationService, i18n, playerService,
         eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
         replayService, reconnectTimerService, gameMapper);
 

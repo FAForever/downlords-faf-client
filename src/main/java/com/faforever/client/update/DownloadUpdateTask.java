@@ -42,7 +42,7 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
     updateTitle(i18n.get("clientUpdateDownloadTask.title"));
     URL url = updateInfo.getUrl();
 
-    Path updateDirectory = preferencesService.getCacheDirectory().resolve("update");
+    Path updateDirectory = preferencesService.getPreferences().getData().getCacheDirectory().resolve("update");
     Path targetFile = updateDirectory.resolve(updateInfo.getFileName());
     Files.createDirectories(targetFile.getParent());
 

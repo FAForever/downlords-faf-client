@@ -13,6 +13,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.settings.LanguageItemController;
+import com.faforever.client.task.TaskService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
@@ -27,6 +28,7 @@ import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URI;
@@ -55,6 +57,8 @@ public class SettingsControllerTest extends UITest {
 
   private SettingsController instance;
   @Mock
+  private ApplicationContext applicationContext;
+  @Mock
   private UserService userService;
   @Mock
   private PreferencesService preferenceService;
@@ -74,6 +78,8 @@ public class SettingsControllerTest extends UITest {
   private ClientProperties clientProperties;
   @Mock
   private ClientUpdateService clientUpdateService;
+  @Mock
+  private TaskService taskService;
 
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
@@ -95,7 +101,7 @@ public class SettingsControllerTest extends UITest {
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService, gameService);
+    instance = new SettingsController(applicationContext, userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService, gameService, taskService);
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
 

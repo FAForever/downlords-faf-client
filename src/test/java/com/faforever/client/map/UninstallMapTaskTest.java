@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -37,8 +36,6 @@ public class UninstallMapTaskTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
-
     instance = new com.faforever.client.map.UninstallMapTask(mapService);
   }
 

@@ -119,7 +119,7 @@ public class MainControllerTest extends UITest {
 
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 
-    instance = new MainController(preferencesService, loggingService, i18n, notificationService, uiService, eventBus,
+    instance = new MainController(preferencesService, i18n, notificationService, uiService, eventBus,
         gamePathHandler, platformService, clientProperties, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());

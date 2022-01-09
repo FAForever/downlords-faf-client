@@ -118,7 +118,7 @@ public class GameUpdaterImpl implements GameUpdater {
         ClientVersion = "%s"
         """.stripIndent();
     String content = String.format(pathFileFormat, installationPath, vaultPath, gameType, gameVersion.toString(), Version.getCurrentVersion());
-    Files.writeString(preferencesService.getFafDataDirectory().resolve("fa_path.lua"), content);
+    Files.writeString(preferencesService.getPreferences().getData().getDataDirectory().resolve("fa_path.lua"), content);
   }
 
   private void copyInitFile(Path initFile) throws IOException {

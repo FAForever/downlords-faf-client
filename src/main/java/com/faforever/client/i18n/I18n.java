@@ -71,7 +71,7 @@ public class I18n implements InitializingBean {
         new Locale("pl")
     ));
 
-    Path languagesDirectory = preferencesService.getLanguagesDirectory();
+    Path languagesDirectory = preferencesService.getPreferences().getData().getLanguagesDirectory();
     if (Files.notExists(languagesDirectory)) {
       return;
     }

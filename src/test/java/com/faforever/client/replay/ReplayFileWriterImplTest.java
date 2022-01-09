@@ -1,14 +1,16 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.commons.replay.ReplayMetadata;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.replay.ReplayMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
@@ -33,18 +35,16 @@ public class ReplayFileWriterImplTest extends ServiceTest {
   private static final String RECORDER = "Test";
   private static final String REPLAY_FILE_NAME = String.format(replayFileFormat, UID, RECORDER);
 
+  @TempDir
+  public Path tempDirectory;
   @Mock
   private PreferencesService preferencesService;
-
   @Mock
   private I18n i81n;
-
   @Mock
   private ClientProperties clientProperties;
-
   @Mock
   private ByteArrayOutputStream replayData;
-
   @Mock
   private ClientProperties.Replay replay;
 
@@ -52,13 +52,15 @@ public class ReplayFileWriterImplTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .dataPrefs()
+        .dataDirectory(tempDirectory)
+        .then()
+        .get();
 
     instance = new ReplayFileWriterImpl(i81n, clientProperties, preferencesService);
     when(clientProperties.getReplay()).thenReturn(replay);
     when(replay.getReplayFileFormat()).thenReturn(replayFileFormat);
-    when(preferencesService.getReplaysDirectory()).thenReturn(Path.of("."));
-    when(preferencesService.getCacheDirectory()).thenReturn(Path.of("."));
     when(i81n.getUserSpecificLocale()).thenReturn(Locale.US);
   }
 

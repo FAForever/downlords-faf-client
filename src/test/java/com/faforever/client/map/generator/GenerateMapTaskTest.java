@@ -1,7 +1,6 @@
 package com.faforever.client.map.generator;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.logging.LoggingService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
@@ -19,8 +18,6 @@ public class GenerateMapTaskTest extends ServiceTest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private LoggingService loggingService;
-  @Mock
   private NotificationService notificationService;
   @Mock
   private EventBus eventBus;
@@ -29,7 +26,7 @@ public class GenerateMapTaskTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GenerateMapTask(preferencesService, loggingService, notificationService, i18n, eventBus);
+    instance = new GenerateMapTask(preferencesService, notificationService, i18n, eventBus);
   }
 
   @Test

@@ -1,12 +1,12 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.domain.ModVersionBean;
-import com.faforever.client.io.FileUtils;
 import com.faforever.client.task.CompletableTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.FileSystemUtils;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
@@ -39,7 +39,7 @@ public class UninstallModTask extends CompletableTask<Void> {
     log.info("Uninstalling modVersion '{}' ({})", modVersion.getMod().getDisplayName(), modVersion.getUid());
     Path modPath = modService.getPathForMod(modVersion);
 
-    FileUtils.deleteRecursively(modPath);
+    FileSystemUtils.deleteRecursively(modPath);
 
     return null;
   }

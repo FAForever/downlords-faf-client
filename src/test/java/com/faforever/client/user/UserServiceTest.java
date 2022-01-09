@@ -26,7 +26,6 @@ import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
@@ -81,7 +80,7 @@ public class UserServiceTest extends ServiceTest {
     meResult = new MeResult();
     meResult.setUserName("junit");
     meResult.setUserId("1");
-    MockitoAnnotations.initMocks(this);
+
     Oauth oauth = new Oauth();
     oauth.setBaseUrl(BASE_URL);
     oauth.setClientId(CLIENT_ID);

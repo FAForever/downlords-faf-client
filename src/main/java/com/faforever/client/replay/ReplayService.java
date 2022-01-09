@@ -176,7 +176,7 @@ public class ReplayService {
   public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> loadLocalReplayPage(int pageSize, int page) throws IOException {
     String replayFileGlob = clientProperties.getReplay().getReplayFileGlob();
 
-    Path replaysDirectory = preferencesService.getReplaysDirectory();
+    Path replaysDirectory = preferencesService.getPreferences().getData().getReplaysDirectory();
     if (Files.notExists(replaysDirectory)) {
       createDirectories(replaysDirectory);
     }
@@ -239,7 +239,7 @@ public class ReplayService {
   }
 
   private void moveCorruptedReplayFile(Path replayFile) {
-    Path corruptedReplaysDirectory = preferencesService.getCorruptedReplaysDirectory();
+    Path corruptedReplaysDirectory = preferencesService.getPreferences().getData().getCorruptedReplaysDirectory();
     try {
       createDirectories(corruptedReplaysDirectory);
     } catch (IOException e) {
@@ -422,7 +422,7 @@ public class ReplayService {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
     byte[] rawReplayBytes = replayData.getData();
 
-    Path tempSupComReplayFile = preferencesService.getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
+    Path tempSupComReplayFile = preferencesService.getPreferences().getData().getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
     createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);

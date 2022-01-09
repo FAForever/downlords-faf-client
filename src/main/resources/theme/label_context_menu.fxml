@@ -7,6 +7,6 @@
              fx:controller="com.faforever.client.fx.LabelContextMenuController">
     <items>
         <MenuItem fx:id="copyLabel" mnemonicParsing="false" onAction="#onCopy"
-                  text="%label.copy"/>
+                  text="%copy"/>
     </items>
 </ContextMenu>

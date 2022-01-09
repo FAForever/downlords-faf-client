@@ -2,7 +2,6 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.io.FileUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.GitHubRelease;
@@ -19,6 +18,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -72,7 +72,7 @@ public class MapGeneratorService implements InitializingBean {
     this.taskService = taskService;
     webClient = webClientBuilder.build();
 
-    generatorExecutablePath = preferencesService.getFafDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
+    generatorExecutablePath = preferencesService.getPreferences().getData().getDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
     this.clientProperties = clientProperties;
     if (!Files.exists(generatorExecutablePath)) {
       try {
@@ -105,7 +105,7 @@ public class MapGeneratorService implements InitializingBean {
             .filter(p -> GENERATED_MAP_PATTERN.matcher(p.getFileName().toString()).matches())
             .forEach(p -> {
               try {
-                FileUtils.deleteRecursively(p);
+                FileSystemUtils.deleteRecursively(p);
               } catch (IOException e) {
                 log.warn("Could not delete generated map directory {}", p, e);
               }

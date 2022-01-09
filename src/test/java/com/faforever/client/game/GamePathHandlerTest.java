@@ -10,7 +10,6 @@ import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -31,7 +30,6 @@ public class GamePathHandlerTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
     PreferencesService preferenceService = new PreferencesService(new ClientProperties());
     instance = new GamePathHandler(notificationService, i18n, eventBus, preferenceService);
   }

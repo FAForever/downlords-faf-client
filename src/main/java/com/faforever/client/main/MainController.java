@@ -575,7 +575,7 @@ public class MainController implements Controller<Node> {
   }
 
   public void onRevealReplayFolder() {
-    Path replayPath = preferencesService.getReplaysDirectory();
+    Path replayPath = preferencesService.getPreferences().getData().getReplaysDirectory();
     this.platformService.reveal(replayPath);
   }
 
