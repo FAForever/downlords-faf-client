@@ -3,7 +3,6 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.SocialStatus;
 import org.springframework.util.Assert;
 
 import static com.faforever.client.player.SocialStatus.FRIEND;
