@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,6 +59,8 @@ public class LeaderboardControllerTest extends UITest {
   private TimeService timeService;
   @Mock
   private UiService uiService;
+  @Mock
+  private ApplicationContext applicationContext;
 
   private SubDivisionTabController subDivisionTabController;
   private PlayerBean player;
@@ -105,7 +108,7 @@ public class LeaderboardControllerTest extends UITest {
     when(leaderboardService.getLeagueEntryForPlayer(sheikah, season)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean2));
 
-    subDivisionTabController = new SubDivisionTabController(leaderboardService, notificationService, i18n, uiService);
+    subDivisionTabController = new SubDivisionTabController(applicationContext, leaderboardService, notificationService, i18n, uiService);
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> subDivisionTabController);
     subDivisionTabController.initialize();
     when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);

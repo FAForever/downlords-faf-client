@@ -2,7 +2,6 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.fx.Controller;
 import javafx.scene.control.CustomMenuItem;
-import lombok.Getter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -13,15 +12,14 @@ public abstract class AbstractCustomMenuItemController<T> implements Controller<
 
   public CustomMenuItem root;
 
-  @Getter
   private T object;
 
   public final void setObject(T object) {
     this.object = object;
-    afterSetObject();
+    afterSetObject(object);
   }
 
-  public abstract void afterSetObject();
+  public abstract void afterSetObject(T object);
 
   @Override
   public CustomMenuItem getRoot() {

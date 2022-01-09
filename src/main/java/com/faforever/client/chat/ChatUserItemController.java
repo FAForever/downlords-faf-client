@@ -198,11 +198,11 @@ public class ChatUserItemController implements Controller<Node> {
       }
     }
 
-    PlayerBean player = chatUser.getPlayer().orElseThrow();
+    PlayerBean player = chatUser.getPlayer().orElse(null);
     ContextMenu contextMenu = ContextMenuBuilder.newBuilder(context)
         .addItem(new ShowPlayerInfoMenuItem(), player)
-        .addItem(new SendPrivateMessageMenuItem(), player)
-        .addItem(new CopyUsernameMenuItem(), player.getUsername())
+        .addItem(new SendPrivateMessageMenuItem(), player != null ? player.getUsername() : chatUser.getUsername())
+        .addItem(new CopyUsernameMenuItem(), player != null ? player.getUsername() : chatUser.getUsername())
         .addCustomItem(uiService.loadFxml("theme/color_picker_menu_item.fxml"), chatUser)
         .addSeparator()
         .addItem(new InvitePlayerMenuItem(), player)

@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 public class BroadcastMessageMenuItem extends AbstractMenuItem<Object> {
 
   @Override
-  protected void onClicked(Object object) {
+  protected void onClicked(Object ignored) {
     TextInputDialog broadcastMessageInputDialog = new TextInputDialog();
     broadcastMessageInputDialog.setTitle(getBean(I18n.class).get("chat.userContext.broadcast"));
 
@@ -27,7 +27,7 @@ public class BroadcastMessageMenuItem extends AbstractMenuItem<Object> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isItemVisible(Object ignored) {
     return getBean(ModeratorService.class).getPermissions().contains(GroupPermission.ROLE_WRITE_MESSAGE);
   }
 

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.Objects;
 
@@ -28,16 +29,15 @@ public class AvatarPickerMenuItemController extends AbstractCustomMenuItemContro
   public ComboBox<AvatarBean> avatarComboBox;
 
   @Override
-  public void afterSetObject() {
-    if (getObject().getSocialStatus() != SELF) {
+  public void afterSetObject(PlayerBean player) {
+    if (player == null || player.getSocialStatus() != SELF) {
       getRoot().setVisible(false);
     } else {
-      loadAvailableAvatars();
+      loadAvailableAvatars(player);
     }
   }
 
-  private void loadAvailableAvatars() {
-    PlayerBean player = getObject();
+  private void loadAvailableAvatars(PlayerBean player) {
     avatarService.getAvailableAvatars().thenAccept(avatars -> {
       ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
       AvatarBean noAvatar = new AvatarBean();

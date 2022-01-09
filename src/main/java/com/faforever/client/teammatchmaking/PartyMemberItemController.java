@@ -202,7 +202,7 @@ public class PartyMemberItemController implements Controller<Node> {
 
     ContextMenu contextMenu = ContextMenuBuilder.newBuilder(context)
         .addItem(new ShowPlayerInfoMenuItem(), player)
-        .addItem(new SendPrivateMessageMenuItem(), player)
+        .addItem(new SendPrivateMessageMenuItem(), player.getUsername())
         .addItem(new CopyUsernameMenuItem(), player.getUsername())
         .addSeparator()
         .addItem(new ReportPlayerMenuItem(), player)

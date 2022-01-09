@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -26,8 +27,6 @@ import static org.mockito.Mockito.when;
 
 public class SubDivisionTabControllerTest extends UITest {
 
-  @InjectMocks
-  private SubDivisionTabController instance;
   @Mock
   private I18n i18n;
   @Mock
@@ -36,6 +35,11 @@ public class SubDivisionTabControllerTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private UiService uiService;
+  @Mock
+  private ApplicationContext applicationContext;
+
+  @InjectMocks
+  private SubDivisionTabController instance;
 
   @BeforeEach
   public void setUp() throws Exception {

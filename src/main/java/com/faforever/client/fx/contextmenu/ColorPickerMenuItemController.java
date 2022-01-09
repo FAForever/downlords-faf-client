@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static java.util.Locale.US;
@@ -38,8 +39,8 @@ public class ColorPickerMenuItemController extends AbstractCustomMenuItemControl
   }
 
   @Override
-  public void afterSetObject() {
-    ChatChannelUser chatUser =  getObject();
+  public void afterSetObject(ChatChannelUser chatUser) {
+    Assert.notNull(chatUser, "No chat user has been set");
     colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(getLowerUsername(chatUser), null));
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {

@@ -4,6 +4,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import org.springframework.util.Assert;
 
 import static com.faforever.client.player.SocialStatus.FRIEND;
 
@@ -11,6 +12,7 @@ public class RemoveFriendMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked(PlayerBean player) {
+    Assert.notNull(player, "No player has been set");
     getBean(PlayerService.class).removeFriend(player);
   }
 
@@ -20,8 +22,7 @@ public class RemoveFriendMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
-    SocialStatus status = getObject().getSocialStatus();
-    return status == FRIEND;
+  protected boolean isItemVisible(PlayerBean player) {
+    return player != null && player.getSocialStatus() == FRIEND;
   }
 }
