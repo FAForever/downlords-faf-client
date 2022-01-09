@@ -72,7 +72,7 @@ public class MapGeneratorService implements InitializingBean {
     this.taskService = taskService;
     webClient = webClientBuilder.build();
 
-    generatorExecutablePath = preferencesService.getPreferences().getData().getDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
+    generatorExecutablePath = preferencesService.getPreferences().getData().getBaseDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
     this.clientProperties = clientProperties;
     if (!Files.exists(generatorExecutablePath)) {
       try {

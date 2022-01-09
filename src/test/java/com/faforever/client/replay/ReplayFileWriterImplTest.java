@@ -49,6 +49,7 @@ public class ReplayFileWriterImplTest extends ServiceTest {
   private ClientProperties.Replay replay;
 
   private ReplayFileWriterImpl instance;
+  private Path replaysDirectory;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -57,6 +58,9 @@ public class ReplayFileWriterImplTest extends ServiceTest {
         .dataDirectory(tempDirectory)
         .then()
         .get();
+
+    Files.createDirectories(preferences.getData().getCacheDirectory());
+    replaysDirectory = Files.createDirectories(preferences.getData().getReplaysDirectory());
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
@@ -73,8 +77,8 @@ public class ReplayFileWriterImplTest extends ServiceTest {
     replayInfo.setUid(UID);
     replayInfo.setRecorder(RECORDER);
     instance.writeReplayDataToFile(replayData, replayInfo);
-    assertTrue(Files.exists(Path.of(REPLAY_FILE_NAME)));
-    Files.deleteIfExists(Path.of(REPLAY_FILE_NAME));
+    assertTrue(Files.exists(replaysDirectory.resolve(REPLAY_FILE_NAME)));
+    Files.deleteIfExists(replaysDirectory.resolve(REPLAY_FILE_NAME));
   }
 }
 

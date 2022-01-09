@@ -19,7 +19,6 @@ import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
@@ -117,11 +116,6 @@ public class CreateGameController implements Controller<Pane> {
   private Runnable onCloseButtonClickedListener;
   private MapFilterController mapFilterController;
   private InvalidationListener createButtonStateListener;
-  private InvalidationListener installationPathListener;
-  /**
-   * Remembers if the controller's init method was called, to avoid memory leaks by adding several listeners
-   */
-  private boolean installationPathSet = false;
 
   public void initialize() {
     JavaFxUtil.addLabelContextMenus(uiService, mapNameLabel, mapDescriptionLabel);
@@ -170,23 +164,6 @@ public class CreateGameController implements Controller<Pane> {
       selectLastOrDefaultGameType();
     }));
 
-    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
-    installationPathListener = observable -> {
-      if (!installationPathSet && forgedAlliancePrefs.getInstallationPath() != null) {
-        JavaFxUtil.runLater(this::init);
-        installationPathSet = true;
-      }
-    };
-
-    JavaFxUtil.addAndTriggerListener(forgedAlliancePrefs.installationPathProperty(), new WeakInvalidationListener(installationPathListener));
-  }
-
-  public void onCloseButtonClicked() {
-    onCloseButtonClickedListener.run();
-  }
-
-
-  private void init() {
     bindGameVisibility();
     initMapSelection();
     initFeaturedModList();
@@ -206,6 +183,11 @@ public class CreateGameController implements Controller<Pane> {
 
     initMapFilterPopup();
   }
+
+  public void onCloseButtonClicked() {
+    onCloseButtonClickedListener.run();
+  }
+
 
   private void setCreateGameButtonState() {
     String title = titleTextField.getText();

@@ -62,7 +62,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
         moveFeaturedModFileToCache(targetPath);
       }
       Files.copy(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
-      UpdaterUtil.extractMoviesIfPresent(targetPath, preferencesService.getPreferences().getData().getDataDirectory());
+      UpdaterUtil.extractMoviesIfPresent(targetPath, preferencesService.getPreferences().getData().getBaseDataDirectory());
     } finally {
       ResourceLocks.freeDiskLock();
     }

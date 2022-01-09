@@ -658,7 +658,7 @@ public class PreferencesBuilder {
     private final DataPrefs dataPrefs = preferences.getData();
 
     public DataPrefsBuilder dataDirectory(Path dataDirectory) {
-      dataPrefs.setDataDirectory(dataDirectory);
+      dataPrefs.setBaseDataDirectory(dataDirectory);
       return this;
     }
   }

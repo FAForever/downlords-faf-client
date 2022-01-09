@@ -30,30 +30,30 @@ public class DataPrefs {
     }
   }
 
-  ObjectProperty<Path> dataDirectory = new SimpleObjectProperty<>(DEFAULT_FAF_DATA_DIRECTORY);
+  ObjectProperty<Path> baseDataDirectory = new SimpleObjectProperty<>(DEFAULT_FAF_DATA_DIRECTORY);
 
-  public Path getDataDirectory() {
-    return dataDirectory.get();
+  public Path getBaseDataDirectory() {
+    return baseDataDirectory.get();
   }
 
-  public ObjectProperty<Path> dataDirectoryProperty() {
-    return dataDirectory;
+  public ObjectProperty<Path> baseDataDirectoryProperty() {
+    return baseDataDirectory;
   }
 
-  public void setDataDirectory(Path dataDirectory) {
-    this.dataDirectory.set(dataDirectory);
+  public void setBaseDataDirectory(Path baseDataDirectory) {
+    this.baseDataDirectory.set(baseDataDirectory);
   }
 
   public Path getBinDirectory() {
-    return getDataDirectory().resolve(BIN_SUB_FOLDER);
+    return getBaseDataDirectory().resolve(BIN_SUB_FOLDER);
   }
 
   public Path getCacheDirectory() {
-    return getDataDirectory().resolve(CACHE_SUB_FOLDER);
+    return getBaseDataDirectory().resolve(CACHE_SUB_FOLDER);
   }
 
   public Path getReplaysDirectory() {
-    return getDataDirectory().resolve(REPLAYS_SUB_FOLDER);
+    return getBaseDataDirectory().resolve(REPLAYS_SUB_FOLDER);
   }
 
   public Path getCorruptedReplaysDirectory() {
@@ -61,11 +61,11 @@ public class DataPrefs {
   }
 
   public Path getCacheStylesheetsDirectory() {
-    return getDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
+    return getBaseDataDirectory().resolve(CACHE_STYLESHEETS_SUB_FOLDER);
   }
 
   public Path getThemesDirectory() {
-    return getDataDirectory().resolve(THEMES_SUB_FOLDER);
+    return getBaseDataDirectory().resolve(THEMES_SUB_FOLDER);
   }
 
   public Path getFeaturedModCacheDirectory() {
@@ -73,6 +73,6 @@ public class DataPrefs {
   }
 
   public Path getLanguagesDirectory() {
-    return getDataDirectory().resolve(LANGUAGES_SUB_FOLDER);
+    return getBaseDataDirectory().resolve(LANGUAGES_SUB_FOLDER);
   }
 }

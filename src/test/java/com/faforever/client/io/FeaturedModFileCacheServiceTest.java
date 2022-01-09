@@ -32,14 +32,16 @@ public class FeaturedModFileCacheServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    cacheDirectory = Files.createDirectories(tempDirectory.resolve("cache"));
-    targetDirectory = Files.createDirectories(tempDirectory.resolve("target"));
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .gameDataCacheActivated(true)
         .dataPrefs()
         .dataDirectory(tempDirectory)
         .then()
         .get();
+
+    cacheDirectory = Files.createDirectories(tempDirectory.resolve(preferences.getData().getFeaturedModCacheDirectory()));
+    targetDirectory = Files.createDirectories(tempDirectory.resolve("target"));
+
     when(preferenceService.getPreferences()).thenReturn(preferences);
     instance = new FeaturedModFileCacheService(preferenceService);
   }

@@ -324,7 +324,7 @@ public class SettingsController implements Controller<Node> {
     });
 
     debugLogToggle.selectedProperty().bindBidirectional(preferences.debugLogEnabledProperty());
-    dataLocationTextField.textProperty().bindBidirectional(preferences.getData().dataDirectoryProperty(), PATH_STRING_CONVERTER);
+    dataLocationTextField.textProperty().bindBidirectional(preferences.getData().baseDataDirectoryProperty(), PATH_STRING_CONVERTER);
 
   }
 
@@ -615,8 +615,8 @@ public class SettingsController implements Controller<Node> {
 
       MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
       moveDirectoryTask.setNewDirectory(newDataDirectory);
-      moveDirectoryTask.setOldDirectory(dataPrefs.getDataDirectory());
-      moveDirectoryTask.setAfterCopyAction(() -> dataPrefs.setDataDirectory(newDataDirectory));
+      moveDirectoryTask.setOldDirectory(dataPrefs.getBaseDataDirectory());
+      moveDirectoryTask.setAfterCopyAction(() -> dataPrefs.setBaseDataDirectory(newDataDirectory));
       taskService.submitTask(moveDirectoryTask);
       preferencesService.storeInBackground();
     });

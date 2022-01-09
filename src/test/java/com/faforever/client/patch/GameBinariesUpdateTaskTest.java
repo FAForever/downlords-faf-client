@@ -43,7 +43,6 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     Path faPath = tempDirectory.resolve("fa");
-    Files.createDirectories(faPath.resolve("bin"));
 
     Preferences preferences = PreferencesBuilder.create()
         .dataPrefs()
@@ -54,7 +53,8 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
         .then()
         .get();
 
-    fafBinDirectory = Files.createDirectories(preferences.getData().getDataDirectory());
+    faDirectory = Files.createDirectories(faPath.resolve("bin"));
+    fafBinDirectory = Files.createDirectories(preferences.getData().getBinDirectory());
 
     instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService, platformService, new ClientProperties());
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -67,7 +67,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
 
   @Test
   public void testCopyGameFilesToFafBinDirectory() throws Exception {
-    Path faBinPath = Files.createDirectories(tempDirectory.resolve("bin"));
+    Path faBinPath = Files.createDirectories(faDirectory);
 
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
       createFileWithSize(faBinPath.resolve(fileName), 1024);

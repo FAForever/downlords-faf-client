@@ -76,11 +76,9 @@ public class CreateGameControllerTest extends UITest {
   @Mock
   private ModService modService;
   @Mock
-  private
-  GameService gameService;
+  private GameService gameService;
   @Mock
-  private
-  NotificationService notificationService;
+  private NotificationService notificationService;
   @Mock
   private I18n i18n;
   @Mock
@@ -196,8 +194,7 @@ public class CreateGameControllerTest extends UITest {
   public void testSetLastGameTitle() {
     preferences.getLastGame().setLastGameTitle("testGame");
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.titleTextField.getText(), is("testGame"));
   }
@@ -207,8 +204,7 @@ public class CreateGameControllerTest extends UITest {
   public void testButtonBindingIfFeaturedModNotSet() {
     preferences.getLastGame().setLastGameTitle("123");
     when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.titleTextField.getText(), is("123"));
     assertThat(instance.createGameButton.getText(), is("Mod missing"));
@@ -231,8 +227,7 @@ public class CreateGameControllerTest extends UITest {
   public void testButtonBindingIfTitleNotAscii() {
     when(i18n.get("game.create.titleNotAscii")).thenReturn("title not ascii");
     instance.titleTextField.setText("ты");
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.titleTextField.getText(), is("ты"));
     assertThat(instance.createGameButton.getText(), is("title not ascii"));
@@ -243,8 +238,7 @@ public class CreateGameControllerTest extends UITest {
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
     when(userService.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
     when(i18n.get("game.create.disconnected")).thenReturn("disconnected");
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.titleTextField.getText(), is(""));
     assertThat(instance.createGameButton.getText(), is("disconnected"));
@@ -255,8 +249,7 @@ public class CreateGameControllerTest extends UITest {
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTING));
     when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTING);
     when(i18n.get("game.create.connecting")).thenReturn("connecting");
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.titleTextField.getText(), is(""));
     assertThat(instance.createGameButton.getText(), is("connecting"));
@@ -270,8 +263,7 @@ public class CreateGameControllerTest extends UITest {
     mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get());
     mapList.add(lastMapBean);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.mapListView.getSelectionModel().getSelectedItem(), is(lastMapBean));
   }

@@ -64,7 +64,7 @@ public class GameUpdaterImplTest extends ServiceTest {
         .dataDirectory(tempDir.resolve("faf_temp_data"))
         .then()
         .get();
-    fafDataDirectory = Files.createDirectories(preferences.getData().getDataDirectory());
+    fafDataDirectory = Files.createDirectories(preferences.getData().getBaseDataDirectory());
     binDirectory = Files.createDirectories(preferences.getData().getBinDirectory());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(applicationContext.getBean(GameBinariesUpdateTaskImpl.class)).thenReturn(gameBinariesUpdateTask);
