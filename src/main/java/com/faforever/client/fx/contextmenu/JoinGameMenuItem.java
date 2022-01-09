@@ -25,14 +25,12 @@ public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    PlayerBean player = getObject();
-    Assert.notNull(player, "No player has been set");
-    joinGameHelper.join(player.getGame());
+    joinGameHelper.join(getObject().getGame());
   }
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getObject();
+    PlayerBean player = getUnsafeObject();
     if (player == null) {
       return false;
     }

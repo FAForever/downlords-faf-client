@@ -28,7 +28,8 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   public ComboBox<AvatarBean> avatarComboBox;
 
   @Override
-  public void afterSetObject(PlayerBean player) {
+  public void afterSetObject() {
+    PlayerBean player = getUnsafeObject();
     if (player == null || player.getSocialStatus() != SELF) {
       getRoot().setVisible(false);
     } else {

@@ -4,6 +4,7 @@ import javafx.scene.control.MenuItem;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -30,7 +31,12 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
     return true; // by-default;
   }
 
+  protected T getUnsafeObject() {
+    return object;
+  }
+
   protected T getObject() {
+    Assert.notNull(object, "object is null");
     return object;
   }
 }

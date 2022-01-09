@@ -23,16 +23,15 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   @Override
   protected void onClicked() {
     PlayerBean player = getObject();
-    Assert.notNull(player, "No player has been set");
     ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
-    reportDialogController.setOffender(player);
+    reportDialogController.setOffender(getObject());
     reportDialogController.setOwnerWindow(getParentPopup().getOwnerWindow());
     reportDialogController.show();
   }
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getObject();
+    PlayerBean player = getUnsafeObject();
     return player != null && player.getSocialStatus() != SELF;
   }
 

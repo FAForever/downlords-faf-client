@@ -21,7 +21,6 @@ public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
   @Override
   protected void onClicked() {
     PlayerBean player = getObject();
-    Assert.notNull(player, "No player has been set");
     PlayerInfoWindowController controller = uiService.loadFxml("theme/user_info_window.fxml");
     controller.setPlayer(player);
     controller.setOwnerWindow(getParentPopup().getOwnerWindow());
@@ -30,7 +29,7 @@ public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isItemVisible() {
-    return getObject() != null;
+    return getUnsafeObject() != null;
   }
 
   @Override

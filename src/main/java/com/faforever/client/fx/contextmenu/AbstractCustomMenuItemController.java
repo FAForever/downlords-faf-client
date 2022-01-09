@@ -6,6 +6,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -13,15 +14,23 @@ public abstract class AbstractCustomMenuItemController<T> implements Controller<
 
   public CustomMenuItem root;
 
-  @Getter
   private T object;
 
   public final void setObject(T object) {
     this.object = object;
-    afterSetObject(object);
+    afterSetObject();
   }
 
-  public abstract void afterSetObject(T object);
+  public abstract void afterSetObject();
+
+  protected T getUnsafeObject() {
+    return object;
+  }
+
+  protected T getObject() {
+    Assert.notNull(object, "object is null");
+    return object;
+  }
 
   @Override
   public CustomMenuItem getRoot() {

@@ -39,8 +39,8 @@ public class ColorPickerCustomMenuItemController extends AbstractCustomMenuItemC
   }
 
   @Override
-  public void afterSetObject(ChatChannelUser chatUser) {
-    Assert.notNull(chatUser, "No chat user has been set");
+  public void afterSetObject() {
+    ChatChannelUser chatUser = getObject();
     colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(getLowerUsername(chatUser), null));
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {

@@ -14,7 +14,7 @@ public class AbstractCustomMenuItemControllerTest extends UITest {
   public void setUp() {
     instance = new AbstractCustomMenuItemController<>() {
       @Override
-      public void afterSetObject(Object object) {
+      public void afterSetObject() {
 
       }
     };

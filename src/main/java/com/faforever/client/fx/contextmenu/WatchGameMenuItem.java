@@ -24,10 +24,8 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    PlayerBean player = getObject();
-    Assert.notNull(player, "No player has been set");
     try {
-      replayService.runLiveReplay(player.getGame().getId());
+      replayService.runLiveReplay(getObject().getGame().getId());
     } catch (Exception e) {
       log.error("Cannot display live replay", e);
       notificationService.addImmediateErrorNotification(e, "replays.live.loadFailure.message");
@@ -36,7 +34,7 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getObject();
+    PlayerBean player = getUnsafeObject();
     return player != null && player.getStatus() == PlayerStatus.PLAYING;
   }
 

@@ -98,7 +98,7 @@ public class ContextMenuBuilderTest extends UITest {
       private final CustomMenuItem root = new CustomMenuItem();
 
       @Override
-      public void afterSetObject(Object object) {
+      public void afterSetObject() {
 
       }
 
