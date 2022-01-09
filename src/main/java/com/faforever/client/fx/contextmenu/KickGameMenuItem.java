@@ -1,4 +1,4 @@
-package com.faforever.client.test.contextmenu;
+package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
@@ -15,7 +15,7 @@ public class KickGameMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean getVisible() {
+  protected boolean isItemVisible() {
     boolean notSelf = !getObject().getSocialStatus().equals(SELF);
     return notSelf & getBean(ModeratorService.class).getPermissions().contains(GroupPermission.ADMIN_KICK_SERVER);
   }

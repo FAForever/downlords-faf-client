@@ -1,4 +1,4 @@
-package com.faforever.client.test.contextmenu;
+package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;

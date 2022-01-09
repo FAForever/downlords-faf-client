@@ -1,4 +1,4 @@
-package com.faforever.client.test.contextmenu;
+package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
@@ -21,7 +21,7 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean getVisible() {
+  protected boolean isItemVisible() {
     return getObject().getStatus() == PlayerStatus.PLAYING;
   }
 

@@ -1,4 +1,4 @@
-package com.faforever.client.test.contextmenu;
+package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.i18n.I18n;
 import javafx.scene.control.MenuItem;
@@ -26,14 +26,14 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
 
   private void startItemInitialization() {
     setText(getItemText(getBean(I18n.class)));
-    setVisible(getVisible());
+    setVisible(isItemVisible());
   }
 
   protected abstract void onClicked(T object);
 
   protected abstract String getItemText(I18n i18n);
 
-  protected boolean getVisible() {
+  protected boolean isItemVisible() {
     return true; // by-default;
   }
 

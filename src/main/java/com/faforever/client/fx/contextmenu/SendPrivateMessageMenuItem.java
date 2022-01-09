@@ -1,4 +1,4 @@
-package com.faforever.client.test.contextmenu;
+package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.domain.PlayerBean;
@@ -15,7 +15,7 @@ public class SendPrivateMessageMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean getVisible() {
+  protected boolean isItemVisible() {
     return getObject().getSocialStatus() != SELF;
   }
 

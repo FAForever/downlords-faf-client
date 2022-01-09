@@ -1,4 +1,4 @@
-package com.faforever.client.test.contextmenu;
+package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.moderator.ModeratorService;
@@ -27,7 +27,7 @@ public class BroadcastMessageMenuItem extends AbstractMenuItem<Object> {
   }
 
   @Override
-  protected boolean getVisible() {
+  protected boolean isItemVisible() {
     return getBean(ModeratorService.class).getPermissions().contains(GroupPermission.ROLE_WRITE_MESSAGE);
   }
 

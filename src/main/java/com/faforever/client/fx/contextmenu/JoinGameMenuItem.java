@@ -1,4 +1,4 @@
-package com.faforever.client.test.contextmenu;
+package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
@@ -18,7 +18,7 @@ public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean getVisible() {
+  protected boolean isItemVisible() {
     PlayerBean player = getObject();
     SocialStatus socialStatus = player.getSocialStatus();
     PlayerStatus playerStatus = player.getStatus();
