@@ -11,6 +11,23 @@ import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.test.contextmenu.AddFoeMenuItem;
+import com.faforever.client.test.contextmenu.AddFriendMenuItem;
+import com.faforever.client.test.contextmenu.BroadcastMessageMenuItem;
+import com.faforever.client.test.contextmenu.ColorPickerMenuController;
+import com.faforever.client.test.contextmenu.ContextMenuBuilder;
+import com.faforever.client.test.contextmenu.CopyUsernameMenuItem;
+import com.faforever.client.test.contextmenu.InvitePlayerMenuItem;
+import com.faforever.client.test.contextmenu.JoinGameMenuItem;
+import com.faforever.client.test.contextmenu.KickGameMenuItem;
+import com.faforever.client.test.contextmenu.KickLobbyMenuItem;
+import com.faforever.client.test.contextmenu.RemoveFoeMenuItem;
+import com.faforever.client.test.contextmenu.RemoveFriendMenuItem;
+import com.faforever.client.test.contextmenu.ReportPlayerMenuItem;
+import com.faforever.client.test.contextmenu.SendPrivateMessageMenuItem;
+import com.faforever.client.test.contextmenu.ShowPlayerInfoMenuItem;
+import com.faforever.client.test.contextmenu.ViewReplaysMenuItem;
+import com.faforever.client.test.contextmenu.WatchGameMenuItem;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
@@ -19,6 +36,7 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -32,6 +50,7 @@ import javafx.stage.PopupWindow;
 import javafx.util.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +69,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final PlatformService platformService;
+  private final ApplicationContext context;
 
   private final InvalidationListener formatChangeListener;
   private final InvalidationListener chatUserPropertyInvalidationListener;
@@ -68,17 +88,18 @@ public class ChatUserItemController implements Controller<Node> {
   private Tooltip avatarTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
-  private WeakReference<ChatUserContextMenuController> contextMenuController = null;
+  private WeakReference<ContextMenu> contextMenuWeakReference = null;
 
   public ChatUserItemController(PreferencesService preferencesService,
                                 I18n i18n, UiService uiService, EventBus eventBus, PlayerService playerService,
-                                PlatformService platformService) {
+                                PlatformService platformService, ApplicationContext context) {
     this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.i18n = i18n;
     this.uiService = uiService;
     this.eventBus = eventBus;
+    this.context = context;
 
     formatChangeListener = observable -> updateFormat();
     chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
@@ -170,19 +191,38 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuController != null) {
-      ChatUserContextMenuController controller = contextMenuController.get();
-      if (controller != null) {
-        controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    if (contextMenuWeakReference != null) {
+      ContextMenu contextMenu = contextMenuWeakReference.get();
+      if (contextMenu != null) {
+        contextMenu.show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         return;
       }
     }
 
-    ChatUserContextMenuController controller = uiService.loadFxml("theme/player_context_menu.fxml", ChatUserContextMenuController.class);
-    controller.setChatUser(chatUser);
-    controller.getContextMenu().show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-
-    contextMenuController = new WeakReference<>(controller);
+    PlayerBean player = chatUser.getPlayer().orElseThrow();
+    ContextMenu contextMenu = ContextMenuBuilder.newBuilder(context)
+        .addItem(new ShowPlayerInfoMenuItem(), player)
+        .addItem(new SendPrivateMessageMenuItem(), player)
+        .addItem(new CopyUsernameMenuItem(), player.getUsername())
+        .addCustomItem(uiService.loadFxml("theme/color_picker_menu_item.fxml"), chatUser)
+        .addSeparator()
+        .addItem(new InvitePlayerMenuItem(), player)
+        .addItem(new AddFriendMenuItem(), player)
+        .addItem(new RemoveFriendMenuItem(), player)
+        .addItem(new AddFoeMenuItem(), player)
+        .addItem(new RemoveFoeMenuItem(), player)
+        .addItem(new ReportPlayerMenuItem(), player)
+        .addSeparator()
+        .addItem(new JoinGameMenuItem(), player)
+        .addItem(new WatchGameMenuItem(), player)
+        .addItem(new ViewReplaysMenuItem(), player)
+        .addSeparator()
+        .addItem(new KickGameMenuItem(), player)
+        .addItem(new KickLobbyMenuItem(), player)
+        .addItem(new BroadcastMessageMenuItem())
+        .build();
+    contextMenu.show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    contextMenuWeakReference = new WeakReference<>(contextMenu);
   }
 
   public void onItemClicked(MouseEvent mouseEvent) {

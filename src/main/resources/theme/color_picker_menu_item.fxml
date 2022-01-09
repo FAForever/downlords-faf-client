@@ -1,0 +1,19 @@
+<?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Button?>
+<CustomMenuItem fx:controller="com.faforever.client.test.contextmenu.ColorPickerMenuController" fx:id="root"
+                hideOnClick="false" mnemonicParsing="false" visible="false" xmlns:fx="http://javafx.com/fxml/1"
+                xmlns="http://javafx.com/javafx/8.0.141">
+    <content>
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <children>
+                <Label text="%chat.userColor"/>
+                <ColorPicker fx:id="colorPicker" styleClass="button" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="removeCustomColorButton" styleClass="icon" onAction="#onRemoveCustomColor"
+                        text="" HBox.hgrow="NEVER"/>
+            </children>
+        </HBox>
+    </content>
+</CustomMenuItem>

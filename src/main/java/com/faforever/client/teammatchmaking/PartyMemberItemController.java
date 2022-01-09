@@ -11,6 +11,12 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.test.contextmenu.ContextMenuBuilder;
+import com.faforever.client.test.contextmenu.CopyUsernameMenuItem;
+import com.faforever.client.test.contextmenu.ReportPlayerMenuItem;
+import com.faforever.client.test.contextmenu.SendPrivateMessageMenuItem;
+import com.faforever.client.test.contextmenu.ShowPlayerInfoMenuItem;
+import com.faforever.client.test.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
@@ -21,6 +27,7 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -30,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -51,6 +59,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private final TeamMatchmakingService teamMatchmakingService;
   private final UiService uiService;
   private final I18n i18n;
+  private final ApplicationContext context;
 
   public Node playerItemRoot;
   public ImageView avatarImageView;
@@ -70,7 +79,7 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private PlayerBean player;
-  private WeakReference<PartyMemberContextMenuController> contextMenuController = null;
+  private WeakReference<ContextMenu> contextMenuWeakReference = null;
   private InvalidationListener playerStatusInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
   private InvalidationListener partyOwnerInvalidationListener;
@@ -183,18 +192,24 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuController != null) {
-      PartyMemberContextMenuController controller = contextMenuController.get();
-      if (controller != null) {
-        controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    if (contextMenuWeakReference != null) {
+      ContextMenu contextMenu = contextMenuWeakReference.get();
+      if (contextMenu != null) {
+        contextMenu.show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
         return;
       }
     }
 
-    PartyMemberContextMenuController controller = uiService.loadFxml("theme/player_context_menu.fxml", PartyMemberContextMenuController.class);
-    controller.setPlayer(player);
-    controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-
-    contextMenuController = new WeakReference<>(controller);
+    ContextMenu contextMenu = ContextMenuBuilder.newBuilder(context)
+        .addItem(new ShowPlayerInfoMenuItem(), player)
+        .addItem(new SendPrivateMessageMenuItem(), player)
+        .addItem(new CopyUsernameMenuItem(), player.getUsername())
+        .addSeparator()
+        .addItem(new ReportPlayerMenuItem(), player)
+        .addSeparator()
+        .addItem(new ViewReplaysMenuItem(), player)
+        .build();
+    contextMenu.show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+    contextMenuWeakReference = new WeakReference<>(contextMenu);
   }
 }
