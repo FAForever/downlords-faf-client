@@ -12,6 +12,7 @@ import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
@@ -21,7 +22,9 @@ import javafx.collections.ObservableMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 
 import java.util.HashMap;
@@ -63,7 +66,9 @@ public class PlayerServiceTest extends ServiceTest {
   @Mock
   private EventBus eventBus;
 
+  @InjectMocks
   private PlayerService instance;
+  @Spy
   private PlayerMapper playerMapper = Mappers.getMapper(PlayerMapper.class);
   private com.faforever.commons.lobby.Player playerInfo1;
   private com.faforever.commons.lobby.Player playerInfo2;
@@ -75,8 +80,6 @@ public class PlayerServiceTest extends ServiceTest {
     when(userService.getUsername()).thenReturn("junit");
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, null, "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
-
-    instance = new PlayerService(fafServerAccessor, fafApiAccessor, userService, eventBus, playerMapper);
 
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
@@ -235,7 +238,8 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   public void testGetPlayerByName() {
     PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext())));
+    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     Optional<PlayerBean> result = instance.getPlayerByName("junit").join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("junit"))));
@@ -245,7 +249,8 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   public void testGetPlayersByIds() {
     PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext())));
+    Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     List<PlayerBean> result = instance.getPlayersByIds(List.of(1,2,3,4)).join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(1,2,3,4)))));

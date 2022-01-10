@@ -44,7 +44,9 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -92,10 +94,13 @@ public class MainControllerTest extends UITest {
   private PlayController playController;
   @Mock
   private Environment environment;
+  @InjectMocks
   private MainController instance;
   private Preferences preferences;
   @Mock
   private FxStage fxStage;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
 
   @Override
   protected boolean showStage() {
@@ -105,7 +110,6 @@ public class MainControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    ClientProperties clientProperties = new ClientProperties();
     clientProperties.getTrueSkill()
         .setBeta(240)
         .setInitialMean(1500)
@@ -115,8 +119,6 @@ public class MainControllerTest extends UITest {
 
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 
-    instance = new MainController(preferencesService, i18n, notificationService, uiService, eventBus,
-        gamePathHandler, platformService, clientProperties, environment);
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());

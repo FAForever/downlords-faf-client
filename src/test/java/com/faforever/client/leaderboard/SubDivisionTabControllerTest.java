@@ -11,6 +11,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 public class SubDivisionTabControllerTest extends UITest {
 
+  @InjectMocks
   private SubDivisionTabController instance;
   @Mock
   private I18n i18n;
@@ -37,8 +39,6 @@ public class SubDivisionTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new SubDivisionTabController(leaderboardService, notificationService, i18n, uiService);
-
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> instance);
     instance.initialize();
   }

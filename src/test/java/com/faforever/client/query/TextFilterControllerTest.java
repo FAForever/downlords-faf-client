@@ -9,6 +9,7 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -24,14 +25,14 @@ import static org.mockito.Mockito.verify;
 public class TextFilterControllerTest extends UITest {
 
   private final String propertyName = "testProp";
+
+  @InjectMocks
   private TextFilterController instance;
   @Mock
   private InvalidationListener queryListener;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new TextFilterController();
-
     loadFxml("theme/vault/search/textFilter.fxml", clazz -> instance);
 
     instance.setPropertyName(propertyName);

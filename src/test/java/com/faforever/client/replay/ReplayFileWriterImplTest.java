@@ -10,7 +10,9 @@ import com.faforever.commons.replay.ReplayMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
@@ -41,13 +43,14 @@ public class ReplayFileWriterImplTest extends ServiceTest {
   private PreferencesService preferencesService;
   @Mock
   private I18n i81n;
-  @Mock
-  private ClientProperties clientProperties;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
   @Mock
   private ByteArrayOutputStream replayData;
   @Mock
   private ClientProperties.Replay replay;
 
+  @InjectMocks
   private ReplayFileWriterImpl instance;
   private Path replaysDirectory;
 
@@ -64,7 +67,6 @@ public class ReplayFileWriterImplTest extends ServiceTest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    instance = new ReplayFileWriterImpl(i81n, clientProperties, preferencesService);
     when(clientProperties.getReplay()).thenReturn(replay);
     when(replay.getReplayFileFormat()).thenReturn(replayFileFormat);
     when(i81n.getUserSpecificLocale()).thenReturn(Locale.US);

@@ -11,6 +11,9 @@ public class MapperSetup {
 
   public static <T> void injectMappers(T mapper) throws IllegalAccessException {
     Class<T> mapperClass = (Class<T>) mapper.getClass();
+    if (mapperClass.getName().contains("MockitoMock")) {
+      mapperClass = (Class<T>) mapperClass.getSuperclass();
+    }
     INJECTED_MAPPERS.put(mapperClass, mapper);
     for (Field field : mapperClass.getDeclaredFields()) {
       Class<?> internalMapperType = field.getType();

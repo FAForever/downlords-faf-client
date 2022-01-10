@@ -19,6 +19,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -44,13 +45,12 @@ public class GamesTilesContainerControllerTest extends UITest {
   @Mock
   private GameTooltipController gameTooltipController;
 
+  @InjectMocks
   private GamesTilesContainerController instance;
   private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GamesTilesContainerController(uiService, preferencesService);
-
     when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());

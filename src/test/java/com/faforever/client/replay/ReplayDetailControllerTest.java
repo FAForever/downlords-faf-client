@@ -42,11 +42,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -70,6 +71,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ReplayDetailControllerTest extends UITest {
+
+  @InjectMocks
   private ReplayDetailController instance;
 
   @Mock
@@ -102,8 +105,8 @@ public class ReplayDetailControllerTest extends UITest {
   private StarController starController;
   @Mock
   private TeamCardController teamCardController;
-  @Mock
-  private ClientProperties clientProperties;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
   @Mock
   private ReportDialogController reportDialogController;
 
@@ -132,8 +135,6 @@ public class ReplayDetailControllerTest extends UITest {
         .title("test")
         .replayFile(Path.of("foo.tmp"))
         .get();
-
-    instance = new ReplayDetailController(timeService, i18n, uiService, replayService, ratingService, mapService, mapGeneratorService, playerService, clientProperties, notificationService, reviewService);
 
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));

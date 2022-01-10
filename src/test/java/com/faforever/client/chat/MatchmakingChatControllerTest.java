@@ -21,6 +21,7 @@ import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -71,6 +72,7 @@ public class MatchmakingChatControllerTest extends UITest {
   @Mock
   private EmoticonService emoticonService;
 
+  @InjectMocks
   private MatchmakingChatController instance;
 
   @BeforeEach
@@ -85,12 +87,6 @@ public class MatchmakingChatControllerTest extends UITest {
     when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
     when(timeService.asShortTime(any())).thenReturn("");
 
-    instance = new MatchmakingChatController(userService, preferencesService,
-        playerService, timeService,
-        i18n, imageUploadService, notificationService, reportingService,
-        uiService, eventBus,
-        audioService, chatService, webViewConfigurer, countryFlagService,
-        chatUserService, emoticonService);
     loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml", clazz -> instance);
 
     instance = spy(instance);

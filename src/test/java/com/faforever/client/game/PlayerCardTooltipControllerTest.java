@@ -10,6 +10,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -23,11 +24,11 @@ public class PlayerCardTooltipControllerTest extends UITest {
   @Mock
   private CountryFlagService countryFlagService;
 
+  @InjectMocks
   private PlayerCardTooltipController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PlayerCardTooltipController(countryFlagService, i18n);
     loadFxml("theme/player_card_tooltip.fxml", clazz -> instance);
   }
 

@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -50,14 +51,13 @@ public class ModCardControllerTest extends UITest {
   @Mock
   private StarController starController;
 
+  @InjectMocks
   private ModCardController instance;
   private ModVersionBean modVersion;
   private ObservableList<ModVersionBean> installedModVersions;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ModCardController(modService, notificationService, timeService, i18n, reportingService);
-
     installedModVersions = FXCollections.observableArrayList();
     when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
     when(i18n.get(ModType.UI.getI18nKey())).thenReturn(ModType.UI.name());

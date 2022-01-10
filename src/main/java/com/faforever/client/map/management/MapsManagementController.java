@@ -36,18 +36,18 @@ public class MapsManagementController implements Controller<Node> {
   private final UiService uiService;
   private final I18n i18n;
 
-  private final FilteredList<MapVersionBean> maps;
+  private FilteredList<MapVersionBean> filteredMaps;
   private Runnable closeButtonAction;
 
   public MapsManagementController(UiService uiService, MapService mapService, I18n i18n) {
     this.uiService = uiService;
     this.mapService = mapService;
     this.i18n = i18n;
-    maps = new FilteredList<>(mapService.getInstalledMaps());
   }
 
   @Override
   public void initialize() {
+    filteredMaps = new FilteredList<>(mapService.getInstalledMaps());
     initializeChoiceBox();
     initializeListView();
   }
@@ -55,7 +55,7 @@ public class MapsManagementController implements Controller<Node> {
   private void initializeListView() {
     listView.setCellFactory(param -> uiService.<RemovableMapCellController>loadFxml("theme/vault/map/removable_map_cell.fxml"));
     listView.setSelectionModel(new NoSelectionModel<>());
-    listView.setItems(maps);
+    listView.setItems(filteredMaps);
   }
 
   private void initializeChoiceBox() {
@@ -71,7 +71,7 @@ public class MapsManagementController implements Controller<Node> {
       }
     });
     filterMapsChoiceBox.getSelectionModel().selectedItemProperty().addListener((obs, oldFilter, newFilter) -> {
-      maps.setPredicate(getPredicateBy(newFilter));
+      filteredMaps.setPredicate(getPredicateBy(newFilter));
       listView.scrollTo(0);
     });
     filterMapsChoiceBox.setItems(FXCollections.observableArrayList(MapFilter.values()));

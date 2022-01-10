@@ -12,6 +12,7 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static com.faforever.client.theme.UiService.DEFAULT_ACHIEVEMENT_IMAGE;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 public class AchievementItemControllerTest extends UITest {
 
+  @InjectMocks
   private AchievementItemController instance;
 
   @Mock
@@ -35,7 +37,6 @@ public class AchievementItemControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new AchievementItemController(i18n, achievementService);
     when(i18n.number(anyInt())).thenAnswer(invocation -> String.format("%d", (int) invocation.getArgument(0)));
 
     loadFxml("theme/achievement_item.fxml", clazz -> instance);

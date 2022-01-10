@@ -2,9 +2,9 @@ package com.faforever.client.replay;
 
 
 import com.faforever.client.test.ServiceTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -19,12 +19,8 @@ public class ReplayFileReaderImplTest extends ServiceTest {
   @TempDir
   public Path temporaryFolder;
 
+  @InjectMocks
   private ReplayFileReaderImpl instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new ReplayFileReaderImpl();
-  }
 
   @Test
   public void readReplayData() throws Exception {

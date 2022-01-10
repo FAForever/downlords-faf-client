@@ -10,8 +10,10 @@ import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -37,7 +39,10 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   private PlatformService platformService;
   @Mock
   private I18n i18n;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
 
+  @InjectMocks
   private GameBinariesUpdateTaskImpl instance;
 
   @BeforeEach
@@ -55,8 +60,6 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
 
     faDirectory = Files.createDirectories(faPath.resolve("bin"));
     fafBinDirectory = Files.createDirectories(preferences.getData().getBinDirectory());
-
-    instance = new GameBinariesUpdateTaskImpl(i18n, preferencesService, platformService, new ClientProperties());
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 

@@ -15,6 +15,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 public class GameUpdaterImplTest extends ServiceTest {
 
+  @InjectMocks
   private GameUpdaterImpl instance;
   @TempDir
   public Path tempDir;
@@ -77,7 +79,6 @@ public class GameUpdaterImplTest extends ServiceTest {
       int version = Objects.requireNonNullElse(invocation.getArgument(1, Integer.class), Integer.MAX_VALUE);
       return CompletableFuture.completedFuture(new PatchResult(new ComparableVersion(String.valueOf(version)), initFile));
     });
-    instance = new GameUpdaterImpl(modService, applicationContext, taskService, preferencesService);
   }
 
   @Test

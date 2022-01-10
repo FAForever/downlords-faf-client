@@ -35,6 +35,7 @@ import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -62,8 +63,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CreateGameControllerTest extends UITest {
-
-
   private static final KeyEvent keyUpPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.UP, false, false, false, false);
   private static final KeyEvent keyUpReleased = new KeyEvent(KeyEvent.KEY_RELEASED, "0", "", KeyCode.UP, false, false, false, false);
   private static final KeyEvent keyDownPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.DOWN, false, false, false, false);
@@ -95,13 +94,12 @@ public class CreateGameControllerTest extends UITest {
   private MapFilterController mapFilterController;
 
   private Preferences preferences;
+  @InjectMocks
   private CreateGameController instance;
   private ObservableList<MapVersionBean> mapList;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, userService, mapGeneratorService, uiService);
-
     mapList = FXCollections.observableArrayList();
 
     preferences = PreferencesBuilder.create().defaultValues().get();

@@ -9,6 +9,7 @@ import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class PersistentNotificationsControllerTest extends UITest {
 
+  @InjectMocks
   private PersistentNotificationsController instance;
 
   @Mock
@@ -34,7 +36,6 @@ public class PersistentNotificationsControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PersistentNotificationsController(notificationService, audioService, uiService);
     instance.persistentNotificationsRoot = new Pane();
 
     loadFxml("theme/persistent_notifications.fxml", clazz -> instance);

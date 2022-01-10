@@ -9,6 +9,7 @@ import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import reactor.core.publisher.Mono;
 
@@ -26,6 +27,7 @@ public class ModUploadTaskTest extends UITest {
 
   @TempDir
   public Path tempDirectory;
+  @InjectMocks
   private ModUploadTask instance;
   @Mock
   private PreferencesService preferencesService;
@@ -43,8 +45,6 @@ public class ModUploadTaskTest extends UITest {
         .get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    instance = new ModUploadTask(preferencesService, fafApiAccessor, i18n);
 
     Files.createDirectories(preferences.getData().getCacheDirectory());
     when(i18n.get(any())).thenReturn("");

@@ -4,9 +4,9 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 
@@ -32,12 +32,8 @@ public class UninstallMapTaskTest extends ServiceTest {
   @Mock
   private MapService mapService;
 
-  private com.faforever.client.map.UninstallMapTask instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new com.faforever.client.map.UninstallMapTask(mapService);
-  }
+  @InjectMocks
+  private UninstallMapTask instance;
 
   @Test
   public void testCallWithoutMapThrowsException() throws Exception {

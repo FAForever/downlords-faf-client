@@ -24,6 +24,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -48,6 +49,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 public class PlayerInfoWindowControllerTest extends UITest {
 
+  @InjectMocks
   private PlayerInfoWindowController instance;
 
   @Mock
@@ -82,9 +84,6 @@ public class PlayerInfoWindowControllerTest extends UITest {
   public void setUp() throws Exception {
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-
-    instance = new PlayerInfoWindowController(statisticsService, countryFlagService, achievementService, eventService,
-        i18n, uiService, timeService, playerService, notificationService, leaderboardService);
 
     when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
     when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());

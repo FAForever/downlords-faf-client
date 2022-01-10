@@ -13,6 +13,7 @@ import com.faforever.client.test.UITest;
 import javafx.beans.property.SimpleFloatProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 public class ReviewControllerTest extends UITest {
 
+  @InjectMocks
   private ReviewController<MapVersionReviewBean> instance;
 
   @Mock
@@ -38,8 +40,6 @@ public class ReviewControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ReviewController<MapVersionReviewBean>(i18n, playerService);
-
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
     when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
 

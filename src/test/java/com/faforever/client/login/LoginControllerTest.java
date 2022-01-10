@@ -1,5 +1,6 @@
 package com.faforever.client.login;
 
+import com.faforever.client.builders.ClientConfigurationBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -15,7 +16,6 @@ import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration;
-import com.faforever.client.update.ClientConfigurationBuilder;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
@@ -25,7 +25,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -57,6 +59,7 @@ import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends UITest {
 
+  @InjectMocks
   private LoginController instance;
   @Mock
   private GameService gameService;
@@ -82,13 +85,12 @@ public class LoginControllerTest extends UITest {
   private OfflineServiceController offlineServiceController;
   @Mock
   private OfflineServicesController offlineServicesController;
-
-  private ClientProperties clientProperties;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
   private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
-    clientProperties = new ClientProperties();
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
@@ -102,9 +104,6 @@ public class LoginControllerTest extends UITest {
     when(announcementController.getRoot()).thenReturn(new Pane());
     when(offlineServiceController.getRoot()).thenReturn(new Label());
     when(offlineServicesController.getRoot()).thenReturn(new Pane());
-
-    instance = new LoginController(gameService, userService, preferencesService, notificationService, clientProperties, i18n,
-        clientUpdateService, webViewConfigurer, statPingService, uiService);
 
     loadFxml("theme/login/login.fxml", param -> instance);
     assertFalse(instance.loginProgressPane.isVisible());

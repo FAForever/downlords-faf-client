@@ -16,6 +16,7 @@ import com.faforever.client.util.TimeService;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ReportDialogControllerTest extends UITest {
+  @InjectMocks
   private ReportDialogController instance;
 
   @Mock
@@ -61,9 +63,6 @@ public class ReportDialogControllerTest extends UITest {
     replay = ReplayBeanBuilder.create().defaultValues()
         .teams(FXCollections.observableMap(new HashMap<>(Map.of("1", List.of(player.getUsername())))))
         .get();
-
-    instance = new ReportDialogController(moderationService, notificationService, playerService, i18n,
-        uiService, timeService, replayService);
 
     when(i18n.get("report.noReports")).thenReturn("noReports");
 

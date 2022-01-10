@@ -11,6 +11,7 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.control.MenuButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.time.LocalDate;
@@ -33,6 +34,8 @@ public class DateRangeFilterControllerTest extends UITest {
   private final String propertyName = "testProp";
   private final LocalDate before = LocalDate.now();
   private final LocalDate after = LocalDate.EPOCH;
+
+  @InjectMocks
   private DateRangeFilterController instance;
   @Mock
   private I18n i18n;
@@ -43,8 +46,6 @@ public class DateRangeFilterControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new DateRangeFilterController(i18n, timeService);
-
     loadFxml("theme/vault/search/dateRangeFilter.fxml", clazz -> instance);
 
     instance.setPropertyName(propertyName);

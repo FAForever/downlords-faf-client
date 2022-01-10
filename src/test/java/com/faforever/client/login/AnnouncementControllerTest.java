@@ -5,6 +5,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.time.OffsetDateTime;
@@ -14,6 +15,7 @@ import static org.testfx.assertions.api.Assertions.assertThat;
 
 class AnnouncementControllerTest extends UITest {
 
+  @InjectMocks
   private AnnouncementController instance;
 
   @Mock
@@ -23,7 +25,6 @@ class AnnouncementControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new AnnouncementController(timeService, i18n);
     loadFxml("theme/login/announcement.fxml", param -> instance);
   }
 

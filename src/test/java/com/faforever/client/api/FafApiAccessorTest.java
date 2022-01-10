@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -63,11 +64,12 @@ public class FafApiAccessorTest extends ServiceTest {
   private OAuthTokenFilter oAuthTokenFilter;
   @TempDir
   public Path tempDirectory;
-
   private ClientProperties clientProperties;
   private ResourceConverter resourceConverter;
   private MockWebServer mockApi;
-  private final ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
+
+  @Spy
+  private ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
 
   @AfterEach
   public void killServer() throws IOException {

@@ -12,7 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 
@@ -32,19 +34,20 @@ public class TournamentServiceTest extends ServiceTest {
 
   @Mock
   private FafApiAccessor fafApiAccessor;
-
+  @Spy
   private final TournamentMapper tournamentMapper = Mappers.getMapper(TournamentMapper.class);
+  @InjectMocks
   private TournamentService instance;
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(tournamentMapper);
-    instance = new TournamentService(fafApiAccessor, tournamentMapper);
   }
 
   @Test
   public void testAllTournaments() throws Exception {
     TournamentBean tournamentBean = TournamentBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(any(), anyString(), anyInt(), any())).thenReturn(Flux.just(tournamentMapper.map(tournamentBean, new CycleAvoidingMappingContext())));
+    Flux<Object> resultFlux = Flux.just(tournamentMapper.map(tournamentBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any(), anyString(), anyInt(), any())).thenReturn(resultFlux);
     List<TournamentBean> results =  instance.getAllTournaments().join();
     verify(fafApiAccessor).getMany(eq(Tournament.class), eq("/challonge/v1/tournaments.json"), eq(100), any());
     assertThat(results, contains(tournamentBean));

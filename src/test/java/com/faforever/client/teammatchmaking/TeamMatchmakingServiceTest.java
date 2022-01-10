@@ -45,7 +45,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 import reactor.core.publisher.Flux;
 
@@ -95,7 +97,9 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   private PlayerBean player;
   private PlayerBean otherPlayer;
+  @InjectMocks
   private TeamMatchmakingService instance;
+  @Spy
   private final MatchmakerMapper matchmakerMapper = Mappers.getMapper(MatchmakerMapper.class);
 
 
@@ -109,8 +113,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     when(gameService.startSearchMatchmaker()).thenReturn(matchmakingFuture);
-    instance = new TeamMatchmakingService(playerService, notificationService, preferencesService,
-        fafApiAccessor, fafServerAccessor, eventBus, i18n, taskScheduler, gameService, matchmakerMapper);
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);

@@ -9,6 +9,7 @@ import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -20,26 +21,26 @@ public class MissingGamePathNotifierTest extends ServiceTest {
   @Mock
   private NotificationService notificationService;
 
+  @InjectMocks
   private MissingGamePathNotifier instance;
+  @Mock
   private EventBus eventBus;
 
   @BeforeEach
   public void setUp() {
-    eventBus = new EventBus();
-    instance = new MissingGamePathNotifier(eventBus, i18n, notificationService);
     instance.afterPropertiesSet();
   }
 
   @Test
   public void testImmediateNotificationOnUrgentEvent() {
-    eventBus.post(new MissingGamePathEvent(true));
+    instance.onMissingGamePathEvent(new MissingGamePathEvent(true));
 
     verify(notificationService).addNotification(any(ImmediateNotification.class));
   }
 
   @Test
   public void testPersistentNotificationOnDefaultEvent() {
-    eventBus.post(new MissingGamePathEvent());
+    instance.onMissingGamePathEvent(new MissingGamePathEvent());
 
     verify(notificationService).addNotification(any(PersistentNotification.class));
   }

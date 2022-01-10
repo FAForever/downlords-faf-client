@@ -6,6 +6,7 @@ import com.faforever.client.test.UITest;
 import javafx.scene.input.MouseButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.function.Consumer;
@@ -18,11 +19,11 @@ public class EmoticonControllerTest extends UITest {
   @Mock
   private Consumer<String> onAction;
 
+  @InjectMocks
   private EmoticonController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new EmoticonController();
     loadFxml("theme/chat/emoticons/emoticon.fxml", clazz -> instance);
   }
 

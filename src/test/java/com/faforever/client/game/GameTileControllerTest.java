@@ -13,6 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.input.MouseButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -33,6 +34,7 @@ public class GameTileControllerTest extends UITest {
 
   @Mock
   private ModService modService;
+  @InjectMocks
   private GameTileController instance;
   @Mock
   private JoinGameHelper joinGameHelper;
@@ -57,7 +59,6 @@ public class GameTileControllerTest extends UITest {
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
 
-    instance = new GameTileController(mapService, i18n, joinGameHelper, modService, playerService);
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
     instance.setOnSelectedListener(onSelectedConsumer);
   }

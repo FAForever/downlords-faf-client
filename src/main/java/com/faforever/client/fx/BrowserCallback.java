@@ -19,6 +19,8 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow.AnchorLocation;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,38 +31,28 @@ import java.util.regex.Pattern;
 @SuppressWarnings("WeakerAccess")
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class BrowserCallback {
+@RequiredArgsConstructor
+public class BrowserCallback implements InitializingBean {
   private final PlatformService platformService;
   private final UrlPreviewResolver urlPreviewResolver;
   private final ReplayService replayService;
   private final EventBus eventBus;
-  private final Pattern replayUrlPattern;
   private final ClanService clanService;
   private final UiService uiService;
   private final PlayerService playerService;
   private final I18n i18n;
   private final NotificationService notificationService;
+  private final ClientProperties clientProperties;
   @VisibleForTesting
   Popup clanInfoPopup;
   private Tooltip linkPreviewTooltip;
   private Popup playerInfoPopup;
   private double lastMouseX;
   private double lastMouseY;
+  private Pattern replayUrlPattern;
 
-  BrowserCallback(PlatformService platformService, ClientProperties clientProperties,
-                  UrlPreviewResolver urlPreviewResolver, ReplayService replayService, EventBus eventBus,
-                  ClanService clanService, UiService uiService, PlayerService playerService, I18n i18n,
-                  NotificationService notificationService) {
-    this.platformService = platformService;
-    this.urlPreviewResolver = urlPreviewResolver;
-    this.replayService = replayService;
-    this.eventBus = eventBus;
-    this.clanService = clanService;
-    this.uiService = uiService;
-    this.playerService = playerService;
-    this.i18n = i18n;
-    this.notificationService = notificationService;
-
+  @Override
+  public void afterPropertiesSet() {
     String urlFormat = clientProperties.getVault().getReplayDownloadUrlFormat();
     String[] splitFormat = urlFormat.split("%s");
     replayUrlPattern = Pattern.compile(Pattern.quote(splitFormat[0]) + "(\\d+)" + Pattern.compile(splitFormat.length == 2 ? splitFormat[1] : ""));

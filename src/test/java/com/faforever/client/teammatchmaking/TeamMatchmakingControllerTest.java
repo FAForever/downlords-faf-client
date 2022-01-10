@@ -35,6 +35,7 @@ import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -81,6 +82,7 @@ public class TeamMatchmakingControllerTest extends UITest {
   private EventBus eventBus;
 
   private Preferences preferences;
+  @InjectMocks
   private TeamMatchmakingController instance;
   private PlayerBean player;
   private PartyBean party;
@@ -117,8 +119,7 @@ public class TeamMatchmakingControllerTest extends UITest {
       when(controller.getRoot()).thenReturn(new Tab());
       return controller;
     });
-    instance = new TeamMatchmakingController(countryFlagService, avatarService, leaderboardService,
-        preferencesService, playerService, i18n, uiService, teamMatchmakingService, eventBus);
+
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> instance);
   }
 

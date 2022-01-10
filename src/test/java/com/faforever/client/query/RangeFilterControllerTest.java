@@ -10,6 +10,7 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.control.MenuButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -30,6 +31,8 @@ public class RangeFilterControllerTest extends UITest {
   private final double max = 100;
   private final double min = 0;
   private final double increment = 1.0;
+
+  @InjectMocks
   private RangeFilterController instance;
   @Mock
   private I18n i18n;
@@ -38,8 +41,6 @@ public class RangeFilterControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new RangeFilterController(i18n);
-
     loadFxml("theme/vault/search/rangeFilter.fxml", clazz -> instance);
 
     instance.setPropertyName(propertyName);

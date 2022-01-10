@@ -14,6 +14,7 @@ import com.faforever.client.test.UITest;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TutorialDetailControllerTest extends UITest {
+  @InjectMocks
   private TutorialDetailController instance;
   @Mock
   private I18n i18n;
@@ -35,7 +37,6 @@ public class TutorialDetailControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new TutorialDetailController(i18n, mapService, webViewConfigurer, tutorialService);
     loadFxml("theme/tutorial_detail.fxml", clazz -> instance);
   }
 

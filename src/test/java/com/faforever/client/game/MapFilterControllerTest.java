@@ -10,6 +10,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.TextField;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MapFilterControllerTest extends UITest {
 
+  @InjectMocks
   private MapFilterController instance;
   private TextField mapNameTextField;
   private FilteredList<MapVersionBean> filteredMapList;
@@ -31,7 +33,6 @@ public class MapFilterControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new MapFilterController();
     loadFxml("theme/play/map_filter.fxml", clazz -> instance);
 
     filteredMapList = new FilteredList<>(FXCollections.observableArrayList(maps));

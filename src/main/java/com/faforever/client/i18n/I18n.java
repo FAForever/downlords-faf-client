@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -30,13 +29,16 @@ public class I18n implements InitializingBean {
   private final PreferencesService preferencesService;
   private final ObservableSet<Locale> availableLanguages;
 
-  private final Locale userSpecificLocale;
+  private Locale userSpecificLocale;
 
   public I18n(ReloadableResourceBundleMessageSource messageSource, PreferencesService preferencesService) {
     this.messageSource = messageSource;
     this.preferencesService = preferencesService;
     availableLanguages = FXCollections.observableSet(new HashSet<>());
+  }
 
+  @Override
+  public void afterPropertiesSet() throws IOException {
     Locale locale = preferencesService.getPreferences().getLocalization().getLanguage();
     if (locale != null) {
       userSpecificLocale = new Locale(locale.getLanguage(), locale.getCountry());
@@ -44,10 +46,7 @@ public class I18n implements InitializingBean {
     } else {
       userSpecificLocale = Locale.getDefault();
     }
-  }
 
-  @Override
-  public void afterPropertiesSet() throws IOException {
     loadAvailableLanguages();
   }
 

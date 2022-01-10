@@ -8,6 +8,7 @@ import com.faforever.commons.api.dto.FeaturedModFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ public class FeaturedModFileCacheServiceTest extends ServiceTest {
   public Path targetDirectory;
   @Mock
   private PreferencesService preferenceService;
+  @InjectMocks
   private FeaturedModFileCacheService instance;
 
   @BeforeEach
@@ -43,7 +45,6 @@ public class FeaturedModFileCacheServiceTest extends ServiceTest {
     targetDirectory = Files.createDirectories(tempDirectory.resolve("target"));
 
     when(preferenceService.getPreferences()).thenReturn(preferences);
-    instance = new FeaturedModFileCacheService(preferenceService);
   }
 
   @Test

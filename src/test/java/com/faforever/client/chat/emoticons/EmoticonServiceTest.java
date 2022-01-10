@@ -5,8 +5,8 @@ import com.faforever.client.builders.EmoticonGroupBuilder;
 import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.test.ServiceTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.io.InputStream;
@@ -28,12 +28,8 @@ public class EmoticonServiceTest extends ServiceTest {
   @Mock
   private ObjectMapper objectMapper;
 
+  @InjectMocks
   private EmoticonService instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new EmoticonService(objectMapper);
-  }
 
   @Test
   public void testAllProductionShortcodesAreUnique() throws Exception {

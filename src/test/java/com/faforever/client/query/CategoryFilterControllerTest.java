@@ -10,6 +10,7 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.control.MenuButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Arrays;
@@ -31,6 +32,8 @@ public class CategoryFilterControllerTest extends UITest {
   private final String propertyName = "testProp";
   private final List<String> items = Arrays.asList("test1", "test2");
   private final LinkedHashMap<String, String> itemMap = new LinkedHashMap<>();
+
+  @InjectMocks
   private CategoryFilterController instance;
   @Mock
   private InvalidationListener queryListener;
@@ -39,7 +42,6 @@ public class CategoryFilterControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CategoryFilterController(i18n);
     itemMap.put("1", items.get(0));
     itemMap.put("2", items.get(1));
 

@@ -52,7 +52,9 @@ import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.net.InetAddress;
 import java.util.Comparator;
@@ -94,6 +96,8 @@ public class KittehChatServiceTest extends ServiceTest {
   private static final String DEFAULT_CHANNEL_NAME = "#defaultChannel";
   private static final String OTHER_CHANNEL_NAME = "#otherChannel";
   private static final int IRC_SERVER_PORT = 123;
+
+  @InjectMocks
   private KittehChatService instance;
 
   private ChatChannelUser defaultChatUser1;
@@ -124,6 +128,8 @@ public class KittehChatServiceTest extends ServiceTest {
   private PlayerService playerService;
   @Mock
   private EventBus eventBus;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
 
   @Captor
   private ArgumentCaptor<Consumer<SocialInfo>> socialMessageListenerCaptor;
@@ -135,15 +141,11 @@ public class KittehChatServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
 
-    ClientProperties clientProperties = new ClientProperties();
     clientProperties.getIrc()
         .setHost(LOOPBACK_ADDRESS.getHostAddress())
         .setPort(IRC_SERVER_PORT)
         .setDefaultChannel(DEFAULT_CHANNEL_NAME)
         .setReconnectDelay(100);
-
-    instance = new KittehChatService(chatUserService, preferencesService, userService, fafServerAccessor,
-        eventBus, clientProperties, playerService);
 
     Irc irc = clientProperties.getIrc();
     instance.defaultChannelName = irc.getDefaultChannel();

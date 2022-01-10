@@ -5,9 +5,9 @@ import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 
@@ -34,12 +34,8 @@ public class UninstallModTaskTest extends ServiceTest {
   @Mock
   private ModService modService;
 
+  @InjectMocks
   private UninstallModTask instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new UninstallModTask(modService);
-  }
 
   @Test
   public void testCallWithoutModThrowsException() throws Exception {

@@ -10,7 +10,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
@@ -51,7 +50,6 @@ public class ChatUserItemController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final PlatformService platformService;
-  private final ChatPrefs chatPrefs;
 
   private final InvalidationListener formatChangeListener;
   private final InvalidationListener chatUserPropertyInvalidationListener;
@@ -81,7 +79,6 @@ public class ChatUserItemController implements Controller<Node> {
     this.i18n = i18n;
     this.uiService = uiService;
     this.eventBus = eventBus;
-    this.chatPrefs = preferencesService.getPreferences().getChat();
 
     formatChangeListener = observable -> updateFormat();
     chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
@@ -108,7 +105,7 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.bind(clanMenu.visibleProperty(), clanMenu.textProperty().isNotEmpty());
     JavaFxUtil.bind(playerStatusIndicator.visibleProperty(), playerStatusIndicator.imageProperty().isNotNull());
     JavaFxUtil.bind(playerMapImage.visibleProperty(), playerMapImage.imageProperty().isNotNull());
-    JavaFxUtil.addAndTriggerListener(chatPrefs.chatFormatProperty(), new WeakInvalidationListener(formatChangeListener));
+    JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().getChat().chatFormatProperty(), new WeakInvalidationListener(formatChangeListener));
 
     updateFormat();
     addEventHandlersToPlayerMapImage();

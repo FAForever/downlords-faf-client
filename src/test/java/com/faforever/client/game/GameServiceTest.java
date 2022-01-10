@@ -47,7 +47,9 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
@@ -101,6 +103,7 @@ public class GameServiceTest extends ServiceTest {
   private static final String GLOBAL_RATING_TYPE = "global";
   private static final String LADDER_1v1_RATING_TYPE = "ladder_1v1";
 
+  @InjectMocks
   private GameService instance;
 
   @Mock
@@ -118,7 +121,7 @@ public class GameServiceTest extends ServiceTest {
   @Mock
   private ExecutorService executorService;
   @Mock
-  private ReplayServer replayService;
+  private ReplayServer replayServer;
   @Mock
   private EventBus eventBus;
   @Mock
@@ -147,7 +150,10 @@ public class GameServiceTest extends ServiceTest {
 
   private PlayerBean junitPlayer;
   private Preferences preferences;
-  private final GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
+  @Spy
+  private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -155,12 +161,10 @@ public class GameServiceTest extends ServiceTest {
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues().get();
 
-    ClientProperties clientProperties = new ClientProperties();
-
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(replayService.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
+    when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
 
@@ -172,11 +176,6 @@ public class GameServiceTest extends ServiceTest {
       }
       return null;
     }).when(executorService).execute(any());
-
-    instance = new GameService(clientProperties, fafServerAccessor, forgedAllianceService, mapService,
-        preferencesService, loggingService, gameUpdater, notificationService, i18n, playerService,
-        eventBus, iceAdapter, modService, platformService, discordRichPresenceService,
-        replayService, reconnectTimerService, gameMapper);
 
     instance.afterPropertiesSet();
 
@@ -226,7 +225,7 @@ public class GameServiceTest extends ServiceTest {
 
     assertNull(future.get(TIMEOUT, TIME_UNIT));
     verify(mapService, never()).download(any());
-    verify(replayService).start(eq(game.getId()), any());
+    verify(replayServer).start(eq(game.getId()), any());
 
     verify(forgedAllianceService).startGameOnline(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false);
   }
@@ -245,15 +244,16 @@ public class GameServiceTest extends ServiceTest {
     when(fafServerAccessor.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any())).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(process.isAlive()).thenReturn(true);
+    when(process.isAlive()).thenReturn(false);
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
     mockStartReplayProcess(replayPath, replayId);
+    when(process.isAlive()).thenReturn(true);
     future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
     future.join();
 
-    verify(replayService).start(eq(game.getId()), any());
+    verify(replayServer).start(eq(game.getId()), any());
     verify(forgedAllianceService).startGameOnline(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false);
     verify(forgedAllianceService).startReplay(replayPath, replayId);
   }
@@ -272,15 +272,16 @@ public class GameServiceTest extends ServiceTest {
     when(fafServerAccessor.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any())).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(process.isAlive()).thenReturn(true);
+    when(process.isAlive()).thenReturn(false);
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
     future.join();
     mockStartReplayProcess(replayPath, replayId);
+    when(process.isAlive()).thenReturn(true);
     future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
     future.join();
 
-    verify(replayService).start(eq(game.getId()), any());
+    verify(replayServer).start(eq(game.getId()), any());
     verify(forgedAllianceService).startGameOnline(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false);
     verify(forgedAllianceService, never()).startReplay(replayPath, replayId);
   }
@@ -336,7 +337,7 @@ public class GameServiceTest extends ServiceTest {
 
     gameTerminatedLatch.await(TIMEOUT, TIME_UNIT);
     verify(forgedAllianceService).startGameOnline(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false);
-    verify(replayService).start(eq(gameLaunchMessage.getUid()), any());
+    verify(replayServer).start(eq(gameLaunchMessage.getUid()), any());
   }
 
   @Test
@@ -527,7 +528,7 @@ public class GameServiceTest extends ServiceTest {
 
     verify(fafServerAccessor).startSearchMatchmaker();
     verify(mapService).download(map);
-    verify(replayService).start(eq(uid), any());
+    verify(replayServer).start(eq(uid), any());
     verify(forgedAllianceService).startGameOnline(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false);
   }
 
@@ -718,7 +719,7 @@ public class GameServiceTest extends ServiceTest {
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(process.isAlive()).thenReturn(true);
+    when(process.isAlive()).thenReturn(false);
     when(process.onExit()).thenReturn(new CompletableFuture<>());
     when(process.exitValue()).thenReturn(1);
     Map<String, String> gameOptions = new LinkedHashMap<>();
@@ -730,6 +731,7 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     CompletableFuture<Void> future = instance.startSearchMatchmaker();
+    when(process.isAlive()).thenReturn(true);
     future.cancel(false);
     verify(notificationService).addServerNotification(any());
   }
@@ -822,13 +824,13 @@ public class GameServiceTest extends ServiceTest {
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any())).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(replayService.start(anyInt(), any(Supplier.class))).thenReturn(completedFuture(new Throwable()));
+    when(replayServer.start(anyInt(), any(Supplier.class))).thenReturn(completedFuture(new Throwable()));
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
 
     assertNull(future.get(TIMEOUT, TIME_UNIT));
     verify(mapService, never()).download(any());
-    verify(replayService).start(eq(game.getId()), any());
+    verify(replayServer).start(eq(game.getId()), any());
     verify(iceAdapter).stop();
   }
 }

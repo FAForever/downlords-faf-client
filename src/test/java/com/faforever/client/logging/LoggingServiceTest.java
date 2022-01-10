@@ -6,6 +6,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.nio.file.Files;
@@ -20,6 +21,7 @@ public class LoggingServiceTest extends ServiceTest {
 
   private static final Pattern GAME_LOG_PATTERN = Pattern.compile("game(_\\d*)?.log");
 
+  @InjectMocks
   private LoggingService instance;
   @Mock
   private PreferencesService preferencesService;
@@ -28,8 +30,6 @@ public class LoggingServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    instance = new LoggingService(preferencesService);
   }
 
   @Test

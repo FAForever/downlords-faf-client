@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.util.ReflectionUtils;
 import org.testfx.util.WaitForAsyncUtils;
@@ -66,13 +67,12 @@ public class ChatControllerTest extends UITest {
   @Captor
   private ArgumentCaptor<MapChangeListener<String, ChatChannelUser>> onUsersListenerCaptor;
 
+  @InjectMocks
   private ChatController instance;
   private SimpleObjectProperty<ConnectionState> connectionState;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ChatController(chatService, uiService, userService, notificationService, eventBus);
-
     connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
 
     when(uiService.loadFxml("theme/chat/private_chat_tab.fxml")).thenReturn(privateChatTabController);

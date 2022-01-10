@@ -1,5 +1,6 @@
-package com.faforever.client.chat;
+package com.faforever.client.builders;
 
+import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;

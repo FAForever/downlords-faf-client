@@ -9,6 +9,7 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.layout.GridPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -24,14 +25,14 @@ public class ToggleFilterControllerTest extends UITest {
 
   private final String propertyName = "testProp";
   private final String value = "test";
+
+  @InjectMocks
   private ToggleFilterController instance;
   @Mock
   private InvalidationListener queryListener;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ToggleFilterController();
-
     loadFxml("theme/vault/search/toggleFilter.fxml", clazz -> instance);
 
     instance.setPropertyName(propertyName);

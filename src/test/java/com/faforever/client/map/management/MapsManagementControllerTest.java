@@ -10,6 +10,7 @@ import javafx.collections.FXCollections;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Arrays;
@@ -34,6 +35,7 @@ public class MapsManagementControllerTest extends UITest {
   private final MapVersionBean customMap2 = MapVersionBeanBuilder.create().folderName("palaneum.v0002").id(2)
       .version(new ComparableVersion("2")).get();
 
+  @InjectMocks
   private MapsManagementController instance;
 
   @BeforeEach
@@ -46,7 +48,6 @@ public class MapsManagementControllerTest extends UITest {
     when(mapService.isOfficialMap(customMap2)).thenReturn(false);
     when(mapService.getInstalledMaps()).thenReturn(FXCollections.observableArrayList(officialMap, customMap1, customMap2));
 
-    instance = new MapsManagementController(uiService, mapService, i18n);
     loadFxml("theme/vault/map/maps_management.fxml", param -> instance);
   }
 

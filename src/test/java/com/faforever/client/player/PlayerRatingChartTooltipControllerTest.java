@@ -5,6 +5,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,11 +21,11 @@ public class PlayerRatingChartTooltipControllerTest extends UITest {
   @Mock
   private I18n i18n;
 
+  @InjectMocks
   private PlayerRatingChartTooltipController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PlayerRatingChartTooltipController(timeService, i18n);
     loadFxml("theme/chat/player_rating_chart_tooltip.fxml", clazz -> instance);
   }
 

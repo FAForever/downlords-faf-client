@@ -9,6 +9,7 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.layout.GridPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -27,14 +28,14 @@ public class BinaryFilterControllerTest extends UITest {
   private final String secondValue = "False";
   private final String firstLabel = "Yes";
   private final String secondLabel = "No";
+
+  @InjectMocks
   private BinaryFilterController instance;
   @Mock
   private InvalidationListener queryListener;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new BinaryFilterController();
-
     loadFxml("theme/vault/search/binaryFilter.fxml", clazz -> instance);
 
     instance.setPropertyName(propertyName);

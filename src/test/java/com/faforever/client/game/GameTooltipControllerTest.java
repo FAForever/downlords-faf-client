@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
@@ -36,6 +37,7 @@ public class GameTooltipControllerTest extends UITest {
   
   @Mock
   private TeamCardController teamCardController;
+  @InjectMocks
   private GameTooltipController instance;
   
   @BeforeEach
@@ -43,8 +45,7 @@ public class GameTooltipControllerTest extends UITest {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(teamCardController.getRoot()).thenReturn(new Pane());
     when(playerService.getPlayerByNameIfOnline(Mockito.anyString())).thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().get()));
-    
-    instance = new GameTooltipController(uiService, playerService);
+
     loadFxml("theme/play/game_tooltip.fxml", clazz -> instance);
   }
   

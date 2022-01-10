@@ -1,13 +1,13 @@
 package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatChannelUserBuilder;
 import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
@@ -19,6 +19,7 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -54,6 +55,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   private WatchButtonController watchButtonController;
 
 
+  @InjectMocks
   private PrivatePlayerInfoController instance;
   private PlayerBean player;
   private ChatChannelUser chatChannelUser;
@@ -72,9 +74,6 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
     when(i18n.get(eq("chat.privateMessage.achievements.unlockedFormat"), any(), any())).thenReturn("0/0");
     when(i18n.number(anyInt())).thenReturn("123");
-
-    instance = new PrivatePlayerInfoController(i18n, achievementService,
-        leaderboardService, eventBus, chatUserService);
 
     loadFxml("theme/chat/private_user_info.fxml", clazz -> {
       if (clazz == GameDetailController.class) {

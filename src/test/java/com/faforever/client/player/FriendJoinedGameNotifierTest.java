@@ -19,6 +19,7 @@ import com.google.common.eventbus.Subscribe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.util.ReflectionUtils;
 
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class FriendJoinedGameNotifierTest extends ServiceTest {
+  @InjectMocks
   private FriendJoinedGameNotifier instance;
   @Mock
   private NotificationService notificationService;
@@ -50,8 +52,6 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new FriendJoinedGameNotifier(notificationService, i18n, eventBus, joinGameHelper, preferencesService, audioService);
-
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);

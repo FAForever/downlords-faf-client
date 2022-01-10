@@ -2,19 +2,15 @@ package com.faforever.client.remote;
 
 
 import com.faforever.client.test.ServiceTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ReconnectTimerServiceTest extends ServiceTest {
 
+  @InjectMocks
   private ReconnectTimerService instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new ReconnectTimerService();
-  }
 
   @Test
   public void testReconnectStaysBelowMax() {

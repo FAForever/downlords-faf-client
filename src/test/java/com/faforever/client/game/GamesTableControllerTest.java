@@ -20,6 +20,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 
 public class GamesTableControllerTest extends UITest {
 
+  @InjectMocks
   private GamesTableController instance;
   @Mock
   private I18n i18n;
@@ -55,7 +57,6 @@ public class GamesTableControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GamesTableController(mapService, joinGameHelper, i18n, uiService, preferencesService, playerService);
     preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);

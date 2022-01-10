@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class TransientNotificationsControllerTest extends UITest {
 
+  @InjectMocks
   private TransientNotificationsController instance;
 
   @Mock
@@ -33,8 +35,6 @@ public class TransientNotificationsControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new TransientNotificationsController(uiService, preferencesService);
-
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     notificationPrefs = preferences.getNotification();
     when(preferencesService.getPreferences()).thenReturn(preferences);

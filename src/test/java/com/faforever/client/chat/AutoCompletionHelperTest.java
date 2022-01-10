@@ -10,6 +10,7 @@ import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -33,13 +34,12 @@ public class AutoCompletionHelperTest extends UITest {
   @Mock
   private Function<String, Collection<String>> completionProposalGeneratorMock;
 
+  @InjectMocks
   private AutoCompletionHelper instance;
   private TextInputControl textInputControl;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new AutoCompletionHelper(completionProposalGeneratorMock);
-
     textInputControl = new TextField();
     instance.bindTo(textInputControl);
   }

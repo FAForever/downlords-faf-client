@@ -16,6 +16,7 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 
 public class JoinGameHelperTest extends UITest {
 
+  @InjectMocks
   private JoinGameHelper instance;
 
   @Mock
@@ -64,8 +66,6 @@ public class JoinGameHelperTest extends UITest {
         .ratingMin(0)
         .ratingMax(1000)
         .get();
-
-    instance = new JoinGameHelper(i18n, playerService, gameService, preferencesService, notificationService, reportingService, uiService, eventBus);
 
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 

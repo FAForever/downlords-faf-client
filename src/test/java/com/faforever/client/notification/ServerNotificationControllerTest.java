@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServerNotificationControllerTest extends UITest {
 
+  @InjectMocks
   private ServerNotificationController instance;
 
   @Mock
@@ -28,7 +30,6 @@ public class ServerNotificationControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ServerNotificationController(webViewConfigurer);
     loadFxml("theme/server_notification.fxml", clazz -> instance);
   }
 

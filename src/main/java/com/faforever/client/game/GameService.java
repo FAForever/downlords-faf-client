@@ -27,7 +27,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
@@ -137,7 +136,6 @@ public class GameService implements InitializingBean {
   private final String faWindowTitle;
   private final MaskPatternLayout logMasker;
   private final GameMapper gameMapper;
-  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Process process;
   private CompletableFuture<Void> matchmakerFuture;
@@ -190,7 +188,6 @@ public class GameService implements InitializingBean {
     games = FXCollections.synchronizedObservableList(FXCollections.observableList(new ArrayList<>(),
         item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
     ));
-    forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
     inOthersParty = false;
   }
 
@@ -382,7 +379,7 @@ public class GameService implements InitializingBean {
         .thenRun(() -> {
           try {
             Process processForReplay = forgedAllianceService.startReplay(path, replayId);
-            if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
+            if (preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame() && isRunning()) {
               return;
             }
             this.process = processForReplay;
@@ -399,7 +396,7 @@ public class GameService implements InitializingBean {
   }
 
   private boolean canStartReplay() {
-    if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
+    if (isRunning() && !preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame()) {
       log.warn("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
@@ -477,7 +474,7 @@ public class GameService implements InitializingBean {
               } catch (IOException e) {
                 throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
               }
-              if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
+              if (preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame() && isRunning()) {
                 return;
               }
               this.process = processCreated;

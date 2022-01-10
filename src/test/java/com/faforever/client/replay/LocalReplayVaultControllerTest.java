@@ -16,6 +16,7 @@ import com.faforever.client.vault.search.SearchController;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 public class LocalReplayVaultControllerTest extends UITest {
 
+  @InjectMocks
   private LocalReplayVaultController instance;
   @Mock
   private I18n i18n;
@@ -54,9 +56,6 @@ public class LocalReplayVaultControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new LocalReplayVaultController(replayService, uiService, notificationService, i18n, preferencesService,
-        reportingService);
-
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
 
     doAnswer(invocation -> {

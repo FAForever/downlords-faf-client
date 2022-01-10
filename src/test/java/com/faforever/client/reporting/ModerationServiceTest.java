@@ -11,11 +11,15 @@ import com.faforever.client.mapstruct.ModerationReportMapper;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.dto.ModerationReport;
+import com.faforever.commons.api.elide.ElideEntity;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -36,15 +40,16 @@ public class ModerationServiceTest extends ServiceTest {
   @Mock
   private PlayerService playerService;
 
+  @InjectMocks
   private ModerationService instance;
   private PlayerBean player;
 
-  private final ModerationReportMapper moderationReportMapper = Mappers.getMapper(ModerationReportMapper.class);
+  @Spy
+  private ModerationReportMapper moderationReportMapper = Mappers.getMapper(ModerationReportMapper.class);
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(moderationReportMapper);
-    instance = new ModerationService(fafApiAccessor, playerService, moderationReportMapper);
 
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
@@ -54,7 +59,8 @@ public class ModerationServiceTest extends ServiceTest {
   @Test
   public void testGetModerationReports() {
     ModerationReportBean report = ModerationReportBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(moderationReportMapper.map(report, new CycleAvoidingMappingContext())));
+    Flux<ElideEntity> resultFlux = Flux.just(moderationReportMapper.map(report, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     List<ModerationReportBean> results = instance.getModerationReports().join();
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("reporter.id").eq(player.getId())
@@ -65,9 +71,11 @@ public class ModerationServiceTest extends ServiceTest {
   @Test
   public void testPostModerationReport() {
     ModerationReportBean report = ModerationReportBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.just(moderationReportMapper.map(report, new CycleAvoidingMappingContext())));
+    ModerationReport moderationReport = moderationReportMapper.map(report, new CycleAvoidingMappingContext());
+    Mono<ElideEntity> resultMono = Mono.just(moderationReport);
+    when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
     ModerationReportBean result = instance.postModerationReport(report).join();
-    verify(fafApiAccessor).post(any(), eq(moderationReportMapper.map(report, new CycleAvoidingMappingContext())));
+    verify(fafApiAccessor).post(any(), eq(moderationReport));
     assertThat(result, CoreMatchers.is(report));
   }
 }

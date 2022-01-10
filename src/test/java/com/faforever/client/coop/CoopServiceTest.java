@@ -10,10 +10,13 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.elide.ElideEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -29,11 +32,13 @@ import static org.mockito.Mockito.when;
 
 public class CoopServiceTest extends ServiceTest {
 
+  @InjectMocks
   private CoopService instance;
 
   @Mock
   private FafApiAccessor fafApiAccessor;
 
+  @Spy
   private final CoopMapper coopMapper = Mappers.getMapper(CoopMapper.class);
 
   @BeforeEach
@@ -47,7 +52,8 @@ public class CoopServiceTest extends ServiceTest {
   public void testGetCoopMaps() throws Exception {
     CoopMissionBean coopMissionBean = CoopMissionBeanBuilder.create().defaultValues().get();
 
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(coopMapper.map(coopMissionBean, new CycleAvoidingMappingContext())));
+    Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopMissionBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     List<CoopMissionBean> results = instance.getMissions().join();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));
     assertThat(results, contains(coopMissionBean));
@@ -57,7 +63,8 @@ public class CoopServiceTest extends ServiceTest {
   public void testGetLeaderboard() throws Exception {
     CoopResultBean coopResultBean = CoopResultBeanBuilder.create().defaultValues().get();
 
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(coopMapper.map(coopResultBean, new CycleAvoidingMappingContext())));
+    Flux<ElideEntity> resultFlux = Flux.just(coopMapper.map(coopResultBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     CoopMissionBean mission = CoopMissionBeanBuilder.create().defaultValues().get();
     List<CoopResultBean> results = instance.getLeaderboard(mission, 2).join();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1000)));

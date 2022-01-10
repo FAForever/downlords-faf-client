@@ -9,6 +9,7 @@ import com.faforever.client.theme.UiService;
 import javafx.scene.media.AudioClip;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 import org.testfx.util.WaitForAsyncUtils;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 public class AudioServiceTest extends ServiceTest {
 
+  @InjectMocks
   private AudioService instance;
 
   @Mock
@@ -47,8 +49,6 @@ public class AudioServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new AudioService(preferencesService, audioClipPlayer, uiService);
-
     preferences = PreferencesBuilder.create().defaultValues()
         .notificationsPrefs()
         .soundsEnabled(true)

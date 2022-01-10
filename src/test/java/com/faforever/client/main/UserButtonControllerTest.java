@@ -14,6 +14,7 @@ import com.faforever.client.user.event.LoginSuccessEvent;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -40,12 +41,12 @@ public class UserButtonControllerTest extends UITest {
   @Mock
   private PreferencesService preferencesService;
 
+  @InjectMocks
   private UserButtonController instance;
   private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new UserButtonController(eventBus, playerService, uiService, userService, preferencesService);
     when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(reportDialogController);
     when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(playerInfoWindowController);
 

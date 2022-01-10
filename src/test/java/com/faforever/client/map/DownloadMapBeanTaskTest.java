@@ -8,6 +8,7 @@ import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.net.URL;
@@ -24,6 +25,7 @@ public class DownloadMapBeanTaskTest extends UITest {
   @TempDir
   public Path tempDirectory;
 
+  @InjectMocks
   private DownloadMapTask instance;
 
   @Mock
@@ -41,9 +43,6 @@ public class DownloadMapBeanTaskTest extends UITest {
         .vaultBaseDirectory(tempDirectory)
         .then()
         .get();
-
-    instance = new DownloadMapTask(preferencesService, i18n);
-
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }

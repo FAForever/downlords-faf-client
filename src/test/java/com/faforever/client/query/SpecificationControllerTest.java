@@ -15,6 +15,7 @@ import javafx.collections.FXCollections;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.time.LocalDate;
@@ -30,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 public class SpecificationControllerTest extends UITest {
+  @InjectMocks
   private SpecificationController instance;
 
   @Mock
@@ -38,8 +40,6 @@ public class SpecificationControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new SpecificationController(i18n);
-
     loadFxml("theme/vault/search/specification.fxml", clazz -> {
       if (clazz == instance.getClass()) {
         return instance;

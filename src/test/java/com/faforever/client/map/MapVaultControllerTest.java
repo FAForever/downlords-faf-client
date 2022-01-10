@@ -23,6 +23,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
@@ -64,6 +65,7 @@ public class MapVaultControllerTest extends UITest {
   @Mock
   private PlatformService platformService;
 
+  @InjectMocks
   private MapVaultController instance;
   private SearchConfig standardSearchConfig;
   private MapDetailController mapDetailController;
@@ -81,7 +83,6 @@ public class MapVaultControllerTest extends UITest {
 
     when(mapService.getRecommendedMapPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
 
-    instance = new MapVaultController(mapService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService, platformService);
     SortConfig sortOrder = preferencesService.getPreferences().getVault().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 

@@ -69,7 +69,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -130,11 +132,20 @@ public class ServerAccessorTest extends ServiceTest {
   private TaskScheduler taskScheduler;
   @Mock
   private EventBus eventBus;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
+  @Spy
+  private ObjectMapper objectMapper = new ObjectMapper()
+      .registerModule(new Builder().build())
+      .registerModule(new JavaTimeModule())
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);;
 
+  @InjectMocks
   private FafServerAccessor instance;
   private CountDownLatch messageReceivedByClientLatch;
   private ServerMessage receivedMessage;
-  private ObjectMapper objectMapper;
+
   private final String token = "abc";
   private final Sinks.Many<String> serverReceivedSink = Sinks.many().replay().latest();
   private final Flux<String> serverMessagesReceived = serverReceivedSink.asFlux();
@@ -155,22 +166,14 @@ public class ServerAccessorTest extends ServiceTest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
-    objectMapper = new ObjectMapper()
-        .registerModule(new Builder().build())
-        .registerModule(new JavaTimeModule())
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
 
     startFakeFafLobbyServer();
 
-    ClientProperties clientProperties = new ClientProperties();
     clientProperties.getServer()
         .setHost(disposableServer.host())
         .setPort(disposableServer.port() - 1);
     clientProperties.setUserAgent("downlords-faf-client");
 
-    instance = new FafServerAccessor(notificationService, i18n, taskScheduler, clientProperties, preferencesService, uidService,
-        tokenService, eventBus, objectMapper);
     instance.afterPropertiesSet();
     instance.addEventListener(ServerMessage.class, serverMessage -> {
       receivedMessage = serverMessage;

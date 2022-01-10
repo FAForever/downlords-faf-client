@@ -16,6 +16,7 @@ import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -50,7 +51,8 @@ public class PartyMemberContextMenuControllerTest extends UITest {
   private ReplayService replayService;
   @Mock
   private UiService uiService;
-  
+
+  @InjectMocks
   private PartyMemberContextMenuController instance;
   private PlayerBean player;
 
@@ -61,7 +63,6 @@ public class PartyMemberContextMenuControllerTest extends UITest {
         AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar2.png")).description("Avatar Number #2").get(),
         AvatarBeanBuilder.create().defaultValues().url(new URL("http://www.example.com/avatar3.png")).description("Avatar Number #3").get()
     )));
-    instance = new PartyMemberContextMenuController(avatarService, eventBus, i18n, joinGameHelper, moderatorService, notificationService, playerService, replayService, uiService);
     loadFxml("theme/player_context_menu.fxml", clazz -> instance, instance);
 
     player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(OTHER).avatar(null).game(new GameBean()).get();

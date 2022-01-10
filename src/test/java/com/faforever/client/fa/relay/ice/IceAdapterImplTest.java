@@ -8,12 +8,13 @@ import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
 public class IceAdapterImplTest extends ServiceTest {
 
-  @Mock
+  @InjectMocks
   private IceAdapterImpl instance;
   @Mock
   private ApplicationContext applicationContext;
@@ -30,7 +31,7 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new IceAdapterImpl(applicationContext, clientProperties, playerService, eventBus, fafServerAccessor, preferencesService);
+
   }
 
   @Test

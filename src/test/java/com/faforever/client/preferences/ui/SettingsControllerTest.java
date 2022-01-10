@@ -30,6 +30,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
@@ -60,6 +61,7 @@ public class SettingsControllerTest extends UITest {
   private static final Theme FIRST_THEME = new Theme("First", "none", 1, "1");
   private static final Theme SECOND_THEME = new Theme("Second", "none", 1, "1");
 
+  @InjectMocks
   private SettingsController instance;
   @Mock
   private ApplicationContext applicationContext;
@@ -106,7 +108,6 @@ public class SettingsControllerTest extends UITest {
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
-    instance = new SettingsController(applicationContext, userService, preferenceService, uiService, i18n, eventBus, notificationService, platformService, clientProperties, clientUpdateService, gameService, taskService);
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
 

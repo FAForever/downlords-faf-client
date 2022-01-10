@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.ClanBean;
@@ -26,6 +27,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -47,6 +49,7 @@ import static org.mockito.Mockito.when;
 
 public class ChatUserItemControllerTest extends UITest {
 
+  @InjectMocks
   private ChatUserItemController instance;
   @Mock
   private PreferencesService preferencesService;
@@ -78,14 +81,6 @@ public class ChatUserItemControllerTest extends UITest {
     when(playerService.isOnline(eq(2))).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
 
-    instance = new ChatUserItemController(
-        preferencesService,
-        i18n,
-        uiService,
-        eventBus,
-        playerService,
-        platformService
-    );
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
   }
 

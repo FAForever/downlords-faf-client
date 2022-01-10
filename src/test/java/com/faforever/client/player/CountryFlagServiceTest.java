@@ -4,6 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -18,7 +19,8 @@ import static org.mockito.Mockito.when;
 
 public class CountryFlagServiceTest extends ServiceTest {
 
-  private CountryFlagService service;
+  @InjectMocks
+  private CountryFlagService instance;
 
   @Mock
   private I18n i18n;
@@ -26,7 +28,6 @@ public class CountryFlagServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() {
     when(i18n.getCountryNameLocalized(anyString())).thenReturn(""); //Default result to avoid nullPointers
-    service = new CountryFlagService(i18n);
   }
 
   @Test
@@ -36,7 +37,7 @@ public class CountryFlagServiceTest extends ServiceTest {
     String[] inputs = {"d", "D", "dk", "DK"};
     for (String input : inputs) {
       //Act
-      List<String> result = service.getCountries(input);
+      List<String> result = instance.getCountries(input);
 
       //Assert
       assertThat(result, hasItem("DK"));
@@ -50,7 +51,7 @@ public class CountryFlagServiceTest extends ServiceTest {
     final String displayName = "Denmark";
     when(i18n.getCountryNameLocalized("DK")).thenReturn(displayName);
     //Act
-    List<String> result = service.getCountries(input);
+    List<String> result = instance.getCountries(input);
 
     //Assert
     assertThat(result, hasItem("DK"));
@@ -60,7 +61,7 @@ public class CountryFlagServiceTest extends ServiceTest {
   public void shouldFindAllOnEmptyString() {
     //Arrange
     //Act
-    List<String> result = service.getCountries("");
+    List<String> result = instance.getCountries("");
 
     //Assert
     assertThat(result, hasItems("DK", "DE", "GB", "AU", "BE")); //just a list of countries to match for
@@ -70,7 +71,7 @@ public class CountryFlagServiceTest extends ServiceTest {
   public void shouldReturnAllCountriesOnNullInput() {
     //Arrange
     //Act
-    List<String> result = service.getCountries(null);
+    List<String> result = instance.getCountries(null);
 
     //Assert
     assertThat(result, hasItems("DK", "DE", "GB", "AU", "BE")); //just a list of countries to match for
