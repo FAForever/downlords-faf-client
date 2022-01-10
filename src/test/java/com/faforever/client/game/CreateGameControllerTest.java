@@ -232,6 +232,17 @@ public class CreateGameControllerTest extends UITest {
   }
 
   @Test
+  public void testButtonBindingIfPasswordNotAscii() {
+    when(i18n.get("game.create.passwordNotAscii")).thenReturn("password not ascii");
+    instance.titleTextField.setText("Test");
+    instance.passwordTextField.setText("ты");
+    runOnFxThreadAndWait(() -> instance.initialize());
+
+    assertThat(instance.passwordTextField.getText(), is("ты"));
+    assertThat(instance.createGameButton.getText(), is("password not ascii"));
+  }
+
+  @Test
   public void testButtonBindingIfNotConnected() {
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.DISCONNECTED));
     when(userService.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
