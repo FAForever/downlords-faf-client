@@ -21,6 +21,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Map;
@@ -48,6 +49,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
   private EventBus eventBus;
 
   private PlayerBean player;
+  @InjectMocks
   private MatchmakingQueueItemController instance;
   private MatchmakerQueueBean queue;
   private PartyBean party;
@@ -71,7 +73,6 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>(ConnectionState.CONNECTED));
 
-    instance = new MatchmakingQueueItemController(userService, playerService, teamMatchmakingService, i18n, eventBus);
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(partyMembersNotReadyProperty);
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(partyMembersNotReadyProperty.get());
     loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml", clazz -> instance);

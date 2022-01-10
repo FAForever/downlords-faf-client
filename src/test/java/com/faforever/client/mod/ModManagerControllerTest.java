@@ -11,6 +11,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class ModManagerControllerTest extends UITest {
 
+  @InjectMocks
   private ModManagerController instance;
   @Mock
   private ModService modService;
@@ -31,8 +33,6 @@ public class ModManagerControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ModManagerController(modService);
-
     modUI = ModVersionBeanBuilder.create().defaultValues().uid("UI").modType(ModType.UI).id(null).get();
     modSIM = ModVersionBeanBuilder.create().defaultValues().uid("SIM").modType(ModType.SIM).id(null).get();
     when(modService.getInstalledModVersions()).thenReturn(FXCollections.observableArrayList(modUI, modSIM));

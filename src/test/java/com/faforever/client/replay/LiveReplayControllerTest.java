@@ -13,6 +13,7 @@ import com.faforever.commons.lobby.GameStatus;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -34,6 +35,7 @@ public class LiveReplayControllerTest extends UITest {
   @Mock
   private TimeService timeService;
 
+  @InjectMocks
   private LiveReplayController instance;
 
   private final GameBean openedGame = GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get();
@@ -44,7 +46,6 @@ public class LiveReplayControllerTest extends UITest {
   public void setUp() throws Exception {
     Mockito.when(gameService.getGames()).thenReturn(FXCollections.observableArrayList(games));
 
-    instance = new LiveReplayController(gameService, uiService, i18n, mapService, timeService);
     loadFxml("theme/vault/replay/live_replays.fxml", clazz -> instance);
   }
 

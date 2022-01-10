@@ -30,7 +30,8 @@ import javafx.collections.ObservableSet;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+import org.mockito.InjectMocks;
+import org.mockito.Spy;
 
 import java.nio.file.Path;
 
@@ -41,10 +42,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 public class PreferencesServiceTest extends ServiceTest {
 
 
+  @InjectMocks
   private PreferencesService instance;
 
-  @Mock
-  private ClientProperties clientProperties;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
   private ObjectMapper objectMapper;
 
   @BeforeEach
@@ -72,8 +74,6 @@ public class PreferencesServiceTest extends ServiceTest {
         .addAbstractTypeMapping(SetProperty.class, SimpleSetProperty.class);
 
     objectMapper.registerModule(preferencesModule);
-
-    instance = new PreferencesService(clientProperties);
   }
 
   @Test

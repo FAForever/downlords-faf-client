@@ -12,7 +12,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.io.InputStreamReader;
@@ -34,6 +36,7 @@ public class CheckForUpdateTaskTest extends ServiceTest {
   private static final InetAddress LOOPBACK_ADDRESS = InetAddress.getLoopbackAddress();
 
   private ServerSocket fakeConfigServerSocket;
+  @InjectMocks
   private CheckForUpdateTask instance;
 
   @Mock
@@ -44,13 +47,11 @@ public class CheckForUpdateTaskTest extends ServiceTest {
   private FileSizeReader fileSizeReader;
 
   private CountDownLatch terminateLatch;
+  @Spy
   private ClientProperties clientProperties;
 
   @BeforeEach
   public void setUp() throws Exception {
-    clientProperties = new ClientProperties();
-    instance = new CheckForUpdateTask(i18n, preferencesService, fileSizeReader);
-
     terminateLatch = new CountDownLatch(1);
   }
 

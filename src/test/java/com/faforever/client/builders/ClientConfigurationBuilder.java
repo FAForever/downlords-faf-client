@@ -1,5 +1,6 @@
-package com.faforever.client.update;
+package com.faforever.client.builders;
 
+import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientConfiguration.GitHubRepo;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;

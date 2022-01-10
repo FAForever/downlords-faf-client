@@ -19,6 +19,7 @@ import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -59,13 +60,11 @@ public class CoopControllerTest extends UITest {
   @Mock
   private TimeService timeService;
 
+  @InjectMocks
   private CoopController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CoopController(replayService, gameService, coopService, notificationService, i18n, uiService,
-        timeService, webViewConfigurer, modService);
-
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));
     when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));

@@ -7,6 +7,7 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Spy;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
@@ -19,6 +20,10 @@ import static org.hamcrest.Matchers.hasSize;
 class StatPingServiceTest extends ServiceTest {
 
   private StatPingService instance;
+
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
+
   private MockWebServer mockApi;
 
   @BeforeEach
@@ -26,7 +31,6 @@ class StatPingServiceTest extends ServiceTest {
     mockApi = new MockWebServer();
     mockApi.start();
 
-    ClientProperties clientProperties = new ClientProperties();
     clientProperties.getStatping().setApiRoot(String.format("http://localhost:%s", mockApi.getPort()));
 
     instance = new StatPingService(clientProperties, WebClient.builder());

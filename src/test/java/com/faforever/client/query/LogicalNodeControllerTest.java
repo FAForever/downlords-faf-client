@@ -7,6 +7,7 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Optional;
@@ -19,6 +20,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LogicalNodeControllerTest extends UITest {
+
+  @InjectMocks
   private LogicalNodeController instance;
   private QBuilder qBuilder;
 
@@ -29,8 +32,6 @@ public class LogicalNodeControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new LogicalNodeController(i18n);
-
     loadFxml("theme/vault/search/logical_node.fxml", clazz -> {
       if (clazz == instance.getClass()) {
         return instance;

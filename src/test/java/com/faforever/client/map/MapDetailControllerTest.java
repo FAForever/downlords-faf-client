@@ -30,6 +30,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -81,6 +82,7 @@ public class MapDetailControllerTest extends UITest {
   @Mock
   private EventBus eventBus;
 
+  @InjectMocks
   private MapDetailController instance;
   private PlayerBean currentPlayer;
   private MapVersionBean testMap;
@@ -111,7 +113,6 @@ public class MapDetailControllerTest extends UITest {
     when(mapService.hasPlayedMap(eq(currentPlayer), eq(testMap))).thenReturn(CompletableFuture.completedFuture(true));
     when(mapService.getFileSize(any(MapVersionBean.class))).thenReturn(CompletableFuture.completedFuture(12));
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
-    instance = new MapDetailController(mapService, mapGeneratorService, notificationService, i18n, timeService, reportingService, playerService, reviewService, uiService, eventBus);
 
     loadFxml("theme/vault/map/map_detail.fxml", param -> {
       if (param == ReviewsController.class) {

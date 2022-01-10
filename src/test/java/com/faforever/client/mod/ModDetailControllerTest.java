@@ -27,6 +27,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -72,6 +73,7 @@ public class ModDetailControllerTest extends UITest {
   @Mock
   private StarController starController;
 
+  @InjectMocks
   private ModDetailController instance;
   private ObservableList<ModVersionBean> installedModVersions;
   private PlayerBean currentPlayer;
@@ -82,7 +84,6 @@ public class ModDetailControllerTest extends UITest {
     currentPlayer = PlayerBeanBuilder.create().defaultValues().username("junit").get();
     modVersion = ModVersionBeanBuilder.create().defaultValues().mod(ModBeanBuilder.create().defaultValues().get()).get();
     modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
-    instance = new ModDetailController(modService, notificationService, i18n, reportingService, timeService, reviewService, playerService, uiService);
 
     installedModVersions = FXCollections.observableArrayList();
     when(modService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));

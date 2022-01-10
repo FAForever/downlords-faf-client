@@ -8,6 +8,7 @@ import com.faforever.commons.io.ByteCountListener;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.core.io.ClassPathResource;
@@ -40,6 +41,7 @@ public class DownloadServiceTest extends ServiceTest {
   @Mock
   private PreferencesService preferencesService;
 
+  @InjectMocks
   private DownloadService instance;
   private Preferences preferences;
 
@@ -47,8 +49,6 @@ public class DownloadServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    instance = new DownloadService(preferencesService);
   }
 
   @Test

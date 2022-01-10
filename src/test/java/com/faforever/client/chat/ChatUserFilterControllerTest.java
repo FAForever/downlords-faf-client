@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -10,6 +11,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static com.faforever.client.game.PlayerStatus.HOSTING;
@@ -32,12 +34,12 @@ public class ChatUserFilterControllerTest extends UITest {
 
 
   private ChatChannelUser chatChannelUser;
+  @InjectMocks
   private ChatUserFilterController instance;
   private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ChatUserFilterController(i18n, flagService);
     instance.channelTabController = channelTabController;
 
     player = PlayerBeanBuilder.create().defaultValues().get();

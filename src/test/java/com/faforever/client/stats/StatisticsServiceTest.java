@@ -12,10 +12,13 @@ import com.faforever.client.mapstruct.LeaderboardMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.elide.ElideEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -33,23 +36,25 @@ public class StatisticsServiceTest extends ServiceTest {
   @Mock
   private FafApiAccessor fafApiAccessor;
 
+  @InjectMocks
   private StatisticsService instance;
   private LeaderboardBean leaderboard;
-  private final LeaderboardMapper leaderboardMapper = Mappers.getMapper(LeaderboardMapper.class);
+  @Spy
+  private LeaderboardMapper leaderboardMapper = Mappers.getMapper(LeaderboardMapper.class);
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(leaderboardMapper);
     when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
-    instance = new StatisticsService(fafApiAccessor, leaderboardMapper);
   }
 
   @Test
   public void testGetStatisticsForPlayer() throws Exception {
     LeaderboardRatingJournalBean leaderboardRatingJournalBean = LeaderboardRatingJournalBeanBuilder.create().defaultValues().get();
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(leaderboardMapper.map(leaderboardRatingJournalBean, new CycleAvoidingMappingContext())));
+    Flux<ElideEntity> resultFlux = Flux.just(leaderboardMapper.map(leaderboardRatingJournalBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     List<LeaderboardRatingJournalBean> results = instance.getRatingHistory(player, leaderboard).join();
     verify(fafApiAccessor).getMany(argThat(
         ElideMatchers.hasFilter(qBuilder().intNum("gamePlayerStats.player.id").eq(player.getId()).and()

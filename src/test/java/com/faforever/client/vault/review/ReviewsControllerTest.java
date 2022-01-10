@@ -1,6 +1,7 @@
 package com.faforever.client.vault.review;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
@@ -8,6 +9,7 @@ import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -17,12 +19,13 @@ import static org.mockito.Mockito.when;
 
 public class ReviewsControllerTest extends UITest {
 
-  private ReviewsController instance;
+  @InjectMocks
+  private ReviewsController<MapVersionReviewBean> instance;
 
   @Mock
   private I18n i18n;
   @Mock
-  private ReviewController reviewController;
+  private ReviewController<MapVersionReviewBean> reviewController;
   @Mock
   private UiService uiService;
   @Mock
@@ -34,8 +37,6 @@ public class ReviewsControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ReviewsController(i18n, uiService, playerService);
-
     when(reviewController.getRoot()).thenReturn(new Pane());
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
 

@@ -11,7 +11,9 @@ import javafx.animation.Timeline;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -31,17 +33,18 @@ public class WatchButtonControllerTest extends UITest {
   private TimeService timeService;
   @Mock
   private I18n i18n;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
 
+  @InjectMocks
   private WatchButtonController instance;
   private GameBean game;
 
   @BeforeEach
   public void setUp() throws Exception {
-    ClientProperties properties = new ClientProperties();
-    properties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
+    clientProperties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
 
     game = GameBeanBuilder.create().defaultValues().get();
-    instance = new WatchButtonController(replayService, properties, timeService, i18n);
     loadFxml("theme/vault/replay/watch_button.fxml",  clazz -> instance);
   }
 

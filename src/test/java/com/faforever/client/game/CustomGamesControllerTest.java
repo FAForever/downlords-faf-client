@@ -18,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 public class CustomGamesControllerTest extends UITest {
 
+  @InjectMocks
   private CustomGamesController instance;
   @Mock
   private GameService gameService;
@@ -57,8 +59,6 @@ public class CustomGamesControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new CustomGamesController(uiService, gameService, preferencesService, eventBus, i18n);
-
     games = FXCollections.observableArrayList();
 
     preferences = PreferencesBuilder.create().defaultValues()

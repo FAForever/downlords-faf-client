@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
@@ -46,6 +47,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OnlineReplayVaultControllerTest extends UITest {
+
+  @InjectMocks
   private OnlineReplayVaultController instance;
 
   @Mock
@@ -104,8 +107,6 @@ public class OnlineReplayVaultControllerTest extends UITest {
 
     sortOrder = preferencesService.getPreferences().getVault().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
-
-    instance = new OnlineReplayVaultController(modService, leaderboardService, replayService, uiService, notificationService, i18n, preferencesService, reportingService);
 
     loadFxml("theme/vault/vault_entity.fxml", clazz -> {
       if (SearchController.class.isAssignableFrom(clazz)) {

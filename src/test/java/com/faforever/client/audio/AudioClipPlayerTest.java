@@ -2,17 +2,13 @@ package com.faforever.client.audio;
 
 import com.faforever.client.test.ServiceTest;
 import javafx.scene.media.AudioClip;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 
 public class AudioClipPlayerTest extends ServiceTest {
 
+  @InjectMocks
   private AudioClipPlayer instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new AudioClipPlayer();
-  }
 
   @Test
   public void testPlaySound() throws Exception {

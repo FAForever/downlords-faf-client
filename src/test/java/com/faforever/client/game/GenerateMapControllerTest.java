@@ -11,6 +11,7 @@ import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -44,6 +45,7 @@ public class GenerateMapControllerTest extends UITest {
   private CreateGameController createGameController;
 
   private Preferences preferences;
+  @InjectMocks
   private GenerateMapController instance;
 
   public void unbindProperties() {
@@ -67,8 +69,6 @@ public class GenerateMapControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new GenerateMapController(preferencesService, notificationService, mapGeneratorService, i18n);
-
     preferences = PreferencesBuilder.create().defaultValues()
         .generatorPrefs()
         .spawnCount(10)

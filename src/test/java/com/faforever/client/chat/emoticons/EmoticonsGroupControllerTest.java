@@ -7,6 +7,7 @@ import com.faforever.client.theme.UiService;
 import javafx.scene.layout.AnchorPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,6 +27,7 @@ public class EmoticonsGroupControllerTest extends UITest {
   @Mock
   private EmoticonController emoticonController;
 
+  @InjectMocks
   private EmoticonsGroupController instance;
 
   @BeforeEach
@@ -33,7 +35,6 @@ public class EmoticonsGroupControllerTest extends UITest {
     when(uiService.loadFxml("theme/chat/emoticons/emoticon.fxml")).thenReturn(emoticonController);
     when(emoticonController.getRoot()).thenReturn(new AnchorPane(), new AnchorPane()); // FlowPane does not allow to put the same views
 
-    instance = new EmoticonsGroupController(uiService, platformService);
     loadFxml("theme/chat/emoticons/emoticons_group.fxml", clazz -> instance);
   }
 

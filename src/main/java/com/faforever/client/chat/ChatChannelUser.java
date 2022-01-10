@@ -55,7 +55,7 @@ public class ChatChannelUser {
   private ChangeListener<String> countryInvalidationListener;
   private InvalidationListener displayedChangeListener;
 
-  ChatChannelUser(String username, boolean moderator) {
+  public ChatChannelUser(String username, boolean moderator) {
     this.username = new SimpleStringProperty(username);
     this.moderator = new SimpleBooleanProperty(moderator);
     this.color = new SimpleObjectProperty<>();

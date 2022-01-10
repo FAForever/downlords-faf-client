@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.ClanBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
@@ -30,6 +31,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.net.MalformedURLException;
@@ -53,6 +55,7 @@ import static org.mockito.Mockito.when;
 
 public class ChatUserServiceTest extends ServiceTest {
 
+  @InjectMocks
   private ChatUserService instance;
   @Mock
   private AvatarService avatarService;
@@ -95,17 +98,6 @@ public class ChatUserServiceTest extends ServiceTest {
     when(avatarService.loadAvatar(any(AvatarBean.class))).thenReturn(mock(Image.class));
     when(i18n.getCountryNameLocalized("US")).thenReturn("United States");
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    instance = new ChatUserService(
-        uiService,
-        mapService,
-        avatarService,
-        clanService,
-        countryFlagService,
-        preferencesService,
-        i18n,
-        eventBus
-    );
   }
 
   @Test

@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
@@ -28,6 +29,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -75,16 +77,13 @@ public class ChatUserContextMenuControllerTest extends UITest {
   @Mock
   private ReportDialogController reportDialogController;
 
+  @InjectMocks
   private ChatUserContextMenuController instance;
   private PlayerBean player;
   private ChatChannelUser chatUser;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ChatUserContextMenuController(playerService, eventBus, uiService,
-        preferencesService, replayService, notificationService, i18n, joinGameHelper,
-        avatarService, moderatorService, teamMatchmakingService);
-
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);

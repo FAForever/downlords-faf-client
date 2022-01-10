@@ -9,7 +9,9 @@ import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.util.concurrent.ExecutorService;
 
@@ -19,6 +21,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class MapUploadControllerTest extends UITest {
 
+  @InjectMocks
   private MapUploadController instance;
 
   @Mock
@@ -35,13 +38,12 @@ public class MapUploadControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private ClientProperties clientProperties;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
 
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new MapUploadController(mapService, executorService, notificationService, reportingService, platformService, i18n, eventBus, clientProperties);
     loadFxml("theme/vault/map/map_upload.fxml", param -> instance);
   }
 

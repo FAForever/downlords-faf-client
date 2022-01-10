@@ -5,14 +5,15 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class GenerateMapTaskTest extends ServiceTest {
+  @InjectMocks
   private GenerateMapTask instance;
 
   @Mock
@@ -23,11 +24,6 @@ public class GenerateMapTaskTest extends ServiceTest {
   private EventBus eventBus;
   @Mock
   private I18n i18n;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new GenerateMapTask(preferencesService, notificationService, i18n, eventBus);
-  }
 
   @Test
   public void testCallWithoutVersionThrowsException() throws Exception {

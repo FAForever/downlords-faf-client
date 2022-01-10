@@ -16,6 +16,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -52,6 +53,7 @@ public class MapCardControllerTest extends UITest {
   @Mock
   private StarController starController;
 
+  @InjectMocks
   private MapCardController instance;
   private ObservableList<MapVersionBean> installedMaps;
   private MapVersionBean mapBean;
@@ -64,7 +66,6 @@ public class MapCardControllerTest extends UITest {
     }));
     installedMaps = FXCollections.observableArrayList();
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
-    instance = new MapCardController(mapService, mapGeneratorService, notificationService, i18n, reportingService);
     mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).folderName("testMap").ranked(true).id(23).size(MapSize.valueOf(1, 1)).get();
     when(i18n.get("map.versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
 

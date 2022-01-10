@@ -6,8 +6,9 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 import java.io.IOException;
@@ -24,13 +25,13 @@ import static org.mockito.Mockito.when;
 
 public class I18nTest extends ServiceTest {
 
-  @TempDir
-  public Path temporaryFolder;
-
+  @InjectMocks
   private I18n instance;
 
   @Mock
   private PreferencesService preferencesService;
+  @Spy
+  private ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -42,11 +43,8 @@ public class I18nTest extends ServiceTest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
     messageSource.setBasenames("classpath:i18n/messages");
     messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
-
-    instance = new I18n(messageSource, preferencesService);
 
     instance.afterPropertiesSet();
   }

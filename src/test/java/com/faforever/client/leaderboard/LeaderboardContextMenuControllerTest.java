@@ -15,6 +15,7 @@ import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -44,11 +45,11 @@ public class LeaderboardContextMenuControllerTest extends UITest {
   @Mock
   private UiService uiService;
 
+  @InjectMocks
   private LeaderboardContextMenuController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new LeaderboardContextMenuController(avatarService, eventBus, i18n, joinGameHelper, moderatorService, notificationService, playerService, replayService, uiService);
     loadFxml("theme/player_context_menu.fxml", clazz -> instance, instance);
 
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(TEST_USER_NAME).socialStatus(SELF).avatar(null).game(new GameBean()).get();

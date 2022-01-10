@@ -8,6 +8,7 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class EmoticonsWindowControllerTest extends UITest {
   private TextInputControl textField;
   private List<EmoticonsGroup> emoticonsGroups;
 
+  @InjectMocks
   private EmoticonsWindowController instance;
 
   @BeforeEach
@@ -41,7 +43,6 @@ public class EmoticonsWindowControllerTest extends UITest {
     when(emoticonsGroupController.getRoot()).thenReturn(new VBox(), new VBox()); // Root do not allow to put the same views
 
     textField = new TextField();
-    instance = new EmoticonsWindowController(emoticonService, uiService);
     instance.setTextInputControl(textField);
     loadFxml("theme/chat/emoticons/emoticons_window.fxml", clazz -> instance);
   }

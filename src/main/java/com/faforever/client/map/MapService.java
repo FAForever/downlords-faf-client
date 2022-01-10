@@ -20,7 +20,6 @@ import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
@@ -117,18 +116,18 @@ public class MapService implements InitializingBean, DisposableBean {
   private final UiService uiService;
   private final MapGeneratorService mapGeneratorService;
   private final EventBus eventBus;
-  private final ForgedAlliancePrefs forgedAlliancePreferences;
   private final PlayerService playerService;
   private final MapMapper mapMapper;
   private final ReplayMapper replayMapper;
   private final NotificationService notificationService;
   private final FileSizeReader fileSizeReader;
+  private final ClientProperties clientProperties;
 
-  private final String mapDownloadUrlFormat;
-  private final String mapPreviewUrlFormat;
   private final java.util.Map<Path, MapVersionBean> pathToMap = new HashMap<>();
   private final ObservableList<MapVersionBean> installedMaps = FXCollections.observableArrayList();
   private final java.util.Map<String, MapVersionBean> mapsByFolderName = new HashMap<>();
+  private String mapDownloadUrlFormat;
+  private String mapPreviewUrlFormat;
   @VisibleForTesting
   Set<String> officialMaps = ImmutableSet.of(
       "SCMP_001", "SCMP_002", "SCMP_003", "SCMP_004", "SCMP_005", "SCMP_006", "SCMP_007", "SCMP_008", "SCMP_009", "SCMP_010", "SCMP_011",
@@ -161,12 +160,9 @@ public class MapService implements InitializingBean, DisposableBean {
     this.uiService = uiService;
     this.mapGeneratorService = mapGeneratorService;
     this.eventBus = eventBus;
-    this.forgedAlliancePreferences = preferencesService.getPreferences().getForgedAlliance();
     this.playerService = playerService;
     this.notificationService = notificationService;
-    Vault vault = clientProperties.getVault();
-    this.mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
-    this.mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
+    this.clientProperties = clientProperties;
     this.mapMapper = mapMapper;
     this.replayMapper = replayMapper;
     this.fileSizeReader = fileSizeReader;
@@ -182,9 +178,12 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @Override
   public void afterPropertiesSet() {
+    Vault vault = clientProperties.getVault();
+    mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
+    mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
     eventBus.register(this);
-    JavaFxUtil.addListener(forgedAlliancePreferences.installationPathProperty(), observable -> tryLoadMaps());
-    JavaFxUtil.addListener(forgedAlliancePreferences.vaultBaseDirectoryProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().installationPathProperty(), observable -> tryLoadMaps());
+    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().vaultBaseDirectoryProperty(), observable -> tryLoadMaps());
     installedMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
       while (change.next()) {
         for (MapVersionBean mapVersion : change.getRemoved()) {
@@ -199,12 +198,12 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   private void tryLoadMaps() {
-    if (forgedAlliancePreferences.getInstallationPath() == null) {
+    if (preferencesService.getPreferences().getForgedAlliance().getInstallationPath() == null) {
       log.warn("Could not load maps: installation path is not set");
       return;
     }
 
-    Path mapsDirectory = forgedAlliancePreferences.getMapsDirectory();
+    Path mapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
     if (mapsDirectory == null) {
       log.warn("Could not load maps: custom map directory is not set");
       return;
@@ -226,7 +225,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private Thread startDirectoryWatcher(Path mapsDirectory) {
     Thread thread = new Thread(() -> {
       try (WatchService watcher = mapsDirectory.getFileSystem().newWatchService()) {
-        forgedAlliancePreferences.getMapsDirectory().register(watcher, ENTRY_DELETE, ENTRY_CREATE);
+        preferencesService.getPreferences().getForgedAlliance().getMapsDirectory().register(watcher, ENTRY_DELETE, ENTRY_CREATE);
         while (!Thread.interrupted()) {
           WatchKey key = watcher.take();
           key.pollEvents().stream()
@@ -262,8 +261,8 @@ public class MapService implements InitializingBean, DisposableBean {
 
       protected Void call() {
         updateTitle(i18n.get("mapVault.loadingMaps"));
-        Path officialMapsPath = forgedAlliancePreferences.getInstallationPath().resolve("maps");
-        try (Stream<Path> customMapsDirectoryStream = list(forgedAlliancePreferences.getMapsDirectory())) {
+        Path officialMapsPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath().resolve("maps");
+        try (Stream<Path> customMapsDirectoryStream = list(preferencesService.getPreferences().getForgedAlliance().getMapsDirectory())) {
           List<Path> mapPaths = new ArrayList<>();
           customMapsDirectoryStream.collect(toCollection(() -> mapPaths));
           officialMaps.stream()
@@ -280,7 +279,7 @@ public class MapService implements InitializingBean, DisposableBean {
             tryAddInstalledMap(mapPath);
           }
         } catch (IOException e) {
-          log.warn("Maps could not be read from: " + forgedAlliancePreferences.getMapsDirectory(), e);
+          log.warn("Maps could not be read from: " + preferencesService.getPreferences().getForgedAlliance().getMapsDirectory(), e);
         }
         return null;
       }
@@ -360,7 +359,7 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     }
 
-    Path previewPath = forgedAlliancePreferences.getMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
+    Path previewPath = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
     if (Files.exists(previewPath)) {
       try (InputStream inputStream = Files.newInputStream(previewPath)) {
         return new Image(inputStream);
@@ -460,9 +459,9 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private Path getMapsDirectory(String technicalName) {
     if (isOfficialMap(technicalName)) {
-      return forgedAlliancePreferences.getInstallationPath().resolve("maps");
+      return preferencesService.getPreferences().getForgedAlliance().getInstallationPath().resolve("maps");
     }
-    return forgedAlliancePreferences.getMapsDirectory();
+    return preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
   }
 
   public Path getPathForMap(String technicalName) {

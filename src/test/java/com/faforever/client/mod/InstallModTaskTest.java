@@ -8,6 +8,7 @@ import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.nio.file.Files;
@@ -24,6 +25,7 @@ public class InstallModTaskTest extends UITest {
   @TempDir
   public Path tempDirectory;
   private Path modsDirectory;
+  @InjectMocks
   private InstallModTask instance;
   @Mock
   private I18n i18n;
@@ -43,8 +45,6 @@ public class InstallModTaskTest extends UITest {
 
     Files.createDirectories(preferences.getData().getCacheDirectory());
     modsDirectory = Files.createDirectories(preferences.getForgedAlliance().getModsDirectory());
-
-    instance = new InstallModTask(preferencesService, i18n);
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
   }

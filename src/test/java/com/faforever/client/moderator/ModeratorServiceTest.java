@@ -6,9 +6,9 @@ import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.api.dto.MeResult;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -22,12 +22,8 @@ public class ModeratorServiceTest extends ServiceTest {
   private UserService userService;
   @Mock
   private FafServerAccessor fafServerAccessor;
-
+  @InjectMocks
   private ModeratorService instance;
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new ModeratorService(fafServerAccessor, userService);
-  }
 
   @Test
   public void testGetPermissions() throws Exception {

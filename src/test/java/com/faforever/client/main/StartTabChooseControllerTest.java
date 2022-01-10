@@ -5,6 +5,7 @@ import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -15,11 +16,11 @@ public class StartTabChooseControllerTest extends UITest {
 
   @Mock
   private I18n i18n;
+  @InjectMocks
   private StartTabChooseController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new StartTabChooseController(i18n);
     loadFxml("theme/start_tab_choose.fxml", clazz -> instance);
     WaitForAsyncUtils.waitForFxEvents();
   }

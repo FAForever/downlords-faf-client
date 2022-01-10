@@ -123,7 +123,6 @@ public class AbstractChatTabControllerTest extends UITest {
     when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
     when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
-
     instance = new AbstractChatTabController(webViewConfigurer, userService, chatService, preferencesService,
         playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService,
         uiService, eventBus, countryFlagService, chatUserService, emoticonService) {

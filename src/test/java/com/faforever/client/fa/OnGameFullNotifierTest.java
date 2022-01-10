@@ -14,7 +14,9 @@ import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -26,6 +28,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class OnGameFullNotifierTest extends ServiceTest {
+  @InjectMocks
   private OnGameFullNotifier instance;
   @Mock
   private EventBus eventBus;
@@ -41,11 +44,11 @@ public class OnGameFullNotifierTest extends ServiceTest {
   private MapService mapService;
   @Mock
   private PlatformService platformService;
+  @Spy
+  private ClientProperties clientProperties;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new OnGameFullNotifier(platformService, executorService, notificationService, i18n,
-        mapService, eventBus, gameService, new ClientProperties());
     instance.afterPropertiesSet();
 
     doAnswer(invocation -> {

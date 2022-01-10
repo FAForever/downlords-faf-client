@@ -9,6 +9,7 @@ import com.faforever.client.theme.UiService;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TutorialControllerTest extends UITest {
+  @InjectMocks
   private TutorialController instance;
   @Mock
   private UiService uiService;
@@ -35,7 +37,6 @@ public class TutorialControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new TutorialController(tutorialService, uiService);
     loadFxml("theme/tutorial.fxml", clazz -> {
       if (TutorialDetailController.class.isAssignableFrom(clazz)) {
         return tutorialDetailController;

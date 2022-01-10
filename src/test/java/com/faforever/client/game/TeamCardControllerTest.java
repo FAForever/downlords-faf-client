@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TeamCardControllerTest extends UITest {
+  @InjectMocks
   private TeamCardController instance;
 
   @Mock
@@ -50,7 +52,6 @@ public class TeamCardControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     player = PlayerBeanBuilder.create().defaultValues().id(1).get();
-    instance = new TeamCardController(uiService, i18n);
     playerList = new ArrayList<>();
     playerList.add(player);
     teams = FXCollections.observableHashMap();

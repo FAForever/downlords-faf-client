@@ -45,8 +45,8 @@ public class ClientUpdateService implements InitializingBean {
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
 
-  private final CompletableFuture<UpdateInfo> updateInfoFuture;
-  private final CompletableFuture<UpdateInfo> updateInfoBetaFuture;
+  private CompletableFuture<UpdateInfo> updateInfoFuture;
+  private CompletableFuture<UpdateInfo> updateInfoBetaFuture;
 
   @VisibleForTesting
   String currentVersion;
@@ -75,17 +75,17 @@ public class ClientUpdateService implements InitializingBean {
 
     currentVersion = defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING);
     log.info("Current version: {}", currentVersion);
+  }
+
+  @Override
+  public void afterPropertiesSet() {
+    eventBus.register(this);
 
     CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
     this.updateInfoFuture = taskService.submitTask(task).getFuture();
 
     CheckForBetaUpdateTask betaTask = applicationContext.getBean(CheckForBetaUpdateTask.class);
     this.updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
-  }
-
-  @Override
-  public void afterPropertiesSet() {
-    eventBus.register(this);
   }
 
   /**

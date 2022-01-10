@@ -11,6 +11,7 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ForgedAllianceServiceTest extends ServiceTest {
+  @InjectMocks
   private ForgedAllianceService instance;
   @Mock
   private PlayerService playerService ;
@@ -42,8 +44,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
         .get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
-
-    instance = new ForgedAllianceService(playerService, preferencesService, loggingService);
   }
 
   @Test

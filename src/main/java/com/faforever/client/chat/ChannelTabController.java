@@ -54,6 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -80,7 +81,7 @@ import static java.util.Locale.US;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ChannelTabController extends AbstractChatTabController {
+public class ChannelTabController extends AbstractChatTabController implements InitializingBean {
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
   private static final String USER_CSS_CLASS_FORMAT = "user-%s";
@@ -152,7 +153,10 @@ public class ChannelTabController extends AbstractChatTabController {
             .sorted()
             .collect(Collectors.toList())
     );
+  }
 
+  @Override
+  public void afterPropertiesSet() {
     List<CategoryOrChatUserListItem> categoryObjects = createCategoryOnlyListItems();
     categoryObjects.forEach(categoryItem -> {
       categoriesToCategoryListItems.put(categoryItem.getCategory(), categoryItem);

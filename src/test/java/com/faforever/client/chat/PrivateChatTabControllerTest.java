@@ -27,6 +27,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -82,6 +83,7 @@ public class PrivateChatTabControllerTest extends UITest {
   @Mock
   private EmoticonService emoticonService;
 
+  @InjectMocks
   private PrivateChatTabController instance;
   private String playerName;
 
@@ -89,10 +91,6 @@ public class PrivateChatTabControllerTest extends UITest {
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().notificationsPrefs().privateMessageToastEnabled(true).then().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    instance = new PrivateChatTabController(userService, preferencesService, playerService, timeService,
-        i18n, imageUploadService, notificationService, reportingService, uiService, eventBus,
-        audioService, chatService, webViewConfigurer, countryFlagService, chatUserService, emoticonService);
 
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();

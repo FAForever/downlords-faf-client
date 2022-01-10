@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StatusBarControllerTest extends UITest {
+  @InjectMocks
   private StatusBarController instance;
   private ObjectProperty<ConnectionState> connectionStateProperty;
 
@@ -36,8 +38,6 @@ public class StatusBarControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new StatusBarController(userService, i18n, chatService, taskService);
-
     connectionStateProperty = new SimpleObjectProperty<>();
     when(taskService.getActiveWorkers()).thenReturn(FXCollections.emptyObservableList());
     when(userService.connectionStateProperty()).thenReturn(connectionStateProperty);

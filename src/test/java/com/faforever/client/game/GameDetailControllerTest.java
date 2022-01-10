@@ -16,6 +16,7 @@ import com.faforever.commons.lobby.GameStatus;
 import javafx.scene.control.Button;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -47,6 +48,7 @@ public class GameDetailControllerTest extends UITest {
   @Mock
   private WatchButtonController watchButtonController;
 
+  @InjectMocks
   private GameDetailController instance;
   private GameBean game;
 
@@ -59,7 +61,6 @@ public class GameDetailControllerTest extends UITest {
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(null);
     when(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()));
 
-    instance = new GameDetailController(i18n, mapService, modService, playerService, uiService, joinGameHelper);
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {
         return watchButtonController;

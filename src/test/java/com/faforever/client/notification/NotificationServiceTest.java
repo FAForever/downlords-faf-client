@@ -5,8 +5,8 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.ServiceTest;
 import javafx.collections.SetChangeListener;
 import javafx.collections.SetChangeListener.Change;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -19,17 +19,13 @@ import static org.mockito.Mockito.verify;
 
 public class NotificationServiceTest extends ServiceTest {
 
+  @InjectMocks
   private NotificationService instance;
 
   @Mock
   private ReportingService reportingService;
   @Mock
   private I18n i18n;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new NotificationService(reportingService, i18n);
-  }
 
   @Test
   public void testAddNotificationPersistent() throws Exception {

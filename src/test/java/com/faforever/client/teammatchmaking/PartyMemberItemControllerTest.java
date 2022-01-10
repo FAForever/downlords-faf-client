@@ -20,6 +20,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -56,6 +57,7 @@ public class PartyMemberItemControllerTest extends UITest {
   @Mock
   private I18n i18n;
 
+  @InjectMocks
   private PartyMemberItemController instance;
   private PlayerBean owner;
   private PlayerBean player;
@@ -78,8 +80,6 @@ public class PartyMemberItemControllerTest extends UITest {
     when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
 
-    instance = new PartyMemberItemController(countryFlagService, avatarService, leaderboardService, playerService, teamMatchmakingService,
-        uiService, i18n);
     loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml", clazz -> instance);
     runOnFxThreadAndWait(() -> instance.setMember(partyMember));
   }

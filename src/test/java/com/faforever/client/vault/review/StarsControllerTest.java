@@ -3,6 +3,7 @@ package com.faforever.client.vault.review;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -10,6 +11,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class StarsControllerTest extends UITest {
+  @InjectMocks
   private StarsController instance;
 
   @Mock
@@ -17,8 +19,6 @@ public class StarsControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new StarsController();
-
     loadFxml("theme/vault/review/stars.fxml", param -> {
       if (param == StarController.class) {
         return starController;

@@ -6,6 +6,7 @@ import javafx.collections.ObservableMap;
 import javafx.scene.control.TextField;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +17,8 @@ import static org.mockito.Mockito.verify;
 public class SavedQueriesControllerTest extends UITest {
 
   private final ObservableMap<String, String> savedQueries = FXCollections.observableHashMap();
+
+  @InjectMocks
   private SavedQueriesController instance;
   @Mock
   private SearchController searchController;
@@ -23,7 +26,6 @@ public class SavedQueriesControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new SavedQueriesController();
     savedQueries.put("name", "test");
     instance.setOnCloseButtonClickedListener(() -> {
     });

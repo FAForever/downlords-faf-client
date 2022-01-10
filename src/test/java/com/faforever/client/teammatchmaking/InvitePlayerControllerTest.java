@@ -6,6 +6,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Set;
@@ -23,6 +24,7 @@ public class InvitePlayerControllerTest extends UITest {
   @Mock
   private UiService uiService;
 
+  @InjectMocks
   private InvitePlayerController instance;
 
   @BeforeEach
@@ -31,7 +33,6 @@ public class InvitePlayerControllerTest extends UITest {
         .thenReturn(Set.of("axel12", "TrustTheFall", "nInPrisonForWhat", "Sheikah"));
     when(playerService.getCurrentPlayer())
         .thenReturn(PlayerBeanBuilder.create().defaultValues().username("axel12").get());
-    instance = new InvitePlayerController(playerService, uiService, teamMatchmakingService);
     loadFxml("theme/play/teammatchmaking/matchmaking_invite_player.fxml", clazz -> instance);
   }
 

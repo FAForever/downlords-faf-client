@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URL;
@@ -39,12 +41,15 @@ public class AvatarServiceTest extends ServiceTest {
   @Mock
   private EventBus eventBus;
 
+  @Spy
   private AvatarMapper avatarMapper = Mappers.getMapper(AvatarMapper.class);
+
+  @InjectMocks
   private AvatarService instance;
+
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(avatarMapper);
-    instance = new AvatarService(fafServerAccessor, assetService, eventBus, avatarMapper);
   }
 
   @Test

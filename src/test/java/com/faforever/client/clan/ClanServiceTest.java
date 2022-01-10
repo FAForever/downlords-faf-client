@@ -8,11 +8,14 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.elide.ElideEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 
@@ -29,18 +32,21 @@ public class ClanServiceTest extends ServiceTest {
   @Mock
   private FafApiAccessor fafApiAccessor;
 
+  @Spy
   private ClanMapper clanMapper = Mappers.getMapper(ClanMapper.class);
+  @InjectMocks
   private ClanService instance;
+
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(clanMapper);
-    instance = new ClanService(fafApiAccessor, clanMapper);
   }
 
   @Test
   public void testGetClanByTag() throws Exception {
     ClanBean clan = ClanBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(clanMapper.map(clan, new CycleAvoidingMappingContext())));
+    Flux<ElideEntity> resultFlux = Flux.just(clanMapper.map(clan, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     assertEquals(clan, instance.getClanByTag("test").join().get());
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("tag").eq("test"))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));

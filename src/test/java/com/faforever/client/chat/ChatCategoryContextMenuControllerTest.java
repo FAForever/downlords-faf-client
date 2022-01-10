@@ -7,6 +7,7 @@ import com.faforever.client.test.UITest;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,13 +19,12 @@ public class ChatCategoryContextMenuControllerTest extends UITest {
   private PreferencesService preferencesService;
 
   private Preferences preferences;
+  @InjectMocks
   private ChatCategoryContextMenuController instance;
   private ChatUserCategory chatUserCategory;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ChatCategoryContextMenuController(preferencesService);
-
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);

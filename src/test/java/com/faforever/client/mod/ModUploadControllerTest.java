@@ -14,7 +14,9 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +36,7 @@ public class ModUploadControllerTest extends UITest {
   @TempDir
   public Path modFolder;
 
+  @InjectMocks
   private ModUploadController instance;
 
   @Mock
@@ -48,8 +51,8 @@ public class ModUploadControllerTest extends UITest {
   private ExecutorService executorService;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private ClientProperties cLientProperties;
+  @Spy
+  private ClientProperties cLientProperties = new ClientProperties();
 
   @Mock
   private I18n i18n;
@@ -62,8 +65,6 @@ public class ModUploadControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ModUploadController(modService, executorService, notificationService, reportingService, i18n, platformService, cLientProperties, eventBus);
-
     doAnswer(invocation -> {
       ((Runnable) invocation.getArgument(0)).run();
       return null;

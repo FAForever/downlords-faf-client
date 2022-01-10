@@ -9,6 +9,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static com.faforever.client.fx.MouseEvents.generateClick;
@@ -24,14 +25,14 @@ import static org.mockito.Mockito.when;
 public class TransientNotificationControllerTest extends UITest {
 
   @Mock
-  PreferencesService preferencesService;
+  private PreferencesService preferencesService;
 
+  @InjectMocks
   private TransientNotificationController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
     when(preferencesService.getPreferences()).thenReturn(PreferencesBuilder.create().defaultValues().get());
-    instance = new TransientNotificationController(preferencesService);
 
     loadFxml("theme/transient_notification.fxml", clazz -> instance);
   }

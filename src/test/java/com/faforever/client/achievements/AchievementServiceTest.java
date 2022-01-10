@@ -11,6 +11,7 @@ import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.api.dto.PlayerAchievement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import reactor.core.publisher.Flux;
 
@@ -35,6 +36,7 @@ public class AchievementServiceTest extends ServiceTest {
 
   private static final int PLAYER_ID = 123;
 
+  @InjectMocks
   private AchievementService instance;
   @Mock
   private FafApiAccessor fafApiAccessor;
@@ -46,7 +48,6 @@ public class AchievementServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     when(fafApiAccessor.getMaxPageSize()).thenReturn(10000);
-    instance = new AchievementService(fafApiAccessor, assetService, notificationService);
   }
 
   @Test

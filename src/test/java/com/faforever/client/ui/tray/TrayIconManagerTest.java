@@ -8,6 +8,7 @@ import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -23,6 +24,7 @@ public class TrayIconManagerTest extends UITest {
   @TempDir
   public Path temporaryFolder;
 
+  @InjectMocks
   private TrayIconManager instance;
 
   @Mock
@@ -32,8 +34,6 @@ public class TrayIconManagerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new TrayIconManager(i18n, eventBus);
-
     when(i18n.number(anyInt())).thenReturn("1");
   }
 

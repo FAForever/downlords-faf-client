@@ -5,17 +5,18 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SaveQueryControllerTest extends UITest {
 
   private final ObservableMap<String, String> savedQueries = FXCollections.observableHashMap();
+  @InjectMocks
   private SaveQueryController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new SaveQueryController();
     instance.setQueries(savedQueries);
     instance.setQuery("test");
     instance.setOnCloseButtonClickedListener(() -> {

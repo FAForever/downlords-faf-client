@@ -9,6 +9,7 @@ import com.faforever.client.test.UITest;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +32,7 @@ public class RemovableMapCellControllerTest extends UITest {
   private final MapVersionBean customMap = MapVersionBeanBuilder.create().defaultValues().folderName("palaneum.v0001").id(1)
       .version(new ComparableVersion("1")).map(MapBeanBuilder.create().defaultValues().get()).get();
 
+  @InjectMocks
   private RemovableMapCellController instance;
 
   @BeforeEach
@@ -38,7 +40,6 @@ public class RemovableMapCellControllerTest extends UITest {
     when(mapService.isCustomMap(officialMap)).thenReturn(false);
     when(mapService.isCustomMap(customMap)).thenReturn(true);
 
-    instance = new RemovableMapCellController(mapService, notificationService);
     loadFxml("theme/vault/map/removable_map_cell.fxml", param -> instance);
   }
 

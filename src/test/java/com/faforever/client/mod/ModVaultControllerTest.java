@@ -23,6 +23,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.when;
 
 public class ModVaultControllerTest extends UITest {
 
+  @InjectMocks
   private ModVaultController instance;
 
   @Mock
@@ -79,8 +81,6 @@ public class ModVaultControllerTest extends UITest {
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(i18n.get(anyString())).thenReturn("test");
-
-    instance = new ModVaultController(modService, i18n, eventBus, preferencesService, uiService, notificationService, reportingService, platformService);
 
     doAnswer(invocation -> {
       modDetailController = mock(ModDetailController.class);

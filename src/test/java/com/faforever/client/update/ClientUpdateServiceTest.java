@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 
 public class ClientUpdateServiceTest extends ServiceTest {
 
+  @InjectMocks
   private ClientUpdateService instance;
 
   @TempDir
@@ -68,16 +70,15 @@ public class ClientUpdateServiceTest extends ServiceTest {
     clientConfiguration.getLatestRelease().setVersion("v0.4.9.1-alpha");
     preferences = PreferencesBuilder.create().defaultValues().get();
 
-
     doReturn(checkForUpdateTask).when(applicationContext).getBean(CheckForUpdateTask.class);
     doReturn(checkForBetaUpdateTask).when(applicationContext).getBean(CheckForBetaUpdateTask.class);
-    doReturn(checkForUpdateTask).when(taskService).submitTask(any(CheckForUpdateTask.class));
-    doReturn(checkForBetaUpdateTask).when(taskService).submitTask(any(CheckForBetaUpdateTask.class));
-    doReturn(CompletableFuture.completedFuture(normalUpdateInfo)).when(checkForUpdateTask).getFuture();
-    doReturn(CompletableFuture.completedFuture(betaUpdateInfo)).when(checkForBetaUpdateTask).getFuture();
+    when(taskService.submitTask(any(CheckForUpdateTask.class))).thenReturn(checkForUpdateTask);
+    when(taskService.submitTask(any(CheckForBetaUpdateTask.class))).thenReturn(checkForBetaUpdateTask);
+    when(checkForUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(normalUpdateInfo));
+    when(checkForBetaUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(betaUpdateInfo));
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    instance = new ClientUpdateService(taskService, notificationService, i18n, platformService, applicationContext, preferencesService, eventBus);
+    instance.afterPropertiesSet();
   }
 
   /**

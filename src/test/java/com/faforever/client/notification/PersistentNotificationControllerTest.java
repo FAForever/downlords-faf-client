@@ -4,6 +4,7 @@ import com.faforever.client.test.UITest;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Collections;
@@ -18,6 +19,7 @@ import static org.mockito.Mockito.verify;
 
 public class PersistentNotificationControllerTest extends UITest {
 
+  @InjectMocks
   private PersistentNotificationController instance;
 
   @Mock
@@ -25,8 +27,6 @@ public class PersistentNotificationControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new PersistentNotificationController(notificationService);
-
     loadFxml("theme/persistent_notification.fxml", clazz -> instance);
   }
 

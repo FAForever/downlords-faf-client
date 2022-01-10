@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
@@ -33,6 +34,7 @@ import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -67,6 +69,7 @@ public class ChatChannelTabControllerTest extends UITest {
   private static final String USER_NAME = "junit";
   private static final String CHANNEL_NAME = "#testChannel";
 
+  @InjectMocks
   private ChannelTabController instance;
   private ChatUserFilterController chatUserFilterController;
 
@@ -112,12 +115,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ChannelTabController(userService, chatService,
-        preferencesService, playerService,
-        audioService, timeService, i18n, imageUploadService,
-        notificationService, reportingService,
-        uiService, eventBus, webViewConfigurer, countryFlagService,
-        platformService, chatUserService, emoticonService);
     chatUserFilterController = new ChatUserFilterController(i18n, countryFlagService);
 
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
@@ -134,6 +131,8 @@ public class ChatChannelTabControllerTest extends UITest {
     TabPane tabPane = new TabPane();
     tabPane.getTabs().add(instance.getRoot());
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getChildren().add(tabPane));
+
+    instance.afterPropertiesSet();
   }
 
 

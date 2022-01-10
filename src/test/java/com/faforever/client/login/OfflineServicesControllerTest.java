@@ -5,6 +5,7 @@ import com.faforever.client.theme.UiService;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.time.OffsetDateTime;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.when;
 import static org.testfx.assertions.api.Assertions.assertThat;
 
 class OfflineServicesControllerTest extends UITest {
+  @InjectMocks
   private OfflineServicesController instance;
 
   @Mock
@@ -25,7 +27,6 @@ class OfflineServicesControllerTest extends UITest {
   void setUp() throws Exception {
     when(offlineServiceController.getRoot()).thenReturn(new Label());
 
-    instance = new OfflineServicesController(uiService);
     loadFxml("theme/login/offline_services.fxml", param -> instance);
   }
 

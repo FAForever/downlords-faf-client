@@ -26,6 +26,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.when;
 
 public class SearchControllerTest extends UITest {
 
+  @InjectMocks
   private SearchController instance;
 
   @Mock
@@ -85,7 +87,6 @@ public class SearchControllerTest extends UITest {
     when(uiService.showInDialog(any(), any(), any())).thenReturn(mock(Dialog.class));
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
 
-    instance = new SearchController(uiService, i18n, preferencesService);
     instance.setSavedQueries(savedQueries);
 
     loadFxml("theme/vault/search/search.fxml", clazz -> {

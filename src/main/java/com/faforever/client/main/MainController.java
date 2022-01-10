@@ -74,6 +74,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
@@ -99,7 +100,7 @@ import static javafx.scene.layout.Background.EMPTY;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 // TODO divide and conquer
-public class MainController implements Controller<Node> {
+public class MainController implements Controller<Node>, InitializingBean {
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
@@ -113,7 +114,7 @@ public class MainController implements Controller<Node> {
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
   private final String mainWindowTitle;
-  private final boolean alwaysReloadTabs;
+  private final Environment environment;
 
   public Pane mainHeaderPane;
   public Pane contentPane;
@@ -142,6 +143,7 @@ public class MainController implements Controller<Node> {
   Popup persistentNotificationsPopup;
   private NavigationItem currentItem;
   private FxStage fxStage;
+  private boolean alwaysReloadTabs;
 
   @Inject
   public MainController(PreferencesService preferencesService, I18n i18n,
@@ -158,6 +160,11 @@ public class MainController implements Controller<Node> {
     this.platformService = platformService;
     this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
+    this.environment = environment;
+  }
+
+  @Override
+  public void afterPropertiesSet() {
     alwaysReloadTabs = Arrays.asList(environment.getActiveProfiles()).contains(FafClientApplication.PROFILE_RELOAD);
   }
 

@@ -25,7 +25,9 @@ import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
@@ -51,8 +53,8 @@ public class UserServiceTest extends ServiceTest {
   public static final String REDIRECT_URL = "localhost";
   public static final String SCOPES = "scope";
 
-  @Mock
-  private ClientProperties clientProperties;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
   @Mock
   private FafServerAccessor fafServerAccessor;
   @Mock
@@ -68,6 +70,7 @@ public class UserServiceTest extends ServiceTest {
   @Mock
   private I18n i18n;
 
+  @InjectMocks
   private UserService instance;
   private Preferences preferences;
   private LoginSuccessResponse validLoginMessage;
@@ -81,14 +84,12 @@ public class UserServiceTest extends ServiceTest {
     meResult.setUserName("junit");
     meResult.setUserId("1");
 
-    Oauth oauth = new Oauth();
+    Oauth oauth = clientProperties.getOauth();
     oauth.setBaseUrl(BASE_URL);
     oauth.setClientId(CLIENT_ID);
     oauth.setRedirectUrl(REDIRECT_URL);
     oauth.setScopes(SCOPES);
-    when(clientProperties.getOauth()).thenReturn(oauth);
 
-    instance = new UserService(clientProperties, fafServerAccessor, fafApiAccessor, preferencesService, eventBus, tokenService, notificationService, i18n);
     instance.afterPropertiesSet();
     preferences = PreferencesBuilder.create().defaultValues().get();
 

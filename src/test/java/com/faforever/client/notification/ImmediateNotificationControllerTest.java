@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
@@ -19,11 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ImmediateNotificationControllerTest extends UITest {
 
+  @InjectMocks
   private ImmediateNotificationController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new ImmediateNotificationController();
     loadFxml("theme/immediate_notification.fxml", clazz -> instance);
   }
 

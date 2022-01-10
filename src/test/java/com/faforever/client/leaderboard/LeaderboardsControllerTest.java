@@ -12,6 +12,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.control.Tab;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
@@ -29,6 +30,7 @@ import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
 public class LeaderboardsControllerTest extends UITest {
 
+  @InjectMocks
   private LeaderboardsController instance;
 
   @Mock
@@ -55,8 +57,6 @@ public class LeaderboardsControllerTest extends UITest {
     when(uiService.loadFxml("theme/leaderboard/leaderboard.fxml")).thenReturn(controller);
     Tab tab = new Tab();
     when(controller.getRoot()).thenReturn(tab);
-
-    instance = new LeaderboardsController(eventBus, i18n, leaderboardService, notificationService, uiService);
 
     loadFxml("theme/leaderboard/leaderboards.fxml", clazz -> instance);
   }

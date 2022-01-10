@@ -4,8 +4,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.ServiceTest;
 import org.apache.commons.compress.compressors.CompressorException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;
@@ -22,12 +22,8 @@ public class FileOpeningHandlerTest extends ServiceTest {
   @Mock
   private NotificationService notificationService;
 
+  @InjectMocks
   private FileOpeningHandler instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    instance = new FileOpeningHandler(replayService, notificationService);
-  }
 
   @Test
   public void run() throws IOException, CompressorException {

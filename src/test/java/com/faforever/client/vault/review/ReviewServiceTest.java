@@ -15,11 +15,14 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ReviewMapper;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,23 +31,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ReviewServiceTest extends ServiceTest {
+  @InjectMocks
   private ReviewService instance;
 
   @Mock
   private FafApiAccessor fafApiAccessor;
-
+  @Spy
   private final ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(reviewMapper);
-    instance = new ReviewService(fafApiAccessor, reviewMapper);
   }
 
   @Test
   public void saveNewGameReview() throws Exception {
     ReplayReviewBean reviewBean = ReplayReviewBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext())));
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     instance.saveReplayReview(ReplayReviewBeanBuilder.create().defaultValues().replay(ReplayBeanBuilder.create().defaultValues().get()).get());
     verify(fafApiAccessor).post(argThat(
@@ -55,7 +59,8 @@ public class ReviewServiceTest extends ServiceTest {
   @Test
   public void saveNewMapVersionReview() throws Exception {
     MapVersionReviewBean reviewBean = MapVersionReviewBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext())));
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     instance.saveMapVersionReview(MapVersionReviewBeanBuilder.create().defaultValues().mapVersion(MapVersionBeanBuilder.create().defaultValues().get()).get());
     verify(fafApiAccessor).post(argThat(
@@ -66,7 +71,8 @@ public class ReviewServiceTest extends ServiceTest {
   @Test
   public void saveNewModVersionReview() throws Exception {
     ModVersionReviewBean reviewBean = ModVersionReviewBeanBuilder.create().defaultValues().get();
-    when(fafApiAccessor.post(any(), any())).thenReturn(Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext())));
+    Mono<ElideEntity> resultMono = Mono.just(reviewMapper.map(reviewBean, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.post(any(), any())).thenReturn(resultMono);
 
     instance.saveModVersionReview(ModVersionReviewBeanBuilder.create().defaultValues().modVersion(ModVersionBeanBuilder.create().defaultValues().get()).get());
     verify(fafApiAccessor).post(argThat(
