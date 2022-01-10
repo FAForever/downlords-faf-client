@@ -46,6 +46,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -159,8 +160,12 @@ public class LeaderboardController implements Controller<Tab> {
   private void setUsernamesAutoCompletion(List<SubdivisionBean> subdivisions) {
     JavaFxUtil.runLater(() -> {
       majorDivisionPicker.getItems().clear();
-      majorDivisionPicker.getItems().addAll(
-          subdivisions.stream().filter(subdivision -> subdivision.getIndex() == 1).collect(Collectors.toList()));
+      List<SubdivisionBean> majorDivisions = subdivisions
+          .stream()
+          .filter(subdivision -> subdivision.getIndex() == 1)
+          .collect(Collectors.toList());
+      Collections.reverse(majorDivisions);
+      majorDivisionPicker.getItems().addAll(majorDivisions);
     });
     Set<String> leagueEntryNames = new HashSet<>();
     List<CompletableFuture<?>> futures = new ArrayList<>();
@@ -229,7 +234,7 @@ public class LeaderboardController implements Controller<Tab> {
 
   private void selectHighestDivision() {
     entryToSelect = null;
-    JavaFxUtil.runLater(() -> majorDivisionPicker.getSelectionModel().selectLast());
+    JavaFxUtil.runLater(() -> majorDivisionPicker.getSelectionModel().selectFirst());
   }
 
   private void selectLeagueEntry(LeagueEntryBean leagueEntry) {
