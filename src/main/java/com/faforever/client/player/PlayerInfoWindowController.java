@@ -444,7 +444,10 @@ public class PlayerInfoWindowController implements Controller<Node> {
     JavaFxUtil.assertApplicationThread();
     OffsetDateTime afterDate = OffsetDateTime.of(timePeriodComboBox.getValue().getDate(), ZoneOffset.UTC);
     List<XYChart.Data<Double, Double>> values = ratingData.stream()
-        .filter(ratingJournal -> ratingJournal.getGamePlayerStats().getScoreTime().isAfter(afterDate))
+        .filter(ratingJournal -> {
+          OffsetDateTime scoreTime = ratingJournal.getGamePlayerStats().getScoreTime();
+          return scoreTime != null && scoreTime.isAfter(afterDate);
+        })
         .sorted(Comparator.comparing(ratingJournal -> ratingJournal.getGamePlayerStats().getScoreTime()))
         .map(ratingJournal -> new Data<>((double) ratingJournal.getGamePlayerStats().getScoreTime().toEpochSecond(), (double) RatingUtil.getRating(ratingJournal)))
         .collect(Collectors.toList());
