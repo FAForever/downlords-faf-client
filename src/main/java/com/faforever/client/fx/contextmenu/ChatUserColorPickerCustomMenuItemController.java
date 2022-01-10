@@ -19,7 +19,7 @@ import static java.util.Locale.US;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ColorPickerCustomMenuItemController extends AbstractCustomMenuItemController<ChatChannelUser> {
+public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomMenuItemController<ChatChannelUser> {
 
   public ColorPicker colorPicker;
   public Button removeCustomColorButton;
@@ -33,6 +33,7 @@ public class ColorPickerCustomMenuItemController extends AbstractCustomMenuItemC
   public void initialize() {
     chatPrefs = preferencesService.getPreferences().getChat();
     getRoot().visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
+    removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
     removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
         .and(colorPicker.valueProperty().isNotNull()));
   }
@@ -66,10 +67,6 @@ public class ColorPickerCustomMenuItemController extends AbstractCustomMenuItemC
 
   private String getLowerUsername(ChatChannelUser chatUser) {
     return chatUser.getUsername().toLowerCase(US);
-  }
-
-  public void onRemoveCustomColor() {
-    colorPicker.setValue(null);
   }
 }
 

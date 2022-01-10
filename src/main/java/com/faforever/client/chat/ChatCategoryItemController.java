@@ -2,6 +2,8 @@ package com.faforever.client.chat;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.contextmenu.ChatCategoryColorPickerCustomMenuItemController;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -14,21 +16,22 @@ import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.lang.ref.WeakReference;
 
 /** Represents a header in the chat user list, like "Moderators". */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class ChatCategoryItemController implements Controller<Node> {
+
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
+  private final ApplicationContext applicationContext;
+
   public Label chatUserCategoryRoot;
-  private WeakReference<ChatCategoryContextMenuController> contextMenuController = null;
   private ChatUserCategory chatUserCategory;
 
   void setChatUserCategory(@Nullable ChatUserCategory chatUserCategory) {
@@ -53,19 +56,10 @@ public class ChatCategoryItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuController != null) {
-      ChatCategoryContextMenuController controller = contextMenuController.get();
-      if (controller != null) {
-        controller.getContextMenu().show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        return;
-      }
-    }
-
-    ChatCategoryContextMenuController controller = uiService.loadFxml("theme/chat/chat_category_context_menu.fxml");
-    controller.setCategory(chatUserCategory);
-    controller.getContextMenu().show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-
-    contextMenuController = new WeakReference<>(controller);
+    ContextMenuBuilder.newBuilder(applicationContext)
+        .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatCategoryColorPickerCustomMenuItemController.class), chatUserCategory)
+        .build()
+        .show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
   @Override

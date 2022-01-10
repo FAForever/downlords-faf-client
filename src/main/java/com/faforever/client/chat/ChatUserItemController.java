@@ -10,6 +10,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
 import com.faforever.client.fx.contextmenu.BroadcastMessageMenuItem;
+import com.faforever.client.fx.contextmenu.ChatUserColorPickerCustomMenuItemController;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
 import com.faforever.client.fx.contextmenu.InvitePlayerMenuItem;
@@ -192,7 +193,7 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(ShowPlayerInfoMenuItem.class, player)
         .addItem(SendPrivateMessageMenuItem.class, player != null ? player.getUsername() : chatUser.getUsername())
         .addItem(CopyUsernameMenuItem.class, player != null ? player.getUsername() : chatUser.getUsername())
-        .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml"), chatUser)
+        .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatUserColorPickerCustomMenuItemController.class), chatUser)
         .addSeparator()
         .addItem(InvitePlayerMenuItem.class, player)
         .addItem(AddFriendMenuItem.class, player)

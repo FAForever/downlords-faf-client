@@ -26,7 +26,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ColorPickerCustomMenuItemControllerTest extends UITest {
+public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
 
   @Mock
   private PreferencesService preferencesService;
@@ -34,7 +34,7 @@ public class ColorPickerCustomMenuItemControllerTest extends UITest {
   private EventBus eventBus;
 
   private Preferences preferences;
-  private ColorPickerCustomMenuItemController instance;
+  private ChatUserColorPickerCustomMenuItemController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -44,8 +44,8 @@ public class ColorPickerCustomMenuItemControllerTest extends UITest {
         .get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    instance = new ColorPickerCustomMenuItemController(preferencesService, eventBus);
-    loadFxml("theme/chat/color_picker_menu_item.fxml", clazz -> instance);
+    instance = new ChatUserColorPickerCustomMenuItemController(preferencesService, eventBus);
+    loadFxml("theme/chat/color_picker_menu_item.fxml", clazz -> instance, instance);
   }
 
   @Test
