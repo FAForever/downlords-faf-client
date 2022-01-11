@@ -61,7 +61,7 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
           object.setAvatar(newValue);
           avatarService.changeAvatar(Objects.requireNonNullElse(newValue, noAvatar));
         });
-        getRoot().setVisible(!avatarComboBox.getItems().isEmpty());
+        getRoot().setVisible(!(avatarComboBox.getItems().size() == 1 && avatarComboBox.getItems().get(0).equals(noAvatar)));
       });
     });
   }

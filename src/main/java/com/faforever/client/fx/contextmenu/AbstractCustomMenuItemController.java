@@ -21,8 +21,8 @@ public abstract class AbstractCustomMenuItemController<T> implements Controller<
   }
 
   private void finalizeProperties() {
-    if (!root.visibleProperty().isBound()) {
-      root.setVisible(isItemVisible());
+    if (!getRoot().visibleProperty().isBound()) {
+      getRoot().setVisible(isItemVisible());
     }
   }
 
