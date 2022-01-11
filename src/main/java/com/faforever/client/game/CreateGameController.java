@@ -180,6 +180,7 @@ public class CreateGameController implements Controller<Pane> {
 
     JavaFxUtil.addAndTriggerListener(userService.connectionStateProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(titleTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
+    JavaFxUtil.addListener(passwordTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(featuredModListView.getSelectionModel().selectedItemProperty(), new WeakInvalidationListener(createButtonStateListener));
 
     initMapFilterPopup();
@@ -204,7 +205,7 @@ public class CreateGameController implements Controller<Pane> {
           yield "game.create.titleMissing";
         } else if (!charsetEncoder.canEncode(title)) {
           yield "game.create.titleNotAscii";
-        } else if (!charsetEncoder.canEncode(password)) {
+        } else if (password != null && !charsetEncoder.canEncode(password)) {
           yield "game.create.passwordNotAscii";
         }else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
           yield "game.create.featuredModMissing";
