@@ -50,12 +50,17 @@ public class ContextMenuBuilder {
 
     private void bindVisiblePropertyToSeparator(BooleanProperty visibleProperty) {
       if (separator != null) {
-        if (totalVisibleBinding == null) {
-          totalVisibleBinding = (BooleanBinding) BooleanBinding.booleanExpression(visibleProperty);
+        if (firstItemVisibleProperty == null) {
+          separator.visibleProperty().bind(visibleProperty);
+          firstItemVisibleProperty = visibleProperty;
         } else {
-          totalVisibleBinding = totalVisibleBinding.or(visibleProperty);
+          if (totalVisibleBinding == null) {
+            totalVisibleBinding = firstItemVisibleProperty.or(visibleProperty);
+          } else {
+            totalVisibleBinding = totalVisibleBinding.or(visibleProperty);
+          }
+          separator.visibleProperty().bind(totalVisibleBinding);
         }
-        separator.visibleProperty().bind(totalVisibleBinding);
       }
     }
 

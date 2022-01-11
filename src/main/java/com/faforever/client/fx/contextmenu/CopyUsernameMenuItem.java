@@ -1,6 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.util.Assert;
 import com.faforever.client.util.ClipboardUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -19,12 +20,13 @@ public class CopyUsernameMenuItem extends AbstractMenuItem<String> {
 
   @Override
   protected void onClicked() {
-    ClipboardUtil.copyToClipboard(getObject());
+    Assert.checkNullIllegalState(object, "no username has been set");
+    ClipboardUtil.copyToClipboard(object);
   }
 
   @Override
   protected boolean isItemVisible() {
-    return !StringUtils.isBlank(getUnsafeObject());
+    return !StringUtils.isBlank(object);
   }
 
   @Override

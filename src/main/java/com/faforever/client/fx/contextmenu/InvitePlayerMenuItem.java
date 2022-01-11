@@ -4,6 +4,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.teammatchmaking.TeamMatchmakingService;
+import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -21,16 +22,13 @@ public class InvitePlayerMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    teamMatchmakingService.invitePlayer(getObject().getUsername());
+    Assert.checkNullIllegalState(object, "no player has been set");
+    teamMatchmakingService.invitePlayer(object.getUsername());
   }
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getUnsafeObject();
-    if (player == null) {
-      return false;
-    }
-    return player.getSocialStatus() != SELF && player.getStatus() == PlayerStatus.IDLE;
+    return object != null && object.getSocialStatus() != SELF && object.getStatus() == PlayerStatus.IDLE;
   }
 
   @Override

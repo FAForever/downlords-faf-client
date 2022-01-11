@@ -4,6 +4,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -23,25 +24,24 @@ public class AddFriendMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    PlayerBean player = getObject();
-    if (player.getSocialStatus() == FOE) {
-      playerService.removeFoe(player);
+    Assert.checkNullIllegalState(object, "No player has been set");
+    if (object.getSocialStatus() == FOE) {
+      playerService.removeFoe(object);
     }
-    playerService.addFriend(player);
+    playerService.addFriend(object);
+  }
+
+  @Override
+  protected boolean isItemVisible() {
+    if (object == null) {
+      return false;
+    }
+    SocialStatus status = object.getSocialStatus();
+    return status != FRIEND && status != SELF;
   }
 
   @Override
   protected String getItemText() {
     return i18n.get("chat.userContext.addFriend");
-  }
-
-  @Override
-  protected boolean isItemVisible() {
-    PlayerBean player = getUnsafeObject();
-    if (player == null) {
-      return false;
-    }
-    SocialStatus status = player.getSocialStatus();
-    return status != FRIEND && status != SELF;
   }
 }

@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.moderator.ModeratorService;
+import com.faforever.client.util.Assert;
 import com.faforever.commons.api.dto.GroupPermission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -21,16 +22,16 @@ public class KickGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    moderatorService.closePlayersGame(getObject());
+    Assert.checkNullIllegalState(object, "no player has been set");
+    moderatorService.closePlayersGame(object);
   }
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getUnsafeObject();
-    if (player == null) {
+    if (object == null) {
       return false;
     }
-    boolean notSelf = !player.getSocialStatus().equals(SELF);
+    boolean notSelf = !object.getSocialStatus().equals(SELF);
     return notSelf & moderatorService.getPermissions().contains(GroupPermission.ADMIN_KICK_SERVER);
   }
 

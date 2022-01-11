@@ -6,6 +6,7 @@ import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.GameType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -24,18 +25,18 @@ public class JoinGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    joinGameHelper.join(getObject().getGame());
+    Assert.checkNullIllegalState(object, "no player has been set");
+    joinGameHelper.join(object.getGame());
   }
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getUnsafeObject();
-    if (player == null) {
+    if (object == null) {
       return false;
     }
-    SocialStatus socialStatus = player.getSocialStatus();
-    PlayerStatus playerStatus = player.getStatus();
-    GameBean game = player.getGame();
+    SocialStatus socialStatus = object.getSocialStatus();
+    PlayerStatus playerStatus = object.getStatus();
+    GameBean game = object.getGame();
     return socialStatus != SELF && (playerStatus == PlayerStatus.LOBBYING || playerStatus == PlayerStatus.HOSTING)
         && game != null && game.getGameType() != GameType.MATCHMAKER;
   }

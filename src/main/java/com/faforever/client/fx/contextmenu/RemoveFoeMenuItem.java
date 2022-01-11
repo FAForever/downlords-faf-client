@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -20,13 +21,13 @@ public class RemoveFoeMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    playerService.removeFoe(getObject());
+    Assert.checkNullIllegalState(object, "no player has been set");
+    playerService.removeFoe(object);
   }
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getUnsafeObject();
-    return player != null && player.getSocialStatus() == FOE;
+    return object != null && object.getSocialStatus() == FOE;
   }
 
   @Override

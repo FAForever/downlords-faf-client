@@ -3,7 +3,9 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerInfoWindowController;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -19,16 +21,16 @@ public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    PlayerBean player = getObject();
+    Assert.checkNullIllegalState(object, "no player has been set");
     PlayerInfoWindowController controller = uiService.loadFxml("theme/user_info_window.fxml");
-    controller.setPlayer(player);
+    controller.setPlayer(object);
     controller.setOwnerWindow(getParentPopup().getOwnerWindow());
     controller.show();
   }
 
   @Override
   protected boolean isItemVisible() {
-    return getUnsafeObject() != null;
+    return object != null && object.getSocialStatus() != SocialStatus.SELF;
   }
 
   @Override

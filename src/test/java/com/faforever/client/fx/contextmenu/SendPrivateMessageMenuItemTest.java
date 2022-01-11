@@ -70,14 +70,12 @@ public class SendPrivateMessageMenuItemTest extends UITest {
   @Test
   public void testInvisibleItemIfUsernameIsBlank() {
     instance.setObject("");
-
     assertFalse(instance.isVisible());
   }
 
   @Test
   public void testInvisibleItemIfUsernameIsNull() {
     instance.setObject(null);
-
     assertFalse(instance.isVisible());
   }
 }

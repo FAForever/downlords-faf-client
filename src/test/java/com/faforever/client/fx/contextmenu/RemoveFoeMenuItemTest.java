@@ -61,4 +61,10 @@ public class RemoveFoeMenuItemTest extends UITest {
     instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
     assertFalse(instance.isVisible());
   }
+
+  @Test
+  public void testInvisibleItemIfNoPlayer() {
+    instance.setObject(null);
+    assertFalse(instance.isVisible());
+  }
 }

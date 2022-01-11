@@ -27,7 +27,6 @@ import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
@@ -67,7 +66,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final PlatformService platformService;
-  private final ApplicationContext context;
+  private final ApplicationContext applicationContext;
 
   private final InvalidationListener formatChangeListener;
   private final InvalidationListener chatUserPropertyInvalidationListener;
@@ -89,14 +88,14 @@ public class ChatUserItemController implements Controller<Node> {
 
   public ChatUserItemController(PreferencesService preferencesService,
                                 I18n i18n, UiService uiService, EventBus eventBus, PlayerService playerService,
-                                PlatformService platformService, ApplicationContext context) {
+                                PlatformService platformService, ApplicationContext applicationContext) {
     this.platformService = platformService;
     this.preferencesService = preferencesService;
     this.playerService = playerService;
     this.i18n = i18n;
     this.uiService = uiService;
     this.eventBus = eventBus;
-    this.context = context;
+    this.applicationContext = applicationContext;
 
     formatChangeListener = observable -> updateFormat();
     chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
@@ -189,10 +188,10 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     PlayerBean player = chatUser.getPlayer().orElse(null);
-    ContextMenuBuilder.newBuilder(context)
+    ContextMenuBuilder.newBuilder(applicationContext)
         .addItem(ShowPlayerInfoMenuItem.class, player)
-        .addItem(SendPrivateMessageMenuItem.class, player != null ? player.getUsername() : chatUser.getUsername())
-        .addItem(CopyUsernameMenuItem.class, player != null ? player.getUsername() : chatUser.getUsername())
+        .addItem(SendPrivateMessageMenuItem.class, chatUser.getUsername())
+        .addItem(CopyUsernameMenuItem.class, chatUser.getUsername())
         .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatUserColorPickerCustomMenuItemController.class), chatUser)
         .addSeparator()
         .addItem(InvitePlayerMenuItem.class, player)

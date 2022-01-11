@@ -52,14 +52,13 @@ public class KickLobbyMenuItemTest extends UITest {
 
   @Test
   public void testInvisibleItemIfPlayerIsSelf() {
-    when(moderatorService.getPermissions()).thenReturn(Set.of(GroupPermission.ADMIN_KICK_SERVER));
     instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.SELF).get());
 
     assertFalse(instance.isVisible());
   }
 
   @Test
-  public void testInvisibleItem() {
+  public void testInvisibleItemIfNoPermissions() {
     when(moderatorService.getPermissions()).thenReturn(Set.of(""));
     instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
 

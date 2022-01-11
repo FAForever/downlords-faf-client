@@ -9,7 +9,7 @@ import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CopyLabelMenuItemTest extends UITest {
+public class CopyLabelMenuItemTest extends UITest {
 
   @Mock
   private I18n i18n;
@@ -39,8 +39,14 @@ class CopyLabelMenuItemTest extends UITest {
   }
 
   @Test
-  public void testInvisibleItem() {
+  public void testInvisibleItemIfValueIsEmpty() {
     instance.setObject("");
+    assertFalse(instance.isVisible());
+  }
+
+  @Test
+  public void testInvisibleItemIfNoValue() {
+    instance.setObject(null);
     assertFalse(instance.isVisible());
   }
 }

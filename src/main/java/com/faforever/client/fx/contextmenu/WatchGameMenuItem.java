@@ -5,6 +5,7 @@ import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -23,8 +24,9 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
+    Assert.checkNullIllegalState(object, "no player has been set");
     try {
-      replayService.runLiveReplay(getObject().getGame().getId());
+      replayService.runLiveReplay(object.getGame().getId());
     } catch (Exception e) {
       log.error("Cannot display live replay", e);
       notificationService.addImmediateErrorNotification(e, "replays.live.loadFailure.message");
@@ -33,8 +35,7 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getUnsafeObject();
-    return player != null && player.getStatus() == PlayerStatus.PLAYING;
+    return object != null && object.getStatus() == PlayerStatus.PLAYING;
   }
 
   @Override

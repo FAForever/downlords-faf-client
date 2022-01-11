@@ -3,8 +3,8 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ContextMenu;
@@ -19,24 +19,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ReportPlayerMenuItemTest extends UITest {
+public class ShowPlayerInfoMenuItemTest extends UITest {
 
   @Mock
   private I18n i18n;
   @Mock
   private UiService uiService;
 
-  private ReportPlayerMenuItem instance;
+  private ShowPlayerInfoMenuItem instance;
 
   @BeforeEach
   public void setUp() {
-    instance = new ReportPlayerMenuItem(i18n, uiService);
+    instance = new ShowPlayerInfoMenuItem(i18n, uiService);
   }
 
   @Test
-  public void testReportPlayer() {
-    ReportDialogController mockController = mock(ReportDialogController.class);
-    when(uiService.loadFxml("theme/reporting/report_dialog.fxml")).thenReturn(mockController);
+  public void testShowPlayerInfo() {
+    PlayerInfoWindowController mockController = mock(PlayerInfoWindowController.class);
+    when(uiService.loadFxml("theme/user_info_window.fxml")).thenReturn(mockController);
 
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get();
 
@@ -50,7 +50,7 @@ public class ReportPlayerMenuItemTest extends UITest {
       instance.onClicked();
     });
 
-    verify(mockController).setOffender(player);
+    verify(mockController).setPlayer(player);
     verify(mockController).show();
   }
 

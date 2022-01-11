@@ -25,22 +25,28 @@ public class CopyUsernameMenuItemTest extends UITest {
   public void testCopyUsername() {
     final boolean[] isEqual = new boolean[1];
     runOnFxThreadAndWait(() -> {
-      instance.setObject("value");
+      instance.setObject("username");
       instance.onClicked();
-      isEqual[0] = Clipboard.getSystemClipboard().getString().equals("value");
+      isEqual[0] = Clipboard.getSystemClipboard().getString().equals("username");
     });
     assertTrue(isEqual[0]);
   }
 
   @Test
   public void testVisibleItem() {
-    instance.setObject("value");
+    instance.setObject("username");
     assertTrue(instance.isVisible());
   }
 
   @Test
-  public void testInvisibleItem() {
+  public void testInvisibleItemIfUsernameIsEmpty() {
     instance.setObject("");
+    assertFalse(instance.isVisible());
+  }
+
+  @Test
+  public void testInvisibleItemIfUsernameIsNull() {
+    instance.setObject(null);
     assertFalse(instance.isVisible());
   }
 }

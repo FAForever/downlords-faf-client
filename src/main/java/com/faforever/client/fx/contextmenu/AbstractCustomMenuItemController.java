@@ -5,7 +5,6 @@ import javafx.scene.control.CustomMenuItem;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -13,22 +12,24 @@ public abstract class AbstractCustomMenuItemController<T> implements Controller<
 
   public CustomMenuItem root;
 
-  private T object;
+  protected T object;
 
   public final void setObject(T object) {
     this.object = object;
+    finalizeProperties();
     afterSetObject();
+  }
+
+  private void finalizeProperties() {
+    if (!root.visibleProperty().isBound()) {
+      root.setVisible(isItemVisible());
+    }
   }
 
   public abstract void afterSetObject();
 
-  protected T getUnsafeObject() {
-    return object;
-  }
-
-  protected T getObject() {
-    Assert.notNull(object, "object is null");
-    return object;
+  protected boolean isItemVisible() {
+    return true; // by-default;
   }
 
   @Override

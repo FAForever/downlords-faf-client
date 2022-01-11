@@ -50,4 +50,10 @@ public class InvitePlayerMenuItemTest extends UITest {
     instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
     assertTrue(instance.isVisible());
   }
+
+  @Test
+  public void testInvisibleItemIfNoPlayer() {
+    instance.setObject(null);
+    assertFalse(instance.isVisible());
+  }
 }

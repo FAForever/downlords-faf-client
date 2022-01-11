@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
+import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -19,12 +20,13 @@ public class ViewReplaysMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    eventBus.post(new ShowUserReplaysEvent(getObject().getId()));
+    Assert.checkNullIllegalState(object, "no player has been set");
+    eventBus.post(new ShowUserReplaysEvent(object.getId()));
   }
 
   @Override
   protected boolean isItemVisible() {
-    return getUnsafeObject() != null;
+    return object != null;
   }
 
   @Override

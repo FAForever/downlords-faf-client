@@ -5,6 +5,7 @@ import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Locale;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 import static java.util.Locale.US;
@@ -40,7 +43,8 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
 
   @Override
   public void afterSetObject() {
-    ChatChannelUser chatUser = getObject();
+    Assert.checkNullIllegalState(object, "no chat user has been set");
+    ChatChannelUser chatUser = object;
     colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(getLowerUsername(chatUser), null));
 
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -66,7 +70,7 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
   }
 
   private String getLowerUsername(ChatChannelUser chatUser) {
-    return chatUser.getUsername().toLowerCase(US);
+    return chatUser.getUsername().toLowerCase(Locale.ROOT);
   }
 }
 

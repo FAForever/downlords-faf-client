@@ -57,7 +57,7 @@ public class WatchGameMenuItemTest extends UITest {
   }
 
   @Test
-  public void testVisibleItem() {
+  public void testVisibleItemIfPlayerIsPlaying() {
     instance.setObject(PlayerBeanBuilder.create().defaultValues()
         .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get());
 
@@ -65,9 +65,15 @@ public class WatchGameMenuItemTest extends UITest {
   }
 
   @Test
-  public void testInvisibleItem() {
+  public void testInvisibleItemIfPlayerIsIdle() {
     instance.setObject(PlayerBeanBuilder.create().defaultValues().game(null).get());
 
+    assertFalse(instance.isVisible());
+  }
+
+  @Test
+  public void testInvisibleItemIfNoPlayer() {
+    instance.setObject(null);
     assertFalse(instance.isVisible());
   }
 }

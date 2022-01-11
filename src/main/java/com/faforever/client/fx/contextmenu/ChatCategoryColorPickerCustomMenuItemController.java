@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.util.Assert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +38,13 @@ public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCus
 
   @Override
   public void afterSetObject() {
-    ChatUserCategory chatUserCategory = getObject();
-    colorPicker.setValue(chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null));
+    Assert.checkNullIllegalState(object, "no chat category has been set");
+    colorPicker.setValue(chatPrefs.getGroupToColor().getOrDefault(object, null));
     colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
-        chatPrefs.getGroupToColor().remove(chatUserCategory);
+        chatPrefs.getGroupToColor().remove(object);
       } else {
-        chatPrefs.getGroupToColor().put(chatUserCategory, newValue);
+        chatPrefs.getGroupToColor().put(object, newValue);
       }
     });
   }

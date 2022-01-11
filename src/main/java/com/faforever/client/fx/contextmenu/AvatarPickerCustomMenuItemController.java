@@ -5,6 +5,7 @@ import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.util.Assert;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -29,22 +30,24 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
 
   @Override
   public void afterSetObject() {
-    PlayerBean player = getUnsafeObject();
-    if (player == null || player.getSocialStatus() != SELF) {
-      getRoot().setVisible(false);
-    } else {
-      loadAvailableAvatars(player);
+    if (object != null && object.getSocialStatus() == SELF) {
+      loadAvailableAvatars();
     }
   }
 
-  private void loadAvailableAvatars(PlayerBean player) {
+  @Override
+  protected boolean isItemVisible() {
+    return false;
+  }
+
+  private void loadAvailableAvatars() {
     avatarService.getAvailableAvatars().thenAccept(avatars -> {
       ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
       AvatarBean noAvatar = new AvatarBean();
       noAvatar.setDescription(i18n.get("chat.userContext.noAvatar"));
       items.add(0, noAvatar);
 
-      AvatarBean currentAvatar = player.getAvatar();
+      AvatarBean currentAvatar = object.getAvatar();
       JavaFxUtil.runLater(() -> {
         avatarComboBox.getItems().setAll(items);
         avatarComboBox.getSelectionModel().select(items.stream()
@@ -55,10 +58,10 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
         // Only after the box has been populated, and we selected the current value, we add the listener.
         // Otherwise, the code above already triggers a changeAvatar()
         avatarComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-          player.setAvatar(newValue);
+          object.setAvatar(newValue);
           avatarService.changeAvatar(Objects.requireNonNullElse(newValue, noAvatar));
         });
-        getRoot().setVisible(!(avatarComboBox.getItems().size() == 1 && avatarComboBox.getItems().get(0).equals(noAvatar)));
+        getRoot().setVisible(!avatarComboBox.getItems().isEmpty());
       });
     });
   }

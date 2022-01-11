@@ -31,11 +31,6 @@ public class BroadcastMessageMenuItemTest extends UITest {
   }
 
   @Test
-  public void testBroadcastMessage() {
-    // TODO: Implement it
-  }
-
-  @Test
   public void testVisibleItem() {
     when(moderatorService.getPermissions()).thenReturn(Set.of(GroupPermission.ROLE_WRITE_MESSAGE));
 

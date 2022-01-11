@@ -4,6 +4,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -21,17 +22,16 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected void onClicked() {
-    PlayerBean player = getObject();
+    Assert.checkNullIllegalState(object, "no player has been set");
     ReportDialogController reportDialogController = uiService.loadFxml("theme/reporting/report_dialog.fxml");
-    reportDialogController.setOffender(player);
+    reportDialogController.setOffender(object);
     reportDialogController.setOwnerWindow(getParentPopup().getOwnerWindow());
     reportDialogController.show();
   }
 
   @Override
   protected boolean isItemVisible() {
-    PlayerBean player = getUnsafeObject();
-    return player != null && player.getSocialStatus() != SELF;
+    return object != null && object.getSocialStatus() != SELF;
   }
 
   @Override

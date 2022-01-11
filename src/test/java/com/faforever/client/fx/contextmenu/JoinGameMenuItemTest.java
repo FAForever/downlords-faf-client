@@ -58,4 +58,10 @@ public class JoinGameMenuItemTest extends UITest {
     instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
     assertFalse(instance.isVisible());
   }
+
+  @Test
+  public void testInvisibleItemIfNoPlayer() {
+    instance.setObject(null);
+    assertFalse(instance.isVisible());
+  }
 }
