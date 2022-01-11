@@ -1,6 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.ChatUserCategory;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Assert;
@@ -30,17 +31,17 @@ public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCus
   public void initialize() {
     chatPrefs = preferencesService.getPreferences().getChat();
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
-    removeCustomColorButton.managedProperty().bind(removeCustomColorButton.visibleProperty());
-    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
+    JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
+    JavaFxUtil.bind(removeCustomColorButton.visibleProperty(), chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
         .and(colorPicker.valueProperty().isNotNull()));
-    getRoot().visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
+    JavaFxUtil.bind(getRoot().visibleProperty(), chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
   }
 
   @Override
   public void afterSetObject() {
     Assert.checkNullIllegalState(object, "no chat category has been set");
     colorPicker.setValue(chatPrefs.getGroupToColor().getOrDefault(object, null));
-    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(colorPicker.valueProperty(), (observable, oldValue, newValue) -> {
       if (newValue == null) {
         chatPrefs.getGroupToColor().remove(object);
       } else {

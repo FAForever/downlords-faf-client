@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Assert;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Component;
 import java.util.Locale;
 
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
-import static java.util.Locale.US;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -35,9 +35,9 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
   @Override
   public void initialize() {
     chatPrefs = preferencesService.getPreferences().getChat();
-    getRoot().visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
-    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
+    JavaFxUtil.bind(getRoot().visibleProperty(), chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
+    JavaFxUtil.bind(removeCustomColorButton.visibleProperty(), chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
         .and(colorPicker.valueProperty().isNotNull()));
   }
 
@@ -47,7 +47,7 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
     ChatChannelUser chatUser = object;
     colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(getLowerUsername(chatUser), null));
 
-    colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(colorPicker.valueProperty(), (observable, oldValue, newValue) -> {
       ChatUserCategory userCategory;
       if (chatUser.isModerator()) {
         userCategory = ChatUserCategory.MODERATOR;
