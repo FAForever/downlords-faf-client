@@ -282,7 +282,7 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    oadFxml("theme/play/create_game.fxml", clazz -> {
+    loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
         return modManagerController;
       }

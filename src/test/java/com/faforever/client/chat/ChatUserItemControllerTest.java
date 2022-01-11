@@ -26,7 +26,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
@@ -58,8 +57,6 @@ public class ChatUserItemControllerTest extends UITest {
   private PlayerService playerService;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private ApplicationContext applicationContext;
   @Mock
   private ApplicationContext applicationContext;
 

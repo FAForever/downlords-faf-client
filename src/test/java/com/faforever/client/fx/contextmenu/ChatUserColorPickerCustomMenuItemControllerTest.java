@@ -1,8 +1,8 @@
 package com.faforever.client.fx.contextmenu;
 
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatChannelUserBuilder;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.preferences.Preferences;
