@@ -298,14 +298,14 @@ public class TeamMatchmakingService implements InitializingBean {
   }
 
   @VisibleForTesting
-  protected void acceptPartyInvite(PlayerBean player) {
+  void acceptPartyInvite(PlayerBean player) {
     if (isCurrentlyInQueue()) {
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("teammatchmaking.notification.joinAlreadyInQueue.title"),
-          i18n.get("teammatchmaking.notification.joinAlreadyInQueue.message"),
-          Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("dismiss")))
-      ));
+      notificationService.addImmediateWarnNotification("teammatchmaking.notification.joinAlreadyInQueue.message");
+      return;
+    }
+
+    if (gameService.isGameRunning()) {
+      notificationService.addImmediateWarnNotification("teammatchmaking.notification.gameRunning.message");
       return;
     }
 
