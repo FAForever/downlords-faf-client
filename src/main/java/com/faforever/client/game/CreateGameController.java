@@ -59,6 +59,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
@@ -179,6 +180,7 @@ public class CreateGameController implements Controller<Pane> {
 
     JavaFxUtil.addAndTriggerListener(userService.connectionStateProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(titleTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
+    JavaFxUtil.addListener(passwordTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(featuredModListView.getSelectionModel().selectedItemProperty(), new WeakInvalidationListener(createButtonStateListener));
 
     initMapFilterPopup();
@@ -191,17 +193,21 @@ public class CreateGameController implements Controller<Pane> {
 
   private void setCreateGameButtonState() {
     String title = titleTextField.getText();
+    String password = passwordTextField.getText();
 
     ConnectionState lobbyConnectionState = userService.getConnectionState();
     String createGameTextKey = switch (lobbyConnectionState) {
       case DISCONNECTED -> "game.create.disconnected";
       case CONNECTING -> "game.create.connecting";
       case CONNECTED -> {
+        CharsetEncoder charsetEncoder = StandardCharsets.US_ASCII.newEncoder();
         if (StringUtils.isBlank(title)) {
           yield "game.create.titleMissing";
-        } else if (!StandardCharsets.US_ASCII.newEncoder().canEncode(title)) {
+        } else if (!charsetEncoder.canEncode(title)) {
           yield "game.create.titleNotAscii";
-        } else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
+        } else if (password != null && !charsetEncoder.canEncode(password)) {
+          yield "game.create.passwordNotAscii";
+        }else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
           yield "game.create.featuredModMissing";
         } else {
           yield "game.create.create";
