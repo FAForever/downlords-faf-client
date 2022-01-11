@@ -15,6 +15,6 @@ public class CopyLabelMenuItem extends CopyUsernameMenuItem {
 
   @Override
   protected String getItemText() {
-    return i18n.get("label.copy");
+    return i18n.get("copy");
   }
 }
