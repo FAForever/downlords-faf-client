@@ -57,6 +57,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
       instance.setObject(chatChannelUser);
     });
     assertEquals(Color.BLACK, instance.colorPicker.getValue());
+    assertTrue(instance.removeCustomColorButton.isVisible());
   }
 
   @Test
@@ -72,6 +73,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
     });
     assertEquals(Color.WHITE, preferences.getChat().getUserToColor().get("junit"));
     assertEquals(Color.WHITE, chatChannelUser.getColor().orElseThrow());
+    assertTrue(instance.removeCustomColorButton.isVisible());
     verify(eventBus).post(any(ChatUserColorChangeEvent.class));
   }
 
@@ -88,6 +90,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
     });
     assertNull(preferences.getChat().getUserToColor().get("junit"));
     assertTrue(chatChannelUser.getColor().isEmpty());
+    assertFalse(instance.removeCustomColorButton.isVisible());
     verify(eventBus).post(any(ChatUserColorChangeEvent.class));
   }
 

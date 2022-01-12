@@ -49,6 +49,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends UITest 
       instance.setObject(ChatUserCategory.FRIEND);
     });
     assertEquals(Color.BLACK, instance.colorPicker.getValue());
+    assertTrue(instance.removeCustomColorButton.isVisible());
   }
 
   @Test
@@ -62,6 +63,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends UITest 
       instance.colorPicker.setValue(Color.WHITE);
     });
     assertEquals(Color.WHITE, preferences.getChat().getGroupToColor().get(ChatUserCategory.FRIEND));
+    assertTrue(instance.removeCustomColorButton.isVisible());
   }
 
   @Test
@@ -75,6 +77,7 @@ public class ChatCategoryColorPickerCustomMenuItemControllerTest extends UITest 
       instance.colorPicker.setValue(null);
     });
     assertNull(preferences.getChat().getGroupToColor().get(ChatUserCategory.FRIEND));
+    assertFalse(instance.removeCustomColorButton.isVisible());
   }
 
   @Test
