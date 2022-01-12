@@ -1,10 +1,12 @@
 package com.faforever.client.fx.contextmenu;
 
+import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Assert;
+import javafx.beans.WeakInvalidationListener;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +34,13 @@ public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCus
     chatPrefs = preferencesService.getPreferences().getChat();
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
     JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
-    JavaFxUtil.bind(removeCustomColorButton.visibleProperty(), chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM)
-        .and(colorPicker.valueProperty().isNotNull()));
-    JavaFxUtil.bind(getRoot().visibleProperty(), chatPrefs.chatColorModeProperty().isNotEqualTo(RANDOM));
+    WeakInvalidationListener weakChatColorModePropertyListener = new WeakInvalidationListener((observable) -> JavaFxUtil.runLater(() -> {
+      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
+      removeCustomColorButton.setVisible(!chatColorMode.equals(RANDOM) && colorPicker.getValue() != null);
+      getRoot().setVisible(!chatColorMode.equals(RANDOM));
+    }));
+    JavaFxUtil.addListener(colorPicker.valueProperty(), weakChatColorModePropertyListener);
+    JavaFxUtil.addAndTriggerListener(chatPrefs.chatColorModeProperty(), weakChatColorModePropertyListener);
   }
 
   @Override
