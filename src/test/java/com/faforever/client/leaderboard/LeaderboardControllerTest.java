@@ -122,8 +122,8 @@ public class LeaderboardControllerTest extends UITest {
 
     assertEquals("SEASONNAME 1", instance.seasonLabel.getText());
     assertEquals(2, instance.majorDivisionPicker.getItems().size());
-    assertEquals(subdivisionBean1, instance.majorDivisionPicker.getItems().get(0));
-    assertTrue(instance.majorDivisionPicker.getSelectionModel().isSelected(1));
+    assertEquals(subdivisionBean1, instance.majorDivisionPicker.getItems().get(1));
+    assertTrue(instance.majorDivisionPicker.getSelectionModel().isSelected(0));
     assertTrue(instance.contentPane.isVisible());
     verifyNoInteractions(notificationService);
     assertNull(subDivisionTabController.ratingTable.getSelectionModel().getSelectedItem());
