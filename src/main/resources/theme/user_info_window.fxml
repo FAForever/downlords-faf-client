@@ -96,7 +96,7 @@
                                         </children>
                                     </HBox>
                                     <PlayerRatingChart fx:id="ratingHistoryChart" createSymbols="false" legendVisible="false"
-                                                       prefHeight="300.0" VBox.vgrow="ALWAYS">
+                                                       prefHeight="300.0" VBox.vgrow="ALWAYS" visible="false">
                                         <xAxis>
                                             <NumberAxis forceZeroInRange="false" autoRanging="false" side="BOTTOM"
                                                         fx:id="xAxis"/>
@@ -105,7 +105,7 @@
                                             <NumberAxis fx:id="yAxis" forceZeroInRange="false" side="LEFT"/>
                                         </yAxis>
                                     </PlayerRatingChart>
-                                    <VBox fx:id="loadingHistoryPane" alignment="CENTER"
+                                    <VBox VBox.vgrow="ALWAYS" fx:id="loadingHistoryPane" alignment="CENTER"
                                           maxHeight="1.7976931348623157E308"
                                           maxWidth="1.7976931348623157E308" mouseTransparent="true" spacing="10.0">
                                         <Label text="%vault.loading">
