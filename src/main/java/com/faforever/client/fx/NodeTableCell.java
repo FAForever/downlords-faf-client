@@ -8,15 +8,10 @@ import java.util.function.Function;
 public class NodeTableCell<S, T> extends TableCell<S, T> {
 
   private final Function<T, ? extends Node> function;
-  private final String[] cssClasses;
-
-  public NodeTableCell(Function<T, ? extends Node> function) {
-    this(function, new String[0]);
-  }
 
   public NodeTableCell(Function<T, ? extends Node> function, String... cssClasses) {
     this.function = function;
-    this.cssClasses = cssClasses;
+    getStyleClass().addAll(cssClasses);
   }
 
   @Override
@@ -29,7 +24,6 @@ public class NodeTableCell<S, T> extends TableCell<S, T> {
         setGraphic(null);
       } else {
         setGraphic(function.apply(item));
-        getStyleClass().addAll(cssClasses);
       }
     });
   }

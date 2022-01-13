@@ -9,12 +9,11 @@ public class DecimalCell<S, T extends Number> extends TableCell<S, T> {
 
   private final DecimalFormat format;
   private final Function<T, T> roundingFunction;
-  private final String[] cssClasses;
 
   public DecimalCell(DecimalFormat format, Function<T, T> roundingFunction, String... cssClasses) {
     this.format = format;
     this.roundingFunction = roundingFunction;
-    this.cssClasses = cssClasses;
+    getStyleClass().addAll(cssClasses);
   }
 
   @Override
@@ -26,7 +25,7 @@ public class DecimalCell<S, T extends Number> extends TableCell<S, T> {
       setGraphic(null);
     } else {
       setText(format.format(roundingFunction.apply(item)));
-      getStyleClass().addAll(cssClasses);
+
     }
   }
 }

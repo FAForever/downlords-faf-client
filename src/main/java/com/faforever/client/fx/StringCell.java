@@ -9,11 +9,6 @@ import java.util.function.Function;
 public class StringCell<S, T> extends TableCell<S, T> {
 
   private final Function<T, String> function;
-  private final String[] cssClasses;
-
-  public StringCell(Function<T, String> function) {
-    this(function, new String[0]);
-  }
 
   @Override
   protected void updateItem(T item, boolean empty) {
@@ -24,7 +19,6 @@ public class StringCell<S, T> extends TableCell<S, T> {
       setGraphic(null);
     } else {
       setText(function.apply(item));
-      getStyleClass().addAll(cssClasses);
     }
   }
 }

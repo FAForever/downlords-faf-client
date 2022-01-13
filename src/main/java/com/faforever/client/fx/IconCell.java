@@ -12,17 +12,12 @@ import java.util.function.Function;
 public class IconCell<S, T> extends TableCell<S, T> {
 
   private final Function<T, String> iconCssClassFunction;
-  private final String[] containerCssClasses;
-
-  public IconCell(Function<T, String> iconCssClassFunction) {
-    this(iconCssClassFunction, new String[0]);
-  }
 
   @Override
   protected void updateItem(T item, boolean empty) {
     super.updateItem(item, empty);
-
     setText(null);
+
     if (empty || item == null) {
       setGraphic(null);
     } else {
@@ -33,10 +28,8 @@ public class IconCell<S, T> extends TableCell<S, T> {
       }
 
       Region region = new Region();
-      region.getStyleClass().add(UiService.CSS_CLASS_ICON);
-      region.getStyleClass().add(cssClass);
+      region.getStyleClass().addAll(UiService.CSS_CLASS_ICON, cssClass);
       setGraphic(region);
-      getStyleClass().addAll(containerCssClasses);
     }
   }
 }

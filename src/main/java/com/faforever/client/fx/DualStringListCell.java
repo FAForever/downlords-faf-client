@@ -28,13 +28,13 @@ public class DualStringListCell<T> extends ListCell<T> {
       } else {
         if (dualStringListCellController == null) {
           dualStringListCellController = uiService.loadFxml("theme/dual_string_list_cell.fxml");
+          // copy font styles
+          dualStringListCellController.applyFont(getFont());
+          dualStringListCellController.applyStyleClass(styleClasses);
         }
         dualStringListCellController.setLeftText(functionLeft.apply(item));
         dualStringListCellController.setWebViewToolTip(functionWebViewToolTip.apply(item));
         dualStringListCellController.setRightText(functionRight.apply(item));
-        // copy font styles
-        dualStringListCellController.applyFont(getFont());
-        dualStringListCellController.applyStyleClass(styleClasses);
         setGraphic(dualStringListCellController.getRoot());
       }
     });
