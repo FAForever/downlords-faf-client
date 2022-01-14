@@ -74,6 +74,10 @@ public class ReplayCardController implements Controller<Node> {
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private Consumer<ReplayBean> onOpenDetailListener;
 
+  public void initialize() {
+    JavaFxUtil.bindManagedToVisible(deleteButton);
+  }
+
   public void setReplay(ReplayBean replay) {
     this.replay = replay;
 
@@ -86,10 +90,8 @@ public class ReplayCardController implements Controller<Node> {
     } else {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
-    JavaFxUtil.bindManagedToVisible(deleteButton);
-    if (replay.getReplayFile() != null) {
-      deleteButton.setVisible(true);
-    }
+
+    deleteButton.setVisible(replay.getReplayFile() != null);
     watchButton.setDisable(!replay.getReplayAvailable());
     gameTitleLabel.setText(replay.getTitle());
     dateLabel.setText(timeService.asDate(replay.getStartTime()));

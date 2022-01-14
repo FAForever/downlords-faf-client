@@ -92,9 +92,9 @@
         <Button fx:id="deleteButton" mnemonicParsing="false"
                 visible="false" managed="false"
                 onAction="#onDeleteButtonClicked"
-                styleClass="delete-button">
+                styleClass="uninstall-button">
             <graphic>
-                <Region styleClass="icon,delete-icon"/>
+                <Region styleClass="icon,uninstall-icon"/>
             </graphic>
         </Button>
         <Button fx:id="watchButton" mnemonicParsing="false" styleClass="primary-button"

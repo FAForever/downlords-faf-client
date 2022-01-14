@@ -92,7 +92,7 @@
                                                             text="%mapVault.installButtonFormat"/>
                                                     <Button fx:id="uninstallButton" mnemonicParsing="false"
                                                             onAction="#onUninstallButtonClicked"
-                                                            text="%mapVault.uninstall"/>
+                                                            styleClass="uninstall-button" text="%mapVault.uninstall"/>
                                                 </children>
                                             </HBox>
                                             <VBox fx:id="loadingContainer" alignment="TOP_RIGHT" maxWidth="300.0">
