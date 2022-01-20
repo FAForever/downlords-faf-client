@@ -4,7 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.MultipleSelectionModel;
 
-public class NoSelectionModel<T> extends MultipleSelectionModel<T> {
+public class NoListViewSelectionModel<T> extends MultipleSelectionModel<T> {
 
   @Override
   public ObservableList<Integer> getSelectedIndices() {

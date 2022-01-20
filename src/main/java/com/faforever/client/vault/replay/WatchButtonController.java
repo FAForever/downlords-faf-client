@@ -1,10 +1,11 @@
 package com.faforever.client.vault.replay;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.replay.LiveReplayService;
+import com.faforever.client.replay.LiveReplayService.LiveReplayAction;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
@@ -14,20 +15,25 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.util.Duration;
+import javafx.util.Pair;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.time.OffsetDateTime;
+import static com.faforever.client.replay.LiveReplayService.LiveReplayAction.NOTIFY_ME;
+import static com.faforever.client.replay.LiveReplayService.LiveReplayAction.RUN;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class WatchButtonController implements Controller<Node> {
+
+  private final LiveReplayService liveReplayService;
   private final ReplayService replayService;
-  private final ClientProperties clientProperties;
   private final TimeService timeService;
 
   public WatchLiveReplaySplitMenuButton watchButton;
@@ -37,15 +43,7 @@ public class WatchButtonController implements Controller<Node> {
   private final I18n i18n;
   private Timeline delayTimeline;
 
-  private ChangeListener<Number> gameIdForNotifyMeListener;
-  private ChangeListener<Number> gameIdForScheduleRunReplayListener;
-
-  public WatchButtonController(ReplayService replayService, ClientProperties clientProperties, TimeService timeService, I18n i18n) {
-    this.replayService = replayService;
-    this.clientProperties = clientProperties;
-    this.timeService = timeService;
-    this.i18n = i18n;
-  }
+  private ChangeListener<Pair<Integer, LiveReplayAction>> futureReplayPropertyListener;
 
   public void initialize() {
     delayTimeline = new Timeline(
@@ -53,7 +51,7 @@ public class WatchButtonController implements Controller<Node> {
         new KeyFrame(Duration.seconds(1))
     );
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
-    watchButton.setIsUnavailableSupplier(() -> !canWatch());
+    watchButton.setIsCannotWatchSupplier(() -> !liveReplayService.canWatch(game));
   }
 
   public void setGame(GameBean game) {
@@ -61,7 +59,7 @@ public class WatchButtonController implements Controller<Node> {
     Assert.notNull(game.getStartTime(), "The game's start must not be null: " + game);
 
     this.game = game;
-    if (canWatch()) {
+    if (liveReplayService.canWatch(game)) {
       allowWatch();
     } else {
       initializeListeners();
@@ -71,34 +69,33 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void initializeListeners() {
-    gameIdForNotifyMeListener = (observable, oldValue, newValue) ->
+    futureReplayPropertyListener = (observable, oldValue, newValue) ->
         JavaFxUtil.runLater(() -> {
-          if (newValue.equals(game.getId())) {
-            notifyMeItem.setText(i18n.get("vault.liveReplays.contextMenu.notifyMe.cancel"));
-            notifyMeItem.setOnAction(event -> replayService.cancelNotifyMeWhenReplayAvailableIn());
-          } else {
-            notifyMeItem.setText(i18n.get("vault.liveReplays.contextMenu.notifyMe"));
-            notifyMeItem.setOnAction(event -> notifyMeWhenReplayAvailable());
+          if (newValue != null) {
+            Integer ID = newValue.getKey();
+            LiveReplayAction action = newValue.getValue();
+            if (game.getId().equals(ID)) {
+              switch (action) {
+                case NOTIFY_ME -> {
+                  notifyMeItem.setText(i18n.get("vault.liveReplays.contextMenu.notifyMe.cancel"));
+                  notifyMeItem.setOnAction(event -> liveReplayService.cancelScheduledTask());
+                }
+                case RUN -> {
+                  runReplayItem.setText(i18n.get("vault.liveReplays.contextMenu.runImmediately.cancel"));
+                  runReplayItem.setOnAction(event -> liveReplayService.cancelScheduledTask());
+                }
+              }
+              return;
+            }
           }
-        });
-    gameIdForScheduleRunReplayListener = (observable, oldValue, newValue) ->
-        JavaFxUtil.runLater(() -> {
-          if (newValue.equals(game.getId())) {
-            runReplayItem.setText(i18n.get("vault.liveReplays.contextMenu.runImmediately.cancel"));
-            runReplayItem.setOnAction(event -> replayService.cancelScheduleRunReplayIn());
-          } else {
-            runReplayItem.setText(i18n.get("vault.liveReplays.contextMenu.runImmediately"));
-            runReplayItem.setOnAction(event -> runWhenReplayAvailable());
-          }
-        });
 
-    JavaFxUtil.addListener(replayService.getGameIdForNotifyMeProperty(), gameIdForNotifyMeListener);
-    JavaFxUtil.addListener(replayService.getGameIdForScheduleRunReplayProperty(), gameIdForScheduleRunReplayListener);
-  }
+          notifyMeItem.setText(i18n.get("vault.liveReplays.contextMenu.notifyMe"));
+          notifyMeItem.setOnAction(event -> onClickedNotifyMe());
 
-  private boolean canWatch() {
-    java.time.Duration duration = getWatchDelayTime();
-    return duration.isZero() || duration.isNegative();
+          runReplayItem.setText(i18n.get("vault.liveReplays.contextMenu.runImmediately"));
+          runReplayItem.setOnAction(event -> onClickedRunWhenReplayAvailable());
+        });
+    JavaFxUtil.addAndTriggerListener(liveReplayService.getFutureReplayProperty(), futureReplayPropertyListener);
   }
 
   private void allowWatch() {
@@ -111,16 +108,13 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void removeListeners() {
-    if (gameIdForNotifyMeListener != null) {
-      JavaFxUtil.removeListener(replayService.getGameIdForNotifyMeProperty(), gameIdForNotifyMeListener);
-    }
-    if (gameIdForScheduleRunReplayListener != null) {
-      JavaFxUtil.removeListener(replayService.getGameIdForScheduleRunReplayProperty(), gameIdForScheduleRunReplayListener);
+    if (futureReplayPropertyListener != null) {
+      JavaFxUtil.removeListener(liveReplayService.getFutureReplayProperty(), futureReplayPropertyListener);
     }
   }
 
   private void onFinished() {
-    if (canWatch()) {
+    if (liveReplayService.canWatch(game)) {
       delayTimeline.stop();
       allowWatch();
     } else {
@@ -129,24 +123,16 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void updateWatchButtonTimer() {
-    JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watchDelayedFormat", timeService.shortDuration(getWatchDelayTime()))));
+    JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watchDelayedFormat",
+        timeService.shortDuration(liveReplayService.getWatchDelayTime(game)))));
   }
 
-  private java.time.Duration getWatchDelayTime() {
-    Assert.notNull(game.getStartTime(),
-        "Game's start time is null, in which case it shouldn't even be listed: " + game);
-    return java.time.Duration.between(
-        OffsetDateTime.now(),
-        game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())
-    );
+  public void onClickedNotifyMe() {
+    liveReplayService.performActionWhenAvailable(game, NOTIFY_ME);
   }
 
-  public void notifyMeWhenReplayAvailable() {
-    replayService.notifyMeWhenReplayAvailableIn(getWatchDelayTime(), game);
-  }
-
-  public void runWhenReplayAvailable() {
-    replayService.scheduleRunReplayIn(getWatchDelayTime(), game);
+  public void onClickedRunWhenReplayAvailable() {
+    liveReplayService.performActionWhenAvailable(game, RUN);
   }
 
   @VisibleForTesting

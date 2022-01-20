@@ -6,9 +6,12 @@
                                 maxHeight="1.7976931348623157E308"
                                 maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="80.0"
                                 xmlns="http://javafx.com/javafx/8.0.141" popupSide="RIGHT" styleClass="watch-button"
-                                fx:controller="com.faforever.client.vault.replay.WatchButtonController" alignment="CENTER">
+                                fx:controller="com.faforever.client.vault.replay.WatchButtonController"
+                                alignment="CENTER">
     <items>
-        <MenuItem text="%vault.liveReplays.contextMenu.notifyMe" fx:id="notifyMeItem" onAction="#notifyMeWhenReplayAvailable"/>
-        <MenuItem text="%vault.liveReplays.contextMenu.runImmediately" fx:id="runReplayItem" onAction="#runWhenReplayAvailable"/>
+        <MenuItem text="%vault.liveReplays.contextMenu.notifyMe" fx:id="notifyMeItem"
+                  onAction="#onClickedNotifyMe"/>
+        <MenuItem text="%vault.liveReplays.contextMenu.runImmediately" fx:id="runReplayItem"
+                  onAction="#onClickedRunWhenReplayAvailable"/>
     </items>
 </WatchLiveReplaySplitMenuButton>
