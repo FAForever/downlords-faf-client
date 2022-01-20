@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-<?import javafx.scene.control.Button?>
-<Button xmlns:fx="http://javafx.com/fxml/1" fx:id="watchButton" disable="true" maxHeight="1.7976931348623157E308"
-        maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false"
-        xmlns="http://javafx.com/javafx/8.0.141"
-        fx:controller="com.faforever.client.vault.replay.WatchButtonController"/>
+<?import com.faforever.client.vault.replay.WatchLiveReplaySplitMenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<WatchLiveReplaySplitMenuButton xmlns:fx="http://javafx.com/fxml/1" fx:id="watchButton"
+                                maxHeight="1.7976931348623157E308"
+                                maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="80.0"
+                                xmlns="http://javafx.com/javafx/8.0.141" popupSide="RIGHT" styleClass="watch-button"
+                                fx:controller="com.faforever.client.vault.replay.WatchButtonController" alignment="CENTER">
+    <items>
+        <MenuItem text="%vault.liveReplays.contextMenu.notifyMe" fx:id="notifyMeItem" onAction="#notifyMeWhenReplayAvailable"/>
+        <MenuItem text="%vault.liveReplays.contextMenu.runImmediately" fx:id="runReplayItem" onAction="#runWhenReplayAvailable"/>
+    </items>
+</WatchLiveReplaySplitMenuButton>

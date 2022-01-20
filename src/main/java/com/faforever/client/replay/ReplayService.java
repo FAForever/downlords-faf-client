@@ -11,6 +11,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
@@ -27,11 +28,13 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.Assert;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -46,9 +49,12 @@ import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
@@ -72,6 +78,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -82,6 +89,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,15 +112,8 @@ import static java.util.stream.Collectors.toList;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ReplayService {
+public class ReplayService implements InitializingBean {
 
-  /**
-   * Byte offset at which a SupCom replay's version number starts.
-   */
-  private static final int VERSION_OFFSET = 0x18;
-  private static final int MAP_NAME_OFFSET = 0x2D;
-  private static final byte[] MAP_FOLDER_START_PATTERN = new byte[]
-      {0x53, 0x63, 0x65, 0x6E, 0x61, 0x72, 0x69, 0x6F, 0x46, 0x69, 0x6C, 0x65, 0x00, 0x01};
   private static final String FAF_REPLAY_FILE_ENDING = ".fafreplay";
   private static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String FAF_LIFE_PROTOCOL = "faflive";
@@ -137,6 +139,18 @@ public class ReplayService {
   private final FileSizeReader fileSizeReader;
   private final ReplayMapper replayMapper;
   protected List<ReplayBean> localReplays = new ArrayList<>();
+  private Timer timer = new Timer();
+  private final IntegerProperty gameIdForNotifyMeProperty = new SimpleIntegerProperty(0);
+  private final IntegerProperty gameIdForScheduleRunReplayProperty = new SimpleIntegerProperty(0);
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    JavaFxUtil.addListener(gameService.gameRunningProperty(), (observable, oldValue, newValue) -> {
+      if (newValue.equals(true) && (gameIdForNotifyMeProperty.getValue() != 0 || gameIdForScheduleRunReplayProperty.getValue() != 0)) {
+        cancelAll();
+      }
+    });
+  }
 
   @VisibleForTesting
   static Integer parseSupComVersion(ReplayDataParser parser) {
@@ -525,5 +539,66 @@ public class ReplayService {
             mods.stream().map(dto -> replayMapper.map(dto, new CycleAvoidingMappingContext())).collect(toList())
         ))
         .toFuture();
+  }
+
+  public void notifyMeWhenReplayAvailableIn(Duration timeLeft, GameBean game) {
+    Assert.checkNullIllegalState(game.getId(), "No ID");
+    timer.cancel();
+    timer = new Timer();
+    gameIdForNotifyMeProperty.set(game.getId());
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        gameIdForNotifyMeProperty.set(0);
+        notificationService.addNotification(new TransientNotification(
+            i18n.get("vault.liveReplays.notifyMe.replayAvailable", game.getTitle()),
+            i18n.get("vault.liveReplays.notifyMe.replayAvailable.click"),
+            null, (event) -> runLiveReplay(game.getId())));
+      }
+    }, timeLeft.toMillis());
+  }
+
+  public void cancelNotifyMeWhenReplayAvailableIn() {
+    cancelAll();
+  }
+
+  public void scheduleRunReplayIn(Duration timeLeft, GameBean game) {
+    Assert.checkNullIllegalState(game.getId(), "No ID");
+    timer.cancel();
+    timer = new Timer();
+    gameIdForScheduleRunReplayProperty.set(game.getId());
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        notificationService.addNotification(new TransientNotification(
+            i18n.get("vault.liveReplays.notifyMe.replayAvailable", game.getTitle()),
+            i18n.get("vault.liveReplays.scheduledRunReplay", 10)));
+      }
+    }, timeLeft.minusSeconds(10).toMillis());
+    timer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        gameIdForScheduleRunReplayProperty.set(0);
+        runLiveReplay(game.getId());
+      }
+    }, timeLeft.toMillis());
+  }
+
+  public void cancelScheduleRunReplayIn() {
+    cancelAll();
+  }
+
+  private void cancelAll() {
+    timer.cancel();
+    gameIdForNotifyMeProperty.set(0);
+    gameIdForScheduleRunReplayProperty.set(0);
+  }
+
+  public IntegerProperty getGameIdForNotifyMeProperty() {
+    return gameIdForNotifyMeProperty;
+  }
+
+  public IntegerProperty getGameIdForScheduleRunReplayProperty() {
+    return gameIdForScheduleRunReplayProperty;
   }
 }
