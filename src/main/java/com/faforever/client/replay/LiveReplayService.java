@@ -39,13 +39,13 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   private Integer watchDelaySeconds;
   private Future<?> futureTask;
-  private final ObjectProperty<Pair<Integer, LiveReplayAction>> futureReplayProperty = new SimpleObjectProperty<>(null);
+  private final ObjectProperty<Pair<Integer, LiveReplayAction>> trackingReplayProperty = new SimpleObjectProperty<>(null);
 
   @Override
   public void afterPropertiesSet() throws Exception {
     watchDelaySeconds = clientProperties.getReplay().getWatchDelaySeconds();
     JavaFxUtil.addListener(gameService.gameRunningProperty(), (observable, oldValue, newValue) -> {
-      if (newValue.equals(true) && futureReplayProperty.getValue() != null) {
+      if (newValue.equals(true) && trackingReplayProperty.getValue() != null) {
         cancelScheduledTask();
       }
     });
@@ -65,7 +65,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   public void performActionWhenAvailable(GameBean game, LiveReplayAction action) {
     checkNullIllegalState(game.getId(), "No game id to schedule future task");
     cancelScheduledTask();
-    futureReplayProperty.set(new Pair<>(game.getId(), action));
+    trackingReplayProperty.set(new Pair<>(game.getId(), action));
     switch (action) {
       case NOTIFY_ME -> notifyUserWhenReplayIsAvailable(game);
       case RUN -> runLiveReplayWhenIsAvailable(game);
@@ -98,7 +98,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   }
 
   private void clearFutureReplayProperty() {
-    futureReplayProperty.set(null);
+    trackingReplayProperty.set(null);
   }
 
   public void cancelScheduledTask() {
@@ -109,8 +109,8 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     futureTask = null;
   }
 
-  public ObjectProperty<Pair<Integer, LiveReplayAction>> getFutureReplayProperty() {
-    return futureReplayProperty;
+  public ObjectProperty<Pair<Integer, LiveReplayAction>> getTrackingReplayProperty() {
+    return trackingReplayProperty;
   }
 
   @Override

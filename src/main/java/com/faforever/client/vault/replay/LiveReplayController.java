@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 public class LiveReplayController extends AbstractViewController<Node> {
 
   public static PseudoClass AVAILABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("available");
+  public static PseudoClass OBSERVABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("observable");
 
   private final GameService gameService;
   private final UiService uiService;

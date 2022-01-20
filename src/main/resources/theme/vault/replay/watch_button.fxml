@@ -9,9 +9,7 @@
                                 fx:controller="com.faforever.client.vault.replay.WatchButtonController"
                                 alignment="CENTER">
     <items>
-        <MenuItem text="%vault.liveReplays.contextMenu.notifyMe" fx:id="notifyMeItem"
-                  onAction="#onClickedNotifyMe"/>
-        <MenuItem text="%vault.liveReplays.contextMenu.runImmediately" fx:id="runReplayItem"
-                  onAction="#onClickedRunWhenReplayAvailable"/>
+        <MenuItem text="%vault.liveReplays.contextMenu.notifyMe" fx:id="notifyMeItem"/>
+        <MenuItem text="%vault.liveReplays.contextMenu.runImmediately" fx:id="runReplayItem"/>
     </items>
 </WatchLiveReplaySplitMenuButton>

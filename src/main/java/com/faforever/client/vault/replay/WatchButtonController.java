@@ -43,7 +43,7 @@ public class WatchButtonController implements Controller<Node> {
   private final I18n i18n;
   private Timeline delayTimeline;
 
-  private ChangeListener<Pair<Integer, LiveReplayAction>> futureReplayPropertyListener;
+  private ChangeListener<Pair<Integer, LiveReplayAction>> trackingReplayPropertyListener;
 
   public void initialize() {
     delayTimeline = new Timeline(
@@ -52,6 +52,7 @@ public class WatchButtonController implements Controller<Node> {
     );
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
     watchButton.setIsCannotWatchSupplier(() -> !liveReplayService.canWatch(game));
+    initializeMenuItemsByDefault();
   }
 
   public void setGame(GameBean game) {
@@ -69,7 +70,7 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void initializeListeners() {
-    futureReplayPropertyListener = (observable, oldValue, newValue) ->
+    trackingReplayPropertyListener = (observable, oldValue, newValue) ->
         JavaFxUtil.runLater(() -> {
           if (newValue != null) {
             Integer ID = newValue.getKey();
@@ -85,17 +86,24 @@ public class WatchButtonController implements Controller<Node> {
                   runReplayItem.setOnAction(event -> liveReplayService.cancelScheduledTask());
                 }
               }
+
+              watchButton.pseudoClassStateChanged(LiveReplayController.OBSERVABLE_PSEUDO_CLASS, true);
               return;
             }
           }
 
-          notifyMeItem.setText(i18n.get("vault.liveReplays.contextMenu.notifyMe"));
-          notifyMeItem.setOnAction(event -> onClickedNotifyMe());
-
-          runReplayItem.setText(i18n.get("vault.liveReplays.contextMenu.runImmediately"));
-          runReplayItem.setOnAction(event -> onClickedRunWhenReplayAvailable());
+          initializeMenuItemsByDefault();
+          watchButton.pseudoClassStateChanged(LiveReplayController.OBSERVABLE_PSEUDO_CLASS, false);
         });
-    JavaFxUtil.addAndTriggerListener(liveReplayService.getFutureReplayProperty(), futureReplayPropertyListener);
+    JavaFxUtil.addAndTriggerListener(liveReplayService.getTrackingReplayProperty(), trackingReplayPropertyListener);
+  }
+
+  private void initializeMenuItemsByDefault() {
+    notifyMeItem.setText(i18n.get("vault.liveReplays.contextMenu.notifyMe"));
+    notifyMeItem.setOnAction(event -> liveReplayService.performActionWhenAvailable(game, NOTIFY_ME));
+
+    runReplayItem.setText(i18n.get("vault.liveReplays.contextMenu.runImmediately"));
+    runReplayItem.setOnAction(event -> liveReplayService.performActionWhenAvailable(game, RUN));
   }
 
   private void allowWatch() {
@@ -108,8 +116,8 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void removeListeners() {
-    if (futureReplayPropertyListener != null) {
-      JavaFxUtil.removeListener(liveReplayService.getFutureReplayProperty(), futureReplayPropertyListener);
+    if (trackingReplayPropertyListener != null) {
+      JavaFxUtil.removeListener(liveReplayService.getTrackingReplayProperty(), trackingReplayPropertyListener);
     }
   }
 
@@ -125,14 +133,6 @@ public class WatchButtonController implements Controller<Node> {
   private void updateWatchButtonTimer() {
     JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watchDelayedFormat",
         timeService.shortDuration(liveReplayService.getWatchDelayTime(game)))));
-  }
-
-  public void onClickedNotifyMe() {
-    liveReplayService.performActionWhenAvailable(game, NOTIFY_ME);
-  }
-
-  public void onClickedRunWhenReplayAvailable() {
-    liveReplayService.performActionWhenAvailable(game, RUN);
   }
 
   @VisibleForTesting
