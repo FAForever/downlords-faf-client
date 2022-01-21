@@ -34,23 +34,11 @@ public class GenerateMapTask extends CompletableTask<String> {
   private final I18n i18n;
   private final EventBus eventBus;
 
-  private ComparableVersion version;
   private Path generatorExecutableFile;
-  private String mapFilename;
-  private Integer spawnCount;
-  private Integer numTeams;
-  private Integer mapSize;
+  private ComparableVersion version;
+  private GeneratorOptions generatorOptions;
   private String seed;
-  private Float landDensity;
-  private Float plateauDensity;
-  private Float mountainDensity;
-  private Float rampDensity;
-  private Float mexDensity;
-  private Float reclaimDensity;
-  private GenerationType generationType;
-  private String style;
-  private String biome;
-  private String commandLineArgs;
+  private String mapName;
 
   @Inject
   public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
@@ -68,30 +56,32 @@ public class GenerateMapTask extends CompletableTask<String> {
 
     updateTitle(i18n.get("game.mapGeneration.generateMap.title", version));
 
-    GeneratorCommand generatorCommand = GeneratorCommand.builder()
+    GeneratorCommand.GeneratorCommandBuilder generatorCommandBuilder = GeneratorCommand.builder()
         .version(version)
-        .spawnCount(spawnCount)
-        .numTeams(numTeams)
-        .mapSize(mapSize)
         .seed(seed)
         .generatorExecutableFile(generatorExecutableFile)
-        .generationType(generationType)
-        .landDensity(landDensity)
-        .plateauDensity(plateauDensity)
-        .mountainDensity(mountainDensity)
-        .rampDensity(rampDensity)
-        .mexDensity(mexDensity)
-        .reclaimDensity(reclaimDensity)
-        .mapFilename(mapFilename)
-        .style(style)
-        .biome(biome)
-        .commandLineArgs(commandLineArgs)
-        .build();
+        .mapName(mapName);
+
+    if (generatorOptions != null) {
+      generatorCommandBuilder.spawnCount(generatorOptions.getSpawnCount())
+          .numTeams(generatorOptions.getNumTeams())
+          .mapSize(generatorOptions.getMapSize())
+          .generationType(generatorOptions.getGenerationType())
+          .landDensity(generatorOptions.getLandDensity())
+          .plateauDensity(generatorOptions.getPlateauDensity())
+          .mountainDensity(generatorOptions.getMountainDensity())
+          .rampDensity(generatorOptions.getRampDensity())
+          .mexDensity(generatorOptions.getMexDensity())
+          .reclaimDensity(generatorOptions.getReclaimDensity())
+          .style(generatorOptions.getStyle())
+          .biome(generatorOptions.getBiome())
+          .commandLineArgs(generatorOptions.getCommandLineArgs());
+    }
 
     Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
 
     try {
-      List<String> command = generatorCommand.getCommand();
+      List<String> command = generatorCommandBuilder.build().getCommand();
 
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.directory(workingDirectory.toFile());
@@ -103,27 +93,27 @@ public class GenerateMapTask extends CompletableTask<String> {
       Process process = processBuilder.start();
       OsUtils.gobbleLines(process.getInputStream(), msg -> {
         generatorLogger.info(msg);
-        if (mapFilename == null || mapFilename.isBlank()) {
+        if (mapName == null || mapName.isBlank()) {
           Matcher mapNameMatcher = MapGeneratorService.GENERATED_MAP_PATTERN.matcher(msg);
           if (mapNameMatcher.find()) {
-            mapFilename = mapNameMatcher.group();
+            mapName = mapNameMatcher.group();
           }
         }
       });
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-      if (process.isAlive() && !commandLineArgs.contains("--visualize")) {
+      if (process.isAlive() && !generatorOptions.getCommandLineArgs().contains("--visualize")) {
         log.warn("Map generation timed out, killing process...");
         process.destroyForcibly();
         notificationService.addImmediateErrorNotification(new RuntimeException("Map generation timed out"), "game.mapGeneration.failed.message");
       } else if (!process.isAlive()) {
-        eventBus.post(new MapGeneratedEvent(mapFilename));
+        eventBus.post(new MapGeneratedEvent(mapName));
       }
     } catch (Exception e) {
       log.error("Could not start map generator.", e);
       throw new RuntimeException(e);
     }
 
-    return mapFilename;
+    return mapName;
   }
 }

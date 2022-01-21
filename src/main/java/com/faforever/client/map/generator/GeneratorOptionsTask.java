@@ -51,7 +51,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
     GeneratorCommand generatorCommand = GeneratorCommand.builder()
         .version(version)
         .generatorExecutableFile(generatorExecutableFile)
-        .query(query)
+        .commandLineArgs(query)
         .build();
 
     try {

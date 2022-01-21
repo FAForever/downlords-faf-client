@@ -487,11 +487,12 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testOnGenerateMapClicked() {
-    instance.onGenerateMapButtonClicked();
+    when(mapGeneratorService.getNewestGenerator()).thenReturn(CompletableFuture.completedFuture(null));
+    when(mapGeneratorService.getGeneratorStyles()).thenReturn(CompletableFuture.completedFuture(List.of()));
 
-    verify(mapGeneratorService).queryMaxSupportedVersion();
-    verify(mapGeneratorService).setGeneratorVersion(any());
-    verify(mapGeneratorService).downloadGeneratorIfNecessary(any());
+    runOnFxThreadAndWait(() -> instance.onGenerateMapButtonClicked());
+
+    verify(mapGeneratorService).getNewestGenerator();
     verify(mapGeneratorService).getGeneratorStyles();
     verify(generateMapController).setStyles(any());
     verify(generateMapController).setOnCloseButtonClickedListener(any());

@@ -5,12 +5,13 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.GitHubRelease;
+import com.faforever.client.util.Assert;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.scene.image.Image;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -28,7 +29,6 @@ import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,8 +50,6 @@ public class MapGeneratorService implements DisposableBean {
   public static final String GENERATOR_RANDOM_STYLE = "RANDOM";
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
   protected static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
-  @Getter
-  private final Path generatorExecutablePath;
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
@@ -60,26 +58,16 @@ public class MapGeneratorService implements DisposableBean {
 
   @Getter
   private Image generatedMapPreviewImage;
-  @Getter
-  @Setter
-  private ComparableVersion generatorVersion;
+  private ComparableVersion defaultGeneratorVersion;
 
   public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService,
                              TaskService taskService, ClientProperties clientProperties, WebClient.Builder webClientBuilder) {
     this.applicationContext = applicationContext;
     this.taskService = taskService;
     this.preferencesService = preferencesService;
+    this.clientProperties = clientProperties;
     webClient = webClientBuilder.build();
 
-    generatorExecutablePath = preferencesService.getPreferences().getData().getBaseDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
-    this.clientProperties = clientProperties;
-    if (!Files.exists(generatorExecutablePath)) {
-      try {
-        Files.createDirectory(generatorExecutablePath);
-      } catch (IOException e) {
-        log.error("Could not create map generator executable directory.", e);
-      }
-    }
 
     try {
       generatedMapPreviewImage = new Image(new ClassPathResource("/images/generatedMapIcon.png").getURL().toString(), true);
@@ -117,8 +105,7 @@ public class MapGeneratorService implements DisposableBean {
   }
 
   @VisibleForTesting
-  @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
-  public ComparableVersion queryMaxSupportedVersion() {
+  private CompletableFuture<ComparableVersion> queryMaxSupportedVersion() {
     ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
     ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMaxSupportedMajorVersion() + 1));
 
@@ -132,7 +119,7 @@ public class MapGeneratorService implements DisposableBean {
         .sort(Comparator.naturalOrder())
         .last()
         .switchIfEmpty(Mono.error(new RuntimeException("No valid generator version found")))
-        .block();
+        .toFuture();
   }
 
   public CompletableFuture<String> generateMap(String mapName) {
@@ -144,85 +131,28 @@ public class MapGeneratorService implements DisposableBean {
     ComparableVersion version = new ComparableVersion(matcher.group(1));
     String seed = matcher.group(2);
 
-    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, version);
-    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
+    Path generatorExecutablePath = getGeneratorExecutablePath(version);
 
     CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(version);
 
     GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
     generateMapTask.setVersion(version);
     generateMapTask.setSeed(seed);
-    generateMapTask.setMapFilename(mapName);
+    generateMapTask.setMapName(mapName);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
 
     return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
   }
 
-  public CompletableFuture<String> generateMap(int spawnCount, int mapSize, int numTeams, Map<String, Float> optionMap, GenerationType generationType) {
+  public CompletableFuture<String> generateMap(GeneratorOptions generatorOptions) {
+    Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
 
-    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, generatorVersion);
-    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
-
-    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(generatorVersion);
+    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(defaultGeneratorVersion);
 
     GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
-    generateMapTask.setVersion(generatorVersion);
-    generateMapTask.setSpawnCount(spawnCount);
-    generateMapTask.setMapSize(mapSize);
-    generateMapTask.setNumTeams(numTeams);
-    generateMapTask.setGenerationType(generationType);
+    generateMapTask.setVersion(defaultGeneratorVersion);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
-    if (optionMap.containsKey("landDensity")) {
-      generateMapTask.setLandDensity(optionMap.get("landDensity"));
-    }
-    if (optionMap.containsKey("plateauDensity")) {
-      generateMapTask.setPlateauDensity(optionMap.get("plateauDensity"));
-    }
-    if (optionMap.containsKey("mountainDensity")) {
-      generateMapTask.setMountainDensity(optionMap.get("mountainDensity"));
-    }
-    if (optionMap.containsKey("rampDensity")) {
-      generateMapTask.setRampDensity(optionMap.get("rampDensity"));
-    }
-    if (optionMap.containsKey("mexDensity")) {
-      generateMapTask.setMexDensity(optionMap.get("mexDensity"));
-    }
-    if (optionMap.containsKey("reclaimDensity")) {
-      generateMapTask.setReclaimDensity(optionMap.get("reclaimDensity"));
-    }
-
-    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
-  }
-
-  public CompletableFuture<String> generateMap(int spawnCount, int mapSize, int numTeams, String style) {
-
-    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, generatorVersion);
-    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
-
-    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(generatorVersion);
-
-    GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
-    generateMapTask.setVersion(generatorVersion);
-    generateMapTask.setSpawnCount(spawnCount);
-    generateMapTask.setMapSize(mapSize);
-    generateMapTask.setNumTeams(numTeams);
-    generateMapTask.setStyle(style);
-    generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
-
-    return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
-  }
-
-  public CompletableFuture<String> generateMapWithArgs(String commandLineArgs) {
-
-    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, generatorVersion);
-    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
-
-    CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(generatorVersion);
-
-    GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
-    generateMapTask.setVersion(generatorVersion);
-    generateMapTask.setCommandLineArgs(commandLineArgs);
-    generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
+    generateMapTask.setGeneratorOptions(generatorOptions);
 
     return downloadGeneratorFuture.thenCompose((aVoid) -> taskService.submitTask(generateMapTask).getFuture());
   }
@@ -236,8 +166,7 @@ public class MapGeneratorService implements DisposableBean {
     if (version.compareTo(minVersion) < 0) {
       return CompletableFuture.failedFuture(new OutdatedVersionException("Old Version not supported"));
     }
-    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, version);
-    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
+    Path generatorExecutablePath = getGeneratorExecutablePath(version);
 
     if (!Files.exists(generatorExecutablePath)) {
       if (!VERSION_PATTERN.matcher(version.toString()).matches()) {
@@ -247,7 +176,7 @@ public class MapGeneratorService implements DisposableBean {
 
       log.info("Downloading MapGenerator version: {}", version);
       DownloadMapGeneratorTask downloadMapGeneratorTask = applicationContext.getBean(DownloadMapGeneratorTask.class);
-      downloadMapGeneratorTask.setVersion(version.toString());
+      downloadMapGeneratorTask.setVersion(version);
       return taskService.submitTask(downloadMapGeneratorTask).getFuture();
     } else {
       log.info("Found MapGenerator version: {}", version);
@@ -255,32 +184,26 @@ public class MapGeneratorService implements DisposableBean {
     }
   }
 
+  @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
+  public CompletableFuture<Void> getNewestGenerator() {
+    return queryMaxSupportedVersion()
+        .thenAccept(newVersion -> defaultGeneratorVersion = newVersion)
+        .thenCompose(aVoid -> downloadGeneratorIfNecessary(defaultGeneratorVersion));
+  }
+
   public CompletableFuture<List<String>> getGeneratorStyles() {
-    String generatorExecutableFileName = String.format(GENERATOR_EXECUTABLE_FILENAME, generatorVersion);
-    Path generatorExecutablePath = this.generatorExecutablePath.resolve(generatorExecutableFileName);
+    Assert.checkNullIllegalState(defaultGeneratorVersion, "Generator version not set");
+    GeneratorOptionsTask generatorOptionsTask = applicationContext.getBean(GeneratorOptionsTask.class);
+    Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
+    generatorOptionsTask.setVersion(defaultGeneratorVersion);
+    generatorOptionsTask.setQuery("--styles");
+    generatorOptionsTask.setGeneratorExecutableFile(generatorExecutablePath);
+    return taskService.submitTask(generatorOptionsTask).getFuture();
+  }
 
-    CompletableFuture<Void> downloadTask;
-
-    if (!Files.exists(generatorExecutablePath)) {
-      if (!VERSION_PATTERN.matcher(generatorVersion.toString()).matches()) {
-        log.warn("Unsupported generator version: {}", generatorVersion);
-        return CompletableFuture.failedFuture(new UnsupportedVersionException("Unsupported generator version: " + generatorVersion));
-      }
-
-      log.info("Downloading MapGenerator version: {}", generatorVersion);
-      DownloadMapGeneratorTask downloadMapGeneratorTask = applicationContext.getBean(DownloadMapGeneratorTask.class);
-      downloadMapGeneratorTask.setVersion(generatorVersion.toString());
-      downloadTask = taskService.submitTask(downloadMapGeneratorTask).getFuture();
-    } else {
-      downloadTask = CompletableFuture.completedFuture(null);
-    }
-    return downloadTask.thenCompose(aVoid -> {
-      GeneratorOptionsTask generatorOptionsTask = applicationContext.getBean(GeneratorOptionsTask.class);
-      generatorOptionsTask.setVersion(generatorVersion);
-      generatorOptionsTask.setQuery("--styles");
-      generatorOptionsTask.setGeneratorExecutableFile(generatorExecutablePath);
-      return taskService.submitTask(generatorOptionsTask).getFuture();
-    });
+  @NotNull
+  public Path getGeneratorExecutablePath(ComparableVersion defaultGeneratorVersion) {
+    return preferencesService.getPreferences().getData().getMapGeneratorDirectory().resolve(String.format(GENERATOR_EXECUTABLE_FILENAME, defaultGeneratorVersion));
   }
 
   public boolean isGeneratedMap(String mapName) {

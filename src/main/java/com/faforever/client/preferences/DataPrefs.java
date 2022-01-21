@@ -21,6 +21,7 @@ public class DataPrefs {
   private static final String CACHE_STYLESHEETS_SUB_FOLDER = Path.of(CACHE_SUB_FOLDER, "stylesheets").toString();
   private static final String THEMES_SUB_FOLDER = "themes";
   private static final String LANGUAGES_SUB_FOLDER = "languages";
+  public static final String GENERATOR_EXECUTABLE_SUB_DIRECTORY = "map_generator";
 
   static {
     if (org.bridj.Platform.isWindows()) {
@@ -74,5 +75,9 @@ public class DataPrefs {
 
   public Path getLanguagesDirectory() {
     return getBaseDataDirectory().resolve(LANGUAGES_SUB_FOLDER);
+  }
+
+  public Path getMapGeneratorDirectory() {
+    return getBaseDataDirectory().resolve(GENERATOR_EXECUTABLE_SUB_DIRECTORY);
   }
 }

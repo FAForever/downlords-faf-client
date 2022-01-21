@@ -34,6 +34,7 @@ import static com.faforever.client.config.CacheNames.LEAGUE;
 import static com.faforever.client.config.CacheNames.LEAGUE_ENTRIES;
 import static com.faforever.client.config.CacheNames.MAPS;
 import static com.faforever.client.config.CacheNames.MAP_GENERATOR;
+import static com.faforever.client.config.CacheNames.MAP_GENERATOR_STYLES;
 import static com.faforever.client.config.CacheNames.MAP_PREVIEW;
 import static com.faforever.client.config.CacheNames.MATCHMAKER_POOLS;
 import static com.faforever.client.config.CacheNames.MATCHMAKER_QUEUES;
@@ -75,6 +76,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         new CaffeineCache(REPLAYS_MINE, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(REPLAYS_RECENT, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MAP_GENERATOR, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(MAP_GENERATOR_STYLES, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(LEADERBOARD, newBuilder().expireAfterWrite(5, MINUTES).build()),
         new CaffeineCache(LEAGUE, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(LEAGUE_ENTRIES, newBuilder().expireAfterWrite(1, MINUTES).build()),
