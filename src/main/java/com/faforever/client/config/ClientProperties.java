@@ -28,6 +28,7 @@ public class ClientProperties {
   private Api api = new Api();
   private Oauth oauth = new Oauth();
   private UnitDatabase unitDatabase = new UnitDatabase();
+  private FAFDebugger fafDebugger = new FAFDebugger();
   private MapGenerator mapGenerator = new MapGenerator();
   private Website website = new Website();
   private Discord discord = new Discord();
@@ -190,6 +191,13 @@ public class ClientProperties {
     private String queryVersionsUrl;
     private int maxSupportedMajorVersion;
     private int minSupportedMajorVersion;
+  }
+
+  @Data
+  public static class FAFDebugger {
+    private String downloadUrlFormat;
+    private String repoAndOwnerName;
+    private String queryLatestVersionUrl;
   }
 
   @Data

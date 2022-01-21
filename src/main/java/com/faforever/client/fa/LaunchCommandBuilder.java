@@ -25,6 +25,7 @@ public class LaunchCommandBuilder {
   private static final Pattern QUOTED_STRING_PATTERN = Pattern.compile("([^\"]\\S*|\"+.+?\"+)\\s*");
   private static final String DEFAULT_EXECUTABLE_DECORATOR = "\"%s\"";
 
+  private Path debuggerExecutable;
   private Float mean;
   private Float deviation;
   private String country;
@@ -60,6 +61,11 @@ public class LaunchCommandBuilder {
       result.add(matcher.group(1).replace("\"", ""));
     }
     return result;
+  }
+
+  public LaunchCommandBuilder debuggerExecutable(Path debuggerExecutable) {
+    this.debuggerExecutable = debuggerExecutable;
+    return this;
   }
 
   public LaunchCommandBuilder localGpgPort(int localGpgPort) {
@@ -189,6 +195,11 @@ public class LaunchCommandBuilder {
     Assert.state(!(uid != null && username == null), "username has not been set");
 
     List<String> command = new ArrayList<>();
+
+    if (debuggerExecutable != null) {
+      command.add(debuggerExecutable.toAbsolutePath().toString());
+    }
+
     command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath() + "\"")));
     command.addAll(Arrays.asList(
         "/init", ForgedAlliancePrefs.INIT_FILE_NAME,

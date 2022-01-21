@@ -54,6 +54,7 @@ public class ForgedAlliancePrefs {
    */
   StringProperty executableDecorator = new SimpleStringProperty();
   ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
+  BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
@@ -157,5 +158,17 @@ public class ForgedAlliancePrefs {
 
   public Path getMapsDirectory() {
     return getVaultBaseDirectory().resolve(MAPS_SUB_FOLDER);
+  }
+
+  public boolean isRunFAWithDebugger() {
+    return runFAWithDebugger.get();
+  }
+
+  public BooleanProperty runFAWithDebuggerProperty() {
+    return runFAWithDebugger;
+  }
+
+  public void setRunFAWithDebugger(boolean runFAWithDebugger) {
+    this.runFAWithDebugger.set(runFAWithDebugger);
   }
 }
