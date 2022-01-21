@@ -60,7 +60,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
-import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -320,8 +319,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.invitePlayer("invitee");
 
-    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService).addNotification(captor.capture());
+    verify(notificationService).addImmediateWarnNotification(any());
   }
 
   @Test
@@ -332,16 +330,25 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     verify(fafServerAccessor).acceptPartyInvite(player);
     verify(eventBus).post(new OpenTeamMatchmakingEvent());
+  }
 
-
+  @Test
+  public void testAcceptInvitePlayerInQueue() {
     instance.currentlyInQueueProperty().set(true);
 
     instance.acceptPartyInvite(player);
 
-    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService).addNotification(captor.capture());
-    ImmediateNotification notification = captor.getValue();
-    assertThat(notification.getSeverity(), is(WARN));
+    verify(notificationService).addImmediateWarnNotification("teammatchmaking.notification.joinAlreadyInQueue.message");
+  }
+
+  @Test
+  public void testAcceptInviteGameRunning() {
+    instance.currentlyInQueueProperty().set(false);
+    when(gameService.isGameRunning()).thenReturn(true);
+
+    instance.acceptPartyInvite(player);
+
+    verify(notificationService).addImmediateWarnNotification("teammatchmaking.notification.gameRunning.message");
   }
 
   @Test
