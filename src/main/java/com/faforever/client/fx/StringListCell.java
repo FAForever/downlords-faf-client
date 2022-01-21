@@ -12,7 +12,6 @@ public class StringListCell<T> extends ListCell<T> {
   private final Function<T, Node> graphicFunction;
   private final Function<T, String> function;
   private final Pos alignment;
-  private final String[] cssClasses;
 
   public StringListCell(Function<T, String> function) {
     this(function, null);
@@ -25,7 +24,7 @@ public class StringListCell<T> extends ListCell<T> {
   public StringListCell(Function<T, String> function, Function<T, Node> graphicFunction, Pos alignment, String... cssClasses) {
     this.function = function;
     this.alignment = alignment;
-    this.cssClasses = cssClasses;
+    getStyleClass().addAll(cssClasses);
     this.graphicFunction = graphicFunction;
   }
 
@@ -43,7 +42,6 @@ public class StringListCell<T> extends ListCell<T> {
         }
         setText(Objects.toString(function.apply(item), ""));
         setAlignment(alignment);
-        getStyleClass().addAll(cssClasses);
       }
     });
   }
