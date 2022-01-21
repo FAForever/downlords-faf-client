@@ -13,6 +13,7 @@ import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
+import com.faforever.client.preferences.tasks.DeleteDirectoryTask;
 import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
@@ -286,5 +287,16 @@ public class SettingsControllerTest extends UITest {
     instance.onSelectGameLocation();
 
     verify(eventBus).post(any(GameDirectoryChooseEvent.class));
+  }
+
+  @Test
+  public void testClearCache() throws Exception {
+    DeleteDirectoryTask deleteDirectoryTask = mock(DeleteDirectoryTask.class);
+    when(applicationContext.getBean(DeleteDirectoryTask.class)).thenReturn(deleteDirectoryTask);
+    when(taskService.submitTask(any(DeleteDirectoryTask.class))).thenReturn(deleteDirectoryTask);
+    when(deleteDirectoryTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    instance.onClearCacheClicked();
+
+    verify(taskService).submitTask(any(DeleteDirectoryTask.class));
   }
 }
