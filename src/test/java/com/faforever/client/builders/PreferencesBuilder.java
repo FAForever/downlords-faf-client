@@ -317,6 +317,11 @@ public class PreferencesBuilder {
       forgedAlliancePrefs.setExecutionDirectory(executionDirectory);
       return this;
     }
+
+    public ForgedAlliancePrefsBuilder runFAFDebugger(boolean runFAFDebugger) {
+      forgedAlliancePrefs.setRunFAWithDebugger(runFAFDebugger);
+      return this;
+    }
   }
 
   public class GeneratorPrefsBuilder extends SubPreferencesBuilder {

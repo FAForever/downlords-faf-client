@@ -13,7 +13,6 @@ import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
-import com.faforever.client.preferences.tasks.DeleteDirectoryTask;
 import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
@@ -298,5 +297,26 @@ public class SettingsControllerTest extends UITest {
     instance.onClearCacheClicked();
 
     verify(taskService).submitTask(any(DeleteDirectoryTask.class));
+  }
+
+  @Test
+  public void testSetFAFDebuggerOn() throws Exception {
+    DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
+    when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
+    when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    instance.onUpdateDebuggerClicked();
+
+    verify(taskService).submitTask(any(DownloadFAFDebuggerTask.class));
+  }
+
+  @Test
+  public void testSetFAFDebuggerOnException() throws Exception {
+    DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
+    when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
+    when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    instance.onUpdateDebuggerClicked();
+
+    verify(taskService).submitTask(any(DownloadFAFDebuggerTask.class));
+    verify(notificationService).addImmediateErrorNotification(any(FakeTestException.class), eq("settings.fa.updateDebugger.failed"));
   }
 }

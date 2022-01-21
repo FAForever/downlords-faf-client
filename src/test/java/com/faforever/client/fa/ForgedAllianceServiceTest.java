@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +51,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
-    verify(preferencesService, times(3)).getPreferences();
   }
 
   @Test
@@ -63,7 +61,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewGameLogFile(gameLaunchMessage.getUid());
-    verify(preferencesService, times(3)).getPreferences();
   }
 
   @Test
@@ -72,7 +69,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
-    verify(preferencesService, times(3)).getPreferences();
   }
 
   @Test
@@ -82,6 +78,5 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewGameLogFile(0);
-    verify(preferencesService, times(3)).getPreferences();
   }
 }
