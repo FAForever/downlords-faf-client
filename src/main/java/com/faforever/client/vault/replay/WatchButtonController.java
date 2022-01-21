@@ -55,7 +55,7 @@ public class WatchButtonController implements Controller<Node> {
         new KeyFrame(Duration.seconds(1))
     );
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
-    watchButton.setIsCannotWatchSupplier(() -> !liveReplayService.canWatch(game));
+    watchButton.setIsCannotWatchSupplier(() -> !liveReplayService.canWatchReplay(game));
     initializeMenuItemsByDefault();
   }
 
@@ -64,7 +64,7 @@ public class WatchButtonController implements Controller<Node> {
     Assert.notNull(game.getStartTime(), "The game's start must not be null: " + game);
 
     this.game = game;
-    if (liveReplayService.canWatch(game)) {
+    if (liveReplayService.canWatchReplay(game)) {
       allowWatch();
     } else {
       initializeListeners();
@@ -126,7 +126,7 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void onFinished() {
-    if (liveReplayService.canWatch(game)) {
+    if (liveReplayService.canWatchReplay(game)) {
       delayTimeline.stop();
       allowWatch();
     } else {

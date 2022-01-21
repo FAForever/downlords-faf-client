@@ -51,7 +51,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     });
   }
 
-  public boolean canWatch(GameBean game) {
+  public boolean canWatchReplay(GameBean game) {
     Duration duration = getWatchDelayTime(game);
     return duration.isZero() || duration.isNegative();
   }

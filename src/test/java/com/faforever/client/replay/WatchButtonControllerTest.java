@@ -80,7 +80,7 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testButtonOnClickedWhenWatchAllowed() {
-    when(liveReplayService.canWatch(game)).thenReturn(true);
+    when(liveReplayService.canWatchReplay(game)).thenReturn(true);
     game.setStartTime(OffsetDateTime.now().minus(15, ChronoUnit.SECONDS));
 
     setGame(game);
