@@ -302,6 +302,7 @@ public class SettingsControllerTest extends UITest {
   @Test
   public void testSetFAFDebuggerOn() throws Exception {
     DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
+    when(applicationContext.getBean(DownloadFAFDebuggerTask.class)).thenReturn(downloadFAFDebuggerTask);
     when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
     when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     instance.onUpdateDebuggerClicked();
@@ -312,6 +313,7 @@ public class SettingsControllerTest extends UITest {
   @Test
   public void testSetFAFDebuggerOnException() throws Exception {
     DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
+    when(applicationContext.getBean(DownloadFAFDebuggerTask.class)).thenReturn(downloadFAFDebuggerTask);
     when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
     when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
     instance.onUpdateDebuggerClicked();
