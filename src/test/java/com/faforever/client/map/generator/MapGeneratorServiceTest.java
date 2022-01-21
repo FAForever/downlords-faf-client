@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.file.Files;
@@ -29,7 +30,9 @@ import java.util.concurrent.CompletionException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -115,7 +118,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     instance.generateMap(testMapNameNoGenerator).join();
 
     verify(taskService).submitTask(downloadMapGeneratorTask);
-    verify(downloadMapGeneratorTask).setVersion(versionNoGeneratorPresent.toString());
+    verify(downloadMapGeneratorTask).setVersion(versionNoGeneratorPresent);
 
     //See test below
     verify(taskService).submitTask(generateMapTask);
@@ -129,7 +132,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
 
     verify(generateMapTask).setVersion(versionGeneratorPresent);
     verify(generateMapTask).setSeed(seed);
-    verify(generateMapTask).setMapFilename(testMapNameGenerator);
+    verify(generateMapTask).setMapName(testMapNameGenerator);
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
@@ -156,56 +159,22 @@ public class MapGeneratorServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGenerateMapOptionMap() {
-    instance.setGeneratorVersion(versionGeneratorPresent);
-    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, numTeams, optionMap, GenerationType.CASUAL);
-    future.join();
+  public void testGenerateMapWithGeneratorOptions() {
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
+    GeneratorOptions generatorOptions = GeneratorOptions.builder().build();
+    instance.generateMap(generatorOptions).join();
 
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
     verify(generateMapTask).setVersion(versionGeneratorPresent);
-    verify(generateMapTask).setSpawnCount(spawnCount);
-    verify(generateMapTask).setMapSize(mapSize);
-    verify(generateMapTask).setNumTeams(numTeams);
-    verify(generateMapTask).setLandDensity(optionMap.get("landDensity"));
-    verify(generateMapTask).setMountainDensity(optionMap.get("mountainDensity"));
-    verify(generateMapTask).setPlateauDensity(optionMap.get("plateauDensity"));
-    verify(generateMapTask).setRampDensity(optionMap.get("rampDensity"));
-    verify(generateMapTask).setMexDensity(optionMap.get("mexDensity"));
-    verify(generateMapTask).setReclaimDensity(optionMap.get("reclaimDensity"));
-    verify(generateMapTask).setGenerationType(GenerationType.CASUAL);
-  }
-
-  @Test
-  public void testGenerateMapStyle() {
-    instance.setGeneratorVersion(versionGeneratorPresent);
-    CompletableFuture<String> future = instance.generateMap(spawnCount, mapSize, numTeams, "TEST");
-    future.join();
-
-    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
-    verify(generateMapTask).setVersion(versionGeneratorPresent);
-    verify(generateMapTask).setSpawnCount(spawnCount);
-    verify(generateMapTask).setMapSize(mapSize);
-    verify(generateMapTask).setNumTeams(numTeams);
-    verify(generateMapTask).setStyle("TEST");
-  }
-
-  @Test
-  public void testGenerateMapWithArgs() {
-    instance.setGeneratorVersion(versionGeneratorPresent);
-    CompletableFuture<String> future = instance.generateMapWithArgs("--help");
-    future.join();
-
-    String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
-    verify(generateMapTask).setGeneratorExecutableFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
-    verify(generateMapTask).setVersion(versionGeneratorPresent);
-    verify(generateMapTask).setCommandLineArgs("--help");
+    verify(generateMapTask).setGeneratorOptions(generatorOptions);
+    verify(generateMapTask, never()).setMapName(anyString());
+    verify(generateMapTask, never()).setSeed(anyString());
   }
 
   @Test
   public void testGetStyles() {
-    instance.setGeneratorVersion(versionGeneratorPresent);
+    ReflectionTestUtils.setField(instance, "defaultGeneratorVersion", versionGeneratorPresent);
     CompletableFuture<List<String>> future = instance.getGeneratorStyles();
     future.join();
 

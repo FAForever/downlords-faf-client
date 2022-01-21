@@ -388,27 +388,24 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onGenerateMapButtonClicked() {
-    onGenerateMap();
-  }
+    GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
+    mapGeneratorService.getNewestGenerator()
+        .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles())
+        .thenAccept(generateMapController::setStyles)
+        .thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
+          Pane root = generateMapController.getRoot();
+          generateMapController.setCreateGameController(this);
+          Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
+          dialog.setOnDialogClosed(event -> preferencesService.storeInBackground());
+          generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
-  private void onGenerateMap() {
-    try {
-      mapGeneratorService.setGeneratorVersion(mapGeneratorService.queryMaxSupportedVersion());
-      GenerateMapController generateMapController = uiService.loadFxml("theme/play/generate_map.fxml");
-      mapGeneratorService.downloadGeneratorIfNecessary(mapGeneratorService.getGeneratorVersion())
-          .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles().thenAccept(generateMapController::setStyles));
-
-      Pane root = generateMapController.getRoot();
-      generateMapController.setCreateGameController(this);
-      Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
-      dialog.setOnDialogClosed(event -> preferencesService.storeInBackground());
-      generateMapController.setOnCloseButtonClickedListener(dialog::close);
-
-      root.requestFocus();
-    } catch (Exception e) {
-      log.error("Map generation failed", e);
-      notificationService.addImmediateErrorNotification(e, "mapGenerator.generationFailed");
-    }
+          root.requestFocus();
+        }))
+        .exceptionally(throwable -> {
+          log.error("Opening map generation ui failed", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "mapGenerator.generationUIFailed");
+          return null;
+        });
   }
 
   public void onCreateButtonClicked() {

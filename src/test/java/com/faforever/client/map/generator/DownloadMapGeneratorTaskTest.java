@@ -4,6 +4,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.ServiceTest;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -59,8 +60,9 @@ public class DownloadMapGeneratorTaskTest extends ServiceTest {
   @Disabled("Cannot delete the temp directory")
   @Test
   public void testCall() throws Exception {
-    instance.setVersion("");//mock version to prevent a subdirectory with the name of the version
-    when(mapGeneratorService.getGeneratorExecutablePath()).thenReturn(downloadDirectory);
+    ComparableVersion version = new ComparableVersion("");
+    instance.setVersion(version);//mock version to prevent a subdirectory with the name of the version
+    when(mapGeneratorService.getGeneratorExecutablePath(version)).thenReturn(downloadDirectory);
 
     File generatorFile = Files.createFile(sourceDirectory.resolve("NeroxisGenMock.jar")).toFile();
     clientProperties.getMapGenerator().setDownloadUrlFormat(generatorFile.toURI().toURL() + "%1$s");

@@ -3,30 +3,32 @@ package com.faforever.client.game;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.GenerationType;
+import com.faforever.client.map.generator.GeneratorOptions;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,22 +51,24 @@ public class GenerateMapControllerTest extends UITest {
   private GenerateMapController instance;
 
   public void unbindProperties() {
-    preferences.getGenerator().spawnCountProperty().unbind();
-    preferences.getGenerator().mapSizeInKmProperty().unbind();
-    preferences.getGenerator().numTeamsProperty().unbind();
-    preferences.getGenerator().waterRandomProperty().unbind();
-    preferences.getGenerator().plateauRandomProperty().unbind();
-    preferences.getGenerator().mountainRandomProperty().unbind();
-    preferences.getGenerator().rampRandomProperty().unbind();
-    preferences.getGenerator().mexRandomProperty().unbind();
-    preferences.getGenerator().reclaimRandomProperty().unbind();
-    preferences.getGenerator().waterDensityProperty().unbind();
-    preferences.getGenerator().plateauDensityProperty().unbind();
-    preferences.getGenerator().mountainDensityProperty().unbind();
-    preferences.getGenerator().rampDensityProperty().unbind();
-    preferences.getGenerator().mexDensityProperty().unbind();
-    preferences.getGenerator().reclaimDensityProperty().unbind();
-    preferences.getGenerator().commandLineArgsProperty().unbind();
+    GeneratorPrefs generatorPrefs = preferences.getGenerator();
+    generatorPrefs.generationTypeProperty().unbind();
+    generatorPrefs.spawnCountProperty().unbind();
+    generatorPrefs.mapSizeInKmProperty().unbind();
+    generatorPrefs.numTeamsProperty().unbind();
+    generatorPrefs.waterRandomProperty().unbind();
+    generatorPrefs.plateauRandomProperty().unbind();
+    generatorPrefs.mountainRandomProperty().unbind();
+    generatorPrefs.rampRandomProperty().unbind();
+    generatorPrefs.mexRandomProperty().unbind();
+    generatorPrefs.reclaimRandomProperty().unbind();
+    generatorPrefs.waterDensityProperty().unbind();
+    generatorPrefs.plateauDensityProperty().unbind();
+    generatorPrefs.mountainDensityProperty().unbind();
+    generatorPrefs.rampDensityProperty().unbind();
+    generatorPrefs.mexDensityProperty().unbind();
+    generatorPrefs.reclaimDensityProperty().unbind();
+    generatorPrefs.commandLineArgsProperty().unbind();
   }
 
   @BeforeEach
@@ -647,148 +651,110 @@ public class GenerateMapControllerTest extends UITest {
   }
 
   @Test
-  public void testGetOptionMap() {
-    preferences.getGenerator().setWaterRandom(false);
-    preferences.getGenerator().setMountainRandom(false);
-    preferences.getGenerator().setPlateauRandom(false);
-    preferences.getGenerator().setRampRandom(false);
-    preferences.getGenerator().setMexRandom(false);
-    preferences.getGenerator().setReclaimRandom(false);
-    preferences.getGenerator().setWaterDensity(1);
-    preferences.getGenerator().setPlateauDensity(2);
-    preferences.getGenerator().setMountainDensity(3);
-    preferences.getGenerator().setRampDensity(4);
-    preferences.getGenerator().setMexDensity(5);
-    preferences.getGenerator().setReclaimDensity(6);
+  public void testGetGenerateMapWithName() {
+    runOnFxThreadAndWait(() -> instance.initialize());
+    instance.previousMapName.setText("neroxis_map_generator_0.0.0_12345");
+    instance.setOnCloseButtonClickedListener(() -> {});
+    when(mapGeneratorService.isGeneratedMap("neroxis_map_generator_0.0.0_12345")).thenReturn(true);
+    when(mapGeneratorService.generateMap(anyString())).thenReturn(CompletableFuture.completedFuture(null));
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    Map<String, Float> optionMap = instance.getOptionMap();
-
-    assertEquals(optionMap.get("landDensity"), 1 - 1 / 127f, 0);
-    assertEquals(optionMap.get("plateauDensity"), 2 / 127f, 0);
-    assertEquals(optionMap.get("mountainDensity"), 3 / 127f, 0);
-    assertEquals(optionMap.get("rampDensity"), 4 / 127f, 0);
-    assertEquals(optionMap.get("mexDensity"), 5 / 127f, 0);
-    assertEquals(optionMap.get("reclaimDensity"), 6 / 127f, 0);
+    verify(mapGeneratorService).generateMap("neroxis_map_generator_0.0.0_12345");
+    verify(mapGeneratorService, never()).generateMap(any(GeneratorOptions.class));
   }
 
   @Test
-  public void testGetOptionMapRandom() {
-    preferences.getGenerator().setWaterRandom(true);
-    preferences.getGenerator().setMountainRandom(true);
-    preferences.getGenerator().setPlateauRandom(true);
-    preferences.getGenerator().setRampRandom(true);
-    preferences.getGenerator().setMexRandom(true);
-    preferences.getGenerator().setReclaimRandom(true);
-
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    Map<String, Float> optionMap = instance.getOptionMap();
-
-    assertFalse(optionMap.containsKey("landDensity"));
-    assertFalse(optionMap.containsKey("mountainDensity"));
-    assertFalse(optionMap.containsKey("plateauDensity"));
-    assertFalse(optionMap.containsKey("rampDensity"));
-    assertFalse(optionMap.containsKey("mexDensity"));
-    assertFalse(optionMap.containsKey("reclaimDensity"));
-  }
-
-  @Test
-  public void testOnGenerateMapNoNameNoStyle() {
-    preferences.getGenerator().setWaterRandom(true);
-    preferences.getGenerator().setMountainRandom(true);
-    preferences.getGenerator().setPlateauRandom(true);
-    preferences.getGenerator().setRampRandom(true);
-    preferences.getGenerator().setMexRandom(true);
-    preferences.getGenerator().setReclaimRandom(true);
-
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
-
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.setOnCloseButtonClickedListener(() -> {
-    });
-    instance.setCreateGameController(createGameController);
-    instance.onGenerateMap();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(mapGeneratorService).generateMap(10, 512, 2, new HashMap<>(), GenerationType.CASUAL);
-  }
-
-  @Test
-  public void testOnGenerateMapSetStyle() {
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
-
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+  public void testGetGenerateMapNoNameNoRandom() {
+    GeneratorPrefs generatorPrefs = preferences.getGenerator();
+    generatorPrefs.setWaterRandom(false);
+    generatorPrefs.setMountainRandom(false);
+    generatorPrefs.setPlateauRandom(false);
+    generatorPrefs.setRampRandom(false);
+    generatorPrefs.setMexRandom(false);
+    generatorPrefs.setReclaimRandom(false);
+    generatorPrefs.setWaterDensity(1);
+    generatorPrefs.setPlateauDensity(2);
+    generatorPrefs.setMountainDensity(3);
+    generatorPrefs.setRampDensity(4);
+    generatorPrefs.setMexDensity(5);
+    generatorPrefs.setReclaimDensity(6);
+    generatorPrefs.setSpawnCount(2);
+    generatorPrefs.setNumTeams(2);
+    generatorPrefs.setMapSizeInKm(10.0);
+    generatorPrefs.setGenerationType(GenerationType.CASUAL);
 
     instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of("TEST")));
     instance.mapStyleComboBox.getSelectionModel().selectFirst();
-    instance.setOnCloseButtonClickedListener(() -> {
-    });
-    instance.setCreateGameController(createGameController);
-    instance.onGenerateMap();
-    WaitForAsyncUtils.waitForFxEvents();
 
-    verify(mapGeneratorService).generateMap(10, 512, 2, "TEST");
+    runOnFxThreadAndWait(() -> instance.initialize());
+
+    ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
+
+    runOnFxThreadAndWait(() -> instance.onGenerateMap());
+
+    verify(mapGeneratorService).generateMap(captor.capture());
+
+    GeneratorOptions result = captor.getValue();
+
+    assertEquals(1 - 1 / 127f, result.getLandDensity(), 0);
+    assertEquals(2 / 127f, result.getPlateauDensity(), 0);
+    assertEquals(3 / 127f, result.getMountainDensity(),  0);
+    assertEquals(4 / 127f, result.getRampDensity(), 0);
+    assertEquals(5 / 127f, result.getMexDensity(), 0);
+    assertEquals(6 / 127f, result.getReclaimDensity(), 0);
+    assertEquals(2, result.getSpawnCount());
+    assertEquals(512, result.getMapSize());
+    assertEquals(2, result.getNumTeams());
+    assertEquals(GenerationType.CASUAL, result.getGenerationType());
+    assertNull(result.getCommandLineArgs());
+    assertEquals("TEST", result.getStyle());
   }
 
   @Test
-  public void testOnGenerateMapRandomStyle() {
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+  public void testGetGenerateMapWithCommandLineArgs() {
+    GeneratorPrefs generatorPrefs = preferences.getGenerator();
+    generatorPrefs.setCommandLineArgs("--test");
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
-    instance.mapStyleComboBox.setItems(FXCollections.observableList(List.of(MapGeneratorService.GENERATOR_RANDOM_STYLE)));
-    instance.mapStyleComboBox.getSelectionModel().selectFirst();
-    instance.setOnCloseButtonClickedListener(() -> {
-    });
-    instance.setCreateGameController(createGameController);
-    instance.onGenerateMap();
-    WaitForAsyncUtils.waitForFxEvents();
+    ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
-    verify(mapGeneratorService).generateMap(10, 512, 2, new HashMap<>(), GenerationType.CASUAL);
+    runOnFxThreadAndWait(() -> instance.onGenerateMap());
+
+    verify(mapGeneratorService).generateMap(captor.capture());
+
+    GeneratorOptions result = captor.getValue();
+
+    assertEquals(result.getCommandLineArgs(), "--test");
   }
 
   @Test
-  public void testOnGenerateMapNoStyle() {
-    when(mapGeneratorService.generateMap(anyInt(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture("testname"));
+  public void testGetGenerateMapNoNameRandom() {
+    GeneratorPrefs generatorPrefs = preferences.getGenerator();
+    generatorPrefs.setWaterRandom(true);
+    generatorPrefs.setMountainRandom(true);
+    generatorPrefs.setPlateauRandom(true);
+    generatorPrefs.setRampRandom(true);
+    generatorPrefs.setMexRandom(true);
+    generatorPrefs.setReclaimRandom(true);
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.initialize());
 
-    instance.mapStyleComboBox.getSelectionModel().clearSelection();
+    ArgumentCaptor<GeneratorOptions> captor = ArgumentCaptor.forClass(GeneratorOptions.class);
 
-    instance.setOnCloseButtonClickedListener(() -> {
-    });
-    instance.setCreateGameController(createGameController);
-    instance.onGenerateMap();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.onGenerateMap());
 
-    verify(mapGeneratorService).generateMap(10, 512, 2, new HashMap<>(), GenerationType.CASUAL);
-  }
+    verify(mapGeneratorService).generateMap(captor.capture());
 
-  @Test
-  public void testOnGenerateMapCommandLineArgs() {
-    when(mapGeneratorService.generateMapWithArgs(anyString())).thenReturn(CompletableFuture.completedFuture("testname"));
+    GeneratorOptions result = captor.getValue();
 
-    WaitForAsyncUtils.asyncFx(() -> instance.initialize());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.commandLineArgsText.setText("--help");
-
-    instance.setOnCloseButtonClickedListener(() -> {
-    });
-    instance.setCreateGameController(createGameController);
-    instance.onGenerateMap();
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(mapGeneratorService).generateMapWithArgs("--help");
+    assertNull(result.getLandDensity());
+    assertNull(result.getPlateauDensity());
+    assertNull(result.getMountainDensity());
+    assertNull(result.getRampDensity());
+    assertNull(result.getMexDensity());
+    assertNull(result.getReclaimDensity());
   }
 }
 

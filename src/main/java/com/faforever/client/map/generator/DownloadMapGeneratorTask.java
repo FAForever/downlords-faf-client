@@ -10,6 +10,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -38,7 +39,7 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
   @Setter
   @Getter
   @VisibleForTesting
-  private String version;
+  private ComparableVersion version;
 
   @Inject
   public DownloadMapGeneratorTask(MapGeneratorService mapGeneratorService, ClientProperties clientProperties, I18n i18n, PlatformService platformService) {
@@ -60,8 +61,16 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
 
     URLConnection urlConnection = url.openConnection();
 
-    Path targetFile = mapGeneratorService.getGeneratorExecutablePath().resolve(String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, version));
+    Path targetFile = mapGeneratorService.getGeneratorExecutablePath(version);
     Path tempFile = Files.createTempFile(targetFile.getParent(), "generator", null);
+
+    if (!Files.exists(targetFile.getParent())) {
+      try {
+        Files.createDirectory(targetFile.getParent());
+      } catch (IOException e) {
+        log.error("Could not create map generator executable directory.", e);
+      }
+    }
 
     ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {

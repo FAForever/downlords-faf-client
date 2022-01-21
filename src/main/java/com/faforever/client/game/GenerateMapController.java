@@ -4,6 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.GenerationType;
+import com.faforever.client.map.generator.GeneratorOptions;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.map.generator.OutdatedVersionException;
 import com.faforever.client.map.generator.UnsupportedVersionException;
@@ -40,9 +41,7 @@ import org.springframework.stereotype.Component;
 import java.security.InvalidParameterException;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -270,21 +269,30 @@ public class GenerateMapController implements Controller<Pane> {
     return Optional.of(((byte) slider.getValue()) / 127f);
   }
 
-  protected Map<String, Float> getOptionMap() {
-    Map<String, Float> optionMap = new HashMap<>();
-    if (generationTypeComboBox.getValue() == GenerationType.CASUAL) {
-      getSliderValue(waterSlider, waterRandom).ifPresent(value -> optionMap.put("landDensity", 1 - value));
-      getSliderValue(plateauSlider, plateauRandom).ifPresent(value -> optionMap.put("plateauDensity", value));
-      getSliderValue(mountainSlider, mountainRandom).ifPresent(value -> optionMap.put("mountainDensity", value));
-      getSliderValue(rampSlider, rampRandom).ifPresent(value -> optionMap.put("rampDensity", value));
-      getSliderValue(mexSlider, mexRandom).ifPresent(value -> optionMap.put("mexDensity", value));
-      getSliderValue(reclaimSlider, reclaimRandom).ifPresent(value -> optionMap.put("reclaimDensity", value));
+  private GeneratorOptions getGeneratorOptions() {
+    GeneratorOptions.GeneratorOptionsBuilder optionsBuilder = GeneratorOptions.builder();
+    if (!commandLineArgsText.getText().isBlank()) {
+      optionsBuilder.commandLineArgs(commandLineArgsText.getText());
     }
-    return optionMap;
+
+    optionsBuilder.spawnCount(spawnCountSpinner.getValue());
+    optionsBuilder.mapSize((int) (mapSizeSpinner.getValue() * KM_TO_PIXEL_FACTOR));
+    optionsBuilder.numTeams(numTeamsSpinner.getValue());
+    optionsBuilder.generationType(generationTypeComboBox.getValue());
+    optionsBuilder.style(mapStyleComboBox.getValue());
+    getSliderValue(waterSlider, waterRandom).ifPresent(value -> optionsBuilder.landDensity(1 - value));
+    getSliderValue(plateauSlider, plateauRandom).ifPresent(optionsBuilder::plateauDensity);
+    getSliderValue(mountainSlider, mountainRandom).ifPresent(optionsBuilder::mountainDensity);
+    getSliderValue(rampSlider, rampRandom).ifPresent(optionsBuilder::rampDensity);
+    getSliderValue(mexSlider, mexRandom).ifPresent(optionsBuilder::mexDensity);
+    getSliderValue(reclaimSlider, reclaimRandom).ifPresent(optionsBuilder::reclaimDensity);
+    return optionsBuilder.build();
   }
 
   public void onCloseButtonClicked() {
-    onCloseButtonClickedListener.run();
+    if (onCloseButtonClickedListener != null) {
+      onCloseButtonClickedListener.run();
+    }
   }
 
   public void onGenerateMapButtonClicked() {
@@ -301,35 +309,25 @@ public class GenerateMapController implements Controller<Pane> {
         return;
       }
       generateFuture = mapGeneratorService.generateMap(previousMapName.getText());
-    } else if (!commandLineArgsText.getText().isBlank()) {
-      generateFuture = mapGeneratorService.generateMapWithArgs(commandLineArgsText.getText());
     } else {
-      int spawnCount = spawnCountSpinner.getValue();
-      int mapSize = (int) (mapSizeSpinner.getValue() * KM_TO_PIXEL_FACTOR);
-      int numTeams = numTeamsSpinner.getValue();
-      if (mapStyleComboBox.getValue() != null && !MapGeneratorService.GENERATOR_RANDOM_STYLE.equals(mapStyleComboBox.getValue())) {
-        String style = mapStyleComboBox.getValue();
-        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, numTeams, style);
-      } else {
-        GenerationType generationType = generationTypeComboBox.getValue();
-        generateFuture = mapGeneratorService.generateMap(spawnCount, mapSize, numTeams, getOptionMap(), generationType);
-      }
+      generateFuture = mapGeneratorService.generateMap(getGeneratorOptions());
     }
+
     generateFuture.thenAccept(mapName -> JavaFxUtil.runLater(() -> {
-      createGameController.initMapSelection();
-      createGameController.mapListView.getItems().stream()
-          .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
-          .findAny().ifPresent(mapBean -> {
-        createGameController.mapListView.getSelectionModel().select(mapBean);
-        createGameController.mapListView.scrollTo(mapBean);
-        createGameController.setSelectedMap(mapBean);
-      });
-    }))
+          createGameController.initMapSelection();
+          createGameController.mapListView.getItems().stream()
+              .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
+              .findAny().ifPresent(mapBean -> {
+                createGameController.mapListView.getSelectionModel().select(mapBean);
+                createGameController.mapListView.scrollTo(mapBean);
+                createGameController.setSelectedMap(mapBean);
+              });
+        }))
         .exceptionally(throwable -> {
           handleGenerationException(throwable);
           return null;
         });
-    onCloseButtonClickedListener.run();
+    onCloseButtonClicked();
   }
 
   private void handleGenerationException(Throwable e) {

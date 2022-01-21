@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,6 +26,17 @@ public class GeneratorCommandTest extends ServiceTest {
         .spawnCount(6)
         .numTeams(2)
         .generationType(GenerationType.CASUAL);
+  }
+
+  private static GeneratorCommandBuilder densityBuilder() {
+    return defaultBuilder()
+        .biome("biome")
+        .reclaimDensity(1f)
+        .mexDensity(1f)
+        .rampDensity(1f)
+        .plateauDensity(1f)
+        .mountainDensity(1f)
+        .landDensity(1f);
   }
 
   @Test
@@ -51,7 +63,7 @@ public class GeneratorCommandTest extends ServiceTest {
 
   @Test
   public void testMapNameNoException() {
-    List<String> command = GeneratorCommand.builder().mapFilename("neroxis_map_generator_1.0.0_0")
+    List<String> command = GeneratorCommand.builder().mapName("neroxis_map_generator_1.0.0_0")
         .generatorExecutableFile(Path.of("mapGenerator_1.0.0.jar"))
         .version(new ComparableVersion("1.0.0"))
         .build()
@@ -139,11 +151,77 @@ public class GeneratorCommandTest extends ServiceTest {
   }
 
   @Test
+  public void testStyleRemovesDensityArgs() {
+    List<String> command = densityBuilder().style("test").build().getCommand();
+    assertFalse(command.contains("--reclaim-density"));
+    assertFalse(command.contains("--mex-density"));
+    assertFalse(command.contains("--land-density"));
+    assertFalse(command.contains("--plateau-density"));
+    assertFalse(command.contains("--mountain-density"));
+    assertFalse(command.contains("--ramp-density"));
+  }
+
+  @Test
+  public void testMapNameRemovesArgs() {
+    List<String> command = densityBuilder().mapName("test").build().getCommand();
+    assertFalse(command.contains("--reclaim-density"));
+    assertFalse(command.contains("--mex-density"));
+    assertFalse(command.contains("--land-density"));
+    assertFalse(command.contains("--plateau-density"));
+    assertFalse(command.contains("--mountain-density"));
+    assertFalse(command.contains("--ramp-density"));
+    assertFalse(command.contains("--spawn-count"));
+    assertFalse(command.contains("--map-size"));
+    assertFalse(command.contains("--num-teams"));
+  }
+
+  @Test
+  public void testCommandLineRemovesArgs() {
+    List<String> command = densityBuilder().commandLineArgs("--test").build().getCommand();
+    assertFalse(command.contains("--reclaim-density"));
+    assertFalse(command.contains("--mex-density"));
+    assertFalse(command.contains("--land-density"));
+    assertFalse(command.contains("--plateau-density"));
+    assertFalse(command.contains("--mountain-density"));
+    assertFalse(command.contains("--ramp-density"));
+    assertFalse(command.contains("--spawn-count"));
+    assertFalse(command.contains("--map-size"));
+    assertFalse(command.contains("--num-teams"));
+  }
+
+  @Test
+  public void testNonCasualRemovesDensityArgs() {
+    List<String> command = densityBuilder().generationType(GenerationType.BLIND).build().getCommand();
+    assertFalse(command.contains("--reclaim-density"));
+    assertFalse(command.contains("--mex-density"));
+    assertFalse(command.contains("--land-density"));
+    assertFalse(command.contains("--plateau-density"));
+    assertFalse(command.contains("--mountain-density"));
+    assertFalse(command.contains("--ramp-density"));
+
+    command = densityBuilder().generationType(GenerationType.TOURNAMENT).build().getCommand();
+    assertFalse(command.contains("--reclaim-density"));
+    assertFalse(command.contains("--mex-density"));
+    assertFalse(command.contains("--land-density"));
+    assertFalse(command.contains("--plateau-density"));
+    assertFalse(command.contains("--mountain-density"));
+    assertFalse(command.contains("--ramp-density"));
+
+    command = densityBuilder().generationType(GenerationType.UNEXPLORED).build().getCommand();
+    assertFalse(command.contains("--reclaim-density"));
+    assertFalse(command.contains("--mex-density"));
+    assertFalse(command.contains("--land-density"));
+    assertFalse(command.contains("--plateau-density"));
+    assertFalse(command.contains("--mountain-density"));
+    assertFalse(command.contains("--ramp-density"));
+  }
+
+  @Test
   public void testVersion0() {
     List<String> command = defaultBuilder().version(new ComparableVersion("0.1.5"))
         .generatorExecutableFile(Path.of("mapGenerator_0.1.5.jar"))
         .seed("0")
-        .mapFilename("neroxis_map_generator_0.1.5_0")
+        .mapName("neroxis_map_generator_0.1.5_0")
         .build()
         .getCommand();
     assertEquals(command, List.of(javaPath, "-jar", Path.of("mapGenerator_0.1.5.jar").toAbsolutePath().toString(),

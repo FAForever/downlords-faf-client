@@ -15,7 +15,8 @@ public class GeneratorCommand {
 
   Path generatorExecutableFile;
   ComparableVersion version;
-  String mapFilename;
+  String mapName;
+  GeneratorOptions generatorOptions;
   Integer spawnCount;
   Integer numTeams;
   Integer mapSize;
@@ -30,7 +31,6 @@ public class GeneratorCommand {
   String style;
   String biome;
   String commandLineArgs;
-  String query;
 
   public List<String> getCommand() {
     String javaPath = Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
@@ -44,63 +44,63 @@ public class GeneratorCommand {
         return command;
       }
 
-      if (query != null) {
-        command.add(query);
+      if (mapName != null) {
+        command.addAll(Arrays.asList("--map-name", mapName));
         return command;
       }
 
-      if (mapFilename == null && (mapSize == null || spawnCount == null || numTeams == null)) {
+      if (mapSize == null || spawnCount == null || numTeams == null) {
         throw new IllegalStateException("Map generation parameters not properly set");
       }
 
-      if (mapFilename == null) {
-        command.addAll(Arrays.asList("--map-size", mapSize.toString(), "--spawn-count", spawnCount.toString(), "--num-teams", numTeams.toString()));
+      command.addAll(Arrays.asList("--map-size", mapSize.toString(), "--spawn-count", spawnCount.toString(), "--num-teams", numTeams.toString()));
 
-        if (style != null) {
-          command.addAll(Arrays.asList("--style", style));
-          return command;
+      if (generationType != null && generationType != GenerationType.CASUAL) {
+        switch (generationType) {
+          case BLIND -> command.add("--blind");
+          case TOURNAMENT -> command.add("--tournament-style");
+          case UNEXPLORED -> command.add("--unexplored");
         }
+        return command;
+      }
 
-        if (generationType != null) {
-          switch (generationType) {
-            case BLIND -> command.add("--blind");
-            case TOURNAMENT -> command.add("--tournament-style");
-            case UNEXPLORED -> command.add("--unexplored");
-            default -> {
-            }
-          }
-        }
+      if (style != null && !style.equals(MapGeneratorService.GENERATOR_RANDOM_STYLE)) {
+        command.addAll(Arrays.asList("--style", style));
+        return command;
+      }
 
-        if (landDensity != null) {
-          command.addAll(Arrays.asList("--land-density", landDensity.toString()));
-        }
-        if (mountainDensity != null) {
-          command.addAll(Arrays.asList("--mountain-density", mountainDensity.toString()));
-        }
-        if (plateauDensity != null) {
-          command.addAll(Arrays.asList("--plateau-density", plateauDensity.toString()));
-        }
-        if (rampDensity != null) {
-          command.addAll(Arrays.asList("--ramp-density", rampDensity.toString()));
-        }
-        if (mexDensity != null) {
-          command.addAll(Arrays.asList("--mex-density", mexDensity.toString()));
-        }
-        if (reclaimDensity != null) {
-          command.addAll(Arrays.asList("--reclaim-density", reclaimDensity.toString()));
-        }
-        if (biome != null) {
-          command.addAll(Arrays.asList("--biome", biome));
-        }
+      if (landDensity != null) {
+        command.addAll(Arrays.asList("--land-density", landDensity.toString()));
+      }
 
-      } else {
-        command.addAll(Arrays.asList("--map-name", mapFilename));
+      if (mountainDensity != null) {
+        command.addAll(Arrays.asList("--mountain-density", mountainDensity.toString()));
+      }
+
+      if (plateauDensity != null) {
+        command.addAll(Arrays.asList("--plateau-density", plateauDensity.toString()));
+      }
+
+      if (rampDensity != null) {
+        command.addAll(Arrays.asList("--ramp-density", rampDensity.toString()));
+      }
+
+      if (mexDensity != null) {
+        command.addAll(Arrays.asList("--mex-density", mexDensity.toString()));
+      }
+
+      if (reclaimDensity != null) {
+        command.addAll(Arrays.asList("--reclaim-density", reclaimDensity.toString()));
+      }
+
+      if (biome != null) {
+        command.addAll(Arrays.asList("--biome", biome));
       }
 
       return command;
     } else {
       return Arrays.asList(javaPath, "-jar", generatorExecutableFile.toAbsolutePath().toString(), ".",
-          String.valueOf(seed), version.toString(), mapFilename);
+          String.valueOf(seed), version.toString(), mapName);
     }
   }
 }
