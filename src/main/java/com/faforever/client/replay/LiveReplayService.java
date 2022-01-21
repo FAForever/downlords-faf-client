@@ -46,7 +46,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     watchDelaySeconds = clientProperties.getReplay().getWatchDelaySeconds();
     JavaFxUtil.addListener(gameService.gameRunningProperty(), (observable, oldValue, newValue) -> {
       if (newValue.equals(true) && trackingReplayProperty.getValue() != null) {
-        cancelScheduledTask();
+        stopTrackingReplay();
       }
     });
   }
@@ -58,13 +58,13 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   public Duration getWatchDelayTime(GameBean game) {
     Assert.notNull(game.getStartTime(), "Game's start time is null, in which case it shouldn't even be listed: " + game);
-    return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(clientProperties.getReplay().getWatchDelaySeconds())
+    return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(watchDelaySeconds)
     );
   }
 
   public void performActionWhenAvailable(GameBean game, LiveReplayAction action) {
     checkNullIllegalState(game.getId(), "No game id to schedule future task");
-    cancelScheduledTask();
+    stopTrackingReplay();
     trackingReplayProperty.set(new Pair<>(game.getId(), action));
     switch (action) {
       case NOTIFY_ME -> notifyUserWhenReplayIsAvailable(game);
@@ -74,7 +74,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   private void notifyUserWhenReplayIsAvailable(GameBean game) {
     futureTask = taskScheduler.schedule(() -> {
-      clearFutureReplayProperty();
+      clearTrackingReplayProperty();
       notificationService.addNotification(new TransientNotification(
           i18n.get("vault.liveReplays.notifyMe.replayAvailable", game.getTitle()),
           i18n.get("vault.liveReplays.notifyMe.replayAvailable.click"),
@@ -90,21 +90,21 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
           i18n.get("vault.liveReplays.scheduledRunReplay", 10)));
 
       futureTask = taskScheduler.schedule(() -> {
-        clearFutureReplayProperty();
+        clearTrackingReplayProperty();
         replayService.runLiveReplay(game.getId());
       }, Instant.from(OffsetDateTime.now().plusSeconds(10)));
 
     }, Instant.from(game.getStartTime().plusSeconds(watchDelaySeconds).minusSeconds(10)));
   }
 
-  private void clearFutureReplayProperty() {
+  private void clearTrackingReplayProperty() {
     trackingReplayProperty.set(null);
   }
 
-  public void cancelScheduledTask() {
+  public void stopTrackingReplay() {
     if (futureTask != null && !futureTask.isCancelled()) {
       futureTask.cancel(false);
-      clearFutureReplayProperty();
+      clearTrackingReplayProperty();
     }
     futureTask = null;
   }
@@ -115,7 +115,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   @Override
   public void destroy() throws Exception {
-    cancelScheduledTask();
+    stopTrackingReplay();
   }
 
   public enum LiveReplayAction {

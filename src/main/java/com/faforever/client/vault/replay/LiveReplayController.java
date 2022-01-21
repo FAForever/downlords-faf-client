@@ -21,7 +21,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
@@ -43,9 +42,6 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LiveReplayController extends AbstractViewController<Node> {
-
-  public static PseudoClass AVAILABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("available");
-  public static PseudoClass OBSERVABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("observable");
 
   private final GameService gameService;
   private final UiService uiService;

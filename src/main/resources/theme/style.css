@@ -1403,6 +1403,6 @@
   -fx-background-color: -fx-base;
 }
 
-.watch-button:observable {
+.watch-button:trackable {
   -fx-background-color: darkolivegreen;
 }

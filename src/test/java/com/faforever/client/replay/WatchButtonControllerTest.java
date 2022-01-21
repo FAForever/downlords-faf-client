@@ -6,7 +6,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.replay.LiveReplayController;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleObjectProperty;
@@ -59,7 +58,7 @@ public class WatchButtonControllerTest extends UITest {
     game.setStartTime(OffsetDateTime.now().minus(5, ChronoUnit.SECONDS));
 
     setGame(game);
-    assertThat(instance.watchButton.getPseudoClassStates().contains(LiveReplayController.AVAILABLE_PSEUDO_CLASS), is(false));
+    assertThat(instance.watchButton.getPseudoClassStates().contains(WatchButtonController.AVAILABLE_PSEUDO_CLASS), is(false));
   }
 
   @Test

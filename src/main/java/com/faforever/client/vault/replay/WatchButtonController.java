@@ -12,6 +12,7 @@ import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
+import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.util.Duration;
@@ -31,6 +32,9 @@ import static com.faforever.client.replay.LiveReplayService.LiveReplayAction.RUN
 @Slf4j
 @RequiredArgsConstructor
 public class WatchButtonController implements Controller<Node> {
+
+  public static final PseudoClass AVAILABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("available");
+  public static final PseudoClass TRACKABLE_PSEUDO_CLASS = PseudoClass.getPseudoClass("trackable");
 
   private final LiveReplayService liveReplayService;
   private final ReplayService replayService;
@@ -79,21 +83,21 @@ public class WatchButtonController implements Controller<Node> {
               switch (action) {
                 case NOTIFY_ME -> {
                   notifyMeItem.setText(i18n.get("vault.liveReplays.contextMenu.notifyMe.cancel"));
-                  notifyMeItem.setOnAction(event -> liveReplayService.cancelScheduledTask());
+                  notifyMeItem.setOnAction(event -> liveReplayService.stopTrackingReplay());
                 }
                 case RUN -> {
                   runReplayItem.setText(i18n.get("vault.liveReplays.contextMenu.runImmediately.cancel"));
-                  runReplayItem.setOnAction(event -> liveReplayService.cancelScheduledTask());
+                  runReplayItem.setOnAction(event -> liveReplayService.stopTrackingReplay());
                 }
               }
 
-              watchButton.pseudoClassStateChanged(LiveReplayController.OBSERVABLE_PSEUDO_CLASS, true);
+              watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, true);
               return;
             }
           }
 
           initializeMenuItemsByDefault();
-          watchButton.pseudoClassStateChanged(LiveReplayController.OBSERVABLE_PSEUDO_CLASS, false);
+          watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, false);
         });
     JavaFxUtil.addAndTriggerListener(liveReplayService.getTrackingReplayProperty(), trackingReplayPropertyListener);
   }
@@ -110,7 +114,7 @@ public class WatchButtonController implements Controller<Node> {
     JavaFxUtil.runLater(() -> {
       watchButton.setOnAction(event -> replayService.runLiveReplay(game.getId()));
       watchButton.setText(i18n.get("game.watch"));
-      watchButton.pseudoClassStateChanged(LiveReplayController.AVAILABLE_PSEUDO_CLASS, true);
+      watchButton.pseudoClassStateChanged(AVAILABLE_PSEUDO_CLASS, true);
     });
     removeListeners();
   }
