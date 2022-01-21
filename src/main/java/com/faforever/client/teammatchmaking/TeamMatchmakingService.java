@@ -323,12 +323,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   public void invitePlayer(String player) {
     if (isCurrentlyInQueue()) {
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.title"),
-          i18n.get("teammatchmaking.notification.inviteAlreadyInQueue.message"),
-          Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("dismiss")))
-      ));
+      notificationService.addImmediateWarnNotification("teammatchmaking.notification.inviteAlreadyInQueue.message");
       return;
     }
 
