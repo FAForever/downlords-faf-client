@@ -319,8 +319,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.invitePlayer("invitee");
 
-    ArgumentCaptor<ImmediateNotification> captor = ArgumentCaptor.forClass(ImmediateNotification.class);
-    verify(notificationService).addNotification(captor.capture());
+    verify(notificationService).addImmediateWarnNotification(any());
   }
 
   @Test
