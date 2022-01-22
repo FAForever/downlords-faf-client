@@ -1016,7 +1016,7 @@
                                                        text="%settings.data.clearCache.description"
                                                        GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
                                                        GridPane.rowIndex="1"/>
-                                                <Button fx:id="clearCacheButton" disable="true"
+                                                <Button fx:id="clearCacheButton" onAction="#onClearCacheClicked"
                                                         text="%settings.data.clearCache.button"
                                                         GridPane.columnIndex="1"/>
                                             </children>

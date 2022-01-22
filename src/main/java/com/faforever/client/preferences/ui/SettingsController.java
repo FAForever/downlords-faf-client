@@ -29,6 +29,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.preferences.WindowPrefs;
+import com.faforever.client.preferences.tasks.DeleteDirectoryTask;
 import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
@@ -683,6 +684,13 @@ public class SettingsController implements Controller<Node> {
       log.debug("Failed to add invalid URL: {}", text, e);
       notificationService.addImmediateWarnNotification("settings.data.mirrorURLs.add.error", e.getMessage());
     }
+  }
+
+  public void onClearCacheClicked() {
+    DeleteDirectoryTask deleteDirectoryTask = applicationContext.getBean(DeleteDirectoryTask.class);
+    deleteDirectoryTask.setDirectory(preferencesService.getPreferences().getData().getCacheDirectory());
+
+    taskService.submitTask(deleteDirectoryTask);
   }
 }
 
