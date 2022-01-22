@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -33,24 +34,22 @@ import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANC
 @Slf4j
 public class ForgedAllianceService {
 
+  public static final String DEBUGGER_EXE = "FAFDebugger.exe";
+
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
 
   public Process startGameOffline(String map) throws IOException {
-    Path executable = getExecutable();
-    List<String> launchCommand = LaunchCommandBuilder.create()
-        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
-        .executable(executable)
+    List<String> launchCommand = defaultLaunchCommand()
         .map(map)
         .logFile(loggingService.getNewGameLogFile(0))
         .build();
 
-    return launch(executable, launchCommand);
+    return launch(launchCommand);
   }
 
   public Process startGameOnline(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost) throws IOException {
-    Path executable = getExecutable();
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRatingBean> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
@@ -61,7 +60,6 @@ public class ForgedAllianceService {
 
     int uid = gameLaunchMessage.getUid();
     List<String> launchCommand = defaultLaunchCommand()
-        .executable(executable)
         .uid(uid)
         .faction(gameLaunchMessage.getFaction())
         .mapPosition(gameLaunchMessage.getMapPosition())
@@ -81,53 +79,59 @@ public class ForgedAllianceService {
         .rehost(rehost)
         .build();
 
-    return launch(executable, launchCommand);
+    return launch(launchCommand);
   }
 
 
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
-    Path executable = getExecutable();
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
     List<String> launchCommand = defaultLaunchCommand()
-        .executable(executable)
         .replayFile(path)
         .replayId(checkedReplayId)
         .logFile(loggingService.getNewGameLogFile(checkedReplayId))
         .build();
 
-    return launch(executable, launchCommand);
+    return launch(launchCommand);
   }
 
 
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
-    Path executable = getExecutable();
-
     List<String> launchCommand = defaultLaunchCommand()
-        .executable(executable)
         .replayUri(replayUri)
         .replayId(replayId)
         .logFile(loggingService.getNewGameLogFile(replayId))
         .username(playerService.getCurrentPlayer().getUsername())
         .build();
 
-    return launch(executable, launchCommand);
+    return launch(launchCommand);
   }
 
-  private Path getExecutable() {
+  public Path getExecutablePath() {
     return preferencesService.getPreferences().getData().getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
+  public Path getDebuggerExecutablePath() {
+    return preferencesService.getPreferences().getData().getBinDirectory().resolve(DEBUGGER_EXE);
+  }
+
   private LaunchCommandBuilder defaultLaunchCommand() {
-    return LaunchCommandBuilder.create()
-        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator());
+    LaunchCommandBuilder baseCommandBuilder = LaunchCommandBuilder.create()
+        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
+        .executable(getExecutablePath());
+
+    if (preferencesService.getPreferences().getForgedAlliance().isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
+      baseCommandBuilder = baseCommandBuilder.debuggerExecutable(getDebuggerExecutablePath());
+    }
+
+    return baseCommandBuilder;
   }
 
   @NotNull
-  private Process launch(Path executablePath, List<String> launchCommand) throws IOException {
+  private Process launch(List<String> launchCommand) throws IOException {
     Path executeDirectory = preferencesService.getPreferences().getForgedAlliance().getExecutionDirectory();
     if (executeDirectory == null) {
-      executeDirectory = executablePath.getParent();
+      executeDirectory = getExecutablePath().getParent();
     }
 
     ProcessBuilder processBuilder = new ProcessBuilder();

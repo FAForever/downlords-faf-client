@@ -3,6 +3,7 @@ package com.faforever.client.preferences.ui;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -116,6 +117,7 @@ public class SettingsController implements Controller<Node> {
   public TextField gameLocationTextField;
   public TextField vaultLocationTextField;
   public CheckBox autoDownloadMapsToggle;
+  public CheckBox useFAFDebuggerToggle;
   public TextField maxMessagesTextField;
   public CheckBox imagePreviewToggle;
   public CheckBox enableNotificationsToggle;
@@ -328,7 +330,14 @@ public class SettingsController implements Controller<Node> {
     forceRelayToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.forceRelayProperty());
     gameLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.installationPathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.autoDownloadMapsProperty());
+    useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
     vaultLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
+
+    useFAFDebuggerToggle.selectedProperty().addListener(((observable, oldValue, newValue) -> {
+      if (newValue && !oldValue) {
+        onUpdateDebuggerClicked();
+      }
+    }));
 
     executableDecoratorField.textProperty().bindBidirectional(forgedAlliancePrefs.executableDecoratorProperty());
     executionDirectoryField.textProperty().bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
@@ -660,6 +669,15 @@ public class SettingsController implements Controller<Node> {
       log.error("Game.prefs patch failed", e);
       notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
     }
+  }
+
+  public void onUpdateDebuggerClicked() {
+    DownloadFAFDebuggerTask downloadFAFDebuggerTask = applicationContext.getBean(DownloadFAFDebuggerTask.class);
+    taskService.submitTask(downloadFAFDebuggerTask).getFuture().exceptionally(throwable -> {
+      useFAFDebuggerToggle.setSelected(false);
+      notificationService.addImmediateErrorNotification(throwable, "settings.fa.updateDebugger.failed");
+      return null;
+    });
   }
 
   public void onAddMirrorURL() {

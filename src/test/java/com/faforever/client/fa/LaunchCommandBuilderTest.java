@@ -14,6 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -360,6 +361,13 @@ public class LaunchCommandBuilderTest extends ServiceTest {
     assertThat(
         defaultBuilder().executableDecorator(null).build(),
         equalTo(defaultBuilder().build())
+    );
+  }
+
+  @Test
+  public void testUseDebugger() throws Exception {
+    assertEquals(Path.of("debugger").toAbsolutePath().toString(),
+        defaultBuilder().debuggerExecutable(Path.of("debugger")).build().get(0)
     );
   }
 }

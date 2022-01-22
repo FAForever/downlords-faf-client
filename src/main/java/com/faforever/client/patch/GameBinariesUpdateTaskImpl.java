@@ -1,6 +1,7 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameUpdateException;
 import com.faforever.client.i18n.I18n;
@@ -29,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.setAttribute;
@@ -57,6 +57,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
       "zlibwapi.dll"
   );
 
+  private final ForgedAllianceService forgedAllianceService;
   private final I18n i18n;
   private final PreferencesService preferencesService;
   private final PlatformService platformService;
@@ -65,9 +66,10 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
   private Integer version;
 
-  public GameBinariesUpdateTaskImpl(I18n i18n, PreferencesService preferencesService, PlatformService platformService, ClientProperties clientProperties) {
+  public GameBinariesUpdateTaskImpl(ForgedAllianceService forgedAllianceService, I18n i18n, PreferencesService preferencesService, PlatformService platformService, ClientProperties clientProperties) {
     super(Priority.HIGH);
 
+    this.forgedAllianceService = forgedAllianceService;
     this.i18n = i18n;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
@@ -81,7 +83,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     Assert.checkNullIllegalState(version, "Field 'version' must not be null");
     log.info("Updating binaries to {}", version);
 
-    Path exePath = preferencesService.getPreferences().getData().getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+    Path exePath = forgedAllianceService.getExecutablePath();
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);

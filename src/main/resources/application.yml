@@ -48,6 +48,11 @@ faf-client:
     maxSupportedMajorVersion: 1
     minSupportedMajorVersion: 0
 
+  faf-debugger:
+    repoAndOwnerName: FAForever/FADeepProbe
+    queryLatestVersionUrl: https://api.github.com/repos/${faf-client.faf-debugger.repoAndOwnerName}/releases/latest
+    downloadUrlFormat: https://github.com/${faf-client.faf-debugger.repoAndOwnerName}/releases/download/%1$s/FADeepProbe.exe
+
   translation-project-url: https://poeditor.com/join/project/2oWfdaZQZj
   client-config-url: https://content.faforever.com/dfc-config.json
   client-config-connect-timeout: 10s

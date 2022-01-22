@@ -2,6 +2,7 @@ package com.faforever.client.preferences.ui;
 
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
@@ -17,6 +18,7 @@ import com.faforever.client.preferences.tasks.DeleteDirectoryTask;
 import com.faforever.client.preferences.tasks.MoveDirectoryTask;
 import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
@@ -52,6 +54,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -298,5 +301,28 @@ public class SettingsControllerTest extends UITest {
     instance.onClearCacheClicked();
 
     verify(taskService).submitTask(any(DeleteDirectoryTask.class));
+  }
+
+  @Test
+  public void testSetFAFDebuggerOn() throws Exception {
+    DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
+    when(applicationContext.getBean(DownloadFAFDebuggerTask.class)).thenReturn(downloadFAFDebuggerTask);
+    when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
+    when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
+    instance.onUpdateDebuggerClicked();
+
+    verify(taskService).submitTask(any(DownloadFAFDebuggerTask.class));
+  }
+
+  @Test
+  public void testSetFAFDebuggerOnException() throws Exception {
+    DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
+    when(applicationContext.getBean(DownloadFAFDebuggerTask.class)).thenReturn(downloadFAFDebuggerTask);
+    when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
+    when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    instance.onUpdateDebuggerClicked();
+
+    verify(taskService).submitTask(any(DownloadFAFDebuggerTask.class));
+    verify(notificationService).addImmediateErrorNotification(any(FakeTestException.class), eq("settings.fa.updateDebugger.failed"));
   }
 }
