@@ -133,6 +133,10 @@ public class LiveReplayServiceTest extends UITest {
   public void testStopTrackingReplayWhenTaskIsScheduled() {
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
+    ScheduledFuture mockFutureTask = mock(ScheduledFuture.class);
+    when(taskScheduler.schedule(any(), any(Instant.class))).thenReturn(mockFutureTask);
+    when(mockFutureTask.isCancelled()).thenReturn(false);
+
     instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
     assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingReplayProperty().getValue());
     instance.stopTrackingReplay();
