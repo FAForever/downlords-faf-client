@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<GridPane fx:id="createGameRoot" hgap="10.0" styleClass="create-game-root" vgap="10.0"
+<GridPane fx:id="createGameRoot" hgap="10.0" vgap="10.0"
           xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.game.CreateGameController">
     <columnConstraints>
@@ -47,8 +47,7 @@
         <HBox alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="2"
               GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
             <children>
-                <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY"
-                       GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY"/>
                 <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0"
                            promptText="%games.create.minRating" HBox.hgrow="NEVER"/>
                 <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0"
@@ -76,7 +75,7 @@
 
         <!-- Map List -->
         <Label styleClass="h2" text="%game.create.map" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
-        <VBox GridPane.columnIndex="2" GridPane.rowIndex="4">
+        <VBox GridPane.columnIndex="2" GridPane.rowIndex="4" >
             <children>
                 <HBox alignment="CENTER_RIGHT">
                     <children>
@@ -117,7 +116,7 @@
                     </children>
                 </VBox>
             </StackPane>
-            <HBox alignment="CENTER" spacing="10.0">
+            <HBox alignment="CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
                 <Label fx:id="mapSizeLabel" text="&lt;Size&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <graphic>
                         <Region styleClass="icon,map-size-icon"/>
@@ -130,8 +129,8 @@
                 </Label>
                 <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
             </HBox>
-            <Separator GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"/>
-            <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+            <Separator/>
+            <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" prefViewportHeight="200">
                 <Label fx:id="mapDescriptionLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
                        maxWidth="1.7976931348623157E308" text="&lt;Description&gt;" wrapText="true"/>
             </ScrollPane>
@@ -149,14 +148,14 @@
 
         <!-- Cancel, Ok -->
         <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCloseButtonClicked"
-                styleClass="more-button-padding" text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
+                text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
                 GridPane.rowIndex="6">
             <GridPane.margin>
                 <Insets/>
             </GridPane.margin>
         </Button>
         <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false"
-                onAction="#onCreateButtonClicked" styleClass="more-button-padding" text="%game.create.create"
+                onAction="#onCreateButtonClicked" text="%game.create.create"
                 GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
             <GridPane.margin>
                 <Insets top="15"/>
