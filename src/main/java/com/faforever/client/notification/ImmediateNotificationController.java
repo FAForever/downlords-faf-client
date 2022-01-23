@@ -2,10 +2,12 @@ package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.notification.Action.Type;
 import com.faforever.client.ui.dialog.DialogLayout;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
@@ -80,11 +82,9 @@ public class ImmediateNotificationController implements Controller<Node> {
       }
     });
 
-    switch (action.getType()) {
-      case OK_DONE:
-        button.getStyleClass().add("dialog-accept");
-        ButtonBar.setButtonData(button, ButtonBar.ButtonData.OK_DONE);
-        break;
+    if (action.getType() == Type.OK_DONE) {
+      button.getStyleClass().add("dialog-accept");
+      ButtonBar.setButtonData(button, ButtonData.OK_DONE);
     }
 
     return button;
