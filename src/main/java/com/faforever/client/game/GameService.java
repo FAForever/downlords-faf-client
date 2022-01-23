@@ -21,6 +21,7 @@ import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
@@ -88,6 +89,7 @@ import java.util.regex.Pattern;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
+import static com.faforever.client.notification.Severity.WARN;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -650,7 +652,13 @@ public class GameService implements InitializingBean {
       });
 
       if (exitCode != 0 && !gameKilled) {
-        notificationService.addImmediateWarnNotification("game.crash", exitCode, logFile.map(Path::toString).orElse(""));
+        notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
+            i18n.get("game.crash", exitCode, logFile.map(Path::toString).orElse("")),
+            WARN,
+            List.of(
+                new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(LoggingService.FAF_LOG_DIRECTORY))),
+                new DismissAction(i18n))
+        ));
       }
 
       synchronized (gameRunning) {
