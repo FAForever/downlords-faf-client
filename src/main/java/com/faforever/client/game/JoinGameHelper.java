@@ -22,10 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-
-import static java.util.Arrays.asList;
 
 @Component
 @Slf4j
@@ -95,7 +94,7 @@ public class JoinGameHelper {
         i18n.get("game.joinGameRatingConfirmation.title"),
         i18n.get("game.joinGameRatingConfirmation.text", game.getRatingMin(), game.getRatingMax(), playerRating),
         Severity.INFO,
-        asList(
+        List.of(
             new Action(i18n.get("game.join"), event -> this.join(game, password, true)),
             new Action(i18n.get("game.cancel"))
         )

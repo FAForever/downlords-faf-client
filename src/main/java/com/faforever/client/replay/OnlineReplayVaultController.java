@@ -10,9 +10,7 @@ import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.SearchablePropertyMappings;
@@ -195,7 +193,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
       if (replay.isPresent()) {
         JavaFxUtil.runLater(() -> onDisplayDetails(replay.get()));
       } else {
-        notificationService.addNotification(new ImmediateNotification(i18n.get("replay.notFoundTitle"), i18n.get("replay.replayNotFoundText", replayId), Severity.WARN));
+        notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId);
       }
     });
   }
