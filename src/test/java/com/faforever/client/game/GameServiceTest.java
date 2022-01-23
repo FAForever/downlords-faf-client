@@ -22,6 +22,7 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.patch.GameUpdater;
@@ -832,5 +833,19 @@ public class GameServiceTest extends ServiceTest {
     verify(mapService, never()).download(any());
     verify(replayServer).start(eq(game.getId()), any());
     verify(iceAdapter).stop();
+  }
+
+  @Test
+  public void spawnTerminationListenerTest() throws IOException {
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
+    when(process.exitValue()).thenReturn(-1);
+
+    instance.spawnTerminationListener(process, true).join();
+
+    verify(loggingService).getMostRecentGameLogFile();
+    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(fafServerAccessor).notifyGameEnded();
+    verify(iceAdapter).stop();
+    verify(replayServer).stop();
   }
 }
