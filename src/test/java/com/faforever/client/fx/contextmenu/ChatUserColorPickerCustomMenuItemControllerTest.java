@@ -96,15 +96,23 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
 
   @Test
   public void testVisibleItem() {
-    runOnFxThreadAndWait(() -> instance.initialize());
+    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create("junit").color(Color.BLACK).get();
+    runOnFxThreadAndWait(() -> {
+      instance.initialize();
+      instance.setObject(chatChannelUser);
+    });
     assertTrue(instance.getRoot().isVisible());
   }
 
   @Test
-  public void testInvisibleItem() {
+  public void testInvisibleItemWhenChatColorModeIsRandom() {
+    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create("junit").color(Color.BLACK).get();
     preferences = PreferencesBuilder.create().chatPrefs().chatColorMode(ChatColorMode.RANDOM).then().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    runOnFxThreadAndWait(() -> instance.initialize());
+    runOnFxThreadAndWait(() -> {
+      instance.initialize();
+      instance.setObject(chatChannelUser);
+    });
     assertFalse(instance.getRoot().isVisible());
   }
 }

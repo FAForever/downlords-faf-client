@@ -9,9 +9,11 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -35,27 +37,31 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
   private final EventBus eventBus;
 
   private ChatPrefs chatPrefs;
+  private InvalidationListener colorPickerValuePropertyListener;
+  private InvalidationListener chatColorModePropertyListener;
 
   @Override
   public void initialize() {
     chatPrefs = preferencesService.getPreferences().getChat();
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
     JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
-    WeakInvalidationListener weakChatColorModePropertyListener = new WeakInvalidationListener((observable) -> JavaFxUtil.runLater(() -> {
-      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
-      removeCustomColorButton.setVisible(!chatColorMode.equals(RANDOM) && colorPicker.getValue() != null);
-      getRoot().setVisible(!chatColorMode.equals(RANDOM));
-    }));
-    JavaFxUtil.addListener(colorPicker.valueProperty(), weakChatColorModePropertyListener);
-    JavaFxUtil.addAndTriggerListener(chatPrefs.chatColorModeProperty(), weakChatColorModePropertyListener);
   }
 
   @Override
   public void afterSetObject() {
     Assert.checkNullIllegalState(object, "no chat user has been set");
-    ChatChannelUser chatUser = object;
-    colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(getLowerUsername(chatUser), null));
-    JavaFxUtil.addListener(colorPicker.valueProperty(), (observable, oldValue, newValue) -> {
+    colorPicker.setValue(chatPrefs.getUserToColor().getOrDefault(getLowerUsername(object), null));
+    initializeListeners();
+  }
+
+  private void initializeListeners() {
+    chatColorModePropertyListener = (observable) -> JavaFxUtil.runLater(() -> {
+      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
+      removeCustomColorButton.setVisible(!chatColorMode.equals(RANDOM) && colorPicker.getValue() != null);
+      getRoot().setVisible(isItemVisible());
+    });
+    colorPickerValuePropertyListener = (observable) -> {
+      ChatChannelUser chatUser = object;
       ChatUserCategory userCategory;
       if (chatUser.isModerator()) {
         userCategory = ChatUserCategory.MODERATOR;
@@ -66,15 +72,25 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
           default -> ChatUserCategory.OTHER;
         }).orElse(ChatUserCategory.OTHER);
       }
-      if (newValue == null) {
+      Color newColor = colorPicker.getValue();
+      if (newColor == null) {
         chatPrefs.getUserToColor().remove(getLowerUsername(chatUser));
         chatUser.setColor(chatPrefs.getGroupToColor().getOrDefault(userCategory, null));
       } else {
-        chatPrefs.getUserToColor().put(getLowerUsername(chatUser), newValue);
-        chatUser.setColor(newValue);
+        chatPrefs.getUserToColor().put(getLowerUsername(chatUser), newColor);
+        chatUser.setColor(newColor);
       }
       eventBus.post(new ChatUserColorChangeEvent(chatUser));
-    });
+    };
+    WeakInvalidationListener weakChatColorModePropertyListener = new WeakInvalidationListener(chatColorModePropertyListener);
+    JavaFxUtil.addListener(colorPicker.valueProperty(), weakChatColorModePropertyListener);
+    JavaFxUtil.addAndTriggerListener(chatPrefs.chatColorModeProperty(), weakChatColorModePropertyListener);
+    JavaFxUtil.addListener(colorPicker.valueProperty(), new WeakInvalidationListener(colorPickerValuePropertyListener));
+  }
+
+  @Override
+  protected boolean isItemVisible() {
+    return object != null && !chatPrefs.getChatColorMode().equals(RANDOM);
   }
 
   private String getLowerUsername(ChatChannelUser chatUser) {

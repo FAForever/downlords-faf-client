@@ -4,11 +4,14 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.util.Assert;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.scene.image.ImageView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -28,23 +31,42 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
 
   public ComboBox<AvatarBean> avatarComboBox;
 
+  private AvatarBean noAvatar;
+  private InvalidationListener selectedItemPropertyListener;
+
   @Override
   public void afterSetObject() {
     if (object != null && object.getSocialStatus() == SELF) {
+      selectedItemPropertyListener = observable -> {
+        AvatarBean selectedAvatar = avatarComboBox.getSelectionModel().getSelectedItem();
+        object.setAvatar(selectedAvatar);
+        avatarService.changeAvatar(Objects.requireNonNullElse(selectedAvatar, noAvatar));
+      };
+
+      avatarComboBox.setCellFactory(param -> avatarCell());
+      avatarComboBox.setButtonCell(avatarCell());
+
+      noAvatar = new AvatarBean();
+      noAvatar.setDescription(i18n.get("chat.userContext.noAvatar"));
       loadAvailableAvatars();
     }
   }
 
+  private StringListCell<AvatarBean> avatarCell() {
+    return new StringListCell<>(
+        AvatarBean::getDescription,
+        avatarBean -> new ImageView(avatarService.loadAvatar(avatarBean)));
+  }
+
   @Override
   protected boolean isItemVisible() {
-    return false;
+    return object != null && object.getSocialStatus() == SELF &&
+        avatarComboBox.getItems().size() > 1 && avatarComboBox.getItems().get(0).equals(noAvatar);
   }
 
   private void loadAvailableAvatars() {
     avatarService.getAvailableAvatars().thenAccept(avatars -> {
       ObservableList<AvatarBean> items = FXCollections.observableArrayList(avatars);
-      AvatarBean noAvatar = new AvatarBean();
-      noAvatar.setDescription(i18n.get("chat.userContext.noAvatar"));
       items.add(0, noAvatar);
 
       AvatarBean currentAvatar = object.getAvatar();
@@ -57,11 +79,8 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
 
         // Only after the box has been populated, and we selected the current value, we add the listener.
         // Otherwise, the code above already triggers a changeAvatar()
-        avatarComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-          object.setAvatar(newValue);
-          avatarService.changeAvatar(Objects.requireNonNullElse(newValue, noAvatar));
-        });
-        getRoot().setVisible(!(avatarComboBox.getItems().size() == 1 && avatarComboBox.getItems().get(0).equals(noAvatar)));
+        JavaFxUtil.addListener(avatarComboBox.getSelectionModel().selectedItemProperty(), new WeakInvalidationListener(selectedItemPropertyListener));
+        getRoot().setVisible(isItemVisible());
       });
     });
   }

@@ -161,7 +161,7 @@ public final class JavaFxUtil {
 
   public static void addCopyLabelContextMenuToLabel(ApplicationContext applicationContext, Label label) {
     label.setOnContextMenuRequested(event -> ContextMenuBuilder.newBuilder(applicationContext)
-        .addItem(CopyLabelMenuItem.class, label.getText())
+        .addItem(CopyLabelMenuItem.class, label)
         .build()
         .show(label.getScene().getWindow(), event.getScreenX(), event.getScreenY()));
   }

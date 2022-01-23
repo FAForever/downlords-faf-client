@@ -1,5 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.ContextMenu;
@@ -18,7 +19,6 @@ public class ContextMenuBuilder {
 
     private final ContextMenu contextMenu = new ContextMenu();
     private SeparatorMenuItem separator;
-    private BooleanProperty firstItemVisibleProperty;
     private BooleanBinding totalVisibleBinding;
 
     private Builder(ApplicationContext applicationContext) {
@@ -50,23 +50,18 @@ public class ContextMenuBuilder {
 
     private void bindVisiblePropertyToSeparator(BooleanProperty visibleProperty) {
       if (separator != null) {
-        if (firstItemVisibleProperty == null) {
-          separator.visibleProperty().bind(visibleProperty);
-          firstItemVisibleProperty = visibleProperty;
+        if (totalVisibleBinding == null) {
+          totalVisibleBinding = Bindings.createBooleanBinding(visibleProperty::get, visibleProperty);
         } else {
-          if (totalVisibleBinding == null) {
-            totalVisibleBinding = firstItemVisibleProperty.or(visibleProperty);
-          } else {
-            totalVisibleBinding = totalVisibleBinding.or(visibleProperty);
-          }
-          separator.visibleProperty().bind(totalVisibleBinding);
+          totalVisibleBinding = totalVisibleBinding.or(visibleProperty);
         }
+        separator.visibleProperty().unbind();
+        separator.visibleProperty().bind(totalVisibleBinding);
       }
     }
 
     public Builder addSeparator() {
       separator = new SeparatorMenuItem();
-      firstItemVisibleProperty = null;
       totalVisibleBinding = null;
       contextMenu.getItems().add(separator);
       return this;
