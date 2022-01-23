@@ -51,6 +51,8 @@ public class MapVaultControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock
+  private EventBus eventBus;
+  @Mock
   private PreferencesService preferencesService;
   @Mock
   private NotificationService notificationService;

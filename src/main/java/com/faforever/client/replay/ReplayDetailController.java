@@ -439,10 +439,8 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void onDeleteButtonClicked() {
     notificationService.addNotification(new ImmediateNotification(
-      String.format("%s %s",
-        i18n.get("replay.deleteNotification.heading"),
-        replay.getTitle()),
-        i18n.get("replay.deleteNotification.warning"),
+        i18n.get("replay.deleteNotification.heading", replay.getTitle()),
+        i18n.get("replay.deleteNotification.info"),
         Severity.INFO, Arrays.asList(
           new Action(i18n.get("cancel")),
           new Action(i18n.get("delete"), event -> deleteReplay())
