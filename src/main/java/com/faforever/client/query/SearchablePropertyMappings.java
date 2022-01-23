@@ -27,6 +27,7 @@ public class SearchablePropertyMappings {
       .put("id", new Property("game.id", true))
       .put("playerStats.player.id", new Property("game.player.id", false))
       .put("name", new Property("game.title", true))
+      .put("replayTicks", new Property("game.replayTicks", true))
       .put("startTime", new Property("game.startTime", true))
       .put("endTime", new Property("game.endTime", true))
       .put("validity", new Property("game.validity", true))

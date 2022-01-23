@@ -148,6 +148,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
         0, 3000, 100, (value) -> value + 300);
 
     searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
+    searchController.addRangeFilter("replayTicks", i18n.get("game.duration"), 0, 60, 1, value -> (int) (value*60*10));
     searchController.addToggleFilter("validity", i18n.get("game.onlyRanked"), "VALID");
 
   }
