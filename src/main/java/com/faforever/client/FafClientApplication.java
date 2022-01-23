@@ -45,8 +45,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
-
 @Configuration
 @ComponentScan
 @EnableConfigurationProperties({ClientProperties.class})
@@ -149,7 +147,7 @@ public class FafClientApplication extends Application {
       notificationService.addNotification(new ImmediateNotification(i18n.get("exitWarning.title"),
           i18n.get("exitWarning.message"),
           Severity.WARN,
-          asList(
+          List.of(
               new Action(i18n.get("yes"), ev -> {
                 Platform.exit();
               }),

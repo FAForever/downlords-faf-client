@@ -15,7 +15,6 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.Action.ActionCallback;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -246,12 +245,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
     if (gameService.isGameRunning()) {
       log.debug("Game is running, ignoring tmm queue join request");
-      notificationService.addNotification(new ImmediateNotification(
-          i18n.get("teammatchmaking.notification.gameAlreadyRunning.title"),
-          i18n.get("teammatchmaking.notification.gameAlreadyRunning.message"),
-          Severity.WARN,
-          Collections.singletonList(new Action(i18n.get("dismiss")))
-      ));
+      notificationService.addImmediateWarnNotification("teammatchmaking.notification.gameAlreadyRunning.message");
       return false;
     }
 

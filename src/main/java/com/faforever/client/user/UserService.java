@@ -7,9 +7,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
@@ -144,7 +142,7 @@ public class UserService implements InitializingBean {
 
   @Subscribe
   public void onSessionExpired(SessionExpiredEvent sessionExpiredEvent) {
-    notificationService.addNotification(new ImmediateNotification(i18n.get("session.expired.title"), i18n.get("session.expired.message"), Severity.INFO));
+    notificationService.addImmediateInfoNotification("session.expired.message");
   }
 
   @Override

@@ -7,7 +7,6 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -40,7 +39,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -162,6 +160,6 @@ public class OnlineReplayVaultControllerTest extends UITest {
   public void showReplayButReplayNotPresent() {
     when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
     runOnFxThreadAndWait(() -> instance.display(new ShowReplayEvent(123)));
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(notificationService).addImmediateWarnNotification(anyString(), anyInt());
   }
 }
