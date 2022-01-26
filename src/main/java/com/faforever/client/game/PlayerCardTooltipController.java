@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
@@ -21,6 +22,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -30,9 +33,11 @@ public class PlayerCardTooltipController implements Controller<Node> {
   @VisibleForTesting
   static final Image RANDOM_IMAGE = new Image("/images/factions/random.png");
   private final CountryFlagService countryFlagService;
+  private final AvatarService avatarService;
   private final I18n i18n;
   public Label playerInfo;
   public ImageView countryImageView;
+  public ImageView avatarImage;
   public Label foeIconText;
   public HBox root;
   public Label friendIconText;
@@ -53,6 +58,10 @@ public class PlayerCardTooltipController implements Controller<Node> {
     }
     setFactionIcon(faction);
     playerInfo.setText(playerInfoLocalized);
+    Optional.ofNullable(player.getAvatar()).ifPresent(avatar -> {
+      avatarImage.setImage(avatarService.loadAvatar(avatar));
+      Tooltip.install(avatarImage, new Tooltip(avatar.getDescription()));
+    });
     foeIconText.visibleProperty().bind(Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
     friendIconText.visibleProperty().bind(Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
   }

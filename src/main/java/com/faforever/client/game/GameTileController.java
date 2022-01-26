@@ -1,6 +1,8 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -15,6 +17,7 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -42,6 +45,7 @@ public class GameTileController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final ModService modService;
   private final PlayerService playerService;
+  private final AvatarService avatarService;
   public Node lockIconLabel;
   public Label gameTypeLabel;
   public Node gameCardRoot;
@@ -50,6 +54,7 @@ public class GameTileController implements Controller<Node> {
   public Label numberOfPlayersLabel;
   public Label avgRatingLabel;
   public Label hostLabel;
+  public ImageView avatarImageView;
   public Label modsLabel;
   public ImageView mapImageView;
   private Consumer<GameBean> onSelectedListener;
@@ -78,6 +83,10 @@ public class GameTileController implements Controller<Node> {
     JavaFxUtil.runLater(() -> {
       gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
       hostLabel.setText(game.getHost());
+      playerService.getPlayerByNameIfOnline(game.getHost()).map(PlayerBean::getAvatar).ifPresent(avatar -> {
+        avatarImageView.setImage(avatarService.loadAvatar(avatar));
+        Tooltip.install(avatarImageView, new Tooltip(avatar.getDescription()));
+      });
       gameMapLabel.setText(game.getMapFolderName());
       mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
       modsLabel.setText(getSimModsLabelContent(game.getSimMods()));

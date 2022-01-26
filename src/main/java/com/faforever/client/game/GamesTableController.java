@@ -1,10 +1,13 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -26,6 +29,7 @@ import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.SortEvent;
 import javafx.scene.control.TableCell;
@@ -36,6 +40,8 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +69,7 @@ public class GamesTableController implements Controller<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
+  private final AvatarService avatarService;
   private final PlayerService playerService;
   public TableView<GameBean> gamesTable;
   public TableColumn<GameBean, Image> mapPreviewColumn;
@@ -130,7 +137,7 @@ public class GamesTableController implements Controller<Node> {
     ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getRatingMin(), param.getValue().getRatingMax())));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
-    hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
+    hostColumn.setCellFactory(param -> new HostTableCell(playerService, avatarService));
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     coopMissionName.setVisible(coopMissionNameProvider != null);

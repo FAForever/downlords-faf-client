@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 
-<HBox fx:id="root" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController">
+<HBox fx:id="root" spacing="3.0" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController">
    <StackPane prefHeight="24.0" prefWidth="24.0" styleClass="faction-icon">
       <children>
          <Region fx:id="factionIcon" styleClass="icon" visible="false" />
@@ -23,6 +23,7 @@
          <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true" />
       </graphic>
    </Label>
+   <ImageView fx:id="avatarImage" fitHeight="20" fitWidth="40" pickOnBounds="true" preserveRatio="true" />
    <Label fx:id="foeIconText" minWidth="-Infinity">
       <graphic>
          <Region styleClass="icon,foe-icon" />

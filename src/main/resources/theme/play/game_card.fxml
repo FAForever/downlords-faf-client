@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
-<GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="gameCardRoot" hgap="10.0" onMouseClicked="#onClick"
-          styleClass="card, game-card, pointable, hoverable" vgap="5.0" xmlns="http://javafx.com/javafx/11.0.1"
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane fx:id="gameCardRoot" hgap="10.0" onMouseClicked="#onClick" styleClass="card, game-card, pointable, hoverable"
+          vgap="5.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.game.GameTileController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" prefWidth="140.0"/>
@@ -22,44 +18,61 @@
         <RowConstraints minHeight="10.0"/>
         <RowConstraints minHeight="10.0"/>
         <RowConstraints minHeight="10.0"/>
-        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     </rowConstraints>
     <children>
         <AnchorPane GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
             <children>
-                <ImageView fx:id="mapImageView" fitHeight="140.0" fitWidth="140.0" preserveRatio="true" />
-                <Region fx:id="lockIconLabel" layoutX="10.0" layoutY="10.0" styleClass="lock-icon,icon" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
-                <VBox alignment="BOTTOM_LEFT" styleClass="image-dimmer" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                <ImageView fx:id="mapImageView" fitHeight="140.0" fitWidth="140.0" preserveRatio="true"/>
+                <Region fx:id="lockIconLabel" layoutX="10.0" layoutY="10.0" styleClass="lock-icon,icon"
+                        AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+                <VBox alignment="BOTTOM_LEFT" styleClass="image-dimmer" AnchorPane.bottomAnchor="0.0"
+                      AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                     <children>
-                        <Label fx:id="gameMapLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-subtitle" text="&lt;Game Map&gt;" />
+                        <Label fx:id="gameMapLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
+                               text="&lt;Game Map&gt;"/>
                     </children>
                 </VBox>
             </children>
         </AnchorPane>
-        <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-title" text="&lt;Very long game title to see if wrapping works&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="0">
-         <padding>
-            <Insets top="5.0" />
-         </padding>
+        <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-title"
+               text="&lt;Very long game title to see if wrapping works&gt;" wrapText="true" GridPane.columnIndex="1"
+               GridPane.columnSpan="2147483647" GridPane.rowIndex="0">
+            <padding>
+                <Insets top="5.0"/>
+            </padding>
         </Label>
-        <Label fx:id="gameTypeLabel" minWidth="0.0" styleClass="card-featured-mod" text="&lt;Game Type&gt;" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
-          <Label fx:id="numberOfPlayersLabel" minWidth="0.0" styleClass="card-info" text="&lt;Number of Players&gt;" GridPane.columnIndex="1" GridPane.rowIndex="2">
-              <graphic>
-                  <Region styleClass="icon,players-icon" />
-              </graphic>
-          </Label>
-          <Label fx:id="avgRatingLabel" minWidth="0.0" styleClass="card-info" text="&lt;Avg&gt;" GridPane.columnIndex="2" GridPane.rowIndex="2">
-              <graphic>
-                  <Region styleClass="icon,statistics-icon" />
-              </graphic>
-          </Label>
-        <Label fx:id="hostLabel" maxHeight="1.7976931348623157E308" minWidth="0.0" styleClass="card-info" text="&lt;Host&gt;" GridPane.columnIndex="1" GridPane.rowIndex="3">
+        <Label fx:id="gameTypeLabel" minWidth="0.0" text="&lt;Game Type&gt;"
+               GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+        <Label fx:id="numberOfPlayersLabel" minWidth="0.0" text="&lt;Number of Players&gt;"
+               GridPane.columnIndex="1" GridPane.rowIndex="2">
             <graphic>
-                <Region styleClass="icon,host-icon" />
+                <Region styleClass="icon,players-icon"/>
             </graphic>
         </Label>
-        <Label fx:id="modsLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="card-mod-list" text="&lt;Mods&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="4" GridPane.valignment="TOP">
+        <Label fx:id="avgRatingLabel" minWidth="0.0" text="&lt;Avg&gt;" GridPane.columnIndex="2"
+               GridPane.rowIndex="2">
             <graphic>
-                <Region styleClass="icon,mods-icon" />
+                <Region styleClass="icon,statistics-icon"/>
+            </graphic>
+        </Label>
+        <HBox spacing="3.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="3">
+            <children>
+                <Label fx:id="hostLabel" maxHeight="1.7976931348623157E308" minWidth="0.0"
+                       text="&lt;Host&gt;">
+                    <graphic>
+                        <Region styleClass="icon,host-icon"/>
+                    </graphic>
+                </Label>
+                <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+            </children>
+        </HBox>
+        <Label fx:id="modsLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
+               text="&lt;Mods&gt;" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
+               GridPane.rowIndex="4" GridPane.valignment="TOP">
+            <graphic>
+                <Region styleClass="icon,mods-icon"/>
             </graphic>
         </Label>
     </children>
