@@ -1,5 +1,6 @@
 package com.faforever.client.login;
 
+import com.faforever.client.chat.TrustEveryoneFactory;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.config.ClientProperties.Replay;
@@ -26,6 +27,7 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.concurrent.Worker.State;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -47,10 +49,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -101,6 +108,16 @@ public class LoginController implements Controller<Pane> {
   private CompletableFuture<Void> resetPageFuture;
 
   public void initialize() {
+    SSLContext sslContext = null;
+    try {
+      sslContext = SSLContext.getInstance("SSL");
+      sslContext.init(null, TrustEveryoneFactory.FULL_TRUST_MANAGERS, new SecureRandom());
+      HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+      HttpsURLConnection.setDefaultHostnameVerifier(TrustEveryoneFactory.ALL_HOSTS_VALID);
+    } catch (NoSuchAlgorithmException | KeyManagementException e) {
+      log.error("SSL error", e);
+    }
+
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane, loginWebView,
         serverConfigPane, errorPane, loginProgressPane, messagesContainer);
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
@@ -188,6 +205,13 @@ public class LoginController implements Controller<Pane> {
     }
 
     webViewConfigurer.configureWebView(loginWebView);
+
+    loginWebView.getEngine().getLoadWorker().stateProperty().addListener(
+        (ov, oldState, newState) -> {
+          if (loginWebView.getEngine().getLoadWorker().getException() != null && newState == State.FAILED){
+            log.error("Webview Error", loginWebView.getEngine().getLoadWorker().getException());
+          }
+        });
 
     loginWebView.getEngine().getLoadWorker().runningProperty().addListener(((observable, oldValue, newValue) -> {
       if (!newValue) {
