@@ -50,7 +50,7 @@ public class AvatarService implements InitializingBean {
 
   public void addPlayerAvatarToMap(PlayerBean playerBean) {
     if (playerBean.getAvatar() != null) {
-      avatarsByPlayerName.put(playerBean.getUsername(), playerBean.getAvatar());
+      avatarsByPlayerName.putIfAbsent(playerBean.getUsername(), playerBean.getAvatar());
     }
   }
 
