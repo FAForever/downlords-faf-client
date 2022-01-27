@@ -129,7 +129,7 @@ public class PartyMemberItemController implements Controller<Node> {
 
   private void setPlayerProperties() {
     Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
-    Image avatarImage = player.getAvatar() == null ? null : avatarService.loadAvatar(player.getAvatar());
+    Image avatarImage = avatarService.loadAvatar(player.getAvatar());
     String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
     setLeagueInfo();
     JavaFxUtil.runLater(() -> {

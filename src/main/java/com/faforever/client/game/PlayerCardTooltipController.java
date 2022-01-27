@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -37,7 +39,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
   private final I18n i18n;
   public Label playerInfo;
   public ImageView countryImageView;
-  public ImageView avatarImage;
+  public ImageView avatarImageView;
   public Label foeIconText;
   public HBox root;
   public Label friendIconText;
@@ -48,22 +50,21 @@ public class PlayerCardTooltipController implements Controller<Node> {
     if (player == null) {
       return;
     }
-    countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
-
-    String playerInfoLocalized;
-    if (rating != null) {
-      playerInfoLocalized = i18n.get("userInfo.tooltipFormat.withRating", player.getUsername(), rating);
-    } else {
-      playerInfoLocalized = i18n.get("userInfo.tooltipFormat.noRating", player.getUsername());
-    }
-    setFactionIcon(faction);
-    playerInfo.setText(playerInfoLocalized);
-    Optional.ofNullable(player.getAvatar()).ifPresent(avatar -> {
-      avatarImage.setImage(avatarService.loadAvatar(avatar));
-      Tooltip.install(avatarImage, new Tooltip(avatar.getDescription()));
+    countryFlagService.loadCountryFlag(player.getCountry()).ifPresentOrElse(image ->
+        countryImageView.setImage(image), () -> countryImageView.setVisible(false));
+    Optional.ofNullable(avatarService.loadAvatar(player.getAvatar())).ifPresent(avatarImage -> {
+      Tooltip.install(avatarImageView, new Tooltip(player.getAvatar().getDescription()));
+      avatarImageView.setImage(avatarImage);
+      avatarImageView.setVisible(true);
     });
-    foeIconText.visibleProperty().bind(Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
-    friendIconText.visibleProperty().bind(Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
+    playerInfo.setText(rating != null
+        ? i18n.get("userInfo.tooltipFormat.withRating", player.getUsername(), rating)
+        : i18n.get("userInfo.tooltipFormat.noRating", player.getUsername()));
+    setFactionIcon(faction);
+    JavaFxUtil.bind(foeIconText.visibleProperty(),
+        Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
+    JavaFxUtil.bind(friendIconText.visibleProperty(),
+        Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
   }
 
   public Node getRoot() {
@@ -72,12 +73,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    factionImage.managedProperty().bind(factionImage.visibleProperty());
-    factionIcon.managedProperty().bind(factionIcon.visibleProperty());
-    foeIconText.managedProperty().bind(foeIconText.visibleProperty());
-    foeIconText.setTooltip(new Tooltip(i18n.get("userInfo.foe")));
-    friendIconText.managedProperty().bind(friendIconText.visibleProperty());
-    friendIconText.setTooltip(new Tooltip(i18n.get("userInfo.friend")));
+    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, avatarImageView, countryImageView);
   }
 
   private void setFactionIcon(Faction faction) {
@@ -86,11 +82,12 @@ public class PlayerCardTooltipController implements Controller<Node> {
     }
 
     factionIcon.setVisible(true);
+    List<String> classes = factionIcon.getStyleClass();
     switch (faction) {
-      case AEON -> factionIcon.getStyleClass().add(UiService.AEON_STYLE_CLASS);
-      case CYBRAN -> factionIcon.getStyleClass().add(UiService.CYBRAN_STYLE_CLASS);
-      case SERAPHIM -> factionIcon.getStyleClass().add(UiService.SERAPHIM_STYLE_CLASS);
-      case UEF -> factionIcon.getStyleClass().add(UiService.UEF_STYLE_CLASS);
+      case AEON -> classes.add(UiService.AEON_STYLE_CLASS);
+      case CYBRAN -> classes.add(UiService.CYBRAN_STYLE_CLASS);
+      case SERAPHIM -> classes.add(UiService.SERAPHIM_STYLE_CLASS);
+      case UEF -> classes.add(UiService.UEF_STYLE_CLASS);
       default -> {
         factionIcon.setVisible(false);
         factionImage.setVisible(true);
