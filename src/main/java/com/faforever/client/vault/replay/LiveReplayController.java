@@ -1,17 +1,14 @@
 package com.faforever.client.vault.replay;
 
-import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
-import com.faforever.client.game.HostTableCell;
 import com.faforever.client.game.MapPreviewTableCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.table.NoSelectionModelTableView;
 import com.faforever.client.util.TimeService;
@@ -53,7 +50,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final MapService mapService;
   private final TimeService timeService;
-  private final AvatarService avatarService;
   public TableView<GameBean> liveReplayControllerRoot;
   public TableColumn<GameBean, Image> mapPreviewColumn;
   public TableColumn<GameBean, OffsetDateTime> startTimeColumn;
@@ -88,7 +84,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     playersColumn.setCellValueFactory(param -> param.getValue().numPlayersProperty());
     playersColumn.setCellFactory(param -> new StringCell<>(number -> i18n.number(number.intValue())));
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
-    hostColumn.setCellFactory(param -> new HostTableCell(avatarService));
+    hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
