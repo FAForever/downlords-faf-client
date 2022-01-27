@@ -1,10 +1,10 @@
 package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
-import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
@@ -24,7 +24,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,11 +60,11 @@ public class PlayerService implements InitializingBean {
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
   private final Map<Integer, List<PlayerBean>> playersByGame = new HashMap<>();
-  private final Map<String, AvatarBean> avatarsByPlayerName = new HashMap<>();
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final UserService userService;
+  private final AvatarService avatarService;
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
 
@@ -74,11 +73,6 @@ public class PlayerService implements InitializingBean {
     eventBus.register(this);
     fafServerAccessor.addEventListener(com.faforever.commons.lobby.PlayerInfo.class, this::onPlayersInfo);
     fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
-    JavaFxUtil.addListener(playersByName, (MapChangeListener<String, PlayerBean>) change -> {
-      if (change.wasRemoved()) {
-        avatarsByPlayerName.remove(change.getKey());
-      }
-    });
   }
 
   public void updatePlayersInGame(GameBean game) {
@@ -200,6 +194,7 @@ public class PlayerService implements InitializingBean {
     }
 
     resetIdleTime(player);
+    avatarService.addPlayerAvatarToMap(player);
   }
 
   public Set<String> getPlayerNames() {
@@ -306,18 +301,5 @@ public class PlayerService implements InitializingBean {
         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
         .toFuture()
         .thenApply(Optional::ofNullable);
-  }
-
-  public Optional<AvatarBean> getCurrentAvatarByPlayerName(String playerName) {
-    AvatarBean avatar = avatarsByPlayerName.get(playerName);
-    if (avatar != null) {
-      return Optional.of(avatar);
-    } else {
-      avatar = getPlayerByNameIfOnline(playerName).map(PlayerBean::getAvatar).orElse(null);
-      if (avatar != null) {
-        avatarsByPlayerName.put(playerName, avatar);
-      }
-      return Optional.ofNullable(avatar);
-    }
   }
 }

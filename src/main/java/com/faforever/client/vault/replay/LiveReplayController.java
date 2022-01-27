@@ -53,7 +53,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final MapService mapService;
   private final TimeService timeService;
-  private final PlayerService playerService;
   private final AvatarService avatarService;
   public TableView<GameBean> liveReplayControllerRoot;
   public TableColumn<GameBean, Image> mapPreviewColumn;
@@ -89,7 +88,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     playersColumn.setCellValueFactory(param -> param.getValue().numPlayersProperty());
     playersColumn.setCellFactory(param -> new StringCell<>(number -> i18n.number(number.intValue())));
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
-    hostColumn.setCellFactory(param -> new HostTableCell(playerService, avatarService));
+    hostColumn.setCellFactory(param -> new HostTableCell(avatarService));
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));

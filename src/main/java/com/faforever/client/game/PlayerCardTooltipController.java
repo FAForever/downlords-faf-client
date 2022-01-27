@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Component
@@ -52,9 +51,9 @@ public class PlayerCardTooltipController implements Controller<Node> {
     }
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresentOrElse(image ->
         countryImageView.setImage(image), () -> countryImageView.setVisible(false));
-    Optional.ofNullable(avatarService.loadAvatar(player.getAvatar())).ifPresent(avatarImage -> {
+    avatarService.getCurrentAvatarByPlayerName(player.getUsername()).ifPresent(avatar -> {
       Tooltip.install(avatarImageView, new Tooltip(player.getAvatar().getDescription()));
-      avatarImageView.setImage(avatarImage);
+      avatarImageView.setImage(avatar);
       avatarImageView.setVisible(true);
     });
     playerInfo.setText(rating != null

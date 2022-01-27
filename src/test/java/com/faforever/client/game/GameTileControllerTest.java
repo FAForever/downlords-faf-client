@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
@@ -18,7 +19,6 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -45,6 +45,8 @@ public class GameTileControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private PlayerService playerService;
+  @Mock
+  private AvatarService avatarService;
 
   private GameBean game;
 
@@ -59,7 +61,6 @@ public class GameTileControllerTest extends UITest {
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
-    when(playerService.getCurrentAvatarByPlayerName(any())).thenReturn(Optional.empty());
 
     loadFxml("theme/play/game_card.fxml", clazz -> instance);
     instance.setOnSelectedListener(onSelectedConsumer);

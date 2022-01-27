@@ -23,6 +23,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -83,12 +84,11 @@ public class GameTileController implements Controller<Node> {
   }
 
   private void onGamePropertyChanged() {
-    Image avatar = playerService.getCurrentAvatarByPlayerName(game.getHost()).map(avatarService::loadAvatar)
-        .orElse(null);
+    Optional<Image> avatar = avatarService.getCurrentAvatarByPlayerName(game.getHost());
     JavaFxUtil.runLater(() -> {
       gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
       hostLabel.setText(game.getHost());
-      avatarImageView.setImage(avatar);
+      avatarImageView.setImage(avatar.orElse(null));
       gameMapLabel.setText(game.getMapFolderName());
       mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
       modsLabel.setText(getSimModsLabelContent(game.getSimMods()));

@@ -15,13 +15,12 @@ import javafx.scene.image.ImageView;
 
 public class HostTableCell extends TableCell<GameBean, String> {
 
-  private final PlayerService playerService;
   private final AvatarService avatarService;
 
   private final ImageView avatarImageView;
+  private String currentHost;
 
-  public HostTableCell(PlayerService playerService, AvatarService avatarService) {
-    this.playerService = playerService;
+  public HostTableCell(AvatarService avatarService) {
     this.avatarService = avatarService;
     this.avatarImageView = createAvatarImageView();
 
@@ -44,11 +43,14 @@ public class HostTableCell extends TableCell<GameBean, String> {
       setText(null);
       setGraphic(null);
     } else {
-      setText(item);
-      playerService.getCurrentAvatarByPlayerName(item).ifPresentOrElse(avatar -> {
-        avatarImageView.setImage(avatarService.loadAvatar(avatar));
-        setGraphic(avatarImageView);
-      }, () -> setGraphic(null));
+      if (!item.equals(currentHost)) {
+        currentHost = item;
+        setText(item);
+        avatarService.getCurrentAvatarByPlayerName(item).ifPresentOrElse(avatar -> {
+          avatarImageView.setImage(avatar);
+          setGraphic(avatarImageView);
+        }, () -> setGraphic(null));
+      }
     }
   }
 }
