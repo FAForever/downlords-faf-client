@@ -40,6 +40,7 @@ public class HostTableCell extends TableCell<GameBean, String> {
   @Override
   protected void updateItem(String item, boolean empty) {
     if (item == null || empty) {
+      currentHost = null;
       setText(null);
       setGraphic(null);
     } else {
