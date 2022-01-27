@@ -25,7 +25,7 @@ public class HostTableCell extends TableCell<GameBean, String> {
     this.avatarService = avatarService;
     this.avatarImageView = createAvatarImageView();
 
-    setContentDisplay(ContentDisplay.RIGHT);
+    setContentDisplay(ContentDisplay.LEFT);
     setGraphicTextGap(3.0);
     setAlignment(Pos.BASELINE_CENTER);
   }
@@ -45,7 +45,7 @@ public class HostTableCell extends TableCell<GameBean, String> {
       setGraphic(null);
     } else {
       setText(item);
-      playerService.getPlayerByNameIfOnline(item).map(PlayerBean::getAvatar).ifPresentOrElse(avatar -> {
+      playerService.getCurrentAvatarByPlayerName(item).ifPresentOrElse(avatar -> {
         avatarImageView.setImage(avatarService.loadAvatar(avatar));
         setGraphic(avatarImageView);
       }, () -> setGraphic(null));
