@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
@@ -63,6 +64,8 @@ public class PlayerServiceTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private UserService userService;
+  @Mock
+  private AvatarService avatarService;
   @Mock
   private EventBus eventBus;
 
