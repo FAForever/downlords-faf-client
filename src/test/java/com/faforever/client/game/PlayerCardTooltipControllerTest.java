@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
@@ -23,6 +24,8 @@ public class PlayerCardTooltipControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private CountryFlagService countryFlagService;
+  @Mock
+  private AvatarService avatarService;
 
   @InjectMocks
   private PlayerCardTooltipController instance;
