@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
@@ -44,6 +45,8 @@ public class GameDetailControllerTest extends UITest {
   private PlayerService playerService;
   @Mock
   private JoinGameHelper joinGameHelper;
+  @Mock
+  private ApplicationContext applicationContext;
 
   @Mock
   private WatchButtonController watchButtonController;

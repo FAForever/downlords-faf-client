@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
@@ -82,6 +83,8 @@ public class CreateGameControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private UiService uiService;
+  @Mock
+  private ApplicationContext applicationContext;
   @Mock
   private UserService userService;
   @Mock
@@ -279,8 +282,6 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testInitGameTypeComboBoxEmpty() throws Exception {
-    instance = new CreateGameController(mapService, modService, gameService, preferencesService, i18n, notificationService, userService, mapGeneratorService, uiService);
-
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
         return modManagerController;

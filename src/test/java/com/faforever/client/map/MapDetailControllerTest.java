@@ -12,10 +12,8 @@ import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -32,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.OffsetDateTime;
@@ -60,8 +59,6 @@ public class MapDetailControllerTest extends UITest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReportingService reportingService;
-  @Mock
   private TimeService timeService;
   @Mock
   private PlayerService playerService;
@@ -70,7 +67,7 @@ public class MapDetailControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock
-  private UiService uiService;
+  private ApplicationContext applicationContext;
   @Mock
   private ReviewsController<MapVersionReviewBean> reviewsController;
   @Mock

@@ -6,6 +6,12 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
+import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
+import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
+import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
+import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
+import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -18,7 +24,6 @@ import com.google.common.base.Strings;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -30,10 +35,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.lang.ref.WeakReference;
 
 @Slf4j
 @Component
@@ -51,6 +55,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private final TeamMatchmakingService teamMatchmakingService;
   private final UiService uiService;
   private final I18n i18n;
+  private final ApplicationContext context;
 
   public Node playerItemRoot;
   public ImageView avatarImageView;
@@ -70,7 +75,6 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private PlayerBean player;
-  private WeakReference<PartyMemberContextMenuController> contextMenuController = null;
   private InvalidationListener playerStatusInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
   private InvalidationListener partyOwnerInvalidationListener;
@@ -178,23 +182,20 @@ public class PartyMemberItemController implements Controller<Node> {
         .noneMatch(member -> member.getPlayer() == player && member.getFactions().contains(faction));
   }
 
-  public void onKickPlayerButtonClicked(ActionEvent actionEvent) {
+  public void onKickPlayerButtonClicked() {
     teamMatchmakingService.kickPlayerFromParty(player);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    if (contextMenuController != null) {
-      PartyMemberContextMenuController controller = contextMenuController.get();
-      if (controller != null) {
-        controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-        return;
-      }
-    }
-
-    PartyMemberContextMenuController controller = uiService.loadFxml("theme/player_context_menu.fxml", PartyMemberContextMenuController.class);
-    controller.setPlayer(player);
-    controller.getContextMenu().show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-
-    contextMenuController = new WeakReference<>(controller);
+    ContextMenuBuilder.newBuilder(context)
+        .addItem(ShowPlayerInfoMenuItem.class, player)
+        .addItem(SendPrivateMessageMenuItem.class, player.getUsername())
+        .addItem(CopyUsernameMenuItem.class, player.getUsername())
+        .addSeparator()
+        .addItem(ReportPlayerMenuItem.class, player)
+        .addSeparator()
+        .addItem(ViewReplaysMenuItem.class, player)
+        .build()
+        .show(playerItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 }

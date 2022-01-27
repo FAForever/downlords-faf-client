@@ -1,13 +1,17 @@
 package com.faforever.client.leaderboard;
 
 import com.faforever.client.domain.LeagueEntryBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
+import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
+import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
+import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.theme.UiService;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -16,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -28,18 +33,16 @@ import static javafx.collections.FXCollections.observableList;
 @RequiredArgsConstructor
 public class SubDivisionTabController implements Controller<Tab> {
 
+  private final ApplicationContext context;
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final UiService uiService;
   public Tab subDivisionTab;
   public TableColumn<LeagueEntryBean, Number> rankColumn;
   public TableColumn<LeagueEntryBean, String> nameColumn;
   public TableColumn<LeagueEntryBean, Number> gamesPlayedColumn;
   public TableColumn<LeagueEntryBean, Number> scoreColumn;
   public TableView<LeagueEntryBean> ratingTable;
-
-  private LeaderboardContextMenuController contextMenuController;
 
   @Override
   public Tab getRoot() {
@@ -48,7 +51,6 @@ public class SubDivisionTabController implements Controller<Tab> {
 
   @Override
   public void initialize() {
-    contextMenuController = uiService.loadFxml("theme/player_context_menu.fxml", LeaderboardContextMenuController.class);
     ratingTable.setRowFactory(param -> entriesRowFactory());
 
     rankColumn.setCellValueFactory(param -> param.getValue().rankProperty());
@@ -71,9 +73,15 @@ public class SubDivisionTabController implements Controller<Tab> {
       if (row.getItem() == null) {
         return;
       }
-      LeagueEntryBean  entry = row.getItem();
-      contextMenuController.setPlayer(entry.getPlayer());
-      contextMenuController.getContextMenu().show(subDivisionTab.getTabPane().getScene().getWindow(), event.getScreenX(), event.getScreenY());
+      LeagueEntryBean entry = row.getItem();
+      PlayerBean player = entry.getPlayer();
+      ContextMenuBuilder.newBuilder(context)
+          .addItem(ShowPlayerInfoMenuItem.class, player)
+          .addItem(CopyUsernameMenuItem.class, player.getUsername())
+          .addSeparator()
+          .addItem(ViewReplaysMenuItem.class, player)
+          .build()
+          .show(subDivisionTab.getTabPane().getScene().getWindow(), event.getScreenX(), event.getScreenY());
     });
 
     return row;

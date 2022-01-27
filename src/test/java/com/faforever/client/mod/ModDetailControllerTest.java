@@ -11,10 +11,8 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -29,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
@@ -49,8 +48,6 @@ import static org.mockito.Mockito.when;
 public class ModDetailControllerTest extends UITest {
 
   @Mock
-  private ReportingService reportingService;
-  @Mock
   private NotificationService notificationService;
   @Mock
   private ModService modService;
@@ -63,7 +60,7 @@ public class ModDetailControllerTest extends UITest {
   @Mock
   private PlayerService playerService;
   @Mock
-  private UiService uiService;
+  private ApplicationContext applicationContext;
   @Mock
   private ReviewsController<ModVersionReviewBean> reviewsController;
   @Mock

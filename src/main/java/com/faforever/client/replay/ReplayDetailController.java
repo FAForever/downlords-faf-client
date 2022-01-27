@@ -52,6 +52,7 @@ import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -83,6 +84,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final ClientProperties clientProperties;
   private final NotificationService notificationService;
   private final ReviewService reviewService;
+  private final ApplicationContext applicationContext;
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
   public Label titleLabel;
@@ -123,7 +125,7 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
-    JavaFxUtil.addLabelContextMenus(uiService, onMapLabel, titleLabel);
+    JavaFxUtil.addCopyLabelContextMenus(applicationContext, onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
     chatGameTimeColumn.setCellValueFactory(param -> param.getValue().timeProperty());

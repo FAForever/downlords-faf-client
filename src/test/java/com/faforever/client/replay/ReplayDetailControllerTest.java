@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
@@ -95,6 +96,8 @@ public class ReplayDetailControllerTest extends UITest {
   private ReviewService reviewService;
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private ApplicationContext applicationContext;
   @Mock
   private ReviewsController reviewsController;
   @Mock

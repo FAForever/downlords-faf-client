@@ -8,11 +8,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
-import com.faforever.client.theme.UiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -26,8 +26,6 @@ import static org.mockito.Mockito.when;
 
 public class SubDivisionTabControllerTest extends UITest {
 
-  @InjectMocks
-  private SubDivisionTabController instance;
   @Mock
   private I18n i18n;
   @Mock
@@ -35,7 +33,10 @@ public class SubDivisionTabControllerTest extends UITest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private UiService uiService;
+  private ApplicationContext applicationContext;
+
+  @InjectMocks
+  private SubDivisionTabController instance;
 
   @BeforeEach
   public void setUp() throws Exception {

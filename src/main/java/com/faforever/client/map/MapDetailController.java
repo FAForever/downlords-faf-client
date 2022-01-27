@@ -42,6 +42,7 @@ import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -61,11 +62,10 @@ public class MapDetailController implements Controller<Node> {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TimeService timeService;
-  private final ReportingService reportingService;
   private final PlayerService playerService;
   private final ReviewService reviewService;
-  private final UiService uiService;
   private final EventBus eventBus;
+  private final ApplicationContext applicationContext;
 
   public Label progressLabel;
   public Button uninstallButton;
@@ -98,7 +98,7 @@ public class MapDetailController implements Controller<Node> {
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, hideButton,
         loadingContainer, hideBox, getRoot());
-    JavaFxUtil.addLabelContextMenus(uiService, nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
+    JavaFxUtil.addCopyLabelContextMenus(applicationContext, nameLabel, authorLabel, mapDescriptionLabel, mapIdLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());

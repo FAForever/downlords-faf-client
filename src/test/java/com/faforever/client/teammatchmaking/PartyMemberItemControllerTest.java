@@ -22,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.HashMap;
@@ -56,6 +57,8 @@ public class PartyMemberItemControllerTest extends UITest {
   private UiService uiService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ApplicationContext applicationContext;
 
   @InjectMocks
   private PartyMemberItemController instance;
@@ -159,7 +162,7 @@ public class PartyMemberItemControllerTest extends UITest {
 
   @Test
   public void testOnKickPlayerButtonClicked() {
-    instance.onKickPlayerButtonClicked(null);
+    instance.onKickPlayerButtonClicked();
 
     verify(teamMatchmakingService).kickPlayerFromParty(player);
   }
