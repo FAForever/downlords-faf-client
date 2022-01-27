@@ -2,13 +2,16 @@ package com.faforever.client.avatar;
 
 import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.AvatarBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.mapstruct.AvatarMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
+import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,11 +27,12 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +64,13 @@ public class AvatarServiceTest extends ServiceTest {
   }
 
   @Test
-  public void getAvailableAvatars() throws Exception {
+  public void testAvatarIsNull() {
+    assertNull(instance.loadAvatar(null));
+    verifyNoInteractions(assetService);
+  }
+
+  @Test
+  public void getAvailableAvatars() {
     when(fafServerAccessor.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(List.of()));
     instance.getAvailableAvatars();
     verify(fafServerAccessor).getAvailableAvatars();
@@ -75,10 +85,28 @@ public class AvatarServiceTest extends ServiceTest {
     verify(eventBus).post(eventCaptor.capture());
 
     AvatarBean avatar = eventCaptor.getValue().getAvatar();
-    assertThat(avatar, not(nullValue()));
-    assertThat(avatar.getUrl(), is(url));
-    assertThat(avatar.getDescription(), is("Description"));
-
+    assertNotNull(avatar);
+    assertEquals(url, avatar.getUrl());
+    assertEquals("Description", avatar.getDescription());
     verify(fafServerAccessor).selectAvatar(url);
+  }
+
+  @Test
+  public void testAddPlayerAvatarToMap() {
+    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().get();
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().avatar(avatarBean).get();
+    Image avatar = mock(Image.class);
+
+    when(assetService.loadAndCacheImage(avatarBean.getUrl(), any(), eq(any()))).thenReturn(avatar);
+    instance.addPlayerAvatarToMap(playerBean);
+    assertEquals(avatar, instance.getCurrentAvatarByPlayerName(playerBean.getUsername()).orElse(null));
+  }
+
+  @Test
+  public void testGetNullAvatarByUnknownPlayerName() {
+    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().get();
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().avatar(avatarBean).get();
+    instance.addPlayerAvatarToMap(playerBean);
+    assertTrue(instance.getCurrentAvatarByPlayerName("unknown").isEmpty());
   }
 }
