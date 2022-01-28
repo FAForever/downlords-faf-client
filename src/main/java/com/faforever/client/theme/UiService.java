@@ -114,6 +114,7 @@ public class UiService implements InitializingBean, DisposableBean {
   public static final String CYBRAN_STYLE_CLASS = "cybran-icon";
   public static final String SERAPHIM_STYLE_CLASS = "seraphim-icon";
   public static final String UEF_STYLE_CLASS = "uef-icon";
+  public static final String RANDOM_IMAGE = "/images/factions/random.png";
 
   public static Theme DEFAULT_THEME = new Theme("Default", "Downlord", 1, "1");
 

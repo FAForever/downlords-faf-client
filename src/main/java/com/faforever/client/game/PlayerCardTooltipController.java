@@ -9,7 +9,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -31,8 +30,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlayerCardTooltipController implements Controller<Node> {
 
-  @VisibleForTesting
-  static final Image RANDOM_IMAGE = new Image("/images/factions/random.png");
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final I18n i18n;
@@ -90,7 +87,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
       default -> {
         factionIcon.setVisible(false);
         factionImage.setVisible(true);
-        factionImage.setImage(RANDOM_IMAGE);
+        factionImage.setImage(new Image(UiService.RANDOM_IMAGE));
       }
     }
   }
