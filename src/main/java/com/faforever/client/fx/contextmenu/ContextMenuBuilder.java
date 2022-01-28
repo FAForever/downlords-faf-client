@@ -9,8 +9,8 @@ import org.springframework.context.ApplicationContext;
 
 public class ContextMenuBuilder {
 
-  public static Builder newBuilder(ApplicationContext context) {
-    return new Builder(context);
+  public static Builder newBuilder(ApplicationContext applicationContext) {
+    return new Builder(applicationContext);
   }
 
   public static class Builder {

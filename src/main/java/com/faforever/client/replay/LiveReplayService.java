@@ -1,41 +1,69 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.discord.DiscordSpectateEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.CopyErrorAction;
+import com.faforever.client.notification.DismissAction;
+import com.faforever.client.notification.GetHelpAction;
+import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.notification.RunReplayAction;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.PlayerService;
+import com.faforever.client.reporting.ReportingService;
+import com.google.common.base.Splitter;
+import com.google.common.net.UrlEscapers;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Future;
 
 import static com.faforever.client.util.Assert.checkNullIllegalState;
+import static java.net.URLDecoder.decode;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Lazy
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LiveReplayService implements InitializingBean, DisposableBean {
+
+  private static final String FAF_LIFE_PROTOCOL = "faflive";
+  private static final String GPGNET_SCHEME = "gpgnet";
 
   private final ClientProperties clientProperties;
   private final TaskScheduler taskScheduler;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final ReplayService replayService;
   private final GameService gameService;
+  private final PlayerService playerService;
+  private final ReportingService reportingService;
 
   private Integer watchDelaySeconds;
   private Future<?> futureTask;
@@ -44,8 +72,8 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() throws Exception {
     watchDelaySeconds = clientProperties.getReplay().getWatchDelaySeconds();
-    JavaFxUtil.addListener(gameService.gameRunningProperty(), (observable, oldValue, newValue) -> {
-      if (newValue.equals(true) && trackingReplayProperty.getValue() != null) {
+    JavaFxUtil.addListener(gameService.gameRunningProperty(), observable -> {
+      if (gameService.isGameRunning()) {
         stopTrackingReplay();
       }
     });
@@ -67,34 +95,29 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     stopTrackingReplay();
     trackingReplayProperty.set(new Pair<>(game.getId(), action));
     switch (action) {
-      case NOTIFY_ME -> notifyUserWhenReplayIsAvailable(game);
-      case RUN -> runLiveReplayWhenIsAvailable(game);
+      case NOTIFY_ME -> notifyUserWhenReplayAvailable(game);
+      case RUN_REPLAY -> runLiveReplayWhenAvailable(game);
     }
   }
 
-  private void notifyUserWhenReplayIsAvailable(GameBean game) {
+  private void notifyUserWhenReplayAvailable(GameBean game) {
     futureTask = taskScheduler.schedule(() -> {
       clearTrackingReplayProperty();
-      notificationService.addNotification(new TransientNotification(
-          i18n.get("vault.liveReplays.notifyMe.replayAvailable", game.getTitle()),
-          i18n.get("vault.liveReplays.notifyMe.replayAvailable.click"),
-          null,
-          (event) -> replayService.runLiveReplay(game.getId())));
+      notificationService.addNotification(new PersistentNotification(
+          i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
+          Severity.INFO,
+          List.of(new RunReplayAction(i18n, (event) -> runLiveReplay(game.getId())))));
     }, Instant.from(game.getStartTime().plusSeconds(watchDelaySeconds)));
   }
 
-  private void runLiveReplayWhenIsAvailable(GameBean game) {
+  private void runLiveReplayWhenAvailable(GameBean game) {
     futureTask = taskScheduler.schedule(() -> {
       notificationService.addNotification(new TransientNotification(
-          i18n.get("vault.liveReplays.notifyMe.replayAvailable", game.getTitle()),
-          i18n.get("vault.liveReplays.scheduledRunReplay", 10)));
-
-      futureTask = taskScheduler.schedule(() -> {
-        clearTrackingReplayProperty();
-        replayService.runLiveReplay(game.getId());
-      }, Instant.from(OffsetDateTime.now().plusSeconds(10)));
-
-    }, Instant.from(game.getStartTime().plusSeconds(watchDelaySeconds).minusSeconds(10)));
+          i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
+          i18n.get("vault.liveReplays.replayLaunching")));
+      clearTrackingReplayProperty();
+      runLiveReplay(game.getId());
+    }, Instant.from(game.getStartTime().plusSeconds(watchDelaySeconds)));
   }
 
   private void clearTrackingReplayProperty() {
@@ -113,12 +136,71 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     return trackingReplayProperty;
   }
 
+  public Optional<Pair<Integer, LiveReplayAction>> getTrackingReplay() {
+    return Optional.ofNullable(trackingReplayProperty.get());
+  }
+
+  public void runLiveReplay(int gameId) {
+    GameBean game = gameService.getByUid(gameId);
+    if (game == null) {
+      throw new RuntimeException("There's no game with ID: " + gameId);
+    }
+    /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
+    String playerName = playerService.getCurrentPlayer().getUsername();
+
+    URI uri = UriComponentsBuilder.newInstance()
+        .scheme(FAF_LIFE_PROTOCOL)
+        .host(clientProperties.getReplay().getRemoteHost())
+        .path("/" + gameId + "/" + playerName + ReplayService.SUP_COM_REPLAY_FILE_ENDING)
+        .queryParam("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()))
+        .queryParam("mod", game.getFeaturedMod())
+        .build()
+        .toUri();
+
+    runLiveReplay(uri);
+  }
+
+
+  public void runLiveReplay(URI uri) {
+    log.debug("Running replay from URL: {}", uri);
+    if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
+      throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
+    }
+
+    Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
+
+    try {
+      String gameType = queryParams.get("mod");
+      String mapName = decode(queryParams.get("map"), UTF_8.name());
+      Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
+      URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
+      gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
+          .exceptionally(throwable -> {
+            notificationService.addNotification(new ImmediateNotification(
+                i18n.get("errorTitle"),
+                i18n.get("liveReplayCouldNotBeStarted"),
+                Severity.ERROR, throwable,
+                List.of(new CopyErrorAction(i18n, reportingService, throwable), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))
+            ));
+            return null;
+          });
+    } catch (URISyntaxException | UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @EventListener
+  public void onDiscordGameJoinEvent(DiscordSpectateEvent discordSpectateEvent) {
+    Integer replayId = discordSpectateEvent.getReplayId();
+    runLiveReplay(replayId);
+  }
+
   @Override
   public void destroy() throws Exception {
     stopTrackingReplay();
   }
 
   public enum LiveReplayAction {
-    NOTIFY_ME, RUN
+    NOTIFY_ME, RUN_REPLAY
   }
 }

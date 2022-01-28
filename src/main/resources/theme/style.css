@@ -1376,33 +1376,6 @@
 
 /***************** Watch Live Replay Button ***************************/
 
-/* TODO: There is no way to disable separate action area or dropdown menu, so we simulate a disabled state through CSS */
-/* TODO: https://community.oracle.com/tech/developers/discussion/3577778/disable-action-area-of-splitmenubutton-but-not-drop-down-menu */
-
-.watch-button > .label {
-  -fx-opacity: 0.4;
-}
-
-.watch-button > .label:hover {
-  -fx-color: -fx-base;
-}
-
-.watch-button:available > .label {
-  -fx-opacity: 1;
-}
-
-.watch-button:available > .arrow-button {
-  -fx-opacity: 0.4;
-}
-
-.watch-button:focused {
-  -fx-background-color: -fx-base;
-}
-
-.watch-button:pressed {
-  -fx-background-color: -fx-base;
-}
-
 .watch-button:trackable {
   -fx-background-color: darkolivegreen;
 }

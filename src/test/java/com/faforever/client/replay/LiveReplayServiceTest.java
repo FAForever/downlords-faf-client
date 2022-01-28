@@ -20,8 +20,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,8 +48,6 @@ public class LiveReplayServiceTest extends UITest {
   private TaskScheduler taskScheduler;
   @Mock
   private NotificationService notificationService;
-  @Mock
-  private ReplayService replayService;
   @Mock
   private I18n i18n;
   @Spy
@@ -85,6 +87,16 @@ public class LiveReplayServiceTest extends UITest {
   }
 
   @Test
+  public void testRunLiveReplay() throws Exception {
+    when(gameService.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
+        .thenReturn(CompletableFuture.completedFuture(null));
+
+    instance.runLiveReplay(new URI("faflive://example.com/123/456.scfareplay?mod=faf&map=map%20name"));
+
+    verify(gameService).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
+  }
+
+  @Test
   public void testNotifyMeWhenReplayIsAvailable() {
     ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
@@ -104,16 +116,16 @@ public class LiveReplayServiceTest extends UITest {
     ArgumentCaptor<Runnable> runReplayCaptor = ArgumentCaptor.forClass(Runnable.class);
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
-    instance.performActionWhenAvailable(game, LiveReplayAction.RUN);
+    instance.performActionWhenAvailable(game, LiveReplayAction.RUN_REPLAY);
 
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.RUN), instance.getTrackingReplayProperty().getValue());
+    assertEquals(new Pair<>(game.getId(), LiveReplayAction.RUN_REPLAY), instance.getTrackingReplayProperty().getValue());
     verify(taskScheduler).schedule(runNotificationCaptor.capture(), any(Instant.class));
     runNotificationCaptor.getValue().run();
     verify(notificationService).addNotification(any(TransientNotification.class));
 
     verify(taskScheduler, times(2)).schedule(runReplayCaptor.capture(), any(Instant.class));
     runReplayCaptor.getValue().run();
-    verify(replayService).runLiveReplay(game.getId());
+    verify(gameService).runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString());
     assertNull(instance.getTrackingReplayProperty().getValue());
   }
 

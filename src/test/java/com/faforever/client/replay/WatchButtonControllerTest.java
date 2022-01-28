@@ -110,7 +110,7 @@ public class WatchButtonControllerTest extends UITest {
 
     setGame(game);
     runOnFxThreadAndWait(() -> instance.runReplayItem.fire());
-    verify(liveReplayService).performActionWhenAvailable(game, LiveReplayAction.RUN);
+    verify(liveReplayService).performActionWhenAvailable(game, LiveReplayAction.RUN_REPLAY);
   }
 
   @Test
@@ -119,7 +119,7 @@ public class WatchButtonControllerTest extends UITest {
 
     setGame(game);
     runOnFxThreadAndWait(() -> {
-      trackingReplayProperty.set(new Pair<>(1, LiveReplayAction.RUN));
+      trackingReplayProperty.set(new Pair<>(1, LiveReplayAction.RUN_REPLAY));
       instance.runReplayItem.fire();
     });
     verify(liveReplayService).stopTrackingReplay();
@@ -143,7 +143,7 @@ public class WatchButtonControllerTest extends UITest {
 
     setGame(game);
     assertEquals("run replay", instance.runReplayItem.getText());
-    runOnFxThreadAndWait(() -> trackingReplayProperty.set(new Pair<>(1, LiveReplayAction.RUN)));
+    runOnFxThreadAndWait(() -> trackingReplayProperty.set(new Pair<>(1, LiveReplayAction.RUN_REPLAY)));
     assertEquals("cancel: run replay", instance.runReplayItem.getText());
   }
 

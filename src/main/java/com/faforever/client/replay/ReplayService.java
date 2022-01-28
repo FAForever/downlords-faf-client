@@ -3,9 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.discord.DiscordSpectateEvent;
 import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
@@ -20,16 +18,9 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.CopyErrorAction;
-import com.faforever.client.notification.DismissAction;
-import com.faforever.client.notification.GetHelpAction;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.Severity;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.FileSizeReader;
@@ -44,28 +35,21 @@ import com.faforever.commons.api.elide.ElideNavigatorOnId;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
-import com.google.common.net.UrlEscapers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -91,8 +75,6 @@ import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static java.net.URLDecoder.decode;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.move;
 import static java.util.Collections.emptyMap;
@@ -106,9 +88,7 @@ import static java.util.stream.Collectors.toList;
 public class ReplayService {
 
   private static final String FAF_REPLAY_FILE_ENDING = ".fafreplay";
-  private static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
-  private static final String FAF_LIFE_PROTOCOL = "faflive";
-  private static final String GPGNET_SCHEME = "gpgnet";
+  public static final String SUP_COM_REPLAY_FILE_ENDING = ".scfareplay";
   private static final String TEMP_SCFA_REPLAY_FILE_NAME = "temp.scfareplay";
   private static final Pattern invalidCharacters = Pattern.compile("[?@*%{}<>|\"]");
 
@@ -118,10 +98,8 @@ public class ReplayService {
   private final ReplayFileReader replayFileReader;
   private final NotificationService notificationService;
   private final GameService gameService;
-  private final PlayerService playerService;
   private final TaskService taskService;
   private final I18n i18n;
-  private final ReportingService reportingService;
   private final ApplicationContext applicationContext;
   private final PlatformService platformService;
   private final FafApiAccessor fafApiAccessor;
@@ -273,56 +251,6 @@ public class ReplayService {
   }
 
 
-  public void runLiveReplay(int gameId) {
-    GameBean game = gameService.getByUid(gameId);
-    if (game == null) {
-      throw new RuntimeException("There's no game with ID: " + gameId);
-    }
-    /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
-    String playerName = playerService.getCurrentPlayer().getUsername();
-
-    URI uri = UriComponentsBuilder.newInstance()
-        .scheme(FAF_LIFE_PROTOCOL)
-        .host(clientProperties.getReplay().getRemoteHost())
-        .path("/" + gameId + "/" + playerName + SUP_COM_REPLAY_FILE_ENDING)
-        .queryParam("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()))
-        .queryParam("mod", game.getFeaturedMod())
-        .build()
-        .toUri();
-
-    runLiveReplay(uri);
-  }
-
-
-  public void runLiveReplay(URI uri) {
-    log.debug("Running replay from URL: {}", uri);
-    if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
-      throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
-    }
-
-    Map<String, String> queryParams = Splitter.on('&').trimResults().withKeyValueSeparator("=").split(uri.getQuery());
-
-    try {
-      String gameType = queryParams.get("mod");
-      String mapName = decode(queryParams.get("map"), UTF_8.name());
-      Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
-      URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
-      gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
-          .exceptionally(throwable -> {
-            notificationService.addNotification(new ImmediateNotification(
-                i18n.get("errorTitle"),
-                i18n.get("liveReplayCouldNotBeStarted"),
-                Severity.ERROR, throwable,
-                List.of(new CopyErrorAction(i18n, reportingService, throwable), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))
-            ));
-            return null;
-          });
-    } catch (URISyntaxException | UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-
   public void runReplay(Integer replayId) {
     runOnlineReplay(replayId);
   }
@@ -443,12 +371,6 @@ public class ReplayService {
     Set<String> simMods = parseModUIDs(replayData);
 
     gameService.runWithReplay(path, null, gameType, version, emptyMap(), simMods, mapName);
-  }
-
-  @EventListener
-  public void onDiscordGameJoinEvent(DiscordSpectateEvent discordSpectateEvent) {
-    Integer replayId = discordSpectateEvent.getReplayId();
-    runLiveReplay(replayId);
   }
 
   @Cacheable(value = CacheNames.REPLAYS_RECENT, sync = true)
