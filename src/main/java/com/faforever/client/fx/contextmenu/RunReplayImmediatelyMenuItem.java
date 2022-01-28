@@ -41,6 +41,6 @@ public class RunReplayImmediatelyMenuItem extends AbstractMenuItem<GameBean> {
 
   @Override
   protected String getItemText() {
-    return i18n.get("vault.liveReplays.contextMenu.runImmediately");
+    return i18n.get("vault.liveReplays.contextMenu.runReplayImmediately");
   }
 }

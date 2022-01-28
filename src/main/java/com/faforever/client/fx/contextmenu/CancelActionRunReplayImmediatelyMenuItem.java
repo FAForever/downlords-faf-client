@@ -41,6 +41,6 @@ public class CancelActionRunReplayImmediatelyMenuItem extends AbstractMenuItem<G
 
   @Override
   protected String getItemText() {
-    return i18n.get("vault.liveReplays.contextMenu.runImmediately.cancel");
+    return i18n.get("vault.liveReplays.contextMenu.runReplayImmediately.cancel");
   }
 }

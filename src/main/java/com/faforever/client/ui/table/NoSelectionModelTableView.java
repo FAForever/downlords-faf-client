@@ -9,11 +9,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 
 @SuppressWarnings("rawtypes")
-public class NoTableViewSelectionModel<T> extends TableViewSelectionModel<T> {
+public class NoSelectionModelTableView<T> extends TableViewSelectionModel<T> {
 
   private final ObservableList<TablePosition> noSelectedCells = FXCollections.emptyObservableList();
 
-  public NoTableViewSelectionModel(TableView<T> tableView) {
+  public NoSelectionModelTableView(TableView<T> tableView) {
     super(tableView);
   }
 

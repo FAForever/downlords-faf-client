@@ -43,8 +43,8 @@ public class WatchButtonControllerTest extends UITest {
     when(liveReplayService.getTrackingReplayProperty()).thenReturn(trackingReplayProperty);
     when(i18n.get("vault.liveReplays.contextMenu.notifyMe")).thenReturn("notify me");
     when(i18n.get("vault.liveReplays.contextMenu.notifyMe.cancel")).thenReturn("cancel: notify me");
-    when(i18n.get("vault.liveReplays.contextMenu.runImmediately")).thenReturn("run replay");
-    when(i18n.get("vault.liveReplays.contextMenu.runImmediately.cancel")).thenReturn("cancel: run replay");
+    when(i18n.get("vault.liveReplays.contextMenu.runReplayImmediately")).thenReturn("run replay");
+    when(i18n.get("vault.liveReplays.contextMenu.runReplayImmediately.cancel")).thenReturn("cancel: run replay");
 
     game = GameBeanBuilder.create().defaultValues().get();
     loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);

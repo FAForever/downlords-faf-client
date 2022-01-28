@@ -10,7 +10,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.table.NoTableViewSelectionModel;
+import com.faforever.client.ui.table.NoSelectionModelTableView;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.base.Joiner;
@@ -68,7 +68,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   @Override
   public void initialize() {
-    liveReplayControllerRoot.setSelectionModel(new NoTableViewSelectionModel<>(liveReplayControllerRoot));
+    liveReplayControllerRoot.setSelectionModel(new NoSelectionModelTableView<>(liveReplayControllerRoot));
     initializeGameTable(gameService.getGames());
   }
 

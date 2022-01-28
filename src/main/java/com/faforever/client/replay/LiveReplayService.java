@@ -6,13 +6,13 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.notification.Action;
 import com.faforever.client.notification.CopyErrorAction;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.GetHelpAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
-import com.faforever.client.notification.RunReplayAction;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
@@ -65,18 +65,20 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   private final PlayerService playerService;
   private final ReportingService reportingService;
 
-  private Integer watchDelaySeconds;
   private Future<?> futureTask;
   private final ObjectProperty<Pair<Integer, LiveReplayAction>> trackingReplayProperty = new SimpleObjectProperty<>(null);
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    watchDelaySeconds = clientProperties.getReplay().getWatchDelaySeconds();
     JavaFxUtil.addListener(gameService.gameRunningProperty(), observable -> {
       if (gameService.isGameRunning()) {
         stopTrackingReplay();
       }
     });
+  }
+
+  private Integer getWatchDelaySeconds() {
+    return clientProperties.getReplay().getWatchDelaySeconds();
   }
 
   public boolean canWatchReplay(GameBean game) {
@@ -86,7 +88,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   public Duration getWatchDelayTime(GameBean game) {
     Assert.notNull(game.getStartTime(), "Game's start time is null, in which case it shouldn't even be listed: " + game);
-    return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(watchDelaySeconds)
+    return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(getWatchDelaySeconds())
     );
   }
 
@@ -106,8 +108,8 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
       notificationService.addNotification(new PersistentNotification(
           i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
           Severity.INFO,
-          List.of(new RunReplayAction(i18n, (event) -> runLiveReplay(game.getId())))));
-    }, Instant.from(game.getStartTime().plusSeconds(watchDelaySeconds)));
+          List.of(new Action(i18n.get("game.watch"), (event) -> runLiveReplay(game.getId())))));
+    }, Instant.from(game.getStartTime().plusSeconds(getWatchDelaySeconds())));
   }
 
   private void runLiveReplayWhenAvailable(GameBean game) {
@@ -117,7 +119,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
           i18n.get("vault.liveReplays.replayLaunching")));
       clearTrackingReplayProperty();
       runLiveReplay(game.getId());
-    }, Instant.from(game.getStartTime().plusSeconds(watchDelaySeconds)));
+    }, Instant.from(game.getStartTime().plusSeconds(getWatchDelaySeconds())));
   }
 
   private void clearTrackingReplayProperty() {

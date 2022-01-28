@@ -113,7 +113,7 @@ public class WatchButtonController implements Controller<Node> {
           boolean isTracking = game != null && game.getId().equals(trackingGameId);
           JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, isTracking));
         },
-        () -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, false));
+        () -> JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, false)));
   }
 
   private void updateWatchButtonTimer() {
