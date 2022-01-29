@@ -26,6 +26,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -65,7 +67,7 @@ public class WatchButtonControllerTest extends UITest {
     ContextMenu contextMenu = mockContextMenuBuilderAndGetContextMenuMock();
     setGame(game);
     clickWatchButton();
-    verify(contextMenu).show(instance.watchButton.getScene().getWindow(), Double.NaN ,Double.NaN);
+    verify(contextMenu).show(eq(instance.watchButton.getScene().getWindow()), anyDouble(), anyDouble());
     verify(liveReplayService, never()).runLiveReplay(any());
   }
 
