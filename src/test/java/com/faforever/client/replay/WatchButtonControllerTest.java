@@ -25,10 +25,10 @@ import org.mockito.Mock;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -48,12 +48,11 @@ public class WatchButtonControllerTest extends UITest {
   private WatchButtonController instance;
 
   private GameBean game;
-  private ObjectProperty<Pair<Integer, LiveReplayAction>> trackingReplayProperty;
 
   @BeforeEach
   public void setUp() throws Exception {
     game = GameBeanBuilder.create().defaultValues().get();
-    trackingReplayProperty = new SimpleObjectProperty<>(null);
+    ObjectProperty<Pair<Integer, LiveReplayAction>> trackingReplayProperty = new SimpleObjectProperty<>(null);
 
     when(liveReplayService.getTrackingReplayProperty()).thenReturn(trackingReplayProperty);
     when(liveReplayService.getTrackingReplay()).thenReturn(Optional.ofNullable(trackingReplayProperty.get()));
@@ -64,11 +63,12 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testShowContextMenuIfReplayUnavailableYet() {
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.watchButton));
     ContextMenu contextMenu = mockContextMenuBuilderAndGetContextMenuMock();
     setGame(game);
     clickWatchButton();
-    verify(contextMenu).show(instance.watchButton, Side.BOTTOM, 0 ,0);
-    verifyNoInteractions(liveReplayService);
+    verify(contextMenu).show(instance.watchButton.getScene().getWindow(), Double.NaN ,Double.NaN);
+    verify(liveReplayService, never()).runLiveReplay(any());
   }
 
   @Test

@@ -99,6 +99,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     switch (action) {
       case NOTIFY_ME -> notifyUserWhenReplayAvailable(game);
       case RUN_REPLAY -> runLiveReplayWhenAvailable(game);
+      default -> throw new IllegalStateException("Unexpected value: " + action);
     }
   }
 
