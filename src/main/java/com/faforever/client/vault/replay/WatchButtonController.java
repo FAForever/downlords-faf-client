@@ -18,6 +18,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -77,7 +78,6 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void showContextMenu() {
-    Bounds screenBounds = watchButton.localToScreen(watchButton.getBoundsInLocal());
     contextMenu = contextMenuBuilder.newBuilder()
         .addItem(NotifyMeMenuItem.class, game)
         .addItem(CancelActionNotifyMeMenuItem.class, game)
@@ -85,7 +85,7 @@ public class WatchButtonController implements Controller<Node> {
         .addItem(CancelActionRunReplayImmediatelyMenuItem.class, game)
         .build();
 
-    contextMenu.show(watchButton.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
+    contextMenu.show(watchButton, Side.BOTTOM, 0, 0);
   }
 
   private void allowWatch() {
