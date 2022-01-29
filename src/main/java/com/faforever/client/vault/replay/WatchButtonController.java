@@ -26,7 +26,6 @@ import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -42,7 +41,7 @@ public class WatchButtonController implements Controller<Node> {
   private final LiveReplayService liveReplayService;
   private final TimeService timeService;
   private final I18n i18n;
-  private final ApplicationContext applicationContext;
+  private final ContextMenuBuilder contextMenuBuilder;
 
   public Button watchButton;
 
@@ -79,7 +78,7 @@ public class WatchButtonController implements Controller<Node> {
 
   private void showContextMenu() {
     Bounds screenBounds = watchButton.localToScreen(watchButton.getBoundsInLocal());
-    contextMenu = ContextMenuBuilder.newBuilder(applicationContext)
+    contextMenu = contextMenuBuilder.newBuilder()
         .addItem(NotifyMeMenuItem.class, game)
         .addItem(CancelActionNotifyMeMenuItem.class, game)
         .addItem(RunReplayImmediatelyMenuItem.class, game)

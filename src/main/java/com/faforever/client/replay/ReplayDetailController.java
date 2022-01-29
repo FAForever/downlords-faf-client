@@ -13,6 +13,7 @@ import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.RatingPrecision;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
@@ -52,7 +53,6 @@ import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -84,7 +84,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final ClientProperties clientProperties;
   private final NotificationService notificationService;
   private final ReviewService reviewService;
-  private final ApplicationContext applicationContext;
+  private final ContextMenuBuilder contextMenuBuilder;
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
   public Label titleLabel;
@@ -125,7 +125,7 @@ public class ReplayDetailController implements Controller<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
-    JavaFxUtil.addCopyLabelContextMenus(applicationContext, onMapLabel, titleLabel);
+    contextMenuBuilder.addCopyLabelContextMenu(onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
 
     chatGameTimeColumn.setCellValueFactory(param -> param.getValue().timeProperty());

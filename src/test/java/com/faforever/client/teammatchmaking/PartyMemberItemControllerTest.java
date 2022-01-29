@@ -11,6 +11,7 @@ import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
@@ -58,7 +59,7 @@ public class PartyMemberItemControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
 
   @InjectMocks
   private PartyMemberItemController instance;

@@ -8,6 +8,7 @@ import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
@@ -58,7 +58,7 @@ public class ChatUserItemControllerTest extends UITest {
   @Mock
   private PlatformService platformService;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
 
   private ClanBean testClan;
 

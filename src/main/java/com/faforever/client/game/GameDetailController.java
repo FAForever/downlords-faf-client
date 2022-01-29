@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -20,16 +21,17 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class GameDetailController implements Controller<Pane> {
 
   private final I18n i18n;
@@ -38,7 +40,7 @@ public class GameDetailController implements Controller<Pane> {
   private final PlayerService playerService;
   private final UiService uiService;
   private final JoinGameHelper joinGameHelper;
-  private final ApplicationContext applicationContext;
+  private final ContextMenuBuilder contextMenuBuilder;
 
   public Pane gameDetailRoot;
   public Label gameTypeLabel;
@@ -51,30 +53,17 @@ public class GameDetailController implements Controller<Pane> {
   public Node joinButton;
   public WatchButtonController watchButtonController;
   public Node watchButton;
-  private final ReadOnlyObjectWrapper<GameBean> game;
+  private final ReadOnlyObjectWrapper<GameBean> game = new ReadOnlyObjectWrapper<>();
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
   private InvalidationListener numPlayersInvalidationListener;
   private InvalidationListener gamePropertiesInvalidationListener;
   private InvalidationListener featuredModInvalidationListener;
 
-  public GameDetailController(I18n i18n, MapService mapService, ModService modService, PlayerService playerService,
-                              UiService uiService, JoinGameHelper joinGameHelper, ApplicationContext applicationContext) {
-    this.i18n = i18n;
-    this.mapService = mapService;
-    this.modService = modService;
-    this.playerService = playerService;
-    this.uiService = uiService;
-    this.joinGameHelper = joinGameHelper;
-    this.applicationContext = applicationContext;
-
-    game = new ReadOnlyObjectWrapper<>();
-  }
-
   public void initialize() {
     watchButton = watchButtonController.getRoot();
 
-    JavaFxUtil.addCopyLabelContextMenus(applicationContext, gameTitleLabel, mapLabel, gameTypeLabel);
+    contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
         mapImageView, gameTypeLabel);
     gameDetailRoot.parentProperty().addListener(observable -> {
@@ -182,9 +171,7 @@ public class GameDetailController implements Controller<Pane> {
     modService.getFeaturedMod(game.get().getFeaturedMod())
         .thenAccept(featuredMod -> {
           String fullName = featuredMod != null ? featuredMod.getDisplayName() : null;
-          JavaFxUtil.runLater(() -> {
-            gameTypeLabel.setText(StringUtils.defaultString(fullName));
-          });
+          JavaFxUtil.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(fullName)));
         });
   }
 
@@ -201,7 +188,7 @@ public class GameDetailController implements Controller<Pane> {
     return gameDetailRoot;
   }
 
-  public void onJoinButtonClicked(ActionEvent event) {
+  public void onJoinButtonClicked() {
     joinGameHelper.join(game.get());
   }
 }

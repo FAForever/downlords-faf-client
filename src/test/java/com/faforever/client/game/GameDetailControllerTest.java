@@ -4,6 +4,7 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
@@ -46,7 +46,7 @@ public class GameDetailControllerTest extends UITest {
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
 
   @Mock
   private WatchButtonController watchButtonController;
@@ -160,7 +160,7 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testJoinGame() {
-    instance.onJoinButtonClicked(null);
+    instance.onJoinButtonClicked();
     verify(joinGameHelper).join(game);
   }
 }

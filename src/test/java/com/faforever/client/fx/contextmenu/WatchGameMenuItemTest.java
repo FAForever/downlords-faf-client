@@ -5,11 +5,11 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.replay.ReplayService;
+import com.faforever.client.replay.LiveReplayService;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.lobby.GameStatus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -24,14 +24,10 @@ public class WatchGameMenuItemTest extends UITest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReplayService replayService;
+  private LiveReplayService liveReplayService;
 
+  @InjectMocks
   private WatchGameMenuItem instance;
-
-  @BeforeEach
-  public void setUp() {
-    instance = new WatchGameMenuItem(i18n, replayService, notificationService);
-  }
 
   @Test
   public void testWatchGame() {
@@ -40,7 +36,7 @@ public class WatchGameMenuItemTest extends UITest {
     instance.setObject(player);
     instance.onClicked();
 
-    verify(replayService).runLiveReplay(player.getGame().getId());
+    verify(liveReplayService).runLiveReplay(player.getGame().getId());
   }
 
   @Test
@@ -48,7 +44,7 @@ public class WatchGameMenuItemTest extends UITest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues()
         .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get()).get();
     Exception e = new RuntimeException();
-    doThrow(e).when(replayService).runLiveReplay(player.getGame().getId());
+    doThrow(e).when(liveReplayService).runLiveReplay(player.getGame().getId());
 
     instance.setObject(player);
     instance.onClicked();

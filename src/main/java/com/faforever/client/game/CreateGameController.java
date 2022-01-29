@@ -10,6 +10,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DualStringListCell;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -91,7 +92,7 @@ public class CreateGameController implements Controller<Pane> {
   private final UserService userService;
   private final MapGeneratorService mapGeneratorService;
   private final UiService uiService;
-  private final ApplicationContext applicationContext;
+  private final ContextMenuBuilder contextMenuBuilder;
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -121,7 +122,7 @@ public class CreateGameController implements Controller<Pane> {
   private InvalidationListener createButtonStateListener;
 
   public void initialize() {
-    JavaFxUtil.addCopyLabelContextMenus(applicationContext, mapNameLabel, mapDescriptionLabel);
+    contextMenuBuilder.addCopyLabelContextMenu(mapNameLabel, mapDescriptionLabel);
     JavaFxUtil.bindManagedToVisible(versionLabel);
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
     modManagerController.setCloseable(false);
