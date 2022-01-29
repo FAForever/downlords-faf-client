@@ -78,14 +78,14 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void showContextMenu() {
+    Bounds screenBounds = watchButton.localToScreen(watchButton.getBoundsInLocal());
     contextMenu = contextMenuBuilder.newBuilder()
         .addItem(NotifyMeMenuItem.class, game)
         .addItem(CancelActionNotifyMeMenuItem.class, game)
         .addItem(RunReplayImmediatelyMenuItem.class, game)
         .addItem(CancelActionRunReplayImmediatelyMenuItem.class, game)
         .build();
-
-    contextMenu.show(watchButton, Side.BOTTOM, 0, 0);
+    contextMenu.show(watchButton.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
   }
 
   private void allowWatch() {
