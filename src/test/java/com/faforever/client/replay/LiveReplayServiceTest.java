@@ -1,12 +1,16 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.replay.LiveReplayService.LiveReplayAction;
 import com.faforever.client.test.UITest;
 import javafx.beans.property.BooleanProperty;
@@ -45,6 +49,8 @@ public class LiveReplayServiceTest extends UITest {
   @Mock
   private GameService gameService;
   @Mock
+  private PlayerService playerService;
+  @Mock
   private TaskScheduler taskScheduler;
   @Mock
   private NotificationService notificationService;
@@ -55,10 +61,11 @@ public class LiveReplayServiceTest extends UITest {
 
   @InjectMocks
   private LiveReplayService instance;
-  private final BooleanProperty gameRunningProperty = new SimpleBooleanProperty(false);
+  private BooleanProperty gameRunningProperty;
 
   @BeforeEach
   public void setUp() throws Exception {
+    gameRunningProperty = new SimpleBooleanProperty(false);
     clientProperties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
     when(gameService.gameRunningProperty()).thenReturn(gameRunningProperty);
 
@@ -106,25 +113,27 @@ public class LiveReplayServiceTest extends UITest {
     assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingReplayProperty().getValue());
     verify(taskScheduler).schedule(captor.capture(), any(Instant.class));
     captor.getValue().run();
-    verify(notificationService).addNotification(any(TransientNotification.class));
+    verify(notificationService).addNotification(any(PersistentNotification.class));
     assertNull(instance.getTrackingReplayProperty().getValue());
   }
 
   @Test
   public void testRunReplayWhenIsAvailable() {
-    ArgumentCaptor<Runnable> runNotificationCaptor = ArgumentCaptor.forClass(Runnable.class);
     ArgumentCaptor<Runnable> runReplayCaptor = ArgumentCaptor.forClass(Runnable.class);
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
 
+    when(gameService.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
+        .thenReturn(CompletableFuture.completedFuture(null));
+    when(gameService.getByUid(game.getId())).thenReturn(game);
+    when(playerService.getCurrentPlayer()).thenReturn(player);
     instance.performActionWhenAvailable(game, LiveReplayAction.RUN_REPLAY);
 
     assertEquals(new Pair<>(game.getId(), LiveReplayAction.RUN_REPLAY), instance.getTrackingReplayProperty().getValue());
-    verify(taskScheduler).schedule(runNotificationCaptor.capture(), any(Instant.class));
-    runNotificationCaptor.getValue().run();
-    verify(notificationService).addNotification(any(TransientNotification.class));
-
-    verify(taskScheduler, times(2)).schedule(runReplayCaptor.capture(), any(Instant.class));
+    verify(taskScheduler).schedule(runReplayCaptor.capture(), any(Instant.class));
     runReplayCaptor.getValue().run();
+
+    verify(notificationService).addNotification(any(TransientNotification.class));
     verify(gameService).runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString());
     assertNull(instance.getTrackingReplayProperty().getValue());
   }
@@ -141,7 +150,9 @@ public class LiveReplayServiceTest extends UITest {
     assertNull(instance.getTrackingReplayProperty().getValue());
   }
 
+
   @Test
+  @SuppressWarnings({"unchecked", "rawtypes", "RedundantExplicitVariableType"})
   public void testStopTrackingReplayWhenTaskIsScheduled() {
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
@@ -156,7 +167,7 @@ public class LiveReplayServiceTest extends UITest {
   }
 
   @Test
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings({"rawtypes", "unchecked", "RedundantExplicitVariableType"})
   public void testStopTrackingReplayWhenGameStarted() {
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
@@ -166,6 +177,7 @@ public class LiveReplayServiceTest extends UITest {
 
     instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
     assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingReplayProperty().getValue());
+    when(gameService.isGameRunning()).thenReturn(true);
     gameRunningProperty.set(true);
     assertNull(instance.getTrackingReplayProperty().getValue());
   }
