@@ -20,6 +20,7 @@ import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -94,7 +95,7 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public int getNumberOfGames() {
-    return leaderboardRatings.values().stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum();
+    return new ArrayList<>(leaderboardRatings.values()).stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum();
   }
 
   public String getUsername() {
