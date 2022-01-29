@@ -10,15 +10,15 @@ import javafx.util.Pair;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CancelActionNotifyMeMenuItemTest extends UITest {
+public class RunReplayImmediatelyMenuItemTest extends UITest {
 
   @Mock
   private I18n i18n;
@@ -26,18 +26,29 @@ public class CancelActionNotifyMeMenuItemTest extends UITest {
   private LiveReplayService liveReplayService;
 
   @InjectMocks
-  private CancelActionNotifyMeMenuItem instance;
+  private RunReplayImmediatelyMenuItem instance;
 
   @Test
-  public void testOnClickedCancelActionNotifyMe() {
+  public void testOnClickedRunReplayImmediately() {
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    instance.setObject(game);
     instance.onClicked();
-    verify(liveReplayService).stopTrackingReplay();
+    verify(liveReplayService).performActionWhenAvailable(game, LiveReplayAction.RUN_REPLAY);
   }
 
   @Test
-  public void testVisibleItem() {
+  public void testVisibleItemIfNoTrackingReplay() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
-    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.of(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME)));
+    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.empty());
+
+    instance.setObject(game);
+    assertTrue(instance.isVisible());
+  }
+
+  @Test
+  public void testVisibleItemIfNoOwnTrackingReplay() {
+    GameBean game = GameBeanBuilder.create().defaultValues().id(1).get();
+    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.of(new Pair<>(2, any())));
 
     instance.setObject(game);
     assertTrue(instance.isVisible());
@@ -57,9 +68,9 @@ public class CancelActionNotifyMeMenuItemTest extends UITest {
   }
 
   @Test
-  public void testInvisibleItemIfNoTrackingOwnReplay() {
+  public void testInvisibleItemIfTrackingOwnReplay() {
     GameBean game = GameBeanBuilder.create().defaultValues().id(1).get();
-    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.of(new Pair<>(2, LiveReplayAction.NOTIFY_ME)));
+    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.of(new Pair<>(1, LiveReplayAction.RUN_REPLAY)));
 
     instance.setObject(game);
     assertFalse(instance.isVisible());
