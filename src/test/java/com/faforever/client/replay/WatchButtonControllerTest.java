@@ -12,7 +12,6 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
 import javafx.util.Pair;
 import org.junit.jupiter.api.AfterEach;
@@ -30,7 +29,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class WatchButtonControllerTest extends UITest {
