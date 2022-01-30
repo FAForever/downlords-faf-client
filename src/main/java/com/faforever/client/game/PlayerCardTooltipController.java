@@ -1,11 +1,11 @@
 package com.faforever.client.game;
 
-import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
@@ -31,7 +31,7 @@ import java.util.List;
 public class PlayerCardTooltipController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
-  private final AvatarService avatarService;
+  private final PlayerService playerService;
   private final I18n i18n;
   public Label playerInfo;
   public ImageView countryImageView;
@@ -48,7 +48,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
     }
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresentOrElse(image ->
         countryImageView.setImage(image), () -> countryImageView.setVisible(false));
-    avatarService.getCurrentAvatarByPlayerName(player.getUsername()).ifPresent(avatar -> {
+    playerService.getCurrentAvatarByPlayerName(player.getUsername()).ifPresent(avatar -> {
       Tooltip.install(avatarImageView, new Tooltip(player.getAvatar().getDescription()));
       avatarImageView.setImage(avatar);
       avatarImageView.setVisible(true);

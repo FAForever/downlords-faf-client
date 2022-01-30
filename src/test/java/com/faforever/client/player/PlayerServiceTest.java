@@ -20,6 +20,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -46,6 +47,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -53,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -322,5 +325,12 @@ public class PlayerServiceTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of("1", List.of("other"))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
+  }
+
+  @Test
+  public void testGetCurrentAvatarByPlayerName() {
+    instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
+    when(avatarService.loadAvatar(any())).thenReturn(mock(Image.class));
+    assertNotNull(instance.getCurrentAvatarByPlayerName("junit2").orElse(null));
   }
 }

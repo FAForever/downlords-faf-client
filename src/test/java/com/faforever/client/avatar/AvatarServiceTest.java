@@ -2,16 +2,13 @@ package com.faforever.client.avatar;
 
 import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.builders.AvatarBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.mapstruct.AvatarMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
-import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,10 +24,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -89,24 +85,5 @@ public class AvatarServiceTest extends ServiceTest {
     assertEquals(url, avatar.getUrl());
     assertEquals("Description", avatar.getDescription());
     verify(fafServerAccessor).selectAvatar(url);
-  }
-
-  @Test
-  public void testAddPlayerAvatarToMap() {
-    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().get();
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().avatar(avatarBean).get();
-    Image avatar = mock(Image.class);
-
-    when(assetService.loadAndCacheImage(avatarBean.getUrl(), any(), eq(any()))).thenReturn(avatar);
-    instance.addPlayerAvatarToMap(playerBean);
-    assertEquals(avatar, instance.getCurrentAvatarByPlayerName(playerBean.getUsername()).orElse(null));
-  }
-
-  @Test
-  public void testGetNullAvatarByUnknownPlayerName() {
-    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().get();
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().avatar(avatarBean).get();
-    instance.addPlayerAvatarToMap(playerBean);
-    assertTrue(instance.getCurrentAvatarByPlayerName("unknown").isEmpty());
   }
 }

@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
@@ -64,7 +63,6 @@ public class GamesTableController implements Controller<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
-  private final AvatarService avatarService;
   private final PlayerService playerService;
   public TableView<GameBean> gamesTable;
   public TableColumn<GameBean, Image> mapPreviewColumn;
@@ -132,7 +130,7 @@ public class GamesTableController implements Controller<Node> {
     ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getRatingMin(), param.getValue().getRatingMax())));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
-    hostColumn.setCellFactory(param -> new HostTableCell(avatarService));
+    hostColumn.setCellFactory(param -> new HostTableCell(playerService));
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     coopMissionName.setVisible(coopMissionNameProvider != null);

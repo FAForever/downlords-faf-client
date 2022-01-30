@@ -1,9 +1,6 @@
 package com.faforever.client.game;
 
-import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -18,12 +15,10 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -49,7 +44,6 @@ public class GameTileController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final ModService modService;
   private final PlayerService playerService;
-  private final AvatarService avatarService;
   public Node lockIconLabel;
   public Label gameTypeLabel;
   public Node gameCardRoot;
@@ -84,7 +78,7 @@ public class GameTileController implements Controller<Node> {
   }
 
   private void onGamePropertyChanged() {
-    Optional<Image> avatar = avatarService.getCurrentAvatarByPlayerName(game.getHost());
+    Optional<Image> avatar = playerService.getCurrentAvatarByPlayerName(game.getHost());
     JavaFxUtil.runLater(() -> {
       gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
       hostLabel.setText(game.getHost());

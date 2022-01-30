@@ -45,8 +45,6 @@ public class GameTileControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private AvatarService avatarService;
 
   private GameBean game;
 

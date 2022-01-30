@@ -1,27 +1,21 @@
 package com.faforever.client.game;
 
-import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
-import javafx.beans.WeakInvalidationListener;
-import javafx.beans.WeakListener;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 
 public class HostTableCell extends TableCell<GameBean, String> {
 
-  private final AvatarService avatarService;
+  private final PlayerService playerService;
 
   private final ImageView avatarImageView;
   private String currentHost;
 
-  public HostTableCell(AvatarService avatarService) {
-    this.avatarService = avatarService;
+  public HostTableCell(PlayerService playerService) {
+    this.playerService = playerService;
     this.avatarImageView = createAvatarImageView();
 
     setContentDisplay(ContentDisplay.LEFT);
@@ -47,7 +41,7 @@ public class HostTableCell extends TableCell<GameBean, String> {
       if (!item.equals(currentHost)) {
         currentHost = item;
         setText(item);
-        avatarService.getCurrentAvatarByPlayerName(item).ifPresentOrElse(avatar -> {
+        playerService.getCurrentAvatarByPlayerName(item).ifPresentOrElse(avatar -> {
           avatarImageView.setImage(avatar);
           setGraphic(avatarImageView);
         }, () -> setGraphic(null));

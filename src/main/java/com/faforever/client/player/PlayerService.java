@@ -25,6 +25,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -146,6 +147,10 @@ public class PlayerService implements InitializingBean {
         .collect(Collectors.toList());
   }
 
+  public Optional<Image> getCurrentAvatarByPlayerName(String name) {
+    return Optional.ofNullable(avatarService.loadAvatar(playersByName.get(name).getAvatar()));
+  }
+
   public boolean isCurrentPlayerInGame(GameBean game) {
     // TODO the following can be removed as soon as the server tells us which game a player is in.
     PlayerBean player = getCurrentPlayer();
@@ -194,7 +199,6 @@ public class PlayerService implements InitializingBean {
     }
 
     resetIdleTime(player);
-    avatarService.addPlayerAvatarToMap(player);
   }
 
   public Set<String> getPlayerNames() {
