@@ -4,6 +4,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder.MenuItemBuilder;
+import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService.LiveReplayAction;
 import com.faforever.client.test.UITest;
@@ -64,10 +65,10 @@ public class WatchButtonControllerTest extends UITest {
   @Test
   public void testShowContextMenuIfReplayUnavailableYet() {
     runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.watchButton));
-    ContextMenu contextMenu = mockContextMenuBuilderAndGetContextMenuMock();
+    ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
     setGame(game);
     clickWatchButton();
-    verify(contextMenu).show(eq(instance.watchButton.getScene().getWindow()), anyDouble(), anyDouble());
+    verify(contextMenuMock).show(eq(instance.watchButton.getScene().getWindow()), anyDouble(), anyDouble());
     verify(liveReplayService, never()).runLiveReplay(any());
   }
 
@@ -102,13 +103,5 @@ public class WatchButtonControllerTest extends UITest {
     if (timeline != null) {
       timeline.stop();
     }
-  }
-
-  private ContextMenu mockContextMenuBuilderAndGetContextMenuMock() {
-    MenuItemBuilder menuItemBuilder = mock(MenuItemBuilder.class, Answers.RETURNS_SELF);
-    when(contextMenuBuilder.newBuilder()).thenReturn(menuItemBuilder);
-    ContextMenu contextMenu = mock(ContextMenu.class);
-    when(menuItemBuilder.build()).thenReturn(contextMenu);
-    return contextMenu;
   }
 }
