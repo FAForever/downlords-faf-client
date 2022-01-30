@@ -4,9 +4,9 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
-import com.faforever.client.replay.LiveReplayService.LiveReplayAction;
+import com.faforever.client.replay.LiveReplayAction;
+import com.faforever.client.replay.TrackingLiveReplay;
 import com.faforever.client.test.UITest;
-import javafx.util.Pair;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -33,13 +33,13 @@ public class CancelActionRunReplayImmediatelyMenuItemTest extends UITest {
   public void testOnClickedCancelActionRunReplayImmediately() {
     instance.setObject(any());
     instance.onClicked();
-    verify(liveReplayService).stopTrackingReplay();
+    verify(liveReplayService).stopTrackingLiveReplay();
   }
 
   @Test
   public void testVisibleItem() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
-    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.of(new Pair<>(game.getId(), LiveReplayAction.RUN_REPLAY)));
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(game.getId(), LiveReplayAction.RUN_REPLAY)));
 
     instance.setObject(game);
     assertTrue(instance.isVisible());
@@ -61,7 +61,7 @@ public class CancelActionRunReplayImmediatelyMenuItemTest extends UITest {
   @Test
   public void testInvisibleItemIfNoTrackingOwnReplay() {
     GameBean game = GameBeanBuilder.create().defaultValues().id(1).get();
-    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.of(new Pair<>(2, LiveReplayAction.RUN_REPLAY)));
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(2, LiveReplayAction.RUN_REPLAY)));
 
     instance.setObject(game);
     assertFalse(instance.isVisible());

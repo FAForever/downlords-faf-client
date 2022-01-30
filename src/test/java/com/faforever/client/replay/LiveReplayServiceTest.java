@@ -11,7 +11,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.replay.LiveReplayService.LiveReplayAction;
 import com.faforever.client.test.UITest;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -109,11 +108,11 @@ public class LiveReplayServiceTest extends UITest {
 
     instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
 
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingReplayProperty().getValue());
+    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
     verify(taskScheduler).schedule(captor.capture(), any(Instant.class));
     captor.getValue().run();
     verify(notificationService).addNotification(any(PersistentNotification.class));
-    assertNull(instance.getTrackingReplayProperty().getValue());
+    assertNull(instance.getTrackingLiveReplayProperty().getValue());
   }
 
   @Test
@@ -128,25 +127,25 @@ public class LiveReplayServiceTest extends UITest {
     when(playerService.getCurrentPlayer()).thenReturn(player);
     instance.performActionWhenAvailable(game, LiveReplayAction.RUN_REPLAY);
 
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.RUN_REPLAY), instance.getTrackingReplayProperty().getValue());
+    assertEquals(new Pair<>(game.getId(), LiveReplayAction.RUN_REPLAY), instance.getTrackingLiveReplayProperty().getValue());
     verify(taskScheduler).schedule(runReplayCaptor.capture(), any(Instant.class));
     runReplayCaptor.getValue().run();
 
     verify(notificationService).addNotification(any(TransientNotification.class));
     verify(gameService).runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString());
-    assertNull(instance.getTrackingReplayProperty().getValue());
+    assertNull(instance.getTrackingLiveReplayProperty().getValue());
   }
 
   @Test
   public void testGetTrackingReplayProperty() {
-    assertNull(instance.getTrackingReplayProperty().getValue());
+    assertNull(instance.getTrackingLiveReplayProperty().getValue());
   }
 
   @Test
   public void testStopTrackingReplayWhenNoTask() {
-    assertNull(instance.getTrackingReplayProperty().getValue());
-    instance.stopTrackingReplay();
-    assertNull(instance.getTrackingReplayProperty().getValue());
+    assertNull(instance.getTrackingLiveReplayProperty().getValue());
+    instance.stopTrackingLiveReplay();
+    assertNull(instance.getTrackingLiveReplayProperty().getValue());
   }
 
 
@@ -160,9 +159,9 @@ public class LiveReplayServiceTest extends UITest {
     when(mockFutureTask.isCancelled()).thenReturn(false);
 
     instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingReplayProperty().getValue());
-    instance.stopTrackingReplay();
-    assertNull(instance.getTrackingReplayProperty().getValue());
+    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
+    instance.stopTrackingLiveReplay();
+    assertNull(instance.getTrackingLiveReplayProperty().getValue());
   }
 
   @Test
@@ -175,9 +174,9 @@ public class LiveReplayServiceTest extends UITest {
     when(mockFutureTask.isCancelled()).thenReturn(false);
 
     instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingReplayProperty().getValue());
+    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
     when(gameService.isGameRunning()).thenReturn(true);
     gameRunningProperty.set(true);
-    assertNull(instance.getTrackingReplayProperty().getValue());
+    assertNull(instance.getTrackingLiveReplayProperty().getValue());
   }
 }

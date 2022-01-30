@@ -10,6 +10,7 @@ import com.faforever.client.fx.contextmenu.NotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.RunReplayImmediatelyMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
+import com.faforever.client.replay.TrackingLiveReplay;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
@@ -22,7 +23,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.util.Duration;
-import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -49,7 +49,7 @@ public class WatchButtonController implements Controller<Node> {
   private Timeline delayTimeline;
   private ContextMenu contextMenu;
 
-  private final InvalidationListener trackingReplayPropertyListener = observable -> updateWatchButtonState();
+  private final InvalidationListener trackingLiveReplayPropertyListener = observable -> updateWatchButtonState();
 
 
   public void initialize() {
@@ -58,7 +58,7 @@ public class WatchButtonController implements Controller<Node> {
         new KeyFrame(Duration.seconds(1))
     );
     delayTimeline.setCycleCount(Timeline.INDEFINITE);
-    JavaFxUtil.addListener(liveReplayService.getTrackingReplayProperty(), new WeakInvalidationListener(trackingReplayPropertyListener));
+    JavaFxUtil.addListener(liveReplayService.getTrackingLiveReplayProperty(), new WeakInvalidationListener(trackingLiveReplayPropertyListener));
   }
 
   public void setGame(GameBean game) {
@@ -107,8 +107,8 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   private void updateWatchButtonState() {
-    liveReplayService.getTrackingReplay().map(Pair::getKey).ifPresentOrElse(trackingGameId -> {
-          boolean isTracking = game != null && game.getId().equals(trackingGameId);
+    liveReplayService.getTrackingLiveReplay().map(TrackingLiveReplay::getGameId).ifPresentOrElse(gameId -> {
+          boolean isTracking = game != null && game.getId().equals(gameId);
           JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, isTracking));
         },
         () -> JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, false)));

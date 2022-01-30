@@ -3,8 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
-import com.faforever.client.replay.LiveReplayService.LiveReplayAction;
-import javafx.util.Pair;
+import com.faforever.client.replay.TrackingLiveReplay;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static com.faforever.client.replay.LiveReplayService.LiveReplayAction.RUN_REPLAY;
+import static com.faforever.client.replay.LiveReplayAction.RUN_REPLAY;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -24,7 +23,7 @@ public class CancelActionRunReplayImmediatelyMenuItem extends AbstractMenuItem<G
 
   @Override
   protected void onClicked() {
-    liveReplayService.stopTrackingReplay();
+    liveReplayService.stopTrackingLiveReplay();
   }
 
   @Override
@@ -34,9 +33,9 @@ public class CancelActionRunReplayImmediatelyMenuItem extends AbstractMenuItem<G
       return false;
     }
 
-    Optional<Pair<Integer, LiveReplayAction>> trackingReplayOptional = liveReplayService.getTrackingReplay();
-    return trackingReplayOptional.stream().anyMatch(trackingReplay -> trackingReplay.getKey().equals(object.getId())
-        && trackingReplay.getValue() == RUN_REPLAY);
+    Optional<TrackingLiveReplay> trackingLiveReplayOptional = liveReplayService.getTrackingLiveReplay();
+    return trackingLiveReplayOptional.stream().anyMatch(trackingLiveReplay -> trackingLiveReplay.getGameId().equals(object.getId())
+        && trackingLiveReplay.getAction() == RUN_REPLAY);
   }
 
   @Override

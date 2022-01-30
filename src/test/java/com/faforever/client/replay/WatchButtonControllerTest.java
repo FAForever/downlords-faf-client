@@ -5,7 +5,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.replay.LiveReplayService.LiveReplayAction;
 import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
@@ -13,7 +12,6 @@ import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.ContextMenu;
-import javafx.util.Pair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,10 +48,10 @@ public class WatchButtonControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     game = GameBeanBuilder.create().defaultValues().get();
-    ObjectProperty<Pair<Integer, LiveReplayAction>> trackingReplayProperty = new SimpleObjectProperty<>(null);
+    ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
-    when(liveReplayService.getTrackingReplayProperty()).thenReturn(trackingReplayProperty);
-    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.ofNullable(trackingReplayProperty.get()));
+    when(liveReplayService.getTrackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.ofNullable(trackingLiveReplayProperty.get()));
     when(i18n.get("game.watch")).thenReturn("watch");
 
     loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);
@@ -81,7 +79,7 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testWatchButtonStateWhenReplayIsTracking() {
-    when(liveReplayService.getTrackingReplay()).thenReturn(Optional.of(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME)));
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(game.getId(), LiveReplayAction.NOTIFY_ME)));
     setGame(game);
     assertTrue(instance.watchButton.getPseudoClassStates().contains(WatchButtonController.TRACKABLE_PSEUDO_CLASS));
   }

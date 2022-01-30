@@ -21,7 +21,6 @@ import com.google.common.base.Splitter;
 import com.google.common.net.UrlEscapers;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
@@ -66,13 +65,13 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   private final ReportingService reportingService;
 
   private Future<?> futureTask;
-  private final ObjectProperty<Pair<Integer, LiveReplayAction>> trackingReplayProperty = new SimpleObjectProperty<>(null);
+  private final ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
   @Override
   public void afterPropertiesSet() throws Exception {
     JavaFxUtil.addListener(gameService.gameRunningProperty(), observable -> {
       if (gameService.isGameRunning()) {
-        stopTrackingReplay();
+        stopTrackingLiveReplay();
       }
     });
   }
@@ -94,8 +93,8 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   public void performActionWhenAvailable(GameBean game, LiveReplayAction action) {
     checkNullIllegalState(game.getId(), "No game id to schedule future task");
-    stopTrackingReplay();
-    trackingReplayProperty.set(new Pair<>(game.getId(), action));
+    stopTrackingLiveReplay();
+    trackingLiveReplayProperty.set(new TrackingLiveReplay(game.getId(), action));
     switch (action) {
       case NOTIFY_ME -> notifyUserWhenReplayAvailable(game);
       case RUN_REPLAY -> runLiveReplayWhenAvailable(game);
@@ -105,7 +104,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   private void notifyUserWhenReplayAvailable(GameBean game) {
     futureTask = taskScheduler.schedule(() -> {
-      clearTrackingReplayProperty();
+      clearTrackingLiveReplayProperty();
       notificationService.addNotification(new PersistentNotification(
           i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
           Severity.INFO,
@@ -118,29 +117,29 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
       notificationService.addNotification(new TransientNotification(
           i18n.get("vault.liveReplays.replayAvailable", game.getTitle()),
           i18n.get("vault.liveReplays.replayLaunching")));
-      clearTrackingReplayProperty();
+      clearTrackingLiveReplayProperty();
       runLiveReplay(game.getId());
     }, Instant.from(game.getStartTime().plusSeconds(getWatchDelaySeconds())));
   }
 
-  private void clearTrackingReplayProperty() {
-    trackingReplayProperty.set(null);
+  private void clearTrackingLiveReplayProperty() {
+    trackingLiveReplayProperty.set(null);
   }
 
-  public void stopTrackingReplay() {
+  public void stopTrackingLiveReplay() {
     if (futureTask != null && !futureTask.isCancelled()) {
       futureTask.cancel(false);
-      clearTrackingReplayProperty();
+      clearTrackingLiveReplayProperty();
     }
     futureTask = null;
   }
 
-  public ObjectProperty<Pair<Integer, LiveReplayAction>> getTrackingReplayProperty() {
-    return trackingReplayProperty;
+  public ObjectProperty<TrackingLiveReplay> getTrackingLiveReplayProperty() {
+    return trackingLiveReplayProperty;
   }
 
-  public Optional<Pair<Integer, LiveReplayAction>> getTrackingReplay() {
-    return Optional.ofNullable(trackingReplayProperty.get());
+  public Optional<TrackingLiveReplay> getTrackingLiveReplay() {
+    return Optional.ofNullable(trackingLiveReplayProperty.get());
   }
 
   public void runLiveReplay(int gameId) {
@@ -200,10 +199,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   @Override
   public void destroy() throws Exception {
-    stopTrackingReplay();
+    stopTrackingLiveReplay();
   }
 
-  public enum LiveReplayAction {
-    NOTIFY_ME, RUN_REPLAY
-  }
 }
