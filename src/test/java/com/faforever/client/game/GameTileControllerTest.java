@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
