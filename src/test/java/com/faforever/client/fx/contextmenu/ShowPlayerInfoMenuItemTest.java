@@ -55,8 +55,8 @@ public class ShowPlayerInfoMenuItemTest extends UITest {
   }
 
   @Test
-  public void testVisibleItemIfPlayerIsNotSelf() {
-    instance.setObject(PlayerBeanBuilder.create().defaultValues().socialStatus(SocialStatus.OTHER).get());
+  public void testVisibleItemIfNonNullPlayer() {
+    instance.setObject(PlayerBeanBuilder.create().defaultValues().get());
     assertTrue(instance.isVisible());
   }
 
