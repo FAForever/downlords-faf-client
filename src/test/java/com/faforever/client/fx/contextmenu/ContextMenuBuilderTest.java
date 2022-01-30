@@ -1,12 +1,10 @@
 package com.faforever.client.fx.contextmenu;
 
-import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.test.UITest;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.ContextMenuEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,9 +13,11 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ContextMenuBuilderTest extends UITest {
