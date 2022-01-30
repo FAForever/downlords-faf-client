@@ -1,6 +1,5 @@
 package com.faforever.client.game;
 
-import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.domain.FeaturedModBean;
@@ -61,6 +60,7 @@ import javafx.collections.ObservableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -103,7 +103,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 @Lazy
 @Service
 @Slf4j
-public class GameService implements InitializingBean {
+public class GameService implements InitializingBean, DisposableBean {
 
   private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
   private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = "\ndebug = {\n" +
@@ -146,6 +146,7 @@ public class GameService implements InitializingBean {
   private boolean rehostRequested;
   private int localReplayPort;
   private boolean inOthersParty;
+  private InvalidationListener connectionStateInvalidationListener;
 
   public GameService(ClientProperties clientProperties,
                      FafServerAccessor fafServerAccessor,
@@ -220,16 +221,14 @@ public class GameService implements InitializingBean {
     fafServerAccessor.addEventListener(GameInfo.class, this::onGameInfo);
     fafServerAccessor.addEventListener(LoginSuccessResponse.class, message -> onLoggedIn());
 
-    JavaFxUtil.addListener(
-        fafServerAccessor.connectionStateProperty(),
-        (observable, oldValue, newValue) -> {
-          if (newValue == ConnectionState.DISCONNECTED && !FafClientApplication.CLOSE_BUTTON_PRESSED.get()) {
-            synchronized (gameIdToGame) {
-              gameIdToGame.clear();
-            }
-          }
+    connectionStateInvalidationListener = (observable) -> {
+      if (fafServerAccessor.getConnectionState() == ConnectionState.DISCONNECTED) {
+        synchronized (gameIdToGame) {
+          gameIdToGame.clear();
         }
-    );
+      }
+    };
+    JavaFxUtil.addListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
   }
 
   @NotNull
@@ -856,5 +855,10 @@ public class GameService implements InitializingBean {
   public CompletableFuture<Boolean> isGamePrefsPatchedToAllowMultiInstances() throws IOException {
     String gamePrefsContent = getGamePrefsContent();
     return completedFuture(GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN.matcher(gamePrefsContent).find());
+  }
+
+  @Override
+  public void destroy() throws Exception {
+    JavaFxUtil.removeListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
   }
 }
