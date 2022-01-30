@@ -54,7 +54,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Slf4j
 public class LiveReplayService implements InitializingBean, DisposableBean {
 
-  private static final String FAF_LIFE_PROTOCOL = "faflive";
+  private static final String FAF_LIVE_PROTOCOL = "faflive";
   private static final String GPGNET_SCHEME = "gpgnet";
 
   private final ClientProperties clientProperties;
@@ -152,7 +152,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     String playerName = playerService.getCurrentPlayer().getUsername();
 
     URI uri = UriComponentsBuilder.newInstance()
-        .scheme(FAF_LIFE_PROTOCOL)
+        .scheme(FAF_LIVE_PROTOCOL)
         .host(clientProperties.getReplay().getRemoteHost())
         .path("/" + gameId + "/" + playerName + ReplayService.SUP_COM_REPLAY_FILE_ENDING)
         .queryParam("map", UrlEscapers.urlFragmentEscaper().escape(game.getMapFolderName()))
@@ -166,7 +166,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   public void runLiveReplay(URI uri) {
     log.debug("Running replay from URL: {}", uri);
-    if (!uri.getScheme().equals(FAF_LIFE_PROTOCOL)) {
+    if (!uri.getScheme().equals(FAF_LIVE_PROTOCOL)) {
       throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
     }
 
