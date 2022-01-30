@@ -79,7 +79,7 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testWatchButtonStateWhenReplayIsTracking() {
-    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(game.getId(), LiveReplayAction.NOTIFY_ME)));
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(game.getId(), TrackingLiveReplayAction.NOTIFY_ME)));
     setGame(game);
     assertTrue(instance.watchButton.getPseudoClassStates().contains(WatchButtonController.TRACKABLE_PSEUDO_CLASS));
   }

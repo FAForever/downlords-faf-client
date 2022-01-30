@@ -106,9 +106,9 @@ public class LiveReplayServiceTest extends UITest {
     ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
     GameBean game = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
 
-    instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
+    instance.performActionWhenAvailable(game, TrackingLiveReplayAction.NOTIFY_ME);
 
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
+    assertEquals(new Pair<>(game.getId(), TrackingLiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
     verify(taskScheduler).schedule(captor.capture(), any(Instant.class));
     captor.getValue().run();
     verify(notificationService).addNotification(any(PersistentNotification.class));
@@ -125,9 +125,9 @@ public class LiveReplayServiceTest extends UITest {
         .thenReturn(CompletableFuture.completedFuture(null));
     when(gameService.getByUid(game.getId())).thenReturn(game);
     when(playerService.getCurrentPlayer()).thenReturn(player);
-    instance.performActionWhenAvailable(game, LiveReplayAction.RUN_REPLAY);
+    instance.performActionWhenAvailable(game, TrackingLiveReplayAction.RUN_REPLAY);
 
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.RUN_REPLAY), instance.getTrackingLiveReplayProperty().getValue());
+    assertEquals(new Pair<>(game.getId(), TrackingLiveReplayAction.RUN_REPLAY), instance.getTrackingLiveReplayProperty().getValue());
     verify(taskScheduler).schedule(runReplayCaptor.capture(), any(Instant.class));
     runReplayCaptor.getValue().run();
 
@@ -158,8 +158,8 @@ public class LiveReplayServiceTest extends UITest {
     when(taskScheduler.schedule(any(), any(Instant.class))).thenReturn(mockFutureTask);
     when(mockFutureTask.isCancelled()).thenReturn(false);
 
-    instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
+    instance.performActionWhenAvailable(game, TrackingLiveReplayAction.NOTIFY_ME);
+    assertEquals(new Pair<>(game.getId(), TrackingLiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
     instance.stopTrackingLiveReplay();
     assertNull(instance.getTrackingLiveReplayProperty().getValue());
   }
@@ -173,8 +173,8 @@ public class LiveReplayServiceTest extends UITest {
     when(taskScheduler.schedule(any(), any(Instant.class))).thenReturn(mockFutureTask);
     when(mockFutureTask.isCancelled()).thenReturn(false);
 
-    instance.performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
-    assertEquals(new Pair<>(game.getId(), LiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
+    instance.performActionWhenAvailable(game, TrackingLiveReplayAction.NOTIFY_ME);
+    assertEquals(new Pair<>(game.getId(), TrackingLiveReplayAction.NOTIFY_ME), instance.getTrackingLiveReplayProperty().getValue());
     when(gameService.isGameRunning()).thenReturn(true);
     gameRunningProperty.set(true);
     assertNull(instance.getTrackingLiveReplayProperty().getValue());

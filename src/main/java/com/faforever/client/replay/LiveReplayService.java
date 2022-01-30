@@ -91,7 +91,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     );
   }
 
-  public void performActionWhenAvailable(GameBean game, LiveReplayAction action) {
+  public void performActionWhenAvailable(GameBean game, TrackingLiveReplayAction action) {
     checkNullIllegalState(game.getId(), "No game id to schedule future task");
     stopTrackingLiveReplay();
     trackingLiveReplayProperty.set(new TrackingLiveReplay(game.getId(), action));

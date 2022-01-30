@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static com.faforever.client.replay.LiveReplayAction.NOTIFY_ME;
+import static com.faforever.client.replay.TrackingLiveReplayAction.NOTIFY_ME;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)

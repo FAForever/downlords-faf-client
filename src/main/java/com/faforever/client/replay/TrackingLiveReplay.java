@@ -6,5 +6,5 @@ import lombok.Data;
 public class TrackingLiveReplay {
 
   private final Integer gameId;
-  private final LiveReplayAction action;
+  private final TrackingLiveReplayAction action;
 }

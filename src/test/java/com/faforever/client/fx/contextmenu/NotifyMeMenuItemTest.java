@@ -4,7 +4,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
-import com.faforever.client.replay.LiveReplayAction;
+import com.faforever.client.replay.TrackingLiveReplayAction;
 import com.faforever.client.replay.TrackingLiveReplay;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ public class NotifyMeMenuItemTest extends UITest {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     instance.setObject(game);
     instance.onClicked();
-    verify(liveReplayService).performActionWhenAvailable(game, LiveReplayAction.NOTIFY_ME);
+    verify(liveReplayService).performActionWhenAvailable(game, TrackingLiveReplayAction.NOTIFY_ME);
   }
 
   @Test
@@ -71,7 +71,7 @@ public class NotifyMeMenuItemTest extends UITest {
   @Test
   public void testInvisibleItemIfTrackingOwnReplay() {
     GameBean game = GameBeanBuilder.create().defaultValues().id(1).get();
-    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(1, LiveReplayAction.NOTIFY_ME)));
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(1, TrackingLiveReplayAction.NOTIFY_ME)));
 
     instance.setObject(game);
     assertFalse(instance.isVisible());
