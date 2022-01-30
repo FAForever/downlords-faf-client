@@ -43,6 +43,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -50,6 +51,9 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties({ClientProperties.class})
 @Slf4j
 public class FafClientApplication extends Application {
+
+  public static final AtomicBoolean CLOSE_BUTTON_PRESSED = new AtomicBoolean(false);
+
   public static final String PROFILE_PROD = "prod";
   public static final String PROFILE_TEST = "test";
   /**
@@ -156,6 +160,7 @@ public class FafClientApplication extends Application {
           )));
       event.consume();
     } else {
+      CLOSE_BUTTON_PRESSED.set(true);
       Platform.exit();
     }
   }

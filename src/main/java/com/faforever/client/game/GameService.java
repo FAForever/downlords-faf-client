@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.domain.FeaturedModBean;
@@ -223,8 +224,10 @@ public class GameService implements InitializingBean {
         fafServerAccessor.connectionStateProperty(),
         (observable, oldValue, newValue) -> {
           if (newValue == ConnectionState.DISCONNECTED) {
-            synchronized (gameIdToGame) {
-              gameIdToGame.clear();
+            if (!FafClientApplication.CLOSE_BUTTON_PRESSED.get()) {
+              synchronized (gameIdToGame) {
+                gameIdToGame.clear();
+              }
             }
           }
         }
