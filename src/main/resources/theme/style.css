@@ -1377,5 +1377,5 @@
 /***************** Watch Live Replay Button ***************************/
 
 .watch-button:trackable {
-  -fx-background-color: darkolivegreen;
+  -fx-background-color: -fx-accent;
 }
