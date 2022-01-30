@@ -3,7 +3,6 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerInfoWindowController;
-import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isItemVisible() {
-    return object != null && object.getSocialStatus() != SocialStatus.SELF;
+    return object != null;
   }
 
   @Override
