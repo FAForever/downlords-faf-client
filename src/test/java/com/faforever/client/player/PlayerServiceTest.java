@@ -14,6 +14,8 @@ import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.api.elide.ElideEntity;
+import com.faforever.commons.lobby.Player;
+import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
@@ -84,7 +86,7 @@ public class PlayerServiceTest extends ServiceTest {
     MapperSetup.injectMappers(playerMapper);
     when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");
-    playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, null, "", new HashMap<>(), new HashMap<>());
+    playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
 
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -329,7 +331,6 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetCurrentAvatarByPlayerName() {
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
     when(avatarService.loadAvatar(any())).thenReturn(mock(Image.class));
     assertNotNull(instance.getCurrentAvatarByPlayerName("junit2").orElse(null));
   }
