@@ -148,8 +148,7 @@ public class PlayerService implements InitializingBean {
   }
 
   public Optional<Image> getCurrentAvatarByPlayerName(String name) {
-    PlayerBean player = playersByName.getOrDefault(name, null);
-    return Optional.ofNullable(avatarService.loadAvatar(player != null ? player.getAvatar() : null));
+    return Optional.ofNullable(playersByName.get(name)).map(PlayerBean::getAvatar).map(avatarService::loadAvatar);
   }
 
   public boolean isCurrentPlayerInGame(GameBean game) {
