@@ -1,7 +1,6 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.io.DownloadService;
@@ -10,6 +9,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.api.dto.FeaturedModFile;
+import com.faforever.commons.fa.ForgedAllianceExePatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -72,6 +72,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
               .resolve(featuredModFile.getName());
 
           try {
+            Files.createDirectories(targetPath.getParent());
             if (fileAlreadyLoaded(featuredModFile, targetPath)) {
               log.debug("Featured mod file already prepared: {}", featuredModFile);
             } else {
@@ -111,17 +112,19 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   }
 
   private void patchOrDownloadForgedAllianceExe(FeaturedModFile featuredModFile, Path cachedFilePath, Path targetPath) throws IOException, ChecksumMismatchException, NoSuchAlgorithmException {
-    Path tempFile = Files.createTempFile(targetPath.getParent(), "download", null);
-    // Make a copy of the currently installed ForgedAlliance.exe
-    Files.copy(targetPath, tempFile, StandardCopyOption.REPLACE_EXISTING);
-    int version = Integer.parseInt(featuredModFile.getVersion());
-    ForgedAllianceExePatcher.patchVersion(tempFile, version);
+    if (Files.exists(targetPath)) {
+      Path tempFile = Files.createTempFile(cachedFilePath.getParent(), "download", null);
+      // Make a copy of the currently installed ForgedAlliance.exe
+      Files.copy(targetPath, tempFile, StandardCopyOption.REPLACE_EXISTING);
+      int version = Integer.parseInt(featuredModFile.getVersion());
+      ForgedAllianceExePatcher.patchVersion(tempFile, version);
 
-    if (fileAlreadyLoaded(featuredModFile, tempFile)) {
-      // Hash matches so use the patched version
-      Files.move(tempFile, cachedFilePath, StandardCopyOption.REPLACE_EXISTING);
-      log.debug("Using locally patched {} for version {}", featuredModFile.getName(), version);
-      return;
+      if (fileAlreadyLoaded(featuredModFile, tempFile)) {
+        // Hash matches so use the patched version
+        Files.move(tempFile, cachedFilePath, StandardCopyOption.REPLACE_EXISTING);
+        log.debug("Using locally patched {} for version {}", featuredModFile.getName(), version);
+        return;
+      }
     }
 
     downloadFeaturedModFile(featuredModFile, cachedFilePath);
