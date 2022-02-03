@@ -62,15 +62,8 @@ public class DownloadMapGeneratorTask extends CompletableTask<Void> {
     URLConnection urlConnection = url.openConnection();
 
     Path targetFile = mapGeneratorService.getGeneratorExecutablePath(version);
+    Files.createDirectories(targetFile.getParent());
     Path tempFile = Files.createTempFile(targetFile.getParent(), "generator", null);
-
-    if (!Files.exists(targetFile.getParent())) {
-      try {
-        Files.createDirectory(targetFile.getParent());
-      } catch (IOException e) {
-        log.error("Could not create map generator executable directory.", e);
-      }
-    }
 
     ResourceLocks.acquireDownloadLock();
     try (InputStream inputStream = url.openStream(); OutputStream outputStream = Files.newOutputStream(tempFile)) {
