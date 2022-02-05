@@ -47,15 +47,16 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.PopupWindow;
 import javafx.util.Duration;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class ChatUserItemController implements Controller<Node> {
 
   private static final PseudoClass COMPACT = PseudoClass.getPseudoClass("compact");
@@ -66,11 +67,11 @@ public class ChatUserItemController implements Controller<Node> {
   private final EventBus eventBus;
   private final PlayerService playerService;
   private final PlatformService platformService;
-  private final ApplicationContext applicationContext;
+  private final ContextMenuBuilder contextMenuBuilder;
 
-  private final InvalidationListener formatChangeListener;
-  private final InvalidationListener chatUserPropertyInvalidationListener;
-  private final InvalidationListener chatUserGamePropertyInvalidationListener;
+  private final InvalidationListener formatChangeListener = observable -> updateFormat();
+  private final InvalidationListener chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
+  private final InvalidationListener chatUserGamePropertyInvalidationListener = observable -> updateChatUserGame();
 
   public ImageView playerMapImage;
   public ImageView playerStatusIndicator;
@@ -85,22 +86,6 @@ public class ChatUserItemController implements Controller<Node> {
   private Tooltip avatarTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
-
-  public ChatUserItemController(PreferencesService preferencesService,
-                                I18n i18n, UiService uiService, EventBus eventBus, PlayerService playerService,
-                                PlatformService platformService, ApplicationContext applicationContext) {
-    this.platformService = platformService;
-    this.preferencesService = preferencesService;
-    this.playerService = playerService;
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.eventBus = eventBus;
-    this.applicationContext = applicationContext;
-
-    formatChangeListener = observable -> updateFormat();
-    chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
-    chatUserGamePropertyInvalidationListener = observable -> updateChatUserGame();
-  }
 
   private void updateFormat() {
     ChatFormat chatFormat = preferencesService.getPreferences().getChat().getChatFormat();
@@ -188,7 +173,7 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     PlayerBean player = chatUser.getPlayer().orElse(null);
-    ContextMenuBuilder.newBuilder(applicationContext)
+    contextMenuBuilder.newBuilder()
         .addItem(ShowPlayerInfoMenuItem.class, player)
         .addItem(SendPrivateMessageMenuItem.class, chatUser.getUsername())
         .addItem(CopyUsernameMenuItem.class, chatUser.getUsername())

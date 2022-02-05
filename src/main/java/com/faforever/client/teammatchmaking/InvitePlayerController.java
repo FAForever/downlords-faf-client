@@ -8,7 +8,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.list.NoSelectionModel;
+import com.faforever.client.ui.list.NoSelectionModelListView;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -65,10 +65,10 @@ public class InvitePlayerController implements Controller<Pane> {
         }, playerTextField.textProperty()
     ));
 
-    invitedPlayersListView.setSelectionModel(new NoSelectionModel<>());
+    invitedPlayersListView.setSelectionModel(new NoSelectionModelListView<>());
     invitedPlayersListView.setCellFactory(param -> new IconButtonListCell<>(this::invitedPlayerListCellConfiguration, uiService));
 
-    playersListView.setSelectionModel(new NoSelectionModel<>());
+    playersListView.setSelectionModel(new NoSelectionModelListView<>());
     playersListView.setCellFactory(param -> new IconButtonListCell<>(this::playerListCellConfiguration, uiService));
     playersListView.setItems(sortedPlayerList);
     playersListView.getSelectionModel().selectFirst();

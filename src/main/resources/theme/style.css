@@ -1364,3 +1364,18 @@
   -fx-border-color: #424242;
 }
 
+/***************** Live Replay Tab ***************************/
+
+.live-replay-tab .table-row-cell {
+  -fx-padding: 3px 4px;
+}
+
+.live-replay-tab .table-row-cell:odd {
+  -fx-background: #262626;
+}
+
+/***************** Watch Live Replay Button ***************************/
+
+.watch-button:trackable {
+  -fx-background-color: -fx-accent;
+}

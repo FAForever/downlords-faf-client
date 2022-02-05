@@ -3,15 +3,20 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.test.UITest;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +25,9 @@ public class ContextMenuBuilderTest extends UITest {
   @Mock
   private ApplicationContext applicationContext;
 
-  ContextMenu instance;
+  @InjectMocks
+  private ContextMenuBuilder instance;
+
   AbstractMenuItem<Object> simpleItem1;
   AbstractCustomMenuItemController<Object> customItem2;
   AbstractCustomMenuItemController<Object> customItem4;
@@ -37,7 +44,7 @@ public class ContextMenuBuilderTest extends UITest {
 
     when(applicationContext.getBean(any(Class.class))).thenReturn(simpleItem1, simpleItem4);
 
-    instance = ContextMenuBuilder.newBuilder(applicationContext)
+    ContextMenu contextMenu = instance.newBuilder()
         .addItem(stubMenuItem().getClass())           // [0]
         .addSeparator()                               // [1]
         .addCustomItem(customItem2)                   // [2]
@@ -45,7 +52,7 @@ public class ContextMenuBuilderTest extends UITest {
         .addItem(stubMenuItem().getClass())           // [4]
         .addCustomItem(customItem4)                   // [5]
         .build();
-    items = instance.getItems();
+    items = contextMenu.getItems();
   }
 
   @Test
@@ -76,6 +83,15 @@ public class ContextMenuBuilderTest extends UITest {
       items.get(5).setVisible(true);
     });
     assertTrue(items.get(3).isVisible());
+  }
+
+  @Test
+  public void testAddCopyLabelContextMenu() {
+    Label label = new Label("junit");
+    assertNull(label.getOnContextMenuRequested());
+
+    instance.addCopyLabelContextMenu(label);
+    assertNotNull(label.getOnContextMenuRequested());
   }
 
   private AbstractMenuItem<Object> stubMenuItem() {

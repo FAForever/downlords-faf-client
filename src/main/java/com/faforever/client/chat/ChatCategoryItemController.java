@@ -16,7 +16,6 @@ import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +28,7 @@ public class ChatCategoryItemController implements Controller<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
-  private final ApplicationContext applicationContext;
+  private final ContextMenuBuilder contextMenuBuilder;
 
   public Label chatUserCategoryRoot;
   private ChatUserCategory chatUserCategory;
@@ -56,7 +55,7 @@ public class ChatCategoryItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    ContextMenuBuilder.newBuilder(applicationContext)
+    contextMenuBuilder.newBuilder()
         .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatCategoryColorPickerCustomMenuItemController.class), chatUserCategory)
         .build()
         .show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());

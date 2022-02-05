@@ -10,6 +10,7 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -37,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
@@ -84,7 +84,7 @@ public class CreateGameControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
   @Mock
   private UserService userService;
   @Mock

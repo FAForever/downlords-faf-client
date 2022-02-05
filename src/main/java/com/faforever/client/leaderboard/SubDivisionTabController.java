@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +32,7 @@ import static javafx.collections.FXCollections.observableList;
 @RequiredArgsConstructor
 public class SubDivisionTabController implements Controller<Tab> {
 
-  private final ApplicationContext context;
+  private final ContextMenuBuilder contextMenuBuilder;
   private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -75,7 +74,7 @@ public class SubDivisionTabController implements Controller<Tab> {
       }
       LeagueEntryBean entry = row.getItem();
       PlayerBean player = entry.getPlayer();
-      ContextMenuBuilder.newBuilder(context)
+      contextMenuBuilder.newBuilder()
           .addItem(ShowPlayerInfoMenuItem.class, player)
           .addItem(CopyUsernameMenuItem.class, player.getUsername())
           .addSeparator()

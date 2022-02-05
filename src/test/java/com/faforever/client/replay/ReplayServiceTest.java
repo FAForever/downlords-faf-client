@@ -422,16 +422,6 @@ public class ReplayServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testRunLiveReplay() throws Exception {
-    when(gameService.runWithLiveReplay(any(URI.class), anyInt(), anyString(), anyString()))
-        .thenReturn(CompletableFuture.completedFuture(null));
-
-    instance.runLiveReplay(new URI("faflive://example.com/123/456.scfareplay?mod=faf&map=map%20name"));
-
-    verify(gameService).runWithLiveReplay(new URI("gpgnet://example.com/123/456.scfareplay"), 123, "faf", "map name");
-  }
-
-  @Test
   public void testEnrich() throws Exception {
     Path path = Path.of("foo.bar");
     when(replayFileReader.parseReplay(path)).thenReturn(replayDataParser);

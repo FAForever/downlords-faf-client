@@ -7,6 +7,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -67,7 +68,7 @@ public class MapDetailControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
   @Mock
   private ReviewsController<MapVersionReviewBean> reviewsController;
   @Mock

@@ -4,16 +4,34 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.SeparatorMenuItem;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
+@Lazy
+@Component
+@RequiredArgsConstructor
 public class ContextMenuBuilder {
 
-  public static Builder newBuilder(ApplicationContext context) {
-    return new Builder(context);
+  private final ApplicationContext applicationContext;
+
+  public MenuItemBuilder newBuilder() {
+    return new MenuItemBuilder(applicationContext);
   }
 
-  public static class Builder {
+  public void addCopyLabelContextMenu(Label... labels) {
+    for (Label label : labels) {
+      label.setOnContextMenuRequested(event -> newBuilder()
+          .addItem(CopyLabelMenuItem.class, label)
+          .build()
+          .show(label.getScene().getWindow(), event.getScreenX(), event.getScreenY()));
+    }
+  }
+
+  public static class MenuItemBuilder {
 
     private final ApplicationContext applicationContext;
 
@@ -21,15 +39,15 @@ public class ContextMenuBuilder {
     private SeparatorMenuItem separator;
     private BooleanBinding totalVisibleBinding;
 
-    private Builder(ApplicationContext applicationContext) {
+    private MenuItemBuilder(ApplicationContext applicationContext) {
       this.applicationContext = applicationContext;
     }
 
-    public <T, B extends AbstractMenuItem<T>> Builder addItem(Class<B> clazz) {
+    public <T, B extends AbstractMenuItem<T>> MenuItemBuilder addItem(Class<B> clazz) {
       return addItem(clazz, null);
     }
 
-    public <T, B extends AbstractMenuItem<T>> Builder addItem(Class<B> clazz, T object) {
+    public <T, B extends AbstractMenuItem<T>> MenuItemBuilder addItem(Class<B> clazz, T object) {
       B item = applicationContext.getBean(clazz);
       item.setObject(object);
       contextMenu.getItems().add(item);
@@ -37,11 +55,11 @@ public class ContextMenuBuilder {
       return this;
     }
 
-    public <T> Builder addCustomItem(AbstractCustomMenuItemController<T> item) {
+    public <T> MenuItemBuilder addCustomItem(AbstractCustomMenuItemController<T> item) {
       return addCustomItem(item, null);
     }
 
-    public <T> Builder addCustomItem(AbstractCustomMenuItemController<T> item, T object) {
+    public <T> MenuItemBuilder addCustomItem(AbstractCustomMenuItemController<T> item, T object) {
       item.setObject(object);
       contextMenu.getItems().add(item.getRoot());
       bindVisiblePropertyToSeparator(item.getRoot().visibleProperty());
@@ -60,7 +78,7 @@ public class ContextMenuBuilder {
       }
     }
 
-    public Builder addSeparator() {
+    public MenuItemBuilder addSeparator() {
       separator = new SeparatorMenuItem();
       totalVisibleBinding = null;
       contextMenu.getItems().add(separator);

@@ -4,6 +4,7 @@ import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.FakeTestException;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +33,7 @@ public class SubDivisionTabControllerTest extends UITest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
 
   @InjectMocks
   private SubDivisionTabController instance;

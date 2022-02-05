@@ -36,7 +36,7 @@ import com.faforever.client.settings.LanguageItemController;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.Theme;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.list.NoSelectionModel;
+import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
@@ -344,7 +344,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void initMirrorUrlsListView() {
-    mirrorURLsListView.setSelectionModel(new NoSelectionModel<>());
+    mirrorURLsListView.setSelectionModel(new NoSelectionModelListView<>());
     mirrorURLsListView.setFocusTraversable(false);
     mirrorURLsListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
     mirrorURLsListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
@@ -355,7 +355,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void initAutoChannelListView() {
-    autoChannelListView.setSelectionModel(new NoSelectionModel<>());
+    autoChannelListView.setSelectionModel(new NoSelectionModelListView<>());
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
     autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));

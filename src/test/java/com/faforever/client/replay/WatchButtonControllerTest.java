@@ -1,85 +1,87 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
+import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.animation.Timeline;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.ContextMenu;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 
-import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class WatchButtonControllerTest extends UITest {
 
-  private static final int WATCH_DELAY = 10; // in seconds;
-
-  @Mock
-  private ReplayService replayService;
   @Mock
   private TimeService timeService;
   @Mock
+  private LiveReplayService liveReplayService;
+  @Mock
   private I18n i18n;
-  @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  @Mock
+  private ContextMenuBuilder contextMenuBuilder;
 
   @InjectMocks
   private WatchButtonController instance;
+
   private GameBean game;
 
   @BeforeEach
   public void setUp() throws Exception {
-    clientProperties.getReplay().setWatchDelaySeconds(WATCH_DELAY);
-
     game = GameBeanBuilder.create().defaultValues().get();
-    loadFxml("theme/vault/replay/watch_button.fxml",  clazz -> instance);
+    ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
+
+    when(liveReplayService.getTrackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.ofNullable(trackingLiveReplayProperty.get()));
+    when(i18n.get("game.watch")).thenReturn("watch");
+
+    loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);
   }
 
   @Test
-  public void testButtonWhenWatchNotAllowed() {
-    game.setStartTime(OffsetDateTime.now().minus(5, ChronoUnit.SECONDS));
-
+  public void testShowContextMenuIfReplayUnavailableYet() {
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.watchButton));
+    ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
     setGame(game);
-    assertThat(instance.watchButton.isDisabled(), is(true));
+    clickWatchButton();
+    verify(contextMenuMock).show(eq(instance.watchButton.getScene().getWindow()), anyDouble(), anyDouble());
+    verify(liveReplayService, never()).runLiveReplay(any());
   }
 
   @Test
-  public void testButtonOnClickedWhenWatchNotAllowed() {
-    game.setStartTime(OffsetDateTime.now().minus(5, ChronoUnit.SECONDS));
+  public void testRunReplayWhenAvailable() {
+    when(liveReplayService.canWatchReplay(game)).thenReturn(true);
 
     setGame(game);
     clickWatchButton();
-    verify(replayService, never()).runLiveReplay(game.getId());
+    verify(liveReplayService).runLiveReplay(game.getId());
+    assertEquals("watch", instance.watchButton.getText());
   }
 
   @Test
-  public void testButtonWhenWatchAllowed() {
-    game.setStartTime(OffsetDateTime.now().minus(15, ChronoUnit.SECONDS));
-
+  public void testWatchButtonStateWhenReplayIsTracking() {
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(game.getId(), TrackingLiveReplayAction.NOTIFY_ME)));
     setGame(game);
-    assertThat(instance.watchButton.isDisabled(), is(false));
-  }
-
-  @Test
-  public void testButtonOnClickedWhenWatchAllowed() {
-    game.setStartTime(OffsetDateTime.now().minus(15, ChronoUnit.SECONDS));
-
-    setGame(game);
-    clickWatchButton();
-    verify(replayService).runLiveReplay(game.getId());
+    assertTrue(instance.watchButton.getPseudoClassStates().contains(WatchButtonController.TRACKABLE_PSEUDO_CLASS));
   }
 
   private void setGame(GameBean game) {
@@ -87,7 +89,7 @@ public class WatchButtonControllerTest extends UITest {
   }
 
   private void clickWatchButton() {
-    runOnFxThreadAndWait(()-> instance.watchButton.fire());
+    runOnFxThreadAndWait(() -> instance.watchButton.fire());
   }
 
   @AfterEach

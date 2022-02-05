@@ -10,6 +10,7 @@ import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
@@ -60,7 +61,7 @@ public class LeaderboardControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
 
   private SubDivisionTabController subDivisionTabController;
   private PlayerBean player;
@@ -109,7 +110,7 @@ public class LeaderboardControllerTest extends UITest {
     when(leaderboardService.getLeagueEntryForPlayer(sheikah, season)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean2));
 
-    subDivisionTabController = new SubDivisionTabController(applicationContext, leaderboardService, notificationService, i18n);
+    subDivisionTabController = new SubDivisionTabController(contextMenuBuilder, leaderboardService, notificationService, i18n);
     loadFxml("theme/leaderboard/subDivisionTab.fxml", clazz -> subDivisionTabController);
     subDivisionTabController.initialize();
     when(uiService.loadFxml("theme/leaderboard/subDivisionTab.fxml")).thenReturn(subDivisionTabController);

@@ -155,17 +155,6 @@ public final class JavaFxUtil {
     stage.setY((screenBounds.getMaxY() - screenBounds.getMinY() - height) / 2);
   }
 
-  public static void addCopyLabelContextMenus(ApplicationContext applicationContext, Label... labels) {
-    Arrays.stream(labels).forEach(label -> addCopyLabelContextMenuToLabel(applicationContext, label));
-  }
-
-  public static void addCopyLabelContextMenuToLabel(ApplicationContext applicationContext, Label label) {
-    label.setOnContextMenuRequested(event -> ContextMenuBuilder.newBuilder(applicationContext)
-        .addItem(CopyLabelMenuItem.class, label)
-        .build()
-        .show(label.getScene().getWindow(), event.getScreenX(), event.getScreenY()));
-  }
-
   public static void assertApplicationThread() {
     Assert.state(Platform.isFxApplicationThread(), "Must run in FX Application thread");
   }

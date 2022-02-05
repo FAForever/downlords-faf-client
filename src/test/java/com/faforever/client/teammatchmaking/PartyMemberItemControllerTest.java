@@ -11,6 +11,8 @@ import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
+import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
@@ -18,6 +20,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.input.ContextMenuEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -35,9 +39,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +64,7 @@ public class PartyMemberItemControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock
-  private ApplicationContext applicationContext;
+  private ContextMenuBuilder contextMenuBuilder;
 
   @InjectMocks
   private PartyMemberItemController instance;
@@ -178,5 +184,14 @@ public class PartyMemberItemControllerTest extends UITest {
     assertThat(instance.aeonLabel.isDisabled(), is(false));
     assertThat(instance.cybranLabel.isDisabled(), is(false));
     assertThat(instance.seraphimLabel.isDisabled(), is(false));
+  }
+
+  @Test
+  public void testOnContextMenuRequested() {
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
+    ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
+
+    instance.onContextMenuRequested(mock(ContextMenuEvent.class));
+    verify(contextMenuMock).show(eq(instance.getRoot().getScene().getWindow()), anyDouble(), anyDouble());
   }
 }

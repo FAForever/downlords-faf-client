@@ -2,7 +2,6 @@ package com.faforever.client.vault.replay;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.AbstractViewController;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
@@ -11,11 +10,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.table.NoSelectionModelTableView;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
@@ -43,7 +42,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LiveReplayController extends AbstractViewController<Node> {
-  private final ObjectProperty<GameBean> selectedGame;
+
   private final GameService gameService;
   private final UiService uiService;
   private final I18n i18n;
@@ -65,12 +64,11 @@ public class LiveReplayController extends AbstractViewController<Node> {
     this.i18n = i18n;
     this.mapService = mapService;
     this.timeService = timeService;
-
-    selectedGame = new SimpleObjectProperty<>();
   }
 
   @Override
   public void initialize() {
+    liveReplayControllerRoot.setSelectionModel(new NoSelectionModelTableView<>(liveReplayControllerRoot));
     initializeGameTable(gameService.getGames());
   }
 
@@ -98,9 +96,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
     watchColumn.setCellFactory(param -> new NodeTableCell<>(this::watchReplayButton));
-
-    liveReplayControllerRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
-        -> JavaFxUtil.runLater(() -> selectedGame.set(newValue)));
 
     liveReplayControllerRoot.setItems(sortedList);
 

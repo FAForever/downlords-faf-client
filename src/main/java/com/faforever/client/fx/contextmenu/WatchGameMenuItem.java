@@ -4,7 +4,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.replay.ReplayService;
+import com.faforever.client.replay.LiveReplayService;
 import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,14 +19,14 @@ import org.springframework.stereotype.Component;
 public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
 
   private final I18n i18n;
-  private final ReplayService replayService;
+  private final LiveReplayService liveReplayService;
   private final NotificationService notificationService;
 
   @Override
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "no player has been set");
     try {
-      replayService.runLiveReplay(object.getGame().getId());
+      liveReplayService.runLiveReplay(object.getGame().getId());
     } catch (Exception e) {
       log.error("Cannot display live replay", e);
       notificationService.addImmediateErrorNotification(e, "replays.live.loadFailure.message");

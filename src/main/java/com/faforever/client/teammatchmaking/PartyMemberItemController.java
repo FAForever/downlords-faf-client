@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +54,7 @@ public class PartyMemberItemController implements Controller<Node> {
   private final TeamMatchmakingService teamMatchmakingService;
   private final UiService uiService;
   private final I18n i18n;
-  private final ApplicationContext context;
+  private final ContextMenuBuilder contextMenuBuilder;
 
   public Node playerItemRoot;
   public ImageView avatarImageView;
@@ -187,7 +186,7 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
-    ContextMenuBuilder.newBuilder(context)
+    contextMenuBuilder.newBuilder()
         .addItem(ShowPlayerInfoMenuItem.class, player)
         .addItem(SendPrivateMessageMenuItem.class, player.getUsername())
         .addItem(CopyUsernameMenuItem.class, player.getUsername())

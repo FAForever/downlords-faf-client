@@ -5,7 +5,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.list.NoSelectionModel;
+import com.faforever.client.ui.list.NoSelectionModelListView;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
@@ -54,7 +54,7 @@ public class MapsManagementController implements Controller<Node> {
 
   private void initializeListView() {
     listView.setCellFactory(param -> uiService.<RemovableMapCellController>loadFxml("theme/vault/map/removable_map_cell.fxml"));
-    listView.setSelectionModel(new NoSelectionModel<>());
+    listView.setSelectionModel(new NoSelectionModelListView<>());
     listView.setItems(filteredMaps);
   }
 
