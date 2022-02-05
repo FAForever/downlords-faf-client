@@ -61,7 +61,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   }
 
   @Subscribe
-  private void onLocalReplayDeleted(DeleteLocalReplayEvent event) throws ExecutionException, InterruptedException {
+  public void onLocalReplayDeleted(DeleteLocalReplayEvent event) throws ExecutionException, InterruptedException {
     if (replayService.deleteReplayFile(event.getReplayFile())) {
       onPageChange(searchController.getLastSearchConfig(), false);
     }
