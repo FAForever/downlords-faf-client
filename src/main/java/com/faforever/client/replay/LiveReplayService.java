@@ -143,7 +143,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   public void runLiveReplay(int gameId) {
     GameBean game = gameService.getByUid(gameId);
     if (game == null) {
-      throw new RuntimeException("There's no game with ID: " + gameId);
+      throw new IllegalArgumentException("No game with ID: " + gameId);
     }
     /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
     String playerName = playerService.getCurrentPlayer().getUsername();
