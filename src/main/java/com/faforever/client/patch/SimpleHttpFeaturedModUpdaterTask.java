@@ -78,6 +78,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
             } else {
               if (!featuredModFileCacheService.isCached(featuredModFile)) {
                 Path cachedFilePath = featuredModFileCacheService.getCachedFilePath(featuredModFile);
+                Files.createDirectories(cachedFilePath.getParent());
                 if (PreferencesService.FORGED_ALLIANCE_EXE.equals(featuredModFile.getName())) {
                   patchOrDownloadForgedAllianceExe(featuredModFile, cachedFilePath, targetPath);
                 } else {
@@ -113,6 +114,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
   private void patchOrDownloadForgedAllianceExe(FeaturedModFile featuredModFile, Path cachedFilePath, Path targetPath) throws IOException, ChecksumMismatchException, NoSuchAlgorithmException {
     if (Files.exists(targetPath)) {
+      Files.createDirectories(cachedFilePath.getParent());
       Path tempFile = Files.createTempFile(cachedFilePath.getParent(), "download", null);
       // Make a copy of the currently installed ForgedAlliance.exe
       Files.copy(targetPath, tempFile, StandardCopyOption.REPLACE_EXISTING);
