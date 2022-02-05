@@ -142,8 +142,6 @@ public class ReplayDetailControllerTest extends UITest {
         .replayFile(Path.of("foo.tmp"))
         .get();
 
-    instance = new ReplayDetailController(timeService, i18n, eventBus, uiService, replayService, ratingService, mapService, mapGeneratorService, playerService, clientProperties, notificationService, reviewService);
-
     when(reviewsController.getRoot()).thenReturn(new Pane());
     when(mapService.loadPreview(anyString(), eq(PreviewSize.LARGE))).thenReturn(mock(Image.class));
     when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
