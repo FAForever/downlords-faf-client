@@ -50,7 +50,7 @@
                                                              progress="0.0"/>
                                             </children>
                                         </VBox>
-                                        <Button fx:id="uninstallButton" mnemonicParsing="false"
+                                        <Button fx:id="uninstallButton" mnemonicParsing="false" styleClass="uninstall-button"
                                                 onAction="#onUninstallButtonClicked" text="%modVault.uninstall"
                                                 GridPane.columnIndex="3" GridPane.halignment="RIGHT"
                                                 GridPane.rowIndex="1"/>

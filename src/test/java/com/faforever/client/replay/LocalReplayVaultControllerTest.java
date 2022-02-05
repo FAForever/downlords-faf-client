@@ -13,6 +13,7 @@ import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.search.SearchController;
+import com.google.common.eventbus.EventBus;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,8 @@ public class LocalReplayVaultControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock
+  private EventBus eventBus;
+  @Mock
   private NotificationService notificationService;
   @Mock
   private ReplayService replayService;
@@ -56,6 +59,9 @@ public class LocalReplayVaultControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    instance = new LocalReplayVaultController(replayService, uiService, notificationService, i18n, eventBus,
+        preferencesService, reportingService);
+
     when(preferencesService.getPreferences()).thenReturn(new Preferences());
 
     doAnswer(invocation -> {

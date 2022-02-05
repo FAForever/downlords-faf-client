@@ -35,6 +35,7 @@ import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import com.faforever.commons.api.dto.Validity;
+import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -80,6 +81,8 @@ public class ReplayDetailControllerTest extends UITest {
   private TimeService timeService;
   @Mock
   private I18n i18n;
+  @Mock
+  private EventBus eventBus;
   @Mock
   private UiService uiService;
   @Mock
@@ -197,6 +200,8 @@ public class ReplayDetailControllerTest extends UITest {
     assertTrue(instance.downloadMoreInfoButton.isVisible());
     assertTrue(instance.showRatingChangeButton.isVisible());
     assertFalse(instance.showRatingChangeButton.isDisabled());
+    assertFalse(instance.deleteButton.isVisible());
+    assertFalse(instance.deleteButton.isManaged());
     assertNotEquals("-", instance.ratingLabel.getText());
     assertEquals("Min Date", instance.dateLabel.getText());
     assertEquals("Min Time", instance.timeLabel.getText());
@@ -224,6 +229,8 @@ public class ReplayDetailControllerTest extends UITest {
     assertFalse(instance.teamsInfoBox.isVisible());
     assertFalse(instance.downloadMoreInfoButton.isVisible());
     assertFalse(instance.showRatingChangeButton.isVisible());
+    assertTrue(instance.deleteButton.isVisible());
+    assertTrue(instance.deleteButton.isManaged());
     assertTrue(instance.optionsTable.isVisible());
     assertTrue(instance.chatTable.isVisible());
     assertTrue(instance.moreInformationPane.isVisible());

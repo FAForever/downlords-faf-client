@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.notification.NotificationService;
@@ -13,6 +14,8 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.commons.api.dto.Game;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Component
@@ -28,12 +32,14 @@ import java.util.List;
 public class LocalReplayVaultController extends VaultEntityController<ReplayBean> {
 
   private final ReplayService replayService;
-
+  private final EventBus eventBus;
   private ReplayDetailController replayDetailController;
 
-  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
+
+  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, EventBus eventBus, PreferencesService preferencesService, ReportingService reportingService) {
     super(uiService, notificationService, i18n, preferencesService, reportingService);
     this.replayService = replayService;
+    this.eventBus = eventBus;
   }
 
   @Override
@@ -43,7 +49,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     backButton.setVisible(false);
     searchBox.setVisible(false);
     searchSeparator.setVisible(false);
-
+    this.eventBus.register(this);
   }
 
   @Override
@@ -52,6 +58,13 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     replayDetailController.setReplay(replay);
     replayDetailController.getRoot().setVisible(true);
     replayDetailController.getRoot().requestFocus();
+  }
+
+  @Subscribe
+  public void onLocalReplayDeleted(DeleteLocalReplayEvent event) throws ExecutionException, InterruptedException {
+    if (replayService.deleteReplayFile(event.getReplayFile())) {
+      onPageChange(searchController.getLastSearchConfig(), false);
+    }
   }
 
   @Override

@@ -7,12 +7,18 @@ import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.notification.Action;
+import com.faforever.client.notification.ImmediateNotification;
+import com.faforever.client.notification.NotificationService;
+import com.faforever.client.notification.Severity;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarsController;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
@@ -30,6 +36,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -43,7 +50,9 @@ public class ReplayCardController implements Controller<Node> {
   private final TimeService timeService;
   private final MapService mapService;
   private final RatingService ratingService;
+  private final NotificationService notificationService;
   private final I18n i18n;
+  private final EventBus eventBus;
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
   public Label gameTitleLabel;
@@ -58,10 +67,15 @@ public class ReplayCardController implements Controller<Node> {
   public HBox teamsContainer;
   public Label onMapLabel;
   public Button watchButton;
+  public Button deleteButton;
   public StarsController starsController;
   private ReplayBean replay;
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
   private Consumer<ReplayBean> onOpenDetailListener;
+
+  public void initialize() {
+    JavaFxUtil.bindManagedToVisible(deleteButton);
+  }
 
   public void setReplay(ReplayBean replay) {
     this.replay = replay;
@@ -76,6 +90,7 @@ public class ReplayCardController implements Controller<Node> {
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 
+    deleteButton.setVisible(replay.getReplayFile() != null);
     watchButton.setDisable(!replay.getReplayAvailable());
     gameTitleLabel.setText(replay.getTitle());
     dateLabel.setText(timeService.asDate(replay.getStartTime()));
@@ -159,5 +174,18 @@ public class ReplayCardController implements Controller<Node> {
 
   public void onWatchButtonClicked() {
     replayService.runReplay(replay);
+  }
+
+  public void onDeleteButtonClicked() {
+    notificationService.addNotification(new ImmediateNotification(
+      i18n.get("replay.deleteNotification.heading", replay.getTitle()),
+      i18n.get("replay.deleteNotification.info"),
+      Severity.INFO, Arrays.asList(
+      new Action(i18n.get("cancel")),
+      new Action(i18n.get("delete"), event -> deleteReplay()))
+  )); }
+
+  private void deleteReplay() {
+    eventBus.post(new DeleteLocalReplayEvent(replay.getReplayFile()));
   }
 }

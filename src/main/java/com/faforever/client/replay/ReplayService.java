@@ -75,8 +75,6 @@ import java.util.stream.StreamSupport;
 
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.move;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -149,7 +147,7 @@ public class ReplayService {
 
     Path replaysDirectory = preferencesService.getPreferences().getData().getReplaysDirectory();
     if (Files.notExists(replaysDirectory)) {
-      createDirectories(replaysDirectory);
+      Files.createDirectories(replaysDirectory);
     }
 
     int skippedReplays = pageSize * (page - 1);
@@ -212,7 +210,7 @@ public class ReplayService {
   private void moveCorruptedReplayFile(Path replayFile) {
     Path corruptedReplaysDirectory = preferencesService.getPreferences().getData().getCorruptedReplaysDirectory();
     try {
-      createDirectories(corruptedReplaysDirectory);
+      Files.createDirectories(corruptedReplaysDirectory);
     } catch (IOException e) {
       log.warn("Failed to create corrupted replays directory", e);
       return;
@@ -223,7 +221,7 @@ public class ReplayService {
     log.debug("Moving corrupted replay file from {} to {}", replayFile, target);
 
     try {
-      move(replayFile, target);
+      Files.move(replayFile, target);
     } catch (IOException e) {
       log.warn("Failed to move corrupt replay to {}", target, e);
       return;
@@ -235,6 +233,17 @@ public class ReplayService {
             new Action(i18n.get("corruptedReplayFiles.show"), event -> platformService.reveal(replayFile))
         )
     ));
+  }
+
+  public boolean deleteReplayFile(Path replayFile) {
+    try {
+      Files.delete(replayFile);
+      return true;
+    } catch (IOException e) {
+      log.error("Failed to delete local replay file {}", replayFile, e);
+      notificationService.addImmediateErrorNotification(e, "replay.couldNotDeleteLocal");
+    }
+    return false;
   }
 
   public void runReplay(ReplayBean item) {
@@ -345,7 +354,7 @@ public class ReplayService {
 
     Path tempSupComReplayFile = preferencesService.getPreferences().getData().getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
-    createDirectories(tempSupComReplayFile.getParent());
+    Files.createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();

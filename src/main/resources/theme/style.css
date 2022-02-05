@@ -19,6 +19,31 @@
   -fx-graphic-text-gap: 0.666667em;
 }
 
+.primary-button {
+    -fx-background-color: -fx-accent;
+}
+
+.primary-button:hover {
+    -fx-background-color: derive(-fx-accent, -30%);
+}
+
+.primary-button:armed, .primary-button:selected, .primary-button:focused:selected {
+    -fx-background-color: derive(-fx-accent, -60%);
+}
+
+
+.uninstall-button {
+    -fx-background-color: -fx-uninstall-color;
+}
+
+.uninstall-button:hover {
+    -fx-background-color: derive(-fx-uninstall-color, -30%);
+}
+
+.uninstall-button:armed, .uninstall-button:selected, .uninstall-button:focused:selected {
+    -fx-background-color: derive(-fx-uninstall-color, -60%);
+}
+
 /***************** Split Pane *****************/
 
 .split-pane > .split-pane-divider {

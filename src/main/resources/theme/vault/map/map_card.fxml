@@ -31,13 +31,13 @@
             GridPane.hgrow="NEVER">
           <children>
               <Button fx:id="installButton"
-                      mnemonicParsing="false" onAction="#onInstallButtonClicked">
+                      mnemonicParsing="false" onAction="#onInstallButtonClicked" styleClass="primary-button">
                   <graphic>
                       <Region styleClass="icon,install-icon"/>
                   </graphic>
               </Button>
               <Button fx:id="uninstallButton" mnemonicParsing="false"
-                      onAction="#onUninstallButtonClicked">
+                      onAction="#onUninstallButtonClicked" styleClass="uninstall-button">
                   <graphic>
                       <Region styleClass="icon,uninstall-icon"/>
                   </graphic>

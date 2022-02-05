@@ -84,11 +84,24 @@
             <Region styleClass="icon, balance-icon"/>
         </graphic>
     </Label>
-    <Button fx:id="watchButton" mnemonicParsing="false"
-            onAction="#onWatchButtonClicked" GridPane.halignment="RIGHT" GridPane.valignment="BOTTOM"
-            GridPane.rowIndex="8" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
-        <graphic>
-            <Region styleClass="icon,play-icon"/>
-        </graphic>
-    </Button>
+
+
+    <HBox spacing="10.0" alignment="BOTTOM_RIGHT" GridPane.halignment="RIGHT" GridPane.valignment="BOTTOM"
+          GridPane.columnIndex="2" GridPane.rowIndex="8"
+          GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+        <Button fx:id="deleteButton" mnemonicParsing="false"
+                visible="false" managed="false"
+                onAction="#onDeleteButtonClicked"
+                styleClass="uninstall-button">
+            <graphic>
+                <Region styleClass="icon,uninstall-icon"/>
+            </graphic>
+        </Button>
+        <Button fx:id="watchButton" mnemonicParsing="false" styleClass="primary-button"
+                onAction="#onWatchButtonClicked" >
+            <graphic>
+                <Region styleClass="icon,play-icon"/>
+            </graphic>
+        </Button>
+    </HBox>
 </GridPane>
