@@ -34,7 +34,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -44,7 +44,6 @@ import java.util.Optional;
 import java.util.concurrent.Future;
 
 import static com.faforever.client.util.Assert.checkNullIllegalState;
-import static java.net.URLDecoder.decode;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Lazy
@@ -87,8 +86,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
   public Duration getWatchDelayTime(GameBean game) {
     Assert.notNull(game.getStartTime(), "Game's start time is null, in which case it shouldn't even be listed: " + game);
-    return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(getWatchDelaySeconds())
-    );
+    return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(getWatchDelaySeconds()));
   }
 
   public void performActionWhenAvailable(GameBean game, TrackingLiveReplayAction action) {
@@ -173,9 +171,15 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
     try {
       String gameType = queryParams.get("mod");
-      String mapName = decode(queryParams.get("map"), UTF_8.name());
+      String mapName = URLDecoder.decode(queryParams.get("map"), UTF_8.name());
       Integer gameId = Integer.parseInt(uri.getPath().split("/")[1]);
-      URI replayUri = new URI(GPGNET_SCHEME, null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
+      URI replayUri = UriComponentsBuilder.newInstance()
+          .scheme(GPGNET_SCHEME)
+          .host(uri.getHost())
+          .port(uri.getPort())
+          .path(uri.getPath())
+          .build()
+          .toUri();
       gameService.runWithLiveReplay(replayUri, gameId, gameType, mapName)
           .exceptionally(throwable -> {
             notificationService.addNotification(new ImmediateNotification(
@@ -186,8 +190,8 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
             ));
             return null;
           });
-    } catch (URISyntaxException | UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
+    } catch (UnsupportedEncodingException e) {
+      throw new IllegalArgumentException("Query params not properly encoded", e);
     }
   }
 
