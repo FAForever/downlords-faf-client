@@ -43,6 +43,8 @@ public abstract class UITest extends ApplicationTest {
   private Stage stage;
 
   public UITest() {
+    Locale.setDefault(Locale.ROOT);
+
     root = new Pane();
     Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
       log.error("Unresolved Throwable in none junit thread, please resolve even if test does not fail", e);
