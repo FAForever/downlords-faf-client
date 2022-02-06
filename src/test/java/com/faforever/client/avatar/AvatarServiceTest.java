@@ -24,11 +24,11 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +60,13 @@ public class AvatarServiceTest extends ServiceTest {
   }
 
   @Test
-  public void getAvailableAvatars() throws Exception {
+  public void testAvatarIsNull() {
+    assertNull(instance.loadAvatar(null));
+    verifyNoInteractions(assetService);
+  }
+
+  @Test
+  public void getAvailableAvatars() {
     when(fafServerAccessor.getAvailableAvatars()).thenReturn(CompletableFuture.completedFuture(List.of()));
     instance.getAvailableAvatars();
     verify(fafServerAccessor).getAvailableAvatars();
@@ -75,10 +81,9 @@ public class AvatarServiceTest extends ServiceTest {
     verify(eventBus).post(eventCaptor.capture());
 
     AvatarBean avatar = eventCaptor.getValue().getAvatar();
-    assertThat(avatar, not(nullValue()));
-    assertThat(avatar.getUrl(), is(url));
-    assertThat(avatar.getDescription(), is("Description"));
-
+    assertNotNull(avatar);
+    assertEquals(url, avatar.getUrl());
+    assertEquals("Description", avatar.getDescription());
     verify(fafServerAccessor).selectAvatar(url);
   }
 }

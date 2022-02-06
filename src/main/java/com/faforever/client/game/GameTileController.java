@@ -15,6 +15,7 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -50,6 +52,7 @@ public class GameTileController implements Controller<Node> {
   public Label numberOfPlayersLabel;
   public Label avgRatingLabel;
   public Label hostLabel;
+  public ImageView avatarImageView;
   public Label modsLabel;
   public ImageView mapImageView;
   private Consumer<GameBean> onSelectedListener;
@@ -75,9 +78,11 @@ public class GameTileController implements Controller<Node> {
   }
 
   private void onGamePropertyChanged() {
+    Optional<Image> avatar = playerService.getCurrentAvatarByPlayerName(game.getHost());
     JavaFxUtil.runLater(() -> {
       gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
       hostLabel.setText(game.getHost());
+      avatarImageView.setImage(avatar.orElse(null));
       gameMapLabel.setText(game.getMapFolderName());
       mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
       modsLabel.setText(getSimModsLabelContent(game.getSimMods()));

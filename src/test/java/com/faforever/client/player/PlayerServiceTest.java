@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
@@ -13,12 +14,14 @@ import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.api.elide.ElideEntity;
+import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -45,6 +48,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,6 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +68,8 @@ public class PlayerServiceTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private UserService userService;
+  @Mock
+  private AvatarService avatarService;
   @Mock
   private EventBus eventBus;
 
@@ -78,7 +85,7 @@ public class PlayerServiceTest extends ServiceTest {
     MapperSetup.injectMappers(playerMapper);
     when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");
-    playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, null, "", new HashMap<>(), new HashMap<>());
+    playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
 
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -319,5 +326,11 @@ public class PlayerServiceTest extends ServiceTest {
     GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of("1", List.of("other"))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
+  }
+
+  @Test
+  public void testGetCurrentAvatarByPlayerName() {
+    when(avatarService.loadAvatar(any())).thenReturn(mock(Image.class));
+    assertNotNull(instance.getCurrentAvatarByPlayerName("junit2").orElse(null));
   }
 }

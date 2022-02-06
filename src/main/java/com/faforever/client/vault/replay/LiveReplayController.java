@@ -27,6 +27,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class LiveReplayController extends AbstractViewController<Node> {
 
   private final GameService gameService;
@@ -56,15 +58,6 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<GameBean, String> modsColumn;
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, GameBean> watchColumn;
-
-  public LiveReplayController(GameService gameService, UiService uiService, I18n i18n,
-                              MapService mapService, TimeService timeService) {
-    this.gameService = gameService;
-    this.uiService = uiService;
-    this.i18n = i18n;
-    this.mapService = mapService;
-    this.timeService = timeService;
-  }
 
   @Override
   public void initialize() {

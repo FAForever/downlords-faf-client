@@ -39,8 +39,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   StringProperty clan = new SimpleStringProperty();
   StringProperty country = new SimpleStringProperty();
   ObjectProperty<AvatarBean> avatar = new SimpleObjectProperty<>();
-  StringProperty avatarUrl = new SimpleStringProperty();
-  StringProperty avatarDescription = new SimpleStringProperty();
   ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
   ObservableMap<String, LeaderboardRatingBean> leaderboardRatings = FXCollections.observableHashMap();
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();

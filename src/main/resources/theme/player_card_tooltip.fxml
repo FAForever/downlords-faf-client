@@ -7,36 +7,43 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 
-<HBox fx:id="root" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController">
-   <StackPane prefHeight="24.0" prefWidth="24.0" styleClass="faction-icon">
-      <children>
-         <Region fx:id="factionIcon" styleClass="icon" visible="false" />
-         <ImageView fx:id="factionImage" fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true" visible="false">
-            <HBox.margin>
-               <Insets right="4.0" />
-            </HBox.margin>
-         </ImageView>
-      </children>
-   </StackPane>
-   <Label fx:id="playerInfo" styleClass="player-card-tooltip" text="&lt;PlayerInfo&gt;" wrapText="true">
-      <graphic>
-         <ImageView fx:id="countryImageView" pickOnBounds="true" preserveRatio="true" />
-      </graphic>
-   </Label>
-   <Label fx:id="foeIconText" minWidth="-Infinity">
-      <graphic>
-         <Region styleClass="icon,foe-icon" />
-      </graphic>
-      <HBox.margin>
-         <Insets left="5.0" />
-      </HBox.margin>
-   </Label>
-   <Label fx:id="friendIconText" minWidth="-Infinity">
-      <graphic>
-         <Region styleClass="icon,friend-icon" />
-      </graphic>
-         <HBox.margin>
-           <Insets left="5.0" />
-         </HBox.margin>
-   </Label>
+<?import javafx.scene.control.Tooltip?>
+<HBox fx:id="root" spacing="3.0" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController">
+    <StackPane styleClass="faction-icon">
+        <ImageView fx:id="avatarImageView" fitHeight="14.0" pickOnBounds="true" preserveRatio="true"
+                   visible="false"/>
+        <Region fx:id="factionIcon" styleClass="icon" visible="false"/>
+        <ImageView fx:id="factionImage" fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true"
+                   visible="false">
+        </ImageView>
+    </StackPane>
+    <Label fx:id="playerInfo" text="&lt;PlayerInfo&gt;" wrapText="true">
+        <graphic>
+            <ImageView fx:id="countryImageView" fitWidth="16.0" fitHeight="16.0" pickOnBounds="true"
+                       preserveRatio="true"/>
+        </graphic>
+    </Label>
+    <Label fx:id="foeIconText" minWidth="-Infinity">
+        <graphic>
+            <Region styleClass="icon,foe-icon"/>
+        </graphic>
+        <tooltip>
+            <Tooltip text="%userInfo.foe"/>
+        </tooltip>
+        <HBox.margin>
+            <Insets left="5.0"/>
+        </HBox.margin>
+    </Label>
+    <Label fx:id="friendIconText" minWidth="-Infinity">
+        <graphic>
+            <Region styleClass="icon,friend-icon"/>
+        </graphic>
+        <tooltip>
+            <Tooltip text="%userInfo.friend"/>
+        </tooltip>
+        <HBox.margin>
+            <Insets left="5.0"/>
+        </HBox.margin>
+    </Label>
 </HBox>

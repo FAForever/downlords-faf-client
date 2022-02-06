@@ -1,5 +1,6 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
@@ -8,14 +9,18 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
+import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PlayerCardTooltipControllerTest extends UITest {
@@ -23,6 +28,8 @@ public class PlayerCardTooltipControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private CountryFlagService countryFlagService;
+  @Mock
+  private AvatarService avatarService;
 
   @InjectMocks
   private PlayerCardTooltipController instance;
@@ -41,14 +48,14 @@ public class PlayerCardTooltipControllerTest extends UITest {
         .username("foe")
         .socialStatus(SocialStatus.FOE);
     PlayerBean player = playerBeanBuilder.get();
-    instance.setPlayer(player, 1000, Faction.CYBRAN);
+    runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.CYBRAN));
 
-    assertThat(instance.factionIcon.getStyleClass(), hasItem(UiService.CYBRAN_STYLE_CLASS));
-    assertThat(instance.factionIcon.isVisible(), is(true));
-    assertThat(instance.factionImage.isVisible(), is(false));
-    assertThat(instance.foeIconText.isVisible(), is(true));
-    assertThat(instance.friendIconText.isVisible(), is(false));
-    assertThat(instance.playerInfo.getText(), is("foe(1000)"));
+    assertTrue(instance.factionIcon.getStyleClass().contains(UiService.CYBRAN_STYLE_CLASS));
+    assertTrue(instance.factionIcon.isVisible());
+    assertFalse(instance.factionImage.isVisible());
+    assertTrue(instance.foeIconText.isVisible());
+    assertFalse(instance.friendIconText.isVisible());
+    assertEquals("foe(1000)", instance.playerInfo.getText());
   }
 
   @Test
@@ -60,14 +67,14 @@ public class PlayerCardTooltipControllerTest extends UITest {
         .username("user")
         .socialStatus(SocialStatus.FRIEND);
     PlayerBean player = playerBeanBuilder.get();
-    instance.setPlayer(player, 1000, Faction.SERAPHIM);
+    runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.SERAPHIM));
 
-    assertThat(instance.factionIcon.getStyleClass(), hasItem(UiService.SERAPHIM_STYLE_CLASS));
-    assertThat(instance.factionIcon.isVisible(), is(true));
-    assertThat(instance.factionImage.isVisible(), is(false));
-    assertThat(instance.foeIconText.isVisible(), is(false));
-    assertThat(instance.friendIconText.isVisible(), is(true));
-    assertThat(instance.playerInfo.getText(), is("user(1000)"));
+    assertTrue(instance.factionIcon.getStyleClass().contains(UiService.SERAPHIM_STYLE_CLASS));
+    assertTrue(instance.factionIcon.isVisible());
+    assertFalse(instance.factionImage.isVisible());
+    assertFalse(instance.foeIconText.isVisible());
+    assertTrue(instance.friendIconText.isVisible());
+    assertEquals("user(1000)", instance.playerInfo.getText());
   }
 
   @Test
@@ -79,13 +86,56 @@ public class PlayerCardTooltipControllerTest extends UITest {
         .username("user")
         .socialStatus(SocialStatus.OTHER);
     PlayerBean player = playerBeanBuilder.get();
-    instance.setPlayer(player, 1000, Faction.RANDOM);
+    runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.RANDOM));
 
-    assertThat(instance.factionIcon.isVisible(), is(false));
-    assertThat(instance.factionImage.getImage().getUrl(), is(PlayerCardTooltipController.RANDOM_IMAGE.getUrl()));
-    assertThat(instance.factionImage.isVisible(), is(true));
-    assertThat(instance.foeIconText.isVisible(), is(false));
-    assertThat(instance.friendIconText.isVisible(), is(false));
-    assertThat(instance.playerInfo.getText(), is("user(1000)"));
+    assertTrue(instance.factionImage.getImage().getUrl().contains(UiService.RANDOM_FACTION_IMAGE));
+    assertFalse(instance.factionIcon.isVisible());
+    assertTrue(instance.factionImage.isVisible());
+    assertFalse(instance.foeIconText.isVisible());
+    assertFalse(instance.friendIconText.isVisible());
+    assertEquals("user(1000)", instance.playerInfo.getText());
+  }
+
+  @Test
+  public void testSetPlayerAvatar() {
+    Image avatarImage = mock(Image.class);
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
+    when(avatarService.loadAvatar(playerBean.getAvatar())).thenReturn(avatarImage);
+
+    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+
+    assertTrue(instance.avatarImageView.isVisible());
+    assertEquals(avatarImage, instance.avatarImageView.getImage());
+  }
+
+  @Test
+  public void testInvisibleAvatarImageView() {
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().avatar(null).get();
+
+    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+
+    assertFalse(instance.avatarImageView.isVisible());
+  }
+
+  @Test
+  public void testSetCountryImage() {
+    Image countryImage = mock(Image.class);
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
+    when(countryFlagService.loadCountryFlag(playerBean.getCountry())).thenReturn(Optional.of(countryImage));
+
+    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+
+    assertTrue(instance.countryImageView.isVisible());
+    assertEquals(countryImage, instance.countryImageView.getImage());
+  }
+
+  @Test
+  public void testInvisibleCountryImageView() {
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
+    when(countryFlagService.loadCountryFlag(playerBean.getCountry())).thenReturn(Optional.empty());
+
+    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+
+    assertFalse(instance.countryImageView.isVisible());
   }
 }

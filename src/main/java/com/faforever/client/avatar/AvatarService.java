@@ -32,6 +32,9 @@ public class AvatarService implements InitializingBean {
 
   @Cacheable(value = AVATARS, sync = true)
   public Image loadAvatar(AvatarBean avatar) {
+    if (avatar == null) {
+      return null;
+    }
     return assetService.loadAndCacheImage(avatar.getUrl(), Path.of("avatars"), null);
   }
 

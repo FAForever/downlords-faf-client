@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.api.FafApiAccessor;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
@@ -24,6 +25,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +65,7 @@ public class PlayerService implements InitializingBean {
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
   private final UserService userService;
+  private final AvatarService avatarService;
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
 
@@ -142,6 +145,10 @@ public class PlayerService implements InitializingBean {
         .flatMap(Collection::stream)
         .flatMap(playerName -> getPlayerByNameIfOnline(playerName).stream())
         .collect(Collectors.toList());
+  }
+
+  public Optional<Image> getCurrentAvatarByPlayerName(String name) {
+    return Optional.ofNullable(playersByName.get(name)).map(PlayerBean::getAvatar).map(avatarService::loadAvatar);
   }
 
   public boolean isCurrentPlayerInGame(GameBean game) {
