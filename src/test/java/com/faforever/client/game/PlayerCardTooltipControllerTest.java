@@ -1,10 +1,10 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -29,7 +29,7 @@ public class PlayerCardTooltipControllerTest extends UITest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
-  private PlayerService playerService;
+  private AvatarService avatarService;
 
   @InjectMocks
   private PlayerCardTooltipController instance;
@@ -100,7 +100,7 @@ public class PlayerCardTooltipControllerTest extends UITest {
   public void testSetPlayerAvatar() {
     Image avatarImage = mock(Image.class);
     PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    when(playerService.getCurrentAvatarByPlayerName(playerBean.getUsername())).thenReturn(Optional.of(avatarImage));
+    when(avatarService.loadAvatar(playerBean.getAvatar())).thenReturn(avatarImage);
 
     runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
 
@@ -110,8 +110,7 @@ public class PlayerCardTooltipControllerTest extends UITest {
 
   @Test
   public void testInvisibleAvatarImageView() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    when(playerService.getCurrentAvatarByPlayerName(playerBean.getUsername())).thenReturn(Optional.empty());
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().avatar(null).get();
 
     runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
 
