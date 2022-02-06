@@ -88,7 +88,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
       default -> {
         factionIcon.setVisible(false);
         factionImage.setVisible(true);
-        factionImage.setImage(new Image(UiService.RANDOM_IMAGE));
+        factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
       }
     }
   }

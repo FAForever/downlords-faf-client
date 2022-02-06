@@ -88,7 +88,7 @@ public class PlayerCardTooltipControllerTest extends UITest {
     PlayerBean player = playerBeanBuilder.get();
     runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.RANDOM));
 
-    assertTrue(instance.factionImage.getImage().getUrl().contains(UiService.RANDOM_IMAGE));
+    assertTrue(instance.factionImage.getImage().getUrl().contains(UiService.RANDOM_FACTION_IMAGE));
     assertFalse(instance.factionIcon.isVisible());
     assertTrue(instance.factionImage.isVisible());
     assertFalse(instance.foeIconText.isVisible());
