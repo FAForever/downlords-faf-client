@@ -1,11 +1,11 @@
 package com.faforever.client.game;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Component
@@ -31,7 +32,7 @@ import java.util.List;
 public class PlayerCardTooltipController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
-  private final PlayerService playerService;
+  private final AvatarService avatarService;
   private final I18n i18n;
   public Label playerInfo;
   public ImageView countryImageView;
@@ -48,9 +49,9 @@ public class PlayerCardTooltipController implements Controller<Node> {
     }
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresentOrElse(image ->
         countryImageView.setImage(image), () -> countryImageView.setVisible(false));
-    playerService.getCurrentAvatarByPlayerName(player.getUsername()).ifPresent(avatar -> {
+    Optional.ofNullable(player.getAvatar()).map(avatarService::loadAvatar).ifPresent(avatarImage -> {
       Tooltip.install(avatarImageView, new Tooltip(player.getAvatar().getDescription()));
-      avatarImageView.setImage(avatar);
+      avatarImageView.setImage(avatarImage);
       avatarImageView.setVisible(true);
     });
     playerInfo.setText(rating != null
