@@ -9,7 +9,8 @@
 
 <?import javafx.scene.control.Tooltip?>
 <HBox fx:id="root" spacing="3.0" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController">
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController"
+      onMouseClicked="#openPrivateChatChannel" onContextMenuRequested="#openContextMenu">
     <StackPane styleClass="faction-icon">
         <ImageView fx:id="avatarImageView" fitHeight="14.0" pickOnBounds="true" preserveRatio="true"
                    visible="false"/>

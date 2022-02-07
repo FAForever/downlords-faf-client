@@ -184,6 +184,7 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(RemoveFriendMenuItem.class, player)
         .addItem(AddFoeMenuItem.class, player)
         .addItem(RemoveFoeMenuItem.class, player)
+        .addSeparator()
         .addItem(ReportPlayerMenuItem.class, player)
         .addSeparator()
         .addItem(JoinGameMenuItem.class, player)
