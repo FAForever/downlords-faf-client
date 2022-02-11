@@ -1,13 +1,8 @@
 package com.faforever.client.chat;
 
+import lombok.Value;
+
+@Value
 public class InitiatePrivateChatEvent {
-  private final String username;
-
-  public InitiatePrivateChatEvent(String username) {
-    this.username = username;
-  }
-
-  public String getUsername() {
-    return username;
-  }
+  String username;
 }
