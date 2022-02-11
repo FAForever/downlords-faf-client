@@ -1,11 +1,13 @@
 package com.faforever.client.config;
 
+import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientConfiguration.SocketEndpoint;
 import com.faforever.client.update.ClientConfiguration.UrlEndpoint;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -171,7 +173,7 @@ public class ClientProperties {
       this.api.setBaseUrl(api.getUrl());
     }
 
-    UrlEndpoint oauth = serverEndpoints.getOauth();
+    OAuthEndpoint oauth = serverEndpoints.getOauth();
     if (oauth != null) {
       this.oauth.setBaseUrl(oauth.getUrl());
     }
@@ -218,7 +220,8 @@ public class ClientProperties {
   @Data
   public static class Oauth {
     private String baseUrl;
-    private String redirectUrl;
+    /** The redirect URI to use instead of the ones provided by remote preferences. */
+    private URI redirectUri = URI.create("");
     private String clientId;
     private String scopes;
   }

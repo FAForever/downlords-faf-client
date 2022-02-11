@@ -21,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import java.net.URI;
 import java.time.Duration;
 
 @Service
@@ -74,13 +75,13 @@ public class TokenService implements InitializingBean {
     return refreshedTokenMono;
   }
 
-  public Mono<Void> loginWithAuthorizationCode(String code) {
+  public Mono<Void> loginWithAuthorizationCode(String code, URI redirectUri) {
     return Mono.fromRunnable(() -> {
           MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
           Oauth oauth = clientProperties.getOauth();
           map.add("code", code);
           map.add("client_id", oauth.getClientId());
-          map.add("redirect_uri", oauth.getRedirectUrl());
+          map.add("redirect_uri", redirectUri.toASCIIString());
           map.add("grant_type", "authorization_code");
           hydraPropertiesMap = map;
         })
@@ -105,7 +106,6 @@ public class TokenService implements InitializingBean {
           MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
           map.add("refresh_token", refreshTokenValue);
           map.add("client_id", oauth.getClientId());
-          map.add("redirect_uri", oauth.getRedirectUrl());
           map.add("grant_type", "refresh_token");
           hydraPropertiesMap = map;
         })

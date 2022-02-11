@@ -5,7 +5,6 @@ import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.api.TokenService;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
@@ -23,11 +22,12 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -47,25 +47,24 @@ public class UserService implements InitializingBean {
   private final EventBus eventBus;
   private final TokenService tokenService;
   private final NotificationService notificationService;
-  private final I18n i18n;
 
   @Getter
   private String state;
   private CompletableFuture<Void> loginFuture;
 
-  public String getHydraUrl() {
-    state = RandomStringUtils.randomAlphanumeric(50, 100);
+  public String getHydraUrl(URI redirectUri) {
+    state = UUID.randomUUID().toString();
     Oauth oauth = clientProperties.getOauth();
     return String.format("%s/oauth2/auth?response_type=code&client_id=%s" +
             "&state=%s&redirect_uri=%s" +
             "&scope=%s",
-        oauth.getBaseUrl(), oauth.getClientId(), state, oauth.getRedirectUrl(), oauth.getScopes());
+        oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes());
   }
 
-  public CompletableFuture<Void> login(String code) {
+  public CompletableFuture<Void> login(String code, URI redirectUri) {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with authorization code");
-      loginFuture = tokenService.loginWithAuthorizationCode(code).toFuture()
+      loginFuture = tokenService.loginWithAuthorizationCode(code, redirectUri).toFuture()
           .thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;

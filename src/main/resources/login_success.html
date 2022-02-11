@@ -1,0 +1,135 @@
+<html>
+<head>
+  <style>
+      body {
+          color: #4C4C4C;
+          font: normal 14px Roboto, sans-serif;
+      }
+
+      h1 {
+          font-weight: normal;
+          font-size: 24px;
+      }
+
+      .content {
+          text-align: center;
+      }
+
+      @-webkit-keyframes checkmark {
+          0% {
+              stroke-dashoffset: 100px
+          }
+
+          100% {
+              stroke-dashoffset: 200px
+          }
+      }
+
+      @-ms-keyframes checkmark {
+          0% {
+              stroke-dashoffset: 100px
+          }
+
+          100% {
+              stroke-dashoffset: 200px
+          }
+      }
+
+      @keyframes checkmark {
+          0% {
+              stroke-dashoffset: 100px
+          }
+
+          100% {
+              stroke-dashoffset: 0px
+          }
+      }
+
+      @-webkit-keyframes checkmark-circle {
+          0% {
+              stroke-dashoffset: 480px
+
+          }
+
+          100% {
+              stroke-dashoffset: 960px;
+
+          }
+      }
+
+      @-ms-keyframes checkmark-circle {
+          0% {
+              stroke-dashoffset: 240px
+          }
+          100% {
+              stroke-dashoffset: 480px
+          }
+      }
+
+      @keyframes checkmark-circle {
+          0% {
+              stroke-dashoffset: 480px
+          }
+
+          100% {
+              stroke-dashoffset: 960px
+          }
+      }
+
+      @keyframes colored-circle {
+          0% {
+              opacity: 0
+          }
+
+          100% {
+              opacity: 100
+          }
+      }
+
+      .inlinesvg .svg svg {
+          display: inline
+      }
+
+      .icon {
+          margin-top: 4em;
+      }
+
+      .icon-success svg polyline {
+          -webkit-animation: checkmark 0.25s ease-in-out 0.7s backwards;
+          animation: checkmark 0.25s ease-in-out 0.7s backwards
+      }
+
+      .icon-success svg circle {
+          -webkit-animation: checkmark-circle 0.6s ease-in-out backwards;
+          animation: checkmark-circle 0.6s ease-in-out backwards;
+      }
+
+      .icon-success svg circle#colored {
+          -webkit-animation: colored-circle 0.6s ease-in-out 0.7s backwards;
+          animation: colored-circle 0.6s ease-in-out 0.7s backwards;
+      }
+  </style>
+  <title>Authentifizierungsstatus</title>
+</head>
+<body>
+
+<div class="content">
+
+  <div class="icon icon-success svg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="154px" height="120px">
+      <g fill="none" stroke="#22AE73" stroke-width="2">
+        <circle cx="77" cy="60" r="36" style="stroke-dasharray:480px, 480px; stroke-dashoffset: 960px;"></circle>
+        <circle id="colored" fill="#22AE73" cx="77" cy="60" r="36"
+                style="stroke-dasharray:480px, 480px; stroke-dashoffset: 960px;"></circle>
+        <polyline class="st0" stroke="#fff" stroke-width="6" points="60,62 72,73 96,48 "
+                  style="stroke-dasharray:100px, 100px; stroke-dashoffset: 200px;"/>
+      </g>
+    </svg>
+  </div>
+
+  <h1>${title}</h1>
+  <p>${message}</p>
+
+</div>
+</body>
+</html>

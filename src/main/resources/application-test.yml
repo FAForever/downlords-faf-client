@@ -30,7 +30,6 @@ faf-client:
     base-url: https://hydra.test.faforever.com
     scopes: openid offline public_profile upload_map upload_mod lobby
     client-id: faf-java-client
-    redirect-url: http://localhost
 
   forged-alliance:
     exe-url: https://content.test.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe

@@ -6,7 +6,6 @@ import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -16,6 +15,7 @@ import com.faforever.client.status.Message;
 import com.faforever.client.status.Service;
 import com.faforever.client.status.StatPingService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
@@ -36,23 +36,20 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.web.WebView;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -69,17 +66,17 @@ public class LoginController implements Controller<Pane> {
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
-  private final WebViewConfigurer webViewConfigurer;
   private final StatPingService statPingService;
   private final UiService uiService;
+  private final ApplicationContext applicationContext;
 
   private CompletableFuture<Void> initializeFuture;
 
   public Pane messagesContainer;
   public Pane errorPane;
   public Pane loginFormPane;
+  public Button loginButton;
   public Pane loginProgressPane;
-  public WebView loginWebView;
   public ComboBox<ServerEndpoints> environmentComboBox;
   public Button downloadUpdateButton;
   public Button playOfflineButton;
@@ -94,15 +91,15 @@ public class LoginController implements Controller<Pane> {
   public TextField ircServerPortField;
   public TextField apiBaseUrlField;
   public TextField oauthBaseUrlField;
+  public TextField oauthRedirectUriField;
   public CheckBox rememberMeCheckBox;
 
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;
-  private CompletableFuture<Void> resetPageFuture;
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane, loginWebView,
-        serverConfigPane, errorPane, loginProgressPane, messagesContainer);
+    JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane,
+        serverConfigPane, errorPane, loginProgressPane, messagesContainer, loginButton);
     LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     updateInfoFuture = clientUpdateService.getNewestUpdate();
 
@@ -113,8 +110,6 @@ public class LoginController implements Controller<Pane> {
     serverConfigPane.setVisible(false);
     rememberMeCheckBox.setSelected(loginPrefs.isRememberMe());
     loginPrefs.rememberMeProperty().bindBidirectional(rememberMeCheckBox.selectedProperty());
-
-    resetPageFuture = new CompletableFuture<>();
 
     // fallback values if configuration is not read from remote
     populateEndpointFields();
@@ -143,15 +138,16 @@ public class LoginController implements Controller<Pane> {
       clientProperties.updateFromEndpoint(serverEndpoints);
 
       populateEndpointFields();
-
-      loginWebView.getEngine().load(userService.getHydraUrl());
     });
 
-    oauthBaseUrlField.setOnAction((event -> {
-      clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
-      loginWebView.getEngine().load(userService.getHydraUrl());
-    }));
-
+    JavaFxUtil.addListener(
+        oauthBaseUrlField.textProperty(),
+        observable -> clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText())
+    );
+    JavaFxUtil.addListener(
+        oauthRedirectUriField.textProperty(),
+        observable -> clientProperties.getOauth().setRedirectUri(URI.create(oauthRedirectUriField.getText()))
+    );
 
     if (clientProperties.isUseRemotePreferences()) {
       initializeFuture = preferencesService.getRemotePreferencesAsync()
@@ -186,85 +182,6 @@ public class LoginController implements Controller<Pane> {
     } else {
       initializeFuture = CompletableFuture.completedFuture(null);
     }
-
-    webViewConfigurer.configureWebView(loginWebView);
-
-    loginWebView.getEngine().getLoadWorker().runningProperty().addListener(((observable, oldValue, newValue) -> {
-      if (!newValue) {
-        resetPageFuture.complete(null);
-      }
-    }));
-
-    loginWebView.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
-      String location = newValue;
-
-      List<NameValuePair> params;
-      try {
-        params = URLEncodedUtils.parse(new URI(newValue), StandardCharsets.UTF_8);
-      } catch (URISyntaxException e) {
-        log.warn("Could not parse webpage url: {}", newValue, e);
-        reloadLogin();
-        notificationService.addImmediateErrorNotification(e, "login.error");
-        return;
-      }
-
-      if (params.stream().anyMatch(param -> param.getName().equals("error"))) {
-        String error = params.stream().filter(param -> param.getName().equals("error"))
-            .findFirst().map(NameValuePair::getValue).orElse(null);
-        String errorDescription = params.stream().filter(param -> param.getName().equals("error_description"))
-            .findFirst().map(NameValuePair::getValue).orElse(null);
-        log.warn("Error during login error: url {}; error {}; {}", newValue, error, errorDescription);
-        reloadLogin();
-        notificationService.addImmediateErrorNotification(new RuntimeException("Error during login"), "login.error", error, errorDescription);
-        return;
-      }
-
-      String reportedState = params.stream().filter(param -> param.getName().equals("state"))
-          .map(NameValuePair::getValue)
-          .findFirst()
-          .orElse(null);
-
-      String code = params.stream().filter(param -> param.getName().equals("code"))
-          .map(NameValuePair::getValue)
-          .findFirst()
-          .orElse(null);
-
-      if (reportedState != null) {
-
-        String userServiceState = userService.getState();
-        if (!userServiceState.equals(reportedState)) {
-          log.warn("Reported state does not match there is something fishy going on. Saved State `{}`, Returned State `{}`, Location `{}`", userServiceState, reportedState, newValue);
-          reloadLogin();
-          notificationService.addImmediateErrorNotification(new IllegalStateException("State returned by user service does not match initial state"), "login.badState");
-          return;
-        }
-
-        if (code != null) {
-          location = location.replace(code, "*****");
-
-          initializeFuture.join();
-
-          Server server = clientProperties.getServer();
-          server.setHost(serverHostField.getText());
-          server.setPort(Integer.parseInt(serverPortField.getText()));
-
-          Replay replay = clientProperties.getReplay();
-          replay.setRemoteHost(replayServerHostField.getText());
-          replay.setRemotePort(Integer.parseInt(replayServerPortField.getText()));
-
-          Irc irc = clientProperties.getIrc();
-          irc.setHost(ircServerHostField.getText());
-          irc.setPort(Integer.parseInt(ircServerPortField.getText()));
-
-          clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
-          clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
-
-          loginWithCode(code);
-        }
-      }
-
-      log.debug("login web view visited {}", location);
-    });
 
     checkServiceStatus();
   }
@@ -344,14 +261,6 @@ public class LoginController implements Controller<Pane> {
         .orElse(i18n.get("reasonUnknown"));
   }
 
-  private void reloadLogin() {
-    resetPageFuture = new CompletableFuture<>();
-    resetPageFuture.thenAccept(aVoid -> JavaFxUtil.runLater(() -> loginWebView.getEngine().load(userService.getHydraUrl())));
-    if (!loginWebView.getEngine().getLoadWorker().isRunning()) {
-      resetPageFuture.complete(null);
-    }
-  }
-
   private void showClientOutdatedPane(String minimumVersion) {
     log.warn("Client Update required");
     JavaFxUtil.runLater(() -> {
@@ -361,7 +270,7 @@ public class LoginController implements Controller<Pane> {
       downloadUpdateButton.setVisible(true);
       loginFormPane.setDisable(true);
       loginFormPane.setVisible(false);
-      loginWebView.setVisible(false);
+      loginButton.setVisible(false);
       playOfflineButton.setVisible(false);
     });
   }
@@ -379,6 +288,7 @@ public class LoginController implements Controller<Pane> {
       ircServerPortField.setText(String.valueOf(irc.getPort()));
       apiBaseUrlField.setText(clientProperties.getApi().getBaseUrl());
       oauthBaseUrlField.setText(clientProperties.getOauth().getBaseUrl());
+      oauthRedirectUriField.setText(clientProperties.getOauth().getRedirectUri().toASCIIString());
     });
   }
 
@@ -400,19 +310,68 @@ public class LoginController implements Controller<Pane> {
         });
   }
 
-  private void loginWithCode(String code) {
-    showLoginProgess();
-    userService.login(code)
-        .exceptionally(throwable -> {
-          log.warn("Could not log in with code", throwable);
-          showLoginForm();
-          notificationService.addImmediateErrorNotification(throwable, "login.failed");
-          return null;
-        });
+  public CompletableFuture<Void> onLoginButtonClicked() {
+    initializeFuture.join();
+
+    clientProperties.getServer()
+        .setHost(serverHostField.getText())
+        .setPort(Integer.parseInt(serverPortField.getText()));
+
+    clientProperties.getReplay()
+        .setRemoteHost(replayServerHostField.getText())
+        .setRemotePort(Integer.parseInt(replayServerPortField.getText()));
+
+    clientProperties.getIrc()
+        .setHost(ircServerHostField.getText())
+        .setPort(Integer.parseInt(ircServerPortField.getText()));
+
+    clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
+    clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
+
+    OAuthValuesReceiver oAuthValuesReceiver = applicationContext.getBean(OAuthValuesReceiver.class);
+
+    Optional<OAuthEndpoint> oauth = Optional.ofNullable(environmentComboBox.getValue()).map(ServerEndpoints::getOauth);
+
+    Optional<URI> redirectUri = !oauthRedirectUriField.getText().isEmpty()
+        ? Optional.of(URI.create(oauthRedirectUriField.getText()))
+        : Optional.empty();
+
+    return oAuthValuesReceiver.receiveValues(redirectUri, oauth)
+        .thenCompose(values -> {
+          String actualState = values.getState();
+          String expectedState = userService.getState();
+          if (!expectedState.equals(actualState)) {
+            handleInvalidSate(actualState, expectedState);
+            return CompletableFuture.completedFuture(null);
+          }
+          return loginWithCode(values.getCode(), values.getRedirectUri());
+        })
+        .exceptionally(this::onLoginFailed);
+  }
+
+  private void handleInvalidSate(String actualState, String expectedState) {
+    showLoginForm();
+    log.warn("Reported state does not match. Expected '{}' but got '{}'", expectedState, actualState);
+    notificationService.addImmediateErrorNotification(
+        new IllegalStateException("State returned by the server does not match expected state"),
+        "login.failed"
+    );
+  }
+
+  private CompletableFuture<Void> loginWithCode(String code, URI redirectUri) {
+    showLoginProgress();
+    return userService.login(code, redirectUri);
+  }
+
+  private Void onLoginFailed(Throwable throwable) {
+    log.warn("Could not log in with code", throwable);
+    showLoginForm();
+    notificationService.addImmediateErrorNotification(throwable, "login.failed");
+    return null;
   }
 
   private void loginWithToken() {
-    showLoginProgess();
+    showLoginProgress();
     userService.loginWithRefreshToken()
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
@@ -428,17 +387,17 @@ public class LoginController implements Controller<Pane> {
 
   private void showLoginForm() {
     JavaFxUtil.runLater(() -> {
-      loginWebView.getEngine().load(userService.getHydraUrl());
       loginFormPane.setVisible(true);
       loginProgressPane.setVisible(false);
+      loginButton.setVisible(true);
     });
-
   }
 
-  private void showLoginProgess() {
+  private void showLoginProgress() {
     JavaFxUtil.runLater(() -> {
       loginFormPane.setVisible(false);
       loginProgressPane.setVisible(true);
+      loginButton.setVisible(false);
     });
   }
 

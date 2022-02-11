@@ -3,9 +3,9 @@ package com.faforever.client.login;
 import com.faforever.client.builders.ClientConfigurationBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.login.OAuthValuesReceiver.Values;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -37,15 +38,16 @@ import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +60,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends UITest {
+
+  private static final URI REDIRECT_URI = URI.create("http://localhost");
+  private static final Optional<URI> EXPLICIT_REDIRECT_URI = Optional.of(URI.create("http://localhost/fallback"));
 
   @InjectMocks
   private LoginController instance;
@@ -78,13 +83,16 @@ public class LoginControllerTest extends UITest {
   @Mock
   private ClientUpdateService clientUpdateService;
   @Mock
-  private WebViewConfigurer webViewConfigurer;
-  @Mock
   private AnnouncementController announcementController;
   @Mock
   private OfflineServiceController offlineServiceController;
   @Mock
   private OfflineServicesController offlineServicesController;
+  @Mock
+  private ApplicationContext applicationContext;
+  @Mock
+  private OAuthValuesReceiver oAuthValuesReceiver;
+
   @Spy
   private ClientProperties clientProperties = new ClientProperties();
   private Preferences preferences;
@@ -94,12 +102,12 @@ public class LoginControllerTest extends UITest {
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(userService.getHydraUrl()).thenReturn("google.com");
     when(uiService.loadFxml("theme/login/announcement.fxml")).thenReturn(announcementController);
     when(uiService.loadFxml("theme/login/offline_service.fxml")).thenReturn(offlineServiceController);
     when(uiService.loadFxml("theme/login/offline_services.fxml")).thenReturn(offlineServicesController);
     when(statPingService.getServices()).thenReturn(Flux.empty());
     when(statPingService.getMessages()).thenReturn(Flux.empty());
+    when(applicationContext.getBean(OAuthValuesReceiver.class)).thenReturn(oAuthValuesReceiver);
 
     when(announcementController.getRoot()).thenReturn(new Pane());
     when(offlineServiceController.getRoot()).thenReturn(new Label());
@@ -108,12 +116,16 @@ public class LoginControllerTest extends UITest {
     loadFxml("theme/login/login.fxml", param -> instance);
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
+
+    //noinspection OptionalGetWithoutIsPresent
+    instance.oauthRedirectUriField.setText(EXPLICIT_REDIRECT_URI.get().toASCIIString());
   }
 
   @Test
   public void testLoginWithRefreshToken() {
     clientProperties.setUseRemotePreferences(true);
-    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    when(preferencesService.getRemotePreferencesAsync())
+        .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     String refreshToken = "asd";
     preferences.getLogin().setRefreshToken(refreshToken);
     runOnFxThreadAndWait(() -> instance.initialize());
@@ -123,56 +135,68 @@ public class LoginControllerTest extends UITest {
   }
 
   @Test
-  public void testLoginSucceeds() {
+  public void testLoginSucceeds() throws Exception {
     String state = "abc";
     String code = "asda";
+
     when(userService.getState()).thenReturn(state);
-    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load(String.format("?code=%s&state=%s", code, state)));
-    verify(userService).login(code);
+    when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.completedFuture(null));
+    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+        .thenReturn(CompletableFuture.completedFuture(new Values(code, state, REDIRECT_URI)));
+
+    instance.onLoginButtonClicked().get();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(oAuthValuesReceiver).receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty());
+    verify(userService).login(code, REDIRECT_URI);
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
   }
 
   @Test
-  public void testLoginFailsWrongState() {
+  public void testLoginFailsWrongState() throws Exception {
     String state = "abc";
     String wrongState = "xyz";
     String code = "asda";
+
     when(userService.getState()).thenReturn(state);
-    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load(String.format("?code=%s&state=%s", code, wrongState)));
-    verify(userService, never()).login(code);
+    when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.completedFuture(null));
+    when(oAuthValuesReceiver.receiveValues(eq(EXPLICIT_REDIRECT_URI), eq(Optional.empty())))
+        .thenReturn(CompletableFuture.completedFuture(new Values(code, wrongState, REDIRECT_URI)));
+
+    instance.onLoginButtonClicked().get();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(oAuthValuesReceiver).receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty());
+    verify(userService, never()).login(code, REDIRECT_URI);
     verify(userService).getState();
-    verify(userService).getHydraUrl();
-    assertEquals(userService.getHydraUrl(), instance.loginWebView.getEngine().getLocation());
-    verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.badState"));
+    verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.failed"));
   }
 
   @Test
-  public void testLoginFails() {
+  public void testLoginFails() throws Exception {
     String state = "abc";
     String code = "asda";
+
     when(userService.getState()).thenReturn(state);
-    when(userService.login(code)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
-    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load(String.format("?code=%s&state=%s", code, state)));
-    verify(userService).login(code);
+    when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+        .thenReturn(CompletableFuture.completedFuture(new Values(code, state, REDIRECT_URI)));
+
+    instance.onLoginButtonClicked().get();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(userService).login(code, REDIRECT_URI);
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
   }
 
   @Test
-  public void testLoginError() {
-    runOnFxThreadAndWait(() -> instance.loginWebView.getEngine().load("?error=abc&error_description=def"));
-    verify(userService, never()).login(anyString());
-    verify(userService).getHydraUrl();
-    assertEquals(userService.getHydraUrl(), instance.loginWebView.getEngine().getLocation());
-    verify(notificationService).addImmediateErrorNotification(any(RuntimeException.class), eq("login.error"), eq("abc"), eq("def"));
-  }
-
-  @Test
   public void testLoginRefreshFailsBadToken() {
     clientProperties.setUseRemotePreferences(true);
-    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    when(preferencesService.getRemotePreferencesAsync())
+        .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     preferences.getLogin().setRememberMe(true);
     preferences.getLogin().setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
@@ -187,7 +211,8 @@ public class LoginControllerTest extends UITest {
   @Test
   public void testLoginRefreshFailsUnauthorized() {
     clientProperties.setUseRemotePreferences(true);
-    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    when(preferencesService.getRemotePreferencesAsync())
+        .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     preferences.getLogin().setRememberMe(true);
     preferences.getLogin().setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
@@ -202,7 +227,8 @@ public class LoginControllerTest extends UITest {
   @Test
   public void testLoginRefreshFails() {
     clientProperties.setUseRemotePreferences(true);
-    when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
+    when(preferencesService.getRemotePreferencesAsync())
+        .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     preferences.getLogin().setRememberMe(true);
     preferences.getLogin().setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(new CompletionException(new Exception())));
@@ -276,7 +302,7 @@ public class LoginControllerTest extends UITest {
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
     verify(userService, never()).loginWithRefreshToken();
-    verify(userService, never()).login(anyString());
+    verify(userService, never()).login(anyString(), any());
   }
 
   @Test
@@ -309,11 +335,11 @@ public class LoginControllerTest extends UITest {
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
     verify(userService, never()).loginWithRefreshToken();
-    verify(userService, never()).login(anyString());
+    verify(userService, never()).login(anyString(), any());
   }
 
   @Test
-  public void testOnDownloadUpdateButtonClicked() throws Exception {
+  public void testOnDownloadUpdateButtonClicked() {
     UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, preferencesService);
     when(clientUpdateService.downloadAndInstallInBackground(updateInfo)).thenReturn(downloadUpdateTask);
