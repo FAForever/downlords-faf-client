@@ -6,14 +6,14 @@ import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
 
 public class ViewReplaysMenuItemTest extends UITest {
 
@@ -22,12 +22,8 @@ public class ViewReplaysMenuItemTest extends UITest {
   @Mock
   private EventBus eventBus;
 
+  @InjectMocks
   private ViewReplaysMenuItem instance;
-
-  @BeforeEach
-  public void setUp() {
-    instance = new ViewReplaysMenuItem(i18n, eventBus);
-  }
 
   @Test
   public void testViewReplays() {

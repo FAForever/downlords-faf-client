@@ -92,7 +92,7 @@ public class PlayerInfoWindowControllerTest extends UITest {
     when(achievementItemController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml")).thenReturn(playerRatingChartTooltipController);
     when(playerRatingChartTooltipController.getRoot()).thenReturn(new Pane());
-    when(playerService.getPlayersByIds(any())).thenReturn(CompletableFuture.completedFuture(List.of(player)));
+    when(playerService.getPlayerNames(any())).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
     when(leaderboardService.getEntriesForPlayer(eq(player))).thenReturn(CompletableFuture.completedFuture(List.of(LeaderboardEntryBeanBuilder.create().defaultValues().get())));
     when(statisticsService.getRatingHistory(eq(player), any())).thenReturn(CompletableFuture.completedFuture(asList(

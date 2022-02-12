@@ -43,7 +43,6 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -254,14 +254,27 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testGetPlayerByNamePlayerOnline() {
+    Optional<PlayerBean> result = instance.getPlayerByName("junit2").join();
+
+    verify(fafApiAccessor, never()).getMany(any());
+  }
+
+  @Test
   public void testGetPlayersByIds() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().username("junit4").id(4).get();
     Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    List<PlayerBean> result = instance.getPlayersByIds(List.of(1,2,3,4)).join();
+    instance.getPlayersByIds(List.of(1, 2, 3, 4)).join();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(1,2,3,4)))));
-    assertThat(result, contains(playerBean));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(1,4)))));
+  }
+
+  @Test
+  public void testGetPlayersByIdsAllPlayersOnline() {
+    instance.getPlayersByIds(List.of(2, 3)).join();
+
+    verify(fafApiAccessor, never()).getMany(any());
   }
 
   @Test
@@ -332,5 +345,16 @@ public class PlayerServiceTest extends ServiceTest {
   public void testGetCurrentAvatarByPlayerName() {
     when(avatarService.loadAvatar(any())).thenReturn(mock(Image.class));
     assertNotNull(instance.getCurrentAvatarByPlayerName("junit2").orElse(null));
+  }
+
+  @Test
+  public void testPlayerOffline() {
+    PlayerBean player = PlayerBeanBuilder.create().get();
+    playerMapper.update(playerInfo1, player);
+
+    instance.onPlayerOffline(new PlayerOfflineEvent(player));
+
+    assertFalse(instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).isPresent());
+    assertFalse(instance.getPlayerByIdIfOnline(playerInfo1.getId()).isPresent());
   }
 }
