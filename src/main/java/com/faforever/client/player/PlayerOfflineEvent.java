@@ -1,14 +1,9 @@
 package com.faforever.client.player;
 
+import com.faforever.client.domain.PlayerBean;
+import lombok.Value;
+
+@Value
 public class PlayerOfflineEvent {
-  private final String username;
-
-  public PlayerOfflineEvent(String username) {
-    this.username = username;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
+  PlayerBean player;
 }
