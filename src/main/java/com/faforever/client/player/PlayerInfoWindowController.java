@@ -268,8 +268,8 @@ public class PlayerInfoWindowController implements Controller<Node> {
   }
 
   private void updateNameHistory() {
-    playerService.getPlayersByIds(List.of(player.getId()))
-        .thenAccept(players -> nameHistoryTable.setItems(players.get(0).getNames()))
+    playerService.getPlayerNames(player)
+        .thenAccept(names -> nameHistoryTable.setItems(FXCollections.observableList(names)))
         .exceptionally(throwable -> {
           log.warn("Could not load player name history", throwable);
           notificationService.addImmediateErrorNotification(throwable, "userInfo.nameHistory.errorLoading");

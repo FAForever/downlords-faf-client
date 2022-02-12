@@ -17,6 +17,8 @@ public interface ChatService {
 
   CompletableFuture<String> sendMessageInBackground(String target, String message);
 
+  boolean userExistsInAnyChannel(String username);
+
   ChatChannel getOrCreateChannel(String channelName);
 
   ChatChannelUser getOrCreateChatUser(String username, String channel);

@@ -196,6 +196,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
+  public boolean userExistsInAnyChannel(String username) {
+    return client.getChannels().stream().anyMatch(channel -> channel.getUser(username).isPresent());
+  }
+
+  @Override
   public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
     Channel channel = client.getChannel(channelName).orElseThrow(() -> new IllegalArgumentException("Channel '" + channelName + "' is unknown"));
     User user = channel.getUser(username).orElseThrow(() -> new IllegalArgumentException("Chat user '" + username + "' is unknown for channel '" + channelName + "'"));

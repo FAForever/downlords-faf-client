@@ -6,6 +6,7 @@ import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
@@ -14,6 +15,7 @@ import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
+import com.faforever.commons.api.dto.NameRecord;
 import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
@@ -31,10 +33,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -206,7 +210,7 @@ public class PlayerService implements InitializingBean {
   }
 
   public void addFriend(PlayerBean player) {
-    playersByName.get(player.getUsername()).setSocialStatus(FRIEND);
+    player.setSocialStatus(FRIEND);
     friendList.add(player.getId());
     foeList.remove(player.getId());
 
@@ -215,7 +219,7 @@ public class PlayerService implements InitializingBean {
   }
 
   public void removeFriend(PlayerBean player) {
-    playersByName.get(player.getUsername()).setSocialStatus(OTHER);
+    player.setSocialStatus(OTHER);
     friendList.remove(player.getId());
 
     player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
@@ -223,7 +227,7 @@ public class PlayerService implements InitializingBean {
   }
 
   public void addFoe(PlayerBean player) {
-    playersByName.get(player.getUsername()).setSocialStatus(FOE);
+    player.setSocialStatus(FOE);
     foeList.add(player.getId());
     friendList.remove(player.getId());
 
@@ -232,7 +236,7 @@ public class PlayerService implements InitializingBean {
   }
 
   public void removeFoe(PlayerBean player) {
-    playersByName.get(player.getUsername()).setSocialStatus(OTHER);
+    player.setSocialStatus(OTHER);
     foeList.remove(player.getId());
 
     player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
@@ -289,15 +293,31 @@ public class PlayerService implements InitializingBean {
   }
 
   public CompletableFuture<List<PlayerBean>> getPlayersByIds(Collection<Integer> playerIds) {
+    Set<Integer> onlineIds = new HashSet<>();
+
+    List<PlayerBean> players = playerIds.stream()
+        .map(this::getPlayerByIdIfOnline)
+        .flatMap(Optional::stream)
+        .peek(playerBean -> onlineIds.add(playerBean.getId()))
+        .collect(Collectors.toList());
+
+    Set<Integer> offlineIds = playerIds.stream().filter(playerId -> !onlineIds.contains(playerId)).collect(Collectors.toSet());
+
     ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class).collection()
-        .setFilter(qBuilder().intNum("id").in(playerIds));
+        .setFilter(qBuilder().intNum("id").in(offlineIds));
     return fafApiAccessor.getMany(navigator)
         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-        .collectList()
+        .doOnNext(players::add)
+        .then(Mono.just(players))
         .toFuture();
   }
 
   public CompletableFuture<Optional<PlayerBean>> getPlayerByName(String playerName) {
+    Optional<PlayerBean> onlinePlayer = getPlayerByNameIfOnline(playerName);
+    if (onlinePlayer.isPresent()) {
+      return CompletableFuture.completedFuture(onlinePlayer);
+    }
+
     ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class).collection()
         .setFilter(qBuilder().string("login").eq(playerName));
     return fafApiAccessor.getMany(navigator)
@@ -305,5 +325,16 @@ public class PlayerService implements InitializingBean {
         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
         .toFuture()
         .thenApply(Optional::ofNullable);
+  }
+
+  public CompletableFuture<List<NameRecordBean>> getPlayerNames(PlayerBean player) {
+    ElideNavigatorOnCollection<NameRecord> navigator = ElideNavigator.of(NameRecord.class).collection()
+        .setFilter(qBuilder().intNum("player.id").eq(player.getId()));
+
+    return fafApiAccessor.getMany(navigator)
+        .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
+        .sort(Comparator.comparing(NameRecordBean::getChangeTime))
+        .collectList()
+        .toFuture();
   }
 }

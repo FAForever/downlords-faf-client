@@ -11,7 +11,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import lombok.EqualsAndHashCode;
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static com.faforever.client.player.SocialStatus.OTHER;
@@ -45,7 +43,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   ObjectProperty<PlayerStatus> status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
   ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
   ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
-  ObservableList<NameRecordBean> names = FXCollections.observableArrayList();
   InvalidationListener gameStatusListener = observable -> updateGameStatus();
 
   private void updateGameStatus() {
@@ -67,17 +64,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
     } else {
       status.set(PlayerStatus.IDLE);
     }
-  }
-
-  public ObservableList<NameRecordBean> getNames() {
-    return names;
-  }
-
-  public void setNames(List<NameRecordBean> names) {
-    if (names == null) {
-      names = List.of();
-    }
-    this.names.setAll(names);
   }
 
   public SocialStatus getSocialStatus() {

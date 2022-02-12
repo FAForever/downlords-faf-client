@@ -1,5 +1,6 @@
 package com.faforever.client.fx.contextmenu;
 
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
@@ -19,6 +20,7 @@ public class SendPrivateMessageMenuItem extends AbstractMenuItem<String> {
   private final I18n i18n;
   private final EventBus eventBus;
   private final PlayerService playerService;
+  private final ChatService chatService;
 
   @Override
   protected void onClicked() {
@@ -28,7 +30,9 @@ public class SendPrivateMessageMenuItem extends AbstractMenuItem<String> {
 
   @Override
   protected boolean isItemVisible() {
-    return !StringUtils.isBlank(object) && !playerService.getCurrentPlayer().getUsername().equals(object);
+    return !StringUtils.isBlank(object)
+        && !playerService.getCurrentPlayer().getUsername().equals(object)
+        && chatService.userExistsInAnyChannel(object);
   }
 
   @Override
