@@ -338,9 +338,7 @@ public class PlayerService implements InitializingBean {
           if (friendList.contains(player.getId())) {
             player.setSocialStatus(FRIEND);
           } else if (foeList.contains(player.getId())) {
-            if (friendList.contains(player.getId())) {
-              player.setSocialStatus(FOE);
-            }
+            player.setSocialStatus(FOE);
           }
         }).toFuture()
         .thenApply(Optional::ofNullable);
