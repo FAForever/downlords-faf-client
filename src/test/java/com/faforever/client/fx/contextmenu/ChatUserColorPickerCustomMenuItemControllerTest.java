@@ -13,6 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.HashMap;
@@ -34,17 +35,17 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
   private EventBus eventBus;
 
   private Preferences preferences;
+  @InjectMocks
   private ChatUserColorPickerCustomMenuItemController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    preferences = PreferencesBuilder.create().chatPrefs()
+    preferences = PreferencesBuilder.create().defaultValues().chatPrefs()
         .chatColorMode(ChatColorMode.DEFAULT)
         .then()
         .get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    instance = new ChatUserColorPickerCustomMenuItemController(preferencesService, eventBus);
     loadFxml("theme/chat/color_picker_menu_item.fxml", clazz -> instance, instance);
   }
 

@@ -7,11 +7,12 @@ import com.faforever.client.game.JoinGameHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.lobby.GameStatus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 
 public class JoinGameMenuItemTest extends UITest {
@@ -20,13 +21,8 @@ public class JoinGameMenuItemTest extends UITest {
   private I18n i18n;
   @Mock
   private JoinGameHelper joinGameHelper;
-
+  @InjectMocks
   private JoinGameMenuItem instance;
-
-  @BeforeEach
-  public void setUp() {
-    instance = new JoinGameMenuItem(i18n, joinGameHelper);
-  }
 
   @Test
   public void testJoinGame() {

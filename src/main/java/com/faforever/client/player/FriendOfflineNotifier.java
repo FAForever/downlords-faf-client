@@ -1,6 +1,7 @@
 package com.faforever.client.player;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
@@ -35,23 +36,22 @@ public class FriendOfflineNotifier implements InitializingBean {
   @Subscribe
   public void onPlayerOffline(PlayerOfflineEvent event) {
     NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
-    String username = event.getUsername();
-    playerService.getPlayerByNameIfOnline(username).ifPresent(player -> {
-      if (player.getSocialStatus() != SocialStatus.FRIEND) {
-        return;
-      }
+    PlayerBean player = event.getPlayer();
 
-      if (notification.isFriendOfflineSoundEnabled()) {
-        audioService.playFriendOfflineSound();
-      }
+    if (player.getSocialStatus() != SocialStatus.FRIEND) {
+      return;
+    }
 
-      if (notification.isFriendOfflineToastEnabled()) {
-        notificationService.addNotification(
-            new TransientNotification(
-                i18n.get("friend.nowOfflineNotification.title", username), "",
-                IdenticonUtil.createIdenticon(player.getId())
-            ));
-      }
-    });
+    if (notification.isFriendOfflineSoundEnabled()) {
+      audioService.playFriendOfflineSound();
+    }
+
+    if (notification.isFriendOfflineToastEnabled()) {
+      notificationService.addNotification(
+          new TransientNotification(
+              i18n.get("friend.nowOfflineNotification.title", player.getUsername()), "",
+              IdenticonUtil.createIdenticon(player.getId())
+          ));
+    }
   }
 }

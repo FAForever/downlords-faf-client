@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class TeamCardController implements Controller<Node> {
     JavaFxUtil.runLater(() -> teamsPane.getChildren().setAll(teamCardPanes));
   }
 
-  public void setPlayersInTeam(String team, List<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
+  public void setPlayersInTeam(String team, Collection<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
     int totalRating = 0;
     for (PlayerBean player : playerList) {
       // If the server wasn't bugged, this would never be the case.

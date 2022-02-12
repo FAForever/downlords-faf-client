@@ -196,6 +196,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
+  public boolean userExistsInAnyChannel(String username) {
+    return client.getChannels().stream().anyMatch(channel -> channel.getUser(username).isPresent());
+  }
+
+  @Override
   public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
     Channel channel = client.getChannel(channelName).orElseThrow(() -> new IllegalArgumentException("Channel '" + channelName + "' is unknown"));
     User user = channel.getUser(username).orElseThrow(() -> new IllegalArgumentException("Chat user '" + username + "' is unknown for channel '" + channelName + "'"));
@@ -401,7 +406,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onChatUserLeftChannel(String channelName, String username) {
-    if (getOrCreateChannel(channelName).removeUser(username) == null) {
+    ChatChannelUser oldChatUser = getOrCreateChannel(channelName).removeUser(username);
+    if (oldChatUser == null) {
       return;
     }
     ircLog.debug("User '{}' left channel: {}", username, channelName);
@@ -415,7 +421,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     }
     // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (defaultChannelName.equals(channelName)) {
-      eventBus.post(new PlayerOfflineEvent(username));
+      oldChatUser.getPlayer().ifPresent(player -> eventBus.post(new PlayerOfflineEvent(player)));
     }
   }
 

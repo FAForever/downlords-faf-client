@@ -3,13 +3,11 @@ package com.faforever.client.builders;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
-import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.SocialStatus;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Map;
 
 
@@ -28,7 +26,6 @@ public class PlayerBeanBuilder {
     clan("tst");
     country("US");
     avatar(AvatarBeanBuilder.create().defaultValues().get());
-    names(List.of());
     return this;
   }
 
@@ -69,11 +66,6 @@ public class PlayerBeanBuilder {
 
   public PlayerBeanBuilder idleSince(Instant idleSince) {
     playerBean.setIdleSince(idleSince);
-    return this;
-  }
-
-  public PlayerBeanBuilder names(List<NameRecordBean> names) {
-    playerBean.setNames(names);
     return this;
   }
 

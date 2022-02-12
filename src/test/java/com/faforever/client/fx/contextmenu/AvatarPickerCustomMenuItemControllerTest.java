@@ -9,6 +9,7 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.net.URL;
@@ -28,12 +29,11 @@ public class AvatarPickerCustomMenuItemControllerTest extends UITest {
   private AvatarService avatarService;
   @Mock
   private I18n i18n;
-
+  @InjectMocks
   private AvatarPickerCustomMenuItemController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance = new AvatarPickerCustomMenuItemController(avatarService, i18n);
     loadFxml("theme/chat/avatar_picker_menu_item.fxml", clazz -> instance);
   }
 

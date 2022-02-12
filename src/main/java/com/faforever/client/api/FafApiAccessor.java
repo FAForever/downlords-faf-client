@@ -24,7 +24,6 @@ import com.faforever.commons.api.dto.Mod;
 import com.faforever.commons.api.dto.ModReviewsSummary;
 import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.dto.ModerationReport;
-import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.dto.TutorialCategory;
 import com.faforever.commons.api.elide.ElideEndpointBuilder;
 import com.faforever.commons.api.elide.ElideEntity;
@@ -110,7 +109,6 @@ public class FafApiAccessor implements InitializingBean {
           List.of("mod.latestVersion", "mod.versions", "mod.versions.reviews", "mod.versions.reviews.player", "mod.reviewsSummary", "mod.uploader")),
       java.util.Map.entry(Mod.class,
           List.of("latestVersion", "versions", "versions.reviews", "versions.reviews.player", "reviewsSummary", "uploader")),
-      java.util.Map.entry(Player.class, List.of("names")),
       java.util.Map.entry(ModerationReport.class, List.of("reporter", "lastModerator", "reportedUsers", "game", "game.playerStats", "game.playerStats.player")),
       java.util.Map.entry(MatchmakerQueue.class, List.of("leaderboard")),
       java.util.Map.entry(TutorialCategory.class, List.of("tutorials", "tutorials.mapVersion.map", "tutorials.mapVersion.map.latestVersion",

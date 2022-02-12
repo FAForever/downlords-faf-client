@@ -70,6 +70,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -368,26 +369,28 @@ public class ReplayDetailController implements Controller<Node> {
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(stats -> stats.getPlayer().getId(), Function.identity()));
 
-    teams.forEach((team, value) -> {
-      List<Integer> playerIds = value.stream()
-          .map(stats -> stats.getPlayer().getId())
-          .collect(Collectors.toList());
+    playerService.getPlayersByIds(statsByPlayerId.keySet())
+                .thenAccept(players -> teams.forEach((team, value) -> {
+                  Set<Integer> playerIds = value.stream()
+                      .map(stats -> stats.getPlayer().getId())
+                      .collect(Collectors.toSet());
 
 
-      TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
-      teamCardControllers.add(controller);
+                  TeamCardController controller = uiService.loadFxml("theme/team_card.fxml");
+                  teamCardControllers.add(controller);
 
-      Function<PlayerBean, Integer> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
+                  Function<PlayerBean, Integer> playerRatingFunction = player -> getPlayerRating(player, statsByPlayerId);
 
-      Function<PlayerBean, Faction> playerFactionFunction = player -> getPlayerFaction(player, statsByPlayerId);
+                  Function<PlayerBean, Faction> playerFactionFunction = player -> getPlayerFaction(player, statsByPlayerId);
 
-      playerService.getPlayersByIds(playerIds)
-          .thenAccept(players ->
-              controller.setPlayersInTeam(team, players, playerRatingFunction, playerFactionFunction, RatingPrecision.EXACT)
-          );
+                  Set<PlayerBean> teamPlayers = players.stream()
+                      .filter(playerBean -> playerIds.contains(playerBean.getId()))
+                          .collect(Collectors.toSet());
 
-      JavaFxUtil.runLater(() -> teamsContainer.getChildren().add(controller.getRoot()));
-    });
+                  controller.setPlayersInTeam(team, teamPlayers, playerRatingFunction, playerFactionFunction, RatingPrecision.EXACT);
+
+                  JavaFxUtil.runLater(() -> teamsContainer.getChildren().add(controller.getRoot()));
+                }));
   }
 
   @VisibleForTesting

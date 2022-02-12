@@ -8,7 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CopyLabelMenuItemTest extends UITest {
 
@@ -18,7 +19,7 @@ public class CopyLabelMenuItemTest extends UITest {
   private CopyLabelMenuItem instance;
 
   @BeforeEach
-  public void setUp() {
+  public void setup() {
     instance = new CopyLabelMenuItem(i18n);
   }
 
