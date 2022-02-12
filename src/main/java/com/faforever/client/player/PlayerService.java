@@ -299,7 +299,11 @@ public class PlayerService implements InitializingBean {
         .map(this::getPlayerByIdIfOnline)
         .flatMap(Optional::stream)
         .peek(playerBean -> onlineIds.add(playerBean.getId()))
-        .collect(Collectors.toList());
+        .collect(Collectors.toCollection(ArrayList::new));
+
+    if (players.size() == playerIds.size()) {
+      return CompletableFuture.completedFuture(players);
+    }
 
     Set<Integer> offlineIds = playerIds.stream().filter(playerId -> !onlineIds.contains(playerId)).collect(Collectors.toSet());
 
@@ -307,7 +311,16 @@ public class PlayerService implements InitializingBean {
         .setFilter(qBuilder().intNum("id").in(offlineIds));
     return fafApiAccessor.getMany(navigator)
         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-        .doOnNext(players::add)
+        .doOnNext(player -> {
+          if (friendList.contains(player.getId())) {
+            player.setSocialStatus(FRIEND);
+          } else if (foeList.contains(player.getId())) {
+            if (friendList.contains(player.getId())) {
+              player.setSocialStatus(FOE);
+            }
+          }
+          players.add(player);
+        })
         .then(Mono.just(players))
         .toFuture();
   }
@@ -323,7 +336,15 @@ public class PlayerService implements InitializingBean {
     return fafApiAccessor.getMany(navigator)
         .next()
         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
-        .toFuture()
+        .doOnNext(player -> {
+          if (friendList.contains(player.getId())) {
+            player.setSocialStatus(FRIEND);
+          } else if (foeList.contains(player.getId())) {
+            if (friendList.contains(player.getId())) {
+              player.setSocialStatus(FOE);
+            }
+          }
+        }).toFuture()
         .thenApply(Optional::ofNullable);
   }
 

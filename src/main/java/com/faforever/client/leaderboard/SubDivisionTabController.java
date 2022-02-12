@@ -6,8 +6,12 @@ import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
+import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
+import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
+import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
+import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
@@ -77,6 +81,11 @@ public class SubDivisionTabController implements Controller<Tab> {
       contextMenuBuilder.newBuilder()
           .addItem(ShowPlayerInfoMenuItem.class, player)
           .addItem(CopyUsernameMenuItem.class, player.getUsername())
+          .addSeparator()
+          .addItem(AddFriendMenuItem.class, player)
+          .addItem(RemoveFriendMenuItem.class, player)
+          .addItem(AddFoeMenuItem.class, player)
+          .addItem(RemoveFoeMenuItem.class, player)
           .addSeparator()
           .addItem(ViewReplaysMenuItem.class, player)
           .build()
