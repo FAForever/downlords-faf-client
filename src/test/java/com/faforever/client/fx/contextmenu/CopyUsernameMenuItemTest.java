@@ -3,8 +3,8 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import javafx.scene.input.Clipboard;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,8 +14,13 @@ public class CopyUsernameMenuItemTest extends UITest {
 
   @Mock
   private I18n i18n;
-  @InjectMocks
+
   private CopyUsernameMenuItem instance;
+
+  @BeforeEach
+  public void setup() {
+    instance = new CopyUsernameMenuItem(i18n);
+  }
 
   @Test
   public void testCopyUsername() {
