@@ -72,6 +72,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   private final FafLobbyClient lobbyClient;
 
+  private boolean autoReconnect = false;
+
   public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
                                TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
@@ -91,6 +93,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     eventBus.register(this);
     addEventListener(IrcPasswordInfo.class, this::onIrcPassword);
     addEventListener(NoticeInfo.class, this::onNotice);
+
+    lobbyClient.getDisconnects()
+        .doOnNext(unit -> {
+          connectionState.set(ConnectionState.DISCONNECTED);
+          if (autoReconnect) {
+            connectAndLogIn();
+          }
+        })
+        .subscribe();
   }
 
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
@@ -132,7 +143,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
             false
         ))
         .flatMap(lobbyClient::connectAndLogin)
-        .doOnNext(loginMessage -> connectionState.setValue(ConnectionState.CONNECTED))
+        .doOnNext(loginMessage -> {
+          connectionState.setValue(ConnectionState.CONNECTED);
+          autoReconnect = true;
+        })
         .toFuture();
   }
 
@@ -155,9 +169,9 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public void disconnect() {
+    autoReconnect = false;
     log.info("Closing lobby server connection");
     lobbyClient.disconnect();
-    connectionState.setValue(ConnectionState.DISCONNECTED);
   }
 
   public void reconnect() {

@@ -301,9 +301,13 @@ dependencies {
   implementation("org.springframework:spring-web")
   implementation("org.springframework:spring-websocket")
 
-  implementation("com.github.FAForever:faf-java-commons:61cd2a9e88ec9f291c3b45e5d85c89e037a09493") {
-    exclude module: 'guava'
-  }
+
+  def commonsVersion = "54cf579b4e"
+  implementation("com.github.FAForever.faf-java-commons:faf-commons-data:${commonsVersion}") {
+            exclude module: 'guava'
+          }
+  implementation("com.github.FAForever.faf-java-commons:faf-commons-api:${commonsVersion}")
+  implementation("com.github.FAForever.faf-java-commons:faf-commons-lobby:${commonsVersion}")
   implementation("com.google.guava:guava:31.0.1-jre")
   implementation("org.apache.commons:commons-compress:1.21")
   implementation("net.java.dev.jna:jna:5.10.0")
