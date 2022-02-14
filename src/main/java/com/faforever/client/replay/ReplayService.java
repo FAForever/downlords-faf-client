@@ -284,6 +284,7 @@ public class ReplayService {
           .map(gameOption -> new GameOption(gameOption.getKey(), gameOption.getValue()))
           .collect(Collectors.toList())
       );
+      replay.getGameOptions().add(0, new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser))));
       if (replay.getMapVersion() == null) {
         MapVersionBean mapVersion = new MapVersionBean();
         MapBean map = new MapBean();
