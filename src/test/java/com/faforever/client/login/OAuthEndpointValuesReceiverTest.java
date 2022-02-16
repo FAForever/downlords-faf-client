@@ -85,7 +85,8 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     CompletableFuture<Values> future = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
 
-    assertThrows(SocketTimeoutException.class, future::get);
+    Exception throwable = assertThrows(ExecutionException.class, future::get);
+    assertTrue(throwable.getCause() instanceof SocketTimeoutException);
   }
 
   @Test
