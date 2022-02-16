@@ -369,13 +369,13 @@ public class LoginController implements Controller<Pane> {
 
     if (throwable instanceof SocketTimeoutException) {
       log.warn("Login request timed out", throwable);
-      showLoginForm();
       notificationService.addImmediateWarnNotification("login.timeout");
     } else {
       log.warn("Could not log in with code", throwable);
-      showLoginForm();
       notificationService.addImmediateErrorNotification(throwable, "login.failed");
     }
+
+    showLoginForm();
     return null;
   }
 
