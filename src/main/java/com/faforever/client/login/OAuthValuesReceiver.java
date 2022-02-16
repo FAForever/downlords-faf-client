@@ -6,13 +6,10 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.user.UserService;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -38,7 +35,6 @@ import java.util.stream.Collectors;
 
 /** Opens a minimal HTTP server that retrieves {@literal code} and {@literal state} from the browser. */
 @Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
 public class OAuthValuesReceiver {
@@ -46,9 +42,7 @@ public class OAuthValuesReceiver {
   private static final Pattern CODE_PATTERN = Pattern.compile("code=([^ &]+)");
   private static final Pattern STATE_PATTERN = Pattern.compile("state=([^ &]+)");
   private static final List<String> ALLOWED_HOSTS = List.of("localhost");
-
-  @VisibleForTesting
-  CompletableFuture<Integer> listenPort = new CompletableFuture<>();
+  private static final int MILLISECONDS_TO_WAIT = 300000;
 
   private final ClientProperties clientProperties;
   private final PlatformService platformService;
@@ -97,7 +91,8 @@ public class OAuthValuesReceiver {
   private Values readWithUri(URI uri) throws SocketException {
     // Usually, a random port can't be used since the redirect URI, including port, must be registered on the server
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
-      this.listenPort.complete(serverSocket.getLocalPort());
+      serverSocket.setSoTimeout(MILLISECONDS_TO_WAIT);
+
       URI redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 
       platformService.showDocument(userService.getHydraUrl(redirectUri));

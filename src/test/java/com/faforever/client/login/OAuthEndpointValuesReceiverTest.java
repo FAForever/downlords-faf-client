@@ -10,6 +10,7 @@ import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -21,6 +22,8 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OAuthEndpointValuesReceiverTest extends ServiceTest {
@@ -51,8 +54,11 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     CompletableFuture<Values> future = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
 
-    Integer port = instance.listenPort.get();
-    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(URI.create("http://localhost:" + port))
+    ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
+
+    verify(userService, timeout(1000)).getHydraUrl(captor.capture());
+
+    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("code", "1234")
         .queryParam("state", "abcd");
 

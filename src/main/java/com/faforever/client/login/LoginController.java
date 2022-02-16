@@ -46,6 +46,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -346,7 +347,7 @@ public class LoginController implements Controller<Pane> {
           }
           return loginWithCode(values.getCode(), values.getRedirectUri());
         })
-        .exceptionally(this::onLoginFailed);
+        .exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
 
   private void handleInvalidSate(String actualState, String expectedState) {
@@ -364,9 +365,20 @@ public class LoginController implements Controller<Pane> {
   }
 
   private Void onLoginFailed(Throwable throwable) {
-    log.warn("Could not log in with code", throwable);
-    showLoginForm();
-    notificationService.addImmediateErrorNotification(throwable, "login.failed");
+    if (userService.getOwnUser() != null) {
+      log.warn("Previous login request failed but user is already logged in", throwable);
+      return null;
+    }
+
+    if (throwable instanceof SocketTimeoutException) {
+      log.warn("Login request timed out", throwable);
+      showLoginForm();
+      notificationService.addImmediateWarnNotification("login.timeout");
+    } else {
+      log.warn("Could not log in with code", throwable);
+      showLoginForm();
+      notificationService.addImmediateErrorNotification(throwable, "login.failed");
+    }
     return null;
   }
 
