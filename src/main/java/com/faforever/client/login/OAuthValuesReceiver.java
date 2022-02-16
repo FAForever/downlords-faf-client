@@ -91,7 +91,7 @@ public class OAuthValuesReceiver {
   private Values readWithUri(URI uri) throws SocketException {
     // Usually, a random port can't be used since the redirect URI, including port, must be registered on the server
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
-      serverSocket.setSoTimeout(MILLISECONDS_TO_WAIT);
+      serverSocket.setSoTimeout(clientProperties.getOauth().getTimeout());
 
       URI redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 

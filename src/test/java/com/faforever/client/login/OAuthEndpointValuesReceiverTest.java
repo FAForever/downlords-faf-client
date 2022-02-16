@@ -11,7 +11,9 @@ import com.faforever.client.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
@@ -38,6 +40,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
   private static final String MESSAGE = "JUnit Login Message";
   public static final URI REDIRECT_URI = URI.create("http://localhost");
 
+  @InjectMocks
   private OAuthValuesReceiver instance;
   @Mock
   private I18n i18n;
@@ -45,13 +48,14 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
   private PlatformService platformService;
   @Mock
   private UserService userService;
+  @Spy
+  private ClientProperties clientProperties = new ClientProperties();
 
   @BeforeEach
   void setUp() {
     when(i18n.get("login.browser.success.title")).thenReturn(TITLE);
     when(i18n.get("login.browser.success.message")).thenReturn(MESSAGE);
-    ClientProperties clientProperties = new ClientProperties();
-    instance = new OAuthValuesReceiver(clientProperties, platformService, userService, i18n);
+    clientProperties.getOauth().setTimeout(1000);
   }
 
   @Test
