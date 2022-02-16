@@ -15,13 +15,19 @@ import org.mockito.Mock;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,5 +77,23 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     Values values = future.get();
     assertThat(values.getCode(), is("1234"));
     assertThat(values.getState(), is("abcd"));
+  }
+
+  @Test
+  void receiveValuesTimeout() throws Exception {
+    OAuthEndpoint oAuthEndpoint = OAuthEndpointBuilder.create().defaultValues().get();
+
+    CompletableFuture<Values> future = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
+
+    assertThrows(SocketTimeoutException.class, future::get);
+  }
+
+  @Test
+  void receiveValuesNoPortsAvailable() throws Exception {
+    ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
+    URI takenPort = URI.create("http://localhost:" + serverSocket.getLocalPort());
+    CompletableFuture<Values> future = instance.receiveValues(Optional.of(takenPort), Optional.empty());
+    Exception throwable = assertThrows(ExecutionException.class, future::get);
+    assertTrue(throwable.getCause() instanceof IllegalStateException);
   }
 }

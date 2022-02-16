@@ -40,7 +40,6 @@ import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -69,7 +68,7 @@ public class LoginController implements Controller<Pane> {
   private final ClientUpdateService clientUpdateService;
   private final StatPingService statPingService;
   private final UiService uiService;
-  private final ApplicationContext applicationContext;
+  private final OAuthValuesReceiver oAuthValuesReceiver;
 
   private CompletableFuture<Void> initializeFuture;
 
@@ -328,8 +327,6 @@ public class LoginController implements Controller<Pane> {
 
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
-
-    OAuthValuesReceiver oAuthValuesReceiver = applicationContext.getBean(OAuthValuesReceiver.class);
 
     Optional<OAuthEndpoint> oauth = Optional.ofNullable(environmentComboBox.getValue()).map(ServerEndpoints::getOauth);
 
