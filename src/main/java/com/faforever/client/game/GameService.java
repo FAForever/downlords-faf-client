@@ -70,7 +70,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -81,7 +80,6 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -185,10 +183,10 @@ public class GameService implements InitializingBean, DisposableBean {
 
     logMasker = new MaskPatternLayout();
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-    gameIdToGame = FXCollections.observableMap(new ConcurrentHashMap<>());
+    gameIdToGame = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
-    games = FXCollections.synchronizedObservableList(FXCollections.observableList(new ArrayList<>(),
+    games = FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
         item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
     ));
     inOthersParty = false;
