@@ -1,5 +1,6 @@
 package com.faforever.client.preferences;
 
+import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.error.GameLaunchException;
@@ -37,6 +38,7 @@ import javafx.scene.paint.Color;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -293,7 +295,7 @@ public class PreferencesService implements InitializingBean {
     );
   }
 
-  public ClientConfiguration getRemotePreferences() throws IOException {
+  private ClientConfiguration getRemotePreferences() throws IOException {
     if (clientConfiguration != null) {
       return clientConfiguration;
     }
@@ -309,6 +311,7 @@ public class PreferencesService implements InitializingBean {
   }
 
 
+  @Cacheable(value = CacheNames.REMOTE_CONFIG, sync = true)
   public CompletableFuture<ClientConfiguration> getRemotePreferencesAsync() {
     return CompletableFuture.supplyAsync(() -> {
       try {

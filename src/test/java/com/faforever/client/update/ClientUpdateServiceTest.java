@@ -65,9 +65,6 @@ public class ClientUpdateServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
     UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
-    ClientConfiguration clientConfiguration = new ClientConfiguration();
-    clientConfiguration.setLatestRelease(new ClientConfiguration.ReleaseInfo());
-    clientConfiguration.getLatestRelease().setVersion("v0.4.9.1-alpha");
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     doReturn(checkForUpdateTask).when(applicationContext).getBean(CheckForUpdateTask.class);
