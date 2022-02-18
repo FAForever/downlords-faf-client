@@ -10,12 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 @Component
 @Slf4j
@@ -43,35 +39,34 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
     updateTitle(i18n.get("clientUpdateCheckTask.title"));
     log.info("Checking for client update");
 
-    // no async call because this task runs asynchronously already
-    ClientConfiguration clientConfiguration = preferencesService.getRemotePreferences();
+    return preferencesService.getRemotePreferencesAsync().thenApply(clientConfiguration -> {
+      ReleaseInfo latestRelease = clientConfiguration.getLatestRelease();
+      String version = latestRelease.getVersion();
 
-    ReleaseInfo latestRelease = clientConfiguration.getLatestRelease();
-    String version = latestRelease.getVersion();
+      URL downloadUrl;
+      if (org.bridj.Platform.isWindows()) {
+        downloadUrl = latestRelease.getWindowsUrl();
+      } else if (org.bridj.Platform.isLinux()) {
+        downloadUrl = latestRelease.getLinuxUrl();
+      } else if (org.bridj.Platform.isMacOSX()) {
+        downloadUrl = latestRelease.getMacUrl();
+      } else {
+        return null;
+      }
+      if (downloadUrl == null) {
+        return null;
+      }
 
-    URL downloadUrl;
-    if (org.bridj.Platform.isWindows()) {
-      downloadUrl = latestRelease.getWindowsUrl();
-    } else if (org.bridj.Platform.isLinux()) {
-      downloadUrl = latestRelease.getLinuxUrl();
-    } else if (org.bridj.Platform.isMacOSX()) {
-      downloadUrl = latestRelease.getMacUrl();
-    } else {
-      return null;
-    }
-    if (downloadUrl == null) {
-      return null;
-    }
+      int fileSize = getFileSize(downloadUrl);
 
-    int fileSize = getFileSize(downloadUrl);
-
-    return new UpdateInfo(
-        version,
-        downloadUrl.getFile().substring(downloadUrl.getFile().lastIndexOf('/') + 1),
-        downloadUrl,
-        fileSize,
-        latestRelease.getReleaseNotesUrl(),
-        false
-    );
+      return new UpdateInfo(
+          version,
+          downloadUrl.getFile().substring(downloadUrl.getFile().lastIndexOf('/') + 1),
+          downloadUrl,
+          fileSize,
+          latestRelease.getReleaseNotesUrl(),
+          false
+      );
+    }).join();
   }
 }

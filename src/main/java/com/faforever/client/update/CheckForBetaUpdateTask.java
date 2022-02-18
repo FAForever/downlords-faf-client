@@ -38,8 +38,7 @@ public class CheckForBetaUpdateTask extends CompletableTask<UpdateInfo> {
     updateTitle(i18n.get("clientUpdateCheckTask.title"));
     log.info("Checking for client update (pre-release channel)");
 
-    ClientConfiguration clientConfiguration = preferencesService.getRemotePreferences();
-    return webClient.get()
+    return preferencesService.getRemotePreferencesAsync().thenApply(clientConfiguration -> webClient.get()
         .uri(clientConfiguration.getGitHubRepo().getApiUrl() + PATH_FOR_RELEASE)
         .accept(MediaType.parseMediaType("application/vnd.github.v3+json"))
         .retrieve()
@@ -67,7 +66,7 @@ public class CheckForBetaUpdateTask extends CompletableTask<UpdateInfo> {
               release.getReleaseNotes(),
               release.isPrerelease()
           ));
-        }).block();
+        }).block()).join();
   }
 
   private GitHubAssets getAssetOfFileWithEnding(GitHubRelease latestRelease, String ending) {

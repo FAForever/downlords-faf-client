@@ -45,6 +45,7 @@ import static com.faforever.client.config.CacheNames.NEWS;
 import static com.faforever.client.config.CacheNames.PERMISSION;
 import static com.faforever.client.config.CacheNames.PLAYER_EVENTS;
 import static com.faforever.client.config.CacheNames.RATING_HISTORY;
+import static com.faforever.client.config.CacheNames.REMOTE_CONFIG;
 import static com.faforever.client.config.CacheNames.REPLAYS_LIKED;
 import static com.faforever.client.config.CacheNames.REPLAYS_MINE;
 import static com.faforever.client.config.CacheNames.REPLAYS_RECENT;
@@ -53,6 +54,7 @@ import static com.faforever.client.config.CacheNames.STATISTICS;
 import static com.faforever.client.config.CacheNames.THEME_IMAGES;
 import static com.faforever.client.config.CacheNames.URL_PREVIEW;
 import static com.github.benmanes.caffeine.cache.Caffeine.newBuilder;
+import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
@@ -75,6 +77,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         new CaffeineCache(REPLAYS_LIKED, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(REPLAYS_MINE, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(REPLAYS_RECENT, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(REMOTE_CONFIG, newBuilder().expireAfterWrite(1, DAYS).build()),
         new CaffeineCache(MAP_GENERATOR, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MAP_GENERATOR_STYLES, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(LEADERBOARD, newBuilder().expireAfterWrite(5, MINUTES).build()),
