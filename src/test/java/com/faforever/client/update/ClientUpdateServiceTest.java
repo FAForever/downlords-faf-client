@@ -86,7 +86,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
    */
   @Test
   public void testCheckForUpdateInBackgroundUpdateAvailable() throws Exception {
-    instance.currentVersion = "v0.4.8.0-alpha";
+    VersionTest.setCurrentVersion("v0.4.8.0-alpha");
 
     preferences.setPreReleaseCheckEnabled(false);
     instance.checkForUpdateInBackground();
@@ -107,7 +107,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
    */
   @Test
   public void testCheckForBetaUpdateInBackgroundUpdateAvailable() throws Exception {
-    instance.currentVersion = "v0.4.8.0-alpha";
+    VersionTest.setCurrentVersion("v0.4.8.0-alpha");
 
     preferences.setPreReleaseCheckEnabled(true);
     instance.checkForUpdateInBackground();

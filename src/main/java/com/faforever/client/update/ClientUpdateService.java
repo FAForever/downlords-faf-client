@@ -41,8 +41,6 @@ public class ClientUpdateService implements InitializingBean {
   private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
-  @VisibleForTesting
-  String currentVersion;
 
   private CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<UpdateInfo> updateInfoBetaFuture;
@@ -69,8 +67,7 @@ public class ClientUpdateService implements InitializingBean {
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
 
-    currentVersion = Version.getCurrentVersion();
-    log.info("Current version: {}", currentVersion);
+    log.info("Current version: {}", Version.getCurrentVersion());
   }
 
   @Override
