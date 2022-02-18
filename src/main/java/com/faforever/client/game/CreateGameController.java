@@ -57,7 +57,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -302,7 +301,7 @@ public class CreateGameController implements Controller<Pane> {
         versionLabel.setVisible(false);
       } else {
         versionLabel.setVisible(true);
-        versionLabel.setText(i18n.get("map.versionFormat", version));
+        versionLabel.setText(i18n.get("versionFormat", version));
       }
     });
   }

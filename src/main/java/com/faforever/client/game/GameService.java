@@ -646,13 +646,17 @@ public class GameService implements InitializingBean, DisposableBean {
       });
 
       if (exitCode != 0 && !gameKilled) {
-        notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-            i18n.get("game.crash", exitCode, logFile.map(Path::toString).orElse("")),
-            WARN,
-            List.of(
-                new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(LoggingService.FAF_LOG_DIRECTORY))),
-                new DismissAction(i18n))
-        ));
+        if (exitCode == -1073741515) {
+          notificationService.addImmediateWarnNotification("game.crash.notInitialized");
+        } else {
+          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
+              i18n.get("game.crash", exitCode, logFile.map(Path::toString).orElse("")),
+              WARN,
+              List.of(
+                  new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(LoggingService.FAF_LOG_DIRECTORY))),
+                  new DismissAction(i18n))
+          ));
+        }
       }
 
       synchronized (gameRunning) {

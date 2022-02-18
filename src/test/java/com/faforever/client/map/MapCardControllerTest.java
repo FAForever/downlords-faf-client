@@ -67,7 +67,7 @@ public class MapCardControllerTest extends UITest {
     installedMaps = FXCollections.observableArrayList();
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
     mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).folderName("testMap").ranked(true).id(23).size(MapSize.valueOf(1, 1)).get();
-    when(i18n.get("map.versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
+    when(i18n.get("versionFormat", mapBean.getVersion().getCanonical())).thenReturn("v10");
 
     loadFxml("theme/vault/map/map_card.fxml", param -> {
       if (param == ReviewsController.class) {

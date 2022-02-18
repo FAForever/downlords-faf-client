@@ -8,6 +8,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.primitives.Bytes;
@@ -122,7 +123,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.setLaunchedAt(pythonTime());
     replayInfo.setVersionInfo(new HashMap<>());
     replayInfo.getVersionInfo().put("lobby",
-        String.format("dfaf-%s", clientUpdateService.getCurrentVersion())
+        String.format("dfaf-%s", Version.getCurrentVersion())
     );
   }
 
