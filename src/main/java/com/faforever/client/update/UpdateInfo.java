@@ -6,12 +6,10 @@ import java.net.URL;
 
 @Value
 public class UpdateInfo {
-
-  private String name;
-  private String fileName;
-  private URL url;
-  private int size;
-  private URL releaseNotesUrl;
-  private boolean prerelease;
-
+  String name;
+  String fileName;
+  URL url;
+  int size;
+  URL releaseNotesUrl;
+  boolean prerelease;
 }

@@ -2,8 +2,7 @@ package com.faforever.client.update;
 
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -63,8 +62,6 @@ public class VersionTest extends ServiceTest {
   }
 
   public static void setCurrentVersion(String version) throws NoSuchFieldException, IllegalAccessException {
-    Field field = Version.class.getDeclaredField("currentVersion");
-    field.setAccessible(true);
-    field.set(null, version);
+    ReflectionTestUtils.setField(Version.class, "currentVersion", version);
   }
 }

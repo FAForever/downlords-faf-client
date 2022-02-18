@@ -27,15 +27,12 @@ import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.io.Bytes.formatSize;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.defaultString;
 
 
 @Lazy
 @Service
 @Slf4j
 public class ClientUpdateService implements InitializingBean {
-
-  private static final String DEVELOPMENT_VERSION_STRING = "dev";
 
   private final TaskService taskService;
   private final NotificationService notificationService;
@@ -47,9 +44,6 @@ public class ClientUpdateService implements InitializingBean {
 
   private CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<UpdateInfo> updateInfoBetaFuture;
-
-  @VisibleForTesting
-  String currentVersion;
 
   public static class InstallerExecutionException extends UncheckedIOException {
     public InstallerExecutionException(String message, IOException cause) {
@@ -73,8 +67,7 @@ public class ClientUpdateService implements InitializingBean {
     this.preferencesService = preferencesService;
     this.eventBus = eventBus;
 
-    currentVersion = defaultString(Version.getCurrentVersion(), DEVELOPMENT_VERSION_STRING);
-    log.info("Current version: {}", currentVersion);
+    log.info("Current version: {}", Version.getCurrentVersion());
   }
 
   @Override
@@ -128,7 +121,7 @@ public class ClientUpdateService implements InitializingBean {
         return;
       }
 
-      if (!Version.shouldUpdate(getCurrentVersion(), updateInfo.getName())) {
+      if (!Version.shouldUpdate(Version.getCurrentVersion(), updateInfo.getName())) {
         return;
       }
 
@@ -144,10 +137,6 @@ public class ClientUpdateService implements InitializingBean {
       log.warn("Client update check failed", throwable);
       return null;
     });
-  }
-
-  public String getCurrentVersion() {
-    return currentVersion;
   }
 
   @VisibleForTesting

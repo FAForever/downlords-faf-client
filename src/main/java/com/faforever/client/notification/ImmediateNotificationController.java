@@ -4,6 +4,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.notification.Action.Type;
 import com.faforever.client.ui.dialog.DialogLayout;
+import com.faforever.client.update.Version;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -13,6 +14,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -24,23 +26,20 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ImmediateNotificationController implements Controller<Node> {
 
-  private final DialogLayout dialogLayout;
+  private final DialogLayout dialogLayout = new DialogLayout();
   public Label notificationText;
+  public Label versionText;
   public TitledPane exceptionArea;
   public TextArea exceptionTextArea;
   public Label helpText;
   public VBox immediateNotificationRoot;
   private Runnable closeListener;
 
-  public ImmediateNotificationController() {
-    dialogLayout = new DialogLayout();
-  }
-
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(exceptionArea, notificationText, helpText);
-    exceptionTextArea.managedProperty().bind(exceptionArea.visibleProperty());
+    JavaFxUtil.bindManagedToVisible(exceptionArea, notificationText, helpText, versionText);
 
     dialogLayout.setMaxWidth(650);
 
@@ -53,12 +52,13 @@ public class ImmediateNotificationController implements Controller<Node> {
     if (throwable != null) {
       throwable.printStackTrace(new PrintWriter(writer));
       exceptionTextArea.setVisible(true);
-      exceptionTextArea.setText(writer.toString());
-      exceptionArea.setExpanded(false);
+      exceptionTextArea.setText(String.format("Client Version: %s%n%s", Version.getCurrentVersion(), writer));
+      versionText.setText(String.format("v%s", Version.getCurrentVersion()));
     } else {
       exceptionTextArea.setVisible(false);
       exceptionArea.setVisible(false);
       helpText.setVisible(false);
+      versionText.setVisible(false);
     }
 
     dialogLayout.setHeading(new Label(notification.getTitle()));
