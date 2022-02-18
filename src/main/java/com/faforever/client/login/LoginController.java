@@ -40,12 +40,12 @@ import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -68,7 +68,7 @@ public class LoginController implements Controller<Pane> {
   private final ClientUpdateService clientUpdateService;
   private final StatPingService statPingService;
   private final UiService uiService;
-  private final ApplicationContext applicationContext;
+  private final OAuthValuesReceiver oAuthValuesReceiver;
 
   private CompletableFuture<Void> initializeFuture;
 
@@ -328,8 +328,6 @@ public class LoginController implements Controller<Pane> {
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
 
-    OAuthValuesReceiver oAuthValuesReceiver = applicationContext.getBean(OAuthValuesReceiver.class);
-
     Optional<OAuthEndpoint> oauth = Optional.ofNullable(environmentComboBox.getValue()).map(ServerEndpoints::getOauth);
 
     Optional<URI> redirectUri = !oauthRedirectUriField.getText().isEmpty()
@@ -346,7 +344,7 @@ public class LoginController implements Controller<Pane> {
           }
           return loginWithCode(values.getCode(), values.getRedirectUri());
         })
-        .exceptionally(this::onLoginFailed);
+        .exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
 
   private void handleInvalidSate(String actualState, String expectedState) {
@@ -364,9 +362,20 @@ public class LoginController implements Controller<Pane> {
   }
 
   private Void onLoginFailed(Throwable throwable) {
-    log.warn("Could not log in with code", throwable);
+    if (userService.getOwnUser() != null) {
+      log.warn("Previous login request failed but user is already logged in", throwable);
+      return null;
+    }
+
+    if (throwable instanceof SocketTimeoutException) {
+      log.warn("Login request timed out", throwable);
+      notificationService.addImmediateWarnNotification("login.timeout");
+    } else {
+      log.warn("Could not log in with code", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "login.failed");
+    }
+
     showLoginForm();
-    notificationService.addImmediateErrorNotification(throwable, "login.failed");
     return null;
   }
 

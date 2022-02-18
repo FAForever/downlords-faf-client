@@ -6,13 +6,10 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.user.UserService;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -38,7 +35,6 @@ import java.util.stream.Collectors;
 
 /** Opens a minimal HTTP server that retrieves {@literal code} and {@literal state} from the browser. */
 @Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
 public class OAuthValuesReceiver {
@@ -46,9 +42,6 @@ public class OAuthValuesReceiver {
   private static final Pattern CODE_PATTERN = Pattern.compile("code=([^ &]+)");
   private static final Pattern STATE_PATTERN = Pattern.compile("state=([^ &]+)");
   private static final List<String> ALLOWED_HOSTS = List.of("localhost");
-
-  @VisibleForTesting
-  CompletableFuture<Integer> listenPort = new CompletableFuture<>();
 
   private final ClientProperties clientProperties;
   private final PlatformService platformService;
@@ -97,24 +90,45 @@ public class OAuthValuesReceiver {
   private Values readWithUri(URI uri) throws SocketException {
     // Usually, a random port can't be used since the redirect URI, including port, must be registered on the server
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
-      this.listenPort.complete(serverSocket.getLocalPort());
+      serverSocket.setSoTimeout(clientProperties.getOauth().getTimeoutMilliseconds());
+
       URI redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 
       platformService.showDocument(userService.getHydraUrl(redirectUri));
 
       Socket socket = serverSocket.accept();
-      Values values = readValues(socket, uri);
-      writeResponse(socket);
-      return values;
+      BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      String request = reader.readLine();
+
+      boolean success = false;
+
+      // Do not try with resources as the socket needs to stay open.
+      //noinspection TryFinallyCanBeTryWithResources
+      try {
+        Values values = readValues(request, redirectUri);
+        success = true;
+        return values;
+      } finally {
+        writeResponse(socket, success);
+        reader.close();
+      }
     }
   }
 
-  private void writeResponse(Socket socket) throws IOException {
+  private void writeResponse(Socket socket, boolean success) throws IOException {
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
-      @SuppressWarnings("ConstantConditions")
-      String html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_success.html").readAllBytes())
-          .replace("${title}", i18n.get("login.browser.success.title"))
-          .replace("${message}", i18n.get("login.browser.success.message"));
+
+      String html;
+
+      if (success) {
+        html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_success.html").readAllBytes())
+            .replace("${title}", i18n.get("login.browser.success.title"))
+            .replace("${message}", i18n.get("login.browser.success.message"));
+      } else {
+        html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_failed.html").readAllBytes())
+            .replace("${title}", i18n.get("login.browser.failed.title"))
+            .replace("${message}", i18n.get("login.browser.failed.message"));
+      }
 
       writer
           .append("HTTP/1.1 200 OK\r\n")
@@ -128,10 +142,7 @@ public class OAuthValuesReceiver {
     }
   }
 
-  private Values readValues(Socket socket, URI redirectUri) throws IOException {
-    // Don't use try-with-resources since socket must not be closed yet
-    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-    String request = reader.readLine();
+  private Values readValues(String request, URI redirectUri) {
     String code = extractValue(request, CODE_PATTERN);
     String state = extractValue(request, STATE_PATTERN);
     return new Values(code, state, redirectUri);

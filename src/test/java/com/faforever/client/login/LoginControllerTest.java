@@ -21,6 +21,7 @@ import com.faforever.client.update.DownloadUpdateTask;
 import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.api.dto.MeResult;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -38,6 +38,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -89,8 +90,6 @@ public class LoginControllerTest extends UITest {
   @Mock
   private OfflineServicesController offlineServicesController;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private OAuthValuesReceiver oAuthValuesReceiver;
 
   @Spy
@@ -107,7 +106,6 @@ public class LoginControllerTest extends UITest {
     when(uiService.loadFxml("theme/login/offline_services.fxml")).thenReturn(offlineServicesController);
     when(statPingService.getServices()).thenReturn(Flux.empty());
     when(statPingService.getMessages()).thenReturn(Flux.empty());
-    when(applicationContext.getBean(OAuthValuesReceiver.class)).thenReturn(oAuthValuesReceiver);
 
     when(announcementController.getRoot()).thenReturn(new Pane());
     when(offlineServiceController.getRoot()).thenReturn(new Label());
@@ -190,6 +188,44 @@ public class LoginControllerTest extends UITest {
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginFailsNoPorts() throws Exception {
+    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+        .thenReturn(CompletableFuture.failedFuture(new IllegalStateException()));
+
+    instance.onLoginButtonClicked().get();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginFailsTimeout() throws Exception {
+    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+        .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
+
+    instance.onLoginButtonClicked().get();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(notificationService).addImmediateWarnNotification(eq("login.timeout"));
+    assertFalse(instance.loginProgressPane.isVisible());
+    assertTrue(instance.loginFormPane.isVisible());
+  }
+
+  @Test
+  public void testLoginFailsTimeoutAlreadyLoggedIn() throws Exception {
+    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+        .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
+    when(userService.getOwnUser()).thenReturn(new MeResult());
+
+    instance.onLoginButtonClicked().get();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(notificationService, never()).addImmediateWarnNotification(eq("login.timeout"));
   }
 
   @Test
