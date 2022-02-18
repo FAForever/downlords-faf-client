@@ -97,18 +97,35 @@ public class OAuthValuesReceiver {
       platformService.showDocument(userService.getHydraUrl(redirectUri));
 
       Socket socket = serverSocket.accept();
-      Values values = readValues(socket, uri);
-      writeResponse(socket);
-      return values;
+      BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      String request = reader.readLine();
+
+      boolean success = false;
+
+      try {
+        Values values = readValues(request, redirectUri);
+        success = true;
+        return values;
+      } finally {
+        writeResponse(socket, success);
+      }
     }
   }
 
-  private void writeResponse(Socket socket) throws IOException {
+  private void writeResponse(Socket socket, boolean success) throws IOException {
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
-      @SuppressWarnings("ConstantConditions")
-      String html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_success.html").readAllBytes())
-          .replace("${title}", i18n.get("login.browser.success.title"))
-          .replace("${message}", i18n.get("login.browser.success.message"));
+
+      String html;
+
+      if (success) {
+        html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_success.html").readAllBytes())
+            .replace("${title}", i18n.get("login.browser.success.title"))
+            .replace("${message}", i18n.get("login.browser.success.message"));
+      } else {
+        html = new String(OAuthValuesReceiver.class.getResourceAsStream("/login_failed.html").readAllBytes())
+            .replace("${title}", i18n.get("login.browser.failed.title"))
+            .replace("${message}", i18n.get("login.browser.failed.message"));
+      }
 
       writer
           .append("HTTP/1.1 200 OK\r\n")
@@ -122,10 +139,7 @@ public class OAuthValuesReceiver {
     }
   }
 
-  private Values readValues(Socket socket, URI redirectUri) throws IOException {
-    // Don't use try-with-resources since socket must not be closed yet
-    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-    String request = reader.readLine();
+  private Values readValues(String request, URI redirectUri) {
     String code = extractValue(request, CODE_PATTERN);
     String state = extractValue(request, STATE_PATTERN);
     return new Values(code, state, redirectUri);
