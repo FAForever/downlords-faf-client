@@ -36,8 +36,6 @@ import static org.mockito.Mockito.when;
 
 class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
-  private static final String TITLE = "JUnit Login Success";
-  private static final String MESSAGE = "JUnit Login Message";
   public static final URI REDIRECT_URI = URI.create("http://localhost");
 
   @InjectMocks
@@ -53,13 +51,16 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
   @BeforeEach
   void setUp() {
-    when(i18n.get("login.browser.success.title")).thenReturn(TITLE);
-    when(i18n.get("login.browser.success.message")).thenReturn(MESSAGE);
     clientProperties.getOauth().setTimeoutMilliseconds(1000);
   }
 
   @Test
   void receiveValues() throws Exception {
+    String title = "JUnit Login Success";
+    String message = "JUnit Login Message";
+    when(i18n.get("login.browser.success.title")).thenReturn(title);
+    when(i18n.get("login.browser.success.message")).thenReturn(message);
+
     OAuthEndpoint oAuthEndpoint = OAuthEndpointBuilder.create().defaultValues().get();
 
     CompletableFuture<Values> future = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
@@ -74,13 +75,40 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     try (InputStream inputStream = uriBuilder.build().toUri().toURL().openStream()) {
       String response = new String(inputStream.readAllBytes());
-      assertThat(response, containsString(TITLE));
-      assertThat(response, containsString(MESSAGE));
+      assertThat(response, containsString(title));
+      assertThat(response, containsString(message));
     }
 
     Values values = future.get();
     assertThat(values.getCode(), is("1234"));
     assertThat(values.getState(), is("abcd"));
+  }
+
+  @Test
+  void receiveError() throws Exception {
+    String title = "JUnit Login Failure";
+    String message = "JUnit Login Message";
+    when(i18n.get("login.browser.failed.title")).thenReturn(title);
+    when(i18n.get("login.browser.failed.message")).thenReturn(message);
+    OAuthEndpoint oAuthEndpoint = OAuthEndpointBuilder.create().defaultValues().get();
+
+    CompletableFuture<Values> future = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
+
+    ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
+
+    verify(userService, timeout(1000)).getHydraUrl(captor.capture());
+
+    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
+        .queryParam("error", "failed");
+
+    try (InputStream inputStream = uriBuilder.build().toUri().toURL().openStream()) {
+      String response = new String(inputStream.readAllBytes());
+      assertThat(response, containsString(title));
+      assertThat(response, containsString(message));
+    }
+
+    Exception throwable = assertThrows(ExecutionException.class, future::get);
+    assertTrue(throwable.getCause() instanceof IllegalStateException);
   }
 
   @Test
