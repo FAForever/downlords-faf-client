@@ -102,12 +102,15 @@ public class OAuthValuesReceiver {
 
       boolean success = false;
 
+      // Do not try with resources as the socket needs to stay open.
+      //noinspection TryFinallyCanBeTryWithResources
       try {
         Values values = readValues(request, redirectUri);
         success = true;
         return values;
       } finally {
         writeResponse(socket, success);
+        reader.close();
       }
     }
   }
