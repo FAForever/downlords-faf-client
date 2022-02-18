@@ -55,7 +55,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
   void setUp() {
     when(i18n.get("login.browser.success.title")).thenReturn(TITLE);
     when(i18n.get("login.browser.success.message")).thenReturn(MESSAGE);
-    clientProperties.getOauth().setTimeout(1000);
+    clientProperties.getOauth().setTimeoutMilliseconds(1000);
   }
 
   @Test

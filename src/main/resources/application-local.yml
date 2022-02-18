@@ -33,7 +33,7 @@ faf-client:
     base-url: http://localhost:4444
     scopes: openid offline public_profile upload_map upload_mod lobby
     client-id: faf-java-client
-    timeout: 300000
+    timeout-milliseconds: 1500000
 
 logging:
   level:

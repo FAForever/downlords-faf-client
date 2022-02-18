@@ -224,6 +224,6 @@ public class ClientProperties {
     private URI redirectUri = URI.create("");
     private String clientId;
     private String scopes;
-    private int timeout;
+    private int timeoutMilliseconds;
   }
 }

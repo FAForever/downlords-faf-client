@@ -42,7 +42,6 @@ public class OAuthValuesReceiver {
   private static final Pattern CODE_PATTERN = Pattern.compile("code=([^ &]+)");
   private static final Pattern STATE_PATTERN = Pattern.compile("state=([^ &]+)");
   private static final List<String> ALLOWED_HOSTS = List.of("localhost");
-  private static final int MILLISECONDS_TO_WAIT = 300000;
 
   private final ClientProperties clientProperties;
   private final PlatformService platformService;
@@ -91,7 +90,7 @@ public class OAuthValuesReceiver {
   private Values readWithUri(URI uri) throws SocketException {
     // Usually, a random port can't be used since the redirect URI, including port, must be registered on the server
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
-      serverSocket.setSoTimeout(clientProperties.getOauth().getTimeout());
+      serverSocket.setSoTimeout(clientProperties.getOauth().getTimeoutMilliseconds());
 
       URI redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 
