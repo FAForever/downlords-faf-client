@@ -43,7 +43,7 @@ public class ChatUserFilterControllerTest extends UITest {
     instance.channelTabController = channelTabController;
 
     player = PlayerBeanBuilder.create().defaultValues().get();
-    chatChannelUser = ChatChannelUserBuilder.create(player.getUsername())
+    chatChannelUser = ChatChannelUserBuilder.create(player.getUsername(), "testChannel")
         .defaultValues()
         .player(player)
         .get();

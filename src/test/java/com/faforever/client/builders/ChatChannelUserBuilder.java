@@ -13,12 +13,12 @@ import java.time.Instant;
 public final class ChatChannelUserBuilder {
   private final ChatChannelUser chatChannelUser;
 
-  private ChatChannelUserBuilder(String username) {
-    chatChannelUser = new ChatChannelUser(username, false);
+  private ChatChannelUserBuilder(String username, String channel) {
+    chatChannelUser = new ChatChannelUser(username, channel, false);
   }
 
-  public static ChatChannelUserBuilder create(String username) {
-    return new ChatChannelUserBuilder(username);
+  public static ChatChannelUserBuilder create(String username, String channel) {
+    return new ChatChannelUserBuilder(username, channel);
   }
 
   public ChatChannelUserBuilder defaultValues() {

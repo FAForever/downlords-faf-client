@@ -66,7 +66,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -138,6 +137,7 @@ public class KittehChatServiceTest extends ServiceTest {
   private DefaultEventManager eventManager;
   private DefaultClient client;
   private Preferences preferences;
+  private PlayerBean player1;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -195,6 +195,10 @@ public class KittehChatServiceTest extends ServiceTest {
     when(user2Mode.getNickPrefix()).thenReturn(userPrefix);
     when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix)).add(user2Mode).build()));
     when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix)).add(user1Mode).build()));
+
+    player1 = PlayerBeanBuilder.create().defaultValues().get();
+    when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(player1));
+    when(playerService.getPlayerByNameIfOnline(user2.getNick())).thenReturn(Optional.empty());
 
     defaultChatUser1 = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
     otherChatUser1 = instance.getOrCreateChatUser(user1.getNick(), OTHER_CHANNEL_NAME, false);
@@ -342,19 +346,22 @@ public class KittehChatServiceTest extends ServiceTest {
     assertThat(chatChannel.getUsers(), hasSize(2));
     assertThat(chatChannel.getUser(user1.getNick()), sameInstance(defaultChatUser1));
     assertThat(chatChannel.getUser(user2.getNick()), sameInstance(defaultChatUser2));
+
+    verify(chatUserService).associatePlayerToChatUser(defaultChatUser1, player1);
+    verify(chatUserService).populateColor(defaultChatUser2);
   }
 
   @Test
   public void testOnPlayerOnline() {
     connect();
 
-    join(defaultChannel, user1);
+    join(defaultChannel, user2);
 
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user1.getNick()).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user2.getNick()).get();
 
     instance.onPlayerOnline(new PlayerOnlineEvent(player));
 
-    verify(chatUserService).associatePlayerToChatUser(defaultChatUser1, player);
+    verify(chatUserService).associatePlayerToChatUser(defaultChatUser2, player);
   }
 
   @Test
@@ -593,10 +600,9 @@ public class KittehChatServiceTest extends ServiceTest {
     assertThat(usersInDefaultChannel.get(0), sameInstance(defaultChatUser1));
 
     List<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
-    assertThat(usersInOtherChannel, contains(defaultChatUser2));
-    // It's expected to create one chat channel user per channel, so the instances should be different
-    assertThat(usersInOtherChannel.get(0), not(sameInstance(defaultChatUser2)));
-    assertThat(usersInOtherChannel.get(0), is(defaultChatUser2));
+
+    assertThat(usersInOtherChannel.get(0).getChannel(), is(otherChannel.getName()));
+    assertThat(usersInOtherChannel.get(0).getUsername(), is(defaultChatUser2.getUsername()));
   }
 
   @Test
