@@ -135,7 +135,7 @@ public class ReplayDetailControllerTest extends UITest {
         .get();
 
     localReplay = ReplayBeanBuilder.create().defaultValues()
-        .validity(Validity.VALID)
+        .validity(null)
         .featuredMod(new FeaturedModBean())
         .reviews(FXCollections.emptyObservableList())
         .title("test")
