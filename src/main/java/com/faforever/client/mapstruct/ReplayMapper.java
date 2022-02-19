@@ -82,7 +82,7 @@ public interface ReplayMapper {
   @Mapping(target = "reviews", ignore = true)
   ReplayBean map(ReplayDataParser parser, Path replayFile, FeaturedModBean featuredModBean, MapVersionBean mapVersionBean);
 
-  default OffsetDateTime mapMetaToStart(ReplayDataParser parser) {
+  default OffsetDateTime mapStartFromParser(ReplayDataParser parser) {
     ReplayMetadata metadata = parser.getMetadata();
     return fromPythonTime(metadata.getGameTime() > 0 ? metadata.getGameTime() : metadata.getLaunchedAt());
   }
