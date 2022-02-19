@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
@@ -177,7 +178,7 @@ public class ChatControllerTest extends UITest {
 
     MapChangeListener.Change<? extends String, ? extends ChatChannelUser> change = mock(MapChangeListener.Change.class);
     when(change.wasAdded()).thenReturn(true);
-    doReturn(new ChatChannelUser(TEST_USER_NAME, false)).when(change).getValueAdded();
+    doReturn(ChatChannelUserBuilder.create(TEST_USER_NAME, TEST_CHANNEL_NAME).defaultValues().get()).when(change).getValueAdded();
     onUsersListenerCaptor.getValue().onChanged(change);
 
     CountDownLatch tabAddedLatch = new CountDownLatch(1);

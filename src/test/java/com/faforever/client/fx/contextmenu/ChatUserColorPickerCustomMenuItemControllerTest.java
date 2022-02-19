@@ -28,6 +28,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
+  private static final String CHANNEL_NAME = "testChannel";
+  private static final String USERNAME = "junit";
 
   @Mock
   private PreferencesService preferencesService;
@@ -51,8 +53,8 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
 
   @Test
   public void testSetCurrentValue() {
-    preferences.getChat().setUserToColor(FXCollections.observableMap(Map.of("junit", Color.BLACK)));
-    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create("junit").get();
+    preferences.getChat().setUserToColor(FXCollections.observableMap(Map.of(USERNAME, Color.BLACK)));
+    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).get();
     runOnFxThreadAndWait(() -> {
       instance.initialize();
       instance.setObject(chatChannelUser);
@@ -64,15 +66,15 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
   @Test
   public void testChangeColorToAnother() {
     Map<String, Color> colorMap = new HashMap<>();
-    colorMap.put("junit", Color.BLACK);
+    colorMap.put(USERNAME, Color.BLACK);
     preferences.getChat().setUserToColor(FXCollections.observableMap(colorMap));
-    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create("junit").color(Color.BLACK).get();
+    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
       instance.initialize();
       instance.setObject(chatChannelUser);
       instance.colorPicker.setValue(Color.WHITE);
     });
-    assertEquals(Color.WHITE, preferences.getChat().getUserToColor().get("junit"));
+    assertEquals(Color.WHITE, preferences.getChat().getUserToColor().get(USERNAME));
     assertEquals(Color.WHITE, chatChannelUser.getColor().orElseThrow());
     assertTrue(instance.removeCustomColorButton.isVisible());
     verify(eventBus).post(any(ChatUserColorChangeEvent.class));
@@ -81,15 +83,15 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
   @Test
   public void testClearColor() {
     Map<String, Color> colorMap = new HashMap<>();
-    colorMap.put("junit", Color.BLACK);
+    colorMap.put(USERNAME, Color.BLACK);
     preferences.getChat().setUserToColor(FXCollections.observableMap(colorMap));
-    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create("junit").color(Color.BLACK).get();
+    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
       instance.initialize();
       instance.setObject(chatChannelUser);
       instance.colorPicker.setValue(null);
     });
-    assertNull(preferences.getChat().getUserToColor().get("junit"));
+    assertNull(preferences.getChat().getUserToColor().get(USERNAME));
     assertTrue(chatChannelUser.getColor().isEmpty());
     assertFalse(instance.removeCustomColorButton.isVisible());
     verify(eventBus).post(any(ChatUserColorChangeEvent.class));
@@ -97,7 +99,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
 
   @Test
   public void testVisibleItem() {
-    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create("junit").color(Color.BLACK).get();
+    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     runOnFxThreadAndWait(() -> {
       instance.initialize();
       instance.setObject(chatChannelUser);
@@ -107,7 +109,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
 
   @Test
   public void testInvisibleItemWhenChatColorModeIsRandom() {
-    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create("junit").color(Color.BLACK).get();
+    ChatChannelUser chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).color(Color.BLACK).get();
     preferences = PreferencesBuilder.create().chatPrefs().chatColorMode(ChatColorMode.RANDOM).then().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     runOnFxThreadAndWait(() -> {

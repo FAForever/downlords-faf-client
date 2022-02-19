@@ -108,7 +108,7 @@ public class ChatUserService implements InitializingBean {
     }
   }
 
-  private void populateColor(ChatChannelUser chatChannelUser) {
+  public void populateColor(ChatChannelUser chatChannelUser) {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     Optional<PlayerBean> optionalPlayer = chatChannelUser.getPlayer();
     String lowercaseUsername = chatChannelUser.getUsername().toLowerCase(US);

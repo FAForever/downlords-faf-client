@@ -54,6 +54,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChatUserServiceTest extends ServiceTest {
+  private static final String CHANNEL_NAME = "testChannel";
 
   @InjectMocks
   private ChatUserService instance;
@@ -84,7 +85,7 @@ public class ChatUserServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     player = PlayerBeanBuilder.create().defaultValues().get();
     avatar = AvatarBeanBuilder.create().defaultValues().get();
-    chatUser = ChatChannelUserBuilder.create(player.getUsername()).defaultValues().get();
+    chatUser = ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME).defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues()
         .chatPrefs()
         .chatColorMode(ChatColorMode.DEFAULT)

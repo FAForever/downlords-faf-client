@@ -38,6 +38,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PrivatePlayerInfoControllerTest extends UITest {
+  private static final String CHANNEL_NAME = "testChannel";
+  private static final String USERNAME = "junit";
 
   @Mock
   private I18n i18n;
@@ -65,7 +67,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   public void setUp() throws Exception {
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
     player = PlayerBeanBuilder.create().defaultValues().game(null).get();
-    chatChannelUser = ChatChannelUserBuilder.create("junit").defaultValues().displayed(false).player(player).get();
+    chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).defaultValues().displayed(false).player(player).get();
 
     when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(List.of()));

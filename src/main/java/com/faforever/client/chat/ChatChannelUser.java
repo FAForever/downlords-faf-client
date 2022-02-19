@@ -10,6 +10,8 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -17,6 +19,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.Instant;
@@ -30,24 +33,28 @@ import java.util.Set;
  * created since e.g. the {@code isModerator} flag is specific to the channel.
  */
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ChatChannelUser {
 
-  private final StringProperty username;
-  private final BooleanProperty moderator;
-  private final ObjectProperty<Color> color;
-  private final ObjectProperty<PlayerBean> player;
-  private final ObjectProperty<Instant> lastActive;
-  private final ObjectProperty<PlayerStatus> gameStatus;
-  private final ObjectProperty<SocialStatus> socialStatus;
-  private final ObjectProperty<Image> avatar;
-  private final ObjectProperty<ClanBean> clan;
-  private final StringProperty clanTag;
-  private final ObjectProperty<Image> countryFlag;
-  private final StringProperty countryName;
-  private final ObjectProperty<Image> mapImage;
-  private final ObjectProperty<Image> gameStatusImage;
-  private final StringProperty statusTooltipText;
-  private final BooleanProperty displayed;
+  @EqualsAndHashCode.Include
+  private final ReadOnlyStringWrapper username = new ReadOnlyStringWrapper();
+  @EqualsAndHashCode.Include
+  private final ReadOnlyStringWrapper channel = new ReadOnlyStringWrapper();
+  private final BooleanProperty moderator = new SimpleBooleanProperty();
+  private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  private final ObjectProperty<Instant> lastActive = new SimpleObjectProperty<>();
+  private final ObjectProperty<PlayerStatus> gameStatus = new SimpleObjectProperty<>();
+  private final ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>();
+  private final ObjectProperty<Image> avatar = new SimpleObjectProperty<>();
+  private final ObjectProperty<ClanBean> clan = new SimpleObjectProperty<>();
+  private final StringProperty clanTag = new SimpleStringProperty();
+  private final ObjectProperty<Image> countryFlag = new SimpleObjectProperty<>();
+  private final StringProperty countryName = new SimpleStringProperty();
+  private final ObjectProperty<Image> mapImage = new SimpleObjectProperty<>();
+  private final ObjectProperty<Image> gameStatusImage = new SimpleObjectProperty<>();
+  private final StringProperty statusTooltipText = new SimpleStringProperty();
+  private final BooleanProperty displayed = new SimpleBooleanProperty(false);
   private ChangeListener<SocialStatus> socialStatusChangeListener;
   private ChangeListener<PlayerStatus> gameStatusChangeListener;
   private ChangeListener<String> clanTagChangeListener;
@@ -55,23 +62,10 @@ public class ChatChannelUser {
   private ChangeListener<String> countryInvalidationListener;
   private InvalidationListener displayedChangeListener;
 
-  public ChatChannelUser(String username, boolean moderator) {
-    this.username = new SimpleStringProperty(username);
-    this.moderator = new SimpleBooleanProperty(moderator);
-    this.color = new SimpleObjectProperty<>();
-    this.player = new SimpleObjectProperty<>();
-    this.lastActive = new SimpleObjectProperty<>();
-    this.gameStatus = new SimpleObjectProperty<>();
-    this.socialStatus = new SimpleObjectProperty<>();
-    this.avatar = new SimpleObjectProperty<>();
-    this.clan = new SimpleObjectProperty<>();
-    this.clanTag = new SimpleStringProperty();
-    this.countryFlag = new SimpleObjectProperty<>();
-    this.countryName = new SimpleStringProperty();
-    this.mapImage = new SimpleObjectProperty<>();
-    this.gameStatusImage = new SimpleObjectProperty<>();
-    this.statusTooltipText = new SimpleStringProperty();
-    this.displayed = new SimpleBooleanProperty(false);
+  public ChatChannelUser(String username, String channel, boolean moderator) {
+    this.username.set(username);
+    this.channel.set(channel);
+    setModerator(moderator);
   }
 
   public Optional<PlayerBean> getPlayer() {
@@ -132,13 +126,16 @@ public class ChatChannelUser {
     return username.get();
   }
 
-  public StringProperty usernameProperty() {
-    return username;
+  public ReadOnlyStringProperty usernameProperty() {
+    return username.getReadOnlyProperty();
   }
 
-  @Override
-  public int hashCode() {
-    return username.get().hashCode();
+  public String getChannel() {
+    return channel.get();
+  }
+
+  public ReadOnlyStringProperty channelProperty() {
+    return channel.getReadOnlyProperty();
   }
 
   public BooleanProperty moderatorProperty() {
@@ -400,13 +397,6 @@ public class ChatChannelUser {
       JavaFxUtil.removeListener(displayed, displayedChangeListener);
       displayedChangeListener = null;
     }
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj != null
-        && obj.getClass() == this.getClass()
-        && username.get().equalsIgnoreCase(((ChatChannelUser) obj).username.get());
   }
 
   Set<ChatUserCategory> getChatUserCategories() {

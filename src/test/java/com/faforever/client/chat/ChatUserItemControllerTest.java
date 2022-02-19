@@ -47,6 +47,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChatUserItemControllerTest extends UITest {
+  private static final String CHANNEL_NAME = "testChannel";
 
   @InjectMocks
   private ChatUserItemController instance;
@@ -91,7 +92,7 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testGetPlayer() {
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit").defaultValues().get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit", CHANNEL_NAME).defaultValues().get();
     instance.setChatUser(chatUser);
 
     assertThat(instance.getChatUser(), is(chatUser));
@@ -100,7 +101,7 @@ public class ChatUserItemControllerTest extends UITest {
   @Test
   public void testNullValuesHidesNodes() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername())
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME)
         .defaultValues()
         .player(player)
         .get();
@@ -116,7 +117,7 @@ public class ChatUserItemControllerTest extends UITest {
   @Test
   public void testNotNullValuesShowsNodes() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername())
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME)
         .defaultValues()
         .player(player)
         .avatar(new Image(UiService.UNKNOWN_MAP_IMAGE))
@@ -142,7 +143,7 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testDoubleClickInitiatesPrivateChat() {
-    instance.setChatUser(ChatChannelUserBuilder.create("junit").defaultValues().get());
+    instance.setChatUser(ChatChannelUserBuilder.create("junit", CHANNEL_NAME).defaultValues().get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
@@ -156,7 +157,7 @@ public class ChatUserItemControllerTest extends UITest {
   @Test
   public void testOnContextMenuRequested() {
     runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
-    ChatChannelUser user = ChatChannelUserBuilder.create("junit").defaultValues().get();
+    ChatChannelUser user = ChatChannelUserBuilder.create("junit", CHANNEL_NAME).defaultValues().get();
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
 
     instance.setChatUser(user);
@@ -173,7 +174,7 @@ public class ChatUserItemControllerTest extends UITest {
         .avatar(AvatarBeanBuilder.create().defaultValues().url(new URL("http://example.com/avatar.png")).description("dog").get())
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
-    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername()).defaultValues().player(player).clan(testClan).get());
+    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME).defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);
@@ -192,7 +193,7 @@ public class ChatUserItemControllerTest extends UITest {
         .clan("e")
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(player);
-    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername()).defaultValues().player(player).clan(testClan).get());
+    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME).defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);
@@ -215,7 +216,7 @@ public class ChatUserItemControllerTest extends UITest {
         .clan("not")
         .get();
     when(playerService.getCurrentPlayer()).thenReturn(otherClanLeader);
-    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername()).defaultValues().player(player).clan(testClan).get());
+    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME).defaultValues().player(player).clan(testClan).get());
     WaitForAsyncUtils.waitForFxEvents();
 
     instance.clanMenu.getOnMouseClicked().handle(null);
