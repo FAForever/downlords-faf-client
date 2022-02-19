@@ -273,8 +273,6 @@ public class ReplayDetailController implements Controller<Node> {
       moreInformationPane.setVisible(false);
       optionsTable.setItems(replay.getGameOptions());
       chatTable.setItems(replay.getChatMessages());
-      teams = replay.getTeamPlayerStats();
-      populateTeamsContainer();
     } else {
       watchButton.setText(i18n.get("game.watch"));
       ratingSeparator.setVisible(false);
@@ -291,6 +289,8 @@ public class ReplayDetailController implements Controller<Node> {
       moreInformationPane.setVisible(true);
       deleteButton.setVisible(true);
     }
+    teams = replay.getTeamPlayerStats();
+    populateTeamsContainer();
   }
 
   @VisibleForTesting
@@ -414,7 +414,10 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   private void configureRatingControls() {
-    if (!replay.getValidity().equals(Validity.VALID)) {
+    if (replay.getValidity() == null) {
+      showRatingChangeButton.setVisible(false);
+      notRatedReasonLabel.setVisible(false);
+    } else if (!replay.getValidity().equals(Validity.VALID)) {
       showRatingChangeButton.setVisible(false);
       notRatedReasonLabel.setVisible(true);
       String reasonText = i18n.getOrDefault(replay.getValidity().toString(), "game.reasonNotValid", i18n.get(replay.getValidity().getI18nKey()));

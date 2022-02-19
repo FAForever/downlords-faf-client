@@ -58,7 +58,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -105,7 +104,6 @@ public class ReplayService {
   private final MapService mapService;
   private final FileSizeReader fileSizeReader;
   private final ReplayMapper replayMapper;
-  protected List<ReplayBean> localReplays = new ArrayList<>();
 
   @VisibleForTesting
   static Integer parseSupComVersion(ReplayDataParser parser) {
@@ -198,7 +196,11 @@ public class ReplayService {
         if (mapVersion == null) {
           log.warn("Could not find map for replay file '{}'", replayFile);
         }
-        return replayMapper.map(replayMetadata, replayFile, featuredMod, mapVersion);
+        return replayMapper.map(replayData, replayFile, featuredMod, mapVersion);
+      }).exceptionally(throwable -> {
+        log.warn("Could not read replay file '{}'", replayFile, throwable);
+        moveCorruptedReplayFile(replayFile);
+        return null;
       });
     } catch (Exception e) {
       log.warn("Could not read replay file '{}'", replayFile, e);

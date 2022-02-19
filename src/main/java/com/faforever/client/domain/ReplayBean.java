@@ -1,7 +1,6 @@
 package com.faforever.client.domain;
 
 import com.faforever.commons.api.dto.Validity;
-import com.faforever.commons.replay.ReplayMetadata;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -17,7 +16,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -25,8 +23,6 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-
-import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
@@ -55,20 +51,6 @@ public class ReplayBean {
   ObservableList<ReplayReviewBean> reviews = FXCollections.observableArrayList();
   ObjectProperty<Validity> validity = new SimpleObjectProperty<>();
   ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummary = new SimpleObjectProperty<>();
-
-  public ReplayBean(ReplayMetadata replayMetadata, Path replayFile, FeaturedModBean featuredMod, MapVersionBean mapVersionBean) {
-    id.set(replayMetadata.getUid());
-    title.set(StringEscapeUtils.unescapeHtml4(replayMetadata.getTitle()));
-    replayAvailable.set(true);
-    startTime.set(fromPythonTime(replayMetadata.getGameTime() > 0 ? replayMetadata.getGameTime() : replayMetadata.getLaunchedAt()));
-    endTime.set(fromPythonTime(replayMetadata.getGameEnd()));
-    this.featuredMod.set(featuredMod);
-    mapVersion.set(mapVersionBean);
-    this.replayFile.set(replayFile);
-    if (replayMetadata.getTeams() != null) {
-      teams.putAll(replayMetadata.getTeams());
-    }
-  }
 
   public static String getReplayUrl(int replayId, String baseUrlFormat) {
     return String.format(baseUrlFormat, replayId);

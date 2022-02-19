@@ -2,11 +2,15 @@ package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.util.TimeUtil;
+import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GamePlayerStats;
+import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -64,20 +68,58 @@ public interface ReplayMapper {
     return teamPlayerStats;
   }
 
-  @Mapping(target = "id", source = "metadata.uid")
-  @Mapping(target = "title", source = "metadata.title")
+  @Mapping(target = "id", source = "parser.metadata.uid")
+  @Mapping(target = "title", source = "parser.metadata.title")
   @Mapping(target = "replayAvailable", constant = "true")
   @Mapping(target = "featuredMod", source = "featuredModBean")
   @Mapping(target = "mapVersion", source = "mapVersionBean")
   @Mapping(target = "replayFile", source = "replayFile")
-  @Mapping(target = "startTime", expression = "java(TimeUtil.fromPythonTime(metadata.getGameTime() > 0 ? metadata.getGameTime() : metadata.getLaunchedAt()))")
-  @Mapping(target = "endTime", expression = "java(TimeUtil.fromPythonTime(metadata.getGameEnd()))")
+  @Mapping(target = "startTime", expression = "java(mapStartFromParser(parser))")
+  @Mapping(target = "endTime", expression = "java(TimeUtil.fromPythonTime(parser.getMetadata().getGameEnd()))")
+  @Mapping(target = "teams", expression = "java(mapTeamsFromParser(parser))")
+  @Mapping(target = "teamPlayerStats", expression = "java(mapTeamStatsFromParser(parser))")
   @Mapping(target = "host", ignore = true)
   @Mapping(target = "reviews", ignore = true)
-  ReplayBean map(ReplayMetadata metadata, Path replayFile, FeaturedModBean featuredModBean, MapVersionBean mapVersionBean);
+  ReplayBean map(ReplayDataParser parser, Path replayFile, FeaturedModBean featuredModBean, MapVersionBean mapVersionBean);
 
-  default OffsetDateTime mapMetaToStart(ReplayMetadata metadata) {
+  default OffsetDateTime mapMetaToStart(ReplayDataParser parser) {
+    ReplayMetadata metadata = parser.getMetadata();
     return fromPythonTime(metadata.getGameTime() > 0 ? metadata.getGameTime() : metadata.getLaunchedAt());
+  }
+
+  default HashMap<String, List<String>> mapTeamsFromParser(ReplayDataParser parser) {
+    HashMap<String, List<String>> teams = new HashMap<>();
+    parser.getArmies().values().forEach(armyInfo -> {
+      if (!(boolean) armyInfo.get("Human")) {
+        String teamString = String.valueOf(((Float) armyInfo.get("Team")).intValue());
+        teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add((String) armyInfo.get("PlayerName"));
+      }
+    });
+    return teams;
+  }
+
+  default HashMap<String, List<GamePlayerStatsBean>> mapTeamStatsFromParser(ReplayDataParser parser) {
+    HashMap<String, List<GamePlayerStatsBean>> teams = new HashMap<>();
+    parser.getArmies().values().forEach(armyInfo -> {
+      if (!(boolean) armyInfo.get("Human")) {
+        int team = ((Float) armyInfo.get("Team")).intValue();
+        String teamString = String.valueOf(team);
+        PlayerBean player = new PlayerBean();
+        player.setId(Integer.parseInt((String) armyInfo.get("OwnerID")));
+        player.setUsername((String) armyInfo.get("PlayerName"));
+        player.setCountry((String) armyInfo.get("Country"));
+        LeaderboardRatingJournalBean ratingJournal = new LeaderboardRatingJournalBean();
+        ratingJournal.setMeanBefore(((Float) armyInfo.get("MEAN")).doubleValue());
+        ratingJournal.setDeviationBefore(((Float) armyInfo.get("DEV")).doubleValue());
+        GamePlayerStatsBean stats = new GamePlayerStatsBean();
+        stats.setFaction(Faction.fromFaValue(((Float) armyInfo.get("Faction")).intValue()));
+        stats.setTeam(team);
+        stats.setLeaderboardRatingJournals(List.of(ratingJournal));
+        stats.setPlayer(player);
+        teams.computeIfAbsent(teamString, key -> new ArrayList<>()).add(stats);
+      }
+    });
+    return teams;
   }
 
   @Mapping(target="name", source="title")
