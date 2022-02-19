@@ -144,7 +144,7 @@ public class ChatUserService implements InitializingBean {
       default -> null;
     };
     Image mapImage;
-    if (status != PlayerStatus.IDLE) {
+    if (status != PlayerStatus.IDLE && player.getGame() != null) {
       mapImage = mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL);
     } else {
       mapImage = null;

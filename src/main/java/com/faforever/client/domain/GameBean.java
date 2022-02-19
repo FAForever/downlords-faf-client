@@ -322,31 +322,31 @@ public class GameBean {
 
   public void setGameStatusListener(InvalidationListener listener) {
     if (gameStatusListener != null) {
-      JavaFxUtil.removeListener(status, listener);
+      JavaFxUtil.removeListener(status, gameStatusListener);
     }
     gameStatusListener = listener;
     if (gameStatusListener != null) {
-      JavaFxUtil.addAndTriggerListener(status, listener);
+      JavaFxUtil.addAndTriggerListener(status, gameStatusListener);
     }
   }
 
   public void setHostListener(InvalidationListener listener) {
     if (hostListener != null) {
-      JavaFxUtil.removeListener(host, listener);
+      JavaFxUtil.removeListener(host, hostListener);
     }
     hostListener = listener;
     if (hostListener != null) {
-      JavaFxUtil.addAndTriggerListener(host, listener);
+      JavaFxUtil.addAndTriggerListener(host, hostListener);
     }
   }
 
   public void setTeamsListener(InvalidationListener listener) {
     if (teamsListener != null) {
-      JavaFxUtil.removeListener(teams, listener);
+      JavaFxUtil.removeListener(teams, teamsListener);
     }
     teamsListener = listener;
     if (teamsListener != null) {
-      JavaFxUtil.addAndTriggerListener(teams, listener);
+      JavaFxUtil.addAndTriggerListener(teams, teamsListener);
     }
   }
 

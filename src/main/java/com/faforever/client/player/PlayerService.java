@@ -172,28 +172,32 @@ public class PlayerService implements InitializingBean {
   void createOrUpdatePlayerForPlayerInfo(@NotNull com.faforever.commons.lobby.Player playerInfo) {
     Assert.checkNullArgument(playerInfo, "playerInfo must not be null");
 
-    PlayerBean player = playersByName.computeIfAbsent(playerInfo.getLogin(), name -> {
-      int playerId = playerInfo.getId();
-      PlayerBean newPlayer = new PlayerBean();
-      JavaFxUtil.addListener(newPlayer.idProperty(), (observable, oldValue, newValue) -> {
-        if (oldValue != null) {
-          playersById.remove(oldValue);
-        }
-        playersById.put(newValue, newPlayer);
-      });
-      if (userService.getUserId().equals(playerId)) {
-        newPlayer.setSocialStatus(SELF);
-      } else {
-        if (friendList.contains(playerId)) {
-          newPlayer.setSocialStatus(FRIEND);
-        } else if (foeList.contains(playerId)) {
-          newPlayer.setSocialStatus(FOE);
+    PlayerBean player;
+    synchronized (playersByName) {
+      player = playersByName.computeIfAbsent(playerInfo.getLogin(), name -> {
+        int playerId = playerInfo.getId();
+        PlayerBean newPlayer = new PlayerBean();
+        JavaFxUtil.addListener(newPlayer.idProperty(), (observable, oldValue, newValue) -> {
+          if (oldValue != null) {
+            playersById.remove(oldValue);
+          }
+          playersById.put(newValue, newPlayer);
+        });
+        if (userService.getUserId().equals(playerId)) {
+          newPlayer.setSocialStatus(SELF);
         } else {
-          newPlayer.setSocialStatus(OTHER);
+          if (friendList.contains(playerId)) {
+            newPlayer.setSocialStatus(FRIEND);
+          } else if (foeList.contains(playerId)) {
+            newPlayer.setSocialStatus(FOE);
+          } else {
+            newPlayer.setSocialStatus(OTHER);
+          }
         }
-      }
-      return newPlayer;
-    });
+        return newPlayer;
+      });
+    }
+
     synchronized (player) {
       playerMapper.update(playerInfo, player);
     }
