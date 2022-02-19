@@ -29,7 +29,6 @@
                                   <MenuItem onAction="#onRevealReplayFolder" text="%menu.revealReplayFolder" />
                                   <MenuItem onAction="#onRevealGamePrefsFolder" text="%menu.revealGamePrefsFile"/>
                                   <SeparatorMenuItem mnemonicParsing="false"/>
-                                  <MenuItem disable="true" text="%menu.feedback"/>
                                   <MenuItem onAction="#onLinksAndHelp" text="%help.title"/>
                                   <SeparatorMenuItem mnemonicParsing="false"/>
                                   <MenuItem onAction="#onSettingsSelected" text="%menu.settings"/>
