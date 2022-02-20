@@ -120,7 +120,7 @@ public class TokenService implements InitializingBean {
         .bodyValue(hydraPropertiesMap)
         .retrieve()
         .bodyToMono(OAuth2AccessToken.class)
-        .doOnSubscribe(subscription -> log.debug("Retrieving OAuth token"))
+        .doOnSubscribe(subscription -> log.trace("Retrieving OAuth token"))
         .switchIfEmpty(Mono.fromCallable(() -> {
           loginPrefs.setRefreshToken(null);
           refreshTokenValue = null;

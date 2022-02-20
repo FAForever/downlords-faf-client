@@ -426,7 +426,7 @@ public class CreateGameController implements Controller<Pane> {
         })
         .thenCombine(modService.updateAndActivateModVersions(selectedModVersions)
             .exceptionally(throwable -> {
-              log.error("Error when updating selected mods and preparing game", throwable);
+              log.error("Error when updating selected mods", throwable);
               notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
               return selectedModVersions;
             }), (mapBean, mods) -> {
@@ -434,7 +434,7 @@ public class CreateGameController implements Controller<Pane> {
           return null;
         }).exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          log.warn("Game could not be hosted", throwable);
+          log.error("Game could not be hosted", throwable);
           if (throwable instanceof NotifiableException) {
             notificationService.addErrorNotification((NotifiableException) throwable);
           } else {
@@ -479,7 +479,7 @@ public class CreateGameController implements Controller<Pane> {
         enforceRating);
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
-      log.warn("Game could not be hosted", throwable);
+      log.error("Game could not be hosted", throwable);
       notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
       return null;
     });

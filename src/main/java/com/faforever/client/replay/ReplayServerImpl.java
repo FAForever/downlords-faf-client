@@ -87,7 +87,7 @@ public class ReplayServerImpl implements ReplayServer {
       String remoteReplayServerHost = clientProperties.getReplay().getRemoteHost();
       Integer remoteReplayServerPort = clientProperties.getReplay().getRemotePort();
 
-      log.debug("Connecting to replay server at '{}:{}'", remoteReplayServerHost, remoteReplayServerPort);
+      log.info("Connecting to replay server at `{}:{}`", remoteReplayServerHost, remoteReplayServerPort);
 
       try (ServerSocket localSocket = new ServerSocket(0)) {
         log.debug("Opening local replay server on port {}", localSocket.getLocalPort());
@@ -133,7 +133,7 @@ public class ReplayServerImpl implements ReplayServer {
   private void recordAndRelay(int uid, ServerSocket serverSocket, @Nullable OutputStream fafReplayOutputStream, Supplier<GameBean> onGameInfoFinished) throws IOException {
     Socket socket = serverSocket.accept();
     GameBean game = onGameInfoFinished.get();
-    log.debug("Accepted connection from {}", socket.getRemoteSocketAddress());
+    log.info("Accepted connection from `{}`", socket.getRemoteSocketAddress());
 
     initReplayInfo(uid);
 
@@ -162,11 +162,11 @@ public class ReplayServerImpl implements ReplayServer {
         }
       }
     } catch (Exception e) {
-      log.warn("Error while recording replay", e);
+      log.error("Error while recording replay", e);
       throw e;
     }
 
-    log.debug("FAF has disconnected, writing replay data to file");
+    log.info("FAF disconnected, writing replay data to file");
     finishReplayInfo(game);
     replayFileWriter.writeReplayDataToFile(replayData, replayInfo);
   }

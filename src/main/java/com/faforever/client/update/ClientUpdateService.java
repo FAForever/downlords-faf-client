@@ -134,7 +134,7 @@ public class ClientUpdateService implements InitializingBean {
           )))
       );
     }).exceptionally(throwable -> {
-      log.warn("Client update check failed", throwable);
+      log.error("Client update check failed", throwable);
       return null;
     });
   }
@@ -148,7 +148,7 @@ public class ClientUpdateService implements InitializingBean {
     }
     String command = binaryPath.toAbsolutePath().toString();
     try {
-      log.info("Starting installer at {}", command);
+      log.info("Starting installer as `{}`", command);
       new ProcessBuilder(command).inheritIO().start();
     } catch (IOException e) {
       throw new InstallerExecutionException("Installation could not be started", e);
@@ -162,10 +162,7 @@ public class ClientUpdateService implements InitializingBean {
     taskService.submitTask(task).getFuture()
         .thenAccept(this::install)
         .exceptionally(throwable -> {
-          if (throwable instanceof InstallerExecutionException) {
-            log.warn(throwable.getMessage(), throwable.getCause());
-          }
-          log.warn("Error while downloading client update", throwable);
+          log.error("Error while downloading client update", throwable);
           notificationService.addNotification(
               new PersistentNotification(i18n.get("clientUpdateDownloadFailed.notification"), WARN, singletonList(
                   new Action(i18n.get("clientUpdateDownloadFailed.retry"), event -> downloadAndInstallInBackground(updateInfo))

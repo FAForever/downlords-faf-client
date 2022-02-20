@@ -27,7 +27,7 @@ public class BroadcastMessageMenuItem extends AbstractMenuItem<Object> {
     broadcastMessageInputDialog.showAndWait()
         .ifPresent(broadcastMessage -> {
               if (broadcastMessage.isBlank()) {
-                log.error("Broadcast message is empty: {}", broadcastMessage);
+                log.info("Broadcast message is empty");
               } else {
                 log.info("Sending broadcast message: {}", broadcastMessage);
                 moderatorService.broadcastMessage(broadcastMessage);

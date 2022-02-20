@@ -137,7 +137,6 @@ public class ModService implements InitializingBean, DisposableBean {
       directoryWatcherThread = startDirectoryWatcher(modsDirectory);
     } catch (IOException e) {
       log.warn("Could not start mod directory watcher", e);
-      // TODO notify user
     }
     loadInstalledMods();
   }
@@ -169,7 +168,7 @@ public class ModService implements InitializingBean, DisposableBean {
         addMod(path);
       }
     } catch (IOException e) {
-      log.warn("Mods could not be read from: " + modsDirectory, e);
+      log.error("Mods could not be read from: " + modsDirectory, e);
     }
   }
 
@@ -184,7 +183,7 @@ public class ModService implements InitializingBean, DisposableBean {
           return downloadAndInstallMod(modVersion, null, null);
         })
         .exceptionally(throwable -> {
-          log.warn("Sim mod could not be installed", throwable);
+          log.error("Mod could not be installed", throwable);
           return null;
         });
   }
@@ -265,7 +264,7 @@ public class ModService implements InitializingBean, DisposableBean {
   @NotNull
   public ModVersionBean extractModInfo(Path modFolder) throws ModLoadException {
     Path modInfoLua = modFolder.resolve("mod_info.lua");
-    log.debug("Reading mod {}", modFolder);
+    log.info("Reading mod from `{}`", modFolder);
     if (Files.notExists(modInfoLua)) {
       throw new ModLoadException("Missing mod_info.lua in: " + modFolder.toAbsolutePath(), null, "mod.load.noModInfo", modFolder.toAbsolutePath());
     }
@@ -374,7 +373,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private void removeMod(Path path) {
-    log.debug("Removing mod: {}", path);
+    log.trace("Removing mod: `{}`", path);
     installedModVersions.remove(pathToMod.remove(path));
   }
 
@@ -386,13 +385,13 @@ public class ModService implements InitializingBean, DisposableBean {
         installedModVersions.add(modVersion);
       }
     } catch (ModLoadException e) {
-      log.debug("Corrupt mod: " + path, e);
+      log.warn("Corrupt mod: `{}`", path, e);
 
       notificationService.addNotification(new PersistentNotification(i18n.get("corruptedMods.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
       )));
     } catch (Exception e) {
-      log.warn("Skipping mod because of exception during adding of mod: " + path, e);
+      log.warn("Skipping mod because of exception during adding of mod: `{}`", path, e);
 
       notificationService.addNotification(new PersistentNotification(i18n.get("corruptedModsError.notification", path.getFileName()), WARN, singletonList(
           new Action(i18n.get("corruptedMods.show"), event -> platformService.reveal(path))
@@ -425,10 +424,10 @@ public class ModService implements InitializingBean, DisposableBean {
             newlySelectedMods.add(latestVersion);
           }
         } else {
-          log.info("Could not find mod '{}' '{}'", installedModVersion.getMod().getDisplayName(), installedModVersion.getUid());
+          log.info("Could not find mod `{}` `{}`", installedModVersion.getMod().getDisplayName(), installedModVersion.getUid());
         }
       } catch (Exception e) {
-        log.debug("Failed fetching info about mod from the api.", e);
+        log.info("Failed fetching info about mod from the api.", e);
       }
     });
     overrideActivatedMods(newlySelectedMods);

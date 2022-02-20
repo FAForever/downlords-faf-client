@@ -71,10 +71,10 @@ public class GamesTilesContainerController implements Controller<Node> {
             Tooltip.uninstall(card, tooltip);
             boolean remove = tiledFlowPane.getChildren().remove(card);
             if (!remove) {
-              log.error("Tried to remove game tile that did not exist in UI.");
+              log.warn("Tried to remove game tile that did not exist in UI.");
             }
           } else {
-            log.error("Tried to remove game tile that did not exist.");
+            log.warn("Tried to remove game tile that did not exist.");
           }
         });
         change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);

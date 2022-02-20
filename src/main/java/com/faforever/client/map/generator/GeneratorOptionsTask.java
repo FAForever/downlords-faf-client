@@ -60,7 +60,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
       ProcessBuilder processBuilder = new ProcessBuilder();
       processBuilder.command(command);
 
-      log.info("Starting map generator in directory: {} with command: {}",
+      log.info("Starting map generator in directory: `{}` with command: `{}`",
           processBuilder.directory(), String.join(" ", processBuilder.command()));
 
       Process process = processBuilder.start();
@@ -76,7 +76,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
         log.warn("Map generator option run timed out");
       }
     } catch (Exception e) {
-      log.error("Could not start map generator.", e);
+      log.error("Could not start map generator", e);
       throw new RuntimeException(e);
     }
 

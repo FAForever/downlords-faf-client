@@ -145,7 +145,7 @@ public class FafApiAccessor implements InitializingBean {
     apiRetrySpec = Retry.backoff(api.getRetryAttempts(), Duration.ofSeconds(api.getRetryBackoffSeconds()))
         .jitter(api.getRetryJitter())
         .filter(error -> error instanceof UnreachableApiException)
-        .doBeforeRetry(retry -> log.info("Could not retrieve value from api retrying: Attempt #{} of {}", retry.totalRetries(), retry.totalRetriesInARow()))
+        .doBeforeRetry(retry -> log.warn("Could not retrieve value from api retrying: Attempt #{} of {}", retry.totalRetries(), retry.totalRetriesInARow()))
         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
             new UnreachableApiException("API is unreachable after max retries", retrySignal.failure()));
   }
@@ -175,7 +175,7 @@ public class FafApiAccessor implements InitializingBean {
   public Mono<MeResult> getMe() {
     return retrieveMonoWithErrorHandling(MeResult.class, webClient.get().uri("/me"))
         .cache()
-        .doOnNext(object -> log.debug("Retrieved {} from {} with type {}", object, "/me", MeResult.class));
+        .doOnNext(object -> log.trace("Retrieved {} from /me with type MeResult", object));
   }
 
   public Mono<Void> uploadFile(String endpoint, Path file, ByteCountListener listener, java.util.Map<String, java.util.Map<String, ?>> params) {
@@ -195,7 +195,7 @@ public class FafApiAccessor implements InitializingBean {
     return retrieveMonoWithErrorHandling(Void.class, webClient.post().uri(endpointPath)
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .bodyValue(request))
-        .doOnSuccess(aVoid -> log.debug("Posted {} to {}", request, endpointPath));
+        .doOnSuccess(aVoid -> log.trace("Posted {} to {}", request, endpointPath));
   }
 
   public <T extends ElideEntity> Mono<T> post(ElideNavigatorOnCollection<T> navigator, T request) {
@@ -204,7 +204,7 @@ public class FafApiAccessor implements InitializingBean {
     return retrieveMonoWithErrorHandling(type, webClient.post().uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
         .bodyValue(request))
-        .doOnNext(object -> log.debug("Posted {} to {} with type {}", object, endpointPath, type));
+        .doOnNext(object -> log.trace("Posted {} to {} with type {}", object, endpointPath, type));
   }
 
   public <T extends ElideEntity> Mono<Void> patch(ElideNavigatorOnId<T> navigator, T request) {
@@ -212,13 +212,13 @@ public class FafApiAccessor implements InitializingBean {
     return retrieveMonoWithErrorHandling(Void.class, webClient.patch().uri(endpointPath)
         .contentType(MediaType.parseMediaType(JSONAPI_MEDIA_TYPE))
         .bodyValue(request))
-        .doOnSuccess(aVoid -> log.debug("Patched {} at {}", request, endpointPath));
+        .doOnSuccess(aVoid -> log.trace("Patched {} at {}", request, endpointPath));
   }
 
   public Mono<Void> delete(ElideNavigatorOnId<?> navigator) {
     String endpointPath = navigator.build();
     return retrieveMonoWithErrorHandling(Void.class, webClient.delete().uri(endpointPath))
-        .doOnSuccess(aVoid -> log.debug("Deleted {}", endpointPath));
+        .doOnSuccess(aVoid -> log.trace("Deleted {}", endpointPath));
   }
 
   public <T extends ElideEntity> Mono<T> getOne(ElideNavigatorOnId<T> navigator) {
@@ -228,7 +228,7 @@ public class FafApiAccessor implements InitializingBean {
     String endpointPath = navigator.build();
     return retrieveMonoWithErrorHandling(type, webClient.get().uri(endpointPath))
         .cache()
-        .doOnNext(object -> log.debug("Retrieved {} from {} with type {}", object, endpointPath, type));
+        .doOnNext(object -> log.trace("Retrieved {} from {} with type {}", object, endpointPath, type));
   }
 
   public <T> Flux<T> getMany(Class<T> type, String endpointPath, int count, java.util.Map<String, Serializable> params) {
@@ -246,7 +246,7 @@ public class FafApiAccessor implements InitializingBean {
 
     return retrieveFluxWithErrorHandling(type, webClient.get().uri(url))
         .cache()
-        .doOnNext(list -> log.debug("Retrieved {} from {}", list, url));
+        .doOnNext(list -> log.trace("Retrieved {} from {}", list, url));
   }
 
   public <T extends ElideEntity> Flux<T> getMany(ElideNavigatorOnCollection<T> navigator) {
@@ -265,7 +265,7 @@ public class FafApiAccessor implements InitializingBean {
 
     return retrieveFluxWithErrorHandling(navigator.getDtoClass(), webClient.get().uri(endpointPath))
         .cache()
-        .doOnNext(object -> log.debug("Retrieved {} from {}", object, endpointPath));
+        .doOnNext(object -> log.trace("Retrieved {} from {}", object, endpointPath));
   }
 
   public <T extends ElideEntity> Mono<Tuple2<List<T>, Integer>> getManyWithPageCount(ElideNavigatorOnCollection<T> navigator) {
@@ -294,7 +294,7 @@ public class FafApiAccessor implements InitializingBean {
                 .map(meta -> ((java.util.Map<String, Integer>) meta.get("page")).get("totalPages"))))
         .switchIfEmpty(Mono.zip(Mono.just(List.of()), Mono.just(0)))
         .cache()
-        .doOnNext(tuple -> log.debug("Retrieved {} from {}", tuple.getT1(), endpointPath));
+        .doOnNext(tuple -> log.trace("Retrieved {} from {}", tuple.getT1(), endpointPath));
   }
 
   private <T> Mono<T> retrieveMonoWithErrorHandling(Class<T> type, WebClient.RequestHeadersSpec<?> requestSpec) {

@@ -82,7 +82,7 @@ public class JoinGameHelper {
     } else {
       gameService.joinGame(game, password)
           .exceptionally(throwable -> {
-            log.warn("Game could not be joined", throwable);
+            log.error("Game could not be joined", throwable);
             notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
             return null;
           });
@@ -110,7 +110,7 @@ public class JoinGameHelper {
     Integer gameId = discordJoinEvent.getGameId();
     boolean disallowJoinsViaDiscord = preferencesService.getPreferences().isDisallowJoinsViaDiscord();
     if (disallowJoinsViaDiscord) {
-      log.debug("Join was requested via Discord but was rejected due to it being disabled in settings");
+      log.info("Join was requested via Discord but was rejected due to it being disabled in settings");
       return;
     }
     JavaFxUtil.runLater(() -> join(gameId));

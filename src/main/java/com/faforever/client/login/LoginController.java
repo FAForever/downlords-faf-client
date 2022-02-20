@@ -172,7 +172,7 @@ public class LoginController implements Controller<Pane> {
             });
             return shouldUpdate;
           }).exceptionally(throwable -> {
-            log.warn("Could not read remote preferences", throwable);
+            log.error("Could not read remote preferences", throwable);
             return false;
           }).thenAccept(shouldUpdate -> {
             if (!shouldUpdate && loginPrefs.isRememberMe() && loginPrefs.getRefreshToken() != null) {
@@ -262,7 +262,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private void showClientOutdatedPane(String minimumVersion) {
-    log.warn("Client Update required");
+    log.info("Client Update required");
     JavaFxUtil.runLater(() -> {
       errorPane.setVisible(true);
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
@@ -349,7 +349,7 @@ public class LoginController implements Controller<Pane> {
 
   private void handleInvalidSate(String actualState, String expectedState) {
     showLoginForm();
-    log.warn("Reported state does not match. Expected '{}' but got '{}'", expectedState, actualState);
+    log.warn("Reported state does not match. Expected `{}` but got `{}`", expectedState, actualState);
     notificationService.addImmediateErrorNotification(
         new IllegalStateException("State returned by the server does not match expected state"),
         "login.failed"
@@ -363,15 +363,15 @@ public class LoginController implements Controller<Pane> {
 
   private Void onLoginFailed(Throwable throwable) {
     if (userService.getOwnUser() != null) {
-      log.warn("Previous login request failed but user is already logged in", throwable);
+      log.info("Previous login request failed but user is already logged in", throwable);
       return null;
     }
 
     if (throwable instanceof SocketTimeoutException) {
-      log.warn("Login request timed out", throwable);
+      log.info("Login request timed out", throwable);
       notificationService.addImmediateWarnNotification("login.timeout");
     } else {
-      log.warn("Could not log in with code", throwable);
+      log.error("Could not log in with code", throwable);
       notificationService.addImmediateErrorNotification(throwable, "login.failed");
     }
 
@@ -386,7 +386,7 @@ public class LoginController implements Controller<Pane> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           showLoginForm();
 
-          log.warn("Could not log in with refresh", throwable);
+          log.error("Could not log in with refresh token", throwable);
           if (!(throwable instanceof WebClientResponseException.BadRequest || throwable instanceof WebClientResponseException.Unauthorized)) {
             notificationService.addImmediateErrorNotification(throwable, "login.failed");
           }

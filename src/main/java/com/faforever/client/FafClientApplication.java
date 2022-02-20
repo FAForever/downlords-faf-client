@@ -178,10 +178,11 @@ public class FafClientApplication extends Application {
       }
 
       threads.stream()
-          .filter(e -> !e.getKey().isDaemon())
-          .forEach(e -> {
-            log.error("Non daemon Thread \"{}\" (id: {}) still active in state: {}", e.getKey().getName(), e.getKey().getId(), e.getKey().getState());
-            log.error("Stacktrace of thread {}:\n{}", e.getKey().getName(), Arrays.stream(e.getValue()).map(Object::toString).collect(Collectors.joining("\n")));
+          .filter(threadEntry -> !threadEntry.getKey().isDaemon())
+          .forEach(threadEntry -> {
+            Thread thread = threadEntry.getKey();
+            log.error("Non daemon Thread \"{}\" (id: {}) still active in state: {}", thread.getName(), thread.getId(), thread.getState());
+            log.error("Stacktrace of thread {}:\n{}", thread.getName(), Arrays.stream(threadEntry.getValue()).map(Object::toString).collect(Collectors.joining("\n")));
           });
 
       try {

@@ -56,7 +56,7 @@ public class AssetService {
         return new Image(cachePath.toUri().toURL().toExternalForm(), width, height, true, true, true);
       }
 
-      log.debug("Fetching image {}", url);
+      log.debug("Fetching image from {}", url);
       Image image = new Image(urlString, width, height, true, true, true);
       JavaFxUtil.persistImage(image, cachePath, filename.substring(filename.lastIndexOf('.') + 1));
       return image;

@@ -61,7 +61,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
     Path tmpFile = createTempFile(cacheDirectory, "map", ".zip");
 
     try {
-      log.debug("Zipping map {} to {}", mapPath, tmpFile);
+      log.info("Zipping map `{}` to `{}`", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.compressing"));
 
       Locale locale = i18n.getUserSpecificLocale();
@@ -77,7 +77,7 @@ public class MapUploadTask extends CompletableTask<Void> implements Initializing
             .zip();
       }
 
-      log.debug("Uploading map {} as {}", mapPath, tmpFile);
+      log.info("Uploading map `{}` as `{}`", mapPath, tmpFile);
       updateTitle(i18n.get("mapVault.upload.uploading"));
 
       return fafApiAccessor.uploadFile("/maps/upload", tmpFile, byteListener, Map.of("metadata", Map.of("isRanked", isRanked))).block();

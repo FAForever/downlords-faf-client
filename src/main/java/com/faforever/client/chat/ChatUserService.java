@@ -71,7 +71,6 @@ public class ChatUserService implements InitializingBean {
           .ifPresent(player -> {
             Image avatar;
             if (player.getAvatar() != null) {
-              log.debug("Fetching Avatar {}", player.getAvatar());
               avatar = avatarService.loadAvatar(player.getAvatar());
             } else {
               avatar = null;

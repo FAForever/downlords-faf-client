@@ -44,7 +44,7 @@ public class JoinDiscordEventHandler {
     WebSocketHttpHeaders webSocketHttpHeaders = new WebSocketHttpHeaders(headers);
     client.doHandshake(getWebSocketHandler(joinUrl), webSocketHttpHeaders, new URI("ws://127.0.0.1:6463/?v=1")).addCallback(result -> {
     }, ex -> {
-      log.info("Connection to Discord not possible", ex);
+      log.warn("Connection to Discord not possible", ex);
       joinViaBrowser(joinUrl);
     });
   }
@@ -75,14 +75,14 @@ public class JoinDiscordEventHandler {
 
       @Override
       public void handleTransportError(@NotNull WebSocketSession session, @NotNull Throwable exception) throws Exception {
-        log.info("Unable to contact Discord app", exception);
+        log.warn("Unable to contact Discord app", exception);
         joinViaBrowser(joinUrl);
       }
 
       @Override
       public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus closeStatus) throws Exception {
         if (!closeStatus.equals(CloseStatus.NORMAL)) {
-          log.info("Unable to contact Discord app: {}", closeStatus);
+          log.warn("Unable to contact Discord app: {}", closeStatus);
           joinViaBrowser(joinUrl);
           return;
         }

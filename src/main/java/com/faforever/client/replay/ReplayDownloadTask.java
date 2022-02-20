@@ -49,7 +49,7 @@ public class ReplayDownloadTask extends CompletableTask<Path> {
 
     String replayUrl = ReplayBean.getReplayUrl(replayId, clientProperties.getVault().getReplayDownloadUrlFormat());
 
-    log.info("Downloading replay {} from {}", replayId, replayUrl);
+    log.info("Downloading replay `{}` from `{}`", replayId, replayUrl);
 
     HttpURLConnection urlConnection = (HttpURLConnection) new URL(replayUrl).openConnection();
     urlConnection.setInstanceFollowRedirects(true);

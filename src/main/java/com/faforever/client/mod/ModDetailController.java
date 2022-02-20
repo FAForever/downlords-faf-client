@@ -190,7 +190,7 @@ public class ModDetailController implements Controller<Node> {
           reviewsController.setOwnReview(null);
         }))
         .exceptionally(throwable -> {
-          log.warn("Review could not be deleted", throwable);
+          log.error("Review could not be deleted", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
@@ -210,7 +210,7 @@ public class ModDetailController implements Controller<Node> {
           reviewsController.setOwnReview(review);
         })
         .exceptionally(throwable -> {
-          log.warn("Review could not be saved", throwable);
+          log.error("Review could not be saved", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });

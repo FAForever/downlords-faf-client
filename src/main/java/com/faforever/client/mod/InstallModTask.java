@@ -51,7 +51,7 @@ public class InstallModTask extends CompletableTask<Void> {
 
     Path tempFile = Files.createTempFile(preferencesService.getPreferences().getData().getCacheDirectory(), "mod", null);
 
-    log.info("Downloading mod {} to {}", url, tempFile);
+    log.info("Downloading mod from `{}` to `{}`", url, tempFile);
     updateTitle(i18n.get("downloadingModTask.downloading", url));
 
     Files.createDirectories(tempFile.getParent());
@@ -88,7 +88,7 @@ public class InstallModTask extends CompletableTask<Void> {
 
     deleteOldModIfExisting(tempFile, modsDirectory);
 
-    log.info("Unzipping {} to {}", tempFile, modsDirectory);
+    log.info("Unzipping `{}` to `{}`", tempFile, modsDirectory);
     try (InputStream inputStream = Files.newInputStream(tempFile)) {
       ResourceLocks.acquireDiskLock();
 
@@ -111,8 +111,8 @@ public class InstallModTask extends CompletableTask<Void> {
       Path topLevelDirectory = getTopLevelDirectory(pathToEntry);
       Path modDirectory = modsDirectory.resolve(topLevelDirectory);
       if (Files.isDirectory(modDirectory)) {
+        log.info("Deleting old mod version in `{}`", modDirectory);
         FileSystemUtils.deleteRecursively(modDirectory);
-        log.debug("Deleting old version of the mod stored in {}", modDirectory);
       }
     } catch (Exception e) {
       log.warn("Could not delete directory of old mod", e);
@@ -122,7 +122,7 @@ public class InstallModTask extends CompletableTask<Void> {
   private Path getTopLevelDirectory(Path pathToEntry) {
     Path cutOffPath = pathToEntry;
     while (cutOffPath.getParent() != null) {
-      cutOffPath = pathToEntry.getParent();
+      cutOffPath = cutOffPath.getParent();
     }
     return cutOffPath;
   }

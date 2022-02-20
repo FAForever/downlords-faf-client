@@ -1,7 +1,5 @@
 package com.faforever.client.fx;
 
-import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
-import com.faforever.client.fx.contextmenu.CopyLabelMenuItem;
 import com.google.common.base.Strings;
 import com.sun.javafx.stage.PopupWindowHelper;
 import com.sun.jna.Pointer;
@@ -27,7 +25,6 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -40,7 +37,6 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
@@ -228,11 +224,11 @@ public final class JavaFxUtil {
       }
       BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
       if (bufferedImage == null) {
-        log.debug("Could not read image from {} for {}", image.getUrl(), path);
+        log.warn("Could not read image from {} for {}", image.getUrl(), path);
         return;
       }
       write(bufferedImage, format, path.toFile());
-      log.debug("Image written to {}", path);
+      log.trace("Image written to {}", path);
     } catch (IOException e) {
       log.warn("Could not write image to {}", path, e);
     }

@@ -194,16 +194,16 @@ public class ReplayService {
         MapVersionBean mapVersion = mapVersionFuture.join().orElse(null);
         FeaturedModBean featuredMod = featuredModFuture.join();
         if (mapVersion == null) {
-          log.warn("Could not find map for replay file '{}'", replayFile);
+          log.warn("Could not find map for replay file `{}`", replayFile);
         }
         return replayMapper.map(replayData, replayFile, featuredMod, mapVersion);
       }).exceptionally(throwable -> {
-        log.warn("Could not read replay file '{}'", replayFile, throwable);
+        log.warn("Could not read replay file `{}`", replayFile, throwable);
         moveCorruptedReplayFile(replayFile);
         return null;
       });
     } catch (Exception e) {
-      log.warn("Could not read replay file '{}'", replayFile, e);
+      log.warn("Could not read replay file `{}`", replayFile, e);
       moveCorruptedReplayFile(replayFile);
       return CompletableFuture.completedFuture(null);
     }
@@ -220,12 +220,12 @@ public class ReplayService {
 
     Path target = corruptedReplaysDirectory.resolve(replayFile.getFileName());
 
-    log.debug("Moving corrupted replay file from {} to {}", replayFile, target);
+    log.trace("Moving corrupted replay file from `{}` to `{}`", replayFile, target);
 
     try {
       Files.move(replayFile, target);
     } catch (IOException e) {
-      log.warn("Failed to move corrupt replay to {}", target, e);
+      log.warn("Failed to move corrupt replay to `{}`", target, e);
       return;
     }
 
@@ -253,7 +253,7 @@ public class ReplayService {
       try {
         runReplayFile(item.getReplayFile());
       } catch (Exception e) {
-        log.warn("Could not read replay file '{}'", item.getReplayFile(), e);
+        log.error("Could not read replay file `{}`", item.getReplayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
       }
     } else {
@@ -298,7 +298,7 @@ public class ReplayService {
         replay.setMapVersion(mapVersion);
       }
     } catch (Exception e) {
-      log.warn("Could not read replay file '{}'", path, e);
+      log.error("Could not read replay file `{}`", path, e);
     }
   }
 
@@ -306,7 +306,7 @@ public class ReplayService {
     try {
       return fileSizeReader.getFileSize(new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), replay.getId())));
     } catch (MalformedURLException e) {
-      log.warn("Could not open connection to replay download", e);
+      log.error("Could not open connection to download replay", e);
       return CompletableFuture.completedFuture(-1);
     }
   }
@@ -320,7 +320,7 @@ public class ReplayService {
   }
 
   public void runReplayFile(Path path) throws IOException, CompressorException {
-    log.debug("Starting replay file: {}", path.toAbsolutePath());
+    log.info("Starting replay file: `{}`", path.toAbsolutePath());
 
     String fileName = path.getFileName().toString();
     if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {

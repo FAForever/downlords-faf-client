@@ -227,7 +227,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
           plotGamesPlayedChart();
         })
         .exceptionally(throwable -> {
-          log.warn("Could not load player events", throwable);
+          log.error("Could not load player events", throwable);
           notificationService.addImmediateErrorNotification(throwable, "userInfo.statistics.errorLoading");
           return null;
         });
@@ -271,7 +271,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
     playerService.getPlayerNames(player)
         .thenAccept(names -> nameHistoryTable.setItems(FXCollections.observableList(names)))
         .exceptionally(throwable -> {
-          log.warn("Could not load player name history", throwable);
+          log.error("Could not load player name history", throwable);
           notificationService.addImmediateErrorNotification(throwable, "userInfo.nameHistory.errorLoading");
           return null;
         });
@@ -281,19 +281,19 @@ public class PlayerInfoWindowController implements Controller<Node> {
     enterAchievementsLoadingState();
     achievementService.getAchievementDefinitions()
         .exceptionally(throwable -> {
-          log.warn("Player achievements could not be loaded", throwable);
+          log.error("Player achievements could not be loaded", throwable);
           notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLoading");
           return Collections.emptyList();
         })
         .thenAccept(this::setAvailableAchievements)
         .exceptionally(throwable -> {
-          log.warn("Could not set available achievements", throwable);
+          log.error("Could not set available achievements", throwable);
           notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
           return null;
         })
         .thenCompose(aVoid -> achievementService.getPlayerAchievements(player.getId()))
         .exceptionally(throwable -> {
-          log.warn("Could not get PlayerAchievements", throwable);
+          log.error("Could not get PlayerAchievements", throwable);
           notificationService.addImmediateErrorNotification(throwable, "userInfo.achievements.errorLDisplaying");
           return null;
         })
@@ -367,7 +367,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
             gamesPlayedChart.getData().add(new PieChart.Data(i18n.getOrDefault(leaderboardEntry.getLeaderboard().getTechnicalName(), leaderboardEntry.getLeaderboard().getNameKey()),
                 leaderboardEntry.getGamesPlayed())))))
         .exceptionally(throwable -> {
-          log.warn("Leaderboard entry could not be read for player: " + player.getUsername(), throwable);
+          log.error("Leaderboard entry could not be read for player: " + player.getUsername(), throwable);
           return null;
         });
   }
@@ -435,7 +435,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
         .thenAccept(ratingHistory -> ratingData = ratingHistory)
         .exceptionally(throwable -> {
           // FIXME display to user
-          log.warn("Statistics could not be loaded", throwable);
+          log.error("Statistics could not be loaded", throwable);
           return null;
         });
   }

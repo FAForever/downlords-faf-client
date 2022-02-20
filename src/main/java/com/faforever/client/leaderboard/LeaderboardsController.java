@@ -62,17 +62,17 @@ public class LeaderboardsController extends AbstractViewController<Node> {
             leaderboardRoot.getSelectionModel().select(0);
             lastTab = leaderboardRoot.getTabs().get(0);
           })).exceptionally(throwable -> {
-            log.warn("Error while loading seasons", throwable);
+            log.error("Error while loading seasons", throwable);
             notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadLeaderboards");
             return null;
           })
       );
       if (leagues.isEmpty()) {
-        log.info("Api returned no leagues");
+        log.warn("Api returned no leagues");
         notificationService.addImmediateWarnNotification("leaderboard.noLeaderboards");
       }
     }).exceptionally(throwable -> {
-      log.warn("Error while loading leagues", throwable);
+      log.error("Error while loading leagues", throwable);
       notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadLeaderboards");
       return null;
     });

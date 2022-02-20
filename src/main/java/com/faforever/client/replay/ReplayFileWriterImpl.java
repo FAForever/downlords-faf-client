@@ -21,6 +21,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Locale;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.APPEND;
@@ -44,7 +45,7 @@ public class ReplayFileWriterImpl implements ReplayFileWriter {
     Path replayFile = preferencesService.getPreferences().getData().getReplaysDirectory().resolve(fileName);
     Path temporaryReplayFile = Files.createTempFile(preferencesService.getPreferences().getData().getCacheDirectory(), fileName, "fafreplay");
 
-    log.info("Writing replay file to {} ({})", replayFile, Bytes.formatSize(replayData.size(), i18n.getUserSpecificLocale()));
+    log.info("Writing replay file to `{}` ({})", replayFile, Bytes.formatSize(replayData.size(), Locale.ROOT));
 
     Files.createDirectories(replayFile.getParent());
 

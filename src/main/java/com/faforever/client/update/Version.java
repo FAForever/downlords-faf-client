@@ -41,7 +41,7 @@ public final class Version {
    * @return true if the remote version is higher than the current version
    */
   public static boolean shouldUpdate(@NonNull String fromVersionRaw, @NonNull String toVersionRaw) {
-    log.debug("Comparing current version '{}' to remote version '{}'", currentVersion, toVersionRaw);
+    log.trace("Comparing current version `{}` to remote version `{}`", currentVersion, toVersionRaw);
 
     // Strip the "v" prefix
     String fromVersion = removePrefix(fromVersionRaw);

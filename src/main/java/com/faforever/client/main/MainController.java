@@ -178,7 +178,7 @@ public class MainController implements Controller<Node>, InitializingBean {
       final Method hideMethod = splashScreenClass.getDeclaredMethod("hide");
       hideMethod.invoke(null);
     } catch (ClassNotFoundException e) {
-      log.debug("No install4j splash screen found to close.");
+      log.info("No install4j splash screen found to close.");
     } catch (NoSuchMethodException | IllegalAccessException e) {
       log.error("Couldn't close install4j splash screen.", e);
     } catch (InvocationTargetException e) {
@@ -535,7 +535,7 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   public void onNavigateButtonClicked(ActionEvent event) {
     NavigateEvent navigateEvent = new NavigateEvent((NavigationItem) ((Node) event.getSource()).getUserData());
-    log.debug("Navigating to {}", navigateEvent.getItem().toString());
+    log.trace("Navigating to {}", navigateEvent.getItem().toString());
     eventBus.post(navigateEvent);
   }
 

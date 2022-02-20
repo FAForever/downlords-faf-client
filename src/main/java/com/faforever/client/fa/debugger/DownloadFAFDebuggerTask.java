@@ -83,7 +83,7 @@ public class DownloadFAFDebuggerTask extends CompletableTask<Void> {
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {
-        log.warn("Could not delete temporary file: " + tempFile.toAbsolutePath(), e);
+        log.warn("Could not delete temporary file: {}", tempFile.toAbsolutePath(), e);
       }
     }
 
