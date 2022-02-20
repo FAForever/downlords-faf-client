@@ -123,11 +123,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
    * A list of channels the server wants us to join.
    */
   private List<String> autoChannels;
-  /**
-   * Indicates whether the "auto channels" already have been joined. This is needed because we don't want to auto join
-   * channels after a reconnect that the user left before the reconnect.
-   */
-  private boolean autoChannelsJoined;
 
   @Override
   public void afterPropertiesSet() {
@@ -258,6 +253,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Handler
   public void onConnect(ClientNegotiationCompleteEvent event) {
     connectionState.set(ConnectionState.CONNECTED);
+    channels.keySet().forEach(this::joinChannel);
+    joinSavedAutoChannels();
   }
 
   @Handler
@@ -375,7 +372,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       return;
     }
     autoChannels.forEach(this::joinChannel);
-    autoChannelsJoined = true;
   }
 
   private void joinSavedAutoChannels() {
@@ -390,12 +386,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void onDisconnected() {
     synchronized (channels) {
       channels.values().forEach(ChatChannel::clearUsers);
-      channels.clear();
     }
     synchronized (chatChannelUsersByChannelAndName) {
       chatChannelUsersByChannelAndName.clear();
     }
-    autoChannelsJoined = false;
   }
 
   private void addUserToChannel(String channelName, ChatChannelUser chatUser) {
@@ -436,13 +430,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void onSocialMessage(SocialInfo socialMessage) {
-    if (!autoChannelsJoined) {
-      this.autoChannels = new ArrayList<>(socialMessage.getChannels());
-      autoChannels.remove(defaultChannelName);
-      autoChannels.add(0, defaultChannelName);
-      joinAutoChannels();
-      joinSavedAutoChannels();
-    }
+    this.autoChannels = new ArrayList<>(socialMessage.getChannels());
+    autoChannels.remove(defaultChannelName);
+    autoChannels.add(0, defaultChannelName);
+    joinAutoChannels();
   }
 
   @Override
@@ -493,10 +484,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public ChatChannel getOrCreateChannel(String channelName) {
     synchronized (channels) {
-      if (!channels.containsKey(channelName)) {
-        channels.put(channelName, new ChatChannel(channelName));
-      }
-      return channels.get(channelName);
+      return channels.computeIfAbsent(channelName, ChatChannel::new);
     }
   }
 
@@ -576,9 +564,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void reconnect() {
-    Set<String> currentChannels = channels.keySet();
     client.reconnect();
-    currentChannels.forEach(this::joinChannel);
   }
 
   @Override
