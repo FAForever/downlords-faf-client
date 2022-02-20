@@ -55,13 +55,27 @@ public class PlayerTest extends ServiceTest {
 
   @Test
   public void testPlayerStateChangedOnGameStatusChanged() {
-    instance.setGame(null);
-    assertSame(instance.getStatus(), PlayerStatus.IDLE);
-    GameBean game = new GameBean();
+    PlayerBean player1 = PlayerBeanBuilder.create().username("unit1").defaultValues().game(null).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().username("unit2").defaultValues().game(null).get();
+    assertSame(player1.getStatus(), PlayerStatus.IDLE);
+    assertSame(player2.getStatus(), PlayerStatus.IDLE);
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    player1.setGame(game);
+    player2.setGame(game);
+    assertSame(player1.getStatus(), PlayerStatus.LOBBYING);
+    assertSame(player2.getStatus(), PlayerStatus.LOBBYING);
     game.setStatus(GameStatus.PLAYING);
-    instance.setGame(game);
-    assertSame(instance.getStatus(), PlayerStatus.PLAYING);
+    assertSame(player1.getStatus(), PlayerStatus.PLAYING);
+    assertSame(player2.getStatus(), PlayerStatus.PLAYING);
     game.setStatus(GameStatus.CLOSED);
-    assertSame(instance.getStatus(), PlayerStatus.IDLE);
+    assertSame(player1.getStatus(), PlayerStatus.IDLE);
+    assertSame(player2.getStatus(), PlayerStatus.IDLE);
+    game.setStatus(GameStatus.PLAYING);
+    assertSame(player1.getStatus(), PlayerStatus.PLAYING);
+    assertSame(player2.getStatus(), PlayerStatus.PLAYING);
+    player1.setGame(null);
+    player2.setGame(null);
+    assertSame(player1.getStatus(), PlayerStatus.IDLE);
+    assertSame(player2.getStatus(), PlayerStatus.IDLE);
   }
 }

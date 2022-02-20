@@ -4,9 +4,10 @@ import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.commons.lobby.GameStatus;
-import javafx.beans.InvalidationListener;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -16,7 +17,7 @@ import javafx.collections.ObservableSet;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-import org.jetbrains.annotations.NotNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true, callSuper = true)
 @Value
+@Slf4j
 public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   @ToString.Include
@@ -40,31 +42,9 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
   ObservableMap<String, LeaderboardRatingBean> leaderboardRatings = FXCollections.observableHashMap();
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
-  ObjectProperty<PlayerStatus> status = new SimpleObjectProperty<>(PlayerStatus.IDLE);
+  ReadOnlyObjectWrapper<PlayerStatus> status = new ReadOnlyObjectWrapper<>(PlayerStatus.IDLE);
   ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
   ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
-  InvalidationListener gameStatusListener = observable -> updateGameStatus();
-
-  private void updateGameStatus() {
-    GameBean game = getGame();
-    if (game == null) {
-      status.set(PlayerStatus.IDLE);
-      return;
-    }
-
-    GameStatus gameStatus = game.getStatus();
-    if (gameStatus == GameStatus.OPEN) {
-      if (game.getHost().equalsIgnoreCase(username.get())) {
-        status.set(PlayerStatus.HOSTING);
-      } else {
-        status.set(PlayerStatus.LOBBYING);
-      }
-    } else if (gameStatus == GameStatus.PLAYING) {
-      status.set(PlayerStatus.PLAYING);
-    } else {
-      status.set(PlayerStatus.IDLE);
-    }
-  }
 
   public SocialStatus getSocialStatus() {
     return socialStatus.get();
@@ -130,7 +110,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
     return avatar;
   }
 
-  @NotNull
   public ObservableMap<String, LeaderboardRatingBean> getLeaderboardRatings() {
     return leaderboardRatings;
   }
@@ -147,7 +126,7 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public ReadOnlyObjectProperty<PlayerStatus> statusProperty() {
-    return status;
+    return status.getReadOnlyProperty();
   }
 
   public GameBean getGame() {
@@ -155,23 +134,28 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public void setGame(GameBean game) {
-    GameBean currentGame = this.game.get();
-    if (currentGame == game) {
-      return;
-    }
-
-    if (currentGame != null) {
-      currentGame.removeListeners();
-    }
-
     this.game.set(game);
-
+    status.unbind();
     if (game != null) {
-      game.setGameStatusListener(gameStatusListener);
-      game.setHostListener(gameStatusListener);
+      status.bind(Bindings.createObjectBinding(() -> getPlayerStatusFromGameStatus(game), game.statusProperty()));
+    } else {
+      status.set(PlayerStatus.IDLE);
     }
+  }
 
-    updateGameStatus();
+  private PlayerStatus getPlayerStatusFromGameStatus(GameBean game) {
+    GameStatus gameStatus = game.getStatus();
+    if (gameStatus == GameStatus.OPEN) {
+      if (game.getHost().equalsIgnoreCase(username.get())) {
+        return PlayerStatus.HOSTING;
+      } else {
+        return PlayerStatus.LOBBYING;
+      }
+    } else if (gameStatus == GameStatus.PLAYING) {
+      return PlayerStatus.PLAYING;
+    } else {
+      return PlayerStatus.IDLE;
+    }
   }
 
   public ObjectProperty<GameBean> gameProperty() {

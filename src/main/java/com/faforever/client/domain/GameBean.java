@@ -1,11 +1,9 @@
 package com.faforever.client.domain;
 
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GameVisibility;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -17,6 +15,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -24,15 +23,18 @@ import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class GameBean {
   public static final String OBSERVERS_TEAM = "-1";
   public static final String NO_TEAM = "1";
 
   private final StringProperty host = new SimpleStringProperty();
+  @ToString.Include
   private final StringProperty title = new SimpleStringProperty();
   private final StringProperty mapFolderName = new SimpleStringProperty();
   private final StringProperty featuredMod = new SimpleStringProperty();
   @EqualsAndHashCode.Include
+  @ToString.Include
   private final IntegerProperty id = new SimpleIntegerProperty();
   private final IntegerProperty numPlayers = new SimpleIntegerProperty();
   private final IntegerProperty maxPlayers = new SimpleIntegerProperty();
@@ -43,6 +45,7 @@ public class GameBean {
   private final BooleanProperty passwordProtected = new SimpleBooleanProperty();
   private final StringProperty password = new SimpleStringProperty();
   private final ObjectProperty<GameVisibility> visibility = new SimpleObjectProperty<>();
+  @ToString.Include
   private final ObjectProperty<GameStatus> status = new SimpleObjectProperty<>();
   private final ObjectProperty<VictoryCondition> victoryCondition = new SimpleObjectProperty<>();
   private final ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
@@ -53,10 +56,6 @@ public class GameBean {
    */
   private final ObjectProperty<Map<String, String>> simMods = new SimpleObjectProperty<>(Map.of());
   private final ObjectProperty<Map<String, List<String>>> teams = new SimpleObjectProperty<>(Map.of());
-
-  private InvalidationListener gameStatusListener;
-  private InvalidationListener hostListener;
-  private InvalidationListener teamsListener;
 
   public String getHost() {
     return host.get();
@@ -318,59 +317,5 @@ public class GameBean {
 
   public ObjectProperty<OffsetDateTime> startTimeProperty() {
     return startTime;
-  }
-
-  public void setGameStatusListener(InvalidationListener listener) {
-    if (gameStatusListener != null) {
-      JavaFxUtil.removeListener(status, gameStatusListener);
-    }
-    gameStatusListener = listener;
-    if (gameStatusListener != null) {
-      JavaFxUtil.addAndTriggerListener(status, gameStatusListener);
-    }
-  }
-
-  public void setHostListener(InvalidationListener listener) {
-    if (hostListener != null) {
-      JavaFxUtil.removeListener(host, hostListener);
-    }
-    hostListener = listener;
-    if (hostListener != null) {
-      JavaFxUtil.addAndTriggerListener(host, hostListener);
-    }
-  }
-
-  public void setTeamsListener(InvalidationListener listener) {
-    if (teamsListener != null) {
-      JavaFxUtil.removeListener(teams, teamsListener);
-    }
-    teamsListener = listener;
-    if (teamsListener != null) {
-      JavaFxUtil.addAndTriggerListener(teams, teamsListener);
-    }
-  }
-
-  public void removeListeners() {
-    if (gameStatusListener != null) {
-      JavaFxUtil.removeListener(status, gameStatusListener);
-    }
-    gameStatusListener = null;
-    if (hostListener != null) {
-      JavaFxUtil.removeListener(host, hostListener);
-    }
-    hostListener = null;
-    if (teamsListener != null) {
-      JavaFxUtil.removeListener(teams, teamsListener);
-    }
-    teamsListener = null;
-  }
-
-  @Override
-  public String toString() {
-    return "Game{" +
-        "title=" + title.get() +
-        ", id=" + id.get() +
-        ", status=" + status.get() +
-        '}';
   }
 }

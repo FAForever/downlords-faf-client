@@ -6,7 +6,6 @@ import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GameVisibility;
-import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 
 import java.time.OffsetDateTime;
@@ -144,21 +143,6 @@ public class GameBeanBuilder {
 
   public GameBeanBuilder teams(Map<String, List<String>> teams) {
     gameBean.setTeams(teams);
-    return this;
-  }
-
-  public GameBeanBuilder gameStatusListener(InvalidationListener gameStatusListener) {
-    gameBean.setGameStatusListener(gameStatusListener);
-    return this;
-  }
-
-  public GameBeanBuilder hostListener(InvalidationListener hostListener) {
-    gameBean.setHostListener(hostListener);
-    return this;
-  }
-
-  public GameBeanBuilder teamsListener(InvalidationListener teamsListener) {
-    gameBean.setTeamsListener(teamsListener);
     return this;
   }
 
