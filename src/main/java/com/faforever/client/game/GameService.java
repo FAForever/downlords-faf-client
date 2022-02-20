@@ -48,6 +48,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -721,13 +722,13 @@ public class GameService implements InitializingBean, DisposableBean {
     Integer gameId = gameInfoMessage.getUid();
     GameBean game = gameIdToGame.computeIfAbsent(gameId, integer -> {
       GameBean newGame = new GameBean();
-      newGame.setTeamsListener(observable -> newGame.setAverageRating(calcAverageRating(newGame)));
+      newGame.averageRatingProperty().bind(Bindings.createDoubleBinding(() -> calcAverageRating(newGame), newGame.teamsProperty()));
       return newGame;
     });
     gameMapper.update(gameInfoMessage, game);
     playerService.updatePlayersInGame(game);
     if (game.getStatus() == GameStatus.CLOSED) {
-      boolean removed = gameIdToGame.remove(gameInfoMessage.getUid(), game);
+      boolean removed = gameIdToGame.remove(game.getId(), game);
       if (!removed) {
         log.debug("Could not remove game, unexpected game mapping: '{}'", gameId);
       }

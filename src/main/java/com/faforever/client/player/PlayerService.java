@@ -91,8 +91,8 @@ public class PlayerService implements InitializingBean {
       currentPlayersInGame.addAll(getAllPlayersInGame(game));
 
       playersInGameToRemove.removeAll(currentPlayersInGame);
-      playersInGameToRemove.forEach(player -> removeGameDataForPlayer(game, player));
-      currentPlayersInGame.forEach(player -> updateGameDataForPlayer(game, player));
+      playersInGameToRemove.forEach(player -> removeGameFromPlayer(game, player));
+      currentPlayersInGame.forEach(player -> addGameToPlayer(game, player));
 
       if (game.getStatus() == GameStatus.CLOSED) {
         boolean removed = playersByGame.remove(gameId, currentPlayersInGame);
@@ -119,7 +119,7 @@ public class PlayerService implements InitializingBean {
     Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
   }
 
-  private void updateGameDataForPlayer(GameBean game, PlayerBean player) {
+  private void addGameToPlayer(GameBean game, PlayerBean player) {
     if (player.getGame() != game) {
       player.setGame(game);
       if (player.getSocialStatus() == FRIEND
@@ -130,7 +130,7 @@ public class PlayerService implements InitializingBean {
     }
   }
 
-  private void removeGameDataForPlayer(GameBean game, PlayerBean player) {
+  private void removeGameFromPlayer(GameBean game, PlayerBean player) {
     if (player.getGame() == game) {
       player.setGame(null);
     }
@@ -173,27 +173,12 @@ public class PlayerService implements InitializingBean {
     Assert.checkNullArgument(playerInfo, "playerInfo must not be null");
 
     PlayerBean player;
-    synchronized (playersByName) {
-      player = playersByName.computeIfAbsent(playerInfo.getLogin(), name -> {
-        int playerId = playerInfo.getId();
+    synchronized (playersById) {
+      player = playersById.computeIfAbsent(playerInfo.getId(), id -> {
         PlayerBean newPlayer = new PlayerBean();
-        JavaFxUtil.addListener(newPlayer.idProperty(), (observable, oldValue, newValue) -> {
-          if (oldValue != null) {
-            playersById.remove(oldValue);
-          }
-          playersById.put(newValue, newPlayer);
-        });
-        if (userService.getUserId().equals(playerId)) {
-          newPlayer.setSocialStatus(SELF);
-        } else {
-          if (friendList.contains(playerId)) {
-            newPlayer.setSocialStatus(FRIEND);
-          } else if (foeList.contains(playerId)) {
-            newPlayer.setSocialStatus(FOE);
-          } else {
-            newPlayer.setSocialStatus(OTHER);
-          }
-        }
+        newPlayer.setUsername(playerInfo.getLogin());
+        JavaFxUtil.addAndTriggerListener(newPlayer.usernameProperty(), observable -> playersByName.put(newPlayer.getUsername(), newPlayer));
+        setPlayerSocialStatus(id, newPlayer);
         return newPlayer;
       });
     }
@@ -207,6 +192,20 @@ public class PlayerService implements InitializingBean {
     }
 
     resetIdleTime(player);
+  }
+
+  private void setPlayerSocialStatus(Integer id, PlayerBean player) {
+    if (userService.getUserId().equals(id)) {
+      player.setSocialStatus(SELF);
+    } else {
+      if (friendList.contains(id)) {
+        player.setSocialStatus(FRIEND);
+      } else if (foeList.contains(id)) {
+        player.setSocialStatus(FOE);
+      } else {
+        player.setSocialStatus(OTHER);
+      }
+    }
   }
 
   public Set<String> getPlayerNames() {
@@ -362,7 +361,12 @@ public class PlayerService implements InitializingBean {
   @Subscribe
   public void onPlayerOffline(PlayerOfflineEvent event) {
     PlayerBean player = event.getPlayer();
-    playersById.remove(player.getId());
-    playersByName.remove(player.getUsername());
+    synchronized (playersById) {
+      playersById.remove(player.getId());
+    }
+
+    synchronized (playersByName) {
+      playersByName.remove(player.getUsername());
+    }
   }
 }
