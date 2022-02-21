@@ -93,7 +93,7 @@ public class PartyMemberItemController implements Controller<Node> {
     Assert.checkNotNullIllegalState(player, "Party member already set");
     player = member.getPlayer();
     if (player == null) {
-      log.info("Player of party member is null");
+      log.warn("Player of party member is null");
       return;
     }
 

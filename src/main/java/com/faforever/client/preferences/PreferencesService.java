@@ -138,7 +138,7 @@ public class PreferencesService implements InitializingBean {
 
     Path gamePrefs = preferences.getForgedAlliance().getPreferencesFile();
     if (Files.notExists(gamePrefs)) {
-      log.info("Initializing game preferences file: {}", gamePrefs);
+      log.info("Initializing game preferences file: `{}`", gamePrefs);
       Files.createDirectories(gamePrefs.getParent());
       Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
     }
@@ -169,11 +169,11 @@ public class PreferencesService implements InitializingBean {
 
   private void readExistingFile(Path path) throws InterruptedException {
     try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
-      log.debug("Reading preferences file {}", preferencesFilePath.toAbsolutePath());
+      log.info("Reading preferences file `{}`", preferencesFilePath.toAbsolutePath());
       preferencesUpdater.readValue(reader);
       migratePreferences(preferences);
     } catch (Exception e) {
-      log.warn("Preferences file " + path.toAbsolutePath() + " could not be read", e);
+      log.warn("Preferences file `{}` could not be read", path, e);
       CountDownLatch waitForUser = new CountDownLatch(1);
       JavaFxUtil.runLater(() -> {
         Alert errorReading = new Alert(AlertType.ERROR, "Error reading setting. Reset settings? ", ButtonType.YES, ButtonType.CANCEL);
@@ -202,15 +202,15 @@ public class PreferencesService implements InitializingBean {
         Files.createDirectories(parent);
       }
     } catch (IOException e) {
-      log.warn("Could not create directory " + parent.toAbsolutePath(), e);
+      log.warn("Could not create directory `{}`", parent, e);
       return;
     }
 
     try (Writer writer = Files.newBufferedWriter(preferencesFilePath, CHARSET)) {
-      log.debug("Writing preferences file {}", preferencesFilePath.toAbsolutePath());
+      log.trace("Writing preferences file `{}`", preferencesFilePath.toAbsolutePath());
       preferencesWriter.writeValue(writer, preferences);
     } catch (IOException e) {
-      log.warn("Preferences file " + preferencesFilePath.toAbsolutePath() + " could not be written", e);
+      log.error("Preferences file `{}` could not be written", preferencesFilePath.toAbsolutePath(), e);
     }
   }
 
@@ -258,7 +258,7 @@ public class PreferencesService implements InitializingBean {
       exeHash = sha256OfFile(binPath.resolve(SUPREME_COMMANDER_EXE));
     }
     for (String hash : clientProperties.getVanillaGameHashes()) {
-      log.debug("Hash of Supreme Commander.exe in selected User directory: " + exeHash);
+      log.info("Hash of Supreme Commander.exe in selected User directory: " + exeHash);
       if (hash.equals(exeHash)) {
         return "gamePath.select.vanillaGameSelected";
       }

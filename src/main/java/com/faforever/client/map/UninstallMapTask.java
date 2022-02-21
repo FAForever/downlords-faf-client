@@ -35,10 +35,10 @@ public class UninstallMapTask extends CompletableTask<Void> {
   protected Void call() throws Exception {
     Objects.requireNonNull(map, "map has not been set");
 
-    log.info("Uninstalling map '{}'", map.getFolderName());
+    log.trace("Deleting map `{}`", map.getFolderName());
     Path mapPath = mapService.getPathForMap(map);
     FileSystemUtils.deleteRecursively(mapPath);
-    log.info("Map {} was uninstalled successfully", map.getFolderName());
+    log.trace("Map `{}` was deleted successfully", map.getFolderName());
 
     return null;
   }

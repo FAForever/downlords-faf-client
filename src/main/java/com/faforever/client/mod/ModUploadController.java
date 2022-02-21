@@ -100,7 +100,7 @@ public class ModUploadController implements Controller<Node> {
         .thenAccept(this::setModVersionInfo)
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          log.warn("ModVersion could not be read", throwable);
+          log.error("ModVersion could not be read", throwable);
           notificationService.addImmediateErrorNotification(throwable, "modVault.upload.readError");
           return null;
         });

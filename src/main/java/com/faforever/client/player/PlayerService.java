@@ -97,7 +97,7 @@ public class PlayerService implements InitializingBean {
       if (game.getStatus() == GameStatus.CLOSED) {
         boolean removed = playersByGame.remove(gameId, currentPlayersInGame);
         if (!removed) {
-          log.debug("Could not remove players list for game due to list mismatch: '{}'", gameId);
+          log.warn("Could not remove players list for game due to list mismatch: '{}'", gameId);
         }
       }
     }

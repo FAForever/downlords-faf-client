@@ -22,7 +22,7 @@ public class GlobalExceptionHandler implements UncaughtExceptionHandler, AsyncUn
       log.error("Exception on Thread {}: ", t, ex);
       notificationService.addErrorNotification((NotifiableException) ex);
     } else {
-      log.warn("Uncaught exception on {}: ", t, ex);
+      log.error("Uncaught exception on {}: ", t, ex);
     }
   }
 

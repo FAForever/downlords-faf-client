@@ -30,7 +30,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.test.ServiceTest;
@@ -135,8 +134,6 @@ public class GameServiceTest extends ServiceTest {
   private I18n i18n;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private ReconnectTimerService reconnectTimerService;
   @Mock
   private DiscordRichPresenceService discordRichPresenceService;
   @Mock

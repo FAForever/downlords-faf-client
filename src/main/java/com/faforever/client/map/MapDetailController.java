@@ -241,7 +241,7 @@ public class MapDetailController implements Controller<Node> {
           reviewsController.setOwnReview(null);
         }))
         .exceptionally(throwable -> {
-          log.warn("Review could not be deleted", throwable);
+          log.error("Review could not be deleted", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
           return null;
         });
@@ -261,7 +261,7 @@ public class MapDetailController implements Controller<Node> {
           reviewsController.setOwnReview(review);
         })
         .exceptionally(throwable -> {
-          log.warn("Review could not be saved", throwable);
+          log.error("Review could not be saved", throwable);
           notificationService.addImmediateErrorNotification(throwable, "review.save.error");
           return null;
         });
@@ -323,18 +323,5 @@ public class MapDetailController implements Controller<Node> {
       notificationService.addImmediateErrorNotification(throwable, "map.couldNotHide");
       return null;
     });
-  }
-
-  public void unrankMap() {
-    mapService.unrankMapVersion(mapVersion)
-        .thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
-          mapVersion.setRanked(false);
-          renewAuthorControls();
-        }))
-        .exceptionally(throwable -> {
-          log.error("Could not unrank map", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "map.couldNotUnrank");
-          return null;
-        });
   }
 }

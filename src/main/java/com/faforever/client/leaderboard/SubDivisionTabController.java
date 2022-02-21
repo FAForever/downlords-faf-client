@@ -103,7 +103,7 @@ public class SubDivisionTabController implements Controller<Tab> {
           leagueEntryBeans.forEach(entry -> entry.setRank(count + 1 + leagueEntryBeans.indexOf(entry))));
       ratingTable.setItems(observableList(leagueEntryBeans));
     }).exceptionally(throwable -> {
-      log.warn("Error while loading leaderboard entries for division " + subdivision, throwable);
+      log.error("Error while loading leaderboard entries for subdivision `{}`", subdivision, throwable);
       notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoad");
       return null;
     });

@@ -54,7 +54,7 @@ public class ModUploadTask extends CompletableTask<Void> {
     Path tmpFile = createTempFile(cacheDirectory, "mod", ".zip");
 
     try {
-      log.debug("Zipping mod {} to {}", modPath, tmpFile);
+      log.debug("Zipping mod `{}` to `{}`", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.compressing"));
 
       Locale locale = i18n.getUserSpecificLocale();
@@ -70,7 +70,7 @@ public class ModUploadTask extends CompletableTask<Void> {
             .zip();
       }
 
-      log.debug("Uploading mod {} as {}", modPath, tmpFile);
+      log.debug("Uploading mod `{}` as `{}`", modPath, tmpFile);
       updateTitle(i18n.get("modVault.upload.uploading"));
 
       return fafApiAccessor.uploadFile("/mods/upload", tmpFile, byteListener, Map.of()).block();

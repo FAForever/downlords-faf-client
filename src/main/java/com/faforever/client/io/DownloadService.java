@@ -47,11 +47,11 @@ public class DownloadService {
         return;
       } catch (FileNotFoundException e) {
         // URL throws FileNotFoundException when it encounters HTTP errors such as 404
-        log.info("Could not find file at {}", mirrorUrl);
+        log.info("Could not find file at `{}`", mirrorUrl);
       } catch (ChecksumMismatchException e) {
-        log.warn("Checksum did not match for {}", mirrorUrl, e);
+        log.warn("Checksum did not match for `{}`", mirrorUrl, e);
       } catch (IOException e) {
-        log.warn("Could not download file at {}", mirrorUrl, e);
+        log.error("Could not download file at `{}`", mirrorUrl, e);
       }
     }
 
@@ -65,7 +65,7 @@ public class DownloadService {
    */
   public void downloadFile(URL url, Path targetFile, ByteCountListener progressListener, String md5sum) throws IOException, NoSuchAlgorithmException, ChecksumMismatchException {
     Path tempFile = Files.createTempFile(targetFile.getParent(), "download", null);
-    log.debug("Downloading file {} to {}", url, tempFile);
+    log.info("Downloading file from `{}` to `{}`", url, tempFile);
 
     URLConnection urlConnection = url.openConnection();
 
@@ -94,7 +94,7 @@ public class DownloadService {
       try {
         Files.deleteIfExists(tempFile);
       } catch (IOException e) {
-        log.warn("Could not delete temporary file: {}", tempFile.toAbsolutePath(), e);
+        log.warn("Could not delete temporary file: `{}`", tempFile.toAbsolutePath(), e);
       }
     }
   }
@@ -114,7 +114,7 @@ public class DownloadService {
         URI uri = new URL(mirror.toURL(), "." + url.getPath()).toURI();
         return Optional.of(uri.normalize().toURL());
       } catch (MalformedURLException | URISyntaxException e) {
-        log.warn("Failed to create mirror URL: mirror='{}', url='{}'", mirror, url, e);
+        log.warn("Failed to create mirror URL: mirror=`{}`, url=`{}`", mirror, url, e);
         return Optional.empty();
       }
   }

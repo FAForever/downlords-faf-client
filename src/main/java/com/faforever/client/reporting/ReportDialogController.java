@@ -180,7 +180,7 @@ public class ReportDialogController implements Controller<Node> {
         notificationService.addImmediateInfoNotification("report.success");
       }
     }).exceptionally(throwable -> {
-      log.warn("Error submitting moderation report", throwable);
+      log.error("Error submitting moderation report", throwable);
       notificationService.addImmediateErrorNotification(throwable, "report.error");
       return null;
     }).whenComplete((aVoid, throwable) -> setSendingReport(false));
@@ -206,7 +206,7 @@ public class ReportDialogController implements Controller<Node> {
   }
 
   private void warnNoPlayer() {
-    log.info(String.format("No player named %s", offender.getText()));
+    log.warn(String.format("No player named %s", offender.getText()));
     notificationService.addImmediateWarnNotification("report.warning.noPlayer");
   }
 
@@ -215,12 +215,12 @@ public class ReportDialogController implements Controller<Node> {
   }
 
   private void warnNonNumericGameId() {
-    log.info(String.format("GameId %s not numeric", gameId.getText()));
+    log.warn("GameId {} not numeric", gameId.getText());
     notificationService.addImmediateWarnNotification("report.warning.gameIdNotNumeric");
   }
 
   private void warnNoGame() {
-    log.info(String.format("Game %s does not exist", gameId.getText()));
+    log.warn("GameId {} does not exist", gameId.getText());
     notificationService.addImmediateWarnNotification("report.warning.title");
   }
 

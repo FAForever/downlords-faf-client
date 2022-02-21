@@ -207,7 +207,7 @@ public class UiService implements InitializingBean, DisposableBean {
           key.reset();
         }
       } catch (InterruptedException | ClosedWatchServiceException e) {
-        log.debug("Watcher service terminated");
+        log.info("Watcher service terminated");
       }
     });
   }
@@ -222,7 +222,7 @@ public class UiService implements InitializingBean, DisposableBean {
       String folderName = path.getFileName().toString();
       themesByFolderName.put(folderName, readTheme(reader));
     } catch (IOException e) {
-      log.warn("Theme could not be read: " + metadataFile.toAbsolutePath(), e);
+      log.error("Theme could not be read: {}", metadataFile, e);
     }
   }
 
@@ -248,7 +248,7 @@ public class UiService implements InitializingBean, DisposableBean {
    */
   private void watchTheme(Theme theme) {
     Path themePath = getThemeDirectory(theme);
-    log.debug("Watching theme directory for changes: {}", themePath.toAbsolutePath());
+    log.info("Watching theme directory for changes: {}", themePath);
     try {
       Files.walkFileTree(themePath, new DirectoryVisitor(path -> watchDirectory(themePath, watchService)));
     } catch (IOException e) {
@@ -279,7 +279,7 @@ public class UiService implements InitializingBean, DisposableBean {
     if (watchKeys.containsKey(directory)) {
       return;
     }
-    log.debug("Watching directory: {}", directory.toAbsolutePath());
+    log.info("Watching directory: {}", directory);
     try {
       watchKeys.put(directory, directory.register(watchService, ENTRY_MODIFY, ENTRY_CREATE, ENTRY_DELETE));
     } catch (IOException e) {
@@ -290,7 +290,7 @@ public class UiService implements InitializingBean, DisposableBean {
   private void reloadStylesheet() {
     String[] styleSheets = getStylesheets();
 
-    log.debug("Changes detected, reloading stylesheets: {}", (Object) styleSheets);
+    log.info("Changes detected, reloading stylesheets: {}", (Object) styleSheets);
     scenes.forEach(scene -> setSceneStyleSheet(scene, styleSheets));
     loadWebViewsStyleSheet(getWebViewStyleSheet());
   }
@@ -500,7 +500,7 @@ public class UiService implements InitializingBean, DisposableBean {
               () -> {
                 webView.getEngine().setUserStyleSheetLocation(urlString);
               }));
-      log.debug("{} created and applied to all web views", newTempStyleSheet.getFileName());
+      log.info("{} created and applied to all web views", newTempStyleSheet.getFileName());
     } catch (IOException e) {
       throw new AssetLoadException("Could not load webview stylesheet", e, "theme.webview.stylesheet.couldNotLoad", styleSheetUrl);
     }

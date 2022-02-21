@@ -56,7 +56,7 @@ public class OAuthValuesReceiver {
         try {
           return readWithUri(uri);
         } catch (SocketException e) {
-          log.warn("Port " + uri.getPort() + " is probably already in use", e);
+          log.info("Port " + uri.getPort() + " is probably already in use", e);
         }
       }
       throw new IllegalStateException("Could not read from any redirect URI: " + redirectUris);

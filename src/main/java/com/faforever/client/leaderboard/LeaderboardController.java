@@ -149,7 +149,7 @@ public class LeaderboardController implements Controller<Tab> {
     leaderboardService.getAllSubdivisions(season).thenAccept(this::setUsernamesAutoCompletion)
         .exceptionally(throwable -> {
           contentPane.setVisible(false);
-          log.warn("Error while loading division list", throwable);
+          log.error("Error while loading division list", throwable);
           notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadDivisions");
           return null;
         });
@@ -221,12 +221,12 @@ public class LeaderboardController implements Controller<Tab> {
         }
         plotDivisionDistributions(divisions, leagueEntry);
       }).exceptionally(throwable -> {
-        log.warn("Error while fetching leagueEntry", throwable);
+        log.error("Error while fetching leagueEntry", throwable);
         notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadEntry");
         return null;
       })
     ).exceptionally(throwable -> {
-      log.warn("Error while loading division list", throwable);
+      log.error("Error while loading division list", throwable);
       notificationService.addImmediateErrorNotification(throwable, "leaderboard.failedToLoadDivisions");
       return null;
     });

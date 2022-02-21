@@ -1,5 +1,6 @@
 package com.faforever.client.preferences.ui;
 
+import ch.qos.logback.classic.Level;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
@@ -163,7 +164,7 @@ public class SettingsController implements Controller<Node> {
   public Spinner<Integer> gameDataCacheTimeSpinner;
   public CheckBox allowReplayWhileInGameCheckBox;
   public Button allowReplayWhileInGameButton;
-  public CheckBox debugLogToggle;
+  public ComboBox<Level> logLevelComboBox;
   public CheckBox mapAndModAutoUpdateCheckBox;
   public TextField mirrorURITextField;
   public ListView<URI> mirrorURLsListView;
@@ -249,22 +250,6 @@ public class SettingsController implements Controller<Node> {
       }
     };
 
-    JavaFxUtil.addAndTriggerListener(preferences.getNotification().toastPositionProperty(), observable -> setSelectedToastPosition());
-    toastPositionToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == topLeftToastButton) {
-        preferences.getNotification().setToastPosition(ToastPosition.TOP_LEFT);
-      }
-      if (newValue == topRightToastButton) {
-        preferences.getNotification().setToastPosition(ToastPosition.TOP_RIGHT);
-      }
-      if (newValue == bottomLeftToastButton) {
-        preferences.getNotification().setToastPosition(ToastPosition.BOTTOM_LEFT);
-      }
-      if (newValue == bottomRightToastButton) {
-        preferences.getNotification().setToastPosition(ToastPosition.BOTTOM_RIGHT);
-      }
-    });
-
     configureTimeSetting();
     configureDateSetting();
     configureChatSetting();
@@ -273,10 +258,6 @@ public class SettingsController implements Controller<Node> {
     configureToastScreen();
     configureStartTab();
 
-    bindNotificationPreferences();
-    bindGamePreferences();
-    bindGeneralPreferences();
-
     initAutoChannelListView();
     initMirrorUrlsListView();
     initUnitDatabaseSelection();
@@ -284,6 +265,11 @@ public class SettingsController implements Controller<Node> {
     initNotifyMeOnAtMention();
     initGameDataCache();
     initMapAndModAutoUpdate();
+    initLogLevelComboBox();
+
+    bindNotificationPreferences();
+    bindGamePreferences();
+    bindGeneralPreferences();
   }
 
   /**
@@ -320,7 +306,8 @@ public class SettingsController implements Controller<Node> {
       }
     });
 
-    debugLogToggle.selectedProperty().bindBidirectional(preferences.debugLogEnabledProperty());
+    logLevelComboBox.getSelectionModel().select(Level.toLevel(preferences.getDeveloper().getLogLevel()));
+    preferences.getDeveloper().logLevelProperty().bind(logLevelComboBox.getSelectionModel().selectedItemProperty().asString());
     dataLocationTextField.textProperty().bindBidirectional(preferences.getData().baseDataDirectoryProperty(), PATH_STRING_CONVERTER);
 
   }
@@ -387,6 +374,10 @@ public class SettingsController implements Controller<Node> {
         .bindBidirectional(preferencesService.getPreferences().mapAndModAutoUpdateProperty());
   }
 
+  private void initLogLevelComboBox() {
+    logLevelComboBox.setItems(FXCollections.observableArrayList(Level.TRACE, Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR));
+  }
+
   private void initGameDataCache() {
     gameDataCacheCheckBox.selectedProperty().bindBidirectional(preferencesService.getPreferences().gameDataCacheActivatedProperty());
     //Binding for CacheLifeTimeInDays does not work because of some java fx bug
@@ -409,7 +400,7 @@ public class SettingsController implements Controller<Node> {
       gameService.isGamePrefsPatchedToAllowMultiInstances()
           .thenAccept(isPatched -> allowReplayWhileInGameButton.setDisable(isPatched));
     } catch (IOException e) {
-      log.warn("Failed evaluating if game.prefs file is patched for multiple instances.", e);
+      log.warn("Failed evaluating if game.prefs file is patched for multiple instances", e);
       allowReplayWhileInGameButton.setDisable(true);
     }
   }
@@ -460,7 +451,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onTimeFormatSelected() {
-    log.debug("A new time format was selected: {}", timeComboBox.getValue());
+    log.trace("A new time format was selected: `{}`", timeComboBox.getValue());
     Preferences preferences = preferencesService.getPreferences();
     preferences.getChat().setTimeFormat(timeComboBox.getValue());
     preferencesService.storeInBackground();
@@ -477,7 +468,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onDateFormatSelected() {
-    log.debug("A new date format was selected: {}", dateComboBox.getValue());
+    log.trace("A new date format was selected: `{}`", dateComboBox.getValue());
     Preferences preferences = preferencesService.getPreferences();
     preferences.getLocalization().setDateFormat(dateComboBox.getValue());
     preferencesService.storeInBackground();
@@ -493,7 +484,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onChatFormatSelected() {
-    log.debug("A new chat format was selected: {}", chatComboBox.getValue());
+    log.trace("A new chat format was selected: `{}`", chatComboBox.getValue());
     Preferences preferences = preferencesService.getPreferences();
     preferences.getChat().setChatFormat(chatComboBox.getValue());
     preferencesService.storeInBackground();
@@ -533,7 +524,7 @@ public class SettingsController implements Controller<Node> {
     if (Objects.equals(locale, localizationPrefs.getLanguage())) {
       return;
     }
-    log.debug("A new language was selected: {}", locale);
+    log.trace("A new language was selected: `{}`", locale);
     localizationPrefs.setLanguage(locale);
     preferencesService.storeInBackground();
 
@@ -551,7 +542,24 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void configureToastScreen() {
-    NotificationsPrefs notificationsPrefs = preferencesService.getPreferences().getNotification();
+    Preferences preferences = preferencesService.getPreferences();
+    JavaFxUtil.addAndTriggerListener(preferences.getNotification().toastPositionProperty(), observable -> setSelectedToastPosition());
+    toastPositionToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == topLeftToastButton) {
+        preferences.getNotification().setToastPosition(ToastPosition.TOP_LEFT);
+      }
+      if (newValue == topRightToastButton) {
+        preferences.getNotification().setToastPosition(ToastPosition.TOP_RIGHT);
+      }
+      if (newValue == bottomLeftToastButton) {
+        preferences.getNotification().setToastPosition(ToastPosition.BOTTOM_LEFT);
+      }
+      if (newValue == bottomRightToastButton) {
+        preferences.getNotification().setToastPosition(ToastPosition.BOTTOM_RIGHT);
+      }
+    });
+
+    NotificationsPrefs notificationsPrefs = preferences.getNotification();
     toastScreenComboBox.getSelectionModel().select(notificationsPrefs.getToastScreen());
     notificationsPrefs.toastScreenProperty().bind(Bindings.createIntegerBinding(()
         -> Screen.getScreens().indexOf(toastScreenComboBox.getValue()), toastScreenComboBox.valueProperty()));
@@ -567,7 +575,7 @@ public class SettingsController implements Controller<Node> {
 
   public void onSelectVaultLocation() {
     platformService.askForPath(i18n.get("settings.vault.select")).ifPresent(newVaultDirectory -> {
-      log.info("User changed vault directory to: {}", newVaultDirectory);
+      log.info("User changed vault directory to: `{}`", newVaultDirectory);
 
       ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
 
@@ -595,7 +603,7 @@ public class SettingsController implements Controller<Node> {
 
   public void onSelectDataLocation() {
     platformService.askForPath(i18n.get("settings.data.select")).ifPresent(newDataDirectory -> {
-      log.info("User changed data directory to: {}", newDataDirectory);
+      log.info("User changed data directory to: `{}`", newDataDirectory);
       DataPrefs dataPrefs = preferencesService.getPreferences().getData();
 
       MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
@@ -699,7 +707,7 @@ public class SettingsController implements Controller<Node> {
       preferencesService.storeInBackground();
       mirrorURITextField.clear();
     } catch (URISyntaxException | MalformedURLException e) {
-      log.debug("Failed to add invalid URL: {}", text, e);
+      log.warn("Failed to add invalid URL: {}", text, e);
       notificationService.addImmediateWarnNotification("settings.data.mirrorURLs.add.error", e.getMessage());
     }
   }

@@ -49,7 +49,7 @@ public class MoveDirectoryTask extends CompletableTask<Void> {
       FileSystemUtils.copyRecursively(oldDirectory, newDirectory);
     } catch (IOException e) {
       FileSystemUtils.deleteRecursively(newDirectory);
-      log.warn("Could not copy files to new directory {}", newDirectory, e);
+      log.error("Could not copy files to new directory {}", newDirectory, e);
       notificationService.addImmediateErrorNotification(e, "directory.move.failed", oldDirectory, newDirectory);
       return null;
     }
@@ -61,7 +61,7 @@ public class MoveDirectoryTask extends CompletableTask<Void> {
       try {
         FileSystemUtils.deleteRecursively(oldDirectory);
       } catch (IOException e) {
-        log.warn("Could not delete files from old directory {}", oldDirectory, e);
+        log.error("Could not delete files from old directory `{}`", oldDirectory, e);
         notificationService.addImmediateErrorNotification(e, "directory.delete.failed", oldDirectory);
       }
     }

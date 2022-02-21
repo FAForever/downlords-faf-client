@@ -96,7 +96,7 @@ public class TournamentsController extends AbstractViewController<Node> {
           tournamentListView.getSelectionModel().selectFirst();
           onLoadingStop();
         })).exceptionally(throwable -> {
-      log.warn("Tournaments could not be loaded", throwable);
+      log.error("Tournaments could not be loaded", throwable);
       return null;
     });
   }

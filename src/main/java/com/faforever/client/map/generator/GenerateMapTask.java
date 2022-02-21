@@ -87,7 +87,7 @@ public class GenerateMapTask extends CompletableTask<String> {
       processBuilder.directory(workingDirectory.toFile());
       processBuilder.command(command);
 
-      log.info("Starting map generator in directory: {} with command: {}",
+      log.info("Starting map generator in directory: `{}` with command: `{}`",
           processBuilder.directory(), String.join(" ", processBuilder.command()));
 
       Process process = processBuilder.start();
@@ -103,14 +103,14 @@ public class GenerateMapTask extends CompletableTask<String> {
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       if (process.isAlive() && !generatorOptions.getCommandLineArgs().contains("--visualize")) {
-        log.warn("Map generation timed out, killing process...");
+        log.warn("Map generation timed out, killing process");
         process.destroyForcibly();
         notificationService.addImmediateErrorNotification(new RuntimeException("Map generation timed out"), "game.mapGeneration.failed.message");
       } else if (!process.isAlive()) {
         eventBus.post(new MapGeneratedEvent(mapName));
       }
     } catch (Exception e) {
-      log.error("Could not start map generator.", e);
+      log.error("Could not start map generator", e);
       throw new RuntimeException(e);
     }
 

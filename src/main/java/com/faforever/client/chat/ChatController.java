@@ -236,9 +236,7 @@ public class ChatController extends AbstractViewController<Node> {
     String channelName = channelNameTextField.getText();
     channelNameTextField.clear();
     if (!channelName.startsWith("#")) {
-      log.info("Channel name {} does not start with #", channelName);
-      notificationService.addImmediateWarnNotification("chat.error.noHashTag", channelName);
-      return;
+      channelName = "#" + channelName;
     }
 
     joinChannel(channelName);

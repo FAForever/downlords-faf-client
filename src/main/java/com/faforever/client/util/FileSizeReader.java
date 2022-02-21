@@ -22,7 +22,7 @@ public class FileSizeReader {
         connection.setRequestMethod(HttpMethod.HEAD.name());
         return connection.getContentLength();
       } catch (IOException e) {
-        log.warn("Could not open connection to file download", e);
+        log.error("Could not open connection to file download", e);
         return -1;
       } finally {
         if (connection != null) {

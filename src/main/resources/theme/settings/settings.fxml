@@ -149,13 +149,13 @@
                                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                             </rowConstraints>
                                             <children>
-                                                <Label styleClass="setting-title" text="%settings.general.debugLog"
+                                                <Label styleClass="setting-title" text="%settings.general.logLevel"
                                                        wrapText="true"/>
                                                 <Label styleClass="setting-description"
-                                                       text="%settings.general.debugLog.description"
+                                                       text="%settings.general.logLevel.description"
                                                        GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
                                                        GridPane.rowIndex="1"/>
-                                                <CheckBox fx:id="debugLogToggle" GridPane.columnIndex="1"/>
+                                                <ComboBox fx:id="logLevelComboBox" GridPane.columnIndex="1"/>
                                             </children>
                                         </GridPane>
                                     </children>

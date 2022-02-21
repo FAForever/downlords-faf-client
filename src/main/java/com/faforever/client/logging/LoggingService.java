@@ -75,29 +75,29 @@ public class LoggingService implements InitializingBean {
 
   public static void configureLogging() {
     // Calling this method causes the class to be initialized (static initializers) which in turn causes the logger to initialize.
-    log.debug("Logger initialized");
+    log.info("Logger initialized");
   }
 
   @Override
   public void afterPropertiesSet() throws IOException, InterruptedException {
-    JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().debugLogEnabledProperty(), (observable) -> setLoggingLevel());
+    JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().getDeveloper().logLevelProperty(), (observable) -> setLoggingLevel());
   }
 
   public Path getNewGameLogFile(int gameUID) {
     try (Stream<Path> listOfLogFiles = Files.list(FAF_LOG_DIRECTORY)) {
       listOfLogFiles
-          .filter(p -> GAME_LOG_PATTERN.matcher(p.getFileName().toString()).matches())
-          .sorted(Comparator.comparingLong(p -> ((Path) p).toFile().lastModified()).reversed())
+          .filter(logPath -> GAME_LOG_PATTERN.matcher(logPath.getFileName().toString()).matches())
+          .sorted(Comparator.<Path>comparingLong(logPath -> logPath.toFile().lastModified()).reversed())
           .skip(NUMBER_GAME_LOGS_STORED - 1)
-          .forEach(p -> {
+          .forEach(logPath -> {
             try {
-              Files.delete(p);
+              Files.delete(logPath);
             } catch (IOException e) {
-              log.warn("Could not delete log file {}", p, e);
+              log.warn("Could not delete log file `{}`", logPath, e);
             }
           });
     } catch (IOException e) {
-      log.error("Could not list log directory.", e);
+      log.error("Could not list log directory", e);
     }
     return FAF_LOG_DIRECTORY.resolve(String.format("game_%d.log", gameUID));
   }
@@ -114,16 +114,26 @@ public class LoggingService implements InitializingBean {
 
   public void setLoggingLevel() {
     preferencesService.storeInBackground();
-    Level targetLogLevel = preferencesService.getPreferences().isDebugLogEnabled() ? Level.DEBUG : Level.INFO;
+    Level targetLogLevel = Level.toLevel(preferencesService.getPreferences().getDeveloper().getLogLevel());
     final LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())).getLoggerContext();
     loggerContext.getLoggerList()
         .stream()
         .filter(logger -> logger.getName().startsWith("com.faforever"))
         .forEach(logger -> ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(logger.getName())).setLevel(targetLogLevel));
 
-    log.info("Switching FA Forever logging configuration to {}", targetLogLevel.levelStr);
-    if (Level.DEBUG.equals(targetLogLevel)) {
+    log.info("Switching FA Forever logging configuration to {}", targetLogLevel);
+    if (Level.TRACE.equals(targetLogLevel)) {
+      log.trace("Confirming trace logging");
+    } else if (Level.DEBUG.equals(targetLogLevel)) {
       log.debug("Confirming debug logging");
+    } else if (Level.INFO.equals(targetLogLevel)) {
+      log.info("Confirming info logging");
+    } else if (Level.WARN.equals(targetLogLevel)) {
+      log.warn("Confirming warn logging");
+    } else if (Level.ERROR.equals(targetLogLevel)) {
+      log.error("Confirming error logging");
+    } else {
+      log.error("Unknown log level set");
     }
   }
 }

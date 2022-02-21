@@ -87,7 +87,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     try {
       currentSupplier = replayService.loadLocalReplayPage(pageSize, pagination.getCurrentPageIndex() + 1);
     } catch (IOException e) {
-      log.warn("Could not load the local replays", e);
+      log.error("Could not load local replays", e);
     }
   }
 

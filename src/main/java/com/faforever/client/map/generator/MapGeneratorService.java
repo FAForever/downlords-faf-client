@@ -82,18 +82,18 @@ public class MapGeneratorService implements DisposableBean {
   }
 
   private void deleteGeneratedMaps() {
-    log.info("Deleting leftover generated maps...");
+    log.info("Deleting generated maps");
     Path customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
     if (customMapsDirectory != null && customMapsDirectory.toFile().exists()) {
       try (Stream<Path> listOfMapFiles = Files.list(customMapsDirectory)) {
         listOfMapFiles
             .filter(Files::isDirectory)
-            .filter(p -> GENERATED_MAP_PATTERN.matcher(p.getFileName().toString()).matches())
-            .forEach(p -> {
+            .filter(mapPath -> GENERATED_MAP_PATTERN.matcher(mapPath.getFileName().toString()).matches())
+            .forEach(generatedMapPath -> {
               try {
-                FileSystemUtils.deleteRecursively(p);
+                FileSystemUtils.deleteRecursively(generatedMapPath);
               } catch (IOException e) {
-                log.warn("Could not delete generated map directory {}", p, e);
+                log.warn("Could not delete generated map directory {}", generatedMapPath, e);
               }
             });
       } catch (IOException e) {

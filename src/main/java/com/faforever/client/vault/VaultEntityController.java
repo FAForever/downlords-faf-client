@@ -191,7 +191,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
           enterShowRoomState();
         }))
         .exceptionally(throwable -> {
-          log.warn("Could not populate show room", throwable);
+          log.error("Could not populate show room", throwable);
           return null;
         });
   }

@@ -59,13 +59,12 @@ public class DiscordRichPresenceService implements DisposableBean {
         }
       }, INITIAL_DELAY_FOR_CALLBACK_MILLIS, PERIOD_FOR_CALLBACK_MILLIS);
     } catch (Throwable t) {
-      //TODO: report to bugsnap
       log.error("Error in discord init", t);
     }
   }
 
   public void updatePlayedGameTo(GameBean game) {
-    log.debug("Updating discord rich presence game info");
+    log.debug("Updating discord rich presence game info with {}", game);
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
@@ -102,7 +101,6 @@ public class DiscordRichPresenceService implements DisposableBean {
       DiscordRichPresence update = discordRichPresence.build();
       DiscordRPC.discordUpdatePresence(update);
     } catch (Throwable throwable) {
-      //TODO: report to bugsnap
       log.error("Error reporting game status to discord", throwable);
     }
   }

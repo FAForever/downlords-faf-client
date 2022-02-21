@@ -166,7 +166,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
       if (preferencesService.getPreferences().getForgedAlliance().isForceRelay()) {
         cmd.add("--force-relay");
-        log.warn("Forcing ice adapter relay connection");
+        log.info("Forcing ice adapter relay connection");
       }
 
       if (clientProperties.isShowIceAdapterDebugWindow()) {
@@ -208,7 +208,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
             setLobbyInitMode();
             break;
           } catch (ConnectException e) {
-            log.debug("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
+            log.warn("Could not connect to ICE adapter (attempt {}/{})", attempt + 1, CONNECTION_ATTEMPTS);
           }
 
           // Wait as the socket fails too fast on unix/linux not giving the adapter enough time to start
@@ -245,7 +245,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     fafServerAccessor.getIceServers()
         .thenAccept(iceServers -> iceAdapterProxy.setIceServers(toIceServers(iceServers)))
         .exceptionally(throwable -> {
-          log.warn("Could not get ICE servers", throwable);
+          log.warn("Could not set ICE servers", throwable);
           return null;
         });
   }
@@ -266,10 +266,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
           List<Object> argList = args == null ? Collections.emptyList() : asList(args);
           if (peer == null || !peer.isAlive() && !"quit".equals(method.getName())) {
-            log.warn("Ignoring call to ICE adapter as we are not connected: {}({})", method.getName(), argList);
+            log.info("Ignoring call to ICE adapter as we are not connected: {}({})", method.getName(), argList);
             return null;
           }
-          log.debug("Calling {}({})", method.getName(), argList);
+          log.trace("Calling {}({})", method.getName(), argList);
           if (method.getReturnType() == void.class) {
             peer.sendAsyncRequest(method.getName(), argList, null, true);
             return null;

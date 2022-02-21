@@ -31,7 +31,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.remote.ReconnectTimerService;
 import com.faforever.client.replay.ReplayServer;
 import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
@@ -132,7 +131,6 @@ public class GameService implements InitializingBean, DisposableBean {
   private final PlatformService platformService;
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
-  private final ReconnectTimerService reconnectTimerService;
   private final ObservableList<GameBean> games;
   private final String faWindowTitle;
   private final MaskPatternLayout logMasker;
@@ -162,7 +160,6 @@ public class GameService implements InitializingBean, DisposableBean {
                      PlatformService platformService,
                      DiscordRichPresenceService discordRichPresenceService,
                      ReplayServer replayServer,
-                     ReconnectTimerService reconnectTimerService,
                      GameMapper gameMapper) {
     this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
@@ -179,7 +176,6 @@ public class GameService implements InitializingBean, DisposableBean {
     this.platformService = platformService;
     this.discordRichPresenceService = discordRichPresenceService;
     this.replayServer = replayServer;
-    this.reconnectTimerService = reconnectTimerService;
     this.gameMapper = gameMapper;
 
     logMasker = new MaskPatternLayout();
@@ -209,10 +205,6 @@ public class GameService implements InitializingBean, DisposableBean {
     });
 
     JavaFxUtil.attachListToMap(games, gameIdToGame);
-    JavaFxUtil.addListener(
-        gameRunning,
-        (observable, oldValue, newValue) -> reconnectTimerService.setGameRunning(newValue)
-    );
 
     eventBus.register(this);
 
@@ -271,7 +263,7 @@ public class GameService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Void> hostGame(NewGameInfo newGameInfo) {
     if (isRunning()) {
-      log.warn("Game is running, ignoring host request");
+      log.info("Game is running, ignoring host request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
@@ -298,7 +290,7 @@ public class GameService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Void> joinGame(GameBean game, String password) {
     if (isRunning()) {
-      log.warn("Game is running, ignoring join request");
+      log.info("Game is running, ignoring join request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
@@ -322,7 +314,7 @@ public class GameService implements InitializingBean, DisposableBean {
           try {
             modService.enableSimMods(simModUIds);
           } catch (IOException e) {
-            log.warn("SimMods could not be enabled", e);
+            log.error("SimMods could not be enabled", e);
           }
         })
         .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
@@ -337,7 +329,7 @@ public class GameService implements InitializingBean, DisposableBean {
           startGame(gameLaunchMessage);
         })
         .exceptionally(throwable -> {
-          log.warn("Game could not be joined", throwable);
+          log.error("Game could not be joined", throwable);
           notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
           return null;
         });
@@ -395,11 +387,11 @@ public class GameService implements InitializingBean, DisposableBean {
 
   private boolean canStartReplay() {
     if (isRunning() && !preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame()) {
-      log.warn("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
+      log.info("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
     } else if (isInMatchmakerQueue()) {
-      log.warn("In matchmaker queue, not starting replay");
+      log.info("In matchmaker queue, not starting replay");
       notificationService.addImmediateWarnNotification("replay.inQueue");
       return false;
     } else if (inOthersParty) {
@@ -421,7 +413,7 @@ public class GameService implements InitializingBean, DisposableBean {
       return null;
     }
     JavaFxUtil.assertBackgroundThread();
-    log.warn("Something went wrong loading map for replay", throwable);
+    log.error("Error loading map for replay", throwable);
 
     CountDownLatch userAnswered = new CountDownLatch(1);
     AtomicReference<Boolean> proceed = new AtomicReference<>(false);
@@ -442,7 +434,7 @@ public class GameService implements InitializingBean, DisposableBean {
     if (throwable instanceof UnsupportedOperationException) {
       notificationService.addImmediateErrorNotification(throwable, "gameUpdate.error.gameNotWritableAllowMultiOn");
     } else {
-      log.error("Could not play replay '" + replayId + "'", throwable);
+      log.error("Could not play replay `{}`", replayId, throwable);
       notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted");
     }
   }
@@ -492,20 +484,20 @@ public class GameService implements InitializingBean, DisposableBean {
   public GameBean getByUid(int uid) {
     GameBean game = gameIdToGame.get(uid);
     if (game == null) {
-      log.warn("Can't find {} in gameInfoBean map", uid);
+      log.warn("Can't find `{}` in known games", uid);
     }
     return game;
   }
 
   public CompletableFuture<Void> startSearchMatchmaker() {
     if (isRunning()) {
-      log.warn("Game is running, ignoring matchmaking search request");
+      log.info("Game is running, ignoring matchmaking search request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
 
     if (isInMatchmakerQueue()) {
-      log.debug("Matchmaker search has already been started, ignoring call");
+      log.info("Matchmaker search has already been started, ignoring call");
       return matchmakerFuture;
     }
 
@@ -536,7 +528,7 @@ public class GameService implements InitializingBean, DisposableBean {
           log.warn("Matchmade game could not be started", throwable);
         }
       } else {
-        log.debug("Matchmaker queue exited");
+        log.info("Matchmaker queue exited");
       }
     });
 
@@ -583,7 +575,7 @@ public class GameService implements InitializingBean, DisposableBean {
    */
   private CompletableFuture<Void> startGame(GameLaunchResponse gameLaunchMessage) {
     if (isRunning()) {
-      log.warn("Forged Alliance is already running, not starting game");
+      log.info("Forged Alliance is already running, not starting game");
       CompletableFuture.completedFuture(null);
     }
 
@@ -606,7 +598,7 @@ public class GameService implements InitializingBean, DisposableBean {
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          log.warn("Game could not be started", throwable);
+          log.error("Game could not be started", throwable);
           notificationService.addImmediateErrorNotification(throwable, "game.start.couldNotStart");
           iceAdapter.stop();
           setGameRunning(false);

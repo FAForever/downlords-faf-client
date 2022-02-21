@@ -41,7 +41,7 @@ public class DownloadMapTask extends CompletableTask<Void> {
     Objects.requireNonNull(folderName, "folderName has not been set");
 
     updateTitle(i18n.get("mapDownloadTask.title", folderName));
-    log.info("Downloading map {} from {}", folderName, mapUrl);
+    log.info("Downloading map `{}` from `{}`", folderName, mapUrl);
 
     URLConnection urlConnection = mapUrl.openConnection();
     int bytesToRead = urlConnection.getContentLength();

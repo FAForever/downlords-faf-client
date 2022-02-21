@@ -74,7 +74,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
           try {
             Files.createDirectories(targetPath.getParent());
             if (fileAlreadyLoaded(featuredModFile, targetPath)) {
-              log.debug("Featured mod file already prepared: {}", featuredModFile);
+              log.info("Featured mod file already prepared: `{}`", featuredModFile);
             } else {
               if (!featuredModFileCacheService.isCached(featuredModFile)) {
                 Path cachedFilePath = featuredModFileCacheService.getCachedFilePath(featuredModFile);
@@ -89,7 +89,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
             }
           }
           catch (IOException | NoSuchAlgorithmException | ChecksumMismatchException e) {
-            log.error("Error on updating featured mod file: {}", featuredModFile, e);
+            log.error("Error updating featured mod file: `{}`", featuredModFile, e);
             throw new RuntimeException(e);
           }
         });
@@ -124,7 +124,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
       if (fileAlreadyLoaded(featuredModFile, tempFile)) {
         // Hash matches so use the patched version
         Files.move(tempFile, cachedFilePath, StandardCopyOption.REPLACE_EXISTING);
-        log.debug("Using locally patched {} for version {}", featuredModFile.getName(), version);
+        log.debug("Using locally patched `{}` for version `{}`", featuredModFile.getName(), version);
         return;
       }
     }

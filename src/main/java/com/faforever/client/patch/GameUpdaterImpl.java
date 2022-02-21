@@ -91,13 +91,13 @@ public class GameUpdaterImpl implements GameUpdater {
           if (throwable instanceof UnsupportedOperationException || throwable instanceof ChecksumMismatchException) {
             throw new CompletionException(throwable);
           } else if (allowReplaysWhileInGame) {
-            log.info("Unable to update files and experimental replay feature is turned on " +
+            log.warn("Unable to update files and experimental replay feature is turned on " +
                 "that allows multiple game instances to run in parallel this is most likely the cause.");
             if (throwable.getCause() instanceof AccessDeniedException) {
               throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
                   "due to conflicting version running", throwable);
             } else {
-              log.info("Ignored error while updating featured mod due to likely concurrent versions", throwable);
+              log.warn("Ignored error while updating featured mod due to likely concurrent versions", throwable);
               return null;
             }
           } else {

@@ -41,7 +41,7 @@ public class DeleteDirectoryTask extends CompletableTask<Void> {
     try {
       FileSystemUtils.deleteRecursively(directory);
     } catch (IOException e) {
-      log.warn("Could not delete directory {}", directory, e);
+      log.error("Could not delete directory {}", directory, e);
       notificationService.addImmediateErrorNotification(e, "directory.delete.failed", directory);
     }
 

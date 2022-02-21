@@ -154,7 +154,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
                 );
               })
               .exceptionally(throwable -> {
-                log.warn("Could not load achievements for player '" + player.getId(), throwable);
+                log.error("Could not load achievements for player '" + player.getId(), throwable);
                 return null;
               });
         });

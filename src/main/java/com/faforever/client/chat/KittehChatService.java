@@ -367,7 +367,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void joinAutoChannels() {
-    log.debug("Joining auto channel: {}", autoChannels);
+    log.trace("Joining auto channels: {}", autoChannels);
     if (autoChannels == null) {
       return;
     }
@@ -379,7 +379,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     if (savedAutoChannels == null) {
       return;
     }
-    log.debug("Joining user's saved auto channel: {}", savedAutoChannels);
+    log.trace("Joining user's saved auto channels: {}", savedAutoChannels);
     savedAutoChannels.forEach(this::joinChannel);
   }
 

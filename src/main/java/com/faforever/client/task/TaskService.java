@@ -38,7 +38,7 @@ public class TaskService {
     task.getFuture().whenComplete((o, throwable) -> {
       activeTasks.remove(task);
       if (throwable != null) {
-        log.warn("Task failed", (Throwable) throwable);
+        log.error("Task failed", (Throwable) throwable);
       }
     });
     JavaFxUtil.runLater(() -> {

@@ -45,7 +45,7 @@ public class UpdaterUtil {
         }
       }
     } catch (ZipException e) {
-      log.debug("File was not zip file", e);
+      log.error("File was not zip file", e);
     }
   }
 }

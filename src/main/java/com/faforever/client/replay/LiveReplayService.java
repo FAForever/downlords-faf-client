@@ -162,7 +162,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
 
 
   public void runLiveReplay(URI uri) {
-    log.debug("Running replay from URL: {}", uri);
+    log.info("Running replay from URL: `{}`", uri);
     if (!uri.getScheme().equals(FAF_LIVE_PROTOCOL)) {
       throw new IllegalArgumentException("Invalid protocol: " + uri.getScheme());
     }

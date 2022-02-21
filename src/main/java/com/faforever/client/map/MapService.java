@@ -215,7 +215,6 @@ public class MapService implements InitializingBean, DisposableBean {
       directoryWatcherThread = startDirectoryWatcher(mapsDirectory);
     } catch (IOException e) {
       log.warn("Could not start map directory watcher", e);
-      // TODO notify user
     }
 
     installedMaps.clear();
@@ -238,7 +237,7 @@ public class MapService implements InitializingBean, DisposableBean {
                   try {
                     Thread.sleep(5000);
                   } catch (InterruptedException e) {
-                    log.debug("Thread interrupted ({})", e.getMessage());
+                    log.info("Thread interrupted ({})", e.getMessage());
                   }
                   tryAddInstalledMap(mapPath);
                 }
@@ -246,9 +245,9 @@ public class MapService implements InitializingBean, DisposableBean {
           key.reset();
         }
       } catch (IOException e) {
-        log.warn("Could not start maps directory watcher on {}", mapsDirectory);
+        log.warn("Could not start maps directory watcher for `{}`", mapsDirectory);
       } catch (InterruptedException e) {
-        log.debug("Watcher terminated ({})", e.getMessage());
+        log.info("Watcher terminated ({})", e.getMessage());
       }
     });
     thread.setDaemon(true);
@@ -279,7 +278,7 @@ public class MapService implements InitializingBean, DisposableBean {
             tryAddInstalledMap(mapPath);
           }
         } catch (IOException e) {
-          log.warn("Maps could not be read from: " + preferencesService.getPreferences().getForgedAlliance().getMapsDirectory(), e);
+          log.error("Maps could not be read from: `{}`", preferencesService.getPreferences().getForgedAlliance().getMapsDirectory(), e);
         }
         return null;
       }
@@ -299,7 +298,7 @@ public class MapService implements InitializingBean, DisposableBean {
         installedMaps.add(mapVersion);
       }
     } catch (MapLoadException e) {
-      log.warn("Map could not be read: " + path.getFileName(), e);
+      log.error("Map could not be read: `{}`", path, e);
     }
   }
 
@@ -350,15 +349,19 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapGeneratorService.getGeneratedMapPreviewImage())")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
-    if (!mapGeneratorService.isGeneratedMap(mapName)) {
-      try {
-        return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
-      } catch (MalformedURLException e) {
-        log.warn("Could not create url from {}", mapName, e);
-        return uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE);
-      }
+    if(mapGeneratorService.isGeneratedMap(mapName)) {
+      return getGeneratedMapPreview(mapName);
     }
 
+    try {
+      return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
+    } catch (MalformedURLException e) {
+      log.warn("Could not create url from {}", mapName, e);
+      return uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE);
+    }
+  }
+
+  private Image getGeneratedMapPreview(String mapName) {
     Path previewPath = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory().resolve(mapName).resolve(mapName + "_preview.png");
     if (Files.exists(previewPath)) {
       try (InputStream inputStream = Files.newInputStream(previewPath)) {
@@ -377,7 +380,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public Optional<MapVersionBean> getMapLocallyFromName(String mapFolderName) {
-    log.debug("Trying to find map '{}' locally", mapFolderName);
+    log.trace("Looking for map '{}' locally", mapFolderName);
     String mapFolderKey = mapFolderName.toLowerCase();
     return Optional.ofNullable(mapsByFolderName.get(mapFolderKey));
   }
@@ -537,7 +540,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
 
     if (isInstalled(folderName)) {
-      log.debug("Map '{}' exists locally already. Download is not required", folderName);
+      log.info("Map '{}' exists locally already. Download is not required", folderName);
       return CompletableFuture.completedFuture(null);
     }
 

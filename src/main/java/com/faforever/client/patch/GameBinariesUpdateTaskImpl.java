@@ -81,14 +81,14 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   protected Void call() throws Exception {
     updateTitle(i18n.get("updater.binary.taskTitle"));
     Assert.checkNullIllegalState(version, "Field 'version' must not be null");
-    log.info("Updating binaries to {}", version);
+    log.info("Updating binaries to `{}`", version);
 
     Path exePath = forgedAllianceService.getExecutablePath();
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
     ForgedAllianceExePatcher.patchVersion(exePath, version);
-    log.debug("Binaries have been updated successfully");
+    log.trace("Binaries have been updated successfully");
     return null;
   }
 
@@ -100,7 +100,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     }
     ResourceLocks.acquireDownloadLock();
     try {
-      log.debug("Downloading {} to {}", fafExeUrl, exePath);
+      log.debug("Downloading `{}` to `{}`", fafExeUrl, exePath);
       URLConnection urlConnection = new URL(fafExeUrl).openConnection();
       try (InputStream inputStream = urlConnection.getInputStream();
            OutputStream outputStream = Files.newOutputStream(exePath)) {
@@ -118,7 +118,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
   @VisibleForTesting
   void copyGameFilesToFafBinDirectory() {
-    log.debug("Copying Forged Alliance binaries FAF folder");
+    log.trace("Copying Forged Alliance binaries FAF folder");
 
     Path fafBinDirectory = preferencesService.getPreferences().getData().getBinDirectory();
 

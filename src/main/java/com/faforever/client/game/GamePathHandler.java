@@ -100,7 +100,7 @@ public class GamePathHandler implements InitializingBean {
       }
     }
 
-    log.info("Game path could not be detected");
+    log.warn("Game path could not be detected");
     eventBus.post(new MissingGamePathEvent());
   }
 

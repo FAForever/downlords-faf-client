@@ -109,7 +109,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         .cast(type)
         .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message))
             .onErrorResume(throwable -> {
-              log.warn("Could not process listener for `{}`", message, throwable);
+              log.error("Could not process listener for `{}`", message, throwable);
               return Mono.empty();
             }))
         .subscribe();
@@ -237,13 +237,13 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   private void onNotice(NoticeInfo noticeMessage) {
     if (Objects.equals(noticeMessage.getStyle(), "kill")) {
-      log.warn("Game close requested by server...");
+      log.info("Game close requested by server");
       notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
       eventBus.post(new CloseGameEvent());
     }
 
     if (Objects.equals(noticeMessage.getStyle(), "kick")) {
-      log.warn("Kicked from lobby, client closing after delay...");
+      log.info("Kicked from lobby, client closing after delay");
       notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
       taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
     }

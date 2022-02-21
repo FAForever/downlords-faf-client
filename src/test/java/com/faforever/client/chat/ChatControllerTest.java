@@ -199,7 +199,7 @@ public class ChatControllerTest extends UITest {
     instance.channelNameTextField.setText(TEST_CHANNEL_NAME.replace("#", ""));
     instance.onJoinChannelButtonClicked();
 
-    verify(notificationService).addImmediateWarnNotification(anyString(), anyString());
+    verify(chatService).joinChannel(TEST_CHANNEL_NAME);
   }
 
   @Test

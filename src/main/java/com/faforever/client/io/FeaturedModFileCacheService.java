@@ -82,8 +82,8 @@ public class FeaturedModFileCacheService implements InitializingBean {
       try {
         Files.createDirectories(cacheDirectory);
       } catch (IOException e) {
-        log.error("Could not create Featured Mod Cache directory in ''{}''", cacheDirectory);
-        throw new RuntimeException(MessageFormat.format("Could not create Featured Mod Cache directory in ''{}''." +
+        log.error("Could not create Featured Mod Cache directory in `{}`", cacheDirectory);
+        throw new RuntimeException(MessageFormat.format("Could not create Featured Mod Cache directory in `{}`." +
             " You might have to delete it or check if the needed permission are given.", cacheDirectory));
       }
     }
@@ -112,7 +112,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
       final boolean olderThanCacheTime = comparableLastAccessTime.plusDays(preferencesService.getPreferences().getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now());
       final boolean gameDataCacheActivated = preferencesService.getPreferences().isGameDataCacheActivated();
       if (olderThanCacheTime || !gameDataCacheActivated) {
-        log.debug("Deleting cached file ''{}'' ", filePath);
+        log.trace("Deleting cached file `{}`", filePath);
         Files.deleteIfExists(filePath);
       }
     } catch (Exception e) {

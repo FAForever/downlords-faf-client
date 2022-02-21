@@ -45,7 +45,7 @@ public class RemovableMapCellController extends ListCell<MapVersionBean> impleme
         mapNameLabel.setText(mapVersion.getMap().getDisplayName());
         if (mapService.isCustomMap(mapVersion)) {
           removeButton.setOnMouseClicked(event -> mapService.uninstallMap(mapVersion).exceptionally(throwable -> {
-            log.error("cannot uninstall the map", throwable);
+            log.error("Cannot uninstall map `{}`", mapVersion, throwable);
             notificationService.addImmediateErrorNotification(throwable, "management.maps.uninstall.error");
             return null;
           }));
