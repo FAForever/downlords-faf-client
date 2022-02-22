@@ -72,6 +72,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
       case FRIEND -> classes.add(FRIENDLY_PLAYER_CSS_CLASS);
       case FOE -> classes.add(ENEMY_PLAYER_CSS_CLASS);
       case OTHER, SELF -> classes.removeAll(FRIENDLY_PLAYER_CSS_CLASS, ENEMY_PLAYER_CSS_CLASS);
+      default -> throw new IllegalStateException("Unexpected value: " + socialStatus);
     }
   };
 
