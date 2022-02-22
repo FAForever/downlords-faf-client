@@ -27,7 +27,7 @@ Post a bounty on Issue Hunt. You can reward and financially help developers that
 1. Select `Main` as run configuration next to the hammer button in the top right
 1. Compile and start the application by pressing the play button
 
-A video tutorial is available [here](https://www.youtube.com/watch?v=_kJoRehdBcM). Don't forget step 5.
+A video tutorial is available [here](https://youtu.be/6gsHnt02I_Y). Don't forget step 5.
 
 ### Linux
 Learn how to install the client on Linux [here](https://github.com/FAForever/downlords-faf-client/wiki/Install-on-Linux)
