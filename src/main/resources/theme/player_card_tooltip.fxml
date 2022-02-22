@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
-
-<?import javafx.scene.control.Tooltip?>
 <HBox fx:id="root" spacing="3.0" alignment="CENTER_LEFT" xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardTooltipController"
       onMouseClicked="#openPrivateChatChannel" onContextMenuRequested="#openContextMenu">
@@ -24,27 +21,5 @@
             <ImageView fx:id="countryImageView" fitWidth="16.0" fitHeight="16.0" pickOnBounds="true"
                        preserveRatio="true"/>
         </graphic>
-    </Label>
-    <Label fx:id="foeIconText" minWidth="-Infinity">
-        <graphic>
-            <Region styleClass="icon,foe-icon"/>
-        </graphic>
-        <tooltip>
-            <Tooltip text="%userInfo.foe"/>
-        </tooltip>
-        <HBox.margin>
-            <Insets left="5.0"/>
-        </HBox.margin>
-    </Label>
-    <Label fx:id="friendIconText" minWidth="-Infinity">
-        <graphic>
-            <Region styleClass="icon,friend-icon"/>
-        </graphic>
-        <tooltip>
-            <Tooltip text="%userInfo.friend"/>
-        </tooltip>
-        <HBox.margin>
-            <Insets left="5.0"/>
-        </HBox.margin>
     </Label>
 </HBox>

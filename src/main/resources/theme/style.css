@@ -1404,3 +1404,29 @@
 .watch-button:trackable {
   -fx-background-color: -fx-accent;
 }
+
+/***************** Player Card Tooltip ***************************/
+
+.friendly-player {
+  -fx-background-radius: 5;
+  -fx-background-color:
+          linear-gradient(
+                  to right,
+                  rgba(42, 253, 53, 0.05) 0%,
+                  rgba(42, 253, 53, 0.10) 45%,
+                  rgba(42, 253, 53, 0.15) 60%,
+                  rgba(42, 253, 53, 0.10) 75%,
+                  rgba(42, 253, 53, 0.05) 100%);
+}
+
+.enemy-player {
+  -fx-background-radius: 5;
+  -fx-background-color:
+          linear-gradient(
+                  to right,
+                  rgba(255, 27, 27, 0.05) 0%,
+                  rgba(255, 27, 27, 0.10) 45%,
+                  rgba(255, 27, 27, 0.15) 60%,
+                  rgba(255, 27, 27, 0.10) 75%,
+                  rgba(255, 27, 27, 0.05) 100%);
+}

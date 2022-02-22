@@ -21,7 +21,9 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.binding.Bindings;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -46,6 +48,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PlayerCardTooltipController implements Controller<Node> {
 
+  public static final String FRIENDLY_PLAYER_CSS_CLASS = "friendly-player";
+  public static final String ENEMY_PLAYER_CSS_CLASS = "enemy-player";
+
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final EventBus eventBus;
@@ -55,13 +60,20 @@ public class PlayerCardTooltipController implements Controller<Node> {
   public Label playerInfo;
   public ImageView countryImageView;
   public ImageView avatarImageView;
-  public Label foeIconText;
   public HBox root;
-  public Label friendIconText;
   public Region factionIcon;
   public ImageView factionImage;
 
   private PlayerBean player;
+  private final InvalidationListener socialStatusPropertyListener = observable -> {
+    SocialStatus socialStatus = player.getSocialStatus();
+    ObservableList<String> classes = playerInfo.getStyleClass();
+    switch (socialStatus) {
+      case FRIEND -> classes.add(FRIENDLY_PLAYER_CSS_CLASS);
+      case FOE -> classes.add(ENEMY_PLAYER_CSS_CLASS);
+      case OTHER, SELF -> classes.removeAll(FRIENDLY_PLAYER_CSS_CLASS, ENEMY_PLAYER_CSS_CLASS);
+    }
+  };
 
   public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
     if (player == null) {
@@ -79,10 +91,8 @@ public class PlayerCardTooltipController implements Controller<Node> {
         ? i18n.get("userInfo.tooltipFormat.withRating", player.getUsername(), rating)
         : i18n.get("userInfo.tooltipFormat.noRating", player.getUsername()));
     setFactionIcon(faction);
-    JavaFxUtil.bind(foeIconText.visibleProperty(),
-        Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
-    JavaFxUtil.bind(friendIconText.visibleProperty(),
-        Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
+
+    JavaFxUtil.addAndTriggerListener(player.socialStatusProperty(), new WeakInvalidationListener(socialStatusPropertyListener));
   }
 
   public Node getRoot() {
@@ -118,7 +128,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, avatarImageView, countryImageView);
+    JavaFxUtil.bindManagedToVisible(factionIcon, factionImage, avatarImageView, countryImageView);
   }
 
   private void setFactionIcon(Faction faction) {

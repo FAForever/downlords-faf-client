@@ -70,8 +70,7 @@ public class PlayerCardTooltipControllerTest extends UITest {
     assertTrue(instance.factionIcon.getStyleClass().contains(UiService.CYBRAN_STYLE_CLASS));
     assertTrue(instance.factionIcon.isVisible());
     assertFalse(instance.factionImage.isVisible());
-    assertTrue(instance.foeIconText.isVisible());
-    assertFalse(instance.friendIconText.isVisible());
+    assertTrue(instance.playerInfo.getStyleClass().contains(PlayerCardTooltipController.ENEMY_PLAYER_CSS_CLASS));
     assertEquals("foe(1000)", instance.playerInfo.getText());
   }
 
@@ -89,8 +88,7 @@ public class PlayerCardTooltipControllerTest extends UITest {
     assertTrue(instance.factionIcon.getStyleClass().contains(UiService.SERAPHIM_STYLE_CLASS));
     assertTrue(instance.factionIcon.isVisible());
     assertFalse(instance.factionImage.isVisible());
-    assertFalse(instance.foeIconText.isVisible());
-    assertTrue(instance.friendIconText.isVisible());
+    assertTrue(instance.playerInfo.getStyleClass().contains(PlayerCardTooltipController.FRIENDLY_PLAYER_CSS_CLASS));
     assertEquals("user(1000)", instance.playerInfo.getText());
   }
 
@@ -108,8 +106,8 @@ public class PlayerCardTooltipControllerTest extends UITest {
     assertTrue(instance.factionImage.getImage().getUrl().contains(UiService.RANDOM_FACTION_IMAGE));
     assertFalse(instance.factionIcon.isVisible());
     assertTrue(instance.factionImage.isVisible());
-    assertFalse(instance.foeIconText.isVisible());
-    assertFalse(instance.friendIconText.isVisible());
+    assertFalse(instance.playerInfo.getStyleClass().contains(PlayerCardTooltipController.ENEMY_PLAYER_CSS_CLASS));
+    assertFalse(instance.playerInfo.getStyleClass().contains(PlayerCardTooltipController.FRIENDLY_PLAYER_CSS_CLASS));
     assertEquals("user(1000)", instance.playerInfo.getText());
   }
 
