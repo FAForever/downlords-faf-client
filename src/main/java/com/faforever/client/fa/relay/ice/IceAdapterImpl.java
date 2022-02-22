@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 
@@ -154,10 +155,16 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
       Path workDirectory = Path.of(nativeDir).toAbsolutePath();
 
+      String classpath = getBinaryName(workDirectory);
+      if (preferencesService.getPreferences().getForgedAlliance().isShowIceAdapterDebugWindow()) {
+        classpath += ";" + javaFXClassPathJars();
+      }
+
       List<String> cmd = Lists.newArrayList(
           Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
-          "-jar",
-          getBinaryName(workDirectory),
+          "-cp",
+          classpath,
+          "com.faforever.iceadapter.IceAdapter",
           "--id", String.valueOf(currentPlayer.getId()),
           "--login", currentPlayer.getUsername(),
           "--rpc-port", String.valueOf(adapterPort),
@@ -169,7 +176,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         log.info("Forcing ice adapter relay connection");
       }
 
-      if (clientProperties.isShowIceAdapterDebugWindow()) {
+      if (preferencesService.getPreferences().getForgedAlliance().isShowIceAdapterDebugWindow()) {
         cmd.add("--debug-window");
         cmd.add("--info-window");
       }
@@ -235,6 +242,12 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     thread.start();
 
     return iceAdapterClientFuture;
+  }
+
+  private String javaFXClassPathJars() {
+    final String classPathOfClient = System.getProperty("java.class.path");
+    final var split = List.of(classPathOfClient.split(";"));
+    return split.stream().filter(s -> s.contains("javafx-")).collect(Collectors.joining(";"));
   }
 
   private String getBinaryName(Path workDirectory) {

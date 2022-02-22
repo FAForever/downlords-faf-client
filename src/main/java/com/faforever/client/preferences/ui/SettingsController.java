@@ -119,6 +119,7 @@ public class SettingsController implements Controller<Node> {
   public TextField vaultLocationTextField;
   public CheckBox autoDownloadMapsToggle;
   public CheckBox useFAFDebuggerToggle;
+  public CheckBox showIceAdapterDebugWindowToggle;
   public TextField maxMessagesTextField;
   public CheckBox imagePreviewToggle;
   public CheckBox enableNotificationsToggle;
@@ -318,6 +319,7 @@ public class SettingsController implements Controller<Node> {
     gameLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.installationPathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.autoDownloadMapsProperty());
     useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
+    showIceAdapterDebugWindowToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
     vaultLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
 
     useFAFDebuggerToggle.selectedProperty().addListener(((observable, oldValue, newValue) -> {
