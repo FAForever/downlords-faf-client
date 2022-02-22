@@ -22,7 +22,6 @@ Post a bounty on Issue Hunt. You can reward and financially help developers that
     - using SSH: `git clone git@github.com:FAForever/downlords-faf-client.git`
     - using HTTPS: `https://github.com/FAForever/downlords-faf-client.git`
 1. Open the project into [IntelliJ IDEA](https://www.jetbrains.com/idea/) Ultimate or Community (free)
-1. Make sure you have the IntelliJ IDEA [Lombok plugin](https://plugins.jetbrains.com/idea/plugin/6317-lombok-plugin) installed
 1. Make sure you have `Enable annotation processing` enabled in the settings
 1. Select `Main` as run configuration next to the hammer button in the top right
 1. Compile and start the application by pressing the play button
