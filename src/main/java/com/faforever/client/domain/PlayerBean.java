@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.faforever.client.player.SocialStatus.OTHER;
 
@@ -176,5 +177,11 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   public ObservableSet<ChatChannelUser> getChatChannelUsers() {
     return chatChannelUsers;
+  }
+
+  public int getNumberOfGames(final String leaderboardName) {
+    return Optional.ofNullable(leaderboardRatings.get(leaderboardName))
+        .map(LeaderboardRatingBean::getNumberOfGames)
+        .orElse(0);
   }
 }
