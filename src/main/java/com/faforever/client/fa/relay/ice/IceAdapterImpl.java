@@ -246,7 +246,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private String javaFXClassPathJars() {
     final String classPathOfClient = System.getProperty("java.class.path");
-    final var split = List.of(classPathOfClient.split(";"));
+    final List<String> split = List.of(classPathOfClient.split(";"));
     return split.stream().filter(s -> s.contains("javafx-")).collect(Collectors.joining(";"));
   }
 
