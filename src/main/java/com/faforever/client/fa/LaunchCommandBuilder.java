@@ -304,7 +304,7 @@ public class LaunchCommandBuilder {
   }
 
   public LaunchCommandBuilder executableDecorator(String executableDecorator) {
-    boolean linuxProton = Arrays.asList(FafClientApplication.getAdditionalProfiles()).contains(FafClientApplication.PROFILE_LINUX);
+    boolean linuxProton = Arrays.asList(FafClientApplication.getAdditionalProfiles()).contains(FafClientApplication.PROFILE_PROTON);
     String profileLauncher = (linuxProton ? "protontricks-launch --appid 9420 " : "") + DEFAULT_EXECUTABLE_DECORATOR;
     this.executableDecorator = Strings.isNullOrEmpty(executableDecorator) ? profileLauncher : executableDecorator;
     return this;
