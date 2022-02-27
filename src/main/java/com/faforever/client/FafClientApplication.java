@@ -53,13 +53,14 @@ public class FafClientApplication extends Application {
   public static final String PROFILE_PROD = "prod";
   public static final String PROFILE_TEST = "test";
   /**
-   * Does always reload root tabs in the MainController. This is useful if you do hot swap and you want to see your
+   * Does always reload root tabs in the MainController. This is useful if you do hot swap, and you want to see your
    * changes.
    */
   public static final String PROFILE_RELOAD = "reload";
   public static final String PROFILE_LOCAL = "local";
   public static final String PROFILE_WINDOWS = "windows";
   public static final String PROFILE_LINUX = "linux";
+  public static final String PROFILE_PROTON = "proton";
   public static final String PROFILE_MAC = "mac";
   public static final int EXIT_STATUS_RAN_AS_ADMIN = 3;
 
@@ -70,13 +71,23 @@ public class FafClientApplication extends Application {
     launch(args);
   }
 
-    public static String[] getAdditionalProfiles() {
+  public static String[] getAdditionalProfiles() {
     List<String> additionalProfiles = new ArrayList<>();
 
     if (org.bridj.Platform.isWindows()) {
       additionalProfiles.add(PROFILE_WINDOWS);
     } else if (org.bridj.Platform.isLinux()) {
       additionalProfiles.add(PROFILE_LINUX);
+      try {
+        Process start = new ProcessBuilder("protontricks-launch", "-h").start();
+          start.getInputStream().readAllBytes();
+         int i= start  .waitFor();
+        if (0 == i) {
+          additionalProfiles.add(PROFILE_PROTON);
+        }
+      } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
+      }
     } else if (org.bridj.Platform.isMacOSX()) {
       additionalProfiles.add(PROFILE_MAC);
     }
@@ -195,4 +206,5 @@ public class FafClientApplication extends Application {
     timeoutThread.setDaemon(true);
     timeoutThread.start();
   }
+
 }
