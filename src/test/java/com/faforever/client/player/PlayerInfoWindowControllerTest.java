@@ -11,6 +11,7 @@ import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -31,6 +32,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
@@ -87,7 +89,8 @@ public class PlayerInfoWindowControllerTest extends UITest {
 
     when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
     when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
-    when(i18n.number(anyInt())).thenReturn("123");
+    when(i18n.get("leaderboard.gameNumber", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
+    when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(achievementItemController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml")).thenReturn(playerRatingChartTooltipController);
@@ -140,13 +143,21 @@ public class PlayerInfoWindowControllerTest extends UITest {
         PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get()
         )));
     when(eventService.getPlayerEvents(player.getId())).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
-    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
+    final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
+        .defaultValues()
+        .numberOfGames(47)
+        .mean(500)
+        .deviation(100)
+        .get();
+    player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), leaderboardRating).get());
 
     instance.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
-    assertTrue(instance.ratingsValues.getText().contains("123"));
+    assertTrue(instance.gamesPlayedNamesLabel.getText().contains(leaderboard.getTechnicalName()));
+    assertTrue(instance.ratingsValues.getText().contains("200"));
+    assertTrue(instance.gamesPlayedValueLabel.getText().contains("47"));
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(player.getId());
     verify(leaderboardService, times(2)).getLeaderboards();

@@ -105,7 +105,8 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public PieChart techBuiltChart;
   public PieChart unitsBuiltChart;
   public StackedBarChart<String, Integer> factionsChart;
-  public Label gamesPlayedLabel;
+  public Label gamesPlayedValueLabel;
+  public Label gamesPlayedNamesLabel;
   public HBox ratingsBox;
   public Label ratingsLabels;
   public Label ratingsValues;
@@ -210,7 +211,6 @@ public class PlayerInfoWindowController implements Controller<Node> {
 
     usernameLabel.setText(player.getUsername());
     countryFlagService.loadCountryFlag(player.getCountry()).ifPresent(image -> countryImageView.setImage(image));
-    gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
 
     updateNameHistory();
     updateRatingGrids();
@@ -251,18 +251,24 @@ public class PlayerInfoWindowController implements Controller<Node> {
   private void updateRatingGrids() {
     leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
       StringBuilder ratingNames = new StringBuilder();
+      StringBuilder gameNumberNames = new StringBuilder();
       StringBuilder ratingNumbers = new StringBuilder();
+      StringBuilder gameNumberValues = new StringBuilder();
       leaderboards.forEach(leaderboard -> {
         LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
         if (leaderboardRating != null) {
           String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
           ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n");
+          gameNumberNames.append(i18n.get("leaderboard.gameNumber", leaderboardName)).append("\n");
           ratingNumbers.append(i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard))).append("\n");
+          gameNumberValues.append(i18n.number(player.getNumberOfGames(leaderboard.getTechnicalName()))).append("\n");
         }
       });
       JavaFxUtil.runLater(() -> {
         ratingsLabels.setText(ratingNames.toString());
+        gamesPlayedNamesLabel.setText(gameNumberNames.toString());
         ratingsValues.setText(ratingNumbers.toString());
+        gamesPlayedValueLabel.setText(gameNumberValues.toString());
       });
     });
   }
