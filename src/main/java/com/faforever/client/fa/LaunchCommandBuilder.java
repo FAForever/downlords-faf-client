@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.FafClientApplication;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -15,8 +16,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.faforever.client.util.Assert.checkNullIllegalState;
 
@@ -303,7 +308,9 @@ public class LaunchCommandBuilder {
   }
 
   public LaunchCommandBuilder executableDecorator(String executableDecorator) {
-    this.executableDecorator = Strings.isNullOrEmpty(executableDecorator) ? DEFAULT_EXECUTABLE_DECORATOR : executableDecorator;
+    boolean linuxProton = Arrays.asList(FafClientApplication.getAdditionalProfiles()).contains(FafClientApplication.PROFILE_LINUX);
+    String profileLauncher = (linuxProton ? "protontricks-launch --appid 9420 " : "") + DEFAULT_EXECUTABLE_DECORATOR;
+    this.executableDecorator = Strings.isNullOrEmpty(executableDecorator) ? profileLauncher : executableDecorator;
     return this;
   }
 }

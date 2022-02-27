@@ -70,7 +70,7 @@ public class FafClientApplication extends Application {
     launch(args);
   }
 
-  private static String[] getAdditionalProfiles() {
+    public static String[] getAdditionalProfiles() {
     List<String> additionalProfiles = new ArrayList<>();
 
     if (org.bridj.Platform.isWindows()) {
