@@ -10,9 +10,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import javafx.embed.swing.JFXPanel;
 import javafx.scene.control.Label;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -34,7 +32,7 @@ public class TeamCardControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
-  private PlayerCardTooltipController playerCardTooltipController;
+  private PlayerCardController playerCardController;
   @Mock
   private RatingChangeLabelController ratingChangeLabelController;
 
@@ -43,12 +41,6 @@ public class TeamCardControllerTest extends UITest {
   private ObservableMap<String, List<GamePlayerStatsBean>> teams;
   private GamePlayerStatsBean playerStats;
 
-  //Create Panel to initialize the graphics
-  @BeforeAll
-  public static void initGraphics() {
-    JFXPanel panel = new JFXPanel();
-  }
-
   @BeforeEach
   public void setUp() throws Exception {
     player = PlayerBeanBuilder.create().defaultValues().id(1).get();
@@ -56,9 +48,9 @@ public class TeamCardControllerTest extends UITest {
     playerList.add(player);
     teams = FXCollections.observableHashMap();
 
-    when(uiService.loadFxml("theme/player_card_tooltip.fxml")).thenReturn(playerCardTooltipController);
+    when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
     when(uiService.loadFxml("theme/rating_change_label.fxml")).thenReturn(ratingChangeLabelController);
-    when(playerCardTooltipController.getRoot()).thenReturn(new Label());
+    when(playerCardController.getRoot()).thenReturn(new Label());
     when(ratingChangeLabelController.getRoot()).thenReturn(new Label());
     playerStats = GamePlayerStatsBeanBuilder.create()
         .defaultValues()

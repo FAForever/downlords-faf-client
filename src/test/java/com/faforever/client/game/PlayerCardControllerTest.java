@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class PlayerCardTooltipControllerTest extends UITest {
+public class PlayerCardControllerTest extends UITest {
   @Mock
   private I18n i18n;
   @Mock
@@ -49,11 +49,11 @@ public class PlayerCardTooltipControllerTest extends UITest {
   private ContextMenuBuilder contextMenuBuilder;
 
   @InjectMocks
-  private PlayerCardTooltipController instance;
+  private PlayerCardController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    loadFxml("theme/player_card_tooltip.fxml", clazz -> instance);
+    loadFxml("theme/player_card.fxml", clazz -> instance);
   }
 
   @Test

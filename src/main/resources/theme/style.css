@@ -1142,11 +1142,6 @@
   -fx-background-radius: 3 0 0 3;
 }
 
-.faction-icon {
-  -fx-pref-width: 2.3em;
-  -fx-pref-height: 2em;
-}
-
 .aeon-icon {
   -fx-background-color: AEON_COLOR;
 }
@@ -1404,3 +1399,11 @@
 .watch-button:trackable {
   -fx-background-color: -fx-accent;
 }
+
+/***************** Player Card ***************************/
+
+.player-card-content {
+  -fx-padding: 4 0;
+}
+
+
