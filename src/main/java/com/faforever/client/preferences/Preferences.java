@@ -89,6 +89,7 @@ public class Preferences {
   IntegerProperty cacheLifeTimeInDays = new SimpleIntegerProperty(30);
   BooleanProperty gameDataCacheActivated = new SimpleBooleanProperty(false);
   BooleanProperty debugLogEnabled = new SimpleBooleanProperty(false);
+  MapProperty<Integer, String> playerNotes = new SimpleMapProperty<>(observableHashMap()); // key - player ID
 
   public TilesSortingOrder getGameTileSortingOrder() {
     return gameTileSortingOrder.get();
@@ -289,5 +290,9 @@ public class Preferences {
 
   public BooleanProperty mapAndModAutoUpdateProperty() {
     return mapAndModAutoUpdate;
+  }
+
+  public ObservableMap<Integer, String> getPlayerNotes() {
+    return playerNotes;
   }
 }

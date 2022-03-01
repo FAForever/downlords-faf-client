@@ -12,6 +12,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
@@ -26,6 +27,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +67,7 @@ public class PlayerService implements InitializingBean {
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
   private final Map<Integer, List<PlayerBean>> playersByGame = new HashMap<>();
+  private ObservableMap<Integer, String> playerNotes; // key - player ID
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
@@ -72,12 +75,23 @@ public class PlayerService implements InitializingBean {
   private final AvatarService avatarService;
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
+  private final PreferencesService preferencesService;
 
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
     fafServerAccessor.addEventListener(com.faforever.commons.lobby.PlayerInfo.class, this::onPlayersInfo);
     fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
+    playerNotes = preferencesService.getPreferences().getPlayerNotes();
+    JavaFxUtil.addListener(playerNotes, (MapChangeListener<Integer, String>) change -> {
+      PlayerBean player = playersById.get(change.getKey());
+      if (change.wasAdded()) {
+        player.setNote(change.getValueAdded());
+      } else if (change.wasRemoved()) {
+        player.setNote("");
+      }
+      preferencesService.storeInBackground();
+    });
   }
 
   public void updatePlayersInGame(GameBean game) {
@@ -179,6 +193,7 @@ public class PlayerService implements InitializingBean {
         newPlayer.setUsername(playerInfo.getLogin());
         JavaFxUtil.addAndTriggerListener(newPlayer.usernameProperty(), observable -> playersByName.put(newPlayer.getUsername(), newPlayer));
         setPlayerSocialStatus(id, newPlayer);
+        newPlayer.setNote(playerNotes.getOrDefault(id, ""));
         return newPlayer;
       });
     }
@@ -192,6 +207,22 @@ public class PlayerService implements InitializingBean {
     }
 
     resetIdleTime(player);
+  }
+
+  public boolean containsNote(PlayerBean player) {
+    return playerNotes.containsKey(player.getId());
+  }
+
+  public void addNote(PlayerBean player, String text) {
+    playerNotes.put(player.getId(), text);
+  }
+
+  public void updateNote(PlayerBean player, String text) {
+    playerNotes.replace(player.getId(), text);
+  }
+
+  public void removeNote(PlayerBean player) {
+    playerNotes.remove(player.getId());
   }
 
   private void setPlayerSocialStatus(Integer id, PlayerBean player) {

@@ -1,7 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.player.PlayerNoteService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -13,17 +13,17 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RemovePlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
-  private final PlayerNoteService playerNoteService;
+  private final PlayerService playerService;
 
   @Override
   protected void onClicked() {
     Assert.checkNullIllegalState(object, "No player has been set");
-    playerNoteService.removeNote(object);
+    playerService.removeNote(object);
   }
 
   @Override
   protected boolean isItemVisible() {
-    return object != null && playerNoteService.containsNote(object);
+    return object != null && playerService.containsNote(object);
   }
 
   @Override
