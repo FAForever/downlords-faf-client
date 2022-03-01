@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.StackPane?>
 
 <HBox fx:id="root" alignment="CENTER_LEFT"
-      spacing="3.0" styleClass="player-card-content" xmlns="http://javafx.com/javafx/17"
+      spacing="3.0" styleClass="player-card-content" xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardController">
     <StackPane maxWidth="32.0" prefWidth="24.0">
         <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true"

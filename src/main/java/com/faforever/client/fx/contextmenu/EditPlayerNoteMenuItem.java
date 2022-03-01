@@ -1,6 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerNoteController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -8,7 +9,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.util.Assert;
 import javafx.scene.layout.StackPane;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -20,6 +20,7 @@ public class EditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   private final UiService uiService;
   private final PlayerService playerService;
+  private final I18n i18n;
 
   @Override
   protected void onClicked() {
@@ -39,6 +40,6 @@ public class EditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected String getItemText() {
-    return "Edit note";
+    return i18n.get("chat.userContext.editNote");
   }
 }

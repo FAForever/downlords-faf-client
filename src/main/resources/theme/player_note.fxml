@@ -14,8 +14,8 @@
     <TextArea fx:id="textArea" prefHeight="100.0" prefWidth="400.0"/>
     <HBox alignment="CENTER_RIGHT" spacing="5.0">
         <Label fx:id="charactersCountLabel"/>
-        <Button fx:id="cancelButton" mnemonicParsing="false" text="Cancel"/>
-        <Button fx:id="okButton" mnemonicParsing="false" text="OK" onMouseClicked="#okButtonClicked"/>
+        <Button fx:id="cancelButton" mnemonicParsing="false" text="%cancel"/>
+        <Button fx:id="okButton" mnemonicParsing="false" text="%ok" onMouseClicked="#okButtonClicked"/>
     </HBox>
     <opaqueInsets>
         <Insets/>

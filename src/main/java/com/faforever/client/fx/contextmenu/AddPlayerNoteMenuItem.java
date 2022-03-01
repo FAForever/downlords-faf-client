@@ -1,6 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerNoteController;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -19,6 +20,7 @@ public class AddPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   private final UiService uiService;
   private final PlayerService playerService;
+  private final I18n i18n;
 
   @Override
   protected void onClicked() {
@@ -38,6 +40,6 @@ public class AddPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected String getItemText() {
-    return "Add note";
+    return i18n.get("chat.userContext.addNote");
   }
 }
