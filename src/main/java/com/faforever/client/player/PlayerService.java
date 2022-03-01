@@ -32,6 +32,7 @@ import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
@@ -213,12 +214,16 @@ public class PlayerService implements InitializingBean {
     return playerNotes.containsKey(player.getId());
   }
 
-  public void addNote(PlayerBean player, String text) {
-    playerNotes.put(player.getId(), text);
-  }
-
   public void updateNote(PlayerBean player, String text) {
-    playerNotes.replace(player.getId(), text);
+    int id = player.getId();
+
+    if (StringUtils.isBlank(text)) {
+      removeNote(player);
+    } else if (playerNotes.containsKey(id)) {
+      playerNotes.replace(id, text);
+    } else {
+      playerNotes.put(id, text);
+    }
   }
 
   public void removeNote(PlayerBean player) {
