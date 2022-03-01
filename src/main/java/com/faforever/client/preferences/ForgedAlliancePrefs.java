@@ -55,6 +55,7 @@ public class ForgedAlliancePrefs {
   StringProperty executableDecorator = new SimpleStringProperty();
   ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
   BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
+  BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
@@ -170,5 +171,17 @@ public class ForgedAlliancePrefs {
 
   public void setRunFAWithDebugger(boolean runFAWithDebugger) {
     this.runFAWithDebugger.set(runFAWithDebugger);
+  }
+
+  public boolean isShowIceAdapterDebugWindow() {
+    return showIceAdapterDebugWindow.get();
+  }
+
+  public void setShowIceAdapterDebugWindow(boolean showIceAdapterDebugWindow) {
+    this.showIceAdapterDebugWindow.set(showIceAdapterDebugWindow);
+  }
+
+  public BooleanProperty showIceAdapterDebugWindow() {
+    return showIceAdapterDebugWindow;
   }
 }

@@ -811,6 +811,33 @@
                                                        GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
                                             </children>
                                         </GridPane>
+                                        <GridPane styleClass="setting-container">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
+                                                <ColumnConstraints minWidth="10.0"/>
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                            </rowConstraints>
+                                            <children>
+                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
+                                                       styleClass="setting-title"
+                                                       text="%settings.fa.iceDebugWindow">
+                                                    <graphic>
+                                                        <Label styleClass="button-mini-label"
+                                                               text="%settings.experimental"
+                                                               GridPane.columnIndex="1"/>
+                                                    </graphic>
+                                                </Label>
+                                                <CheckBox fx:id="showIceAdapterDebugWindowToggle"
+                                                          contentDisplay="GRAPHIC_ONLY"
+                                                          mnemonicParsing="false" GridPane.columnIndex="1"/>
+                                                <Label styleClass="setting-description"
+                                                       text="%settings.fa.iceDebugWindow.description"
+                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+                                            </children>
+                                        </GridPane>
                                     </children>
                                 </VBox>
                             </content>

@@ -39,7 +39,6 @@ public class ClientProperties {
   private String clientConfigUrl;
   private boolean useRemotePreferences;
   private Duration clientConfigConnectTimeout = Duration.ofSeconds(30);
-  private boolean showIceAdapterDebugWindow;
   private String userAgent;
   private Map<String, String> links = new HashMap<>();
   private List<String> vanillaGameHashes = new ArrayList<>();
