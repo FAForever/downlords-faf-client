@@ -33,6 +33,11 @@ public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/information.png";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("chat.userContext.userInfo");
   }

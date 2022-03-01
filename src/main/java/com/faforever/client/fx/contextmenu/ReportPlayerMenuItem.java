@@ -35,6 +35,11 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/report.png";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("chat.userContext.report");
   }
