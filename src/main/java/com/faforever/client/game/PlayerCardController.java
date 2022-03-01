@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
-import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -23,17 +22,16 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -55,7 +53,6 @@ public class PlayerCardController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
-  private final EventBus eventBus;
   private final ContextMenuBuilder contextMenuBuilder;
   private final I18n i18n;
 
@@ -108,14 +105,7 @@ public class PlayerCardController implements Controller<Node> {
     return root;
   }
 
-  public void openPrivateChatChannel(MouseEvent mouseEvent) {
-    if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() >= 2 &&
-        player != null && player.getSocialStatus() != SocialStatus.SELF) {
-      eventBus.post(new InitiatePrivateChatEvent(player.getUsername()));
-    }
-  }
-
-  public void openContextMenu(ContextMenuEvent event) {
+  public void openContextMenu(MouseEvent event) {
     if (player != null) {
       contextMenuBuilder.newBuilder()
           .addItem(ShowPlayerInfoMenuItem.class, player)
