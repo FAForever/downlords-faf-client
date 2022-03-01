@@ -44,7 +44,7 @@ import java.util.Optional;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class PlayerCardTooltipController implements Controller<Node> {
+public class PlayerCardController implements Controller<Node> {
 
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
@@ -118,7 +118,7 @@ public class PlayerCardTooltipController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, avatarImageView, countryImageView);
+    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView);
   }
 
   private void setFactionIcon(Faction faction) {

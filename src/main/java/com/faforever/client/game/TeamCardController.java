@@ -79,7 +79,7 @@ public class TeamCardController implements Controller<Node> {
       if (player == null) {
         continue;
       }
-      PlayerCardTooltipController playerCardTooltipController = uiService.loadFxml("theme/player_card_tooltip.fxml");
+      PlayerCardController playerCardController = uiService.loadFxml("theme/player_card.fxml");
       Integer playerRating = ratingProvider.apply(player);
       if (playerRating != null) {
         totalRating += playerRating;
@@ -92,11 +92,11 @@ public class TeamCardController implements Controller<Node> {
       if (playerFactionProvider != null) {
         faction = playerFactionProvider.apply(player);
       }
-      playerCardTooltipController.setPlayer(player, playerRating, faction);
+      playerCardController.setPlayer(player, playerRating, faction);
 
       RatingChangeLabelController ratingChangeLabelController = uiService.loadFxml("theme/rating_change_label.fxml");
       ratingChangeControllersByPlayerId.put(player.getId(), ratingChangeLabelController);
-      HBox container = new HBox(playerCardTooltipController.getRoot(), ratingChangeLabelController.getRoot());
+      HBox container = new HBox(playerCardController.getRoot(), ratingChangeLabelController.getRoot());
       JavaFxUtil.runLater(() -> teamPane.getChildren().add(container));
     }
 
