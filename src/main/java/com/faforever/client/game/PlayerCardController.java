@@ -7,10 +7,13 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
+import com.faforever.client.fx.contextmenu.AddPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
+import com.faforever.client.fx.contextmenu.EditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
+import com.faforever.client.fx.contextmenu.RemovePlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
@@ -21,6 +24,8 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -32,7 +37,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -63,6 +70,17 @@ public class PlayerCardController implements Controller<Node> {
 
   private PlayerBean player;
 
+  private Tooltip noteTooltip;
+  private final InvalidationListener notePropertyListener = observable -> {
+    boolean emptyNote = StringUtils.isBlank(player.getNote());
+    playerInfo.setUnderline(!emptyNote);
+    if (emptyNote) {
+      clearNoteTooltip();
+    } else {
+      updateNoteTooltip();
+    }
+  };
+
   public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
     if (player == null) {
       return;
@@ -83,6 +101,7 @@ public class PlayerCardController implements Controller<Node> {
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
     JavaFxUtil.bind(friendIconText.visibleProperty(),
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
+    JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakInvalidationListener(notePropertyListener));
   }
 
   public Node getRoot() {
@@ -107,6 +126,10 @@ public class PlayerCardController implements Controller<Node> {
           .addItem(RemoveFriendMenuItem.class, player)
           .addItem(AddFoeMenuItem.class, player)
           .addItem(RemoveFoeMenuItem.class, player)
+          .addSeparator()
+          .addItem(AddPlayerNoteMenuItem.class, player)
+          .addItem(EditPlayerNoteMenuItem.class, player)
+          .addItem(RemovePlayerNoteMenuItem.class, player)
           .addSeparator()
           .addItem(ReportPlayerMenuItem.class, player)
           .addSeparator()
@@ -139,5 +162,21 @@ public class PlayerCardController implements Controller<Node> {
         factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
       }
     }
+  }
+
+  private void clearNoteTooltip() {
+    playerInfo.setTooltip(null);
+    noteTooltip = null;
+  }
+
+  private void updateNoteTooltip() {
+    if (noteTooltip == null) {
+      noteTooltip = new Tooltip();
+      noteTooltip.setShowDuration(Duration.seconds(30));
+      noteTooltip.setShowDelay(Duration.ZERO);
+      noteTooltip.setHideDelay(Duration.ZERO);
+      playerInfo.setTooltip(noteTooltip);
+    }
+    noteTooltip.setText(player.getNote());
   }
 }
