@@ -433,13 +433,9 @@ public class ReplayService {
 
     ReplayMetadata replayMetadata = replayData.getMetadata();
     String gameType = replayMetadata.getFeaturedMod();
-    Integer replayId = replayMetadata.getUid();
-    Map<String, Integer> modVersions = replayMetadata.getFeaturedModVersions();
     String mapName = parseMapFolderName(replayData);
-
     Set<String> simMods = parseModUIDs(replayData);
 
-    Integer version = parseSupComVersion(replayData);
     FeaturedModBean featuredMod;
     try {
       featuredMod = modService.getFeaturedMod(gameType).get();
@@ -462,8 +458,6 @@ public class ReplayService {
 
   private void runRehostSupComReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
-
-    Integer version = parseSupComVersion(replayData);
     String mapName = parseMapFolderName(replayData);
     String fileName = path.getFileName().toString();
     String gameType = guessModByFileName(fileName);
