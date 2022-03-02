@@ -443,7 +443,6 @@ public class ReplayService {
     FeaturedModBean featuredMod;
     try {
       featuredMod = modService.getFeaturedMod(gameType).get();
-      System.out.println("Rehost from replay");
       NewGameInfo newGameInfo = new NewGameInfo(
           replayMetadata.getTitle(),
           Strings.emptyToNull(""),
@@ -473,7 +472,6 @@ public class ReplayService {
     FeaturedModBean featuredMod;
     try {
       featuredMod = modService.getFeaturedMod(gameType).get();
-      System.out.println("Rehost from replay");
       NewGameInfo newGameInfo = new NewGameInfo(
           replayData.getMetadata().getTitle(),
           Strings.emptyToNull(""),
