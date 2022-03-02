@@ -31,6 +31,11 @@ public class CopyLabelMenuItem extends AbstractMenuItem<Label> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/copy.png";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("copy");
   }

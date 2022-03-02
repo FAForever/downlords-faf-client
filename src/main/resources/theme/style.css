@@ -1451,9 +1451,9 @@
 .context-menu {
   -fx-background-color: derive(-context-menu-color, 5%);
   -fx-border-color: -context-menu-border-color;
-  -fx-border-width: 1px;
-  -fx-border-radius: 5px;
-  -fx-background-radius: 5px;
+  -fx-border-width: 0.0625em; /* 1px */
+  -fx-border-radius: 0.1875em; /* 3px */
+  -fx-background-radius: 0.1875em;  /* 3px */
 }
 
 .context-menu .separator .line {

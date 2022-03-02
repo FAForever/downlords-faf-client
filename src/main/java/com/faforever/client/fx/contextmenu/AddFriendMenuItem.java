@@ -41,6 +41,11 @@ public class AddFriendMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/handshake.png";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("chat.userContext.addFriend");
   }
