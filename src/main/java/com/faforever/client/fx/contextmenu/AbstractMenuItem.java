@@ -46,6 +46,9 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
 
   protected abstract String getItemText();
 
+  /**
+   * Use 16x16 icons whenever possible
+   */
   protected String getIconResourceUrl() {
     return null; // by-default;
   }

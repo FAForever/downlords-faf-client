@@ -39,6 +39,11 @@ public class RunReplayImmediatelyMenuItem extends AbstractMenuItem<GameBean> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/watch.png";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("vault.liveReplays.contextMenu.runReplayImmediately");
   }

@@ -39,6 +39,11 @@ public class CancelActionNotifyMeMenuItem extends AbstractMenuItem<GameBean> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/cancel.png";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("vault.liveReplays.contextMenu.notifyMe.cancel");
   }
