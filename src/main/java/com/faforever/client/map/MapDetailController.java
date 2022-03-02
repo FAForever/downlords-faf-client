@@ -128,6 +128,8 @@ public class MapDetailController implements Controller<Node> {
     };
 
     reviewsController.setReviewSupplier(MapVersionReviewBean::new);
+    thumbnailImageView.setOnMouseClicked(event -> Optional.ofNullable(mapVersion)
+        .ifPresent(map -> mapService.showMapInCloseUp(map.getFolderName())));
   }
 
   private void renewAuthorControls() {

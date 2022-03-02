@@ -177,6 +177,8 @@ public class ReplayDetailController implements Controller<Node> {
     qualityLabel.setTooltip(new Tooltip(i18n.get("replay.qualityTooltip")));
     deleteButton.setTooltip(new Tooltip(i18n.get("replay.deleteButton.tooltip")));
     reviewsController.setReviewSupplier(ReplayReviewBean::new);
+    mapThumbnailImageView.setOnMouseClicked(event -> Optional.ofNullable(replay.getMapVersion())
+        .ifPresent(map -> mapService.showMapInCloseUp(map.getFolderName())));
   }
 
   public void setReplay(ReplayBean replay) {

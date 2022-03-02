@@ -50,7 +50,7 @@
                            <children>
                                <ImageView fx:id="mapThumbnailImageView" fitHeight="128.0" fitWidth="128.0"
                                           pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="2147483647"
-                                          GridPane.valignment="TOP"/>
+                                          GridPane.valignment="TOP" styleClass="clickable"/>
                                <Label fx:id="titleLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
                                       text="&lt;Title&gt;" wrapText="true" GridPane.columnIndex="1"
                                       GridPane.columnSpan="4" GridPane.valignment="TOP"/>

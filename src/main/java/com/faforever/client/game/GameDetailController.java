@@ -15,7 +15,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -27,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -62,6 +63,8 @@ public class GameDetailController implements Controller<Pane> {
 
   public void initialize() {
     watchButton = watchButtonController.getRoot();
+    mapImageView.setOnMouseClicked(event ->
+        Optional.ofNullable(game.get()).ifPresent(gameBean -> mapService.showMapInCloseUp(gameBean.getMapFolderName())));
 
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,

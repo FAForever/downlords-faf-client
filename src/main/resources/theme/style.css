@@ -1406,3 +1406,8 @@
   -fx-padding: 4 0;
 }
 
+/***************** General ***************************/
+
+.clickable {
+  -fx-cursor: hand;
+}

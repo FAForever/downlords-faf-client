@@ -51,7 +51,8 @@
                                     <children>
                                         <ImageView fx:id="thumbnailImageView" fitHeight="256.0" fitWidth="256.0"
                                                    pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER"
-                                                   GridPane.rowSpan="2147483647" GridPane.valignment="TOP"/>
+                                                   GridPane.rowSpan="2147483647" GridPane.valignment="TOP"
+                                                   styleClass="clickable"/>
                                         <VBox GridPane.columnIndex="1" GridPane.columnSpan="2147483647"
                                               GridPane.hgrow="ALWAYS" GridPane.rowIndex="0">
                                             <children>
