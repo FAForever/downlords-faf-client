@@ -1,6 +1,7 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -21,6 +22,7 @@ public class ChangeUsernameColorMenuItem extends AbstractMenuItem<ChatChannelUse
 
   private final PreferencesService preferencesService;
   private final UiService uiService;
+  private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
 
   @Override
@@ -46,6 +48,6 @@ public class ChangeUsernameColorMenuItem extends AbstractMenuItem<ChatChannelUse
 
   @Override
   protected String getItemText() {
-    return "Change color";
+    return i18n.get("chat.userContext.viewReplays");
   }
 }
