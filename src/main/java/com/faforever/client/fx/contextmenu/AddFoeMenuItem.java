@@ -42,7 +42,7 @@ public class AddFoeMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected String getIconResourceUrl() {
-    return "images/icons/minus.png";
+    return "images/icons/minus1.png";
   }
 
   @Override

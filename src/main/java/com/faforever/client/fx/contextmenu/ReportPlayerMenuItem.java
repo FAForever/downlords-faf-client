@@ -36,7 +36,7 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected String getIconResourceUrl() {
-    return "images/icons/report.png";
+    return "images/icons/information1.png";
   }
 
   @Override

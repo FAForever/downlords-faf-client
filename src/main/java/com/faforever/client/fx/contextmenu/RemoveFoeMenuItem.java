@@ -31,6 +31,11 @@ public class RemoveFoeMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/minus2.png";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("chat.userContext.removeFoe");
   }

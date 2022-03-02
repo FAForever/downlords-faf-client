@@ -31,6 +31,11 @@ public class RemoveFriendMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getIconResourceUrl() {
+    return "images/icons/minus2.png";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null && object.getSocialStatus() == FRIEND;
   }
