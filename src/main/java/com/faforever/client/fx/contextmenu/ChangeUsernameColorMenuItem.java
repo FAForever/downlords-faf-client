@@ -48,6 +48,6 @@ public class ChangeUsernameColorMenuItem extends AbstractMenuItem<ChatChannelUse
 
   @Override
   protected String getItemText() {
-    return i18n.get("chat.userContext.viewReplays");
+    return i18n.get("chat.userContext.changeColor");
   }
 }
