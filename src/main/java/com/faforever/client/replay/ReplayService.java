@@ -490,7 +490,7 @@ public class ReplayService {
     }catch (ExecutionException | InterruptedException e) {
       System.out.println("Failed rehost from replay because of featured mod probably.");
       e.printStackTrace();
-    } 
+    }
   }
 
   private void runSupComReplayFile(Path path) throws IOException, CompressorException {
