@@ -457,8 +457,7 @@ public class ReplayService {
 
       gameService.hostGame(newGameInfo);
     }catch (ExecutionException | InterruptedException e) {
-      System.out.println("Failed rehost from replay because of featured mod probably.");
-      e.printStackTrace();
+      log.warn("Failed to launch rehost from replay", e);
     }
   }
 
@@ -488,8 +487,7 @@ public class ReplayService {
 
       gameService.hostGame(newGameInfo);
     }catch (ExecutionException | InterruptedException e) {
-      System.out.println("Failed rehost from replay because of featured mod probably.");
-      e.printStackTrace();
+      log.warn("Failed to launch rehost from replay", e);
     }
   }
 
