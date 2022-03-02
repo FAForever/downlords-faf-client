@@ -66,6 +66,7 @@ public class ReplayCardController implements Controller<Node> {
   public Label numberOfReviewsLabel;
   public HBox teamsContainer;
   public Label onMapLabel;
+  public Button rehostButton;
   public Button watchButton;
   public Button deleteButton;
   public StarsController starsController;
@@ -91,6 +92,7 @@ public class ReplayCardController implements Controller<Node> {
     }
 
     deleteButton.setVisible(replay.getReplayFile() != null);
+    rehostButton.setDisable(!replay.getReplayAvailable());
     watchButton.setDisable(!replay.getReplayAvailable());
     gameTitleLabel.setText(replay.getTitle());
     dateLabel.setText(timeService.asDate(replay.getStartTime()));
@@ -176,6 +178,9 @@ public class ReplayCardController implements Controller<Node> {
     replayService.runReplay(replay);
   }
 
+  public void onRehostButtonClicked() {
+    replayService.runRehost(replay);
+  }
   public void onDeleteButtonClicked() {
     notificationService.addNotification(new ImmediateNotification(
       i18n.get("replay.deleteNotification.heading", replay.getTitle()),

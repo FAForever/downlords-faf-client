@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Tooltip?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayTileRoot" hgap="20.0" prefWidth="512" prefHeight="300"
           onMouseClicked="#onShowReplayDetail" styleClass="card, pointable, hoverable" vgap="10.0"
           xmlns="http://javafx.com/javafx/8.0.141" fx:controller="com.faforever.client.replay.ReplayCardController">
@@ -97,8 +98,16 @@
                 <Region styleClass="icon,uninstall-icon"/>
             </graphic>
         </Button>
+        <Button fx:id="rehostButton" mnemonicParsing="false" styleClass="primary-button"
+                onAction="#onRehostButtonClicked" >
+            <tooltip><Tooltip text="Rehost"/></tooltip>
+            <graphic>
+                <Region styleClass="icon,host-icon"/>
+            </graphic>
+        </Button>
         <Button fx:id="watchButton" mnemonicParsing="false" styleClass="primary-button"
-                onAction="#onWatchButtonClicked" >
+                onAction="#onWatchButtonClicked">
+            <tooltip><Tooltip text="Watch"/></tooltip>
             <graphic>
                 <Region styleClass="icon,play-icon"/>
             </graphic>

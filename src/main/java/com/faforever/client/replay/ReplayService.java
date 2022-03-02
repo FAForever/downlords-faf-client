@@ -12,6 +12,7 @@ import com.faforever.client.domain.ReplayBean.GameOption;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
@@ -32,9 +33,11 @@ import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.api.elide.ElideNavigatorOnId;
+import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -66,6 +69,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -261,6 +265,19 @@ public class ReplayService {
     }
   }
 
+  public void runRehost(ReplayBean item) {
+    if (item.getReplayFile() != null) {
+      try {
+        runRehostFile(item.getReplayFile());
+      } catch (Exception e) {
+        log.error("Could not read replay file `{}`", item.getReplayFile(), e);
+        notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
+      }
+    } else {
+      runRehostOnlineReplay(item.getId());
+    }
+  }
+
 
   public void runReplay(Integer replayId) {
     runOnlineReplay(replayId);
@@ -330,6 +347,17 @@ public class ReplayService {
     }
   }
 
+  public void runRehostFile(Path path) throws IOException, CompressorException {
+    log.info("Starting replay file: `{}`", path.toAbsolutePath());
+
+    String fileName = path.getFileName().toString();
+    if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
+      runRehostFafFile(path);
+    } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
+      runRehostSupComReplayFile(path);
+    }
+  }
+
   private void runOnlineReplay(int replayId) {
     downloadReplay(replayId)
         .thenAccept((path) -> {
@@ -371,6 +399,98 @@ public class ReplayService {
     Integer version = parseSupComVersion(replayData);
 
     gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
+  }
+
+  private void runRehostOnlineReplay(int replayId) {
+    downloadReplay(replayId)
+        .thenAccept((path) -> {
+          try {
+            runRehostFile(path);
+          } catch (IOException | CompressorException e) {
+            throw new RuntimeException(e);
+          }
+        })
+        .exceptionally(throwable -> {
+          if (throwable.getCause() instanceof FileNotFoundException) {
+            log.warn("Replay not available on server yet", throwable);
+            notificationService.addImmediateWarnNotification("replayNotAvailable", replayId);
+          } else {
+            log.error("Replay could not be started", throwable);
+            notificationService.addImmediateErrorNotification(throwable, "replayCouldNotBeStarted", replayId);
+          }
+          return null;
+        });
+  }
+
+  private void runRehostFafFile(Path path) throws IOException, CompressorException {
+    ReplayDataParser replayData = replayFileReader.parseReplay(path);
+    byte[] rawReplayBytes = replayData.getData();
+
+    Path tempSupComReplayFile = preferencesService.getPreferences().getData().getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
+
+    Files.createDirectories(tempSupComReplayFile.getParent());
+    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
+
+    ReplayMetadata replayMetadata = replayData.getMetadata();
+    String gameType = replayMetadata.getFeaturedMod();
+    Integer replayId = replayMetadata.getUid();
+    Map<String, Integer> modVersions = replayMetadata.getFeaturedModVersions();
+    String mapName = parseMapFolderName(replayData);
+
+    Set<String> simMods = parseModUIDs(replayData);
+
+    Integer version = parseSupComVersion(replayData);
+    FeaturedModBean featuredMod;
+    try {
+      featuredMod = modService.getFeaturedMod(gameType).get();
+      System.out.println("Rehost from replay");
+      NewGameInfo newGameInfo = new NewGameInfo(
+          replayMetadata.getTitle(),
+          Strings.emptyToNull(""),
+          featuredMod,
+          mapName,
+          simMods,
+          GameVisibility.PUBLIC,
+          null,
+          null,
+          false);
+
+      gameService.hostGame(newGameInfo);
+    }catch (ExecutionException | InterruptedException e) {
+      System.out.println("Failed rehost from replay because of featured mod probably.");
+      e.printStackTrace();
+    }
+  }
+
+  private void runRehostSupComReplayFile(Path path) throws IOException, CompressorException {
+    ReplayDataParser replayData = replayFileReader.parseReplay(path);
+
+    Integer version = parseSupComVersion(replayData);
+    String mapName = parseMapFolderName(replayData);
+    String fileName = path.getFileName().toString();
+    String gameType = guessModByFileName(fileName);
+    Set<String> simMods = parseModUIDs(replayData);
+
+    FeaturedModBean featuredMod;
+    try {
+      featuredMod = modService.getFeaturedMod(gameType).get();
+      System.out.println("Rehost from replay");
+      NewGameInfo newGameInfo = new NewGameInfo(
+          replayData.getMetadata().getTitle(),
+          Strings.emptyToNull(""),
+          featuredMod,
+          mapName,
+          simMods,
+          GameVisibility.PUBLIC,
+          null,
+          null,
+          false);
+
+      gameService.hostGame(newGameInfo);
+    }catch (ExecutionException | InterruptedException e) {
+      System.out.println("Failed rehost from replay because of featured mod probably.");
+      e.printStackTrace();
+    } 
   }
 
   private void runSupComReplayFile(Path path) throws IOException, CompressorException {
