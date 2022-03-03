@@ -13,6 +13,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -24,6 +25,8 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
@@ -106,6 +109,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   public GridPane contentPane;
   public ColumnConstraints column2;
   public RowConstraints row2;
+
   private PlayerBean player;
   private Map<Faction, ToggleButton> factionsToButtons;
   @VisibleForTesting
@@ -113,6 +117,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private InvalidationListener matchmakingQueuesLabelInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
   private ChangeListener<PlayerBean> partyOwnerChangeListener;
+  private final BooleanProperty isInMatchmakerTab = new SimpleBooleanProperty(false);
 
   @Override
   public void initialize() {
@@ -348,9 +353,20 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     List<VBox> queueCards = queues.stream().map(queue -> {
       MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
       controller.setQueue(queue);
+      controller.addIsInMatchmakerTabListener(isInMatchmakerTab);
       controller.getRoot().prefWidthProperty().bind(Bindings.createDoubleBinding(() -> queuePane.getWidth() / queuesPerRow - queuePane.getHgap(), queuePane.widthProperty()));
       return controller.getRoot();
     }).collect(Collectors.toList());
     JavaFxUtil.runLater(() -> queuePane.getChildren().setAll(queueCards));
+  }
+
+  @Override
+  protected void onDisplay(NavigateEvent navigateEvent) {
+    isInMatchmakerTab.set(true);
+  }
+
+  @Override
+  public void onHide() {
+    isInMatchmakerTab.set(false);
   }
 }

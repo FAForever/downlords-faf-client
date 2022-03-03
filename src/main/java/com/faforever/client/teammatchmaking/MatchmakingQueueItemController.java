@@ -13,6 +13,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.event.ActionEvent;
@@ -61,6 +62,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   private InvalidationListener queueStateInvalidationListener;
   private InvalidationListener queuePopulationInvalidationListener;
   private ChangeListener<MatchingStatus> queueMatchStatusChangeListener;
+  private Timeline queuePopTimeUpdater;
 
   @Override
   public void initialize() {
@@ -124,7 +126,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   }
 
   private void setQueuePopTimeUpdater(MatchmakerQueueBean queue) {
-    Timeline queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
+    queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
         OffsetDateTime now = OffsetDateTime.now();
         Duration timeUntilPopQueue = Duration.between(now, queue.getQueuePopTime());
@@ -160,5 +162,15 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   public void showMapPool(ActionEvent actionEvent) {
     eventBus.post(new ShowMapPoolEvent(queue));
+  }
+
+  public void addIsInMatchmakerTabListener(BooleanProperty isInMatchmakerTab) {
+    JavaFxUtil.addListener(isInMatchmakerTab, observable -> {
+      if (isInMatchmakerTab.get()) {
+        queuePopTimeUpdater.play();
+      } else {
+        queuePopTimeUpdater.pause();
+      }
+    });
   }
 }
