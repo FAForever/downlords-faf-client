@@ -400,7 +400,7 @@ public class ReplayService {
     gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
-  private void runHostFromOnlineReplay(int replayId) {
+  private void hostFromOnlineReplay(int replayId) {
     downloadReplay(replayId)
         .thenAccept((path) -> {
           try {
