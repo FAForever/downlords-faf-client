@@ -27,33 +27,38 @@
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     </rowConstraints>
-    <children>
-        <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true" styleClass="map-preview, clickable" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" />
-        <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="game-title" text="&lt;A pretty long game title&gt;" wrapText="true" GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
-        <Label fx:id="gameTypeLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Game type&gt;" wrapText="true" GridPane.rowIndex="2" />
-        <Label fx:id="mapLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Map&gt;" wrapText="true" GridPane.rowIndex="3">
-            <graphic>
-                <Region styleClass="icon,map-icon" />
-            </graphic>
-        </Label>
-        <Label fx:id="numberOfPlayersLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Number of players&gt;" wrapText="true" GridPane.rowIndex="5">
-            <graphic>
-                <Region styleClass="icon,players-icon" />
-            </graphic>
-        </Label>
-        <Label fx:id="hostLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Host&gt;" wrapText="true" GridPane.rowIndex="4">
-            <graphic>
-                <Region styleClass="icon,host-icon" />
-            </graphic>
-        </Label>
-        <VBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
-            <children>
-                <fx:include fx:id="watchButton" source="../vault/replay/watch_button.fxml" />
-                <Button fx:id="joinButton" mnemonicParsing="false" onAction="#onJoinButtonClicked" text="%game.join" />
-            </children>
-        </VBox>
-        <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="7" />
-    </children>
+    <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true"
+               styleClass="map-preview, clickable" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER"
+               onMouseClicked="#onMapPreviewImageClicked"/>
+    <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="game-title"
+           text="&lt;A pretty long game title&gt;" wrapText="true" GridPane.columnSpan="2147483647"
+           GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
+    <Label fx:id="gameTypeLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Game type&gt;"
+           wrapText="true" GridPane.rowIndex="2"/>
+    <Label fx:id="mapLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Map&gt;" wrapText="true"
+           GridPane.rowIndex="3">
+        <graphic>
+            <Region styleClass="icon,map-icon"/>
+        </graphic>
+    </Label>
+    <Label fx:id="numberOfPlayersLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
+           text="&lt;Number of players&gt;" wrapText="true" GridPane.rowIndex="5">
+        <graphic>
+            <Region styleClass="icon,players-icon"/>
+        </graphic>
+    </Label>
+    <Label fx:id="hostLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Host&gt;" wrapText="true"
+           GridPane.rowIndex="4">
+        <graphic>
+            <Region styleClass="icon,host-icon"/>
+        </graphic>
+    </Label>
+    <VBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="6">
+        <fx:include fx:id="watchButton" source="../vault/replay/watch_button.fxml"/>
+        <Button fx:id="joinButton" mnemonicParsing="false" onAction="#onJoinButtonClicked" text="%game.join"/>
+    </VBox>
+    <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnSpan="2147483647"
+          GridPane.rowIndex="7"/>
     <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
     </padding>

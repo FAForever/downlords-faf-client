@@ -26,7 +26,6 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -50,12 +49,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Popup;
-import javafx.stage.Screen;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -635,28 +629,6 @@ public class MapService implements InitializingBean, DisposableBean {
         .thenApply(Optional::ofNullable)
         .thenApply(latestMap -> latestMap.orElse(mapVersion));
 
-  }
-
-
-  /**
-   * TODO: Make this function as general (universal) for all images from any place (examples: mod image preview)
-   */
-  public void showMapInCloseUp(String mapName) {
-    Rectangle2D screenBounds = Screen.getPrimary().getBounds();
-    double imageOptimalSize = screenBounds.getHeight() * 0.7;
-    double centerScreenX = screenBounds.getWidth() / 2 - imageOptimalSize / 2;
-    double centerScreenY = screenBounds.getHeight() / 2 - imageOptimalSize / 2;
-
-    ImageView mapImageView = new ImageView(loadPreview(mapName, PreviewSize.LARGE));
-    mapImageView.setFitHeight(imageOptimalSize);
-    mapImageView.setSmooth(true);
-    mapImageView.setPreserveRatio(true);
-
-    Popup popup = new Popup();
-    popup.setAutoHide(true);
-    popup.setAutoFix(true);
-    popup.getScene().setRoot(new StackPane(mapImageView));
-    popup.show(StageHolder.getStage(), centerScreenX, centerScreenY);
   }
 
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)

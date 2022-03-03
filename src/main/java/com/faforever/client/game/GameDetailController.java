@@ -10,6 +10,7 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.PopupUtil;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -63,8 +64,6 @@ public class GameDetailController implements Controller<Pane> {
 
   public void initialize() {
     watchButton = watchButtonController.getRoot();
-    mapImageView.setOnMouseClicked(event ->
-        Optional.ofNullable(game.get()).ifPresent(gameBean -> mapService.showMapInCloseUp(gameBean.getMapFolderName())));
 
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
@@ -193,5 +192,9 @@ public class GameDetailController implements Controller<Pane> {
 
   public void onJoinButtonClicked() {
     joinGameHelper.join(game.get());
+  }
+
+  public void onMapPreviewImageClicked() {
+    Optional.ofNullable(game.get()).ifPresent(gameBean -> PopupUtil.showImageInCloseUp(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE)));
   }
 }
