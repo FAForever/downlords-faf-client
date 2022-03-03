@@ -69,6 +69,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -256,7 +257,7 @@ public class ReplayService {
     if (item.getReplayFile() != null) {
       try {
         runReplayFile(item.getReplayFile());
-      } catch (Exception e) {
+      } catch (CompressorException | IOException e) {
         log.error("Could not read replay file `{}`", item.getReplayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
       }
@@ -265,16 +266,16 @@ public class ReplayService {
     }
   }
 
-  public void runRehost(ReplayBean item) {
+  public void hostFromReplay(ReplayBean item) {
     if (item.getReplayFile() != null) {
       try {
-        runRehostFile(item.getReplayFile());
-      } catch (Exception e) {
+        runHostFromReplayFile(item.getReplayFile());
+      } catch (CompressorException | IOException e) {
         log.error("Could not read replay file `{}`", item.getReplayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
       }
     } else {
-      runRehostOnlineReplay(item.getId());
+      runHostFromOnlineReplay(item.getId());
     }
   }
 
@@ -347,14 +348,14 @@ public class ReplayService {
     }
   }
 
-  public void runRehostFile(Path path) throws IOException, CompressorException {
-    log.info("Starting replay file: `{}`", path.toAbsolutePath());
+  public void runHostFromReplayFile(Path path) throws IOException, CompressorException {
+    log.info("Start hosting from replay file: `{}`", path.toAbsolutePath());
 
     String fileName = path.getFileName().toString();
     if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
-      runRehostFafFile(path);
+      runHostFromFafReplayFile(path);
     } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
-      runRehostSupComReplayFile(path);
+      runHostFromSupComReplayFile(path);
     }
   }
 
@@ -401,13 +402,13 @@ public class ReplayService {
     gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
-  private void runRehostOnlineReplay(int replayId) {
+  private void runHostFromOnlineReplay(int replayId) {
     downloadReplay(replayId)
         .thenAccept((path) -> {
           try {
-            runRehostFile(path);
+            runHostFromReplayFile(path);
           } catch (IOException | CompressorException e) {
-            throw new RuntimeException(e);
+            throw new CompletionException(e);
           }
         })
         .exceptionally(throwable -> {
@@ -422,65 +423,34 @@ public class ReplayService {
         });
   }
 
-  private void runRehostFafFile(Path path) throws IOException, CompressorException {
+  private void runHostFromFafReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
-    byte[] rawReplayBytes = replayData.getData();
-
-    Path tempSupComReplayFile = preferencesService.getPreferences().getData().getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
-
-    Files.createDirectories(tempSupComReplayFile.getParent());
-    Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();
     String gameType = replayMetadata.getFeaturedMod();
     String mapName = parseMapFolderName(replayData);
     Set<String> simMods = parseModUIDs(replayData);
 
-    FeaturedModBean featuredMod;
-    try {
-      featuredMod = modService.getFeaturedMod(gameType).get();
-      NewGameInfo newGameInfo = new NewGameInfo(
-          replayMetadata.getTitle(),
-          Strings.emptyToNull(""),
-          featuredMod,
-          mapName,
-          simMods,
-          GameVisibility.PUBLIC,
-          null,
-          null,
-          false);
-
-      gameService.hostGame(newGameInfo);
-    }catch (ExecutionException | InterruptedException e) {
-      log.warn("Failed to launch rehost from replay", e);
-    }
+    modService.enableSimMods(simMods);
+    modService.getFeaturedMod(gameType)
+        .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(replayMetadata.getTitle(),
+            null, featuredModBean, mapName, simMods, GameVisibility.PUBLIC,null,
+            null,false)));
   }
 
-  private void runRehostSupComReplayFile(Path path) throws IOException, CompressorException {
+  private void runHostFromSupComReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
+
     String mapName = parseMapFolderName(replayData);
     String fileName = path.getFileName().toString();
     String gameType = guessModByFileName(fileName);
     Set<String> simMods = parseModUIDs(replayData);
 
-    FeaturedModBean featuredMod;
-    try {
-      featuredMod = modService.getFeaturedMod(gameType).get();
-      NewGameInfo newGameInfo = new NewGameInfo(
-          replayData.getMetadata().getTitle(),
-          Strings.emptyToNull(""),
-          featuredMod,
-          mapName,
-          simMods,
-          GameVisibility.PUBLIC,
-          null,
-          null,
-          false);
-
-      gameService.hostGame(newGameInfo);
-    }catch (ExecutionException | InterruptedException e) {
-      log.warn("Failed to launch rehost from replay", e);
-    }
+    modService.enableSimMods(simMods);
+    modService.getFeaturedMod(gameType)
+        .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(replayData.getMetadata().getTitle(),
+            null, featuredModBean, mapName, simMods, GameVisibility.PUBLIC,null,
+            null,false)));
   }
 
   private void runSupComReplayFile(Path path) throws IOException, CompressorException {

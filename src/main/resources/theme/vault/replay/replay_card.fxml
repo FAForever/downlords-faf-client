@@ -98,9 +98,9 @@
                 <Region styleClass="icon,uninstall-icon"/>
             </graphic>
         </Button>
-        <Button fx:id="rehostButton" mnemonicParsing="false" styleClass="primary-button"
-                onAction="#onRehostButtonClicked" >
-            <tooltip><Tooltip text="Rehost"/></tooltip>
+        <Button fx:id="hostButton" mnemonicParsing="false" styleClass="primary-button"
+                onAction="#onHostButtonClicked" >
+            <tooltip><Tooltip text="Host"/></tooltip>
             <graphic>
                 <Region styleClass="icon,host-icon"/>
             </graphic>
