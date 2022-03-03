@@ -6,10 +6,9 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
-import com.faforever.client.fx.contextmenu.AddPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
-import com.faforever.client.fx.contextmenu.EditPlayerNoteMenuItem;
+import com.faforever.client.fx.contextmenu.DoPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
 import com.faforever.client.fx.contextmenu.RemovePlayerNoteMenuItem;
@@ -26,12 +25,10 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -117,8 +114,7 @@ public class PlayerCardController implements Controller<Node> {
           .addItem(AddFoeMenuItem.class, player)
           .addItem(RemoveFoeMenuItem.class, player)
           .addSeparator()
-          .addItem(AddPlayerNoteMenuItem.class, player)
-          .addItem(EditPlayerNoteMenuItem.class, player)
+          .addItem(DoPlayerNoteMenuItem.class, player)
           .addItem(RemovePlayerNoteMenuItem.class, player)
           .addSeparator()
           .addItem(ReportPlayerMenuItem.class, player)

@@ -68,7 +68,7 @@ public class PlayerService implements InitializingBean {
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
   private final Map<Integer, List<PlayerBean>> playersByGame = new HashMap<>();
-  private ObservableMap<Integer, String> playerNotes; // key - player ID
+  private ObservableMap<Integer, String> notesByPlayerId;
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
@@ -83,8 +83,8 @@ public class PlayerService implements InitializingBean {
     eventBus.register(this);
     fafServerAccessor.addEventListener(com.faforever.commons.lobby.PlayerInfo.class, this::onPlayersInfo);
     fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
-    playerNotes = preferencesService.getPreferences().getPlayerNotes();
-    JavaFxUtil.addListener(playerNotes, (MapChangeListener<Integer, String>) change -> {
+    notesByPlayerId = preferencesService.getPreferences().getUser().getNotesByPlayerId();
+    JavaFxUtil.addListener(notesByPlayerId, (MapChangeListener<Integer, String>) change -> {
       PlayerBean player = playersById.get(change.getKey());
       if (change.wasAdded()) {
         player.setNote(change.getValueAdded());
@@ -194,7 +194,7 @@ public class PlayerService implements InitializingBean {
         newPlayer.setUsername(playerInfo.getLogin());
         JavaFxUtil.addAndTriggerListener(newPlayer.usernameProperty(), observable -> playersByName.put(newPlayer.getUsername(), newPlayer));
         setPlayerSocialStatus(id, newPlayer);
-        newPlayer.setNote(playerNotes.getOrDefault(id, ""));
+        newPlayer.setNote(notesByPlayerId.getOrDefault(id, ""));
         return newPlayer;
       });
     }
@@ -210,24 +210,16 @@ public class PlayerService implements InitializingBean {
     resetIdleTime(player);
   }
 
-  public boolean containsNote(PlayerBean player) {
-    return playerNotes.containsKey(player.getId());
-  }
-
   public void updateNote(PlayerBean player, String text) {
-    int id = player.getId();
-
     if (StringUtils.isBlank(text)) {
       removeNote(player);
-    } else if (playerNotes.containsKey(id)) {
-      playerNotes.replace(id, text);
     } else {
-      playerNotes.put(id, text);
+      notesByPlayerId.put(player.getId(), text);
     }
   }
 
   public void removeNote(PlayerBean player) {
-    playerNotes.remove(player.getId());
+    notesByPlayerId.remove(player.getId());
   }
 
   private void setPlayerSocialStatus(Integer id, PlayerBean player) {

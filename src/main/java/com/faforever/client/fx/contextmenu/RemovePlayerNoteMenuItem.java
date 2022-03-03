@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class RemovePlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isItemVisible() {
-    return object != null && playerService.containsNote(object);
+    return object != null && !StringUtils.isBlank(object.getNote());
   }
 
   @Override
