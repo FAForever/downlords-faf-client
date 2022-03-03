@@ -421,7 +421,7 @@ public class ReplayService {
         });
   }
 
-  private void runHostFromFafReplayFile(Path path) throws IOException, CompressorException {
+  private CompletableFuture<Void> runHostFromFafReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();
@@ -430,10 +430,20 @@ public class ReplayService {
     Set<String> simMods = parseModUIDs(replayData);
 
     modService.enableSimMods(simMods);
-    modService.getFeaturedMod(gameType)
-        .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(replayMetadata.getTitle(),
-            null, featuredModBean, mapName, simMods, GameVisibility.PUBLIC,null,
-            null,false)));
+    return modService.getFeaturedMod(gameType)
+        .thenCompose(featuredModBean -> {
+        NewGameInfo newGameInfo = new NewGameInfo(
+            replayMetadata.getTitle(),
+            null, featuredModBean, 
+            mapName, 
+            simMods, 
+            GameVisibility.PUBLIC,
+            null,
+            null,
+            false
+        );
+        return gameService.hostGame(newGameInfo);
+    });
   }
 
   private void runHostFromSupComReplayFile(Path path) throws IOException, CompressorException {
