@@ -36,7 +36,7 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected String getIconResourceUrl() {
-    return "images/icons/information1.png";
+    return "images/icons/exclamation_mark.png";
   }
 
   @Override
