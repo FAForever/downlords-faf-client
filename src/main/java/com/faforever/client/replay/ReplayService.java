@@ -346,7 +346,7 @@ public class ReplayService {
     }
   }
 
-  public void runHostFromReplayFile(Path path) throws IOException, CompressorException {
+  public void hostFromReplayFile(Path path) throws IOException, CompressorException {
     log.info("Start hosting from replay file: `{}`", path.toAbsolutePath());
 
     String fileName = path.getFileName().toString();
