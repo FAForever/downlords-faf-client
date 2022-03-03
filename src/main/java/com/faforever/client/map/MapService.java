@@ -26,6 +26,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -49,13 +50,13 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.Scene;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Modality;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow;
 import javafx.stage.Screen;
-import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -637,24 +638,26 @@ public class MapService implements InitializingBean, DisposableBean {
 
   }
 
+
+  /**
+   * TODO: Make this function as general (universal) for all images from any place (examples: mod image preview)
+   */
   public void showMapInCloseUp(String mapName) {
-    double screenHeight = Screen.getPrimary().getBounds().getHeight();
-    double imageSize = screenHeight * 0.7;
+    Rectangle2D screenBounds = Screen.getPrimary().getBounds();
+    double imageOptimalSize = screenBounds.getHeight() * 0.7;
+    double centerScreenX = screenBounds.getWidth() / 2 - imageOptimalSize / 2;
+    double centerScreenY = screenBounds.getHeight() / 2 - imageOptimalSize / 2;
 
     ImageView mapImageView = new ImageView(loadPreview(mapName, PreviewSize.LARGE));
-    mapImageView.setFitHeight(imageSize);
+    mapImageView.setFitHeight(imageOptimalSize);
     mapImageView.setSmooth(true);
     mapImageView.setPreserveRatio(true);
 
-    Stage stage = new Stage();
-    stage.initModality(Modality.APPLICATION_MODAL);
-    stage.setResizable(false);
-    stage.setHeight(imageSize);
-    stage.setWidth(imageSize);
-
-    StackPane root = new StackPane(mapImageView);
-    stage.setScene(new Scene(root));
-    stage.show();
+    Popup popup = new Popup();
+    popup.setAutoHide(true);
+    popup.setAutoFix(true);
+    popup.getScene().setRoot(new StackPane(mapImageView));
+    popup.show(StageHolder.getStage(), centerScreenX, centerScreenY);
   }
 
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
