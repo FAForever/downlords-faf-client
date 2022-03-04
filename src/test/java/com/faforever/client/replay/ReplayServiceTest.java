@@ -11,7 +11,6 @@ import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
-import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -52,8 +51,6 @@ import org.springframework.context.ApplicationContext;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
-import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
