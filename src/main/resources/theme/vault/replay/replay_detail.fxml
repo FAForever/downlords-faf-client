@@ -102,14 +102,29 @@
                                      <Region styleClass="icon,balance-icon"/>
                                  </graphic>
                               </Label>
-                               <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
-                                       onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
-                                       GridPane.columnSpan="2147483647" GridPane.halignment="RIGHT"
-                                       GridPane.rowIndex="4" GridPane.columnIndex="5">
-                                   <graphic>
-                                       <Region styleClass="icon,play-icon"/>
-                                   </graphic>
-                               </Button>
+                               <HBox alignment="TOP_RIGHT" prefWidth="100.0" GridPane.columnIndex="5"
+                                     GridPane.rowIndex="4" GridPane.columnSpan="2147483647" spacing="10">
+                                   <children>
+                                       <Button fx:id="hostButton" defaultButton="true" mnemonicParsing="false"
+                                               onAction="#onHostButtonClicked" text="Host this game"
+                                               GridPane.columnSpan="1" GridPane.halignment="RIGHT"
+                                               GridPane.rowIndex="1" GridPane.columnIndex="1">
+                                           <graphic>
+                                               <Region styleClass="icon,host-icon"/>
+                                           </graphic>
+                                       </Button>
+                                       <Button fx:id="watchButton" defaultButton="true" mnemonicParsing="false"
+                                               onAction="#onWatchButtonClicked" text="%game.watchButtonFormat"
+                                               GridPane.columnSpan="1" GridPane.halignment="RIGHT"
+                                               GridPane.rowIndex="1" GridPane.columnIndex="2">
+                                           <graphic>
+                                               <Region styleClass="icon,play-icon"/>
+                                           </graphic>
+                                       </Button>
+                                   </children>
+                               </HBox>
+
+
                                <Label fx:id="onMapLabel" styleClass="secondary" text="&lt;OnMap&gt;"
                                       GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"
                                       GridPane.valignment="TOP"/>

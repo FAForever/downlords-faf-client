@@ -479,6 +479,9 @@ public class ReplayDetailController implements Controller<Node> {
     replayService.runReplay(replay);
   }
 
+  public void onHostButtonClicked() {
+    replayService.hostFromReplay(replay);
+  }
 
   public void copyLink() {
     String replayUrl = ReplayBean.getReplayUrl(replay.getId(), clientProperties.getVault().getReplayDownloadUrlFormat());
