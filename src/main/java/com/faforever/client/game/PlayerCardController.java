@@ -8,7 +8,7 @@ import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
-import com.faforever.client.fx.contextmenu.DoPlayerNoteMenuItem;
+import com.faforever.client.fx.contextmenu.EditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
 import com.faforever.client.fx.contextmenu.RemovePlayerNoteMenuItem;
@@ -114,7 +114,7 @@ public class PlayerCardController implements Controller<Node> {
           .addItem(AddFoeMenuItem.class, player)
           .addItem(RemoveFoeMenuItem.class, player)
           .addSeparator()
-          .addItem(DoPlayerNoteMenuItem.class, player)
+          .addItem(EditPlayerNoteMenuItem.class, player)
           .addItem(RemovePlayerNoteMenuItem.class, player)
           .addSeparator()
           .addItem(ReportPlayerMenuItem.class, player)

@@ -24,9 +24,6 @@
             <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
                        preserveRatio="true"/>
         </graphic>
-        <padding>
-            <Insets bottom="1.0" left="2.0" right="4.0" top="1.0"/>
-        </padding>
     </Label>
     <Label fx:id="foeIconText" minWidth="-Infinity">
         <graphic>

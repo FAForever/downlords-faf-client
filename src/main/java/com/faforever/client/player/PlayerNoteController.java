@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PlayerNoteController implements Controller<VBox> {
 
+  public static final int CHARACTER_LIMIT = 150;
+
   private final PlayerService playerService;
 
   public VBox root;
@@ -32,9 +34,9 @@ public class PlayerNoteController implements Controller<VBox> {
   public Button cancelButton;
   public Button okButton;
 
-  private final int maxSymbolLimit = 150;
+
   TextFormatter<String> formatter = new TextFormatter<>(change ->
-      isSymbolLimitReached(change) || isMultipleSeparators(change) ? null : change);
+      isCharacterLimitReached(change) || hasMultipleSeparators(change) ? null : change);
 
   private PlayerBean player;
 
@@ -42,14 +44,14 @@ public class PlayerNoteController implements Controller<VBox> {
   public void initialize() {
     textArea.setTextFormatter(formatter);
     JavaFxUtil.addListener(textArea.lengthProperty(), observable ->
-        charactersCountLabel.setText(String.format("%d / %d", textArea.getLength(), maxSymbolLimit)));
+        charactersCountLabel.setText(String.format("%d / %d", textArea.getLength(), CHARACTER_LIMIT)));
   }
 
-  private boolean isSymbolLimitReached(Change change) {
-    return change.getControlNewText().length() > maxSymbolLimit;
+  private boolean isCharacterLimitReached(Change change) {
+    return change.getControlNewText().length() > CHARACTER_LIMIT;
   }
 
-  private boolean isMultipleSeparators(Change change) {
+  private boolean hasMultipleSeparators(Change change) {
     return change.getControlText().endsWith("\n") && change.getControlNewText().endsWith("\n");
   }
 
