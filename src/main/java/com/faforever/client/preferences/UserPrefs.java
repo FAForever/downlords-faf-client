@@ -14,6 +14,10 @@ public class UserPrefs {
   MapProperty<Integer, String> notesByPlayerId = new SimpleMapProperty<>(observableHashMap());
 
   public ObservableMap<Integer, String> getNotesByPlayerId() {
-    return notesByPlayerId;
+    return notesByPlayerId.get();
+  }
+
+  public void setNotesByPlayerId(ObservableMap<Integer, String> notesByPlayerId) {
+    this.notesByPlayerId.set(notesByPlayerId);
   }
 }

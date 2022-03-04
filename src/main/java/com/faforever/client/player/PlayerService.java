@@ -222,6 +222,10 @@ public class PlayerService implements InitializingBean {
     notesByPlayerId.remove(player.getId());
   }
 
+  public ObservableMap<Integer, String> getNotesByPlayerId() {
+    return notesByPlayerId;
+  }
+
   private void setPlayerSocialStatus(Integer id, PlayerBean player) {
     if (userService.getUserId().equals(id)) {
       player.setSocialStatus(SELF);
