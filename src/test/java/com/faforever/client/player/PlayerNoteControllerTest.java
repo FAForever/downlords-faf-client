@@ -13,7 +13,7 @@ import static com.faforever.client.player.PlayerNoteController.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
-class PlayerNoteControllerTest extends UITest {
+public class PlayerNoteControllerTest extends UITest {
 
   @Mock
   private PlayerService playerService;
