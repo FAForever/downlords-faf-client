@@ -7,7 +7,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PopupUtil {
 
   public static void showImagePopup(Image image) {
@@ -18,6 +20,11 @@ public class PopupUtil {
    * @param imageHeightInPercentage Image height as a percentage of the screen height size
    */
   public static void showImagePopup(Image image, double imageHeightInPercentage) {
+    if (image == null) {
+      log.warn("No image. Popup would not show");
+      return;
+    }
+
     Rectangle2D screenBounds = Screen.getPrimary().getBounds();
     double imageSize = screenBounds.getHeight() * imageHeightInPercentage;
     double centerScreenX = screenBounds.getWidth() / 2 - imageSize / 2;
