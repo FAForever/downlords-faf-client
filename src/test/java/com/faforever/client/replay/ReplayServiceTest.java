@@ -11,6 +11,7 @@ import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -39,6 +40,7 @@ import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
+import org.apache.commons.compress.compressors.CompressorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -50,6 +52,7 @@ import org.springframework.context.ApplicationContext;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -325,7 +328,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testRunReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
-    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
+    doThrow(new CompressorException("Compressor Error")).when(replayFileReader).parseReplay(replayFile);
 
     ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
@@ -338,7 +341,7 @@ public class ReplayServiceTest extends ServiceTest {
   public void testRunFafReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
-    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
+    doThrow(new CompressorException("Compressor Error")).when(replayFileReader).parseReplay(replayFile);
 
     ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);

@@ -267,13 +267,13 @@ public class ReplayService {
   public void hostFromReplay(ReplayBean item) {
     if (item.getReplayFile() != null) {
       try {
-        runHostFromReplayFile(item.getReplayFile());
+        runHostFromFafReplayFile(item.getReplayFile());
       } catch (CompressorException | IOException e) {
         log.error("Could not read replay file `{}`", item.getReplayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
       }
     } else {
-      runHostFromOnlineReplay(item.getId());
+      hostFromOnlineReplay(item.getId());
     }
   }
 
@@ -404,7 +404,7 @@ public class ReplayService {
     downloadReplay(replayId)
         .thenAccept((path) -> {
           try {
-            runHostFromReplayFile(path);
+            runHostFromFafReplayFile(path);
           } catch (IOException | CompressorException e) {
             throw new CompletionException(e);
           }
@@ -446,7 +446,7 @@ public class ReplayService {
     });
   }
 
-  private void runHostFromSupComReplayFile(Path path) throws IOException, CompressorException {
+  private CompletableFuture<Void> runHostFromSupComReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     String mapName = parseMapFolderName(replayData);
@@ -455,10 +455,20 @@ public class ReplayService {
     Set<String> simMods = parseModUIDs(replayData);
 
     modService.enableSimMods(simMods);
-    modService.getFeaturedMod(gameType)
-        .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(replayData.getMetadata().getTitle(),
-            null, featuredModBean, mapName, simMods, GameVisibility.PUBLIC,null,
-            null,false)));
+    return modService.getFeaturedMod(gameType)
+        .thenCompose(featuredModBean -> {
+          NewGameInfo newGameInfo = new NewGameInfo(
+              replayData.getMetadata().getTitle(),
+              null, featuredModBean,
+              mapName,
+              simMods,
+              GameVisibility.PUBLIC,
+              null,
+              null,
+              false
+          );
+          return gameService.hostGame(newGameInfo);
+        });
   }
 
   private void runSupComReplayFile(Path path) throws IOException, CompressorException {
