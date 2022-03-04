@@ -27,7 +27,7 @@ public class EditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
     PlayerNoteController playerNoteController = uiService.loadFxml("theme/player_note.fxml");
     Dialog dialog = uiService.showInDialog((StackPane) getParentPopup().getOwnerWindow().getScene().getRoot(), playerNoteController.getRoot());
     playerNoteController.setPlayer(object);
-    playerNoteController.setCloseButtonAction(event -> dialog.close());
+    playerNoteController.setCloseDialogAction(dialog);
     dialog.setOnDialogOpened(event -> playerNoteController.requestFocus());
     dialog.show();
   }

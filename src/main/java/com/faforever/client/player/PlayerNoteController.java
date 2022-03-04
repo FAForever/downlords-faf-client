@@ -3,8 +3,7 @@ package com.faforever.client.player;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import com.faforever.client.ui.dialog.Dialog;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -65,8 +64,8 @@ public class PlayerNoteController implements Controller<VBox> {
     cancelButton.fire();
   }
 
-  public void setCloseButtonAction(EventHandler<ActionEvent> handler) {
-    cancelButton.setOnAction(handler);
+  public void setCloseDialogAction(Dialog dialog) {
+    cancelButton.setOnAction(event -> dialog.close());
   }
 
   public void requestFocus() {
