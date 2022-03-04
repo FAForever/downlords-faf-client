@@ -10,14 +10,14 @@ import javafx.stage.Screen;
 
 public class PopupUtil {
 
-  public static void showImageInCloseUp(Image image) {
-    showImageInCloseUp(image, 0.7);
+  public static void showImagePopup(Image image) {
+    showImagePopup(image, 0.7);
   }
 
   /**
    * @param imageHeightInPercentage Image height as a percentage of the screen height size
    */
-  public static void showImageInCloseUp(Image image, double imageHeightInPercentage) {
+  public static void showImagePopup(Image image, double imageHeightInPercentage) {
     Rectangle2D screenBounds = Screen.getPrimary().getBounds();
     double imageSize = screenBounds.getHeight() * imageHeightInPercentage;
     double centerScreenX = screenBounds.getWidth() / 2 - imageSize / 2;

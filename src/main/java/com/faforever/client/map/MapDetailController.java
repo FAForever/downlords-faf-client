@@ -327,6 +327,6 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void onMapPreviewImageClicked() {
-    Optional.ofNullable(mapVersion).ifPresent(map -> PopupUtil.showImageInCloseUp(mapService.loadPreview(map, PreviewSize.LARGE)));
+    Optional.ofNullable(mapVersion).ifPresent(map -> PopupUtil.showImagePopup(mapService.loadPreview(map, PreviewSize.LARGE)));
   }
 }

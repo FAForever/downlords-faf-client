@@ -195,6 +195,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void onMapPreviewImageClicked() {
-    Optional.ofNullable(game.get()).ifPresent(gameBean -> PopupUtil.showImageInCloseUp(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE)));
+    Optional.ofNullable(game.get()).ifPresent(gameBean -> PopupUtil.showImagePopup(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE)));
   }
 }

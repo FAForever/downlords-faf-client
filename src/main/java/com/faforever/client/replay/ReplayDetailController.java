@@ -492,6 +492,6 @@ public class ReplayDetailController implements Controller<Node> {
   }
 
   public void onMapPreviewImageClicked() {
-    Optional.ofNullable(replay.getMapVersion()).ifPresent(map -> PopupUtil.showImageInCloseUp(mapService.loadPreview(map, PreviewSize.LARGE)));
+    Optional.ofNullable(replay.getMapVersion()).ifPresent(map -> PopupUtil.showImagePopup(mapService.loadPreview(map, PreviewSize.LARGE)));
   }
 }
