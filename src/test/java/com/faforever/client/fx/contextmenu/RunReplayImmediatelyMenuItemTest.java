@@ -4,8 +4,8 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.replay.LiveReplayService;
-import com.faforever.client.replay.TrackingLiveReplayAction;
 import com.faforever.client.replay.TrackingLiveReplay;
+import com.faforever.client.replay.TrackingLiveReplayAction;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,7 +15,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +48,7 @@ public class RunReplayImmediatelyMenuItemTest extends UITest {
   @Test
   public void testVisibleItemIfNoOwnTrackingReplay() {
     GameBean game = GameBeanBuilder.create().defaultValues().id(1).get();
-    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(2, any())));
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(2, TrackingLiveReplayAction.NOTIFY_ME)));
 
     instance.setObject(game);
     assertTrue(instance.isVisible());

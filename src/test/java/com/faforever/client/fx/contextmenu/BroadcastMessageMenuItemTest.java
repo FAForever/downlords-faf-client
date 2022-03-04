@@ -38,7 +38,7 @@ public class BroadcastMessageMenuItemTest extends UITest {
   public void testInvisibleItem() {
     when(moderatorService.getPermissions()).thenReturn(Collections.emptySet());
 
-    runOnFxThreadAndWait(() -> instance.setObject(any()));
+    runOnFxThreadAndWait(() -> instance.setObject(null));
 
     assertFalse(instance.isVisible());
   }

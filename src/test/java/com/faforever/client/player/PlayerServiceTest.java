@@ -375,7 +375,7 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   public void testAddPlayerNote() {
     PlayerBean player = PlayerBeanBuilder.create().id(2).get();
-    assertTrue(instance.getNotesByPlayerId().isEmpty());
+    assertFalse(instance.getNotesByPlayerId().containsKey(2));
     instance.updateNote(player, "junit");
     assertTrue(instance.getNotesByPlayerId().containsKey(2));
     verify(preferencesService).storeInBackground();

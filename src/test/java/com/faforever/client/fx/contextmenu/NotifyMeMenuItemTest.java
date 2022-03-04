@@ -49,7 +49,7 @@ public class NotifyMeMenuItemTest extends UITest {
   @Test
   public void testVisibleItemIfNoOwnTrackingReplay() {
     GameBean game = GameBeanBuilder.create().defaultValues().id(1).get();
-    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(2, any())));
+    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(2, TrackingLiveReplayAction.NOTIFY_ME)));
 
     instance.setObject(game);
     assertTrue(instance.isVisible());
