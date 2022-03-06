@@ -49,11 +49,26 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
     }
   }
 
+  private void hostReplay(Path filePath) {
+    try {
+      replayService.hostFromReplayFile(filePath);
+    } catch (CompressorException | IOException e) {
+      notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
+    }
+  }
+
   @Override
   public void run(ApplicationArguments args) {
     String[] sourceArgs = args.getSourceArgs();
     if (sourceArgs.length > 0) {
       runReplay(Path.of(sourceArgs[0]));
+    }
+  }
+
+  public void host(ApplicationArguments args) {
+    String[] sourceArgs = args.getSourceArgs();
+    if (sourceArgs.length > 0) {
+      hostReplay(Path.of(sourceArgs[0]));
     }
   }
 }

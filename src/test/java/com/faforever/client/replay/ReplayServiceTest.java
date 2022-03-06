@@ -11,6 +11,7 @@ import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.KnownFeaturedMod;
+import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -37,6 +38,7 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.elide.ElideEntity;
+import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -291,6 +293,29 @@ public class ReplayServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testHostFafReplayFile() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+
+    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    ReplayBean replay = new ReplayBean();
+    replay.setReplayFile(replayFile);
+
+    instance.hostFromReplay(replay);
+    NewGameInfo newGameInfo = new NewGameInfo(
+        replay.getTitle(),
+        null, null,
+        TEST_MAP_NAME,
+        emptySet(),
+        GameVisibility.PUBLIC,
+        null,
+        null,
+        false
+    );
+    verify(gameService).hostGame(newGameInfo);
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
   public void testRunFafReplayFileGeneratedMap() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
@@ -412,6 +437,42 @@ public class ReplayServiceTest extends ServiceTest {
     verifyNoInteractions(notificationService);
   }
 
+  @Test
+  public void testHostFafOnlineReplay() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+
+    ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
+    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
+    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    ReplayBean replay = new ReplayBean();
+
+    ReplayMetadata replayMetadata = new ReplayMetadata();
+    replayMetadata.setUid(123);
+    replayMetadata.setSimMods(emptyMap());
+    replayMetadata.setFeaturedModVersions(emptyMap());
+    replayMetadata.setFeaturedMod("faf");
+    replayMetadata.setMapname(TEST_MAP_NAME);
+
+    when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
+    when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
+
+    instance.hostFromReplay(replay);
+
+    NewGameInfo newGameInfo = new NewGameInfo(
+        replayMetadata.getTitle(),
+        null, null,
+        TEST_MAP_NAME,
+        emptySet(),
+        GameVisibility.PUBLIC,
+        null,
+        null,
+        false
+    );
+    verify(taskService).submitTask(replayDownloadTask);
+    verify(gameService).hostGame(newGameInfo);
+    verifyNoInteractions(notificationService);
+  }
   @Test
   public void testRunScFaOnlineReplay() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));

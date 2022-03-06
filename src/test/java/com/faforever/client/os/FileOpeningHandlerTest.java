@@ -32,4 +32,12 @@ public class FileOpeningHandlerTest extends ServiceTest {
 
     verify(replayService).runReplayFile(Path.of("foo.fafreplay"));
   }
+
+  @Test
+  public void host() throws IOException, CompressorException {
+    ApplicationArguments args = new DefaultApplicationArguments("foo.fafreplay");
+    instance.host(args);
+
+    verify(replayService).hostFromReplayFile(Path.of("foo.fafreplay"));
+  }
 }
