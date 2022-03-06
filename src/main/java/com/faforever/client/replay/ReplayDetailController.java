@@ -123,6 +123,7 @@ public class ReplayDetailController implements Controller<Node> {
   public Pane moreInformationPane;
   public ImageView mapThumbnailImageView;
   public Button watchButton;
+  public Button hostButton;
   public TextField replayIdField;
   public ScrollPane scrollPane;
   public Button showRatingChangeButton;
@@ -182,6 +183,7 @@ public class ReplayDetailController implements Controller<Node> {
   public void setReplay(ReplayBean replay) {
     this.replay = replay;
     watchButton.setDisable(false);
+    hostButton.setDisable(false);
     downloadMoreInfoButton.setDisable(false);
     mapThumbnailImageView.setImage(null);
 
@@ -259,6 +261,7 @@ public class ReplayDetailController implements Controller<Node> {
         }
         downloadMoreInfoButton.setDisable(true);
         watchButton.setDisable(true);
+        hostButton.setDisable(true);
       }
       PlayerBean currentPlayer = playerService.getCurrentPlayer();
 

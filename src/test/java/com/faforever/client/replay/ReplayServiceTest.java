@@ -335,6 +335,19 @@ public class ReplayServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testHostReplayFileExceptionTriggersNotification() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+
+    doThrow(new CompressorException("Compressor Error")).when(replayFileReader).parseReplay(replayFile);
+
+    ReplayBean replay = new ReplayBean();
+    replay.setReplayFile(replayFile);
+
+    instance.hostFromReplay(replay);
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
+  }
+
+  @Test
   public void testRunFafReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
@@ -344,6 +357,19 @@ public class ReplayServiceTest extends ServiceTest {
     replay.setReplayFile(replayFile);
 
     instance.runReplay(replay);
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
+  }
+
+  @Test
+  public void testHostFafReplayFileExceptionTriggersNotification() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+
+    doThrow(new CompressorException("Compressor Error")).when(replayFileReader).parseReplay(replayFile);
+
+    ReplayBean replay = new ReplayBean();
+    replay.setReplayFile(replayFile);
+
+    instance.hostFromReplay(replay);
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
   }
 

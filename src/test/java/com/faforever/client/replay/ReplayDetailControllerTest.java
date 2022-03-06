@@ -270,6 +270,7 @@ public class ReplayDetailControllerTest extends UITest {
     assertEquals("missing", instance.watchButton.getText());
     assertEquals("missing", instance.downloadMoreInfoButton.getText());
     assertTrue(instance.watchButton.isDisabled());
+    assertTrue(instance.hostButton.isDisabled());
     assertTrue(instance.downloadMoreInfoButton.isDisabled());
   }
 
@@ -285,6 +286,7 @@ public class ReplayDetailControllerTest extends UITest {
     assertEquals("not available", instance.watchButton.getText());
     assertEquals("not available", instance.downloadMoreInfoButton.getText());
     assertTrue(instance.watchButton.isDisabled());
+    assertTrue(instance.hostButton.isDisabled());
     assertTrue(instance.downloadMoreInfoButton.isDisabled());
   }
 
@@ -407,6 +409,15 @@ public class ReplayDetailControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(replayService).runReplay(onlineReplay);
+  }
+
+  @Test
+  public void testOnHostButtonClicked() {
+    instance.setReplay(onlineReplay);
+    instance.onHostButtonClicked();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    verify(replayService).hostFromReplay(onlineReplay);
   }
 
   @Test
