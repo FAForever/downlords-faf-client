@@ -53,6 +53,7 @@ import org.springframework.context.ApplicationContext;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -63,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static java.util.Collections.emptyMap;
@@ -316,6 +318,77 @@ public class ReplayServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testHostFafReplayFilePath() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+
+    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    ReplayBean replay = new ReplayBean();
+    replay.setReplayFile(replayFile);
+
+    instance.hostFromReplayFile(replayFile);
+    NewGameInfo newGameInfo = new NewGameInfo(
+        replay.getTitle(),
+        null, null,
+        TEST_MAP_NAME,
+        emptySet(),
+        GameVisibility.PUBLIC,
+        null,
+        null,
+        false
+    );
+    verify(gameService).hostGame(newGameInfo);
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testHostSupComReplayFilePath() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
+
+    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    ReplayBean replay = new ReplayBean();
+    replay.setReplayFile(replayFile);
+
+    instance.runHostFromSupComReplayFile(replayFile);
+
+    NewGameInfo newGameInfo = new NewGameInfo(
+        replay.getTitle(),
+        null, null,
+        TEST_MAP_NAME,
+        emptySet(),
+        GameVisibility.PUBLIC,
+        null,
+        null,
+        false
+    );
+    verify(gameService).hostGame(newGameInfo);
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testHostFromFafReplayFilePath() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+
+    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    ReplayBean replay = new ReplayBean();
+    replay.setReplayFile(replayFile);
+
+    instance.runHostFromFafReplayFile(replayFile);
+
+    NewGameInfo newGameInfo = new NewGameInfo(
+        replay.getTitle(),
+        null, null,
+        TEST_MAP_NAME,
+        emptySet(),
+        GameVisibility.PUBLIC,
+        null,
+        null,
+        false
+    );
+    verify(gameService).hostGame(newGameInfo);
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
   public void testRunFafReplayFileGeneratedMap() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
@@ -505,6 +578,39 @@ public class ReplayServiceTest extends ServiceTest {
     instance.runReplay(replay);
 
     verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyInt());
+    verifyNoMoreInteractions(gameService);
+  }
+
+  @Test
+  public void testHostScFaOnlineReplayExceptionTriggersNotification() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
+    doThrow(new FakeTestException()).when(replayFileReader).parseReplay(replayFile);
+
+    ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
+    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
+    ReplayBean replay = new ReplayBean();
+
+    instance.hostFromReplay(replay);
+
+    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString(), anyInt());
+    verifyNoMoreInteractions(gameService);
+  }
+
+  @Test
+  public void testHostScFaOnlineReplayNotFoundExceptionTriggersNotification() throws Exception {
+    Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
+
+    doThrow(new FileNotFoundException()).when(replayFileReader).parseReplay(replayFile);
+
+    ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
+    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
+    ReplayBean replay = new ReplayBean();
+
+    instance.hostFromReplay(replay);
+
+    verify(notificationService).addImmediateWarnNotification("replayNotAvailable", 0);
     verifyNoMoreInteractions(gameService);
   }
 

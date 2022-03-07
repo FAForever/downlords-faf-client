@@ -421,7 +421,7 @@ public class ReplayService {
         });
   }
 
-  private CompletableFuture<Void> runHostFromFafReplayFile(Path path) throws IOException, CompressorException {
+  CompletableFuture<Void> runHostFromFafReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();
@@ -446,7 +446,7 @@ public class ReplayService {
     });
   }
 
-  private CompletableFuture<Void> runHostFromSupComReplayFile(Path path) throws IOException, CompressorException {
+  CompletableFuture<Void> runHostFromSupComReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     String mapName = parseMapFolderName(replayData);
