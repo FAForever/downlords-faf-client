@@ -46,6 +46,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -101,10 +103,13 @@ import static javafx.scene.layout.Background.EMPTY;
 @Slf4j
 // TODO divide and conquer
 public class MainController implements Controller<Node>, InitializingBean {
+
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
+  private final static ReadOnlyObjectWrapper<NavigationItem> CURRENT_TAB = new ReadOnlyObjectWrapper<>();
+
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
   private final PreferencesService preferencesService;
   private final I18n i18n;
@@ -141,7 +146,6 @@ public class MainController implements Controller<Node>, InitializingBean {
   protected Popup transientNotificationsPopup;
   @VisibleForTesting
   Popup persistentNotificationsPopup;
-  private NavigationItem currentItem;
   private FxStage fxStage;
   private boolean alwaysReloadTabs;
 
@@ -161,6 +165,14 @@ public class MainController implements Controller<Node>, InitializingBean {
     this.viewCache = CacheBuilder.newBuilder().build();
     this.mainWindowTitle = clientProperties.getMainWindowTitle();
     this.environment = environment;
+  }
+
+  public static ReadOnlyObjectProperty<NavigationItem> getCurrentNavigationItemProperty() {
+    return CURRENT_TAB.getReadOnlyProperty();
+  }
+
+  public static NavigationItem getCurrentNavigationItem() {
+    return CURRENT_TAB.get();
   }
 
   @Override
@@ -276,12 +288,12 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   @Subscribe
   public void onUnreadPartyMessage(UnreadPartyMessageEvent event) {
-    JavaFxUtil.runLater(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.PLAY)));
+    JavaFxUtil.runLater(() -> playButton.pseudoClassStateChanged(HIGHLIGHTED, !CURRENT_TAB.equals(NavigationItem.PLAY)));
   }
 
   @Subscribe
   public void onUnreadPrivateMessage(UnreadPrivateMessageEvent event) {
-    JavaFxUtil.runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !currentItem.equals(NavigationItem.CHAT)));
+    JavaFxUtil.runLater(() -> chatButton.pseudoClassStateChanged(HIGHLIGHTED, !CURRENT_TAB.equals(NavigationItem.CHAT)));
   }
 
   private void displayView(AbstractViewController<?> controller, NavigateEvent navigateEvent) {
@@ -298,7 +310,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     }
 
     if (!alwaysReloadTabs) {
-      Optional.ofNullable(currentItem).ifPresent(item -> getView(item).hide());
+      Optional.ofNullable(CURRENT_TAB.get()).ifPresent(item -> getView(item).hide());
     }
     controller.display(navigateEvent);
   }
@@ -551,7 +563,7 @@ public class MainController implements Controller<Node>, InitializingBean {
         .findFirst()
         .ifPresent(toggle -> toggle.setSelected(true));
 
-    currentItem = item;
+    CURRENT_TAB.set(item);
   }
 
   private AbstractViewController<?> getView(NavigationItem item) {

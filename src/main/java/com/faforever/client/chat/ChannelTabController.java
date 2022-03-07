@@ -9,6 +9,8 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.MainController;
+import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
@@ -56,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -87,7 +90,7 @@ import static java.util.Locale.US;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ChannelTabController extends AbstractChatTabController implements InitializingBean {
+public class ChannelTabController extends AbstractChatTabController implements InitializingBean, DisposableBean {
   @VisibleForTesting
   static final String CSS_CLASS_MODERATOR = "moderator";
   private static final String USER_CSS_CLASS_FORMAT = "user-%s";
@@ -130,11 +133,18 @@ public class ChannelTabController extends AbstractChatTabController implements I
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
   private boolean initializedList = false;
   private Future<?> initializeListFuture;
-  private final InvalidationListener selectedTabListener = observable -> {
+  private final InvalidationListener selectedTabListener = observable -> initializeListIfNeed();
+  private final InvalidationListener currentTabListener = observable -> {
+    if (MainController.getCurrentNavigationItem() == NavigationItem.CHAT) {
+      initializeListIfNeed();
+    }
+  };
+
+  private void initializeListIfNeed() {
     if (getRoot().isSelected() && !initializedList && initializeListFuture != null && initializeListFuture.isDone()) {
       initializeList();
     }
-  };
+  }
 
   // TODO cut dependencies
   public ChannelTabController(UserService userService, ChatService chatService,
@@ -234,7 +244,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), ((observable, oldValue, newValue) -> chatChannel.getUsers().forEach(this::updateUserMessageColor)));
     initializeListFuture = taskScheduler.schedule(() -> {
-      if (getRoot().isSelected()) {
+      if (MainController.getCurrentNavigationItem() == NavigationItem.CHAT && getRoot().isSelected()) {
         initializeList();
       }
     }, Instant.now().plus(4000, ChronoUnit.MILLIS));
@@ -279,6 +289,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
     initializeSideToggle();
     JavaFxUtil.addListener(getRoot().selectedProperty(), new WeakInvalidationListener(selectedTabListener));
+    JavaFxUtil.addListener(MainController.getCurrentNavigationItemProperty(), new WeakInvalidationListener(currentTabListener));
   }
 
   private void initializeList() {
@@ -613,5 +624,12 @@ public class ChannelTabController extends AbstractChatTabController implements I
     popup.setAnchorLocation(AnchorLocation.WINDOW_TOP_RIGHT);
     Bounds bounds = settingsButton.localToScreen(settingsButton.getBoundsInLocal());
     popup.show(settingsButton.getScene().getWindow(), bounds.getMaxX(), bounds.getMaxY() + 5);
+  }
+
+  @Override
+  public void destroy() throws Exception {
+    if (initializeListFuture != null) {
+      initializeListFuture.cancel(true);
+    }
   }
 }
