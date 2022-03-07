@@ -14,7 +14,6 @@ import javafx.scene.control.Label;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,27 +29,18 @@ public class ChatCategoryItemController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final ContextMenuBuilder contextMenuBuilder;
 
-  public Label chatUserCategoryRoot;
+  public Node root;
+  public Label categoryLabel;
   private ChatUserCategory chatUserCategory;
 
-  void setChatUserCategory(@Nullable ChatUserCategory chatUserCategory) {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    JavaFxUtil.unbind(chatUserCategoryRoot.styleProperty());
-
+  void setChatUserCategory(ChatUserCategory chatUserCategory) {
     this.chatUserCategory = chatUserCategory;
-    if (chatUserCategory == null) {
-      chatUserCategoryRoot.setText(null);
-      return;
-    }
 
-    chatUserCategoryRoot.setText(i18n.get(chatUserCategory.getI18nKey()));
-    JavaFxUtil.bind(chatUserCategoryRoot.styleProperty(), Bindings.createStringBinding(() -> {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    categoryLabel.setText(i18n.get(chatUserCategory.getI18nKey()));
+    JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
       Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
-      if (color != null) {
-        return String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color));
-      } else {
-        return "";
-      }
+      return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
     }, chatPrefs.groupToColorProperty()));
   }
 
@@ -58,11 +48,11 @@ public class ChatCategoryItemController implements Controller<Node> {
     contextMenuBuilder.newBuilder()
         .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatCategoryColorPickerCustomMenuItemController.class), chatUserCategory)
         .build()
-        .show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        .show(categoryLabel.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
   @Override
   public Node getRoot() {
-    return chatUserCategoryRoot;
+    return root;
   }
 }

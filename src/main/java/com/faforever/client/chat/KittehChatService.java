@@ -563,6 +563,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
+  public ConnectionState getConnectionState() {
+    return connectionState.get();
+  }
+
+  @Override
   public void reconnect() {
     client.reconnect();
   }

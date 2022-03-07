@@ -301,76 +301,67 @@
   -fx-background: #FFFFFF08;
 }
 
+.filter-toggle-button, .user-list-settings-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+}
+
+.filter-toggle-button:hover, .user-list-settings-button:hover {
+  -fx-border-color: -darkened-color;
+}
+
 .chat-user-item {
-  -fx-padding: 0;
+  -fx-padding: 0 0.375em 0.25em 0.375em; /* 0 6 4 6 */
+}
+
+.chat-user-item:hover {
+  -fx-background-color: derive(-fx-background, 10%);
+  -fx-background-radius: 0.375em; /* 6 */
+}
+
+.chat-user-item-map-name {
+  -fx-text-fill: derive(-darkened-color, 25%);
+  -fx-font-size: 9;
+  -fx-padding: 0.0625em 0 0 0; /* 1 0 0 0 */
 }
 
 .chat-user-item-username {
+  -fx-font-size: 14;
   -fx-text-fill: -fx-text-color;
-}
-
-.chat-user-list-view .list-cell {
-  -fx-background-color: transparent;
-  -fx-padding: 1px 8px 1px 8px;
 }
 
 .chat-user-list-category {
-  -fx-padding: 20px 0px 10px 0px;
+  -fx-padding: 1.25em 0 0.3125em 5em; /* 20 0 5 80 */
   -fx-font-weight: bold;
-  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 14;
+  -fx-text-fill: -darkened-color;
 }
 
-/***************** Chat User Control *****************/
-
-.channel-tab-friends-title .chat-user-control-clan .text,
-.channel-tab-friends-title .chat-user-control-username .text {
-  -fx-fill: #16B7EB;
+.chat-user-list-category-separator {
+  -fx-padding: 0 2.5em 0.9375em 5.625em; /* 0 40 15 90 */
+  -fx-background: -darkened-color;
 }
 
-.channel-tab-foes-title .chat-user-control-clan .text,
-.channel-tab-foes-title .chat-user-control-username .text {
-  -fx-fill: #FF0000;
-}
-
-.channel-tab-moderators-title .chat-user-control-clan .text,
-.channel-tab-moderators-title .chat-user-control-username .text {
-  -fx-fill: #FFFFFF;
-}
-
-.channel-tab-chat-only-title .chat-user-control-clan .text,
-.channel-tab-chat-only-title .chat-user-control-username .text {
-  -fx-fill: #808080;
-}
-
-.channel-tab-others-title .chat-user-control-clan .text,
-.channel-tab-others-title .chat-user-control-username .text {
-  -fx-fill: #BFBEBA;
-}
-
-.chat-user-control-clan.self,
-.chat-user-control-username.self {
-  -fx-fill: HIGHLIGHT_COLOR;
-}
-
-.chat-user-control-clan {
+.filter-text-field {
+  -fx-text-fill: white;
   -fx-background-color: transparent;
+  -fx-border-color: transparent;
 }
 
-.chat-user-control-clan .label {
-  -fx-padding: 0;
+.filter-and-settings-content {
+  -fx-border-width: 0 0 0.125em 0; /* 0 0 2 0 */
+  -fx-border-color: -divider-color;
+  -fx-padding: 0.625em 0.625em 0.125em 0.625em; /* 10 10 2 10 */
 }
 
-.chat-user-control-clan > .arrow-button,
-.chat-user-control-clan > .arrow-button > .arrow {
-  -fx-padding: 0;
-  visibility: hidden;
-}
+/* User List Settings */
 
-.chat-user-control-clan:hover > .arrow-button,
-.chat-user-control-clan:hover > .arrow-button > .arrow {
-  /* Restore value from Modena */
-  -fx-padding: 0.25em;
-  visibility: visible;
+.user-list-settings {
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-base;
+  -fx-border-width: 0.0625em; /* 1 */
+  -fx-border-color: -darkened-color;
+  -fx-padding: 0.625em; /* 10 */
 }
 
 /***************** Privat Chat User Info *****************/
@@ -384,6 +375,9 @@
 .filter-user {
   -fx-background-color: -fx-background;
   -fx-background: -fx-base;
+  -fx-border-width: 0.0625em; /* 1 */
+  -fx-border-color: -darkened-color;
+  -fx-padding: 0.625em; /* 10 */
 }
 
 /***************** Map Filter Window *****************/

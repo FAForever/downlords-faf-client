@@ -86,7 +86,7 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instance.chatUserItemRoot));
+    assertThat(instance.getRoot(), is(instance.root));
     assertThat(instance.getRoot().getParent(), is(nullValue()));
   }
 
@@ -110,7 +110,7 @@ public class ChatUserItemControllerTest extends UITest {
 
     assertFalse(instance.avatarImageView.isVisible());
     assertFalse(instance.playerStatusIndicator.isVisible());
-    assertFalse(instance.playerMapImage.isVisible());
+    assertFalse(instance.mapImageView.isVisible());
     assertFalse(instance.countryImageView.isVisible());
   }
 
@@ -130,7 +130,7 @@ public class ChatUserItemControllerTest extends UITest {
 
     assertTrue(instance.avatarImageView.isVisible());
     assertTrue(instance.playerStatusIndicator.isVisible());
-    assertTrue(instance.playerMapImage.isVisible());
+    assertTrue(instance.mapImageView.isVisible());
     assertTrue(instance.countryImageView.isVisible());
   }
 
@@ -225,21 +225,5 @@ public class ChatUserItemControllerTest extends UITest {
     assertThat(items.size(), is(2));
     boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
     assertThat(containsMessageItem, is(true));
-  }
-
-
-  @Test
-  public void testSetVisible() {
-    instance.setVisible(true);
-    assertThat(instance.chatUserItemRoot.isVisible(), is(true));
-    assertThat(instance.chatUserItemRoot.isManaged(), is(true));
-
-    instance.setVisible(false);
-    assertThat(instance.chatUserItemRoot.isVisible(), is(false));
-    assertThat(instance.chatUserItemRoot.isManaged(), is(false));
-
-    instance.setVisible(true);
-    assertThat(instance.chatUserItemRoot.isVisible(), is(true));
-    assertThat(instance.chatUserItemRoot.isManaged(), is(true));
   }
 }

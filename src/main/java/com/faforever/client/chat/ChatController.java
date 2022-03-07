@@ -8,7 +8,6 @@ import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
@@ -21,6 +20,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,29 +35,19 @@ import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ChatController extends AbstractViewController<Node> {
 
-  private final Map<String, AbstractChatTabController> nameToChatTabController;
+  private final Map<String, AbstractChatTabController> nameToChatTabController = new HashMap<>();
   private final ChatService chatService;
   private final UiService uiService;
   private final UserService userService;
-  private final NotificationService notificationService;
   private final EventBus eventBus;
   public Node chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
-
-  public ChatController(ChatService chatService, UiService uiService, UserService userService, NotificationService notificationService, EventBus eventBus) {
-    this.chatService = chatService;
-    this.uiService = uiService;
-    this.userService = userService;
-    this.notificationService = notificationService;
-    this.eventBus = eventBus;
-
-    nameToChatTabController = new HashMap<>();
-  }
 
   private void onChannelLeft(ChatChannel chatChannel) {
     JavaFxUtil.runLater(() -> removeTab(chatChannel.getName()));
@@ -163,17 +153,10 @@ public class ChatController extends AbstractViewController<Node> {
 
   private void onConnectionStateChange(ConnectionState newValue) {
     switch (newValue) {
-      case DISCONNECTED:
-        onDisconnected();
-        break;
-      case CONNECTED:
-        onConnected();
-        break;
-      case CONNECTING:
-        onConnecting();
-        break;
-      default:
-        throw new ProgrammingError("Uncovered connection state: " + newValue);
+      case DISCONNECTED -> onDisconnected();
+      case CONNECTED -> onConnected();
+      case CONNECTING -> onConnecting();
+      default -> throw new ProgrammingError("Uncovered connection state: " + newValue);
     }
   }
 

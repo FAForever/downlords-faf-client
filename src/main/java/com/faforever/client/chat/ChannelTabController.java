@@ -9,6 +9,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -50,6 +51,7 @@ import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
+import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.extern.slf4j.Slf4j;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -57,9 +59,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,6 +76,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -101,6 +107,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
   private final AutoCompletionHelper autoCompletionHelper;
   private final PlatformService platformService;
+  private final TaskScheduler taskScheduler;
   public SplitPane splitPane;
   public ToggleButton advancedUserFilter;
   public HBox searchFieldContainer;
@@ -114,12 +121,20 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public VBox chatUserListViewBox;
   public VBox topicPane;
   public TextFlow topicText;
+  public Button settingsButton;
   public ToggleButton toggleSidePaneButton;
   private ChatChannel chatChannel;
   private final InvalidationListener channelTopicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
   private Popup filterUserPopup;
   private ChatUserFilterController chatUserFilterController;
   private MapChangeListener<String, ChatChannelUser> usersChangeListener;
+  private boolean initializedList = false;
+  private Future<?> initializeListFuture;
+  private final InvalidationListener selectedTabListener = observable -> {
+    if (getRoot().isSelected() && !initializedList && initializeListFuture != null && initializeListFuture.isDone()) {
+      initializeList();
+    }
+  };
 
   // TODO cut dependencies
   public ChannelTabController(UserService userService, ChatService chatService,
@@ -130,12 +145,13 @@ public class ChannelTabController extends AbstractChatTabController implements I
                               UiService uiService, EventBus eventBus,
                               WebViewConfigurer webViewConfigurer,
                               CountryFlagService countryFlagService, PlatformService platformService,
-                              ChatUserService chatUserService, EmoticonService emoticonService) {
+                              ChatUserService chatUserService, EmoticonService emoticonService, TaskScheduler taskScheduler) {
 
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         eventBus, countryFlagService, chatUserService, emoticonService);
     this.platformService = platformService;
+    this.taskScheduler = taskScheduler;
 
     categoriesToUserListItems = new HashMap<>();
     categoriesToCategoryListItems = new HashMap<>();
@@ -162,7 +178,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
       categoriesToCategoryListItems.put(categoryItem.getCategory(), categoryItem);
       categoriesToUserListItems.put(categoryItem.getCategory(), new ArrayList<>());
     });
-    JavaFxUtil.runLater(() -> chatUserListItems.addAll(categoryObjects));
+    chatUserListItems.addAll(categoryObjects);
   }
 
   public void setChatChannel(ChatChannel chatChannel) {
@@ -183,8 +199,12 @@ public class ChannelTabController extends AbstractChatTabController implements I
       updateUserCount(change.getMap().size());
     };
     updateUserCount(chatChannel.getUsers().size());
-
     chatService.addUsersListener(channelName, usersChangeListener);
+    JavaFxUtil.addListener(chatService.connectionStateProperty(), observable -> {
+      if (chatService.getConnectionState() == ConnectionState.DISCONNECTED) {
+        chatService.removeUsersListener(channelName, usersChangeListener);
+      }
+    });
 
     // Maybe there already were some users; fetch them
     chatChannel.getUsers().forEach(this::onUserJoinedChannel);
@@ -213,6 +233,11 @@ public class ChannelTabController extends AbstractChatTabController implements I
     }));
 
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), ((observable, oldValue, newValue) -> chatChannel.getUsers().forEach(this::updateUserMessageColor)));
+    initializeListFuture = taskScheduler.schedule(() -> {
+      if (getRoot().isSelected()) {
+        initializeList();
+      }
+    }, Instant.now().plus(4000, ChronoUnit.MILLIS));
   }
 
   private void updateChannelTopic() {
@@ -250,15 +275,19 @@ public class ChannelTabController extends AbstractChatTabController implements I
     channelTabScrollPaneVBox.setPrefWidth(preferencesService.getPreferences().getChat().getChannelTabScrollPaneWidth());
     addUserFilterPopup();
 
-
-    VirtualFlow<CategoryOrChatUserListItem, ChatUserListCell> chatUserFlow = VirtualFlow.createVertical(filteredChatUserList, chatUserListItem -> new ChatUserListCell(chatUserListItem, uiService));
-    VirtualizedScrollPane<VirtualFlow<CategoryOrChatUserListItem, ChatUserListCell>> chatUserScrollPane = new VirtualizedScrollPane<>(chatUserFlow);
-    VBox.setVgrow(chatUserScrollPane, Priority.ALWAYS);
-    chatUserListViewBox.getChildren().add(chatUserScrollPane);
-
     autoCompletionHelper.bindTo(messageTextField());
 
     initializeSideToggle();
+    JavaFxUtil.addListener(getRoot().selectedProperty(), new WeakInvalidationListener(selectedTabListener));
+  }
+
+  private void initializeList() {
+    VirtualFlow<CategoryOrChatUserListItem, ChatUserListCell> chatUserFlow = VirtualFlow.createVertical(filteredChatUserList,
+        chatUserListItem -> new ChatUserListCell(chatUserListItem, uiService));
+    VirtualizedScrollPane<VirtualFlow<CategoryOrChatUserListItem, ChatUserListCell>> chatUserScrollPane = new VirtualizedScrollPane<>(chatUserFlow);
+    VBox.setVgrow(chatUserScrollPane, Priority.ALWAYS);
+    initializedList = true;
+    JavaFxUtil.runLater(() -> chatUserListViewBox.getChildren().add(chatUserScrollPane));
   }
 
   private void initializeSideToggle() {
@@ -397,6 +426,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
             () -> updateChatUserListItemsForCategories(chatUser));
   }
 
+
   /**
    * Adds and removes chat user items from the chat user list depending on the user's categories. For instance, if the
    * user is a moderator, he'll be added to the moderator category (if missing) and if he's no longer a friend, he will
@@ -416,14 +446,30 @@ public class ChannelTabController extends AbstractChatTabController implements I
             CategoryOrChatUserListItem userItem = new CategoryOrChatUserListItem(chatUser, category);
             userListItems.add(userItem);
             categoryUserList.add(userItem);
-            JavaFxUtil.runLater(() -> chatUserListItems.add(userItem));
+            addItemToList(userItem);
           } else if (!chatUserCategorySet.contains(category) && userListItems.stream().anyMatch(categoryUserList::contains)) {
             List<CategoryOrChatUserListItem> itemsToRemove = userListItems.stream().filter(categoryUserList::contains).collect(Collectors.toList());
             userListItems.removeAll(itemsToRemove);
             categoryUserList.removeAll(itemsToRemove);
-            JavaFxUtil.runLater(() -> chatUserListItems.removeAll(itemsToRemove));
+            removeItemsFromList(itemsToRemove);
           }
         });
+  }
+
+  private void addItemToList(CategoryOrChatUserListItem item) {
+    if (!initializedList) {
+      chatUserListItems.add(item);
+    } else {
+      JavaFxUtil.runLater(() -> chatUserListItems.add(item));
+    }
+  }
+
+  private void removeItemsFromList(List<CategoryOrChatUserListItem> items) {
+    if (!initializedList) {
+      chatUserListItems.removeAll(items);
+    } else {
+      JavaFxUtil.runLater(() -> chatUserListItems.removeAll(items));
+    }
   }
 
   private void updateCssClass(ChatChannelUser chatUser) {
@@ -443,7 +489,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
     List<CategoryOrChatUserListItem> listItemsToBeRemoved = userNamesToListItems.remove(username);
 
     if (listItemsToBeRemoved != null) {
-      JavaFxUtil.runLater(() -> chatUserListItems.removeAll(listItemsToBeRemoved));
+      removeItemsFromList(listItemsToBeRemoved);
       Arrays.stream(ChatUserCategory.values())
           .filter(categoriesToUserListItems::containsKey)
           .map(categoriesToUserListItems::get)
@@ -556,5 +602,16 @@ public class ChannelTabController extends AbstractChatTabController implements I
     long foundItems = getChatUserItemsByCategory(category).stream()
         .map(userItem -> userItem.getUser().getUsername()).filter(names::contains).count();
     return foundItems == names.size();
+  }
+
+  public void openListCustomizationSettingsPopup() {
+    UserListSettingsController controller = uiService.loadFxml("theme/chat/user_list_settings.fxml");
+    Popup popup = new Popup();
+    popup.getContent().add(controller.getRoot());
+    popup.setAutoFix(true);
+    popup.setAutoHide(true);
+    popup.setAnchorLocation(AnchorLocation.WINDOW_TOP_RIGHT);
+    Bounds bounds = settingsButton.localToScreen(settingsButton.getBoundsInLocal());
+    popup.show(settingsButton.getScene().getWindow(), bounds.getMaxX(), bounds.getMaxY() + 5);
   }
 }

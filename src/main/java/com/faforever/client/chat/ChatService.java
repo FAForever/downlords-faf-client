@@ -45,6 +45,8 @@ public interface ChatService {
 
   ReadOnlyObjectProperty<ConnectionState> connectionStateProperty();
 
+  ConnectionState getConnectionState();
+
   void reconnect();
 
   void whois(String username);
