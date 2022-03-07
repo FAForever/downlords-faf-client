@@ -5,64 +5,43 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PlayerStatsMapBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
-import com.faforever.client.builders.ReplayReviewBeanBuilder;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.FeaturedModBean;
-import com.faforever.client.domain.GamePlayerStatsBean;
-import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.domain.ReplayReviewBean;
-import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.map.generator.MapGeneratorService;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.rating.RatingService;
 import com.faforever.client.reporting.ReportDialogController;
-import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
-import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import com.faforever.commons.api.dto.Validity;
-import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -104,14 +83,11 @@ public class ReplayCardControllerTest extends UITest {
   @Mock
   private ReportDialogController reportDialogController;
 
-  private PlayerBean currentPlayer;
   private ReplayBean onlineReplay;
-  private ReplayBean localReplay;
   private MapVersionBean mapBean;
 
   @BeforeEach
   public void setUp() throws Exception {
-    currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
     mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
     onlineReplay = ReplayBeanBuilder.create().defaultValues()
         .validity(Validity.VALID)
@@ -122,7 +98,7 @@ public class ReplayCardControllerTest extends UITest {
         .teamPlayerStats(PlayerStatsMapBuilder.create().defaultValues().get())
         .get();
 
-    localReplay = ReplayBeanBuilder.create().defaultValues()
+    ReplayBean localReplay = ReplayBeanBuilder.create().defaultValues()
         .validity(null)
         .featuredMod(new FeaturedModBean())
         .reviews(FXCollections.emptyObservableList())

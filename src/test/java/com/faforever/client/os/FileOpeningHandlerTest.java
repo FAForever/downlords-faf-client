@@ -1,6 +1,5 @@
 package com.faforever.client.os;
 
-import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.ServiceTest;
@@ -12,7 +11,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.mockito.ArgumentMatchers.any;
