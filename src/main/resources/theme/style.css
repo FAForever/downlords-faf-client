@@ -299,6 +299,8 @@
 .chat-channel-users-pane {
   -fx-background-color: -fx-background;
   -fx-background: #FFFFFF08;
+  -fx-border-width: 0 0 0 0.0625em; /* 0 0 0 1 */
+  -fx-border-color: -darkened-color
 }
 
 .filter-toggle-button, .user-list-settings-button {
@@ -1388,7 +1390,7 @@
   -fx-padding: 4 0 4 0;
 }
 
-/***************** Chat Channel ***************************/
+/***************** Private Chat Channel ***************************/
 
 .open-emoticons-window {
   -fx-background-color: transparent;
@@ -1398,6 +1400,11 @@
   -fx-background-color: transparent;
   -fx-border-width: 2 0 0 0;
   -fx-border-color: #424242;
+}
+
+.player-detail-info-content {
+  -fx-border-width: 0 0 0 0.0625em; /* 0 0 0 1 */
+  -fx-border-color: -darkened-color
 }
 
 /***************** Live Replay Tab ***************************/

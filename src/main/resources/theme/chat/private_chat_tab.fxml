@@ -39,7 +39,8 @@
                         </StackPane>
                     </VBox>
                     <ScrollPane fx:id="gameDetailScrollPane" fitToWidth="true" maxHeight="1.7976931348623157E308"
-                                maxWidth="1.7976931348623157E308" SplitPane.resizableWithParent="false">
+                                maxWidth="1.7976931348623157E308" SplitPane.resizableWithParent="false"
+                                styleClass="player-detail-info-content">
                         <content>
                             <fx:include fx:id="privatePlayerInfo" source="private_user_info.fxml"/>
                         </content>
