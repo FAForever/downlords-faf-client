@@ -250,13 +250,17 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void updateMapNameLabel(String mapName) {
-    String[] text = new String[1];
+    String text;
     if (mapGeneratorService.isGeneratedMap(mapName)) {
-      text[0] = "Neroxis Generated Map";
+      text = "Neroxis Generated Map";
     } else {
-      mapService.getMapLocallyFromName(mapName).ifPresentOrElse(mapVersion -> text[0] = mapVersion.getMap().getDisplayName(),
-          () -> text[0] = mapName.replace("_", " ").replaceAll(".v\\d+", ""));
+      text = mapService.getMapLocallyFromName(mapName).map(mapVersion -> mapVersion.getMap().getDisplayName())
+          .orElseGet(() -> convertMapFolderNameToHumanName(mapName));
     }
-    mapNameLabel.setText(i18n.get("game.onMapFormat", text[0]));
+    mapNameLabel.setText(i18n.get("game.onMapFormat", text));
+  }
+
+  private String convertMapFolderNameToHumanName(String mapName) {
+    return mapName.replace("_", " ").replaceAll(".v\\d+", "");
   }
 }
