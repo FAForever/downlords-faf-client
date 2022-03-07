@@ -88,42 +88,6 @@ public class ChatUserItemControllerTest extends UITest {
   }
 
   @Test
-  public void testNullValuesHidesNodes() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME)
-        .defaultValues()
-        .player(player)
-        .get();
-    instance.setChatUser(chatUser);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertFalse(instance.avatarImageView.isVisible());
-    assertFalse(instance.gameStatusImageView.isVisible());
-    assertFalse(instance.mapImageView.isVisible());
-    assertFalse(instance.countryImageView.isVisible());
-  }
-
-  @Test
-  public void testNotNullValuesShowsNodes() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME)
-        .defaultValues()
-        .player(player)
-        .avatar(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .countryFlag(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .mapImage(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .statusImage(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .get();
-    instance.setChatUser(chatUser);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.avatarImageView.isVisible());
-    assertTrue(instance.gameStatusImageView.isVisible());
-    assertTrue(instance.mapImageView.isVisible());
-    assertTrue(instance.countryImageView.isVisible());
-  }
-
-  @Test
   public void testSingleClickDoesNotInitiatePrivateChat() {
     instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
 
