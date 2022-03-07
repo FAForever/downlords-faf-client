@@ -11,6 +11,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
@@ -23,6 +24,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
@@ -37,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
@@ -112,6 +115,8 @@ public class ChatChannelTabControllerTest extends UITest {
   private ChatUserService chatUserService;
   @Mock
   private EmoticonService emoticonService;
+  @Mock
+  private TaskScheduler taskScheduler;
 
   private Preferences preferences;
   private ChatChannel defaultChatChannel;
@@ -130,6 +135,7 @@ public class ChatChannelTabControllerTest extends UITest {
     when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
     when(chatUserItemController.getRoot()).then(invocation -> new Pane());
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
+    when(chatService.connectionStateProperty()).thenReturn(new ReadOnlyObjectWrapper<>(ConnectionState.CONNECTED).getReadOnlyProperty());
 
     loadFxml("theme/chat/user_filter.fxml", clazz -> chatUserFilterController);
     loadFxml("theme/chat/channel_tab.fxml", clazz -> instance);
