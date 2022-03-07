@@ -15,9 +15,11 @@ import com.faforever.client.fx.contextmenu.InvitePlayerMenuItem;
 import com.faforever.client.fx.contextmenu.JoinGameMenuItem;
 import com.faforever.client.fx.contextmenu.KickGameMenuItem;
 import com.faforever.client.fx.contextmenu.KickLobbyMenuItem;
+import com.faforever.client.fx.contextmenu.OpenClanUrlMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
 import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
+import com.faforever.client.fx.contextmenu.SendPrivateMessageClanLeaderMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
@@ -160,6 +162,9 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(SendPrivateMessageMenuItem.class, chatUser.getUsername())
         .addItem(CopyUsernameMenuItem.class, chatUser.getUsername())
         .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatUserColorPickerCustomMenuItemController.class), chatUser)
+        .addSeparator()
+        .addItem(SendPrivateMessageClanLeaderMenuItem.class, chatUser.getClan().orElse(null))
+        .addItem(OpenClanUrlMenuItem.class, chatUser.getClan().orElse(null))
         .addSeparator()
         .addItem(InvitePlayerMenuItem.class, player)
         .addItem(AddFriendMenuItem.class, player)
