@@ -46,6 +46,7 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   ReadOnlyObjectWrapper<PlayerStatus> status = new ReadOnlyObjectWrapper<>(PlayerStatus.IDLE);
   ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
   ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
+  StringProperty note = new SimpleStringProperty();
 
   public SocialStatus getSocialStatus() {
     return socialStatus.get();
@@ -177,6 +178,18 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   public ObservableSet<ChatChannelUser> getChatChannelUsers() {
     return chatChannelUsers;
+  }
+
+  public StringProperty noteProperty() {
+    return note;
+  }
+
+  public void setNote(String text) {
+    note.set(text);
+  }
+
+  public String getNote() {
+    return note.get();
   }
 
   public int getNumberOfGames(final String leaderboardName) {

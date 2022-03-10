@@ -17,9 +17,12 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
   }
 
   private void finalizeProperties() {
-    setOnAction(event -> onClicked());
-    setText(getItemText());
-    setVisible(isItemVisible());
+    if (isItemVisible()) {
+      setOnAction(event -> onClicked());
+      setText(getItemText());
+    } else {
+      setVisible(false);
+    }
   }
 
   protected abstract void onClicked();

@@ -25,6 +25,7 @@ public class PlayerBeanBuilder {
     socialStatus(SocialStatus.OTHER);
     clan("tst");
     country("US");
+    note("");
     avatar(AvatarBeanBuilder.create().defaultValues().get());
     return this;
   }
@@ -81,6 +82,11 @@ public class PlayerBeanBuilder {
 
   public PlayerBeanBuilder updateTime(OffsetDateTime updateTime) {
     playerBean.setUpdateTime(updateTime);
+    return this;
+  }
+
+  public PlayerBeanBuilder note(String text) {
+    playerBean.setNote(text);
     return this;
   }
 

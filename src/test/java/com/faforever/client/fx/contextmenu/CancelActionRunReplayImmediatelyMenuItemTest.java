@@ -31,7 +31,7 @@ public class CancelActionRunReplayImmediatelyMenuItemTest extends UITest {
 
   @Test
   public void testOnClickedCancelActionRunReplayImmediately() {
-    instance.setObject(any());
+    instance.setObject(GameBeanBuilder.create().get());
     instance.onClicked();
     verify(liveReplayService).stopTrackingLiveReplay();
   }

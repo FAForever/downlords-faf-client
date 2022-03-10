@@ -1403,6 +1403,16 @@
 /***************** Player Card ***************************/
 
 .player-card-content {
-  -fx-padding: 4 0;
+  -fx-padding: 0.0625em 0em; /* 1 0 */
+}
+
+.player-label {
+  -fx-padding: 0.0625em 0.25em 0.0625em 0.125em; /* 1 4 1 2 */
+}
+
+.player-card-content .player-label:hover {
+  -fx-cursor: hand;
+  -fx-background-color: derive(-card-color, 5%);
+  -fx-background-radius: 0.375em; /* 6 */
 }
 
