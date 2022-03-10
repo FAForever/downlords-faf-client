@@ -6,7 +6,6 @@ import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.builders.ReplayReviewsSummaryBeanBuilder;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.PlatformService;
