@@ -30,6 +30,7 @@ import com.faforever.client.rating.RatingService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ClipboardUtil;
+import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
@@ -488,5 +489,9 @@ public class ReplayDetailController implements Controller<Node> {
   public void showRatingChange() {
     teamCardControllers.forEach(teamCardController -> teamCardController.showRatingChange(teams));
     showRatingChangeButton.setDisable(true);
+  }
+
+  public void onMapPreviewImageClicked() {
+    Optional.ofNullable(replay.getMapVersion()).ifPresent(map -> PopupUtil.showImagePopup(mapService.loadPreview(map, PreviewSize.LARGE)));
   }
 }

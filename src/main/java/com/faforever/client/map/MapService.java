@@ -568,7 +568,7 @@ public class MapService implements InitializingBean, DisposableBean {
     // These must match the preview URLs
     SMALL("small"), LARGE("large");
 
-    String folderName;
+    final String folderName;
 
     PreviewSize(String folderName) {
       this.folderName = folderName;

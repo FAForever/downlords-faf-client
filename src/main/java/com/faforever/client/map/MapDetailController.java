@@ -14,6 +14,7 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -323,5 +324,9 @@ public class MapDetailController implements Controller<Node> {
       notificationService.addImmediateErrorNotification(throwable, "map.couldNotHide");
       return null;
     });
+  }
+
+  public void onMapPreviewImageClicked() {
+    Optional.ofNullable(mapVersion).ifPresent(map -> PopupUtil.showImagePopup(mapService.loadPreview(map, PreviewSize.LARGE)));
   }
 }

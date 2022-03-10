@@ -1416,3 +1416,8 @@
   -fx-background-radius: 0.375em; /* 6 */
 }
 
+/***************** General ***************************/
+
+.clickable {
+  -fx-cursor: hand;
+}
