@@ -267,7 +267,7 @@ public class ReplayService {
   public void hostFromReplay(ReplayBean item) {
     if (item.getReplayFile() != null) {
       try {
-        runHostFromFafReplayFile(item.getReplayFile());
+        hostFromFafReplayFile(item.getReplayFile());
       } catch (CompressorException | IOException e) {
         log.error("Could not read replay file `{}`", item.getReplayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
@@ -351,9 +351,9 @@ public class ReplayService {
 
     String fileName = path.getFileName().toString();
     if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
-      runHostFromFafReplayFile(path);
+      hostFromFafReplayFile(path);
     } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
-      runHostFromSupComReplayFile(path);
+      hostFromSupComReplayFile(path);
     }
   }
 
@@ -402,9 +402,9 @@ public class ReplayService {
 
   private void hostFromOnlineReplay(int replayId) {
     downloadReplay(replayId)
-        .thenAccept((path) -> {
+        .thenComposeAsync((path) -> {
           try {
-            runHostFromFafReplayFile(path);
+            return hostFromFafReplayFile(path);
           } catch (IOException | CompressorException e) {
             throw new CompletionException(e);
           }
@@ -421,7 +421,7 @@ public class ReplayService {
         });
   }
 
-  CompletableFuture<Void> runHostFromFafReplayFile(Path path) throws IOException, CompressorException {
+  CompletableFuture<Void> hostFromFafReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     ReplayMetadata replayMetadata = replayData.getMetadata();
@@ -446,7 +446,7 @@ public class ReplayService {
     });
   }
 
-  CompletableFuture<Void> runHostFromSupComReplayFile(Path path) throws IOException, CompressorException {
+  CompletableFuture<Void> hostFromSupComReplayFile(Path path) throws IOException, CompressorException {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
 
     String mapName = parseMapFolderName(replayData);

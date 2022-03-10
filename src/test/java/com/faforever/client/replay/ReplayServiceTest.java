@@ -6,6 +6,7 @@ import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.builders.ReplayReviewsSummaryBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.PlatformService;
@@ -347,7 +348,7 @@ public class ReplayServiceTest extends ServiceTest {
     ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
 
-    instance.runHostFromSupComReplayFile(replayFile);
+    instance.hostFromSupComReplayFile(replayFile);
 
     NewGameInfo newGameInfo = new NewGameInfo(
         replay.getTitle(),
@@ -371,7 +372,7 @@ public class ReplayServiceTest extends ServiceTest {
     ReplayBean replay = new ReplayBean();
     replay.setReplayFile(replayFile);
 
-    instance.runHostFromFafReplayFile(replayFile);
+    instance.hostFromFafReplayFile(replayFile);
 
     NewGameInfo newGameInfo = new NewGameInfo(
         replay.getTitle(),
@@ -517,6 +518,7 @@ public class ReplayServiceTest extends ServiceTest {
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+
     ReplayBean replay = new ReplayBean();
 
     ReplayMetadata replayMetadata = new ReplayMetadata();

@@ -37,23 +37,6 @@ public class FileOpeningHandlerTest extends ServiceTest {
   }
 
   @Test
-  public void host() throws IOException, CompressorException {
-    ApplicationArguments args = new DefaultApplicationArguments("foo.fafreplay");
-    instance.host(args);
-
-    verify(replayService).hostFromReplayFile(Path.of("foo.fafreplay"));
-  }
-
-  @Test
-  public void testHostException() throws Exception {
-    ApplicationArguments args = new DefaultApplicationArguments("foo.fafreplay");
-    doThrow(new CompressorException("Compressor Error")).when(replayService).hostFromReplayFile(any());
-
-    instance.host(args);
-    verify(notificationService).addImmediateErrorNotification(any(Throwable.class), anyString());
-  }
-
-  @Test
   public void testRunException() throws Exception {
     ApplicationArguments args = new DefaultApplicationArguments("foo.fafreplay");
     doThrow(new CompressorException("Compressor Error")).when(replayService).runReplayFile(any());
