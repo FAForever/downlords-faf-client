@@ -16,7 +16,7 @@ public class ChatUserListCell implements Cell<CategoryOrChatUserListItem, Node> 
       node = chatUserItemController.getRoot();
     } else {
       ChatCategoryItemController chatUserCategoryController = uiService.loadFxml("theme/chat/chat_user_category.fxml");
-      chatUserCategoryController.setChatUserCategory(chatUserListItem.getCategory());
+      chatUserCategoryController.setChatUserCategory(chatUserListItem.getCategory(), "");
       node = chatUserCategoryController.getRoot();
     }
   }

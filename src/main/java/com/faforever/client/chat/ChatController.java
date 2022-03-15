@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
+import com.faforever.client.chat.test.ChannelTabControllerVersion2;
 import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
@@ -14,10 +15,10 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.collections.ListChangeListener;
-import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +37,14 @@ import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatController extends AbstractViewController<Node> {
+public class ChatController extends AbstractViewController<AnchorPane> {
 
   private final Map<String, AbstractChatTabController> nameToChatTabController = new HashMap<>();
   private final ChatService chatService;
   private final UiService uiService;
   private final UserService userService;
   private final EventBus eventBus;
-  public Node chatRoot;
+  public AnchorPane chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
   public VBox noOpenTabsContainer;
@@ -101,7 +102,7 @@ public class ChatController extends AbstractViewController<Node> {
   private AbstractChatTabController getOrCreateChannelTab(String channelName) {
     JavaFxUtil.assertApplicationThread();
     if (!nameToChatTabController.containsKey(channelName)) {
-      ChannelTabController tab = uiService.loadFxml("theme/chat/channel_tab.fxml");
+      ChannelTabControllerVersion2 tab = uiService.loadFxml("theme/chat/channel_tab_v2.fxml");
       tab.setChatChannel(chatService.getOrCreateChannel(channelName));
       addTab(channelName, tab);
     }
@@ -194,7 +195,7 @@ public class ChatController extends AbstractViewController<Node> {
     return nameToChatTabController.get(username);
   }
 
-  public Node getRoot() {
+  public AnchorPane getRoot() {
     return chatRoot;
   }
 

@@ -32,19 +32,23 @@ import java.util.Set;
  * Represents a chat user within a channel. If a user is in multiple channels, one instance per channel needs to be
  * created since e.g. the {@code isModerator} flag is specific to the channel.
  */
-@ToString
+@ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ChatChannelUser {
 
   @EqualsAndHashCode.Include
+  @ToString.Include
   private final ReadOnlyStringWrapper username = new ReadOnlyStringWrapper();
   @EqualsAndHashCode.Include
+  @ToString.Include
   private final ReadOnlyStringWrapper channel = new ReadOnlyStringWrapper();
+  @ToString.Include
   private final BooleanProperty moderator = new SimpleBooleanProperty();
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
   private final ObjectProperty<Instant> lastActive = new SimpleObjectProperty<>();
   private final ObjectProperty<PlayerStatus> gameStatus = new SimpleObjectProperty<>();
+  @ToString.Include
   private final ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>();
   private final ObjectProperty<Image> avatar = new SimpleObjectProperty<>();
   private final ObjectProperty<ClanBean> clan = new SimpleObjectProperty<>();
@@ -399,7 +403,7 @@ public class ChatChannelUser {
     }
   }
 
-  Set<ChatUserCategory> getChatUserCategories() {
+  public Set<ChatUserCategory> getChatUserCategories() {
     Set<ChatUserCategory> userCategories = new HashSet<>();
 
     if (socialStatus.get() == null) {

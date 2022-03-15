@@ -245,6 +245,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
           .filter(Objects::nonNull)
           .forEach(chatChannelUser -> {
             chatUserService.associatePlayerToChatUser(chatChannelUser, player);
+            log.warn("onPlayerOnline");
             eventBus.post(new ChatUserCategoryChangeEvent(chatChannelUser));
           });
     }
@@ -326,6 +327,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
               } else if (modeAction == Action.REMOVE) {
                 chatChannelUser.setModerator(false);
               }
+              log.warn("onChannelModeChanged");
               eventBus.post(new ChatUserCategoryChangeEvent(chatChannelUser));
             }
           }

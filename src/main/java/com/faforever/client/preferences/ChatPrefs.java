@@ -63,6 +63,7 @@ public class ChatPrefs {
   IntegerProperty idleThreshold = new SimpleIntegerProperty(10);
   BooleanProperty showMapName = new SimpleBooleanProperty(false);
   BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
+  MapProperty<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories = new SimpleMapProperty<>(FXCollections.observableHashMap());
 
   public ChatPrefs() {
     Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
@@ -259,5 +260,9 @@ public class ChatPrefs {
 
   public void setShowMapName(boolean showMapName) {
     this.showMapName.set(showMapName);
+  }
+
+  public MapProperty<String, ObservableList<ChatUserCategory>> getChannelNameToHiddenCategories() {
+    return channelNameToHiddenCategories;
   }
 }

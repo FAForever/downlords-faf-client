@@ -2,10 +2,10 @@
 
 
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatCategoryItemController"
-      xmlns="http://javafx.com/javafx/8.0.141" fx:id="root">
-    <Label fx:id="categoryLabel" onContextMenuRequested="#onContextMenuRequested" styleClass="chat-user-list-category"/>
-    <Separator styleClass="chat-user-list-category-separator"/>
-</VBox>
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatCategoryItemController"
+      xmlns="http://javafx.com/javafx/8.0.141" fx:id="root" onMouseClicked="#onCategoryClicked"
+      styleClass="clickable, chat-user-list-category" spacing="3.0">
+    <Label fx:id="visibilityStateLabel"/>
+    <Label fx:id="categoryLabel" onContextMenuRequested="#onContextMenuRequested"/>
+</HBox>

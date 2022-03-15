@@ -9,9 +9,14 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -31,17 +36,52 @@ public class ChatCategoryItemController implements Controller<Node> {
 
   public Node root;
   public Label categoryLabel;
+  public Label visibilityStateLabel;
+
   private ChatUserCategory chatUserCategory;
+  private String channelName;
+  private ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesProperty;
 
-  void setChatUserCategory(ChatUserCategory chatUserCategory) {
+  public void setChatUserCategory(ChatUserCategory chatUserCategory, String channelName) {
     this.chatUserCategory = chatUserCategory;
-
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    this.channelName = channelName;
     categoryLabel.setText(i18n.get(chatUserCategory.getI18nKey()));
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+    channelNameToHiddenCategoriesProperty = chatPrefs.getChannelNameToHiddenCategories();
+    ObservableList<ChatUserCategory> hiddenCategories = channelNameToHiddenCategoriesProperty.get(channelName);
+    setHiddenCategory(hiddenCategories != null && hiddenCategories.contains(chatUserCategory));
     JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
       Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
       return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
     }, chatPrefs.groupToColorProperty()));
+
+  }
+
+  public void onCategoryClicked(MouseEvent mouseEvent) {
+    if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 1) {
+      ObservableList<ChatUserCategory> hiddenCategories = channelNameToHiddenCategoriesProperty.get(channelName);
+      if (hiddenCategories == null) {
+        channelNameToHiddenCategoriesProperty.put(channelName, FXCollections.observableArrayList(chatUserCategory));
+        setHiddenCategory(true);
+      } else {
+        if (hiddenCategories.contains(chatUserCategory)) {
+          if (hiddenCategories.size() == 1) {
+            channelNameToHiddenCategoriesProperty.remove(channelName);
+          } else {
+            hiddenCategories.remove(chatUserCategory);
+          }
+          setHiddenCategory(false);
+        } else {
+          hiddenCategories.add(chatUserCategory);
+          setHiddenCategory(true);
+        }
+      }
+    }
+  }
+
+  private void setHiddenCategory(boolean hidden) {
+    String state = hidden ? "˃ " : "˅ ";
+    JavaFxUtil.runLater(() -> visibilityStateLabel.setText(state));
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {

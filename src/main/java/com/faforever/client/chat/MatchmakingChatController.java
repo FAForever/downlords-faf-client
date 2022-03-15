@@ -72,6 +72,10 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   public void setChannel(String partyName) {
+    if (true) {
+      return;
+    }
+
     channel = chatService.getOrCreateChannel(partyName);
     chatService.joinChannel(partyName);
     setReceiver(partyName);
