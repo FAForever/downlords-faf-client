@@ -62,7 +62,6 @@ public class I18n implements InitializingBean {
         new Locale("cs"),
         new Locale("es"),
         new Locale("uk"),
-        new Locale("iw"),
         new Locale("tr"),
         new Locale("nl"),
         new Locale("cat"),
