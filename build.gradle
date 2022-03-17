@@ -168,7 +168,6 @@ bootRun {
     main = "com.faforever.client.Main"
     jvmArgs = [
             "-DnativeDir=build/resources/native",
-            "-Dprism.dirtyopts=false",
             "-Dprism.forceGPU=true",
             "-Xms128m",
             "-Xmx712m",
