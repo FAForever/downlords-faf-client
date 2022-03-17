@@ -65,7 +65,6 @@
 -javaagent:lib/webview-patch.jar
 -Djava.net.preferIPv4Stack=true
 -DnativeDir=natives
--Dprism.dirtyopts=false
 -Dprism.forceGPU=true
 -Djava.library.path=.
         </content>
