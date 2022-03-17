@@ -4,17 +4,17 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:id="root" styleClass="user-list-settings" fx:controller="com.faforever.client.chat.UserListSettingsController"
+<VBox fx:id="root" styleClass="user-list-settings" fx:controller="com.faforever.client.chat.UserListCustomizationController"
       alignment="TOP_RIGHT"
       maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="6.0"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label contentDisplay="RIGHT" text="%chat.userList.settings.showMapPreview">
+        <Label contentDisplay="RIGHT" text="%chat.userList.customization.showMapPreview">
             <graphic>
                 <CheckBox mnemonicParsing="false" fx:id="showMapPreviewCheckBox"/>
             </graphic>
         </Label>
-        <Label contentDisplay="RIGHT" text="%chat.userList.settings.showMapName">
+        <Label contentDisplay="RIGHT" text="%chat.userList.customization.showMapName">
             <graphic>
                 <CheckBox mnemonicParsing="false" fx:id="showMapNameCheckBox"/>
             </graphic>

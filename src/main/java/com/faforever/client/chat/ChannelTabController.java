@@ -616,7 +616,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
   }
 
   public void openListCustomizationSettingsPopup() {
-    UserListSettingsController controller = uiService.loadFxml("theme/chat/user_list_settings.fxml");
+    UserListCustomizationController controller = uiService.loadFxml("theme/chat/user_list_customization.fxml");
     Popup popup = new Popup();
     popup.getContent().add(controller.getRoot());
     popup.setAutoFix(true);

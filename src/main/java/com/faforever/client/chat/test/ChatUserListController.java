@@ -5,12 +5,12 @@ import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.chat.ChatUserService;
+import com.faforever.client.chat.UserListCustomizationController;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -25,16 +25,17 @@ import javafx.collections.WeakListChangeListener;
 import javafx.collections.WeakMapChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
+import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.fxmisc.flowless.Cell;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -49,10 +50,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -73,25 +72,59 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   public VBox root;
   public ToggleButton advancedFiltersToggleButton;
-  public TextField searchTextField;
+  public TextField searchUsernameTextField;
   public Button listCustomizationButton;
   public VBox userListContainer;
 
   private final Map<ChatUserCategory, List<ChatUserItem>> categoriesToUsers = new HashMap<>();
-  private final Map<String, List<ChatUserItem>> usernameToChatUserList = Collections.synchronizedMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
-  private final ObservableList<ListItem> source = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
+  private final Map<String, List<ChatUserItem>> usernameToChatUserList = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+  private final ObservableList<ListItem> source = FXCollections.observableArrayList();
   private final Object monitor = new Object();
 
   private MapProperty<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories;
-  private MapChangeListener<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesListener;
   private ObservableList<ChatUserCategory> hiddenCategories;
-  private ListChangeListener<ChatUserCategory> hiddenCategoriesListener;
-  private ObservableMap<ChatUserCategory, Boolean> visibleCategories = FXCollections.observableHashMap();
-  private MapChangeListener<ChatUserCategory, Boolean> visibleCategoriesListener;
-  private MapChangeListener<String, ChatChannelUser> channelUserListListener;
+  private final ObservableMap<ChatUserCategory, Boolean> visibleCategories = FXCollections.observableHashMap();
+
   private String channelName;
   private VirtualFlow<ListItem, Cell<ListItem, Node>> listView;
   private FilteredList<ListItem> items;
+
+  /* ----- Listeners ----- */
+  private final ListChangeListener<ChatUserCategory> hiddenCategoriesListener = change -> {
+    while (change.next()) {
+      if (change.wasAdded()) {
+        change.getAddedSubList().forEach(category -> visibleCategories.put(category, false));
+      } else if (change.wasRemoved()) {
+        change.getRemoved().forEach(category -> visibleCategories.put(category, true));
+      }
+    }
+  };
+
+  private final MapChangeListener<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesListener = change -> {
+    if (change.getKey().equals(channelName)) {
+      if (change.wasAdded()) {
+        change.getValueAdded().forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
+        JavaFxUtil.addListener(change.getValueAdded(), new WeakListChangeListener<>(hiddenCategoriesListener));
+      }
+      if (change.wasRemoved()) {
+        change.getValueRemoved().forEach(removedHiddenCategory -> visibleCategories.put(removedHiddenCategory, true));
+        JavaFxUtil.removeListener(change.getValueRemoved(), hiddenCategoriesListener);
+      }
+      storePreferencesInBackground();
+    }
+  };
+
+  private final MapChangeListener<ChatUserCategory, Boolean> visibleCategoriesListener = change ->
+      onVisibleCategoryChanged(change.getKey(), change.getValueAdded());
+
+  private final MapChangeListener<String, ChatChannelUser> channelUserListListener = change -> {
+    if (change.wasAdded()) {
+      onUserJoined(change.getValueAdded());
+    } else {
+      onUserLeft(change.getValueRemoved());
+    }
+    updateUserCount(change.getMap().size());
+  };
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -116,50 +149,17 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       categoriesToUsers.put(category, FXCollections.synchronizedObservableList(FXCollections.observableArrayList()));
       source.add(new ChatUserCategoryItem(category, channelName));
     });
+    if (hiddenCategories != null) {
+      hiddenCategories.forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
+    }
   }
 
   private void initializeListeners() {
-    hiddenCategoriesListener = change -> {
-      while (change.next()) {
-        if (change.wasAdded()) {
-          change.getAddedSubList().forEach(category -> visibleCategories.put(category, false));
-        } else if (change.wasRemoved()) {
-          change.getRemoved().forEach(category -> visibleCategories.put(category, true));
-        }
-      }
-    };
-
-    visibleCategoriesListener = change -> onVisibleCategoryChanged(change.getKey(), change.getValueAdded());
-
-    channelNameToHiddenCategoriesListener = change -> {
-      if (change.getKey().equals(channelName)) {
-        if (change.wasAdded()) {
-          change.getValueAdded().forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
-          JavaFxUtil.addListener(change.getValueAdded(), new WeakListChangeListener<>(hiddenCategoriesListener));
-        }
-        if (change.wasRemoved()) {
-          change.getValueRemoved().forEach(removedHiddenCategory -> visibleCategories.put(removedHiddenCategory, true));
-          JavaFxUtil.removeListener(change.getValueRemoved(), hiddenCategoriesListener);
-        }
-        preferencesService.storeInBackground();
-      }
-    };
-
-    channelUserListListener = change -> {
-      if (change.wasAdded()) {
-        onUserJoined(change.getValueAdded());
-      } else {
-        onUserLeft(change.getValueRemoved());
-      }
-      updateUserCount(change.getMap().size());
-    };
-
     chatService.addUsersListener(channelName, channelUserListListener);
     JavaFxUtil.addListener(visibleCategories, new WeakMapChangeListener<>(visibleCategoriesListener));
     JavaFxUtil.addListener((ObservableMap<String, ObservableList<ChatUserCategory>>) channelNameToHiddenCategories,
         new WeakMapChangeListener<>(channelNameToHiddenCategoriesListener));
     if (hiddenCategories != null) {
-      hiddenCategories.forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
       JavaFxUtil.addListener(hiddenCategories, new WeakListChangeListener<>(hiddenCategoriesListener));
     }
   }
@@ -204,9 +204,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
             JavaFxUtil.runLater(() -> source.add(item));
           }
         });
-        log.info("User {} was added", user.getUsername());
-      } else {
-        log.warn("Unregistered user {} for adding", user.getUsername());
       }
     }
   }
@@ -217,22 +214,17 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       if (chatUserItems != null && !chatUserItems.isEmpty()) {
         categoriesToUsers.values().forEach(items -> items.removeAll(chatUserItems));
         JavaFxUtil.runLater(() -> {
-          source.removeAll(chatUserItems);
+          chatUserItems.forEach(source::remove);
           chatUserItems.clear();
           usernameToChatUserList.remove(user.getUsername());
         });
-        log.info("User {} was removed from list", user.getUsername());
-      } else {
-        log.warn("User {} was no registered for removal", user.getUsername());
       }
     }
   }
 
   private void onUserUpdated(ChatChannelUser user) {
       List<ChatUserItem> chatUserItems = usernameToChatUserList.get(user.getUsername());
-      if (chatUserItems == null || chatUserItems.isEmpty()) {
-        log.warn("No user {} in list", user.getUsername());
-      } else {
+      if (chatUserItems != null && !chatUserItems.isEmpty()) {
         onUserLeft(user);
         onUserJoined(user);
       }
@@ -244,25 +236,26 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void updateUserCount(int count) {
-    JavaFxUtil.runLater(() -> searchTextField.setPromptText(i18n.get("chat.userCount", count)));
+    JavaFxUtil.runLater(() -> searchUsernameTextField.setPromptText(i18n.get("chat.userCount", count)));
   }
 
-  private ChatChannelUser createRandomUser() {
-    String username = RandomStringUtils.randomAlphabetic(10);
-    ChatChannelUser user = new ChatChannelUser(username, "#test", RandomUtils.nextBoolean());
-    SocialStatus status = SocialStatus.values()[RandomUtils.nextInt(0, 4)];
-    user.setSocialStatus(status == SocialStatus.SELF ? null : status);
-    log.info("Created user: {}", user);
-    return user;
-  }
-
-  public void onSettingsButtonClicked() {
-    ChatChannelUser user = createRandomUser();
-    onUserJoined(user);
+  public void onListCustomizationButtonClicked() {
+    UserListCustomizationController controller = uiService.loadFxml("theme/chat/user_list_customization.fxml");
+    Popup popup = new Popup();
+    popup.getContent().add(controller.getRoot());
+    popup.setAutoFix(true);
+    popup.setAutoHide(true);
+    popup.setAnchorLocation(AnchorLocation.WINDOW_TOP_RIGHT);
+    Bounds bounds = listCustomizationButton.localToScreen(listCustomizationButton.getBoundsInLocal());
+    popup.show(listCustomizationButton.getScene().getWindow(), bounds.getMaxX(), bounds.getMaxY() + 5);
   }
 
   public void onFilterButtonClicked() {
 
+  }
+
+  private void storePreferencesInBackground() {
+    preferencesService.storeInBackground();
   }
 
   @Override

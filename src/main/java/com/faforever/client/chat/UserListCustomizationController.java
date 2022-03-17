@@ -16,9 +16,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Slf4j
 @RequiredArgsConstructor
-public class UserListSettingsController implements Controller<VBox> {
+public class UserListCustomizationController implements Controller<VBox> {
 
   private final PreferencesService preferencesService;
 
