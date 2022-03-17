@@ -10,11 +10,14 @@ import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.MapProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -101,20 +104,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     }
   };
 
-  private final MapChangeListener<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesListener = change -> {
-    if (change.getKey().equals(channelName)) {
-      if (change.wasAdded()) {
-        change.getValueAdded().forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
-        JavaFxUtil.addListener(change.getValueAdded(), new WeakListChangeListener<>(hiddenCategoriesListener));
-      }
-      if (change.wasRemoved()) {
-        change.getValueRemoved().forEach(removedHiddenCategory -> visibleCategories.put(removedHiddenCategory, true));
-        JavaFxUtil.removeListener(change.getValueRemoved(), hiddenCategoriesListener);
-      }
-      storePreferencesInBackground();
-    }
-  };
-
   private final MapChangeListener<ChatUserCategory, Boolean> visibleCategoriesListener = change ->
       onVisibleCategoryChanged(change.getKey(), change.getValueAdded());
 
@@ -126,6 +115,12 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     }
     updateUserCount(change.getMap().size());
   };
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private MapChangeListener<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesListener;
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener chatConnectionStateListener;
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -156,7 +151,28 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void initializeListeners() {
+    channelNameToHiddenCategoriesListener = change -> {
+      if (change.getKey().equals(channelName)) {
+        if (change.wasAdded()) {
+          change.getValueAdded().forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
+          JavaFxUtil.addListener(change.getValueAdded(), new WeakListChangeListener<>(hiddenCategoriesListener));
+        }
+        if (change.wasRemoved()) {
+          change.getValueRemoved().forEach(removedHiddenCategory -> visibleCategories.put(removedHiddenCategory, true));
+          JavaFxUtil.removeListener(change.getValueRemoved(), hiddenCategoriesListener);
+        }
+        preferencesService.storeInBackground();
+      }
+    };
+
+    chatConnectionStateListener = observable -> {
+      if (chatService.getConnectionState() == ConnectionState.DISCONNECTED) {
+        chatService.removeUsersListener(channelName, channelUserListListener);
+      }
+    };
+
     chatService.addUsersListener(channelName, channelUserListListener);
+    JavaFxUtil.addListener(chatService.connectionStateProperty(), new WeakInvalidationListener(chatConnectionStateListener));
     JavaFxUtil.addListener(visibleCategories, new WeakMapChangeListener<>(visibleCategoriesListener));
     JavaFxUtil.addListener((ObservableMap<String, ObservableList<ChatUserCategory>>) channelNameToHiddenCategories,
         new WeakMapChangeListener<>(channelNameToHiddenCategoriesListener));
@@ -252,12 +268,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     popup.show(listCustomizationButton.getScene().getWindow(), bounds.getMaxX(), bounds.getMaxY() + 5);
   }
 
-  public void onFilterButtonClicked() {
+  public void onAdvancedFiltersToggleButtonClicked() {
 
-  }
-
-  private void storePreferencesInBackground() {
-    preferencesService.storeInBackground();
   }
 
   @Override

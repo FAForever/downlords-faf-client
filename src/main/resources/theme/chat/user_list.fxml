@@ -15,7 +15,7 @@
         <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-and-settings-content">
             <children>
                 <ToggleButton fx:id="advancedFiltersToggleButton" mnemonicParsing="false" styleClass="filter-toggle-button"
-                              onAction="#onFilterButtonClicked">
+                              onAction="#onAdvancedFiltersToggleButtonClicked">
                     <graphic>
                         <Region styleClass="icon,filter-icon,icon16x16"/>
                     </graphic>

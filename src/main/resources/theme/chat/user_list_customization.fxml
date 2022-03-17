@@ -7,7 +7,7 @@
 <VBox fx:id="root" styleClass="user-list-settings" fx:controller="com.faforever.client.chat.UserListCustomizationController"
       alignment="TOP_RIGHT"
       maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="6.0"
-      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+      xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <Label contentDisplay="RIGHT" text="%chat.userList.customization.showMapPreview">
             <graphic>
