@@ -177,14 +177,20 @@ public class SearchController implements Controller<Pane> {
     logicalNodeController.specificationController.propertyField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.operationField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.valueField.valueProperty().addListener(queryInvalidationListener);
-    logicalNodeController.specificationController.valueField.getEditor().textProperty().addListener(observable -> {
-      if (!logicalNodeController.specificationController.valueField.valueProperty().isBound()) {
-        JavaFxUtil.runLater(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText()));
-      }
-    });
+    selectValueBeforeLoosingFocusOnValueField(logicalNodeController);
     logicalNodeController.specificationController.valueField.setOnKeyReleased(event -> {
       if (event.getCode() == KeyCode.ENTER) {
         searchButton.fire();
+      }
+    });
+  }
+
+  private void selectValueBeforeLoosingFocusOnValueField(LogicalNodeController logicalNodeController) {
+    logicalNodeController.specificationController.valueField.getEditor().textProperty().addListener(observable -> {
+      boolean isFreeTextField = !logicalNodeController.specificationController.valueField.valueProperty().isBound()
+          && logicalNodeController.specificationController.valueField.getItems().isEmpty();
+      if (isFreeTextField) {
+        JavaFxUtil.runLater(() -> logicalNodeController.specificationController.valueField.setValue(logicalNodeController.specificationController.valueField.getEditor().getText()));
       }
     });
   }
