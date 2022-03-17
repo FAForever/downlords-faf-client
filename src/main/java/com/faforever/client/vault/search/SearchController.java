@@ -177,7 +177,7 @@ public class SearchController implements Controller<Pane> {
     logicalNodeController.specificationController.propertyField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.operationField.valueProperty().addListener(queryInvalidationListener);
     logicalNodeController.specificationController.valueField.valueProperty().addListener(queryInvalidationListener);
-    selectValueBeforeLoosingFocusOnValueField(logicalNodeController);
+    selectValueBeforeLosingFocusOnValueField(logicalNodeController);
     logicalNodeController.specificationController.valueField.setOnKeyReleased(event -> {
       if (event.getCode() == KeyCode.ENTER) {
         searchButton.fire();
@@ -185,7 +185,7 @@ public class SearchController implements Controller<Pane> {
     });
   }
 
-  private void selectValueBeforeLoosingFocusOnValueField(LogicalNodeController logicalNodeController) {
+  private void selectValueBeforeLosingFocusOnValueField(LogicalNodeController logicalNodeController) {
     logicalNodeController.specificationController.valueField.getEditor().textProperty().addListener(observable -> {
       boolean isFreeTextField = !logicalNodeController.specificationController.valueField.valueProperty().isBound()
           && logicalNodeController.specificationController.valueField.getItems().isEmpty();
