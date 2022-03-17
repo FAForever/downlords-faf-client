@@ -28,6 +28,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.Priority;
@@ -173,6 +174,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       items = new FilteredList<>(new SortedList<>(source, ListItem.getComparator()));
       listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
       VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
+      scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
       VBox.setVgrow(scrollPane, Priority.ALWAYS);
       JavaFxUtil.runLater(() -> userListContainer.getChildren().add(scrollPane));
     }, Instant.now().plus(3000, ChronoUnit.MILLIS));
