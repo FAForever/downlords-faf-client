@@ -170,9 +170,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   private void initializeList() {
     taskScheduler.schedule(() -> {
-      SortedList<ListItem> sortedList = new SortedList<>(source, Comparator.comparing(ListItem::getCategory)
-          .thenComparing(listItem -> listItem.getUser().map(user -> user.getUsername().toLowerCase(Locale.ROOT)).orElse("")));
-      items = new FilteredList<>(sortedList);
+      items = new FilteredList<>(new SortedList<>(source, ListItem.getComparator()));
       listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
       VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
       VBox.setVgrow(scrollPane, Priority.ALWAYS);

@@ -2,6 +2,7 @@ package com.faforever.client.chat.test;
 
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatUserCategory;
+import com.faforever.client.chat.ChatUserItemController;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,34 @@ public class ChatUserItem extends ListItem {
 
   @Override
   public Cell<ListItem, Node> createCell(UiService uiService) {
-    return new ChatUserCell(user, uiService);
+    return new Cell<>() {
+
+      private Node node;
+
+      @Override
+      public Node getNode() {
+        if (node != null) {
+          if (!user.isDisplayed()) {
+            user.setDisplayed(true);
+          }
+          return node;
+        } else {
+          return initializeNode();
+        }
+      }
+
+      @Override
+      public void dispose() {
+        user.setDisplayed(false);
+      }
+
+      private Node initializeNode() {
+        ChatUserItemController chatUserItemController = uiService.loadFxml("theme/chat/chat_user_item.fxml");
+        chatUserItemController.setChatUser(user);
+        node = chatUserItemController.getRoot();
+        return node;
+      }
+    };
   }
 
   @Override

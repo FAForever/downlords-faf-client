@@ -1,5 +1,6 @@
 package com.faforever.client.chat.test;
 
+import com.faforever.client.chat.ChatCategoryItemController;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
@@ -14,7 +15,22 @@ public class ChatUserCategoryItem extends ListItem {
 
   @Override
   public Cell<ListItem, Node> createCell(UiService uiService) {
-    return new ChatUserCategoryCell(category, channelName, uiService);
+    return new Cell<>() {
+
+      private Node node;
+
+      @Override
+      public Node getNode() {
+        return node != null ? node : initializeNode();
+      }
+
+      private Node initializeNode() {
+        ChatCategoryItemController controller = uiService.loadFxml("theme/chat/chat_user_category.fxml");
+        controller.setChatUserCategory(category, channelName);
+        node = controller.getRoot();
+        return node;
+      }
+    };
   }
 
   @Override
