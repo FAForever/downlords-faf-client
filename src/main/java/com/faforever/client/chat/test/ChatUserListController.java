@@ -46,9 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.fxmisc.flowless.Cell;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.TaskScheduler;
@@ -64,6 +62,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Slf4j
 @Component
@@ -98,6 +97,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private VirtualFlow<ListItem, Cell<ListItem, Node>> listView;
   private FilteredList<ListItem> items;
   private final ExecutorService usersEventQueueExecutor = Executors.newSingleThreadExecutor();
+
+  private Future<?> listInitializationFuture;
 
   /* ----- Listeners ----- */
   private final ListChangeListener<ChatUserCategory> hiddenCategoriesListener = change -> {
@@ -136,6 +137,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   @Override
   public void afterPropertiesSet() throws Exception {
     eventBus.register(this);
+    listInitializationFuture = taskScheduler.schedule(this::initializeList, Instant.now().plus(3000, ChronoUnit.MILLIS));
   }
 
   public void setChatChannel(ChatChannel chatChannel) {
@@ -147,7 +149,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     initializeListeners();
     updateUserCount(chatChannel.getUsers().size());
     chatChannel.getUsers().forEach(this::onUserJoined);
-    initializeList();
   }
 
   private void prepareData() {
@@ -192,6 +193,17 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     }
   }
 
+  private void initializeList() {
+    usersEventQueueExecutor.execute(() -> {
+      items = new FilteredList<>(new SortedList<>(source, ListItem.getComparator()));
+      listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
+      VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
+      scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+      VBox.setVgrow(scrollPane, Priority.ALWAYS);
+      JavaFxUtil.runLater(() -> userListContainer.getChildren().add(scrollPane));
+    });
+  }
+
   public void onTabClosed() {
     dispose();
   }
@@ -201,19 +213,9 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     usersEventQueueExecutor.shutdown();
   }
 
-  private void initializeList() {
-    taskScheduler.schedule(() -> {
-      items = new FilteredList<>(new SortedList<>(source, ListItem.getComparator()));
-      listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
-      VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
-      scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
-      VBox.setVgrow(scrollPane, Priority.ALWAYS);
-      JavaFxUtil.runLater(() -> userListContainer.getChildren().add(scrollPane));
-    }, Instant.now().plus(3000, ChronoUnit.MILLIS));
-  }
-
   private void onVisibleCategoryChanged(ChatUserCategory category, boolean visible) {
     log.info("Category {} updated from {}", category.name(), Thread.currentThread().getName());
+    JavaFxUtil.assertApplicationThread();
     if (visible) {
       source.addAll(categoriesToUsers.get(category));
     } else {
@@ -235,7 +237,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
           categoriesToUsers.get(category).add(item);
           chatUserItems.add(item);
           if (visibleCategories.contains(category)) {
-            JavaFxUtil.runLater(() -> source.add(item));
+            addUserToList(item);
           }
         });
       }
@@ -248,14 +250,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       List<ChatUserItem> chatUserItems = usernameToChatUserList.get(user.getUsername());
       if (chatUserItems != null && !chatUserItems.isEmpty()) {
         categoriesToUsers.values().forEach(items -> items.removeAll(chatUserItems));
-        JavaFxUtil.runLater(() -> {
-          // TODO: Uncomment when the bug will be fixed
-          // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
-          // source.removeAll(chatUserItems);
-          chatUserItems.forEach(source::remove);
-          chatUserItems.clear();
-          usernameToChatUserList.remove(user.getUsername());
-        });
+        removeUserOfItemsFromList(user.getUsername(), chatUserItems);
       }
     });
   }
@@ -266,6 +261,31 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     if (chatUserItems != null && !chatUserItems.isEmpty()) {
       onUserLeft(user);
       onUserJoined(user);
+    }
+  }
+
+  private void addUserToList(ChatUserItem item) {
+    if (listInitializationFuture.isDone()) {
+      JavaFxUtil.runLater(() -> source.add(item));
+    } else {
+      source.add(item);
+    }
+  }
+
+  private void removeUserOfItemsFromList(String username, List<ChatUserItem> items) {
+    Runnable removeAction = () -> {
+      // TODO: Uncomment when the bug will be fixed
+      // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
+      // source.removeAll(chatUserItems);
+      items.forEach(source::remove);
+      items.clear();
+      usernameToChatUserList.remove(username);
+    };
+
+    if (listInitializationFuture.isDone()) {
+      JavaFxUtil.runLater(removeAction);
+    } else {
+      removeAction.run();
     }
   }
 
