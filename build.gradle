@@ -96,7 +96,7 @@ tasks.withType(Test) {
 
 //Specify jacoco version to work with java15
 jacoco {
-  toolVersion = "0.8.6"
+  toolVersion = "0.8.7"
 }
 
 apply plugin: 'java'
@@ -105,8 +105,8 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'distribution'
 
 
-sourceCompatibility = JavaVersion.VERSION_15
-targetCompatibility = JavaVersion.VERSION_15
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 // These are read from gradle.properties
 version "${version}"
@@ -178,7 +178,6 @@ bootRun {
             "-XX:ConcGCThreads=1",
             "-XX:ParallelGCThreads=1",
             "-XX:+UseG1GC",
-            "-javaagent:webview-patch/build/libs/webview-patch.jar",
             "-Djava.net.preferIPv4Stack=true",
             "-XX:TieredStopAtLevel=1"
     ]
@@ -276,7 +275,6 @@ task downloadNativeDependencies(dependsOn: [downloadUnixUid, downloadWindowsUid,
 }
 
 compileJava.dependsOn 'downloadNativeDependencies'
-compileJava.dependsOn ':webview-patch:build'
 
 task sendCoverageToCodacy(type: JavaExec, dependsOn: jacocoTestReport) {
   main = "com.codacy.CodacyCoverageReporter"
@@ -332,19 +330,18 @@ dependencies {
   implementation("org.kitteh.irc:client-lib:8.0.0")
   implementation("org.mapstruct:mapstruct:1.4.2.Final")
 
-  implementation("org.openjfx:javafx-base:15.0.1:${javafxPlatform}")
-  implementation("org.openjfx:javafx-controls:15.0.1:${javafxPlatform}")
-  implementation("org.openjfx:javafx-graphics:15.0.1:${javafxPlatform}")
-  implementation("org.openjfx:javafx-swing:15.0.1:${javafxPlatform}")
-  implementation("org.openjfx:javafx-fxml:15.0.1:${javafxPlatform}")
-  implementation("org.openjfx:javafx-web:15.0.1:${javafxPlatform}")
-  implementation("org.openjfx:javafx-media:15.0.1:${javafxPlatform}")
+  implementation("org.openjfx:javafx-base:18:${javafxPlatform}")
+  implementation("org.openjfx:javafx-controls:18:${javafxPlatform}")
+  implementation("org.openjfx:javafx-graphics:18:${javafxPlatform}")
+  implementation("org.openjfx:javafx-swing:18:${javafxPlatform}")
+  implementation("org.openjfx:javafx-fxml:18:${javafxPlatform}")
+  implementation("org.openjfx:javafx-web:18:${javafxPlatform}")
+  implementation("org.openjfx:javafx-media:18:${javafxPlatform}")
   implementation("com.github.1-alex98:discord-rpc:1.6.2-jna")
   implementation("org.controlsfx:controlsfx:11.1.1")
   implementation("org.fxmisc.flowless:flowless:0.6.9")
   implementation("de.codecentric.centerdevice:javafxsvg:1.3.0")
 
-  implementation(project(":webview-patch"))
   implementation("org.javassist:javassist:3.28.0-GA")
 
   implementation("com.install4j:install4j-runtime:9.0.2")
