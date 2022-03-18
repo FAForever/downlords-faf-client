@@ -232,6 +232,9 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       if (chatUserItems != null && !chatUserItems.isEmpty()) {
         categoriesToUsers.values().forEach(items -> items.removeAll(chatUserItems));
         JavaFxUtil.runLater(() -> {
+          // TODO: Uncomment when the bug will be fixed
+          // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
+          // source.removeAll(chatUserItems);
           chatUserItems.forEach(source::remove);
           chatUserItems.clear();
           usernameToChatUserList.remove(user.getUsername());
