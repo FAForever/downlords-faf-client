@@ -24,8 +24,11 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.collections.WeakListChangeListener;
 import javafx.collections.WeakMapChangeListener;
+import javafx.collections.WeakSetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Bounds;
@@ -53,11 +56,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Component
@@ -83,29 +87,34 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private final Map<ChatUserCategory, List<ChatUserItem>> categoriesToUsers = new HashMap<>();
   private final Map<String, List<ChatUserItem>> usernameToChatUserList = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
   private final ObservableList<ListItem> source = FXCollections.observableArrayList();
-  private final Object monitor = new Object();
 
   private MapProperty<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories;
   private ObservableList<ChatUserCategory> hiddenCategories;
-  private final ObservableMap<ChatUserCategory, Boolean> visibleCategories = FXCollections.observableHashMap();
+  private final ObservableSet<ChatUserCategory> visibleCategories = FXCollections.observableSet();
 
   private String channelName;
   private VirtualFlow<ListItem, Cell<ListItem, Node>> listView;
   private FilteredList<ListItem> items;
+  private final ExecutorService usersEventQueueExecutor = Executors.newSingleThreadExecutor();
 
   /* ----- Listeners ----- */
   private final ListChangeListener<ChatUserCategory> hiddenCategoriesListener = change -> {
     while (change.next()) {
       if (change.wasAdded()) {
-        change.getAddedSubList().forEach(category -> visibleCategories.put(category, false));
+        change.getAddedSubList().forEach(visibleCategories::remove);
       } else if (change.wasRemoved()) {
-        change.getRemoved().forEach(category -> visibleCategories.put(category, true));
+        visibleCategories.addAll(change.getRemoved());
       }
     }
   };
 
-  private final MapChangeListener<ChatUserCategory, Boolean> visibleCategoriesListener = change ->
-      onVisibleCategoryChanged(change.getKey(), change.getValueAdded());
+  private final SetChangeListener<ChatUserCategory> visibleCategoriesListener = change -> {
+    if (change.wasAdded()) {
+      onVisibleCategoryChanged(change.getElementAdded(), true);
+    } else {
+      onVisibleCategoryChanged(change.getElementRemoved(), false);
+    }
+  };
 
   private final MapChangeListener<String, ChatChannelUser> channelUserListListener = change -> {
     if (change.wasAdded()) {
@@ -141,12 +150,12 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   private void prepareData() {
     Arrays.stream(ChatUserCategory.values()).forEach(category -> {
-      visibleCategories.put(category, true);
-      categoriesToUsers.put(category, FXCollections.synchronizedObservableList(FXCollections.observableArrayList()));
+      visibleCategories.add(category);
+      categoriesToUsers.put(category, FXCollections.observableArrayList());
       source.add(new ChatUserCategoryItem(category, channelName));
     });
     if (hiddenCategories != null) {
-      hiddenCategories.forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
+      hiddenCategories.forEach(visibleCategories::remove);
     }
   }
 
@@ -154,11 +163,11 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     channelNameToHiddenCategoriesListener = change -> {
       if (change.getKey().equals(channelName)) {
         if (change.wasAdded()) {
-          change.getValueAdded().forEach(hiddenCategory -> visibleCategories.put(hiddenCategory, false));
+          change.getValueAdded().forEach(visibleCategories::remove);
           JavaFxUtil.addListener(change.getValueAdded(), new WeakListChangeListener<>(hiddenCategoriesListener));
         }
         if (change.wasRemoved()) {
-          change.getValueRemoved().forEach(removedHiddenCategory -> visibleCategories.put(removedHiddenCategory, true));
+          change.getValueRemoved().forEach(visibleCategories::add);
           JavaFxUtil.removeListener(change.getValueRemoved(), hiddenCategoriesListener);
         }
         preferencesService.storeInBackground();
@@ -173,7 +182,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
     chatService.addUsersListener(channelName, channelUserListListener);
     JavaFxUtil.addListener(chatService.connectionStateProperty(), new WeakInvalidationListener(chatConnectionStateListener));
-    JavaFxUtil.addListener(visibleCategories, new WeakMapChangeListener<>(visibleCategoriesListener));
+    JavaFxUtil.addListener(visibleCategories, new WeakSetChangeListener<>(visibleCategoriesListener));
     JavaFxUtil.addListener((ObservableMap<String, ObservableList<ChatUserCategory>>) channelNameToHiddenCategories,
         new WeakMapChangeListener<>(channelNameToHiddenCategoriesListener));
     if (hiddenCategories != null) {
@@ -197,37 +206,38 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void onVisibleCategoryChanged(ChatUserCategory category, boolean visible) {
-    synchronized (monitor) {
-      if (visible) {
-        source.addAll(categoriesToUsers.get(category));
-      } else {
-        // TODO: Uncomment when the bug will be fixed
-        // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
-        //source.removeAll(categoriesToUsers.get(category));
-        categoriesToUsers.get(category).forEach(source::remove);
-      }
+    log.info("Category {} updated from {}", category.name(), Thread.currentThread().getName());
+    if (visible) {
+      source.addAll(categoriesToUsers.get(category));
+    } else {
+      // TODO: Uncomment when the bug will be fixed
+      // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
+      // source.removeAll(categoriesToUsers.get(category));
+      categoriesToUsers.get(category).forEach(source::remove);
     }
   }
 
   private void onUserJoined(ChatChannelUser user) {
-    synchronized (monitor) {
+    log.info("User {} joined from {}", user.getUsername(), Thread.currentThread().getName());
+    usersEventQueueExecutor.execute(() -> {
       playerService.getPlayerByNameIfOnline(user.getUsername()).ifPresent(player -> chatUserService.associatePlayerToChatUser(user, player));
-      List<ChatUserItem> chatUserItems = usernameToChatUserList.computeIfAbsent(user.getUsername(), name -> Collections.synchronizedList(new ArrayList<>()));
+      List<ChatUserItem> chatUserItems = usernameToChatUserList.computeIfAbsent(user.getUsername(), name -> new ArrayList<>());
       if (chatUserItems.isEmpty()) {
         user.getChatUserCategories().forEach(category -> {
           ChatUserItem item = new ChatUserItem(user, category);
           categoriesToUsers.get(category).add(item);
           chatUserItems.add(item);
-          if (visibleCategories.get(category)) {
+          if (visibleCategories.contains(category)) {
             JavaFxUtil.runLater(() -> source.add(item));
           }
         });
       }
-    }
+    });
   }
 
   private void onUserLeft(ChatChannelUser user) {
-    synchronized (monitor) {
+    log.info("User {} left from {}", user.getUsername(), Thread.currentThread().getName());
+    usersEventQueueExecutor.execute(() -> {
       List<ChatUserItem> chatUserItems = usernameToChatUserList.get(user.getUsername());
       if (chatUserItems != null && !chatUserItems.isEmpty()) {
         categoriesToUsers.values().forEach(items -> items.removeAll(chatUserItems));
@@ -240,15 +250,16 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
           usernameToChatUserList.remove(user.getUsername());
         });
       }
-    }
+    });
   }
 
   private void onUserUpdated(ChatChannelUser user) {
-      List<ChatUserItem> chatUserItems = usernameToChatUserList.get(user.getUsername());
-      if (chatUserItems != null && !chatUserItems.isEmpty()) {
-        onUserLeft(user);
-        onUserJoined(user);
-      }
+    log.info("User {} updated from {}", user.getUsername(), Thread.currentThread().getName());
+    List<ChatUserItem> chatUserItems = usernameToChatUserList.get(user.getUsername());
+    if (chatUserItems != null && !chatUserItems.isEmpty()) {
+      onUserLeft(user);
+      onUserJoined(user);
+    }
   }
 
   @Subscribe
