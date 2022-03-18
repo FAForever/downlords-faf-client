@@ -46,7 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.fxmisc.flowless.Cell;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.TaskScheduler;
@@ -176,7 +178,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
     chatConnectionStateListener = observable -> {
       if (chatService.getConnectionState() == ConnectionState.DISCONNECTED) {
-        chatService.removeUsersListener(channelName, channelUserListListener);
+        dispose();
       }
     };
 
@@ -191,7 +193,12 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   public void onTabClosed() {
+    dispose();
+  }
+
+  private void dispose() {
     chatService.removeUsersListener(channelName, channelUserListListener);
+    usersEventQueueExecutor.shutdown();
   }
 
   private void initializeList() {
