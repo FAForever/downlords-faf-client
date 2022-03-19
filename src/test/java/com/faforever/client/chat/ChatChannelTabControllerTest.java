@@ -27,9 +27,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
 import javafx.collections.ObservableMap;
+import javafx.scene.Node;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,6 +96,8 @@ public class ChatChannelTabControllerTest extends UITest {
   @Mock
   private ChatCategoryItemController chatCategoryItemController;
   @Mock
+  private ChatUserItemController chatUserItemController;
+  @Mock
   private WebViewConfigurer webViewConfigurer;
   @Mock
   private AudioService audioService;
@@ -123,6 +127,9 @@ public class ChatChannelTabControllerTest extends UITest {
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(chatUserFilterController);
     when(uiService.loadFxml("theme/chat/chat_user_category.fxml")).thenReturn(chatCategoryItemController);
+    when(chatCategoryItemController.getRoot()).then(invocation -> new Pane());
+    when(uiService.loadFxml("theme/chat/chat_user_item.fxml")).thenReturn(chatUserItemController);
+    when(chatUserItemController.getRoot()).then(invocation -> new Pane());
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
 
     loadFxml("theme/chat/user_filter.fxml", clazz -> chatUserFilterController);

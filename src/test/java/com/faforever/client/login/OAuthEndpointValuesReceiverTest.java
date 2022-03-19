@@ -51,7 +51,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
   @BeforeEach
   void setUp() {
-    clientProperties.getOauth().setTimeoutMilliseconds(1000);
+    clientProperties.getOauth().setTimeoutMilliseconds(0);
   }
 
   @Test

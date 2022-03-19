@@ -33,6 +33,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -100,6 +101,7 @@ public class PrivateChatTabControllerTest extends UITest {
     when(timeService.asShortTime(any())).thenReturn("");
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
+    when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
 
     TabPane tabPane = new TabPane();
     tabPane.setSkin(new TabPaneSkin(tabPane));
@@ -136,7 +138,8 @@ public class PrivateChatTabControllerTest extends UITest {
   }
 
   @Test
-  public void testOnChatMessageFocusedDoesntTriggersNotification() {
+  public void
+  testOnChatMessageFocusedDoesntTriggersNotification() {
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyNoInteractions(notificationService);
   }
