@@ -122,12 +122,14 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   };
 
   private final MapChangeListener<String, ChatChannelUser> channelUserListListener = change -> {
-    if (change.wasAdded()) {
-      onUserJoined(change.getValueAdded());
-    } else {
-      onUserLeft(change.getValueRemoved());
-    }
-    updateUserCount();
+    usersEventQueueExecutor.execute(() -> {
+      if (change.wasAdded()) {
+        onUserJoined(change.getValueAdded());
+      } else {
+        onUserLeft(change.getValueRemoved());
+      }
+      updateUserCount();
+    });
   };
 
   @SuppressWarnings("FieldCanBeLocal")
