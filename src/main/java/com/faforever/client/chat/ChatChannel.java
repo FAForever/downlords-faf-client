@@ -68,6 +68,10 @@ public class ChatChannel {
     return Collections.unmodifiableList(new ArrayList<>(users.values()));
   }
 
+  public int getUserCount() {
+    return users.size();
+  }
+
   public ChatChannelUser getUser(String username) {
     return users.get(username);
   }
