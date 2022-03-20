@@ -121,16 +121,15 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     }
   };
 
-  private final MapChangeListener<String, ChatChannelUser> channelUserListListener = change -> {
-    usersEventQueueExecutor.execute(() -> {
-      if (change.wasAdded()) {
-        onUserJoined(change.getValueAdded());
-      } else {
-        onUserLeft(change.getValueRemoved());
-      }
-      updateUserCount();
-    });
-  };
+  private final MapChangeListener<String, ChatChannelUser> channelUserListListener = change ->
+      usersEventQueueExecutor.execute(() -> {
+        if (change.wasAdded()) {
+          onUserJoined(change.getValueAdded());
+        } else {
+          onUserLeft(change.getValueRemoved());
+        }
+        updateUserCount();
+      });
 
   @SuppressWarnings("FieldCanBeLocal")
   private MapChangeListener<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesListener;
@@ -242,7 +241,12 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       user.getChatUserCategories().forEach(category -> {
         ChatUserItem item = new ChatUserItem(user, category);
         chatUserItems.add(item);
-        addUserToList(item);
+
+        if (listInitializationFuture.isDone()) {
+          JavaFxUtil.runLater(() -> addUserToList(item));
+        } else {
+          addUserToList(item);
+        }
       });
     }
   }
@@ -252,41 +256,30 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     List<ChatUserItem> chatUserItems = usernameToChatUserList.get(username);
     if (chatUserItems != null && !chatUserItems.isEmpty()) {
       usernameToChatUserList.remove(username);
-      removeUserItemsFromList(chatUserItems);
+
+      if (listInitializationFuture.isDone()) {
+        JavaFxUtil.runLater(() -> removeUserItemsFromList(chatUserItems));
+      } else {
+        removeUserItemsFromList(chatUserItems);
+      }
     }
   }
 
   private void addUserToList(ChatUserItem item) {
-    Runnable addAction = () -> {
-      ChatUserCategory category = item.getCategory();
-      categoriesToUsers.get(category).add(item);
-      if (visibleCategories.contains(category)) {
-        source.add(item);
-      }
-    };
-
-    if (listInitializationFuture.isDone()) {
-      JavaFxUtil.runLater(addAction);
-    } else {
-      addAction.run();
+    ChatUserCategory category = item.getCategory();
+    categoriesToUsers.get(category).add(item);
+    if (visibleCategories.contains(category)) {
+      source.add(item);
     }
   }
 
   private void removeUserItemsFromList(List<ChatUserItem> itemsForRemove) {
-    Runnable removeAction = () -> {
-      categoriesToUsers.values().forEach(items -> items.removeAll(itemsForRemove));
-      // TODO: Uncomment when the bug will be fixed
-      // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
-      // source.removeAll(chatUserItems);
-      itemsForRemove.forEach(source::remove);
-      itemsForRemove.clear();
-    };
-
-    if (listInitializationFuture.isDone()) {
-      JavaFxUtil.runLater(removeAction);
-    } else {
-      removeAction.run();
-    }
+    categoriesToUsers.values().forEach(items -> items.removeAll(itemsForRemove));
+    // TODO: Uncomment when the bug will be fixed
+    // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
+    // source.removeAll(chatUserItems);
+    itemsForRemove.forEach(source::remove);
+    itemsForRemove.clear();
   }
 
   @Subscribe
