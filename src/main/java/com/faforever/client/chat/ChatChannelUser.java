@@ -42,7 +42,6 @@ public class ChatChannelUser {
   @EqualsAndHashCode.Include
   @ToString.Include
   private final ReadOnlyStringWrapper channel = new ReadOnlyStringWrapper();
-  @ToString.Include
   private final BooleanProperty moderator = new SimpleBooleanProperty();
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();

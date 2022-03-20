@@ -286,11 +286,9 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
     usersEventQueueExecutor.execute(() -> {
       ChatChannelUser user = event.getChatUser();
-      if (chatChannel.containsUser(user)) {
+      if (chatChannel.containsUser(user) && user.getChannel().equals(channelName)) {
         onUserLeft(user);
         onUserJoined(user);
-      } else {
-        onUserLeft(user);
       }
     });
   }
