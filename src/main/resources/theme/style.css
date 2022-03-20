@@ -348,7 +348,7 @@
   -fx-border-color: transparent;
 }
 
-.filter-and-settings-content {
+.user-list-tools {
   -fx-border-width: 0 0 0.125em 0; /* 0 0 2 0 */
   -fx-border-color: -divider-color;
   -fx-padding: 0.625em 0.625em 0.125em 0.625em; /* 10 10 2 10 */

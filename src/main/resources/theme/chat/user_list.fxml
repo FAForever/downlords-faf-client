@@ -12,9 +12,11 @@
       fx:controller="com.faforever.client.chat.test.ChatUserListController"
       SplitPane.resizableWithParent="false" styleClass="chat-channel-users-pane">
     <children>
-        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="filter-and-settings-content">
+        <HBox fx:id="userListTools" disable="true" alignment="CENTER_LEFT" spacing="10.0"
+              styleClass="user-list-tools">
             <children>
-                <ToggleButton fx:id="advancedFiltersToggleButton" mnemonicParsing="false" styleClass="filter-toggle-button"
+                <ToggleButton fx:id="advancedFiltersToggleButton" mnemonicParsing="false"
+                              styleClass="filter-toggle-button"
                               onAction="#onAdvancedFiltersToggleButtonClicked">
                     <graphic>
                         <Region styleClass="icon,filter-icon,icon16x16"/>

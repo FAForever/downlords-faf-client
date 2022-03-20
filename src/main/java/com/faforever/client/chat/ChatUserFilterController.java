@@ -1,19 +1,25 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.chat.test.ListItem;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.annotations.VisibleForTesting;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -25,15 +31,18 @@ import static com.faforever.client.game.PlayerStatus.HOSTING;
 import static com.faforever.client.game.PlayerStatus.IDLE;
 import static com.faforever.client.game.PlayerStatus.LOBBYING;
 import static com.faforever.client.game.PlayerStatus.PLAYING;
+import static java.util.Locale.US;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ChatUserFilterController implements Controller<Node> {
 
   private final I18n i18n;
   private final CountryFlagService flagService;
+
+  public GridPane root;
   public MenuButton gameStatusMenu;
-  public GridPane filterUserRoot;
   public TextField clanFilterField;
   public TextField minRatingFilterField;
   public TextField maxRatingFilterField;
@@ -41,34 +50,41 @@ public class ChatUserFilterController implements Controller<Node> {
   public TextField countryFilterField;
 
 
-  private final BooleanProperty filterApplied;
-  @VisibleForTesting
-  ChannelTabController channelTabController;
+  private final BooleanProperty filterApplied = new SimpleBooleanProperty(false);
+  private final InvalidationListener textPropertyListener = observable -> filterUsers();
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener countryTextPropertyListener;
+
+  private FilteredList<ListItem> userList;
+  private TextField searchUsernameTextField;
+
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
 
   List<String> currentSelectedCountries;
 
-  public ChatUserFilterController(I18n i18n, CountryFlagService flagService) {
-    this.i18n = i18n;
-    this.flagService = flagService;
-    this.filterApplied = new SimpleBooleanProperty(false);
+  public void finalizeFiltersSettings(FilteredList<ListItem> userList, TextField searchUsernameTextField) {
+    this.userList = userList;
+    this.searchUsernameTextField = searchUsernameTextField;
+    initializeListeners();
   }
 
-  void setChannelController(ChannelTabController channelTabController) {
-    this.channelTabController = channelTabController;
-  }
+  private void initializeListeners() {
+    WeakInvalidationListener  textPropertyWeakListener = new WeakInvalidationListener(textPropertyListener);
+    JavaFxUtil.addListener(searchUsernameTextField.textProperty(), textPropertyWeakListener);
+    JavaFxUtil.addListener(clanFilterField.textProperty(), textPropertyWeakListener);
+    JavaFxUtil.addListener(minRatingFilterField.textProperty(), textPropertyWeakListener);
+    JavaFxUtil.addListener(maxRatingFilterField.textProperty(), textPropertyWeakListener);
 
-  public void initialize() {
-    clanFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
-    minRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
-    maxRatingFilterField.textProperty().addListener((observable, oldValue, newValue) -> filterUsers());
-    countryFilterField.textProperty().addListener(((observable, oldValue, newValue) -> filterCountry()));
-    currentSelectedCountries = flagService.getCountries(null);
+    countryTextPropertyListener = observable -> {
+      currentSelectedCountries = flagService.getCountries(countryFilterField.textProperty().get());
+      filterUsers();
+    };
+    JavaFxUtil.addListener(countryFilterField.textProperty(), new WeakInvalidationListener(countryTextPropertyListener));
   }
 
   public void filterUsers() {
-    channelTabController.setUserFilter(this::filterUser);
+    userList.setPredicate(this::filterUser);
     filterApplied.set(
         !maxRatingFilterField.getText().isEmpty()
             || !minRatingFilterField.getText().isEmpty()
@@ -78,23 +94,22 @@ public class ChatUserFilterController implements Controller<Node> {
     );
   }
 
-  private boolean filterUser(CategoryOrChatUserListItem userListItem) {
-    if (userListItem.getUser() == null) {
-      // The categories should display in the list independently of a filter
+  private boolean filterUser(ListItem item) {
+    if (item.getUser().isEmpty()) {
+      // It is a category
       return true;
     }
-
-    ChatChannelUser user = userListItem.getUser();
-    return channelTabController.isUsernameMatch(user)
+    ChatChannelUser user = item.getUser().get();
+    return isUsernameMatch(user)
         && isInClan(user)
         && isBoundByRating(user)
         && isGameStatusMatch(user)
         && isCountryMatch(user);
   }
 
-  private void filterCountry() {
-    currentSelectedCountries = flagService.getCountries(countryFilterField.textProperty().get());
-    filterUsers();
+  boolean isUsernameMatch(ChatChannelUser user) {
+    String username = user.getUsername().toLowerCase(US);
+    return username.contains(searchUsernameTextField.getText().toLowerCase(US));
   }
 
   public BooleanProperty filterAppliedProperty() {
@@ -113,7 +128,7 @@ public class ChatUserFilterController implements Controller<Node> {
 
     Optional<PlayerBean> playerOptional = chatUser.getPlayer();
 
-    if (!playerOptional.isPresent()) {
+    if (playerOptional.isEmpty()) {
       return false;
     }
 
@@ -135,7 +150,7 @@ public class ChatUserFilterController implements Controller<Node> {
 
     Optional<PlayerBean> optionalPlayer = chatUser.getPlayer();
 
-    if (!optionalPlayer.isPresent()) {
+    if (optionalPlayer.isEmpty()) {
       return false;
     }
 
@@ -167,7 +182,7 @@ public class ChatUserFilterController implements Controller<Node> {
 
     Optional<PlayerBean> playerOptional = chatUser.getPlayer();
 
-    if (!playerOptional.isPresent()) {
+    if (playerOptional.isEmpty()) {
       return false;
     }
 
@@ -220,6 +235,6 @@ public class ChatUserFilterController implements Controller<Node> {
   }
 
   public Node getRoot() {
-    return filterUserRoot;
+    return root;
   }
 }

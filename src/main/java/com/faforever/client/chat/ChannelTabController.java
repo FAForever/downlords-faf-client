@@ -386,7 +386,6 @@ public class ChannelTabController extends AbstractChatTabController implements I
     filterUserPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
 
     chatUserFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
-    chatUserFilterController.setChannelController(this);
     chatUserFilterController.filterAppliedProperty().addListener(((observable, oldValue, newValue) -> advancedUserFilter.setSelected(newValue)));
     filterUserPopup.getContent().setAll(chatUserFilterController.getRoot());
   }

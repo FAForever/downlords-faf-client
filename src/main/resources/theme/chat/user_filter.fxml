@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
-<GridPane fx:id="filterUserRoot" hgap="10.0" styleClass="filter-user" vgap="10.0"
+<GridPane fx:id="root" hgap="10.0" styleClass="filter-user" vgap="10.0"
           xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.chat.ChatUserFilterController">
     <columnConstraints>
