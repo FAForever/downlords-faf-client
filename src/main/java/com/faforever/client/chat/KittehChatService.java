@@ -245,7 +245,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
           .filter(Objects::nonNull)
           .forEach(chatChannelUser -> {
             chatUserService.associatePlayerToChatUser(chatChannelUser, player);
-            log.warn("onPlayerOnline");
             eventBus.post(new ChatUserCategoryChangeEvent(chatChannelUser));
           });
     }

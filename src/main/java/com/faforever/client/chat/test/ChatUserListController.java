@@ -94,6 +94,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private final ObservableSet<ChatUserCategory> visibleCategories = FXCollections.observableSet();
 
   private String channelName;
+  private ChatChannel chatChannel;
+
   private VirtualFlow<ListItem, Cell<ListItem, Node>> listView;
   private FilteredList<ListItem> items;
   private final ExecutorService usersEventQueueExecutor = Executors.newSingleThreadExecutor();
@@ -125,7 +127,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     } else {
       onUserLeft(change.getValueRemoved());
     }
-    updateUserCount(change.getMap().size());
+    updateUserCount();
   };
 
   @SuppressWarnings("FieldCanBeLocal")
@@ -141,14 +143,15 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   public void setChatChannel(ChatChannel chatChannel) {
+    this.chatChannel = chatChannel;
     this.channelName = chatChannel.getName();
     this.channelNameToHiddenCategories = preferencesService.getPreferences().getChat().getChannelNameToHiddenCategories();
     this.hiddenCategories = channelNameToHiddenCategories.get(channelName);
 
     prepareData();
     initializeListeners();
-    updateUserCount(chatChannel.getUsers().size());
-    chatChannel.getUsers().forEach(this::onUserJoined);
+    updateUserCount();
+    usersEventQueueExecutor.execute(() -> chatChannel.getUsers().forEach(this::onUserJoined));
   }
 
   private void prepareData() {
@@ -209,12 +212,16 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void dispose() {
-    chatService.removeUsersListener(channelName, channelUserListListener);
-    usersEventQueueExecutor.shutdown();
+    if (!usersEventQueueExecutor.isShutdown()) {
+      usersEventQueueExecutor.execute(() -> {
+        eventBus.unregister(this);
+        chatService.removeUsersListener(channelName, channelUserListListener);
+        usersEventQueueExecutor.shutdownNow();
+      });
+    }
   }
 
   private void onVisibleCategoryChanged(ChatUserCategory category, boolean visible) {
-    log.info("Category {} updated from {}", category.name(), Thread.currentThread().getName());
     JavaFxUtil.assertApplicationThread();
     if (visible) {
       source.addAll(categoriesToUsers.get(category));
@@ -227,59 +234,50 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void onUserJoined(ChatChannelUser user) {
-    log.info("User {} joined from {}", user.getUsername(), Thread.currentThread().getName());
-    usersEventQueueExecutor.execute(() -> {
-      playerService.getPlayerByNameIfOnline(user.getUsername()).ifPresent(player -> chatUserService.associatePlayerToChatUser(user, player));
-      List<ChatUserItem> chatUserItems = usernameToChatUserList.computeIfAbsent(user.getUsername(), name -> new ArrayList<>());
-      if (chatUserItems.isEmpty()) {
-        user.getChatUserCategories().forEach(category -> {
-          ChatUserItem item = new ChatUserItem(user, category);
-          categoriesToUsers.get(category).add(item);
-          chatUserItems.add(item);
-          if (visibleCategories.contains(category)) {
-            addUserToList(item);
-          }
-        });
-      }
-    });
+    playerService.getPlayerByNameIfOnline(user.getUsername()).ifPresent(player -> chatUserService.associatePlayerToChatUser(user, player));
+    List<ChatUserItem> chatUserItems = usernameToChatUserList.computeIfAbsent(user.getUsername(), name -> new ArrayList<>());
+    if (chatUserItems.isEmpty()) {
+      user.getChatUserCategories().forEach(category -> {
+        ChatUserItem item = new ChatUserItem(user, category);
+        chatUserItems.add(item);
+        addUserToList(item);
+      });
+    }
   }
 
   private void onUserLeft(ChatChannelUser user) {
-    log.info("User {} left from {}", user.getUsername(), Thread.currentThread().getName());
-    usersEventQueueExecutor.execute(() -> {
-      List<ChatUserItem> chatUserItems = usernameToChatUserList.get(user.getUsername());
-      if (chatUserItems != null && !chatUserItems.isEmpty()) {
-        categoriesToUsers.values().forEach(items -> items.removeAll(chatUserItems));
-        removeUserOfItemsFromList(user.getUsername(), chatUserItems);
-      }
-    });
-  }
-
-  private void onUserUpdated(ChatChannelUser user) {
-    log.info("User {} updated from {}", user.getUsername(), Thread.currentThread().getName());
-    List<ChatUserItem> chatUserItems = usernameToChatUserList.get(user.getUsername());
+    String username = user.getUsername();
+    List<ChatUserItem> chatUserItems = usernameToChatUserList.get(username);
     if (chatUserItems != null && !chatUserItems.isEmpty()) {
-      onUserLeft(user);
-      onUserJoined(user);
+      usernameToChatUserList.remove(username);
+      removeUserItemsFromList(chatUserItems);
     }
   }
 
   private void addUserToList(ChatUserItem item) {
+    Runnable addAction = () -> {
+      ChatUserCategory category = item.getCategory();
+      categoriesToUsers.get(category).add(item);
+      if (visibleCategories.contains(category)) {
+        source.add(item);
+      }
+    };
+
     if (listInitializationFuture.isDone()) {
-      JavaFxUtil.runLater(() -> source.add(item));
+      JavaFxUtil.runLater(addAction);
     } else {
-      source.add(item);
+      addAction.run();
     }
   }
 
-  private void removeUserOfItemsFromList(String username, List<ChatUserItem> items) {
+  private void removeUserItemsFromList(List<ChatUserItem> itemsForRemove) {
     Runnable removeAction = () -> {
+      categoriesToUsers.values().forEach(items -> items.removeAll(itemsForRemove));
       // TODO: Uncomment when the bug will be fixed
       // TODO: https://bugs.openjdk.java.net/browse/JDK-8195750
       // source.removeAll(chatUserItems);
-      items.forEach(source::remove);
-      items.clear();
-      usernameToChatUserList.remove(username);
+      itemsForRemove.forEach(source::remove);
+      itemsForRemove.clear();
     };
 
     if (listInitializationFuture.isDone()) {
@@ -291,11 +289,19 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   @Subscribe
   public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
-    onUserUpdated(event.getChatUser());
+    usersEventQueueExecutor.execute(() -> {
+      ChatChannelUser user = event.getChatUser();
+      if (chatChannel.containsUser(user)) {
+        onUserLeft(user);
+        onUserJoined(user);
+      } else {
+        onUserLeft(user);
+      }
+    });
   }
 
-  private void updateUserCount(int count) {
-    JavaFxUtil.runLater(() -> searchUsernameTextField.setPromptText(i18n.get("chat.userCount", count)));
+  private void updateUserCount() {
+    JavaFxUtil.runLater(() -> searchUsernameTextField.setPromptText(i18n.get("chat.userCount", chatChannel.getUserCount())));
   }
 
   public void onListCustomizationButtonClicked() {

@@ -53,6 +53,10 @@ public class ChatChannel {
     users.clear();
   }
 
+  public boolean containsUser(ChatChannelUser user) {
+    return users.containsValue(user);
+  }
+
   public void addUsersListeners(MapChangeListener<String, ChatChannelUser> listener) {
     JavaFxUtil.addListener(users, listener);
   }
