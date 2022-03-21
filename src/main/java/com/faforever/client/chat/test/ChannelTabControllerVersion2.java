@@ -50,7 +50,7 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
   public VBox topicPane;
   public TextFlow topicText;
   public ToggleButton toggleSidePaneButton;
-  public Node chatUserListNode;
+  public Node chatUserList;
   public ChatUserListController chatUserListController;
 
   private String channelName;
@@ -75,6 +75,8 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
       chatUserListController.onTabClosed();
     });
   }
+
+
 
   @Override
   public Tab getRoot() {

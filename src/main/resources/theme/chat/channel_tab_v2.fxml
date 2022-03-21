@@ -68,7 +68,7 @@
                </children>
             </VBox>
 
-            <fx:include fx:id="chatUserListNode" source="user_list.fxml"/>
+            <fx:include fx:id="chatUserList" source="user_list.fxml"/>
         </SplitPane>
     </children>
   </VBox>
