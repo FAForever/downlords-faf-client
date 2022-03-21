@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
       maxHeight="1.7976931348623157E308" minWidth="300.0" prefWidth="350.0"
-      fx:controller="com.faforever.client.chat.test.ChatUserListController"
+      fx:controller="com.faforever.client.chat.ChatUserListController"
       SplitPane.resizableWithParent="false" styleClass="chat-channel-users-pane">
     <children>
         <HBox fx:id="userListTools" disable="true" alignment="CENTER_LEFT" spacing="10.0"

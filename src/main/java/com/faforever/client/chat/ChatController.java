@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatMessageEvent;
-import com.faforever.client.chat.test.ChannelTabControllerVersion2;
 import com.faforever.client.exception.ProgrammingError;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
@@ -106,7 +105,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   private AbstractChatTabController getOrCreateChannelTab(String channelName) {
     JavaFxUtil.assertApplicationThread();
     if (!nameToChatTabController.containsKey(channelName)) {
-      ChannelTabControllerVersion2 tab = uiService.loadFxml("theme/chat/channel_tab_v2.fxml");
+      ChannelTabController tab = uiService.loadFxml("theme/chat/channel_tab.fxml");
       tab.setChatChannel(chatService.getOrCreateChannel(channelName), chatTabSelectedProperty);
       addTab(channelName, tab);
     }

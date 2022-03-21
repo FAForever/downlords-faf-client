@@ -1,13 +1,5 @@
-package com.faforever.client.chat.test;
+package com.faforever.client.chat;
 
-import com.faforever.client.chat.AutoCompletionHelper;
-import com.faforever.client.chat.ChatChannel;
-import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatService;
-import com.faforever.client.chat.ChatUserCategory;
-import com.faforever.client.chat.ChatUserFilterController;
-import com.faforever.client.chat.ChatUserService;
-import com.faforever.client.chat.UserListCustomizationController;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;

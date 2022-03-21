@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.test.ListItem;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;

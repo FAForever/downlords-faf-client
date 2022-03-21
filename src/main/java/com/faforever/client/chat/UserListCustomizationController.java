@@ -25,6 +25,7 @@ public class UserListCustomizationController implements Controller<VBox> {
   public CheckBox showMapNameCheckBox;
   public CheckBox showMapPreviewCheckBox;
 
+  @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener selectedPropertyListener;
 
   @Override
