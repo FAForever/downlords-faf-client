@@ -18,6 +18,8 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.reporting.ReportingService;
 import com.google.common.base.Splitter;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.net.UrlEscapers;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -26,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -62,12 +63,14 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   private final GameService gameService;
   private final PlayerService playerService;
   private final ReportingService reportingService;
+  private final EventBus eventBus;
 
   private Future<?> futureTask;
   private final ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
   @Override
   public void afterPropertiesSet() throws Exception {
+    eventBus.register(this);
     JavaFxUtil.addListener(gameService.gameRunningProperty(), observable -> {
       if (gameService.isGameRunning()) {
         stopTrackingLiveReplay();
@@ -195,7 +198,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     }
   }
 
-  @EventListener
+  @Subscribe
   public void onDiscordGameJoinEvent(DiscordSpectateEvent discordSpectateEvent) {
     Integer replayId = discordSpectateEvent.getReplayId();
     runLiveReplay(replayId);

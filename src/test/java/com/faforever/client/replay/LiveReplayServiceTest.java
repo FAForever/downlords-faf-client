@@ -12,6 +12,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
+import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +54,8 @@ public class LiveReplayServiceTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private EventBus eventBus;
   @Spy
   private ClientProperties clientProperties;
 
