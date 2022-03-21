@@ -19,23 +19,6 @@ public enum NavigationItem {
   TUTORIALS("theme/tutorial.fxml", "main.tutorials"),
   TOURNAMENTS("theme/tournaments/tournaments.fxml", "main.tournaments");
 
-  private static final HashMap<String, NavigationItem> fromString;
-
-  static {
-    fromString = new HashMap<>();
-    for (NavigationItem item : values()) {
-      fromString.put(item.name(), item);
-    }
-  }
-
   private final String fxmlFile;
   private final String i18nKey;
-
-  public static NavigationItem fromString(String string) {
-    if (string == null) {
-      return NEWS;
-    }
-    return fromString.get(string);
-  }
-
 }
