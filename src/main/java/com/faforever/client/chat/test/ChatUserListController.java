@@ -183,7 +183,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
     prepareData();
     initializeListeners();
-    updateUserCount();
     usersEventQueueExecutor.execute(() -> chatChannel.getUsers().forEach(this::onUserJoined));
   }
 
@@ -244,6 +243,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       JavaFxUtil.runLater(() -> {
         userListContainer.getChildren().add(scrollPane);
         userListTools.setDisable(false);
+        updateUserCount();
       });
     });
   }
