@@ -3,9 +3,12 @@ package com.faforever.client.chat.test;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.AbstractChatTabController;
 import com.faforever.client.chat.ChatChannel;
+import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
+import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -13,6 +16,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -20,6 +24,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.BooleanBinding;
@@ -55,6 +60,9 @@ import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChannelTabControllerVersion2 extends AbstractChatTabController {
+
+  public static final String MODERATOR_STYLE_CLASS = "moderator";
+  public static final String USER_STYLE_CLASS = "user-%s";
 
   private final PlatformService platformService;
 
@@ -164,6 +172,54 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
       chatMessageSearchTextField.requestFocus();
     } else {
       messageTextField().requestFocus();
+    }
+  }
+
+  @Subscribe
+  public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
+    ChatChannelUser user = event.getChatUser();
+    if (chatChannel.containsUser(user)) {
+      updateUserMessageVisibility(user, user.getSocialStatus().filter(status -> status == SocialStatus.FOE).isPresent());
+      updateStyleClass(user);
+      updateUserMessageColor(user);
+    }
+  }
+
+  @Subscribe
+  public void onChatUserColorChange(ChatUserColorChangeEvent event) {
+    ChatChannelUser user = event.getChatUser();
+    if (chatChannel.containsUser(user)) {
+      updateUserMessageColor(user);
+    }
+  }
+
+  private void updateUserMessageColor(ChatChannelUser user) {
+    String color = user.getColor().map(JavaFxUtil::toRgbCode).orElse("");
+    JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageColor", user.getUsername(), color));
+  }
+
+  private void updateUserMessageVisibility(ChatChannelUser user, boolean visible) {
+    String displayPropertyValue = visible ? "none" : "";
+    JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageDisplay", user.getUsername(), displayPropertyValue));
+  }
+
+  private void updateStyleClass(ChatChannelUser user) {
+    user.getPlayer().ifPresentOrElse(player -> removeUserMessageStyleClass(user, CSS_CLASS_CHAT_ONLY),
+        () -> addUserMessageStyleClass(user, CSS_CLASS_CHAT_ONLY));
+    if (user.isModerator()) {
+      addUserMessageStyleClass(user, MODERATOR_STYLE_CLASS);
+    } else {
+      removeUserMessageStyleClass(user, MODERATOR_STYLE_CLASS);
+    }
+  }
+
+  private void addUserMessageStyleClass(ChatChannelUser user, String styleClass) {
+    JavaFxUtil.runLater(() -> callJsMethod("addUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
+  }
+
+  private void removeUserMessageStyleClass(ChatChannelUser user, String styleClass) {
+    if (StringUtils.isNotBlank(styleClass)) {
+      JavaFxUtil.runLater(() -> callJsMethod("removeUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
     }
   }
 

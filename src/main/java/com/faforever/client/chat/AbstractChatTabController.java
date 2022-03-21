@@ -92,7 +92,7 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 @Slf4j
 public abstract class AbstractChatTabController implements Controller<Tab> {
 
-  static final String CSS_CLASS_CHAT_ONLY = "chat_only";
+  public static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-section";
   private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
@@ -407,8 +407,12 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     return (JSObject) engine.executeScript("window");
   }
 
-  protected Object callJsMethod(String methodName, Object... args) {
-    return getJsObject().call(methodName, args);
+  protected void callJsMethod(String methodName, Object... args) {
+    try {
+      getJsObject().call(methodName, args);
+    } catch (Exception e) {
+      log.warn("Error when calling JS method: ", e);
+    }
   }
 
   protected void onWebViewLoaded() {
