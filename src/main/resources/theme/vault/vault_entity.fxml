@@ -14,7 +14,6 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
 <BorderPane fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <center>
         <StackPane fx:id="vaultRoot">
@@ -79,20 +78,21 @@
                 <HBox.margin>
                     <Insets top="5.0"/>
                 </HBox.margin>
-                <Button fx:id="firstPageButton" styleClass="page-button" prefHeight="36">
+                <Button fx:id="firstPageButton" styleClass="page-button" prefHeight="36" alignment="CENTER_RIGHT">
                     <graphic>
                         <Region styleClass="icon,fast-rewind-icon"/>
+
                     </graphic>
                 </Button>
             </VBox>
             <VBox>
-                <Pagination fx:id="pagination" pickOnBounds="false"/>
+                <Pagination fx:id="pagination" pickOnBounds="false/>
             </VBox>
             <VBox>
                 <HBox.margin>
                     <Insets top="5.0"/>
                 </HBox.margin>
-                <Button fx:id="lastPageButton" styleClass="page-button" prefHeight="36">
+                <Button fx:id="lastPageButton" styleClass="page-button" prefHeight="36" alignment="CENTER_LEFT">
                     <graphic>
                         <Region styleClass="icon,fast-forward-icon"/>
                     </graphic>
