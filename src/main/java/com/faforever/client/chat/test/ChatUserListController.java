@@ -1,5 +1,6 @@
 package com.faforever.client.chat.test;
 
+import com.faforever.client.chat.AutoCompletionHelper;
 import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatService;
@@ -70,6 +71,9 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
+import static java.util.Locale.US;
 
 @Slf4j
 @Component
@@ -378,5 +382,14 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   @Override
   public VBox getRoot() {
     return root;
+  }
+
+  public AutoCompletionHelper getAutoCompletionHelper() {
+    return new AutoCompletionHelper(
+        currentWord -> usernameToChatUserList.keySet().stream()
+            .filter(username -> username.toLowerCase(US).startsWith(currentWord.toLowerCase()))
+            .sorted()
+            .collect(Collectors.toList())
+    );
   }
 }

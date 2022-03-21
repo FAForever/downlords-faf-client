@@ -61,8 +61,9 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
 
   public void setChatChannel(ChatChannel chatChannel, BooleanBinding chatTabSelectedProperty) {
     this.channelName = chatChannel.getName();
-
     chatUserListController.setChatChannel(chatChannel, getRoot(), chatTabSelectedProperty);
+    chatUserListController.getAutoCompletionHelper().bindTo(messageTextField());
+
     updateTabProperties();
     setReceiver(chatChannel.getName());
   }
