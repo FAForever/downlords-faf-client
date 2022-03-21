@@ -4,11 +4,13 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.AbstractChatTabController;
 import com.faforever.client.chat.ChatChannel;
 import com.faforever.client.chat.ChatChannelUser;
+import com.faforever.client.chat.ChatMessage;
 import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -48,12 +50,14 @@ import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -61,7 +65,7 @@ import static com.faforever.client.player.SocialStatus.FOE;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ChannelTabControllerVersion2 extends AbstractChatTabController {
+public class ChannelTabControllerVersion2 extends AbstractChatTabController implements InitializingBean {
 
   public static final String MODERATOR_STYLE_CLASS = "moderator";
   public static final String USER_STYLE_CLASS = "user-%s";
@@ -81,6 +85,8 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
   public Node chatUserList;
   public ChatUserListController chatUserListController;
 
+  private ChatPrefs chatPrefs;
+
   private String channelName;
   private ChatChannel chatChannel;
 
@@ -97,12 +103,17 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
 
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener hideFoeMessagesListener;
-  
+
   private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers().forEach(this::updateUserMessageColor);
 
   public ChannelTabControllerVersion2(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService, EmoticonService emoticonService, PlatformService platformService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService, uiService, eventBus, countryFlagService, chatUserService, emoticonService);
     this.platformService = platformService;
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    this.chatPrefs = preferencesService.getPreferences().getChat();
   }
 
   @Override
@@ -128,8 +139,6 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
   }
 
   private void initializeListeners() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-
     hideFoeMessagesListener = observable -> {
       boolean visible = chatPrefs.getHideFoeMessages();
       chatChannel.getUsers().stream().filter(user -> user.getSocialStatus().stream().anyMatch(status -> status == FOE))
@@ -239,6 +248,42 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
   private void removeUserMessageStyleClass(ChatChannelUser user, String styleClass) {
     if (StringUtils.isNotBlank(styleClass)) {
       JavaFxUtil.runLater(() -> callJsMethod("removeUserMessageClass", String.format(USER_STYLE_CLASS, user.getUsername()), styleClass));
+    }
+  }
+
+  @Override
+  protected String getMessageCssClass(String login) {
+    return chatService.getOrCreateChatUser(login, chatChannel.getName()).isModerator()
+        ? MODERATOR_STYLE_CLASS
+        : super.getMessageCssClass(login);
+  }
+
+  @Override
+  protected void onMention(ChatMessage chatMessage) {
+    if (preferencesService.getPreferences().getNotification().getNotifyOnAtMentionOnlyEnabled()
+        && !chatMessage.getMessage().contains("@" + userService.getUsername())) {
+      return;
+    }
+
+    if (playerService.getPlayerByNameIfOnline(chatMessage.getUsername()).filter(player -> player.getSocialStatus() == FOE).isPresent()) {
+      log.debug("Ignored ping from {}", chatMessage.getUsername());
+    } else if (!hasFocus()) {
+      audioService.playChatMentionSound();
+      showNotificationIfNecessary(chatMessage);
+      incrementUnreadMessagesCount(1);
+      setUnread(true);
+    }
+  }
+
+  @Override
+  protected String getInlineStyle(String username) {
+    ChatChannelUser user = chatService.getOrCreateChatUser(username, channelName);
+    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(username);
+
+    if (chatPrefs.getHideFoeMessages() && playerOptional.map(PlayerBean::getSocialStatus).stream().anyMatch(status -> status == FOE)) {
+      return "display: none;";
+    } else {
+      return user.getColor().map(color -> String.format("color: %s;", JavaFxUtil.toRgbCode(color))).orElse("");
     }
   }
 
