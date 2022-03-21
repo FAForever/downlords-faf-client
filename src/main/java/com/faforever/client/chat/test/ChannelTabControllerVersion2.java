@@ -81,7 +81,7 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController impl
   public TextField messageTextField;
   public VBox topicPane;
   public TextFlow topicText;
-  public ToggleButton toggleSidePaneButton;
+  public ToggleButton userListVisibilityToggleButton;
   public Node chatUserList;
   public ChatUserListController chatUserListController;
 
@@ -106,6 +106,9 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController impl
 
   private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers().forEach(this::updateUserMessageColor);
 
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener userListVisibilityListener;
+
   public ChannelTabControllerVersion2(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService, EmoticonService emoticonService, PlatformService platformService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService, uiService, eventBus, countryFlagService, chatUserService, emoticonService);
     this.platformService = platformService;
@@ -119,10 +122,12 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController impl
   @Override
   public void initialize() {
     super.initialize();
-
-    JavaFxUtil.bindManagedToVisible(topicPane);
+    JavaFxUtil.bindManagedToVisible(topicPane, chatUserList);
     JavaFxUtil.bind(chatMessageSearchTextField.visibleProperty(), chatMessageSearchContainer.visibleProperty());
     JavaFxUtil.bind(closeChatMessageSearchButton.visibleProperty(), chatMessageSearchContainer.visibleProperty());
+    JavaFxUtil.bind(chatUserList.visibleProperty(), userListVisibilityToggleButton.selectedProperty());
+
+    userListVisibilityToggleButton.setSelected(preferencesService.getPreferences().getChat().isPlayerListShown());
   }
 
   public void setChatChannel(ChatChannel chatChannel, BooleanBinding chatTabSelectedProperty) {
@@ -145,10 +150,18 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController impl
           .forEach(user -> updateUserMessageVisibility(user, visible));
     };
 
+    userListVisibilityListener = observable -> {
+      boolean selected = userListVisibilityToggleButton.isSelected();
+      splitPane.setDividerPositions(selected ? 0.8 : 1);
+      preferencesService.getPreferences().getChat().setPlayerListShown(selected);
+      preferencesService.storeInBackground();
+    };
+
     JavaFxUtil.addListener(chatMessageSearchTextField.textProperty(), new WeakChangeListener<>(searchChatMessageListener));
     JavaFxUtil.addListener(chatChannel.topicProperty(), new WeakInvalidationListener(topicListener));
     JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakInvalidationListener(hideFoeMessagesListener));
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModeListener));
+    JavaFxUtil.addListener(userListVisibilityToggleButton.selectedProperty(), new WeakInvalidationListener(userListVisibilityListener));
   }
 
   private void updateTabProperties() {
