@@ -17,6 +17,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -55,6 +56,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
+import static com.faforever.client.player.SocialStatus.FOE;
 
 @Slf4j
 @Component
@@ -82,7 +84,9 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
   private String channelName;
   private ChatChannel chatChannel;
 
+  /* Listeners */
   private final InvalidationListener topicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
+
   private final ChangeListener<String> searchChatMessageListener = (observable, oldValue, newValue) -> {
     if (StringUtils.isBlank(newValue)) {
       callJsMethod("removeHighlight");
@@ -90,6 +94,11 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
       callJsMethod("highlightText", newValue);
     }
   };
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener hideFoeMessagesListener;
+  
+  private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers().forEach(this::updateUserMessageColor);
 
   public ChannelTabControllerVersion2(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService, EmoticonService emoticonService, PlatformService platformService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService, uiService, eventBus, countryFlagService, chatUserService, emoticonService);
@@ -119,8 +128,18 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
   }
 
   private void initializeListeners() {
+    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+
+    hideFoeMessagesListener = observable -> {
+      boolean visible = chatPrefs.getHideFoeMessages();
+      chatChannel.getUsers().stream().filter(user -> user.getSocialStatus().stream().anyMatch(status -> status == FOE))
+          .forEach(user -> updateUserMessageVisibility(user, visible));
+    };
+
     JavaFxUtil.addListener(chatMessageSearchTextField.textProperty(), new WeakChangeListener<>(searchChatMessageListener));
     JavaFxUtil.addListener(chatChannel.topicProperty(), new WeakInvalidationListener(topicListener));
+    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakInvalidationListener(hideFoeMessagesListener));
+    JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModeListener));
   }
 
   private void updateTabProperties() {
