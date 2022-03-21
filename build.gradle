@@ -330,13 +330,15 @@ dependencies {
   implementation("org.kitteh.irc:client-lib:8.0.0")
   implementation("org.mapstruct:mapstruct:1.4.2.Final")
 
-  implementation("org.openjfx:javafx-base:18:${javafxPlatform}")
-  implementation("org.openjfx:javafx-controls:18:${javafxPlatform}")
-  implementation("org.openjfx:javafx-graphics:18:${javafxPlatform}")
-  implementation("org.openjfx:javafx-swing:18:${javafxPlatform}")
-  implementation("org.openjfx:javafx-fxml:18:${javafxPlatform}")
-  implementation("org.openjfx:javafx-web:18:${javafxPlatform}")
-  implementation("org.openjfx:javafx-media:18:${javafxPlatform}")
+
+  def javafxVersion = "18"
+  implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-controls:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-graphics:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-swing:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-fxml:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-web:${javafxVersion}:${javafxPlatform}")
+  implementation("org.openjfx:javafx-media:${javafxVersion}:${javafxPlatform}")
   implementation("com.github.1-alex98:discord-rpc:1.6.2-jna")
   implementation("org.controlsfx:controlsfx:11.1.1")
   implementation("org.fxmisc.flowless:flowless:0.6.9")

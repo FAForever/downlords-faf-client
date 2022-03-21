@@ -2,13 +2,11 @@ package com.faforever.client.map;
 
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.mod.UninstallModTask;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 

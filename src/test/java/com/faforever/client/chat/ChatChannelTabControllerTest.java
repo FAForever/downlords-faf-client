@@ -27,7 +27,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
 import javafx.collections.ObservableMap;
-import javafx.scene.Node;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
