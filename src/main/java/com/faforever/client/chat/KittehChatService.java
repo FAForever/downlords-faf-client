@@ -326,7 +326,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
               } else if (modeAction == Action.REMOVE) {
                 chatChannelUser.setModerator(false);
               }
-              log.warn("onChannelModeChanged");
               eventBus.post(new ChatUserCategoryChangeEvent(chatChannelUser));
             }
           }

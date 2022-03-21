@@ -407,6 +407,10 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     return (JSObject) engine.executeScript("window");
   }
 
+  protected Object callJsMethod(String methodName, Object... args) {
+    return getJsObject().call(methodName, args);
+  }
+
   protected void onWebViewLoaded() {
     // Default implementation does nothing, can be overridden by subclass.
   }
