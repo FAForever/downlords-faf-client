@@ -86,7 +86,7 @@
                 </Button>
             </VBox>
             <VBox>
-                <Pagination fx:id="pagination" pickOnBounds="false/>
+                <Pagination fx:id="pagination" pickOnBounds="false"/>
             </VBox>
             <VBox>
                 <HBox.margin>
