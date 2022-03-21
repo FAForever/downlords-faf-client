@@ -14,6 +14,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -44,11 +45,14 @@ public class ChatController extends AbstractViewController<AnchorPane> {
   private final UiService uiService;
   private final UserService userService;
   private final EventBus eventBus;
+
   public AnchorPane chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
+
+  private BooleanBinding chatTabSelectedProperty;
 
   private void onChannelLeft(ChatChannel chatChannel) {
     JavaFxUtil.runLater(() -> removeTab(chatChannel.getName()));
@@ -103,7 +107,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     JavaFxUtil.assertApplicationThread();
     if (!nameToChatTabController.containsKey(channelName)) {
       ChannelTabControllerVersion2 tab = uiService.loadFxml("theme/chat/channel_tab_v2.fxml");
-      tab.setChatChannel(chatService.getOrCreateChannel(channelName));
+      tab.setChatChannel(chatService.getOrCreateChannel(channelName), chatTabSelectedProperty);
       addTab(channelName, tab);
     }
     return nameToChatTabController.get(channelName);
@@ -145,6 +149,8 @@ public class ChatController extends AbstractViewController<AnchorPane> {
         change.getRemoved().forEach(tab -> nameToChatTabController.remove(tab.getId()));
       }
     });
+
+    chatTabSelectedProperty = getRoot().visibleProperty().and(getRoot().parentProperty().isNotNull());
   }
 
   @Subscribe

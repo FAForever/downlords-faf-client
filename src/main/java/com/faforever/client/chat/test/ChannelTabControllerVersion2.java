@@ -18,6 +18,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.binding.BooleanBinding;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
@@ -52,18 +53,16 @@ public class ChannelTabControllerVersion2 extends AbstractChatTabController {
   public Node chatUserList;
   public ChatUserListController chatUserListController;
 
-  private ChatChannel chatChannel;
   private String channelName;
 
   public ChannelTabControllerVersion2(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService, EmoticonService emoticonService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService, uiService, eventBus, countryFlagService, chatUserService, emoticonService);
   }
 
-  public void setChatChannel(ChatChannel chatChannel) {
-    this.chatChannel = chatChannel;
+  public void setChatChannel(ChatChannel chatChannel, BooleanBinding chatTabSelectedProperty) {
     this.channelName = chatChannel.getName();
 
-    chatUserListController.setChatChannel(chatChannel);
+    chatUserListController.setChatChannel(chatChannel, getRoot(), chatTabSelectedProperty);
     updateTabProperties();
     setReceiver(chatChannel.getName());
   }

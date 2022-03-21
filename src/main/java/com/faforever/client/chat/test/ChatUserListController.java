@@ -19,6 +19,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.MapProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -38,6 +39,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
@@ -104,6 +106,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   private String channelName;
   private ChatChannel chatChannel;
+  private Tab channelTab;
+  private BooleanBinding chatTabSelectedProperty;
 
   private VirtualFlow<ListItem, Cell<ListItem, Node>> listView;
   private FilteredList<ListItem> items;
@@ -149,10 +153,19 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener chatConnectionStateListener;
 
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener chatTabSelectedListener;
+
+  private final InvalidationListener selectedChannelTabListener = observable -> initializeListIfNeed();
+
   @Override
   public void afterPropertiesSet() throws Exception {
     eventBus.register(this);
-    listInitializationFuture = taskScheduler.schedule(this::initializeList, Instant.now().plus(3000, ChronoUnit.MILLIS));
+    listInitializationFuture = taskScheduler.schedule(() -> {
+      if (chatTabSelectedProperty.get() && channelTab.isSelected()) {
+        initializeList();
+      }
+    }, Instant.now().plus(3000, ChronoUnit.MILLIS));
   }
 
   @Override
@@ -160,9 +173,11 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     initializeAdvancedFiltersPopup();
   }
 
-  public void setChatChannel(ChatChannel chatChannel) {
+  public void setChatChannel(ChatChannel chatChannel, Tab channelTab, BooleanBinding chatTabSelectedProperty) {
     this.chatChannel = chatChannel;
+    this.channelTab = channelTab;
     this.channelName = chatChannel.getName();
+    this.chatTabSelectedProperty = chatTabSelectedProperty;
     this.channelNameToHiddenCategories = preferencesService.getPreferences().getChat().getChannelNameToHiddenCategories();
     this.hiddenCategories = channelNameToHiddenCategories.get(channelName);
 
@@ -204,6 +219,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       }
     };
 
+    chatTabSelectedListener = observable -> selectedChannelTabListener.invalidated(null);
+
     chatService.addUsersListener(channelName, channelUserListListener);
     JavaFxUtil.addListener(chatService.connectionStateProperty(), new WeakInvalidationListener(chatConnectionStateListener));
     JavaFxUtil.addListener(visibleCategories, new WeakSetChangeListener<>(visibleCategoriesListener));
@@ -212,6 +229,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     if (hiddenCategories != null) {
       JavaFxUtil.addListener(hiddenCategories, new WeakListChangeListener<>(hiddenCategoriesListener));
     }
+    JavaFxUtil.addListener(chatTabSelectedProperty, new WeakInvalidationListener(chatTabSelectedListener));
+    JavaFxUtil.addListener(channelTab.selectedProperty(), new WeakInvalidationListener(selectedChannelTabListener));
   }
 
   private void initializeList() {
@@ -227,6 +246,12 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
         userListTools.setDisable(false);
       });
     });
+  }
+
+  private void initializeListIfNeed() {
+    if (chatTabSelectedProperty.get() && channelTab.isSelected() && listInitializationFuture.isDone() && listView == null) {
+      initializeList();
+    }
   }
 
   public void onTabClosed() {
