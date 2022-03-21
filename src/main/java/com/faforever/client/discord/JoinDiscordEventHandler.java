@@ -1,11 +1,12 @@
 package com.faforever.client.discord;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -22,15 +23,19 @@ import java.net.URISyntaxException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class JoinDiscordEventHandler {
+public class JoinDiscordEventHandler implements InitializingBean {
 
-  private final ClientProperties clientProperties;
+  private final EventBus eventBus;
   private final PlatformService platformService;
 
-  @EventListener(value = JoinDiscordEvent.class)
-  public void onJoin() throws URISyntaxException {
-    String joinUrl = clientProperties.getDiscord().getJoinUrl();
-    joinViaDiscord(joinUrl);
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    eventBus.register(this);
+  }
+
+  @Subscribe
+  public void onJoin(JoinDiscordEvent event) throws URISyntaxException {
+    joinViaDiscord(event.getChannelUrl());
   }
 
   private void joinViaBrowser(String joinUrl) {

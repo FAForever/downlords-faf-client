@@ -122,7 +122,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
   }
 
   public void onDiscordButtonClicked() {
-    eventBus.post(new JoinDiscordEvent());
+    eventBus.post(new JoinDiscordEvent(discordLink.getText()));
   }
 
   @VisibleForTesting
