@@ -153,22 +153,35 @@
 
 .pagination {
   -fx-page-information-visible: true;
+  -fx-min-width: 50;
+  -fx-min-height: 50;
 }
-
+.pagination > .pagination-control > .control-box > .number-button,
+.pagination > .pagination-control > .control-box > .bullet-button,
+.pagination > .pagination-control > .control-box > .left-arrow-button,
+.pagination > .pagination-control > .control-box > .right-arrow-button,
 .page-button {
   -fx-background-color: transparent;
   -fx-border-color: -fx-box-border;
   -fx-border-width: 1;
   -fx-background-radius: 2px;
   -fx-border-radius: 2px;
+  -fx-min-width: 50;
+  -fx-min-height: 50;
 }
 
+.pagination > .pagination-control > .control-box > .number-button:hover,
+.pagination > .pagination-control > .control-box > .bullet-button:hover,
+.pagination > .pagination-control > .control-box > .left-arrow-button:hover,
+.pagination > .pagination-control > .control-box > .right-arrow-button:hover,
 .page-button:hover {
   -fx-border-color: -fx-box-border;
   -fx-background-color: -card-color;
   -fx-border-width: 1;
   -fx-background-radius: 2px;
   -fx-border-radius: 2px;
+  -fx-min-width: 50;
+  -fx-min-height: 50;
 }
 
 
@@ -1019,7 +1032,6 @@
 
 .toggle-button.queue {
   -fx-border-color: -fx-accent;
-  -fx-min-height: 50px;
 }
 
 .toggle-button.queue:hover {

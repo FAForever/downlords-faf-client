@@ -67,7 +67,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(userService, timeout(1000)).getHydraUrl(captor.capture());
+    verify(userService, timeout(2000)).getHydraUrl(captor.capture());
 
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("code", "1234")
@@ -96,7 +96,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
-    verify(userService, timeout(1000)).getHydraUrl(captor.capture());
+    verify(userService, timeout(2000)).getHydraUrl(captor.capture());
 
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
         .queryParam("error", "failed");

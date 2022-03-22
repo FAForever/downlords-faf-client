@@ -4,9 +4,9 @@ import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.io.ByteCopier;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 
@@ -32,8 +32,15 @@ public class UninstallMapTaskTest extends ServiceTest {
   @Mock
   private MapService mapService;
 
-  @InjectMocks
+  /**
+   * InjectMocks not possible  @see <a href="https://github.com/mockito/mockito/issues/2602">Mockito issue</a>
+   */
   private UninstallMapTask instance;
+
+  @BeforeEach
+  public void setUp(){
+    instance = new UninstallMapTask(mapService);
+  }
 
   @Test
   public void testCallWithoutMapThrowsException() throws Exception {

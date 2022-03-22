@@ -182,7 +182,7 @@ public class TokenServiceTest extends ServiceTest {
     StepVerifier.create(instance.loginWithRefreshToken())
         .verifyComplete();
 
-    Thread.sleep(10);
+    Thread.sleep(100);
 
     instance.onLogOut(new LoggedOutEvent());
 
