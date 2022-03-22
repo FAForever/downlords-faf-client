@@ -27,7 +27,7 @@
                 <Button mnemonicParsing="false" styleClass="user-list-settings-button" fx:id="listCustomizationButton"
                         onAction="#onListCustomizationButtonClicked">
                     <graphic>
-                        <Region styleClass="icon,icon-settings,icon16x16"/>
+                        <Region styleClass="icon,settings-icon,icon16x16"/>
                     </graphic>
                 </Button>
             </children>

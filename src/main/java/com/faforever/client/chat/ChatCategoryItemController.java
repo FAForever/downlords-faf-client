@@ -19,15 +19,18 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /** Represents a header in the chat user list, like "Moderators". */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatCategoryItemController implements Controller<Node> {
+public class ChatCategoryItemController implements Controller<Node>, InitializingBean {
 
   private final I18n i18n;
   private final UiService uiService;
@@ -36,25 +39,34 @@ public class ChatCategoryItemController implements Controller<Node> {
 
   public Node root;
   public Label categoryLabel;
-  public Label visibilityStateLabel;
+  public Label latentLabel;
+
+  private ChatPrefs chatPrefs;
 
   private ChatUserCategory chatUserCategory;
   private String channelName;
   private ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesProperty;
 
-  public void setChatUserCategory(ChatUserCategory chatUserCategory, String channelName) {
-    this.chatUserCategory = chatUserCategory;
-    this.channelName = channelName;
-    categoryLabel.setText(i18n.get(chatUserCategory.getI18nKey()));
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    chatPrefs = preferencesService.getPreferences().getChat();
     channelNameToHiddenCategoriesProperty = chatPrefs.getChannelNameToHiddenCategories();
-    ObservableList<ChatUserCategory> hiddenCategories = channelNameToHiddenCategoriesProperty.get(channelName);
-    setHiddenCategory(hiddenCategories != null && hiddenCategories.contains(chatUserCategory));
+  }
+
+  @Override
+  public void initialize() {
     JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
       Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
       return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
     }, chatPrefs.groupToColorProperty()));
+  }
 
+  void setChatUserCategory(ChatUserCategory chatUserCategory, String channelName) {
+    this.chatUserCategory = chatUserCategory;
+    this.channelName = channelName;
+
+    categoryLabel.setText(i18n.get(chatUserCategory.getI18nKey()));
+    updateLatentLabel();
   }
 
   public void onCategoryClicked(MouseEvent mouseEvent) {
@@ -62,7 +74,6 @@ public class ChatCategoryItemController implements Controller<Node> {
       ObservableList<ChatUserCategory> hiddenCategories = channelNameToHiddenCategoriesProperty.get(channelName);
       if (hiddenCategories == null) {
         channelNameToHiddenCategoriesProperty.put(channelName, FXCollections.observableArrayList(chatUserCategory));
-        setHiddenCategory(true);
       } else {
         if (hiddenCategories.contains(chatUserCategory)) {
           if (hiddenCategories.size() == 1) {
@@ -70,18 +81,18 @@ public class ChatCategoryItemController implements Controller<Node> {
           } else {
             hiddenCategories.remove(chatUserCategory);
           }
-          setHiddenCategory(false);
         } else {
           hiddenCategories.add(chatUserCategory);
-          setHiddenCategory(true);
         }
       }
+      updateLatentLabel();
     }
   }
 
-  private void setHiddenCategory(boolean hidden) {
-    String state = hidden ? "˃ " : "˅ ";
-    JavaFxUtil.runLater(() -> visibilityStateLabel.setText(state));
+  private void updateLatentLabel() {
+    boolean isHidden = Optional.ofNullable(channelNameToHiddenCategoriesProperty.get(channelName))
+        .stream().anyMatch(hiddenCategories -> hiddenCategories.contains(chatUserCategory));
+    JavaFxUtil.runLater(() -> latentLabel.setText(isHidden ? "˃" : "˅"));
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {

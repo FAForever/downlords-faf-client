@@ -48,19 +48,18 @@ public class ChatUserFilterController implements Controller<Node> {
   public ToggleGroup gameStatusToggleGroup;
   public TextField countryFilterField;
 
-
-  private final BooleanProperty filterApplied = new SimpleBooleanProperty(false);
-  private final InvalidationListener textPropertyListener = observable -> filterUsers();
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener countryTextPropertyListener;
-
   private FilteredList<ListItem> userList;
   private TextField searchUsernameTextField;
 
   @VisibleForTesting
   PlayerStatus playerStatusFilter;
-
   List<String> currentSelectedCountries;
+  
+  /* Listeners */
+  private final BooleanProperty filterApplied = new SimpleBooleanProperty(false);
+  private final InvalidationListener textPropertyListener = observable -> filterUsers();
+  @SuppressWarnings("FieldCanBeLocal")
+  private InvalidationListener countryTextPropertyListener;
 
   public void finalizeFiltersSettings(FilteredList<ListItem> userList, TextField searchUsernameTextField) {
     this.userList = userList;
@@ -82,7 +81,7 @@ public class ChatUserFilterController implements Controller<Node> {
     JavaFxUtil.addListener(countryFilterField.textProperty(), new WeakInvalidationListener(countryTextPropertyListener));
   }
 
-  public void filterUsers() {
+  private void filterUsers() {
     userList.setPredicate(this::filterUser);
     filterApplied.set(
         !maxRatingFilterField.getText().isEmpty()

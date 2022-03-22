@@ -81,7 +81,6 @@ public class ChatUserItemController implements Controller<Node> {
   public Label usernameLabel;
   public Label mapNameLabel;
 
-  private Tooltip countryTooltip;
   private Tooltip avatarTooltip;
   private Tooltip gameInfoTooltip;
   private GameTooltipController gameInfoController;
@@ -116,10 +115,6 @@ public class ChatUserItemController implements Controller<Node> {
     avatarTooltip = new Tooltip();
     avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     Tooltip.install(avatarImageView, avatarTooltip);
-
-    countryTooltip = new Tooltip();
-    countryTooltip.showDelayProperty().set(Duration.millis(250));
-    Tooltip.install(countryImageView, countryTooltip);
   }
 
   public void onMapImageViewMouseExited() {
@@ -240,7 +235,6 @@ public class ChatUserItemController implements Controller<Node> {
       usernameLabel.setStyle(styleString);
       avatarImageView.setImage(chatUser.getAvatar().orElse(null));
       countryImageView.setImage(chatUser.getCountryFlag().orElse(null));
-      countryTooltip.setText(chatUser.getCountryName().orElse(""));
       avatarTooltip.setText(avatarString);
     });
   }

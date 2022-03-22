@@ -245,7 +245,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void initializeListIfNeed() {
-    if (chatTabSelectedProperty.get() && channelTab.isSelected() && listInitializationFuture.isDone() && listView == null) {
+    if (chatTabSelectedProperty.get() && channelTab.isSelected() && listInitializationFuture.isDone()
+        && listView == null && !usersEventQueueExecutor.isShutdown()) {
       initializeList();
     }
   }

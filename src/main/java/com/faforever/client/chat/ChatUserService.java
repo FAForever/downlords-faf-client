@@ -144,6 +144,7 @@ public class ChatUserService implements InitializingBean {
       default -> null;
     };
     Image mapImage;
+    // Do not load coop map preview because they do not exist on API vault
     if (status != PlayerStatus.IDLE && player.getGame() != null && player.getGame().getGameType() != GameType.COOP) {
       mapImage = mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL);
     } else {

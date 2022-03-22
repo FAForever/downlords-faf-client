@@ -92,7 +92,7 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 @Slf4j
 public abstract class AbstractChatTabController implements Controller<Tab> {
 
-  public static final String CSS_CLASS_CHAT_ONLY = "chat_only";
+  static final String CSS_CLASS_CHAT_ONLY = "chat_only";
   private static final String MESSAGE_CONTAINER_ID = "chat-container";
   private static final String MESSAGE_ITEM_CLASS = "chat-section";
   private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");

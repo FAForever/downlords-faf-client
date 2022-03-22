@@ -14,6 +14,7 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -149,7 +150,9 @@ public class ChatController extends AbstractViewController<AnchorPane> {
       }
     });
 
-    chatTabSelectedProperty = getRoot().visibleProperty().and(getRoot().parentProperty().isNotNull());
+    BooleanProperty chatTabVisibleProperty = getRoot().visibleProperty();
+    BooleanBinding chatTabInitializedProperty = getRoot().parentProperty().isNotNull();
+    chatTabSelectedProperty = chatTabVisibleProperty.and(chatTabInitializedProperty);
   }
 
   @Subscribe
