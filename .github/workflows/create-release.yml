@@ -72,19 +72,6 @@ jobs:
           --stacktrace \
           buildInstall4jMediaFiles
 
-      - name: Create Draft Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          commitish: ${{ github.sha }}
-          tag_name: v${{ github.event.inputs.version }}
-          release_name: v${{ github.event.inputs.version }}
-          draft: true
-          prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
-          generate_release_notes: true
-
       - name: Get Artifact Paths
         id: artifact_paths
         run: |
@@ -102,6 +89,19 @@ jobs:
           echo ::set-output name=WINDOWS_EXE_NAME::${WINDOWS_EXE_NAME}
           echo ::set-output name=WINDOWS_ZIP::${WINDOWS_ZIP}
           echo ::set-output name=WINDOWS_ZIP_NAME::${WINDOWS_ZIP_NAME}
+
+      - name: Create Draft Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          commitish: ${{ github.sha }}
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: v${{ github.event.inputs.version }}
+          draft: true
+          prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
+          generate_release_notes: true
 
       - name: Upload Linux Files
         id: upload-linux
