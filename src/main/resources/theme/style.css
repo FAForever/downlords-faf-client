@@ -1032,7 +1032,6 @@
 
 .toggle-button.queue {
   -fx-border-color: -fx-accent;
-  -fx-min-height: 50px;
 }
 
 .toggle-button.queue:hover {
