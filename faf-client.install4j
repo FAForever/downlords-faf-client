@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="9.0.5" transformSequenceNumber="9">
   <directoryPresets config="./src/media/appicon" />
-  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="FAF" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="17" allowBetaVM="true">
+  <application name="FAF Client" applicationId="2848-7798-9769-5013" mediaDir="./build/install4j" lzmaCompression="true" pack200Compression="true" shortName="faf" publisher="FAForever" publisherWeb="https://github.com/FAForever/downlords-faf-client" allPathsRelative="true" autoSave="true" macVolumeId="e230e730a6fc064c" javaMinVersion="17" allowBetaVM="true">
     <languages>
       <additionalLanguages>
         <language id="zh_CN" />
