@@ -24,6 +24,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -97,13 +98,13 @@ public class OAuthValuesReceiver {
       platformService.showDocument(userService.getHydraUrl(redirectUri));
 
       Socket socket = serverSocket.accept();
-      BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
       String request = reader.readLine();
+      log.info(request);
 
       boolean success = false;
 
       // Do not try with resources as the socket needs to stay open.
-      //noinspection TryFinallyCanBeTryWithResources
       try {
         Values values = readValues(request, redirectUri);
         success = true;
