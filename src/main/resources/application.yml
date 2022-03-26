@@ -65,6 +65,9 @@ faf-client:
     big_image_key: faf_logo_big
     join-url: https://discord.gg/PfGcWas
 
+  statping:
+    api-root: https://status.faforever.com/api
+
 spring:
   profiles:
     active: ${CLIENT_PROFILE:prod}
