@@ -26,7 +26,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.HashMap;
@@ -86,7 +85,7 @@ public class PartyMemberItemControllerTest extends UITest {
     when(i18n.get(eq("teammatchmaking.gameCount"), anyInt())).thenReturn("GAMES PLAYED: 0");
     when(playerService.getCurrentPlayer()).thenReturn(owner);
     when(teamMatchmakingService.getParty()).thenReturn(party);
-    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
 
     loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml", clazz -> instance);
@@ -101,7 +100,7 @@ public class PartyMemberItemControllerTest extends UITest {
 
   @Test
   public void testLeagueSet() {
-    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
 
     runOnFxThreadAndWait(() -> instance.setLeagueInfo());

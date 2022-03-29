@@ -152,21 +152,27 @@ public class LeaderboardService {
         .toFuture();
   }
 
+  public CompletableFuture<Optional<LeagueEntryBean>> getHighestActiveLeagueEntryForPlayer(PlayerBean player) {
+    return getActiveLeagueEntriesForPlayer(player)
+        .thenApply(leagueEntryBeans -> leagueEntryBeans.stream()
+            .max((e1, e2) -> SUBDIVISION_COMPARATOR.compare(e1.getSubdivision(), e2.getSubdivision())));
+  }
+
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
-  public CompletableFuture<Optional<LeagueEntryBean>> getHighestLeagueEntryForPlayer(PlayerBean player) {
+  public CompletableFuture<List<LeagueEntryBean>> getActiveLeagueEntriesForPlayer(PlayerBean player) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder()
             .intNum("loginId").eq(player.getId())
             .and()
-            // This goes all the way back. Maybe we don't want that
             .instant("leagueSeason.startDate").before(OffsetDateTime.now().toInstant(), false)
+            .and()
+            .instant("leagueSeason.endDate").after(OffsetDateTime.now().toInstant(), false)
         );
     return fafApiAccessor.getMany(navigator)
         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
         .filter(leagueEntryBean -> leagueEntryBean.getSubdivision() != null)
-        .reduce((score1, score2) -> SUBDIVISION_COMPARATOR.compare(score1.getSubdivision(), score2.getSubdivision()) > 0 ? score1 : score2)
-        .toFuture()
-        .thenApply(Optional::ofNullable);
+        .collectList()
+        .toFuture();
   }
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)

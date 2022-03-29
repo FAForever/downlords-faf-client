@@ -196,7 +196,7 @@ public class LeaderboardServiceTest extends ServiceTest {
         leaderboardMapper.map(leagueEntryBean3, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    Optional<LeagueEntryBean> result = instance.getHighestLeagueEntryForPlayer(player).toCompletableFuture().join();
+    Optional<LeagueEntryBean> result = instance.getHighestActiveLeagueEntryForPlayer(player).toCompletableFuture().join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
     Assertions.assertEquals(leagueEntryBean2, result.orElse(null));
@@ -210,7 +210,7 @@ public class LeaderboardServiceTest extends ServiceTest {
         leaderboardMapper.map(leagueEntryBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    Optional<LeagueEntryBean> result = instance.getHighestLeagueEntryForPlayer(player).toCompletableFuture().join();
+    Optional<LeagueEntryBean> result = instance.getHighestActiveLeagueEntryForPlayer(player).toCompletableFuture().join();
 
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
     Assertions.assertTrue(result.isEmpty());
