@@ -46,8 +46,8 @@
               <content>
                 <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
                   <children>
-                      <HBox spacing="10.0" alignment="CENTER" styleClass="card" fx:id="leaderboardBox">
-                          <VBox alignment="CENTER">
+                      <HBox spacing="25.0" alignment="CENTER" styleClass="card" fx:id="leaderboardBox">
+                          <VBox alignment="TOP_CENTER">
                               <Label styleClass="h2"/>
                               <Label styleClass="h2" text="%userInfo.gamesPlayed"/>
                               <Label styleClass="h2" text="%userInfo.division"/>

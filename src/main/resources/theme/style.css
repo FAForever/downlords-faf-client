@@ -256,12 +256,12 @@
 
 .h1 {
   -fx-font-size: 32px;
-  -fx-padding: 0 0 0.5em 0;
+  -fx-padding: 0 0 16px 0;
 }
 
 .h2 {
   -fx-font-size: 24px;
-  -fx-padding: 0 0 0.5em 0;
+  -fx-padding: 3px 0 10px 0;
 }
 
 .h3 {
