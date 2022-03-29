@@ -1,7 +1,13 @@
 package com.faforever.client.player;
 
+import com.faforever.client.domain.LeaderboardBean;
+import com.faforever.client.domain.LeagueEntryBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
+import com.faforever.client.util.RatingUtil;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -16,6 +22,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserLeaderboardInfoController implements Controller<Node> {
+  
+  private final I18n i18n;
+  private final LeaderboardService leaderboardService;
   public ImageView divisionImage;
   public Label divisionLabel;
   public Label leaderboardNameLabel;
@@ -33,19 +42,29 @@ public class UserLeaderboardInfoController implements Controller<Node> {
     return root;
   }
 
-  public void setLeaderboardInfo(Image image, String divisionName, String leaderboardName, String gameNumber, String ratingNumber) {
+  public void setLeaderboardInfo(PlayerBean player, LeaderboardBean leaderboard) {
+    String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
+    String gameNumber = i18n.get("leaderboard.gameNumber", player.getNumberOfGames(leaderboard.getTechnicalName()));
+    String ratingNumber = i18n.get("leaderboard.rating", RatingUtil.getLeaderboardRating(player, leaderboard));
+
     JavaFxUtil.runLater(() -> {
-      if (image != null) {
-        divisionImage.setImage(image);
-        divisionImage.setVisible(true);
-      }
-      if (divisionName != null) {
-        divisionLabel.setText(divisionName);
-        divisionLabel.setVisible(true);
-      }
       leaderboardNameLabel.setText(leaderboardName);
       gamesPlayedLabel.setText(gameNumber);
       ratingLabel.setText(ratingNumber);
+    });
+  }
+
+  public void setLeagueInfo(LeagueEntryBean leagueEntry) {
+    Image image = leaderboardService.loadDivisionImage(leagueEntry.getSubdivision().getImageUrl());
+    String divisionName = i18n.get("leaderboard.divisionName",
+        i18n.getOrDefault(leagueEntry.getSubdivision().getDivision().getNameKey(), leagueEntry.getSubdivision().getDivisionI18nKey()),
+        leagueEntry.getSubdivision().getNameKey()).toUpperCase();
+
+    JavaFxUtil.runLater(() -> {
+      divisionImage.setImage(image);
+      divisionImage.setVisible(true);
+      divisionLabel.setText(divisionName);
+      divisionLabel.setVisible(true);
     });
   }
 }

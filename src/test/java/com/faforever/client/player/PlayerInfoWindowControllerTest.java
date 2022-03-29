@@ -32,7 +32,6 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
@@ -42,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -88,9 +86,6 @@ public class PlayerInfoWindowControllerTest extends UITest {
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
     when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
-    when(i18n.get("leaderboard.rating", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
-    when(i18n.get("leaderboard.gameNumber", leaderboard.getTechnicalName())).thenReturn(leaderboard.getTechnicalName());
-    when(i18n.number(anyInt())).then(invocation -> invocation.getArgument(0).toString());
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
     when(achievementItemController.getRoot()).thenReturn(new HBox());
     when(uiService.loadFxml("theme/chat/player_rating_chart_tooltip.fxml")).thenReturn(playerRatingChartTooltipController);
@@ -154,10 +149,7 @@ public class PlayerInfoWindowControllerTest extends UITest {
     instance.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
-    assertTrue(instance.gamesPlayedNamesLabel.getText().contains(leaderboard.getTechnicalName()));
-    assertTrue(instance.ratingsValues.getText().contains("200"));
-    assertTrue(instance.gamesPlayedValueLabel.getText().contains("47"));
+    assertEquals(1, instance.leaderboardBox.getChildren().size());
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(player.getId());
     verify(leaderboardService, times(2)).getLeaderboards();

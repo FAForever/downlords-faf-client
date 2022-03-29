@@ -39,7 +39,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -109,11 +108,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public PieChart techBuiltChart;
   public PieChart unitsBuiltChart;
   public StackedBarChart<String, Integer> factionsChart;
-  public Label gamesPlayedValueLabel;
-  public Label gamesPlayedNamesLabel;
   public HBox leaderboardBox;
-  public Label ratingsLabels;
-  public Label ratingsValues;
   public Pane unlockedAchievementsHeader;
   public Pane lockedAchievementsHeader;
   public ScrollPane achievementsPane;
@@ -261,17 +256,9 @@ public class PlayerInfoWindowController implements Controller<Node> {
                 Optional<LeagueEntryBean> leagueEntry = leagueEntries.stream()
                     .filter(leagueEntryBean -> Objects.equals(leagueEntryBean.getLeagueSeason().getLeaderboard(), leaderboard))
                     .findFirst();
-                Image image = leagueEntry.map(entry -> leaderboardService.loadDivisionImage(
-                    entry.getSubdivision().getImageUrl())).orElse(null);
-                String divisionName = leagueEntry.map(entry -> i18n.get("leaderboard.divisionName",
-                    i18n.getOrDefault(entry.getSubdivision().getDivision().getNameKey(), entry.getSubdivision().getDivisionI18nKey()),
-                    entry.getSubdivision().getNameKey()).toUpperCase()).orElse(null);
-                String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
-                String gameNumber = i18n.get("leaderboard.gameNumber", player.getNumberOfGames(leaderboard.getTechnicalName()));
-                String ratingNumber = i18n.get("leaderboard.rating", RatingUtil.getLeaderboardRating(player, leaderboard));
-
                 UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
-                controller.setLeaderboardInfo(image, divisionName, leaderboardName, gameNumber, ratingNumber);
+                controller.setLeaderboardInfo(player, leaderboard);
+                leagueEntry.ifPresent(controller::setLeagueInfo);
                 JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
               }
             })
