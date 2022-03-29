@@ -16,25 +16,36 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserLeaderboardInfoController implements Controller<Node> {
+  public ImageView divisionImage;
+  public Label divisionLabel;
   public Label leaderboardNameLabel;
   public Label gamesPlayedLabel;
-  public ImageView divisionImage;
   public Label ratingLabel;
   public VBox root;
+
+  @Override
+  public void initialize() {
+    JavaFxUtil.bindManagedToVisible(divisionImage, divisionLabel);
+  }
 
   @Override
   public VBox getRoot() {
     return root;
   }
 
-  public void setLeaderboardInfo(String leaderboardName, String gameNumber, String ratingNumber, Image image) {
+  public void setLeaderboardInfo(Image image, String divisionName, String leaderboardName, String gameNumber, String ratingNumber) {
     JavaFxUtil.runLater(() -> {
+      if (image != null) {
+        divisionImage.setImage(image);
+        divisionImage.setVisible(true);
+      }
+      if (divisionName != null) {
+        divisionLabel.setText(divisionName);
+        divisionLabel.setVisible(true);
+      }
       leaderboardNameLabel.setText(leaderboardName);
       gamesPlayedLabel.setText(gameNumber);
       ratingLabel.setText(ratingNumber);
-      if (image != null) {
-        divisionImage.setImage(image);
-      }
     });
   }
 }

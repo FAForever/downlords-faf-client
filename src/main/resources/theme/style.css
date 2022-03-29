@@ -256,12 +256,12 @@
 
 .h1 {
   -fx-font-size: 32px;
-  -fx-padding: 0 0 16px 0;
+  -fx-padding: 0 0 0.5em 0;
 }
 
 .h2 {
   -fx-font-size: 24px;
-  -fx-padding: 3px 0 10px 0;
+  -fx-padding: 0 0 0.5em 0;
 }
 
 .h3 {
@@ -394,6 +394,11 @@
 }
 
 /***************** User Info Window *****************/
+
+.division-name {
+  -fx-font-size: 16px;
+  -fx-padding: 0px 0 0px 0;
+}
 
 .user-info-header-area {
   -fx-background-color: -fx-background;

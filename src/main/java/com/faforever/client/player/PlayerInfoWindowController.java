@@ -262,13 +262,16 @@ public class PlayerInfoWindowController implements Controller<Node> {
                     .filter(leagueEntryBean -> Objects.equals(leagueEntryBean.getLeagueSeason().getLeaderboard(), leaderboard))
                     .findFirst();
                 Image image = leagueEntry.map(entry -> leaderboardService.loadDivisionImage(
-                    entry.getSubdivision().getMediumImageUrl())).orElse(null);
+                    entry.getSubdivision().getImageUrl())).orElse(null);
+                String divisionName = leagueEntry.map(entry -> i18n.get("leaderboard.divisionName",
+                    i18n.getOrDefault(entry.getSubdivision().getDivision().getNameKey(), entry.getSubdivision().getDivisionI18nKey()),
+                    entry.getSubdivision().getNameKey()).toUpperCase()).orElse(null);
                 String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
-                String gameNumber = i18n.number(player.getNumberOfGames(leaderboard.getTechnicalName()));
-                String ratingNumber = i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard));
+                String gameNumber = i18n.get("leaderboard.gameNumber", player.getNumberOfGames(leaderboard.getTechnicalName()));
+                String ratingNumber = i18n.get("leaderboard.rating", RatingUtil.getLeaderboardRating(player, leaderboard));
 
                 UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
-                controller.setLeaderboardInfo(leaderboardName, gameNumber, ratingNumber, image);
+                controller.setLeaderboardInfo(image, divisionName, leaderboardName, gameNumber, ratingNumber);
                 JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
               }
             })
