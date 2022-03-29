@@ -6,6 +6,7 @@ import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
+import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
@@ -38,6 +39,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -62,6 +64,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -107,7 +111,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public StackedBarChart<String, Integer> factionsChart;
   public Label gamesPlayedValueLabel;
   public Label gamesPlayedNamesLabel;
-  public HBox ratingsBox;
+  public HBox leaderboardBox;
   public Label ratingsLabels;
   public Label ratingsValues;
   public Pane unlockedAchievementsHeader;
@@ -249,28 +253,27 @@ public class PlayerInfoWindowController implements Controller<Node> {
   }
 
   private void updateRatingGrids() {
-    leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
-      StringBuilder ratingNames = new StringBuilder();
-      StringBuilder gameNumberNames = new StringBuilder();
-      StringBuilder ratingNumbers = new StringBuilder();
-      StringBuilder gameNumberValues = new StringBuilder();
-      leaderboards.forEach(leaderboard -> {
-        LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
-        if (leaderboardRating != null) {
-          String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
-          ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n");
-          gameNumberNames.append(i18n.get("leaderboard.gameNumber", leaderboardName)).append("\n");
-          ratingNumbers.append(i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard))).append("\n");
-          gameNumberValues.append(i18n.number(player.getNumberOfGames(leaderboard.getTechnicalName()))).append("\n");
-        }
-      });
-      JavaFxUtil.runLater(() -> {
-        ratingsLabels.setText(ratingNames.toString());
-        gamesPlayedNamesLabel.setText(gameNumberNames.toString());
-        ratingsValues.setText(ratingNumbers.toString());
-        gamesPlayedValueLabel.setText(gameNumberValues.toString());
-      });
-    });
+    leaderboardService.getLeaderboards().thenAccept(leaderboards ->
+        leaderboardService.getActiveLeagueEntriesForPlayer(player).thenAccept(leagueEntries ->
+            leaderboards.forEach(leaderboard -> {
+              LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
+              if (leaderboardRating != null) {
+                Optional<LeagueEntryBean> leagueEntry = leagueEntries.stream()
+                    .filter(leagueEntryBean -> Objects.equals(leagueEntryBean.getLeagueSeason().getLeaderboard(), leaderboard))
+                    .findFirst();
+                Image image = leagueEntry.map(entry -> leaderboardService.loadDivisionImage(
+                    entry.getSubdivision().getMediumImageUrl())).orElse(null);
+                String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
+                String gameNumber = i18n.number(player.getNumberOfGames(leaderboard.getTechnicalName()));
+                String ratingNumber = i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard));
+
+                UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
+                controller.setLeaderboardInfo(leaderboardName, gameNumber, ratingNumber, image);
+                JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
+              }
+            })
+        )
+    );
   }
 
   private void updateNameHistory() {

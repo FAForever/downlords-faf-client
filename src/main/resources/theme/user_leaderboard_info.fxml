@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.faforever.client.player.UserLeaderboardInfoController"
+      fx:id="root" alignment="CENTER">
+    <Label fx:id="leaderboardNameLabel" styleClass="h2" text="&lt;leaderboard&gt;"/>
+    <Label fx:id="gamesPlayedLabel" styleClass="h2" text="&lt;number games value&gt;"/>
+    <ImageView fx:id="divisionImage" fitHeight="40.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true"
+               />
+    <Label fx:id="ratingLabel" styleClass="h2" text="&lt;rating value&gt;"/>
+
+</VBox>
