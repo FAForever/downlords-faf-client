@@ -149,7 +149,6 @@ public class PlayerInfoWindowControllerTest extends UITest {
     instance.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(1, instance.leaderboardBox.getChildren().size());
     verify(achievementService).getAchievementDefinitions();
     verify(achievementService).getPlayerAchievements(player.getId());
     verify(leaderboardService, times(2)).getLeaderboards();

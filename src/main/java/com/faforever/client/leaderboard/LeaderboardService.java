@@ -85,6 +85,19 @@ public class LeaderboardService {
         .toFuture();
   }
 
+  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
+  public CompletableFuture<List<LeagueSeasonBean>> getActiveSeasons() {
+    ElideNavigatorOnCollection<LeagueSeason> navigator = ElideNavigator.of(LeagueSeason.class).collection()
+        .setFilter(qBuilder()
+            .instant("startDate").before(OffsetDateTime.now().toInstant(), false)
+            .and()
+            .instant("endDate").after(OffsetDateTime.now().toInstant(), false));
+    return fafApiAccessor.getMany(navigator)
+        .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
+        .collectList()
+        .toFuture();
+  }
+
   @Cacheable(value = CacheNames.LEAGUE, sync = true)
   public CompletableFuture<LeagueSeasonBean> getLatestSeason(LeagueBean league) {
     ElideNavigatorOnCollection<LeagueSeason> navigator = ElideNavigator.of(LeagueSeason.class).collection()

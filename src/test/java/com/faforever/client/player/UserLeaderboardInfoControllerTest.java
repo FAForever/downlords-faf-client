@@ -13,8 +13,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.UITest;
 import javafx.scene.image.Image;
-import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
@@ -41,13 +41,10 @@ public class UserLeaderboardInfoControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    leaderboard = LeaderboardBeanBuilder.create().defaultValues().get();
+    leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("1v1").get();
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
 
-    when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
-    when(i18n.get("leaderboard.gameNumber", 10)).thenReturn("10 games");
-    when(i18n.get("leaderboard.rating", 200)).thenReturn("200 rating");
-    when(leaderboardService.loadDivisionImage(any())).thenReturn(new Image(""));
+    when(leaderboardService.loadDivisionImage(any())).thenReturn(new Image("https://content.faforever.com/divisions/icons/unranked.png"));
 
     loadFxml("theme/user_leaderboard_info.fxml", clazz -> instance);
   }
@@ -60,6 +57,9 @@ public class UserLeaderboardInfoControllerTest extends UITest {
 
   @Test
   public void testSetLeaderboardInfo() {
+    when(i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey())).thenReturn(leaderboard.getTechnicalName());
+    when(i18n.get("leaderboard.gameNumber", 47)).thenReturn("47 games");
+    when(i18n.get("leaderboard.rating", 200)).thenReturn("200 rating");
     final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
         .defaultValues()
         .numberOfGames(47)
@@ -75,22 +75,38 @@ public class UserLeaderboardInfoControllerTest extends UITest {
     assertFalse(instance.divisionImage.isManaged());
     assertFalse(instance.divisionLabel.isVisible());
     assertFalse(instance.divisionLabel.isManaged());
-    assertEquals("test_name", instance.leaderboardNameLabel.getText());
+    assertEquals("1v1", instance.leaderboardNameLabel.getText());
     assertEquals("47 games", instance.gamesPlayedLabel.getText());
     assertEquals("200 rating", instance.ratingLabel.getText());
   }
 
   @Test
   public void testSetLeagueInfo() {
-    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().get();
+    LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
+    when(i18n.getOrDefault(leagueEntry.getSubdivision().getDivision().getNameKey(), leagueEntry.getSubdivision().getDivisionI18nKey())).thenReturn("bronze");
+    when(i18n.get("leaderboard.divisionName", "bronze", leagueEntry.getSubdivision().getNameKey())).thenReturn("bronze II");
 
-    instance.setLeagueInfo(leagueEntryBean);
+    instance.setLeagueInfo(leagueEntry);
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.divisionImage.isVisible());
     assertTrue(instance.divisionImage.isManaged());
     assertTrue(instance.divisionLabel.isVisible());
     assertTrue(instance.divisionLabel.isManaged());
-    assertEquals("bronze", instance.divisionLabel.getText());
+    assertEquals("BRONZE II", instance.divisionLabel.getText());
+  }
+
+  @Test
+  public void testSetUnrankedLeague() {
+    when(i18n.get("teammatchmaking.inPlacement")).thenReturn("unlisted");
+
+    instance.setUnrankedLeague();
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertTrue(instance.divisionImage.isVisible());
+    assertTrue(instance.divisionImage.isManaged());
+    assertTrue(instance.divisionLabel.isVisible());
+    assertTrue(instance.divisionLabel.isManaged());
+    assertEquals("UNLISTED", instance.divisionLabel.getText());
   }
 }

@@ -249,20 +249,26 @@ public class PlayerInfoWindowController implements Controller<Node> {
 
   private void updateRatingGrids() {
     leaderboardService.getLeaderboards().thenAccept(leaderboards ->
-        leaderboardService.getActiveLeagueEntriesForPlayer(player).thenAccept(leagueEntries ->
-            leaderboards.forEach(leaderboard -> {
-              LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
-              if (leaderboardRating != null) {
+      leaderboardService.getActiveLeagueEntriesForPlayer(player).thenAccept(leagueEntries ->
+        leaderboardService.getActiveSeasons().thenAccept(leagueSeasonBeans ->
+          leaderboards.forEach(leaderboard -> {
+            LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
+            if (leaderboardRating != null) {
+              UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
+              controller.setLeaderboardInfo(player, leaderboard);
+
+              if (leagueSeasonBeans.stream().anyMatch(season -> Objects.equals(season.getLeaderboard(), leaderboard))) {
                 Optional<LeagueEntryBean> leagueEntry = leagueEntries.stream()
                     .filter(leagueEntryBean -> Objects.equals(leagueEntryBean.getLeagueSeason().getLeaderboard(), leaderboard))
                     .findFirst();
-                UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
-                controller.setLeaderboardInfo(player, leaderboard);
-                leagueEntry.ifPresent(controller::setLeagueInfo);
-                JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
+                leagueEntry.ifPresentOrElse(controller::setLeagueInfo, controller::setUnrankedLeague);
               }
-            })
+
+              JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
+            }
+          })
         )
+      )
     );
   }
 

@@ -18,6 +18,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
@@ -65,6 +68,17 @@ public class UserLeaderboardInfoController implements Controller<Node> {
       divisionImage.setVisible(true);
       divisionLabel.setText(divisionName);
       divisionLabel.setVisible(true);
+    });
+  }
+
+  public void setUnrankedLeague() {
+    JavaFxUtil.runLater(() -> {
+      try {
+        divisionImage.setImage(leaderboardService.loadDivisionImage(new URL("https://content.faforever.com/divisions/icons/unranked.png")));
+        divisionImage.setVisible(true);
+        divisionLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+        divisionLabel.setVisible(true);
+      } catch (MalformedURLException ignored) {}
     });
   }
 }
