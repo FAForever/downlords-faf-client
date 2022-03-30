@@ -16,6 +16,6 @@
         <Label fx:id="leaderboardNameLabel" styleClass="division-name" text="&lt;leaderboard&gt;"/>
         <Label fx:id="divisionLabel" styleClass="division-name" visible="false"/>
     </VBox>
-    <Label fx:id="gamesPlayedLabel" styleClass="player-card-text" text="&lt;number games value&gt;"/>
-    <Label fx:id="ratingLabel" styleClass="player-card-text" text="&lt;rating value&gt;"/>
+    <Label fx:id="gamesPlayedLabel" styleClass="rating-label" text="&lt;number games value&gt;"/>
+    <Label fx:id="ratingLabel" styleClass="rating-label" text="&lt;rating value&gt;"/>
 </VBox>
