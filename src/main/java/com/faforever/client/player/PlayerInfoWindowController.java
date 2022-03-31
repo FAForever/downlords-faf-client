@@ -6,7 +6,6 @@ import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
-import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
@@ -64,7 +63,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -249,25 +247,21 @@ public class PlayerInfoWindowController implements Controller<Node> {
 
   private void updateRatingGrids() {
     leaderboardService.getLeaderboards().thenAccept(leaderboards ->
-      leaderboardService.getActiveLeagueEntriesForPlayer(player).thenAccept(leagueEntries ->
-        leaderboardService.getActiveSeasons().thenAccept(leagueSeasonBeans ->
-          leaderboards.forEach(leaderboard -> {
-            LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
-            if (leaderboardRating != null) {
-              UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
-              controller.setLeaderboardInfo(player, leaderboard);
+      leaderboardService.getActiveSeasons().thenAccept(leagueSeasonBeans ->
+        leaderboards.forEach(leaderboard -> {
+          LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
+          if (leaderboardRating != null) {
+            UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
+            controller.setLeaderboardInfo(player, leaderboard);
 
-              if (leagueSeasonBeans.stream().anyMatch(season -> Objects.equals(season.getLeaderboard(), leaderboard))) {
-                Optional<LeagueEntryBean> leagueEntry = leagueEntries.stream()
-                    .filter(leagueEntryBean -> Objects.equals(leagueEntryBean.getLeagueSeason().getLeaderboard(), leaderboard))
-                    .findFirst();
-                leagueEntry.ifPresentOrElse(controller::setLeagueInfo, controller::setUnrankedLeague);
-              }
-
-              JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
+            if (leagueSeasonBeans.stream().anyMatch(season -> Objects.equals(season.getLeaderboard(), leaderboard))) {
+              leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard).thenAccept(leagueEntry ->
+                  leagueEntry.ifPresentOrElse(controller::setLeagueInfo, controller::setUnrankedLeague));
             }
-          })
-        )
+
+            JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
+          }
+        })
       )
     );
   }

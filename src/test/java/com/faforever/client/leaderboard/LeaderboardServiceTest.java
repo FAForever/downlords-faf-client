@@ -221,6 +221,24 @@ public class LeaderboardServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testGetActiveLeagueEntryForPlayer() {
+    LeaderboardBean leaderboard = LeaderboardBeanBuilder.create().defaultValues().id(2).get();
+    LeagueSeasonBean season = LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get();
+    LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().get();
+    LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().leagueSeason(season).get();
+
+    Flux<ElideEntity> resultFlux = Flux.just(
+        leaderboardMapper.map(leagueEntryBean1, new CycleAvoidingMappingContext()),
+        leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext()));
+    when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
+
+    Optional<LeagueEntryBean> result = instance.getActiveLeagueEntryForPlayer(player, leaderboard).toCompletableFuture().join();
+
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
+    Assertions.assertEquals(leagueEntryBean2, result.orElse(null));
+  }
+
+  @Test
   public void testGetActiveLeagueEntriesForPlayer() {
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().subdivision(null).get();

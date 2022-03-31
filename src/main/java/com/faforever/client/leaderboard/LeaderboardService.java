@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -169,6 +170,13 @@ public class LeaderboardService {
     return getActiveLeagueEntriesForPlayer(player)
         .thenApply(leagueEntryBeans -> leagueEntryBeans.stream()
             .max((e1, e2) -> SUBDIVISION_COMPARATOR.compare(e1.getSubdivision(), e2.getSubdivision())));
+  }
+
+  public CompletableFuture<Optional<LeagueEntryBean>> getActiveLeagueEntryForPlayer(PlayerBean player, LeaderboardBean leaderboard) {
+    return getActiveLeagueEntriesForPlayer(player)
+        .thenApply(leagueEntries -> leagueEntries.stream()
+            .filter(leagueEntry -> Objects.equals(leagueEntry.getLeagueSeason().getLeaderboard(), leaderboard))
+            .findFirst());
   }
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
