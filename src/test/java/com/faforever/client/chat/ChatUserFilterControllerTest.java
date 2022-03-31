@@ -9,6 +9,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.lobby.GameStatus;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
+import javafx.scene.control.TextField;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -26,35 +29,30 @@ import static org.mockito.Mockito.when;
 public class ChatUserFilterControllerTest extends UITest {
 
   @Mock
-  private ChannelTabController channelTabController;
-  @Mock
   private I18n i18n;
   @Mock
   private CountryFlagService flagService;
 
-
   private ChatChannelUser chatChannelUser;
+  private PlayerBean player;
+  private FilteredList<ListItem> items;
+  private TextField searchUsernameTextField;
+
   @InjectMocks
   private ChatUserFilterController instance;
-  private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
-    instance.channelTabController = channelTabController;
-
     player = PlayerBeanBuilder.create().defaultValues().get();
+    items = new FilteredList<>(FXCollections.observableArrayList());
+    searchUsernameTextField = new TextField();
     chatChannelUser = ChatChannelUserBuilder.create(player.getUsername(), "testChannel")
         .defaultValues()
         .player(player)
         .get();
 
     loadFxml("theme/chat/user_filter.fxml", clazz -> instance);
-  }
-
-  @Test
-  public void setChannelTabControllerTest() {
-    instance.setChannelController(channelTabController);
-    assertEquals(channelTabController, instance.channelTabController);
+    instance.finalizeFiltersSettings(items, searchUsernameTextField);
   }
 
   @Test
