@@ -186,7 +186,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertFalse(instance.getHtmlBodyContent().contains(highlighted));
 
     runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.F, false, false,false, false)));
+        null, null, KeyCode.F, false, true,false, false)));
     assertFalse(instance.chatMessageSearchContainer.isVisible());
   }
 
