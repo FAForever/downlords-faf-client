@@ -8,6 +8,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
@@ -56,9 +57,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -384,5 +387,29 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
             .sorted()
             .collect(Collectors.toList())
     );
+  }
+
+  @VisibleForTesting
+  List<ChatChannelUser> getUserListByCategory(ChatUserCategory category) throws Exception {
+    return usersEventQueueExecutor.submit(() -> source.stream()
+            .filter(item -> item.getUser().isPresent() && item.getCategory() == category)
+            .map(item -> item.getUser().get())
+            .collect(Collectors.toList()))
+        .get();
+  }
+
+  @VisibleForTesting
+  List<ChatChannelUser> getUserList() throws Exception {
+    return usersEventQueueExecutor.submit(() -> categoriesToUsers.values().stream().flatMap(Collection::stream)
+            .map(ChatUserItem::getUser)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList()))
+        .get();
+  }
+
+  @VisibleForTesting
+  void waitForUsersEvent() throws Exception {
+    usersEventQueueExecutor.submit(() -> {  }).get();
   }
 }

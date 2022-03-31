@@ -265,4 +265,8 @@ public class ChatPrefs {
   public MapProperty<String, ObservableList<ChatUserCategory>> getChannelNameToHiddenCategories() {
     return channelNameToHiddenCategories;
   }
+
+  public void setChannelNameToHiddenCategories(ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories) {
+    this.channelNameToHiddenCategories.set(channelNameToHiddenCategories);
+  }
 }

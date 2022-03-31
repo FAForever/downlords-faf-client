@@ -269,6 +269,11 @@ public class PreferencesBuilder {
       chatPrefs.setIdleThreshold(idleThreshold);
       return this;
     }
+
+    public ChatPrefsBuilder channelNameToHiddenCategories(ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories) {
+      chatPrefs.setChannelNameToHiddenCategories(channelNameToHiddenCategories);
+      return this;
+    }
   }
 
   public class DeveloperPrefsBuilder extends SubPreferencesBuilder {
