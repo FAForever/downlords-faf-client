@@ -53,20 +53,20 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
     channelNameToHiddenCategoriesProperty = chatPrefs.getChannelNameToHiddenCategories();
   }
 
-  @Override
-  public void initialize() {
-    JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
-      Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
-      return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
-    }, chatPrefs.groupToColorProperty()));
-  }
-
   void setChatUserCategory(ChatUserCategory chatUserCategory, String channelName) {
     this.chatUserCategory = chatUserCategory;
     this.channelName = channelName;
 
     categoryLabel.setText(i18n.get(chatUserCategory.getI18nKey()));
+    bindViews();
     updateLatentLabel();
+  }
+
+  private void bindViews() {
+    JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
+      Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
+      return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
+    }, chatPrefs.groupToColorProperty()));
   }
 
   public void onCategoryClicked(MouseEvent mouseEvent) {
