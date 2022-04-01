@@ -70,8 +70,8 @@ public class ChatUserItemController implements Controller<Node> {
 
   private final InvalidationListener chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
   private final InvalidationListener chatUserGamePropertyInvalidationListener = observable -> updateChatUserGame();
-  private final InvalidationListener showMapNameListener = observable -> updateMapNameLabelState();
-  private final InvalidationListener showMapPreviewListener = observable -> updateMapPreviewImageViewState();
+  private final InvalidationListener showMapNameListener = observable -> updateMapNameLabelVisible();
+  private final InvalidationListener showMapPreviewListener = observable -> updateMapPreviewImageViewVisible();
 
   public Pane root;
   public ImageView mapImageView;
@@ -102,12 +102,12 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addAndTriggerListener(chatPrefs.showMapPreviewProperty(), new WeakInvalidationListener(showMapPreviewListener));
   }
 
-  private void updateMapNameLabelState() {
+  private void updateMapNameLabelVisible() {
     boolean visible = !StringUtils.isBlank(mapNameLabel.getText()) && chatPrefs.isShowMapName();
     Platform.runLater(() -> mapNameLabel.setVisible(visible));
   }
 
-  private void updateMapPreviewImageViewState() {
+  private void updateMapPreviewImageViewVisible() {
     Platform.runLater(() -> mapImageView.setVisible(chatPrefs.isShowMapPreview()));
   }
 
@@ -244,22 +244,23 @@ public class ChatUserItemController implements Controller<Node> {
       gameStatusImageView.setImage(chatUser.getGameStatusImage().orElse(null));
       mapImageView.setImage(chatUser.getMapImage().orElse(null));
       chatUser.getPlayer().filter(player -> player.getStatus() != PlayerStatus.IDLE)
-          .map(player -> player.getGame().getMapFolderName()).ifPresent(this::updateMapNameLabel);
+          .map(player -> player.getGame().getMapFolderName()).ifPresentOrElse(this::updateMapNameLabel,
+              () -> updateMapNameLabel(null));
     });
   }
 
-  private void updateMapNameLabel(String mapName) {
-    String text;
-    if (mapGeneratorService.isGeneratedMap(mapName)) {
-      text = "Neroxis Generated Map";
+  private void updateMapNameLabel(String mapFolderName) {
+    if (mapFolderName == null) {
+      mapNameLabel.setText("");
     } else {
-      text = mapService.getMapLocallyFromName(mapName).map(mapVersion -> mapVersion.getMap().getDisplayName())
-          .orElseGet(() -> convertMapFolderNameToHumanName(mapName));
+      String text;
+      if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
+        text = "Neroxis Generated Map";
+      } else {
+        text = mapService.getMapLocallyFromName(mapFolderName).map(mapVersion -> mapVersion.getMap().getDisplayName())
+            .orElseGet(() -> mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName));
+      }
+      mapNameLabel.setText(i18n.get("game.onMapFormat", text));
     }
-    mapNameLabel.setText(i18n.get("game.onMapFormat", text));
-  }
-
-  private String convertMapFolderNameToHumanName(String mapName) {
-    return mapName.replace("_", " ").replaceAll(".v\\d+", "");
   }
 }

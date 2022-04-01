@@ -534,6 +534,11 @@ public class MapService implements InitializingBean, DisposableBean {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
   }
 
+  public String convertMapFolderNameToHumanNameIfPossible(String mapFolderName) {
+    // dualgap_adaptive.v0012 -> dualgap adaptive
+    return mapFolderName.replace("_", " ").replaceAll(".v\\d+", "");
+  }
+
   public enum PreviewSize {
     // These must match the preview URLs
     SMALL("small"), LARGE("large");
