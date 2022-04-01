@@ -5,6 +5,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.Assert;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class OpenClanUrlMenuItem extends AbstractMenuItem<ClanBean> {
 
   @Override
   protected boolean isItemVisible() {
-    return object != null;
+    return object != null && StringUtils.isNotBlank(object.getWebsiteUrl());
   }
 
   @Override
