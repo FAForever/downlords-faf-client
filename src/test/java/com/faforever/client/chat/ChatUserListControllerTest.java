@@ -576,7 +576,7 @@ public class ChatUserListControllerTest extends UITest {
 
   private List<ChatChannelUser> generateUsers(SocialStatus status, int count) {
     ArrayList<ChatChannelUser> userList = new ArrayList<>();
-    while (count-- != 0) {
+    while (userList.size() != count) {
       userList.add(generateUser(status));
     }
     return userList;
