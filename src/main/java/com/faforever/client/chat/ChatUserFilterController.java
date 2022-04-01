@@ -129,7 +129,8 @@ public class ChatUserFilterController implements Controller<Node> {
     // TODO filter by specific leaderboard rating remove hardcoded value
     return chatUser.getPlayer().map(player -> RatingUtil.getLeaderboardRating(player, "global"))
         .stream().anyMatch(rating -> {
-          int minRating, maxRating;
+          int minRating;
+          int maxRating;
 
           try {
             minRating = Integer.parseInt(minRatingTextField.getText());

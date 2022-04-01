@@ -12,7 +12,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
@@ -214,7 +213,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
     ChatChannelUser user = event.getChatUser();
     if (chatChannel.containsUser(user)) {
-      updateUserMessageVisibility(user, user.getSocialStatus().filter(status -> status == SocialStatus.FOE).isPresent());
+      updateUserMessageVisibility(user, user.getSocialStatus().filter(status -> status == FOE).isPresent());
       updateStyleClass(user);
       updateUserMessageColor(user);
     }
