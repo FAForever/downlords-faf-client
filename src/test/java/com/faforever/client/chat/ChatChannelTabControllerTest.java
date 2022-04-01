@@ -5,6 +5,7 @@ import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -38,6 +39,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static com.faforever.client.player.SocialStatus.FOE;
+import static com.faforever.client.player.SocialStatus.OTHER;
 import static com.faforever.client.theme.UiService.CHAT_CONTAINER;
 import static com.faforever.client.theme.UiService.CHAT_SECTION_COMPACT;
 import static com.faforever.client.theme.UiService.CHAT_TEXT_COMPACT;
@@ -359,15 +361,98 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   @Test
-  public void userColorChangeTest() {
+  public void userColorChangeTest() throws Exception {
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
+    String after = "<span class=\"text user-junit message\" style=\"color: rgb(0, 255, 255);\">Hello world!</span>";
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
-    chatUser.setColor(Color.AQUA);
+    ChatChannelUser updatedChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().color(Color.AQUA).get();
+    defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
+    sendMessage(USER_NAME, "Hello world!");
+    sendMessage("other", "Hello man!");
 
-    instance.onChatUserColorChange(new ChatUserColorChangeEvent(chatUser));
+    String content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(before));
+    assertTrue(content.contains(otherBefore));
 
-    assertEquals(Optional.of(Color.AQUA), chatUser.getColor());
+    runOnFxThreadAndWait(() -> instance.onChatUserColorChange(new ChatUserColorChangeEvent(updatedChatUser)));
+    content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(after));
+    assertTrue(content.contains(otherBefore));
+  }
+
+  @Test
+  public void testOnUserMessageVisibility() throws Exception {
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message chat_only\" style=\"display: none;\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
+
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(OTHER).get();
+    ChatChannelUser updatedChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(FOE).get();
+    defaultChatChannel.addUser(chatUser);
+
+    initializeDefaultChatChannel();
+    sendMessage(USER_NAME, "Hello world!");
+    sendMessage("other", "Hello man!");
+
+    String content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(before));
+    assertTrue(content.contains(otherBefore));
+
+    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatUser)));
+    content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(after));
+    assertTrue(content.contains(otherBefore));
+  }
+
+  @Test
+  public void testOnChatOnlyUserStyleClassUpdate() throws Exception {
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message chat_only\" style=\"\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
+
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
+    ChatChannelUser updatedChatOnlyChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(null).get();
+    defaultChatChannel.addUser(chatUser);
+
+    initializeDefaultChatChannel();
+    sendMessage(USER_NAME, "Hello world!");
+    sendMessage("other", "Hello man!");
+
+    String content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(before));
+    assertTrue(content.contains(otherBefore));
+
+    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatOnlyChatUser)));
+    content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(after));
+    assertTrue(content.contains(otherBefore));
+  }
+
+  @Test
+  public void testOnModeratorUserStyleClassUpdate() throws Exception {
+    String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message chat_only moderator\" style=\"\">Hello world!</span>";
+    String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
+
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(OTHER).moderator(false).get();
+    ChatChannelUser updatedChatOnlyChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).socialStatus(OTHER).get();
+    defaultChatChannel.addUser(chatUser);
+
+    initializeDefaultChatChannel();
+    sendMessage(USER_NAME, "Hello world!");
+    sendMessage("other", "Hello man!");
+
+    String content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(before));
+    assertTrue(content.contains(otherBefore));
+
+    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatOnlyChatUser)));
+    content = instance.getHtmlBodyContent();
+    assertTrue(content.contains(after));
+    assertTrue(content.contains(otherBefore));
   }
 
   private void sendMessage(String username, String message) {
