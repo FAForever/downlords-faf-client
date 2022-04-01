@@ -14,17 +14,23 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.MapProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
+import javafx.stage.Window;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,15 +44,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testfx.util.WaitForAsyncUtils.waitForFxEvents;
 
@@ -78,6 +88,7 @@ public class ChatUserListControllerTest extends UITest {
   private ChatPrefs chatPrefs;
 
   private ScheduledFuture<?> listInitializationFutureMock;
+  private ObjectProperty<ConnectionState> connectionState;
 
   @InjectMocks
   private ChatUserListController instance;
@@ -85,6 +96,7 @@ public class ChatUserListControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     chatChannel = new ChatChannel(CHANNEL_NAME);
+    connectionState = new ReadOnlyObjectWrapper<>(ConnectionState.CONNECTED);
 
     Preferences preferences = PreferencesBuilder.create().defaultValues().chatPrefs()
         .channelNameToHiddenCategories(FXCollections.observableHashMap()).then().get();
@@ -94,16 +106,16 @@ public class ChatUserListControllerTest extends UITest {
     when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(chatUserFilterController);
     when(chatUserFilterController.getRoot()).thenReturn(new Pane());
     when(chatUserFilterController.filterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
-    when(chatService.connectionStateProperty()).thenReturn(new ReadOnlyObjectWrapper<>(ConnectionState.CONNECTED));
+    when(chatService.connectionStateProperty()).thenReturn(connectionState);
 
     loadFxml("theme/chat/user_list.fxml", clazz -> instance);
   }
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnOneUserJoinedForHiddenCategory(boolean isListViewInitialized) throws Exception {
+  public void testOnOneUserJoinedForHiddenCategory(boolean shouldInitializeList) throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER);
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
@@ -114,11 +126,11 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnManyUsersJoinedForHiddenCategory(boolean isListViewInitialized) throws Exception {
+  public void testOnManyUsersJoinedForHiddenCategory(boolean shouldInitializeList) throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER);
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
-    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 50);
+    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     addUsersToChannel(userList);
     assertNotContainUsersInCategory(ChatUserCategory.OTHER, userList);
@@ -127,13 +139,13 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnOneUserLeftForHiddenCategory(boolean isListViewInitialized) throws Exception {
+  public void testOnOneUserLeftForHiddenCategory(boolean shouldInitializeList) throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER);
 
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     assertContainUsersInSource(user);
@@ -146,13 +158,13 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnManyUsersLeftForHiddenCategory(boolean isListViewInitialized) throws Exception {
+  public void testOnManyUsersLeftForHiddenCategory(boolean shouldInitializeList) throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER);
 
-    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 10);
+    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     assertContainUsersInSource(userList);
@@ -165,8 +177,8 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnOneUserJoinedForVisibleCategory(boolean isListViewInitialized) throws Exception {
-    prepareDataAndSetChatChannel(isListViewInitialized);
+  public void testOnOneUserJoinedForVisibleCategory(boolean shouldInitializeList) throws Exception {
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
@@ -177,10 +189,10 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnManyUsersJoinedForVisibleCategory(boolean isListViewInitialized) throws Exception {
-    prepareDataAndSetChatChannel(isListViewInitialized);
+  public void testOnManyUsersJoinedForVisibleCategory(boolean shouldInitializeList) throws Exception {
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
-    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 50);
+    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     addUsersToChannel(userList);
     assertContainUsersInCategory(ChatUserCategory.OTHER, userList);
@@ -189,11 +201,11 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnOneUserLeftForVisibleCategory(boolean isListViewInitialized) throws Exception {
+  public void testOnOneUserLeftForVisibleCategory(boolean shouldInitializeList) throws Exception {
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, user);
     assertContainUsersInSource(user);
@@ -206,11 +218,11 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnManyUsersLeftForVisibleCategory(boolean isListViewInitialized) throws Exception {
-    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 50);
+  public void testOnManyUsersLeftForVisibleCategory(boolean shouldInitializeList) throws Exception {
+    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, userList);
     assertContainUsersInSource(userList);
@@ -223,12 +235,12 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnChangeUserCategory(boolean isListViewInitialized) throws Exception {
+  public void testOnChangeUserCategory(boolean shouldInitializeList) throws Exception {
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     ChatChannelUser updatedUser = ChatChannelUserBuilder.create(user.getUsername(), CHANNEL_NAME).socialStatus(SocialStatus.FRIEND).get();
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, user);
     assertNotContainUsersInCategory(ChatUserCategory.FRIEND, updatedUser);
@@ -243,11 +255,11 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testFriendlyUserIsModerator(boolean isListViewInitialized) throws Exception {
+  public void testFriendlyUserIsModerator(boolean shouldInitializeList) throws Exception {
     ChatChannelUser user = generateUser(SocialStatus.FRIEND, true);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertContainUsersInCategory(ChatUserCategory.FRIEND, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
@@ -255,11 +267,11 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testEnemyUserIsModerator(boolean isListViewInitialized) throws Exception {
+  public void testEnemyUserIsModerator(boolean shouldInitializeList) throws Exception {
     ChatChannelUser user = generateUser(SocialStatus.FOE, true);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertContainUsersInCategory(ChatUserCategory.FOE, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
@@ -267,11 +279,11 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testChatOnlyUserIsModerator(boolean isListViewInitialized) throws Exception {
+  public void testChatOnlyUserIsModerator(boolean shouldInitializeList) throws Exception {
     ChatChannelUser user = generateUser(null, true);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertContainUsersInCategory(ChatUserCategory.CHAT_ONLY, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
@@ -279,7 +291,7 @@ public class ChatUserListControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testExistingChannelUsers(boolean isListViewInitialized) throws Exception {
+  public void testExistingChannelUsers(boolean shouldInitializeList) throws Exception {
     ChatChannelUser selfUser = generateUser(SocialStatus.SELF);
     ChatChannelUser moderatorUser = generateUser(SocialStatus.OTHER, true);
     ChatChannelUser friendUser = generateUser(SocialStatus.FRIEND);
@@ -288,7 +300,7 @@ public class ChatUserListControllerTest extends UITest {
     ChatChannelUser chatOnlyUser = generateUser(null);
 
     addUsersToChannel(selfUser, moderatorUser, friendUser, otherUser, foeUser, chatOnlyUser);
-    prepareDataAndSetChatChannel(isListViewInitialized);
+    prepareDataAndSetChatChannel(shouldInitializeList);
 
     assertContainUsersInCategory(ChatUserCategory.SELF, selfUser);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, moderatorUser);
@@ -303,7 +315,7 @@ public class ChatUserListControllerTest extends UITest {
 
   @Test
   public void testHideCategory() throws Exception {
-    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 10);
+    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
     prepareDataAndSetChatChannel(true);
 
@@ -318,8 +330,8 @@ public class ChatUserListControllerTest extends UITest {
 
   @Test
   public void testHideCategories() throws Exception {
-    List<ChatChannelUser> userList1 = generateUsers(SocialStatus.OTHER, 10);
-    List<ChatChannelUser> userList2 = generateUsers(SocialStatus.FRIEND, 2);
+    List<ChatChannelUser> userList1 = generateUsers(SocialStatus.OTHER, 1000);
+    List<ChatChannelUser> userList2 = generateUsers(SocialStatus.FRIEND, 500);
     addUsersToChannel(userList1);
     addUsersToChannel(userList2);
     prepareDataAndSetChatChannel(true);
@@ -342,7 +354,7 @@ public class ChatUserListControllerTest extends UITest {
   public void testShowCategory() throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER);
 
-    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 10);
+    List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
     prepareDataAndSetChatChannel(true);
 
@@ -359,8 +371,8 @@ public class ChatUserListControllerTest extends UITest {
   public void testShowCategories() throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER, ChatUserCategory.FRIEND);
 
-    List<ChatChannelUser> userList1 = generateUsers(SocialStatus.OTHER, 10);
-    List<ChatChannelUser> userList2 = generateUsers(SocialStatus.FRIEND, 2);
+    List<ChatChannelUser> userList1 = generateUsers(SocialStatus.OTHER, 1000);
+    List<ChatChannelUser> userList2 = generateUsers(SocialStatus.FRIEND, 1000);
     addUsersToChannel(userList1);
     addUsersToChannel(userList2);
     prepareDataAndSetChatChannel(true);
@@ -380,21 +392,98 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   @Test
+  public void testOnListCustomizationButtonClicked() {
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
+
+    VBox popupContent = new VBox();
+    UserListCustomizationController controllerMock = mock(UserListCustomizationController.class);
+    when(controllerMock.getRoot()).thenReturn(popupContent);
+    when(uiService.loadFxml("theme/chat/user_list_customization.fxml")).thenReturn(controllerMock);
+
+    runOnFxThreadAndWait(() -> instance.onListCustomizationButtonClicked());
+    Window window = popupContent.getParent().getScene().getWindow();
+    assertTrue(window.getClass().isAssignableFrom(Popup.class));
+    assertTrue(window.isShowing());
+  }
+
+  @Test
+  public void testOnAdvancedFiltersToggleButtonClickedAndHidingPopup() {
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
+    runOnFxThreadAndWait(() -> instance.onAdvancedFiltersToggleButtonClicked());
+    Window window = chatUserFilterController.getRoot().getParent().getScene().getWindow();
+    assertTrue(window.getClass().isAssignableFrom(Popup.class));
+    assertTrue(window.isShowing());
+
+    runOnFxThreadAndWait(() -> instance.onAdvancedFiltersToggleButtonClicked());
+    assertFalse(window.isShowing());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  public void testOnTabClosed(boolean shouldInitializeList) throws Exception {
+    prepareDataAndSetChatChannel(shouldInitializeList);
+    runOnFxThreadAndWait(() -> instance.onTabClosed());
+
+    Thread.sleep(100);
+    verify(eventBus).unregister(any());
+    verify(chatService).removeUsersListener(eq(CHANNEL_NAME), any());
+    assertThrows(RejectedExecutionException.class, () -> instance.waitForUsersEvent());
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  public void testCheckConnectionStateListener(boolean shouldInitializeList) throws Exception {
+    when(chatService.getConnectionState()).thenReturn(ConnectionState.DISCONNECTED);
+
+    prepareDataAndSetChatChannel(shouldInitializeList);
+    connectionState.set(ConnectionState.DISCONNECTED);
+
+    Thread.sleep(100);
+    verify(eventBus).unregister(any());
+    verify(chatService).removeUsersListener(eq(CHANNEL_NAME), any());
+    assertThrows(RejectedExecutionException.class, () -> instance.waitForUsersEvent());
+  }
+
+  @Test
+  public void testInitializeListView() throws Exception {
+    addUsersToChannel(generateUsers(SocialStatus.OTHER, 1000));
+    prepareDataAndSetChatChannel(true);
+    waitForAllEvents();
+
+    assertTrue(instance.userListContainer.getChildren().stream()
+        .anyMatch(view -> view.getClass().isAssignableFrom(VirtualizedScrollPane.class)));
+    assertFalse(instance.userListTools.isDisable());
+  }
+
+  @Test
+  public void testGetAutoCompletionHelper() {
+    assertNotNull(instance.getAutoCompletionHelper());
+  }
+
+  @Test
   public void testGetRoot() {
     assertEquals(instance.root, instance.getRoot());
   }
 
   @SuppressWarnings("unchecked")
-  private void prepareDataAndSetChatChannel(boolean isListViewInitialized) throws Exception {
+  private void prepareDataAndSetChatChannel(boolean shouldInitializeList) throws Exception {
     afterPropertiesSet();
-    when(listInitializationFutureMock.isDone()).thenReturn(isListViewInitialized);
+    when(listInitializationFutureMock.isDone()).thenReturn(shouldInitializeList);
 
     doAnswer(invocation -> {
       chatChannel.addUsersListeners(invocation.getArgument(1, MapChangeListener.class));
       return invocation;
     }).when(chatService).addUsersListener(eq(CHANNEL_NAME), any(MapChangeListener.class));
 
-    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel, mock(Tab.class), mock(BooleanBinding.class)));
+    Tab channelTab = new Tab(CHANNEL_NAME);
+    runOnFxThreadAndWait(() -> {
+      instance.setChatChannel(chatChannel, channelTab, Bindings.createBooleanBinding(() -> shouldInitializeList));
+      if (shouldInitializeList) {
+        TabPane tabPane = new TabPane(channelTab);
+        getRoot().getChildren().add(tabPane);
+        tabPane.getSelectionModel().select(channelTab);
+      }
+    });
   }
 
   private void setHiddenCategoriesToChatPrefs(ChatUserCategory... hiddenCategories) {
@@ -421,7 +510,7 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   private void addUsersToChannel(Collection<ChatChannelUser> users) {
-    users.forEach(user -> new Thread(() -> chatChannel.addUser(user)).start());
+    new Thread(() -> users.forEach(user -> chatChannel.addUser(user))).start();
   }
 
   private void removeUsersFromChannel(ChatChannelUser... users) {
@@ -429,7 +518,7 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   private void removeUsersFromChannel(Collection<ChatChannelUser> users) {
-    users.forEach(user -> new Thread(() -> chatChannel.removeUser(user.getUsername())).start());
+    new Thread(() -> users.forEach(user -> chatChannel.removeUser(user.getUsername()))).start();
   }
 
   private void assertNotContainUsersInSource(ChatChannelUser... users) throws Exception {
