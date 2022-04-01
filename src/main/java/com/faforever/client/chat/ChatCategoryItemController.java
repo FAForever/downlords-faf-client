@@ -39,7 +39,7 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
 
   public Node root;
   public Label categoryLabel;
-  public Label latentLabel;
+  public Label arrowLabel;
 
   private ChatPrefs chatPrefs;
 
@@ -58,11 +58,11 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
     this.channelName = channelName;
 
     categoryLabel.setText(i18n.get(chatUserCategory.getI18nKey()));
-    bindViews();
-    updateLatentLabel();
+    bindProperties();
+    updateArrowLabel();
   }
 
-  private void bindViews() {
+  private void bindProperties() {
     JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
       Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
       return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
@@ -85,14 +85,14 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
           hiddenCategories.add(chatUserCategory);
         }
       }
-      updateLatentLabel();
+      updateArrowLabel();
     }
   }
 
-  private void updateLatentLabel() {
+  private void updateArrowLabel() {
     boolean isHidden = Optional.ofNullable(channelNameToHiddenCategoriesProperty.get(channelName))
         .stream().anyMatch(hiddenCategories -> hiddenCategories.contains(chatUserCategory));
-    JavaFxUtil.runLater(() -> latentLabel.setText(isHidden ? "˃" : "˅"));
+    JavaFxUtil.runLater(() -> arrowLabel.setText(isHidden ? "˃" : "˅"));
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
