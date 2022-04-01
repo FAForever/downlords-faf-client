@@ -25,8 +25,6 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
@@ -112,12 +110,12 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private PlayerBean player;
   private Map<Faction, ToggleButton> factionsToButtons;
+  private List<MatchmakingQueueItemController> queueCards;
   @VisibleForTesting
   protected MatchmakingChatController matchmakingChatController;
   private InvalidationListener matchmakingQueuesLabelInvalidationListener;
   private InvalidationListener playerPropertiesInvalidationListener;
   private ChangeListener<PlayerBean> partyOwnerChangeListener;
-  private final BooleanProperty isInMatchmakerTab = new SimpleBooleanProperty(false);
 
   @Override
   public void initialize() {
@@ -266,7 +264,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
         controller.setMember(member);
         return controller.getRoot();
-      }).collect(Collectors.toList());
+      }).toList();
       JavaFxUtil.runLater(() -> {
         playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
             (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
@@ -350,23 +348,22 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     List<MatchmakerQueueBean> queues = new ArrayList<>(teamMatchmakingService.getMatchmakerQueues());
     queues.sort(Comparator.comparing(MatchmakerQueueBean::getId));
     int queuesPerRow = Math.min(queues.size(), 4);
-    List<VBox> queueCards = queues.stream().map(queue -> {
+    queueCards = queues.stream().map(queue -> {
       MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
       controller.setQueue(queue);
-      controller.addIsInMatchmakerTabListener(isInMatchmakerTab);
       controller.getRoot().prefWidthProperty().bind(Bindings.createDoubleBinding(() -> queuePane.getWidth() / queuesPerRow - queuePane.getHgap(), queuePane.widthProperty()));
-      return controller.getRoot();
-    }).collect(Collectors.toList());
-    JavaFxUtil.runLater(() -> queuePane.getChildren().setAll(queueCards));
+      return controller;
+    }).toList();
+    JavaFxUtil.runLater(() -> queuePane.getChildren().setAll(queueCards.stream().map(MatchmakingQueueItemController::getRoot).collect(Collectors.toList())));
   }
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    isInMatchmakerTab.set(true);
+    queueCards.forEach(MatchmakingQueueItemController::resumeTimer);
   }
 
   @Override
   public void onHide() {
-    isInMatchmakerTab.set(false);
+    queueCards.forEach(MatchmakingQueueItemController::pauseTimer);
   }
 }

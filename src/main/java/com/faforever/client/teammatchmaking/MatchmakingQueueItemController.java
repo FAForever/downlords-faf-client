@@ -13,7 +13,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.event.ActionEvent;
@@ -164,13 +163,11 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     eventBus.post(new ShowMapPoolEvent(queue));
   }
 
-  public void addIsInMatchmakerTabListener(BooleanProperty isInMatchmakerTab) {
-    JavaFxUtil.addListener(isInMatchmakerTab, observable -> {
-      if (isInMatchmakerTab.get()) {
-        queuePopTimeUpdater.play();
-      } else {
-        queuePopTimeUpdater.pause();
-      }
-    });
+  public void resumeTimer() {
+    queuePopTimeUpdater.play();
+  }
+
+  public void pauseTimer() {
+    queuePopTimeUpdater.pause();
   }
 }
