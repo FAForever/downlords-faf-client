@@ -79,6 +79,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -500,6 +501,11 @@ public class MapServiceTest extends UITest {
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)), eq("testQuery"));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)), eq("testQuery"));
     assertThat(results, contains(mapVersionBean));
+  }
+
+  @Test
+  public void testConvertMapFolderNameToHumanNameIfPossible() {
+    assertEquals("dualgap adaptive", instance.convertMapFolderNameToHumanNameIfPossible("dualgap_adaptive.v0012"));
   }
 
   private void prepareDownloadMapTask(MapVersionBean mapToDownload) {
