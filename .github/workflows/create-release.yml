@@ -92,49 +92,17 @@ jobs:
 
       - name: Create Draft Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          commitish: ${{ github.sha }}
-          tag_name: v${{ github.event.inputs.version }}
-          release_name: v${{ github.event.inputs.version }}
+          commit: ${{ github.sha }}
+          tag: v${{ github.event.inputs.version }}
           draft: true
           prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
-          generate_release_notes: true
-
-      - name: Upload Linux Files
-        id: upload-linux
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact_paths.outputs.LINUX_TAR }}
-          asset_name: ${{ steps.artifact_paths.outputs.LINUX_TAR_NAME }}
-          asset_content_type: application/gzip
-
-      - name: Upload Windows exe
-        id: upload-exe
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact_paths.outputs.WINDOWS_EXE }}
-          asset_name: ${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }}
-          asset_content_type: application/vnd.microsoft.portable-executable
-
-      - name: Upload Windows zip
-        id: upload-zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact_paths.outputs.WINDOWS_ZIP }}
-          asset_name: ${{ steps.artifact_paths.outputs.WINDOWS_ZIP_NAME }}
-          asset_content_type: application/zip
+          generateReleaseNotes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: ${{ steps.artifact_paths.outputs.LINUX_TAR }}, ${{ steps.artifact_paths.outputs.WINDOWS_EXE }}, ${{ steps.artifact_paths.outputs.WINDOWS_ZIP }}
           
       - name: Upload to Mirror
         if: steps.tag_check.outputs.major_release == 'true'
