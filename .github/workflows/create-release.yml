@@ -102,7 +102,7 @@ jobs:
           prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
           generateReleaseNotes: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: ${{ steps.artifact_paths.outputs.LINUX_TAR }}, ${{ steps.artifact_paths.outputs.WINDOWS_EXE }}, ${{ steps.artifact_paths.outputs.WINDOWS_ZIP }}
+          artifacts: build/install4j/faf_*
           
       - name: Upload to Mirror
         if: steps.tag_check.outputs.major_release == 'true'
