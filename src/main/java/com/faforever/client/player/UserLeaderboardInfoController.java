@@ -14,15 +14,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class UserLeaderboardInfoController implements Controller<Node> {
   
@@ -71,14 +73,16 @@ public class UserLeaderboardInfoController implements Controller<Node> {
     });
   }
 
-  public void setUnrankedLeague() {
+  public void setUnlistedLeague() {
     JavaFxUtil.runLater(() -> {
       try {
-        divisionImage.setImage(leaderboardService.loadDivisionImage(new URL("https://content.faforever.com/divisions/icons/unranked.png")));
+        divisionImage.setImage(new Image(new ClassPathResource("/images/unlisted.png").getURL().toString(), true));
         divisionImage.setVisible(true);
-        divisionLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
-        divisionLabel.setVisible(true);
-      } catch (MalformedURLException ignored) {}
+      } catch (IOException e) {
+        log.error("Could not load unlisted division image.", e);
+      }
+      divisionLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
+      divisionLabel.setVisible(true);
     });
   }
 }

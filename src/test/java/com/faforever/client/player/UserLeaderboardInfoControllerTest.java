@@ -100,7 +100,7 @@ public class UserLeaderboardInfoControllerTest extends UITest {
   public void testSetUnrankedLeague() {
     when(i18n.get("teammatchmaking.inPlacement")).thenReturn("unlisted");
 
-    instance.setUnrankedLeague();
+    instance.setUnlistedLeague();
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.divisionImage.isVisible());
