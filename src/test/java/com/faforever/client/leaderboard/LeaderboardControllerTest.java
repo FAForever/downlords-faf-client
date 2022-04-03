@@ -22,7 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Arrays;
 import java.util.List;
@@ -214,14 +213,33 @@ public class LeaderboardControllerTest extends UITest {
     LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues().score(8).subdivision(null).get();
     when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
         CompletableFuture.completedFuture(leagueEntryBean));
-    when(i18n.get("leaderboard.placement", 100, 10)).thenReturn("in placement");
+    when(i18n.get("leaderboard.placement", 100, 10)).thenReturn("in placement (10)");
 
     instance.updateDisplayedPlayerStats();
     waitForFxEvents();
 
     assertFalse(instance.playerDivisionNameLabel.isVisible());
     assertTrue(instance.placementLabel.isVisible());
-    assertEquals("in placement", instance.placementLabel.getText());
+    assertEquals("in placement (10)", instance.placementLabel.getText());
+    assertEquals(subdivisionBean2, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
+    assertEquals(1, instance.subDivisionTabPane.getTabs().size());
+    assertEquals(1, subDivisionTabController.ratingTable.getItems().size());
+  }
+
+  @Test
+  public void testNotPlacedVeteran() {
+    LeagueEntryBean leagueEntryBean = LeagueEntryBeanBuilder.create().defaultValues()
+        .score(8).subdivision(null).returningPlayer(true).get();
+    when(leaderboardService.getLeagueEntryForPlayer(player, season)).thenReturn(
+        CompletableFuture.completedFuture(leagueEntryBean));
+    when(i18n.get("leaderboard.placement", 100, 3)).thenReturn("in placement (3)");
+
+    instance.updateDisplayedPlayerStats();
+    waitForFxEvents();
+
+    assertFalse(instance.playerDivisionNameLabel.isVisible());
+    assertTrue(instance.placementLabel.isVisible());
+    assertEquals("in placement (3)", instance.placementLabel.getText());
     assertEquals(subdivisionBean2, instance.majorDivisionPicker.getSelectionModel().getSelectedItem());
     assertEquals(1, instance.subDivisionTabPane.getTabs().size());
     assertEquals(1, subDivisionTabController.ratingTable.getItems().size());

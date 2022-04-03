@@ -19,6 +19,7 @@ public class LeagueSeasonBeanBuilder {
     nameKey("seasonName");
     seasonNumber(1);
     placementGames(10);
+    placementGamesReturningPlayer(3);
     startDate(OffsetDateTime.now().minusDays(1));
     endDate(OffsetDateTime.now().plusDays(1));
     id(0);
@@ -47,6 +48,11 @@ public class LeagueSeasonBeanBuilder {
 
   public LeagueSeasonBeanBuilder placementGames(Integer placementGames) {
     leagueSeasonBean.setPlacementGames(placementGames);
+    return this;
+  }
+
+  public LeagueSeasonBeanBuilder placementGamesReturningPlayer(Integer placementGames) {
+    leagueSeasonBean.setPlacementGamesReturningPlayer(placementGames);
     return this;
   }
 

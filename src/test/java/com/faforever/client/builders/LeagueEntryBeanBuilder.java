@@ -18,6 +18,7 @@ public class LeagueEntryBeanBuilder {
     player(PlayerBeanBuilder.create().defaultValues().get());
     gamesPlayed(100);
     score(5);
+    returningPlayer(false);
     leagueSeason(LeagueSeasonBeanBuilder.create().defaultValues().get());
     subdivision(SubdivisionBeanBuilder.create().defaultValues().get());
     return this;
@@ -40,6 +41,11 @@ public class LeagueEntryBeanBuilder {
 
   public LeagueEntryBeanBuilder score(int score) {
     leagueEntryBean.setScore(score);
+    return this;
+  }
+
+  public LeagueEntryBeanBuilder returningPlayer(boolean returningPlayer) {
+    leagueEntryBean.setReturningPlayer(returningPlayer);
     return this;
   }
 

@@ -23,6 +23,7 @@ public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
   StringProperty nameKey = new SimpleStringProperty();
   IntegerProperty seasonNumber = new SimpleIntegerProperty();
   IntegerProperty placementGames = new SimpleIntegerProperty();
+  IntegerProperty placementGamesReturningPlayer = new SimpleIntegerProperty();
   ObjectProperty<OffsetDateTime> startDate = new SimpleObjectProperty<>();
   ObjectProperty<OffsetDateTime> endDate = new SimpleObjectProperty<>();
 
@@ -84,6 +85,18 @@ public class LeagueSeasonBean extends AbstractEntityBean<LeagueSeasonBean> {
 
   public IntegerProperty placementGamesProperty() {
     return placementGames;
+  }
+
+  public int getPlacementGamesReturningPlayer() {
+    return placementGamesReturningPlayer.get();
+  }
+
+  public void setPlacementGamesReturningPlayer(int placementGames) {
+    this.placementGamesReturningPlayer.set(placementGames);
+  }
+
+  public IntegerProperty placementGamesReturningPlayerProperty() {
+    return placementGamesReturningPlayer;
   }
 
   public OffsetDateTime getStartDate() {
