@@ -76,7 +76,7 @@ public class UserLeaderboardInfoController implements Controller<Node> {
   public void setUnlistedLeague() {
     JavaFxUtil.runLater(() -> {
       try {
-        divisionImage.setImage(new Image(new ClassPathResource("/images/unlisted.png").getURL().toString(), true));
+        divisionImage.setImage(new Image(new ClassPathResource("/images/leagueUnlistedDivision.png").getURL().toString(), true));
         divisionImage.setVisible(true);
       } catch (IOException e) {
         log.error("Could not load unlisted division image.", e);

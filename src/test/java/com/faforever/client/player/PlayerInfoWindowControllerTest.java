@@ -8,6 +8,7 @@ import com.faforever.client.builders.LeaderboardEntryBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingJournalBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
+import com.faforever.client.builders.LeagueSeasonBeanBuilder;
 import com.faforever.client.builders.PlayerAchievementBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.LeaderboardBean;
@@ -23,6 +24,7 @@ import com.faforever.client.util.TimeService;
 import com.faforever.commons.api.dto.AchievementState;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -32,6 +34,7 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Arrays.asList;
@@ -68,6 +71,8 @@ public class PlayerInfoWindowControllerTest extends UITest {
   private AchievementItemController achievementItemController;
   @Mock
   private PlayerRatingChartTooltipController playerRatingChartTooltipController;
+  @Mock
+  private UserLeaderboardInfoController userLeaderboardInfoController;
   @Mock
   private TimeService timeService;
   @Mock
@@ -134,10 +139,17 @@ public class PlayerInfoWindowControllerTest extends UITest {
         AchievementDefinitionBuilder.create().id("foo-bar").get()
     )));
     when(uiService.loadFxml("theme/achievement_item.fxml")).thenReturn(achievementItemController);
+    when(uiService.loadFxml("theme/user_leaderboard_info.fxml")).thenReturn(userLeaderboardInfoController);
     when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of(
         PlayerAchievementBuilder.create().defaultValues().achievementId("foo-bar").state(AchievementState.UNLOCKED).get()
         )));
     when(eventService.getPlayerEvents(player.getId())).thenReturn(CompletableFuture.completedFuture(new HashMap<>()));
+    when(leaderboardService.getActiveSeasons()).thenReturn(CompletableFuture.completedFuture(List.of(
+        LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get()
+    )));
+    when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard)).thenReturn(
+        CompletableFuture.completedFuture(Optional.empty()));
+    when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());
     final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()
         .defaultValues()
         .numberOfGames(47)
@@ -153,7 +165,10 @@ public class PlayerInfoWindowControllerTest extends UITest {
     verify(achievementService).getPlayerAchievements(player.getId());
     verify(leaderboardService, times(2)).getLeaderboards();
     verify(eventService).getPlayerEvents(player.getId());
-
+    verify(userLeaderboardInfoController).setLeaderboardInfo(player, leaderboard);
+    verify(userLeaderboardInfoController).setUnlistedLeague();
+    verify(userLeaderboardInfoController).getRoot();
+    assertEquals(1, instance.leaderboardBox.getChildren().size());
     assertTrue(instance.mostRecentAchievementPane.isVisible());
   }
 
