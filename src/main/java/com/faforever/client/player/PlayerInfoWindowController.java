@@ -62,6 +62,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -105,11 +106,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
   public PieChart techBuiltChart;
   public PieChart unitsBuiltChart;
   public StackedBarChart<String, Integer> factionsChart;
-  public Label gamesPlayedValueLabel;
-  public Label gamesPlayedNamesLabel;
-  public HBox ratingsBox;
-  public Label ratingsLabels;
-  public Label ratingsValues;
+  public HBox leaderboardBox;
   public Pane unlockedAchievementsHeader;
   public Pane lockedAchievementsHeader;
   public ScrollPane achievementsPane;
@@ -249,28 +246,24 @@ public class PlayerInfoWindowController implements Controller<Node> {
   }
 
   private void updateRatingGrids() {
-    leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
-      StringBuilder ratingNames = new StringBuilder();
-      StringBuilder gameNumberNames = new StringBuilder();
-      StringBuilder ratingNumbers = new StringBuilder();
-      StringBuilder gameNumberValues = new StringBuilder();
-      leaderboards.forEach(leaderboard -> {
-        LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
-        if (leaderboardRating != null) {
-          String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
-          ratingNames.append(i18n.get("leaderboard.rating", leaderboardName)).append("\n");
-          gameNumberNames.append(i18n.get("leaderboard.gameNumber", leaderboardName)).append("\n");
-          ratingNumbers.append(i18n.number(RatingUtil.getLeaderboardRating(player, leaderboard))).append("\n");
-          gameNumberValues.append(i18n.number(player.getNumberOfGames(leaderboard.getTechnicalName()))).append("\n");
-        }
-      });
-      JavaFxUtil.runLater(() -> {
-        ratingsLabels.setText(ratingNames.toString());
-        gamesPlayedNamesLabel.setText(gameNumberNames.toString());
-        ratingsValues.setText(ratingNumbers.toString());
-        gamesPlayedValueLabel.setText(gameNumberValues.toString());
-      });
-    });
+    leaderboardService.getLeaderboards().thenAccept(leaderboards ->
+      leaderboardService.getActiveSeasons().thenAccept(leagueSeasonBeans ->
+        leaderboards.forEach(leaderboard -> {
+          LeaderboardRatingBean leaderboardRating = player.getLeaderboardRatings().get(leaderboard.getTechnicalName());
+          if (leaderboardRating != null) {
+            UserLeaderboardInfoController controller = uiService.loadFxml("theme/user_leaderboard_info.fxml");
+            controller.setLeaderboardInfo(player, leaderboard);
+
+            if (leagueSeasonBeans.stream().anyMatch(season -> Objects.equals(season.getLeaderboard(), leaderboard))) {
+              leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard).thenAccept(leagueEntry ->
+                  leagueEntry.ifPresentOrElse(controller::setLeagueInfo, controller::setUnlistedLeague));
+            }
+
+            JavaFxUtil.runLater(() -> leaderboardBox.getChildren().add(controller.getRoot()));
+          }
+        })
+      )
+    );
   }
 
   private void updateNameHistory() {

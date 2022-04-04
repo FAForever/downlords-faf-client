@@ -180,7 +180,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private void setLeagueInfo() {
-    leaderboardService.getHighestLeagueEntryForPlayer(player).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
+    leaderboardService.getHighestActiveLeagueEntryForPlayer(player).thenAccept(leagueEntry -> JavaFxUtil.runLater(() -> {
       if (leagueEntry.isEmpty() || leagueEntry.get().getSubdivision() == null) {
         leagueLabel.setText(i18n.get("teammatchmaking.inPlacement").toUpperCase());
         leagueImageView.setVisible(false);

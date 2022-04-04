@@ -103,7 +103,7 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(teamMatchmakingService.getParty()).thenReturn(party);
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
-    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
@@ -131,7 +131,7 @@ public class TeamMatchmakingControllerTest extends UITest {
 
   @Test
   public void testLeagueSet() {
-    when(leaderboardService.getHighestLeagueEntryForPlayer(player)).thenReturn(
+    when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.of(LeagueEntryBeanBuilder.create().defaultValues().get())));
 
     instance.initialize();

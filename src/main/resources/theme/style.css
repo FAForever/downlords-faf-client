@@ -395,6 +395,17 @@
 
 /***************** User Info Window *****************/
 
+.division-name {
+  -fx-font-size: 16px;
+  -fx-padding: 0px 0 0px 0;
+}
+
+.rating-label {
+  -fx-font-size: 14px;
+  -fx-font-family: 'Source Sans Pro';
+  -fx-text-fill: #9f9f9f;
+}
+
 .user-info-header-area {
   -fx-background-color: -fx-background;
   -fx-background: #FFFFFF12;
