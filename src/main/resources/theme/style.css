@@ -1045,7 +1045,6 @@
 .toggle-button.queue .text {
   -fx-font-family: 'Source Sans Pro Semibold';
   -fx-text-fill: -fx-text-color;
-  -fx-font-size: 24px;
 }
 
 .map-pool:hover {
