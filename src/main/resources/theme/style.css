@@ -338,8 +338,7 @@
 
 .chat-user-list-category > .label {
   -fx-font-weight: bold;
-  -fx-font-size: 14;
-  -fx-text-fill: -darkened-color;
+  -fx-font-size: 16;
 }
 
 .filter-text-field {
