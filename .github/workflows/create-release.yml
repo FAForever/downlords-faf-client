@@ -75,20 +75,10 @@ jobs:
       - name: Get Artifact Paths
         id: artifact_paths
         run: |
-          LINUX_TAR=$(ls build/install4j/faf_unix_*.tar.gz | head -n 1)
-          LINUX_TAR_NAME=$(basename $LINUX_TAR)
           WINDOWS_EXE=$(ls build/install4j/faf_windows-x64_*.exe | head -n 1)
           WINDOWS_EXE_NAME=$(basename $WINDOWS_EXE)
-          WINDOWS_ZIP=$(ls build/install4j/faf_windows-x64_*.zip | head -n 1)
-          WINDOWS_ZIP_NAME=$(basename $WINDOWS_ZIP)
-          EXE_PATH=$(dirname $WINDOWS_EXE)/
-          echo ::set-output name=EXE_PATH::${EXE_PATH}
-          echo ::set-output name=LINUX_TAR::${LINUX_TAR}
-          echo ::set-output name=LINUX_TAR_NAME::${LINUX_TAR_NAME}
           echo ::set-output name=WINDOWS_EXE::${WINDOWS_EXE}
           echo ::set-output name=WINDOWS_EXE_NAME::${WINDOWS_EXE_NAME}
-          echo ::set-output name=WINDOWS_ZIP::${WINDOWS_ZIP}
-          echo ::set-output name=WINDOWS_ZIP_NAME::${WINDOWS_ZIP_NAME}
 
       - name: Create Draft Release
         id: create_release
