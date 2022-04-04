@@ -210,8 +210,8 @@ public class MapDetailController implements Controller<Node> {
             installButton.setText(i18n.get("mapVault.installButtonFormat", Bytes.formatSize(mapFileSize, i18n.getUserSpecificLocale())));
             installButton.setDisable(false);
           } else {
-            installButton.setText(i18n.get("notAvailable"));
-            installButton.setDisable(true);
+            installButton.setText(i18n.get("mapVault.install"));
+            installButton.setDisable(false);
           }
         }));
 

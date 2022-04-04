@@ -193,6 +193,18 @@ public class ModDetailControllerTest extends UITest {
   }
 
   @Test
+  public void testSetModNoSize() {
+    when(modService.getFileSize(modVersion)).thenReturn(CompletableFuture.completedFuture(-1));
+    when(i18n.get("modVault.install")).thenReturn("install");
+
+    instance.setModVersion(modVersion);
+    WaitForAsyncUtils.waitForFxEvents();
+
+    assertFalse(instance.installButton.isDisabled());
+    assertEquals("install", instance.installButton.getText());
+  }
+
+  @Test
   public void testOnUninstallButtonClickedThrowsException() {
     modVersion.setMod(ModBeanBuilder.create().defaultValues().get());
     instance.setModVersion(modVersion);
