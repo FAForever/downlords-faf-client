@@ -43,7 +43,7 @@ jobs:
       - name: Set Version
         id: set_version
         run: |
-          tagPrefix=$(date +%Y.%-m.)
+          tagPrefix=$(date +%Y.%-m)
           count=0
           baseTag=$tagPrefix.$count
           
