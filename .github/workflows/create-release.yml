@@ -6,13 +6,18 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Release Version'
+      release_type:
+        description: 'Release Type'
         required: true
+        type: choice
+        default: "Alpha"
+        options:
+          - "Production"
+          - "Alpha"
+          - "Experimental"
 
 jobs:
   release:
-
     environment: deploy
     runs-on: ubuntu-latest
     env:
@@ -20,13 +25,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
-      - name: Check Version Tag
-        id: tag_check
-        run: |
-          if [[ ${{ github.event.inputs.version }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo ::set-output name=major_release::true
-          fi
 
       - name: Set up JDK 17.0.1
         uses: actions/setup-java@v2
@@ -42,6 +40,41 @@ jobs:
         env:
           JAVA_TOOL_OPTIONS: "-Dprism.verbose=true -Dprism.order=sw"
 
+      - name: Set Version
+        id: set_version
+        run: |
+          tagPrefix=$(date +%Y.%-m.)
+          count=0
+          baseTag=$tagPrefix.$count
+          
+          while [[ $(git tag -l "$baseTag") ]]; 
+          do 
+            baseTag=$tagPrefix.$count; 
+            count=$(($count+1)); 
+          done
+          
+          if [[ "${{ github.event.inputs.release_type }}" == "Alpha" ]]; then
+            baseTag=$baseTag-alpha
+          elif [[ "${{ github.event.inputs.release_type }}" == "Experimental" ]]; then
+            baseTag=$baseTag-experimental
+          fi
+          
+          tag=$baseTag
+          
+          if [[ "${{ github.event.inputs.release_type }}" != "Production" ]]; then
+            count=1
+            tag=$baseTag-$count
+            while [[ $(git tag -l "$tag") ]]; 
+            do 
+              tag=$baseTag-$count; 
+              count=$(($count+1)); 
+            done
+          else 
+            tag=$baseTag
+          fi
+          
+          echo ::set-output name=tag::$tag
+
       - name: Download Install4j
         run: |
           mkdir -p "$HOME/install4j"
@@ -55,7 +88,7 @@ jobs:
 
       - name: Build Windows Files
         run: |
-          ./gradlew -Pversion="${{ github.event.inputs.version }}" \
+          ./gradlew -Pversion="${{ steps.set_version.outputs.tag }}" \
           -PjavafxPlatform=win \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_9_LICENSE }} \
@@ -65,7 +98,7 @@ jobs:
 
       - name: Build Linux Files
         run: |
-          ./gradlew -Pversion="${{ github.event.inputs.version }}" \
+          ./gradlew -Pversion="${{ steps.set_version.outputs.tag }}" \
           -PjavafxPlatform=linux \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_9_LICENSE }} \
@@ -87,15 +120,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           commit: ${{ github.sha }}
-          tag: v${{ github.event.inputs.version }}
+          tag: v${{ steps.set_version.outputs.tag }}
           draft: true
-          prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
+          prerelease: ${{ github.event.inputs.release_type == 'Production'}}
           generateReleaseNotes: true
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: build/install4j/faf_*
           
       - name: Upload to Mirror
-        if: steps.tag_check.outputs.major_release == 'true'
+        if: github.event.inputs.release_type == "Production"
         uses: bayssmekanique/action-simple-file-upload@v1
         with:
           user: ${{ secrets.FTP_MIRROR_USERNAME }}
