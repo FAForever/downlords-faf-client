@@ -128,7 +128,7 @@ jobs:
           artifacts: build/install4j/faf_*
           
       - name: Upload to Mirror
-        if: github.event.inputs.release_type == "Production"
+        if: github.event.inputs.release_type == 'Production'
         uses: bayssmekanique/action-simple-file-upload@v1
         with:
           user: ${{ secrets.FTP_MIRROR_USERNAME }}
