@@ -26,6 +26,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -40,6 +41,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.SelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
@@ -518,5 +520,12 @@ public class CreateGameController implements Controller<Pane> {
       Bounds screenBounds = mapSearchTextField.localToScreen(mapSearchTextField.getBoundsInLocal());
       mapFilterPopup.show(mapSearchTextField.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMinY());
     }
+  }
+
+  public void onMapPreviewClicked() {
+    Optional.ofNullable(mapListView.getSelectionModel())
+        .map(SelectionModel::getSelectedItem)
+        .map(MapVersionBean::getFolderName)
+        .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE)));
   }
 }
