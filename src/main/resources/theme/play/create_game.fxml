@@ -107,7 +107,7 @@
               GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.rowSpan="3" GridPane.vgrow="ALWAYS">
             <StackPane styleClass="clickable" onMouseClicked="#onMapPreviewClicked">
                 <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                      styleClass="map-preview, clickable"/>
+                      styleClass="map-preview"/>
                 <VBox alignment="BOTTOM_LEFT" styleClass="image-dimmer">
                     <children>
                         <Label fx:id="mapNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
