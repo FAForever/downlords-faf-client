@@ -522,7 +522,7 @@ public class CreateGameController implements Controller<Pane> {
     }
   }
 
-  public void onMapPreviewClicked() {
+  public void onMapPreviewImageClicked() {
     Optional.ofNullable(mapListView.getSelectionModel())
         .map(SelectionModel::getSelectedItem)
         .map(MapVersionBean::getFolderName)

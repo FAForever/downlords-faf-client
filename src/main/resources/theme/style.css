@@ -1443,3 +1443,7 @@
 .clickable {
   -fx-cursor: hand;
 }
+
+.clickable:hover {
+  -fx-background-color: -fx-hover-accent;
+}

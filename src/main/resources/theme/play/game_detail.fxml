@@ -6,10 +6,11 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
 <GridPane fx:id="gameDetailRoot" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="50.0"
           styleClass="game-detail" vgap="10.0" xmlns="http://javafx.com/javafx/11.0.1"
           xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.GameDetailController">
@@ -27,9 +28,11 @@
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     </rowConstraints>
-    <ImageView fx:id="mapImageView" fitWidth="256.0" pickOnBounds="true" preserveRatio="true"
-               styleClass="map-preview, clickable" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER"
-               onMouseClicked="#onMapPreviewImageClicked"/>
+    <StackPane GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
+        <ImageView fx:id="mapImageView" fitWidth="256.0" fitHeight="256.0" preserveRatio="true"
+                   styleClass="map-preview"/>
+        <Pane styleClass="clickable" maxHeight="256.0" maxWidth="256.0" onMouseClicked="#onMapPreviewImageClicked" StackPane.alignment="CENTER"/>
+    </StackPane>
     <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="game-title"
            text="&lt;A pretty long game title&gt;" wrapText="true" GridPane.columnSpan="2147483647"
            GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
