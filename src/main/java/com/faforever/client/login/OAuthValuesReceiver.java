@@ -7,7 +7,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.user.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,19 +49,37 @@ public class OAuthValuesReceiver {
   private final UserService userService;
   private final I18n i18n;
 
-  public CompletableFuture<Values> receiveValues(Optional<URI> redirectUri, Optional<OAuthEndpoint> oAuthEndpoint) {
-    return CompletableFuture.supplyAsync(() -> {
-      Collection<URI> redirectUris = getRedirectUris(redirectUri, oAuthEndpoint);
+  private CountDownLatch redirectUriLatch;
+  private CompletableFuture<Values> valuesFuture;
+  private URI redirectUri;
 
-      for (URI uri : redirectUris) {
-        try {
-          return readWithUri(uri);
-        } catch (SocketException e) {
-          log.info("Port `{}` is probably already in use", uri.getPort(), e);
+  public CompletableFuture<Values> receiveValues(Optional<URI> redirectUri, Optional<OAuthEndpoint> oAuthEndpoint) {
+    if (valuesFuture == null || valuesFuture.isDone()) {
+      redirectUriLatch = new CountDownLatch(1);
+      valuesFuture = CompletableFuture.supplyAsync(() -> {
+        Collection<URI> redirectUris = getRedirectUris(redirectUri, oAuthEndpoint);
+
+        for (URI uri : redirectUris) {
+          try {
+            return readWithUri(uri);
+          } catch (SocketException e) {
+            log.info("Port `{}` is probably already in use", uri.getPort(), e);
+          } catch (IOException e) {
+            throw new IllegalStateException("Could not read from port once opened", e);
+          }
         }
-      }
-      throw new IllegalStateException("Could not read from any redirect URI: " + redirectUris);
-    });
+        throw new IllegalStateException("Could not read from any redirect URI: " + redirectUris);
+      });
+    } else {
+      CompletableFuture.runAsync(() -> {
+        try {
+          redirectUriLatch.await();
+        } catch (InterruptedException ignored) {}
+        platformService.showDocument(userService.getHydraUrl(this.redirectUri));
+      });
+    }
+
+    return valuesFuture;
   }
 
   private List<URI> getRedirectUris(Optional<URI> redirectUri, Optional<OAuthEndpoint> oAuthEndpoint) {
@@ -87,15 +105,13 @@ public class OAuthValuesReceiver {
     return redirectUris;
   }
 
-  @SneakyThrows
-  private Values readWithUri(URI uri) throws SocketException {
+  private Values readWithUri(URI uri) throws IOException {
     // Usually, a random port can't be used since the redirect URI, including port, must be registered on the server
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
-      serverSocket.setSoTimeout(clientProperties.getOauth().getTimeoutMilliseconds());
-
-      URI redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
+      redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 
       platformService.showDocument(userService.getHydraUrl(redirectUri));
+      redirectUriLatch.countDown();
 
       Socket socket = serverSocket.accept();
       BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
