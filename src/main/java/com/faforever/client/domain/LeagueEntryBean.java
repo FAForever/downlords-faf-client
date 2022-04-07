@@ -1,7 +1,9 @@
 package com.faforever.client.domain;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import lombok.EqualsAndHashCode;
@@ -16,6 +18,7 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
   ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
   IntegerProperty gamesPlayed = new SimpleIntegerProperty();
   IntegerProperty score = new SimpleIntegerProperty();
+  BooleanProperty returningPlayer = new SimpleBooleanProperty();
   ObjectProperty<LeagueSeasonBean> leagueSeason = new SimpleObjectProperty<>();
   ObjectProperty<SubdivisionBean> subdivision = new SimpleObjectProperty<>();
   // This doesn't get set by the api, but we set it dynamically because it is dependent on how many other entries there are.
@@ -55,6 +58,18 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
 
   public IntegerProperty scoreProperty() {
     return score;
+  }
+
+  public boolean isReturningPlayer() {
+    return returningPlayer.get();
+  }
+
+  public void setReturningPlayer(boolean returningPlayer) {
+    this.returningPlayer.set(returningPlayer);
+  }
+
+  public BooleanProperty returningPlayerProperty() {
+    return returningPlayer;
   }
 
   public LeagueSeasonBean getLeagueSeason() {
