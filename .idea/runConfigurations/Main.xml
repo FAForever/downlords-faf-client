@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
+  <configuration default="false" name="Main" type="Application" factoryName="Application" singleton="false" nameIsGenerated="true">
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="prod" />
     </envs>

@@ -30,7 +30,6 @@ faf-client:
     base-url: https://hydra.faforever.com
     scopes: openid offline public_profile upload_map upload_mod lobby
     client-id: faf-java-client
-    timeout-milliseconds: 1500000
 
   forged-alliance:
     exe-url: https://content.faforever.com/faf/updaterNew/updates_faf_files/ForgedAlliance.exe
