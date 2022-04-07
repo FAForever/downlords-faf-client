@@ -1,6 +1,7 @@
 .root {
   -fx-base: #212121;
   -fx-accent: #2b71d9;
+  -fx-hover-accent: #2b71d920;
   -fx-light-text-color: #DCDCDC;
   -fx-background: #212121;
   -fx-text-background-color: #DCDCDC;

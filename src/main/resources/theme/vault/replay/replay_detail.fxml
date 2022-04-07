@@ -13,8 +13,10 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="replayDetailRoot" onMouseClicked="#onDimmerClicked"
@@ -43,10 +45,11 @@
                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                     </rowConstraints>
-                    <ImageView fx:id="mapThumbnailImageView" fitHeight="128.0" fitWidth="128.0"
-                               pickOnBounds="true" preserveRatio="true" GridPane.rowSpan="2147483647"
-                               GridPane.valignment="TOP" styleClass="clickable"
-                               onMouseClicked="#onMapPreviewImageClicked"/>
+                    <StackPane GridPane.rowSpan="2147483647" GridPane.valignment="TOP">
+                        <ImageView fx:id="mapThumbnailImageView" fitHeight="128.0" fitWidth="128.0"
+                               preserveRatio="true" />
+                        <Pane styleClass="clickable" maxHeight="128.0" maxWidth="128.0" onMouseClicked="#onMapPreviewImageClicked" StackPane.alignment="CENTER"/>
+                    </StackPane>
                     <Label fx:id="titleLabel" maxWidth="1.7976931348623157E308" styleClass="h1"
                            text="&lt;Title&gt;" wrapText="true" GridPane.columnIndex="1"
                            GridPane.columnSpan="4" GridPane.valignment="TOP"/>
