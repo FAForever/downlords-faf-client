@@ -179,7 +179,7 @@ public class PrivateChatTabControllerTest extends UITest {
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(mock(Image.class));
     runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertTrue(instance.avatarImageView.isVisible());
-    assertNotNull(player.getAvatar());
+    assertNotNull(instance.avatarImageView.getImage());
   }
 
   @Test
@@ -187,7 +187,7 @@ public class PrivateChatTabControllerTest extends UITest {
     player.setAvatar(null);
     runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertFalse(instance.avatarImageView.isVisible());
-    assertNull(player.getAvatar());
+    assertNull(instance.avatarImageView.getImage());
   }
 
   @Test
