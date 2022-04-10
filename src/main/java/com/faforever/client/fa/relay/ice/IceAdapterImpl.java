@@ -1,6 +1,5 @@
 package com.faforever.client.fa.relay.ice;
 
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.GameFullEvent;
@@ -15,12 +14,12 @@ import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
 import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
 import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
-import com.faforever.commons.lobby.LobbyMode;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -47,7 +46,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -65,7 +63,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
   private final ApplicationContext applicationContext;
-  private final ClientProperties clientProperties;
   private final PlayerService playerService;
   private final EventBus eventBus;
   private final FafServerAccessor fafServerAccessor;
@@ -74,7 +71,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private CompletableFuture<Integer> iceAdapterClientFuture;
   private Process process;
-  private LobbyMode lobbyInitMode;
+  private GameType gameType;
   private JJsonPeer peer;
 
   @Override
@@ -83,7 +80,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     fafServerAccessor.addEventListener(JoinGameGpgCommand.class, message -> iceAdapterProxy.joinGame(message.getUsername(), message.getPeerUid()));
     fafServerAccessor.addEventListener(HostGameGpgCommand.class, message -> iceAdapterProxy.hostGame(message.getMap()));
     fafServerAccessor.addEventListener(ConnectToPeerGpgCommand.class, message -> iceAdapterProxy.connectToPeer(message.getUsername(), message.getPeerUid(), message.isOffer()));
-    fafServerAccessor.addEventListener(GameLaunchResponse.class, this::updateLobbyModeFromGameInfo);
+    fafServerAccessor.addEventListener(GameLaunchResponse.class, this::updateGameTypeFromGameInfo);
     fafServerAccessor.addEventListener(DisconnectFromPeerGpgCommand.class, message -> iceAdapterProxy.disconnectFromPeer(message.getUid()));
     fafServerAccessor.addEventListener(IceMsgGpgCommand.class, message -> iceAdapterProxy.iceMsg(message.getSender(), message.getRecord()));
   }
@@ -264,9 +261,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   private void setLobbyInitMode() {
-    switch (lobbyInitMode) {
-      case DEFAULT_LOBBY -> iceAdapterProxy.setLobbyInitMode("normal");
-      case AUTO_LOBBY -> iceAdapterProxy.setLobbyInitMode("auto");
+    if (gameType == GameType.MATCHMAKER) {
+      iceAdapterProxy.setLobbyInitMode("auto");
+    } else {
+      iceAdapterProxy.setLobbyInitMode("normal");
     }
   }
 
@@ -293,9 +291,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     );
   }
 
-  private void updateLobbyModeFromGameInfo(GameLaunchResponse gameLaunchMessage) {
-    // TODO: Replace with game type. Needs https://github.com/FAForever/server/issues/685
-    lobbyInitMode = gameLaunchMessage.getLobbyMode();
+  private void updateGameTypeFromGameInfo(GameLaunchResponse gameLaunchMessage) {
+    gameType = gameLaunchMessage.getGameType();
   }
 
   @Override
@@ -304,7 +301,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   public void stop() {
-    Optional.ofNullable(iceAdapterProxy).ifPresent(IceAdapterApi::quit);
+    iceAdapterProxy.quit();
     peer = null;
   }
 

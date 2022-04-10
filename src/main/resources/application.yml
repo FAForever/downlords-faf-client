@@ -78,6 +78,9 @@ spring:
     allow-circular-references: true
   codec:
     max-in-memory-size: 16MB
+  jackson:
+    deserialization:
+      read-unknown-enum-values-using-default-value: true
 
 logging:
   level:
