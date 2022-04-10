@@ -104,6 +104,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public void initialize() {
     super.initialize();
     JavaFxUtil.bindManagedToVisible(avatarImageView);
+    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
     JavaFxUtil.fixScrollSpeed(gameDetailScrollPane);
     userOffline = false;
     chatService.addChatUsersByNameListener(change -> {
@@ -148,10 +149,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   private void updateAvatarInTab(AvatarBean avatarBean) {
     Image avatar = avatarService.loadAvatar(avatarBean);
-    JavaFxUtil.runLater(() -> {
-      avatarImageView.setVisible(avatar != null);
-      avatarImageView.setImage(avatar);
-    });
+    JavaFxUtil.runLater(() -> avatarImageView.setImage(avatar));
   }
 
   @VisibleForTesting

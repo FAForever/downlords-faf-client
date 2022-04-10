@@ -128,23 +128,19 @@ public class PrivateChatTabControllerTest extends UITest {
       }
       return instance;
     });
-  }
 
-  private void setReceiver() {
-    instance.setReceiver(playerName);
     runOnFxThreadAndWait(() -> {
       TabPane tabPane = new TabPane();
       tabPane.setSkin(new TabPaneSkin(tabPane));
       getRoot().getChildren().setAll(tabPane);
       tabPane.getTabs().add(instance.getRoot());
+      instance.setReceiver(playerName);
     });
     verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
   }
 
   @Test
   public void testOnChatMessageUnfocusedTriggersNotification() {
-    setReceiver();
-
     // TODO this test throws exceptions if another test runs before it or after it, but not if run alone
     // In that case AbstractChatTabController.hasFocus throws NPE because tabPane.getScene().getWindow() is null
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
@@ -155,14 +151,12 @@ public class PrivateChatTabControllerTest extends UITest {
   @Test
   public void
   testOnChatMessageFocusedDoesntTriggersNotification() {
-    setReceiver();
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyNoInteractions(notificationService);
   }
 
   @Test
   public void onPlayerConnectedTest() {
-    setReceiver();
     assertFalse(instance.isUserOffline());
 
     instance.onPlayerDisconnected(playerName);
@@ -173,7 +167,6 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @Test
   public void onPlayerDisconnected() {
-    setReceiver();
     assertFalse(instance.isUserOffline());
 
     instance.onPlayerDisconnected(playerName);
@@ -184,7 +177,7 @@ public class PrivateChatTabControllerTest extends UITest {
   @Test
   public void checkSetAvatarToTabIfPlayerHasAvatar() {
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(mock(Image.class));
-    setReceiver();
+    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertTrue(instance.avatarImageView.isVisible());
     assertNotNull(player.getAvatar());
   }
@@ -192,7 +185,7 @@ public class PrivateChatTabControllerTest extends UITest {
   @Test
   public void checkTabHasNoAvatar() {
     player.setAvatar(null);
-    setReceiver();
+    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertFalse(instance.avatarImageView.isVisible());
     assertNull(player.getAvatar());
   }
@@ -202,7 +195,7 @@ public class PrivateChatTabControllerTest extends UITest {
     Image oldAvatar = mock(Image.class);
     when(avatarService.loadAvatar(player.getAvatar())).thenReturn(oldAvatar);
 
-    setReceiver();
+    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertEquals(oldAvatar, instance.avatarImageView.getImage());
 
     Image newAvatar = mock(Image.class);
