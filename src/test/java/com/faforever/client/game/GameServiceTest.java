@@ -36,6 +36,7 @@ import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.LobbyMode;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -507,6 +508,7 @@ public class GameServiceTest extends ServiceTest {
         .expectedPlayers(2)
         .faction(com.faforever.commons.lobby.Faction.CYBRAN)
         .initMode(LobbyMode.AUTO_LOBBY)
+        .gameType(GameType.MATCHMAKER)
         .mapPosition(4)
         .team(1)
         .ratingType(LADDER_1v1_RATING_TYPE)
@@ -538,6 +540,7 @@ public class GameServiceTest extends ServiceTest {
         .uid(uid).mod("FAF").mapname(map)
         .expectedPlayers(2)
         .faction(com.faforever.commons.lobby.Faction.CYBRAN)
+        .gameType(GameType.MATCHMAKER)
         .initMode(LobbyMode.AUTO_LOBBY)
         .mapPosition(4)
         .team(1)

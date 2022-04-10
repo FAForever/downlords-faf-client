@@ -27,6 +27,7 @@ import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
@@ -674,6 +675,7 @@ public class ServerAccessorTest extends ServiceTest {
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create()
         .defaultValues()
         .faction(Faction.AEON)
+        .gameType(GameType.MATCHMAKER)
         .initMode(LobbyMode.AUTO_LOBBY)
         .get();
 
