@@ -10,8 +10,13 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.image.ImageView?>
 <Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="privateChatTabRoot" xmlns="http://javafx.com/javafx/8.0.111"
      fx:controller="com.faforever.client.chat.PrivateChatTabController">
+    <graphic>
+        <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"
+                   visible="false"/>
+    </graphic>
     <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
         <children>
             <SplitPane dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
