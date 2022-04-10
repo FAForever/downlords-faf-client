@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
 import com.faforever.client.domain.PlayerBean;
@@ -23,6 +24,7 @@ import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.image.ImageView;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -38,7 +40,10 @@ import static com.faforever.client.player.SocialStatus.FOE;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PrivateChatTabController extends AbstractChatTabController {
 
+  private final AvatarService avatarService;
+
   public Tab privateChatTabRoot;
+  public ImageView avatarImageView;
   public WebView messagesWebView;
   public TextInputControl messageTextField;
   public PrivatePlayerInfoController privatePlayerInfoController;
@@ -62,10 +67,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   ChatService chatService,
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService,
-                                  ChatUserService chatUserService, EmoticonService emoticonService) {
+                                  ChatUserService chatUserService, EmoticonService emoticonService,
+                                  AvatarService avatarService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         eventBus, countryFlagService, chatUserService, emoticonService);
+    this.avatarService = avatarService;
   }
 
 
@@ -83,6 +90,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.setReceiver(username);
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
+    playerService.getPlayerByNameIfOnline(username)
+        .map(PlayerBean::getAvatar)
+        .map(avatarService::loadAvatar).ifPresent(image -> JavaFxUtil.runLater(() -> {
+          avatarImageView.setVisible(true);
+          avatarImageView.setImage(image);
+        }));
 
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username, false);
     privatePlayerInfoController.setChatUser(chatUser);
@@ -90,6 +103,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   public void initialize() {
     super.initialize();
+    JavaFxUtil.bindManagedToVisible(avatarImageView);
     JavaFxUtil.fixScrollSpeed(gameDetailScrollPane);
     userOffline = false;
     chatService.addChatUsersByNameListener(change -> {
