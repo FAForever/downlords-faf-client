@@ -102,7 +102,7 @@ public class GenerateMapTask extends CompletableTask<String> {
       });
       OsUtils.gobbleLines(process.getErrorStream(), generatorLogger::error);
       process.waitFor(MapGeneratorService.GENERATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-      if (process.isAlive() && !generatorOptions.getCommandLineArgs().contains("--visualize")) {
+      if (process.isAlive() && generatorOptions.getCommandLineArgs() != null && !generatorOptions.getCommandLineArgs().contains("--visualize")) {
         log.warn("Map generation timed out, killing process");
         process.destroyForcibly();
         notificationService.addImmediateErrorNotification(new RuntimeException("Map generation timed out"), "game.mapGeneration.failed.message");
