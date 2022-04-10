@@ -1,13 +1,12 @@
 package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.commons.io.Bytes;
 import com.faforever.commons.replay.QtCompress;
 import com.faforever.commons.replay.ReplayMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.google.common.io.BaseEncoding;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +32,8 @@ import static java.nio.file.StandardOpenOption.APPEND;
 public class ReplayFileWriterImpl implements ReplayFileWriter {
 
   private final ObjectMapper objectMapper = new ObjectMapper()
-      .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+      .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 
-  private final I18n i18n;
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
 

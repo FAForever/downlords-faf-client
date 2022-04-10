@@ -297,7 +297,7 @@ dependencies {
   implementation("org.springframework:spring-websocket")
 
 
-  def commonsVersion = "8d2c15b28593468ae7f33d5a717d855e1d156fa5"
+  def commonsVersion = "fa3229e48f3f9c83a0c68775ef20ae8dcdfa77f7"
 
   implementation("com.github.FAForever.faf-java-commons:faf-commons-data:${commonsVersion}") {
             exclude module: 'guava'

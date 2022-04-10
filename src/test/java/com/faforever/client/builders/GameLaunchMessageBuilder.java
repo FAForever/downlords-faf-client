@@ -3,6 +3,7 @@ package com.faforever.client.builders;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.LobbyMode;
 
 import java.util.ArrayList;
@@ -21,7 +22,9 @@ public class GameLaunchMessageBuilder {
   private Integer mapPosition;
   private Map<String, String> gameOptions;
   private Faction faction;
+  @Deprecated
   private LobbyMode initMode;
+  private GameType gameType;
   private String ratingType;
 
   public static GameLaunchMessageBuilder create() {
@@ -33,13 +36,14 @@ public class GameLaunchMessageBuilder {
     uid(1);
     mod(KnownFeaturedMod.DEFAULT.getTechnicalName());
     args();
+    gameType(GameType.CUSTOM);
     ratingType("global");
     initMode(LobbyMode.DEFAULT_LOBBY);
     return this;
   }
 
   public GameLaunchResponse get() {
-    return new GameLaunchResponse(uid, name, mod, initMode, ratingType, args, mapname, expectedPlayers, mapPosition, gameOptions, team, faction);
+    return new GameLaunchResponse(uid, name, mod, initMode, gameType, ratingType, args, mapname, expectedPlayers, mapPosition, gameOptions, team, faction);
   }
 
   public GameLaunchMessageBuilder name(String name) {
@@ -77,8 +81,14 @@ public class GameLaunchMessageBuilder {
     return this;
   }
 
+  @Deprecated
   public GameLaunchMessageBuilder initMode(LobbyMode initMode) {
     this.initMode = initMode;
+    return this;
+  }
+
+  public GameLaunchMessageBuilder gameType(GameType gameType) {
+    this.gameType = gameType;
     return this;
   }
 
