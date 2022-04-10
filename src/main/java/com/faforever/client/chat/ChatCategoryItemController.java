@@ -9,60 +9,101 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /** Represents a header in the chat user list, like "Moderators". */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatCategoryItemController implements Controller<Node> {
+public class ChatCategoryItemController implements Controller<Node>, InitializingBean {
 
   private final I18n i18n;
   private final UiService uiService;
   private final PreferencesService preferencesService;
   private final ContextMenuBuilder contextMenuBuilder;
 
-  public Label chatUserCategoryRoot;
+  public Node root;
+  public Label categoryLabel;
+  public Label arrowLabel;
+
+  private ChatPrefs chatPrefs;
+
   private ChatUserCategory chatUserCategory;
+  private String channelName;
+  private ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesProperty;
 
-  void setChatUserCategory(@Nullable ChatUserCategory chatUserCategory) {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    JavaFxUtil.unbind(chatUserCategoryRoot.styleProperty());
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    chatPrefs = preferencesService.getPreferences().getChat();
+    channelNameToHiddenCategoriesProperty = chatPrefs.getChannelNameToHiddenCategories();
+  }
 
+  void setChatUserCategory(ChatUserCategory chatUserCategory, String channelName) {
     this.chatUserCategory = chatUserCategory;
-    if (chatUserCategory == null) {
-      chatUserCategoryRoot.setText(null);
-      return;
-    }
+    this.channelName = channelName;
 
-    chatUserCategoryRoot.setText(i18n.get(chatUserCategory.getI18nKey()));
-    JavaFxUtil.bind(chatUserCategoryRoot.styleProperty(), Bindings.createStringBinding(() -> {
+    categoryLabel.setText(i18n.get(chatUserCategory.getI18nKey()));
+    bindProperties();
+    updateArrowLabel();
+  }
+
+  private void bindProperties() {
+    JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
       Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
-      if (color != null) {
-        return String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color));
-      } else {
-        return "";
-      }
+      return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
     }, chatPrefs.groupToColorProperty()));
+  }
+
+  public void onCategoryClicked(MouseEvent mouseEvent) {
+    if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 1) {
+      ObservableList<ChatUserCategory> hiddenCategories = channelNameToHiddenCategoriesProperty.get(channelName);
+      if (hiddenCategories == null) {
+        channelNameToHiddenCategoriesProperty.put(channelName, FXCollections.observableArrayList(chatUserCategory));
+      } else {
+        if (hiddenCategories.contains(chatUserCategory)) {
+          if (hiddenCategories.size() == 1) {
+            channelNameToHiddenCategoriesProperty.remove(channelName);
+          } else {
+            hiddenCategories.remove(chatUserCategory);
+          }
+        } else {
+          hiddenCategories.add(chatUserCategory);
+        }
+      }
+      updateArrowLabel();
+    }
+  }
+
+  private void updateArrowLabel() {
+    boolean isHidden = Optional.ofNullable(channelNameToHiddenCategoriesProperty.get(channelName))
+        .stream().anyMatch(hiddenCategories -> hiddenCategories.contains(chatUserCategory));
+    JavaFxUtil.runLater(() -> arrowLabel.setText(isHidden ? "˃" : "˅"));
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
     contextMenuBuilder.newBuilder()
         .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatCategoryColorPickerCustomMenuItemController.class), chatUserCategory)
         .build()
-        .show(chatUserCategoryRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        .show(categoryLabel.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
   @Override
   public Node getRoot() {
-    return chatUserCategoryRoot;
+    return root;
   }
 }

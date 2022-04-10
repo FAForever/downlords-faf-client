@@ -18,7 +18,6 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.ReplayMapper;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
@@ -50,6 +49,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -102,6 +102,7 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 @Lazy
 @Service
+@RequiredArgsConstructor
 public class MapService implements InitializingBean, DisposableBean {
 
   public static final String DEBUG = "debug";
@@ -119,7 +120,6 @@ public class MapService implements InitializingBean, DisposableBean {
   private final PlayerService playerService;
   private final MapMapper mapMapper;
   private final ReplayMapper replayMapper;
-  private final NotificationService notificationService;
   private final FileSizeReader fileSizeReader;
   private final ClientProperties clientProperties;
 
@@ -137,36 +137,6 @@ public class MapService implements InitializingBean, DisposableBean {
       "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
   );
   private Thread directoryWatcherThread;
-
-  public MapService(PreferencesService preferencesService,
-                    TaskService taskService,
-                    ApplicationContext applicationContext,
-                    FafApiAccessor fafApiAccessor,
-                    AssetService assetService,
-                    I18n i18n,
-                    UiService uiService,
-                    MapGeneratorService mapGeneratorService,
-                    ClientProperties clientProperties,
-                    EventBus eventBus, PlayerService playerService,
-                    NotificationService notificationService,
-                    FileSizeReader fileSizeReader,
-                    MapMapper mapMapper, ReplayMapper replayMapper) {
-    this.preferencesService = preferencesService;
-    this.taskService = taskService;
-    this.applicationContext = applicationContext;
-    this.fafApiAccessor = fafApiAccessor;
-    this.assetService = assetService;
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.mapGeneratorService = mapGeneratorService;
-    this.eventBus = eventBus;
-    this.playerService = playerService;
-    this.notificationService = notificationService;
-    this.clientProperties = clientProperties;
-    this.mapMapper = mapMapper;
-    this.replayMapper = replayMapper;
-    this.fileSizeReader = fileSizeReader;
-  }
 
   private static URL getDownloadUrl(String mapName, String baseUrl) throws MalformedURLException {
     return new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US)));
@@ -562,6 +532,11 @@ public class MapService implements InitializingBean, DisposableBean {
   @Override
   public void destroy() {
     Optional.ofNullable(directoryWatcherThread).ifPresent(Thread::interrupt);
+  }
+
+  public String convertMapFolderNameToHumanNameIfPossible(String mapFolderName) {
+    // dualgap_adaptive.v0012 -> dualgap adaptive
+    return mapFolderName.replace("_", " ").replaceAll(".v\\d+", "");
   }
 
   public enum PreviewSize {

@@ -61,6 +61,9 @@ public class ChatPrefs {
    * Time in minutes a player has to be inactive to be considered idle.
    */
   IntegerProperty idleThreshold = new SimpleIntegerProperty(10);
+  BooleanProperty showMapName = new SimpleBooleanProperty(false);
+  BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
+  MapProperty<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories = new SimpleMapProperty<>(FXCollections.observableHashMap());
 
   public ChatPrefs() {
     Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
@@ -233,5 +236,37 @@ public class ChatPrefs {
 
   public BooleanProperty playerListShownProperty() {
     return playerListShown;
+  }
+
+  public boolean isShowMapName() {
+    return showMapName.get();
+  }
+
+  public boolean isShowMapPreview() {
+    return showMapPreview.get();
+  }
+
+  public BooleanProperty showMapNameProperty() {
+    return showMapName;
+  }
+
+  public BooleanProperty showMapPreviewProperty() {
+    return showMapPreview;
+  }
+
+  public void setShowMapPreview(boolean showMapPreview) {
+    this.showMapPreview.set(showMapPreview);
+  }
+
+  public void setShowMapName(boolean showMapName) {
+    this.showMapName.set(showMapName);
+  }
+
+  public MapProperty<String, ObservableList<ChatUserCategory>> getChannelNameToHiddenCategories() {
+    return channelNameToHiddenCategories;
+  }
+
+  public void setChannelNameToHiddenCategories(ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories) {
+    this.channelNameToHiddenCategories.set(channelNameToHiddenCategories);
   }
 }

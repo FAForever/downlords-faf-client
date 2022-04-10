@@ -101,10 +101,12 @@ import static javafx.scene.layout.Background.EMPTY;
 @Slf4j
 // TODO divide and conquer
 public class MainController implements Controller<Node>, InitializingBean {
+
   private static final PseudoClass NOTIFICATION_INFO_PSEUDO_CLASS = PseudoClass.getPseudoClass("info");
   private static final PseudoClass NOTIFICATION_WARN_PSEUDO_CLASS = PseudoClass.getPseudoClass("warn");
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
+
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
   private final PreferencesService preferencesService;
   private final I18n i18n;
@@ -139,9 +141,9 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   @VisibleForTesting
   protected Popup transientNotificationsPopup;
+  private NavigationItem currentItem;
   @VisibleForTesting
   Popup persistentNotificationsPopup;
-  private NavigationItem currentItem;
   private FxStage fxStage;
   private boolean alwaysReloadTabs;
 
@@ -421,9 +423,8 @@ public class MainController implements Controller<Node>, InitializingBean {
         setWindowPosition(stage, mainWindowPrefs);
       }
     });
-    JavaFxUtil.addListener(mainWindowPrefs.backgroundImagePathProperty(), observable -> {
-      setBackgroundImage(mainWindowPrefs.getBackgroundImagePath());
-    });
+    JavaFxUtil.addListener(mainWindowPrefs.backgroundImagePathProperty(), observable ->
+        setBackgroundImage(mainWindowPrefs.getBackgroundImagePath()));
   }
 
   private void setBackgroundImage(Path filepath) {
@@ -475,9 +476,8 @@ public class MainController implements Controller<Node>, InitializingBean {
   private void askUserForPreferenceOverStartTab(WindowPrefs mainWindow) {
     mainWindow.setNavigationItem(NavigationItem.NEWS);
     preferencesService.storeInBackground();
-    List<Action> actions = Collections.singletonList(new Action(i18n.get("startTab.configure"), event -> {
-      makePopUpAskingForPreferenceInStartTab(mainWindow);
-    }));
+    List<Action> actions = Collections.singletonList(new Action(i18n.get("startTab.configure"), event ->
+        makePopUpAskingForPreferenceInStartTab(mainWindow)));
     notificationService.addNotification(new PersistentNotification(i18n.get("startTab.wantToConfigure"), Severity.INFO, actions));
   }
 
@@ -661,25 +661,21 @@ public class MainController implements Controller<Node>, InitializingBean {
       double anchorX = visualBounds.getMaxX() - 1;
       double anchorY = visualBounds.getMaxY() - 1;
       switch (preferencesService.getPreferences().getNotification().toastPositionProperty().get()) {
-        case BOTTOM_RIGHT:
-          transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
-          break;
-        case TOP_RIGHT:
+        case BOTTOM_RIGHT -> transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
+        case TOP_RIGHT -> {
           transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_RIGHT);
           anchorY = visualBounds.getMinY();
-          break;
-        case BOTTOM_LEFT:
+        }
+        case BOTTOM_LEFT -> {
           transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
           anchorX = visualBounds.getMinX();
-          break;
-        case TOP_LEFT:
+        }
+        case TOP_LEFT -> {
           transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_LEFT);
           anchorX = visualBounds.getMinX();
           anchorY = visualBounds.getMinY();
-          break;
-        default:
-          transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
-          break;
+        }
+        default -> transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
       }
       transientNotificationsPopup.show(mainRoot.getScene().getWindow(), anchorX, anchorY);
     }

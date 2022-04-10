@@ -1,12 +1,10 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
 import com.faforever.client.fx.contextmenu.BroadcastMessageMenuItem;
@@ -17,28 +15,30 @@ import com.faforever.client.fx.contextmenu.InvitePlayerMenuItem;
 import com.faforever.client.fx.contextmenu.JoinGameMenuItem;
 import com.faforever.client.fx.contextmenu.KickGameMenuItem;
 import com.faforever.client.fx.contextmenu.KickLobbyMenuItem;
+import com.faforever.client.fx.contextmenu.OpenClanUrlMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
 import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
+import com.faforever.client.fx.contextmenu.SendPrivateMessageClanLeaderMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
 import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
 import com.faforever.client.game.GameTooltipController;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
+import com.faforever.client.map.MapService;
+import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.google.common.eventbus.EventBus;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.css.PseudoClass;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
@@ -49,6 +49,7 @@ import javafx.stage.PopupWindow;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -59,91 +60,80 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ChatUserItemController implements Controller<Node> {
 
-  private static final PseudoClass COMPACT = PseudoClass.getPseudoClass("compact");
-
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final UiService uiService;
+  private final MapService mapService;
+  private final MapGeneratorService mapGeneratorService;
   private final EventBus eventBus;
-  private final PlayerService playerService;
-  private final PlatformService platformService;
   private final ContextMenuBuilder contextMenuBuilder;
 
-  private final InvalidationListener formatChangeListener = observable -> updateFormat();
   private final InvalidationListener chatUserPropertyInvalidationListener = observable -> updateChatUserDisplay();
   private final InvalidationListener chatUserGamePropertyInvalidationListener = observable -> updateChatUserGame();
+  private final InvalidationListener showMapNameListener = observable -> updateMapNameLabelVisible();
+  private final InvalidationListener showMapPreviewListener = observable -> updateMapPreviewImageViewVisible();
 
-  public ImageView playerMapImage;
-  public ImageView playerStatusIndicator;
-  public Pane chatUserItemRoot;
+  public Pane root;
+  public ImageView mapImageView;
   public ImageView countryImageView;
+  public ImageView gameStatusImageView;
   public ImageView avatarImageView;
   public Label usernameLabel;
-  public MenuButton clanMenu;
-  private Tooltip statusGameTooltip;
-  private Tooltip gameInfoTooltip;
-  private Tooltip countryTooltip;
+  public Label mapNameLabel;
+
   private Tooltip avatarTooltip;
+  private Tooltip gameInfoTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
-
-  private void updateFormat() {
-    ChatFormat chatFormat = preferencesService.getPreferences().getChat().getChatFormat();
-    getRoot().pseudoClassStateChanged(
-        COMPACT,
-        chatFormat == ChatFormat.COMPACT
-    );
-  }
+  private ChatPrefs chatPrefs;
 
   public void initialize() {
-    chatUserItemRoot.setUserData(this);
+    chatPrefs = preferencesService.getPreferences().getChat();
 
-    initializeTooltips();
-
-    JavaFxUtil.bindManagedToVisible(countryImageView, clanMenu, playerStatusIndicator, playerMapImage);
-
+    JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, gameStatusImageView);
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
     JavaFxUtil.bind(countryImageView.visibleProperty(), countryImageView.imageProperty().isNotNull());
-    JavaFxUtil.bind(clanMenu.visibleProperty(), clanMenu.textProperty().isNotEmpty());
-    JavaFxUtil.bind(playerStatusIndicator.visibleProperty(), playerStatusIndicator.imageProperty().isNotNull());
-    JavaFxUtil.bind(playerMapImage.visibleProperty(), playerMapImage.imageProperty().isNotNull());
-    JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().getChat().chatFormatProperty(), new WeakInvalidationListener(formatChangeListener));
+    JavaFxUtil.bind(gameStatusImageView.visibleProperty(), gameStatusImageView.imageProperty().isNotNull());
+    initializeTooltips();
 
-    updateFormat();
-    addEventHandlersToPlayerMapImage();
+    WeakInvalidationListener showMapNameWeakListener = new WeakInvalidationListener(showMapNameListener);
+    JavaFxUtil.addListener(mapNameLabel.textProperty(), showMapNameWeakListener);
+    JavaFxUtil.addAndTriggerListener(chatPrefs.showMapNameProperty(), showMapNameWeakListener);
+    JavaFxUtil.addAndTriggerListener(chatPrefs.showMapPreviewProperty(), new WeakInvalidationListener(showMapPreviewListener));
+  }
+
+  private void updateMapNameLabelVisible() {
+    boolean visible = !StringUtils.isBlank(mapNameLabel.getText()) && chatPrefs.isShowMapName();
+    Platform.runLater(() -> mapNameLabel.setVisible(visible));
+  }
+
+  private void updateMapPreviewImageViewVisible() {
+    Platform.runLater(() -> mapImageView.setVisible(chatPrefs.isShowMapPreview()));
   }
 
   private void initializeTooltips() {
     avatarTooltip = new Tooltip();
     avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     Tooltip.install(avatarImageView, avatarTooltip);
-
-    countryTooltip = new Tooltip();
-    countryTooltip.showDelayProperty().set(Duration.millis(250));
-    Tooltip.install(countryImageView, countryTooltip);
-
-    statusGameTooltip = new Tooltip();
-    statusGameTooltip.setShowDuration(Duration.seconds(30));
-    statusGameTooltip.setShowDelay(Duration.ZERO);
-    statusGameTooltip.setHideDelay(Duration.ZERO);
-    Tooltip.install(playerStatusIndicator, statusGameTooltip);
   }
 
-  private void addEventHandlersToPlayerMapImage() {
-    playerMapImage.addEventHandler(MouseEvent.MOUSE_MOVED, eventHandlerInitializeGameInfoTooltip());
-    playerMapImage.addEventHandler(MouseEvent.MOUSE_EXITED, eventHandlerRemoveGameInfoTooltip());
+  public void onMapImageViewMouseExited() {
+    if (gameInfoTooltip == null || gameInfoController == null) {
+      return;
+    }
+    Tooltip.uninstall(mapImageView, gameInfoTooltip);
+    gameInfoTooltip = null;
+    gameInfoController = null;
   }
 
-  private EventHandler<MouseEvent> eventHandlerInitializeGameInfoTooltip() {
-    return event -> {
-      if (chatUser == null || chatUser.getPlayer().isEmpty() || gameInfoTooltip != null || gameInfoController != null) {
-        return;
-      }
-      gameInfoController = prepareGameInfoController(chatUser.getPlayer().get().getGame());
-      gameInfoTooltip = prepareGameInfoTooltip(gameInfoController);
-      gameInfoController.displayGame();
-      Tooltip.install(playerMapImage, gameInfoTooltip);
-    };
+  public void onMapImageViewMouseMoved() {
+    if (chatUser == null || chatUser.getPlayer().isEmpty() || gameInfoTooltip != null || gameInfoController != null) {
+      return;
+    }
+    gameInfoController = prepareGameInfoController(chatUser.getPlayer().get().getGame());
+    gameInfoTooltip = prepareGameInfoTooltip(gameInfoController);
+    gameInfoController.displayGame();
+    Tooltip.install(mapImageView, gameInfoTooltip);
   }
 
   private GameTooltipController prepareGameInfoController(GameBean game) {
@@ -160,17 +150,6 @@ public class ChatUserItemController implements Controller<Node> {
     return tooltip;
   }
 
-  private EventHandler<MouseEvent> eventHandlerRemoveGameInfoTooltip() {
-    return event -> {
-      if (gameInfoTooltip == null || gameInfoController == null) {
-        return;
-      }
-      Tooltip.uninstall(playerMapImage, gameInfoTooltip);
-      gameInfoTooltip = null;
-      gameInfoController = null;
-    };
-  }
-
   public void onContextMenuRequested(ContextMenuEvent event) {
     PlayerBean player = chatUser.getPlayer().orElse(null);
     contextMenuBuilder.newBuilder()
@@ -178,6 +157,9 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(SendPrivateMessageMenuItem.class, chatUser.getUsername())
         .addItem(CopyUsernameMenuItem.class, chatUser.getUsername())
         .addCustomItem(uiService.loadFxml("theme/chat/color_picker_menu_item.fxml", ChatUserColorPickerCustomMenuItemController.class), chatUser)
+        .addSeparator()
+        .addItem(SendPrivateMessageClanLeaderMenuItem.class, chatUser.getClan().orElse(null))
+        .addItem(OpenClanUrlMenuItem.class, chatUser.getClan().orElse(null))
         .addSeparator()
         .addItem(InvitePlayerMenuItem.class, player)
         .addItem(AddFriendMenuItem.class, player)
@@ -196,7 +178,7 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(BroadcastMessageMenuItem.class)
         .addCustomItem(uiService.loadFxml("theme/chat/avatar_picker_menu_item.fxml"), player)
         .build()
-        .show(chatUserItemRoot.getScene().getWindow(), event.getScreenX(), event.getScreenY());
+        .show(root.getScene().getWindow(), event.getScreenX(), event.getScreenY());
   }
 
   public void onItemClicked(MouseEvent mouseEvent) {
@@ -206,7 +188,7 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   public Pane getRoot() {
-    return chatUserItemRoot;
+    return root;
   }
 
   public ChatChannelUser getChatUser() {
@@ -247,57 +229,38 @@ public class ChatUserItemController implements Controller<Node> {
   private void updateChatUserDisplay() {
     String styleString = chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse("");
     String avatarString = chatUser.getPlayer().map(PlayerBean::getAvatar).map(AvatarBean::getDescription).orElse("");
-    String clanString = chatUser.getClanTag().orElse("");
+    String clanString = chatUser.getClanTag().map(s -> s + " ").orElse("");
     JavaFxUtil.runLater(() -> {
-      usernameLabel.setText(chatUser.getUsername());
+      usernameLabel.setText(clanString + chatUser.getUsername());
       usernameLabel.setStyle(styleString);
       avatarImageView.setImage(chatUser.getAvatar().orElse(null));
       countryImageView.setImage(chatUser.getCountryFlag().orElse(null));
-      countryTooltip.setText(chatUser.getCountryName().orElse(""));
       avatarTooltip.setText(avatarString);
-      clanMenu.setText(clanString);
     });
   }
 
   private void updateChatUserGame() {
     JavaFxUtil.runLater(() -> {
-      playerMapImage.setImage(chatUser.getMapImage().orElse(null));
-      playerStatusIndicator.setImage(chatUser.getGameStatusImage().orElse(null));
-      statusGameTooltip.setText(chatUser.getStatusTooltipText().orElse(""));
+      gameStatusImageView.setImage(chatUser.getGameStatusImage().orElse(null));
+      mapImageView.setImage(chatUser.getMapImage().orElse(null));
+      chatUser.getPlayer().filter(player -> player.getStatus() != PlayerStatus.IDLE)
+          .map(player -> player.getGame().getMapFolderName()).ifPresentOrElse(this::updateMapNameLabel,
+              () -> updateMapNameLabel(null));
     });
   }
 
-  public void setVisible(boolean visible) {
-    chatUserItemRoot.setVisible(visible);
-    chatUserItemRoot.setManaged(visible);
-  }
-
-  /**
-   * Memory analysis suggest this menu uses tons of memory while it stays unclear why exactly (something java fx
-   * internal). We just load the menu on click. Also we destroy it over and over again.
-   */
-  public void onClanMenuRequested() {
-    clanMenu.getItems().clear();
-    clanMenu.hide();
-    if (chatUser.getClan().isEmpty()) {
-      return;
+  private void updateMapNameLabel(String mapFolderName) {
+    if (mapFolderName == null) {
+      mapNameLabel.setText("");
+    } else {
+      String text;
+      if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
+        text = "Neroxis Generated Map";
+      } else {
+        text = mapService.getMapLocallyFromName(mapFolderName).map(mapVersion -> mapVersion.getMap().getDisplayName())
+            .orElseGet(() -> mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName));
+      }
+      mapNameLabel.setText(i18n.get("game.onMapFormat", text));
     }
-
-    ClanBean clan = chatUser.getClan().get();
-
-    PlayerBean currentPlayer = playerService.getCurrentPlayer();
-
-    if (!currentPlayer.getId().equals(clan.getLeader().getId())
-        && playerService.isOnline(clan.getLeader().getId())) {
-      MenuItem messageLeaderItem = new MenuItem(i18n.get("clan.messageLeader"));
-      messageLeaderItem.setOnAction(event -> eventBus.post(new InitiatePrivateChatEvent(clan.getLeader().getUsername())));
-      clanMenu.getItems().add(messageLeaderItem);
-    }
-
-    MenuItem visitClanPageAction = new MenuItem(i18n.get("clan.visitPage"));
-    visitClanPageAction.setOnAction(event -> platformService.showDocument(clan.getWebsiteUrl()));
-    clanMenu.getItems().add(visitClanPageAction);
-
-    clanMenu.show();
   }
 }

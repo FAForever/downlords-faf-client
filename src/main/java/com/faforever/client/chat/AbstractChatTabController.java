@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -405,6 +406,14 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   protected JSObject getJsObject() {
     return (JSObject) engine.executeScript("window");
+  }
+
+  protected void callJsMethod(String methodName, Object... args) {
+    try {
+      getJsObject().call(methodName, args);
+    } catch (Exception e) {
+      log.warn("Error when calling JS method: ", e);
+    }
   }
 
   protected void onWebViewLoaded() {
@@ -749,5 +758,20 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     window.getContent().setAll(controller.getRoot());
     window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
     emoticonsPopupWindowWeakReference = new WeakReference<>(window);
+  }
+
+  @VisibleForTesting
+  String getHtmlBodyContent() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    String[] content = new String[1];
+    JavaFxUtil.runLater(() -> {
+      try {
+        content[0] = (String) engine.executeScript("document.body.innerHTML");
+      } finally {
+        latch.countDown();
+      }
+    });
+    latch.await();
+    return content[0];
   }
 }

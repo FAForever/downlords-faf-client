@@ -53,6 +53,10 @@ public class ChatChannel {
     users.clear();
   }
 
+  public boolean containsUser(ChatChannelUser user) {
+    return users.containsValue(user);
+  }
+
   public void addUsersListeners(MapChangeListener<String, ChatChannelUser> listener) {
     JavaFxUtil.addListener(users, listener);
   }
@@ -66,6 +70,10 @@ public class ChatChannel {
    */
   public List<ChatChannelUser> getUsers() {
     return Collections.unmodifiableList(new ArrayList<>(users.values()));
+  }
+
+  public int getUserCount() {
+    return users.size();
   }
 
   public ChatChannelUser getUser(String username) {

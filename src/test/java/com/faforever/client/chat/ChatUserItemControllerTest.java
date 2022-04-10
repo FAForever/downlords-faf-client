@@ -1,44 +1,48 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.ChatChannelUserBuilder;
+import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
-import com.faforever.client.domain.ClanBean;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.MouseEvents;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
+import com.faforever.client.map.MapService;
+import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
-import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.VBox;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.URL;
+import java.time.Instant;
+import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -47,10 +51,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChatUserItemControllerTest extends UITest {
-  private static final String CHANNEL_NAME = "testChannel";
 
-  @InjectMocks
-  private ChatUserItemController instance;
+  private static final String CHANNEL_NAME = "#testChannel";
+  private static final String USER_NAME = "junit";
+
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -60,186 +64,147 @@ public class ChatUserItemControllerTest extends UITest {
   @Mock
   private EventBus eventBus;
   @Mock
-  private PlayerService playerService;
-  @Mock
-  private PlatformService platformService;
-  @Mock
   private ContextMenuBuilder contextMenuBuilder;
+  @Mock
+  private MapGeneratorService mapGeneratorService;
+  @Mock
+  private MapService mapService;
 
-  private ClanBean testClan;
+  private ChatChannelUser defaultUser;
+  private ChatPrefs chatPrefs;
+
+  @InjectMocks
+  private ChatUserItemController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
+    defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
+
+    Preferences preferences = PreferencesBuilder.create().defaultValues().chatPrefs().then().get();
+    chatPrefs = preferences.getChat();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
     when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");
-    testClan = new ClanBean();
-    testClan.setTag("e");
-    testClan.setLeader(PlayerBeanBuilder.create().defaultValues().username("test_player").id(2).get());
-    when(playerService.isOnline(eq(2))).thenReturn(true);
-    when(playerService.getCurrentPlayer()).thenReturn(PlayerBeanBuilder.create().defaultValues().get());
 
     loadFxml("theme/chat/chat_user_item.fxml", param -> instance);
   }
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instance.chatUserItemRoot));
-    assertThat(instance.getRoot().getParent(), is(nullValue()));
+    assertNotNull(instance.getRoot());
   }
 
   @Test
   public void testGetPlayer() {
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create("junit", CHANNEL_NAME).defaultValues().get();
-    instance.setChatUser(chatUser);
-
-    assertThat(instance.getChatUser(), is(chatUser));
-  }
-
-  @Test
-  public void testNullValuesHidesNodes() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME)
-        .defaultValues()
-        .player(player)
-        .get();
-    instance.setChatUser(chatUser);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertFalse(instance.avatarImageView.isVisible());
-    assertFalse(instance.playerStatusIndicator.isVisible());
-    assertFalse(instance.playerMapImage.isVisible());
-    assertFalse(instance.countryImageView.isVisible());
-  }
-
-  @Test
-  public void testNotNullValuesShowsNodes() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME)
-        .defaultValues()
-        .player(player)
-        .avatar(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .countryFlag(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .mapImage(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .statusImage(new Image(UiService.UNKNOWN_MAP_IMAGE))
-        .get();
-    instance.setChatUser(chatUser);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    assertTrue(instance.avatarImageView.isVisible());
-    assertTrue(instance.playerStatusIndicator.isVisible());
-    assertTrue(instance.playerMapImage.isVisible());
-    assertTrue(instance.countryImageView.isVisible());
+    instance.setChatUser(defaultUser);
+    assertEquals(defaultUser, instance.getChatUser());
   }
 
   @Test
   public void testSingleClickDoesNotInitiatePrivateChat() {
-    instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1));
-
+    runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 1)));
     verify(eventBus, never()).post(CoreMatchers.any(InitiatePrivateChatEvent.class));
   }
 
   @Test
   public void testDoubleClickInitiatesPrivateChat() {
-    instance.setChatUser(ChatChannelUserBuilder.create("junit", CHANNEL_NAME).defaultValues().get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2));
+    instance.setChatUser(defaultUser);
+    runOnFxThreadAndWait(() -> instance.onItemClicked(MouseEvents.generateClick(MouseButton.PRIMARY, 2)));
 
     ArgumentCaptor<InitiatePrivateChatEvent> captor = ArgumentCaptor.forClass(InitiatePrivateChatEvent.class);
     verify(eventBus, times(1)).post(captor.capture());
-
-    assertThat(captor.getValue().getUsername(), is("junit"));
+    assertEquals(USER_NAME, captor.getValue().getUsername());
   }
 
   @Test
   public void testOnContextMenuRequested() {
     runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
-    ChatChannelUser user = ChatChannelUserBuilder.create("junit", CHANNEL_NAME).defaultValues().get();
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
 
-    instance.setChatUser(user);
+    instance.setChatUser(defaultUser);
     instance.onContextMenuRequested(mock(ContextMenuEvent.class));
     verify(contextMenuMock).show(eq(instance.getRoot().getScene().getWindow()), anyDouble(), anyDouble());
   }
 
   @Test
-  public void testContactClanLeaderNotShowing() throws Exception {
-    PlayerBean player = PlayerBeanBuilder.create()
-        .defaultValues()
-        .id(2)
-        .clan("e")
-        .avatar(AvatarBeanBuilder.create().defaultValues().url(new URL("http://example.com/avatar.png")).description("dog").get())
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(player);
-    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME).defaultValues().player(player).clan(testClan).get());
-    WaitForAsyncUtils.waitForFxEvents();
+  public void testCheckShowMapNameListener() {
+    runOnFxThreadAndWait(() -> instance.mapNameLabel.setText("map name"));
+    boolean visible = chatPrefs.isShowMapName();
+    assertEquals(instance.mapNameLabel.isVisible(), visible);
 
-    instance.clanMenu.getOnMouseClicked().handle(null);
-
-    ObservableList<MenuItem> items = instance.clanMenu.getItems();
-    assertThat(items.size(), is(1));
-    boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
-    assertThat(containsMessageItem, is(false));
+    runOnFxThreadAndWait(() -> chatPrefs.setShowMapName(!visible));
+    assertEquals(instance.mapNameLabel.isVisible(), !visible);
   }
 
   @Test
-  public void testContactClanLeaderShowingSameClan() throws Exception {
-    PlayerBean player = PlayerBeanBuilder.create()
-        .defaultValues()
-        .id(1)
-        .clan("e")
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(player);
-    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME).defaultValues().player(player).clan(testClan).get());
-    WaitForAsyncUtils.waitForFxEvents();
-
-    instance.clanMenu.getOnMouseClicked().handle(null);
-
-    ObservableList<MenuItem> items = instance.clanMenu.getItems();
-    assertThat(items.size(), is(2));
-    boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
-    assertThat(containsMessageItem, is(true));
+  public void testInvisibleMapNameLabelWhenNoMapName() {
+    runOnFxThreadAndWait(() -> {
+      chatPrefs.setShowMapName(true);
+      instance.mapNameLabel.setText("");
+    });
+    assertFalse(instance.mapNameLabel.isVisible());
   }
 
   @Test
-  public void testContactClanLeaderShowingOtherClan() throws Exception {
-    PlayerBean player = PlayerBeanBuilder.create()
-        .defaultValues()
-        .clan("e")
-        .get();
-    PlayerBean otherClanLeader = PlayerBeanBuilder.create()
-        .defaultValues()
-        .username("test_player")
-        .clan("not")
-        .get();
-    when(playerService.getCurrentPlayer()).thenReturn(otherClanLeader);
-    instance.setChatUser(ChatChannelUserBuilder.create(player.getUsername(), CHANNEL_NAME).defaultValues().player(player).clan(testClan).get());
-    WaitForAsyncUtils.waitForFxEvents();
+  public void testCheckShowMapPreviewListener() {
+    boolean visible = chatPrefs.isShowMapPreview();
+    assertEquals(instance.mapImageView.isVisible(), visible);
 
-    instance.clanMenu.getOnMouseClicked().handle(null);
-
-    ObservableList<MenuItem> items = instance.clanMenu.getItems();
-    assertThat(items.size(), is(2));
-    boolean containsMessageItem = items.stream().anyMatch((item) -> "Message clan leader".equals(item.getText()));
-    assertThat(containsMessageItem, is(true));
+    runOnFxThreadAndWait(() -> chatPrefs.setShowMapPreview(!visible));
+    assertEquals(instance.mapImageView.isVisible(), !visible);
   }
 
+  @Test
+  public void testCheckChatUserGameListener() {
+    PlayerBean player = PlayerBeanBuilder.create()
+        .defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().get())
+        .get();
+    String mapFolderName = player.getGame().getMapFolderName();
+    MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
+    defaultUser.setMapImage(mock(Image.class));
+    defaultUser.setGameStatusImage(mock(Image.class));
+    defaultUser.setPlayer(player);
+
+    when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion), Optional.empty());
+    when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map name");
+    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap().getDisplayName(), "map name", "Neroxis Generated Map");
+
+    runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
+    assertNotNull(instance.gameStatusImageView.getImage());
+    assertNotNull(instance.mapImageView.getImage());
+    assertEquals(mapVersion.getMap().getDisplayName(), instance.mapNameLabel.getText());
+
+    runOnFxThreadAndWait(() -> defaultUser.setLastActive(Instant.now()));
+    assertEquals("map name", instance.mapNameLabel.getText());
+  }
 
   @Test
-  public void testSetVisible() {
-    instance.setVisible(true);
-    assertThat(instance.chatUserItemRoot.isVisible(), is(true));
-    assertThat(instance.chatUserItemRoot.isManaged(), is(true));
+  public void testAvatarImageViewHasTooltip() {
+    assertTrue(containTooltip(instance.avatarImageView));
+  }
 
-    instance.setVisible(false);
-    assertThat(instance.chatUserItemRoot.isVisible(), is(false));
-    assertThat(instance.chatUserItemRoot.isManaged(), is(false));
+  @Test
+  public void testOnMapImageViewMouseMovedAndExited() {
+    defaultUser.setPlayer(PlayerBeanBuilder.create()
+        .defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().get())
+        .get());
+    GameTooltipController controllerMock = mock(GameTooltipController.class);
+    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(controllerMock);
+    when(controllerMock.getRoot()).thenReturn(new VBox());
 
-    instance.setVisible(true);
-    assertThat(instance.chatUserItemRoot.isVisible(), is(true));
-    assertThat(instance.chatUserItemRoot.isManaged(), is(true));
+    instance.setChatUser(defaultUser);
+    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseMoved());
+    verify(controllerMock).displayGame();
+    assertTrue(containTooltip(instance.mapImageView));
+
+    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseExited());
+    assertFalse(containTooltip(instance.mapImageView));
+  }
+
+  private boolean containTooltip(Node node) {
+    return node.getProperties().values().stream().anyMatch(o -> o.getClass().isAssignableFrom(Tooltip.class));
   }
 }

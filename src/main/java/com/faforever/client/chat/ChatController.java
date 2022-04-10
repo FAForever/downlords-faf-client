@@ -8,19 +8,21 @@ import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.ListChangeListener;
-import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,29 +37,22 @@ import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ChatController extends AbstractViewController<Node> {
+@RequiredArgsConstructor
+public class ChatController extends AbstractViewController<AnchorPane> {
 
-  private final Map<String, AbstractChatTabController> nameToChatTabController;
+  private final Map<String, AbstractChatTabController> nameToChatTabController = new HashMap<>();
   private final ChatService chatService;
   private final UiService uiService;
   private final UserService userService;
-  private final NotificationService notificationService;
   private final EventBus eventBus;
-  public Node chatRoot;
+
+  public AnchorPane chatRoot;
   public TabPane tabPane;
   public Pane connectingProgressPane;
   public VBox noOpenTabsContainer;
   public TextField channelNameTextField;
 
-  public ChatController(ChatService chatService, UiService uiService, UserService userService, NotificationService notificationService, EventBus eventBus) {
-    this.chatService = chatService;
-    this.uiService = uiService;
-    this.userService = userService;
-    this.notificationService = notificationService;
-    this.eventBus = eventBus;
-
-    nameToChatTabController = new HashMap<>();
-  }
+  private BooleanBinding chatTabSelectedProperty;
 
   private void onChannelLeft(ChatChannel chatChannel) {
     JavaFxUtil.runLater(() -> removeTab(chatChannel.getName()));
@@ -112,7 +107,7 @@ public class ChatController extends AbstractViewController<Node> {
     JavaFxUtil.assertApplicationThread();
     if (!nameToChatTabController.containsKey(channelName)) {
       ChannelTabController tab = uiService.loadFxml("theme/chat/channel_tab.fxml");
-      tab.setChatChannel(chatService.getOrCreateChannel(channelName));
+      tab.setChatChannel(chatService.getOrCreateChannel(channelName), chatTabSelectedProperty);
       addTab(channelName, tab);
     }
     return nameToChatTabController.get(channelName);
@@ -154,6 +149,10 @@ public class ChatController extends AbstractViewController<Node> {
         change.getRemoved().forEach(tab -> nameToChatTabController.remove(tab.getId()));
       }
     });
+
+    BooleanProperty chatTabVisibleProperty = getRoot().visibleProperty();
+    BooleanBinding chatTabInitializedProperty = getRoot().parentProperty().isNotNull();
+    chatTabSelectedProperty = chatTabVisibleProperty.and(chatTabInitializedProperty);
   }
 
   @Subscribe
@@ -163,17 +162,10 @@ public class ChatController extends AbstractViewController<Node> {
 
   private void onConnectionStateChange(ConnectionState newValue) {
     switch (newValue) {
-      case DISCONNECTED:
-        onDisconnected();
-        break;
-      case CONNECTED:
-        onConnected();
-        break;
-      case CONNECTING:
-        onConnecting();
-        break;
-      default:
-        throw new ProgrammingError("Uncovered connection state: " + newValue);
+      case DISCONNECTED -> onDisconnected();
+      case CONNECTED -> onConnected();
+      case CONNECTING -> onConnecting();
+      default -> throw new ProgrammingError("Uncovered connection state: " + newValue);
     }
   }
 
@@ -211,7 +203,7 @@ public class ChatController extends AbstractViewController<Node> {
     return nameToChatTabController.get(username);
   }
 
-  public Node getRoot() {
+  public AnchorPane getRoot() {
     return chatRoot;
   }
 

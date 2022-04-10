@@ -12,6 +12,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -143,7 +144,8 @@ public class ChatUserService implements InitializingBean {
       default -> null;
     };
     Image mapImage;
-    if (status != PlayerStatus.IDLE && player.getGame() != null) {
+    // Do not load coop map preview because they do not exist on API vault
+    if (status != PlayerStatus.IDLE && player.getGame() != null && player.getGame().getGameType() != GameType.COOP) {
       mapImage = mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL);
     } else {
       mapImage = null;
