@@ -60,7 +60,7 @@ public class LeagueEntryBean extends AbstractEntityBean<LeagueEntryBean> {
     return score;
   }
 
-  public boolean isReturningPlayer() {
+  public boolean getReturningPlayer() {
     return returningPlayer.get();
   }
 
