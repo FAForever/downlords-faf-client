@@ -2,9 +2,11 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
@@ -33,10 +35,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.net.URL;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -189,8 +193,22 @@ public class PrivateChatTabControllerTest extends UITest {
   public void checkTabHasNoAvatar() {
     player.setAvatar(null);
     setReceiver();
-    verifyNoInteractions(avatarService);
     assertFalse(instance.avatarImageView.isVisible());
     assertNull(player.getAvatar());
+  }
+
+  @Test
+  public void checkPlayerAvatarListener() throws Exception {
+    Image oldAvatar = mock(Image.class);
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(oldAvatar);
+
+    setReceiver();
+    assertEquals(oldAvatar, instance.avatarImageView.getImage());
+
+    Image newAvatar = mock(Image.class);
+    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().url(new URL("https://test11.com")).get();
+    when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
+    runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
+    assertEquals(newAvatar, instance.avatarImageView.getImage());
   }
 }

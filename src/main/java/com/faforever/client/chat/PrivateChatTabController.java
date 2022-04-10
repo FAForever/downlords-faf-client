@@ -4,6 +4,7 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPrivateMessageEvent;
+import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -21,9 +22,13 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -50,6 +55,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public ScrollPane gameDetailScrollPane;
 
   private boolean userOffline;
+  private ChangeListener<AvatarBean> avatarPropertyListener = (observable, oldValue, newValue) -> updateAvatarInTab(newValue);
 
   @Inject
   // TODO cut dependencies
@@ -90,13 +96,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.setReceiver(username);
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
-    playerService.getPlayerByNameIfOnline(username)
-        .map(PlayerBean::getAvatar)
-        .map(avatarService::loadAvatar).ifPresent(image -> JavaFxUtil.runLater(() -> {
-          avatarImageView.setVisible(true);
-          avatarImageView.setImage(image);
-        }));
-
+    playerService.getPlayerByNameIfOnline(username).ifPresent(player ->
+        JavaFxUtil.addAndTriggerListener(player.avatarProperty(), new WeakChangeListener<>(avatarPropertyListener)));
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username, false);
     privatePlayerInfoController.setChatUser(chatUser);
   }
@@ -144,6 +145,14 @@ public class PrivateChatTabController extends AbstractChatTabController {
       incrementUnreadMessagesCount(1);
       eventBus.post(new UnreadPrivateMessageEvent(chatMessage));
     }
+  }
+
+  private void updateAvatarInTab(AvatarBean avatarBean) {
+    Image avatar = avatarService.loadAvatar(avatarBean);
+    JavaFxUtil.runLater(() -> {
+      avatarImageView.setVisible(avatar != null);
+      avatarImageView.setImage(avatar);
+    });
   }
 
   @VisibleForTesting
