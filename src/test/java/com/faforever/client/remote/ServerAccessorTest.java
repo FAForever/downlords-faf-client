@@ -697,6 +697,7 @@ public class ServerAccessorTest extends ServiceTest {
           "map_position" : null,
           "faction" : "aeon",
           "init_mode" : 1,
+          "game_type" : "matchmaker",
           "rating_type" : "global"
         }""");
 
