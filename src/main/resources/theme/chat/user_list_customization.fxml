@@ -14,7 +14,7 @@
                 <CheckBox mnemonicParsing="false" fx:id="showMapPreviewCheckBox"/>
             </graphic>
         </Label>
-        <Label contentDisplay="RIGHT" text="%chat.userList.customization.showMapName">
+        <Label contentDisplay="RIGHT" text="%chat.userList.customization.showPlayerStatus">
             <graphic>
                 <CheckBox mnemonicParsing="false" fx:id="showMapNameCheckBox"/>
             </graphic>
