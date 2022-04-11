@@ -164,14 +164,11 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private String coopMissionFromFolderNamer(List<CoopMissionBean> coopMaps, String mapFolderName) {
-    Optional<CoopMissionBean> first = coopMaps.stream()
+    return coopMaps.stream()
         .filter(coopMission -> coopMission.getMapFolderName().equalsIgnoreCase(mapFolderName))
-        .findFirst();
-    if (first.isPresent()) {
-      return first.get().getName();
-    }
-    log.warn("No coop mission found for folder name: {}", mapFolderName);
-    return i18n.get("coop.unknownMission");
+        .findFirst()
+        .map(CoopMissionBean::getName)
+        .orElse(i18n.get("coop.unknownMission"));
   }
 
   private String commaDelimitedPlayerList(CoopResultBean coopResult) {
