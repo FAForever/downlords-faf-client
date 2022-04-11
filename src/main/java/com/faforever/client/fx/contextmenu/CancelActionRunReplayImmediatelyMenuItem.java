@@ -27,6 +27,11 @@ public class CancelActionRunReplayImmediatelyMenuItem extends AbstractMenuItem<G
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "close-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     boolean isValid = object != null && object.getStartTime() != null;
     if (!isValid) {

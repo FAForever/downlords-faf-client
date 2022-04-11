@@ -33,6 +33,11 @@ public class EditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "mode-edit-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null;
   }

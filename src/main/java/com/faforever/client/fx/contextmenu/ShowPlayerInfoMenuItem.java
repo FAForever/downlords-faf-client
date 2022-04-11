@@ -28,6 +28,11 @@ public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "info-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null;
   }

@@ -114,7 +114,7 @@
     -fx-background-color: -fx-background;
 }
 
-.query-filter .context-menu {
+.query-filter {
     -fx-background-color: -fx-background;
 }
 
@@ -1445,3 +1445,22 @@
 .clickable:hover {
   -fx-background-color: -fx-hover-accent;
 }
+
+/***************** Root Context Menu ***************************/
+
+.context-menu {
+  -fx-background-color: derive(-context-menu-color, 5%);
+  -fx-border-color: -context-menu-border-color;
+  -fx-border-width: 0.0625em; /* 1px */
+  -fx-border-radius: 0.1875em; /* 3px */
+  -fx-background-radius: 0.1875em;  /* 3px */
+}
+
+.context-menu .separator .line {
+  -fx-border-color: derive(-context-menu-color, 30%) transparent transparent transparent
+}
+
+.menu-item > .label {
+  -fx-text-fill: -menu-item-label-color;
+}
+
