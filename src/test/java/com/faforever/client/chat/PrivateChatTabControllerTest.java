@@ -180,14 +180,16 @@ public class PrivateChatTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertTrue(instance.avatarImageView.isVisible());
     assertNotNull(instance.avatarImageView.getImage());
+    assertFalse(instance.defaultIconImageView.isVisible());
   }
 
   @Test
-  public void checkTabHasNoAvatar() {
+  public void checkSetDefaultIconForTabIfPlayerHasNoAvatar() {
     player.setAvatar(null);
     runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
     assertFalse(instance.avatarImageView.isVisible());
     assertNull(instance.avatarImageView.getImage());
+    assertTrue(instance.defaultIconImageView.isVisible());
   }
 
   @Test

@@ -29,6 +29,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -48,13 +49,14 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
+  public Region defaultIconImageView;
   public WebView messagesWebView;
   public TextInputControl messageTextField;
   public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
 
   private boolean userOffline;
-  private ChangeListener<AvatarBean> avatarPropertyListener = (observable, oldValue, newValue) -> updateAvatarInTab(newValue);
+  private final ChangeListener<AvatarBean> avatarPropertyListener = (observable, oldValue, newValue) -> updateAvatarInTab(newValue);
 
   @Inject
   // TODO cut dependencies
@@ -103,8 +105,9 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   public void initialize() {
     super.initialize();
-    JavaFxUtil.bindManagedToVisible(avatarImageView);
+    JavaFxUtil.bindManagedToVisible(avatarImageView, defaultIconImageView);
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
+    defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull());
     JavaFxUtil.fixScrollSpeed(gameDetailScrollPane);
     userOffline = false;
     chatService.addChatUsersByNameListener(change -> {

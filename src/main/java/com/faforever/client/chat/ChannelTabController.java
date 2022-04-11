@@ -159,7 +159,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
   private void updateTabProperties() {
     root.setId(channelName);
-    root.setText(channelName);
+    root.setText(channelName.replaceFirst("^#", ""));
     getRoot().setOnCloseRequest(event -> {
       chatService.leaveChannel(channelName);
       chatUserListController.onTabClosed();
