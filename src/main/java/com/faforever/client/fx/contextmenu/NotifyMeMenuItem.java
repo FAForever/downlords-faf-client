@@ -39,8 +39,8 @@ public class NotifyMeMenuItem extends AbstractMenuItem<GameBean> {
   }
 
   @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/notification.png";
+  protected String getStyleIcon() {
+    return "notification-none-icon";
   }
 
   @Override

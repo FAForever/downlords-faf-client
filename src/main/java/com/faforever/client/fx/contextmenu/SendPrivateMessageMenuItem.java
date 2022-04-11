@@ -29,15 +29,15 @@ public class SendPrivateMessageMenuItem extends AbstractMenuItem<String> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "bubble-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return !StringUtils.isBlank(object)
         && !playerService.getCurrentPlayer().getUsername().equals(object)
         && chatService.userExistsInAnyChannel(object);
-  }
-
-  @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/message.png";
   }
 
   @Override

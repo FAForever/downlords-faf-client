@@ -32,11 +32,6 @@ public class InvitePlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/invite.png";
-  }
-
-  @Override
   protected String getItemText() {
     return i18n.get("chat.userContext.inviteToGame");
   }

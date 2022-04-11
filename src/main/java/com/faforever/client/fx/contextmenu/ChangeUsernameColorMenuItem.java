@@ -42,11 +42,6 @@ public class ChangeUsernameColorMenuItem extends AbstractMenuItem<ChatChannelUse
   }
 
   @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/color.png";
-  }
-
-  @Override
   protected String getItemText() {
     return i18n.get("chat.userContext.changeColor");
   }

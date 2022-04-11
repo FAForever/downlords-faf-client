@@ -27,6 +27,11 @@ public class SendPrivateMessageClanLeaderMenuItem extends AbstractMenuItem<ClanB
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "bubble-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null && !playerService.getCurrentPlayer().getId().equals(object.getLeader().getId())
         && playerService.isOnline(object.getLeader().getId());

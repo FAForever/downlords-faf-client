@@ -27,6 +27,11 @@ public class CancelActionRunReplayImmediatelyMenuItem extends AbstractMenuItem<G
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "close-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     boolean isValid = object != null && object.getStartTime() != null;
     if (!isValid) {
@@ -36,11 +41,6 @@ public class CancelActionRunReplayImmediatelyMenuItem extends AbstractMenuItem<G
     Optional<TrackingLiveReplay> trackingLiveReplayOptional = liveReplayService.getTrackingLiveReplay();
     return trackingLiveReplayOptional.stream().anyMatch(trackingLiveReplay -> trackingLiveReplay.getGameId().equals(object.getId())
         && trackingLiveReplay.getAction() == RUN_REPLAY);
-  }
-
-  @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/cancel.png";
   }
 
   @Override

@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,29 +30,25 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
   }
 
   private void setIcon() {
-    String resourceUrl = getIconResourceUrl();
-    if (resourceUrl == null) {
-      return;
+    String styleIcon = getStyleIcon();
+    if (styleIcon != null) {
+      setGraphic(initializeIcon(styleIcon));
     }
+  }
 
-    int defaultSize = 16;
-    Image icon = new Image(resourceUrl, defaultSize, defaultSize, true, true);
-    ImageView iconView = new ImageView(icon);
-    iconView.setFitWidth(defaultSize);
-    iconView.setFitHeight(defaultSize);
-    setGraphic(new ImageView(icon));
+  private Region initializeIcon(String styleIcon) {
+    Region iconView = new Region();
+    iconView.getStyleClass().addAll("icon", "icon16x16", styleIcon);
+    return iconView;
+  }
+
+  protected String getStyleIcon() {
+    return null; // by-default
   }
 
   protected abstract void onClicked();
 
   protected abstract String getItemText();
-
-  /**
-   * Use 16x16 icons whenever possible
-   */
-  protected String getIconResourceUrl() {
-    return null; // by-default;
-  }
 
   protected boolean isItemVisible() {
     return true; // by-default;

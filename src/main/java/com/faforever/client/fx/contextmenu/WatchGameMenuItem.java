@@ -34,13 +34,13 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
-    return object != null && object.getStatus() == PlayerStatus.PLAYING;
+  protected String getStyleIcon() {
+    return "play-circle-outline-icon";
   }
 
   @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/watch.png";
+  protected boolean isItemVisible() {
+    return object != null && object.getStatus() == PlayerStatus.PLAYING;
   }
 
   @Override

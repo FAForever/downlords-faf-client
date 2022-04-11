@@ -32,17 +32,17 @@ public class AddFriendMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "add-person-1-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     if (object == null) {
       return false;
     }
     SocialStatus status = object.getSocialStatus();
     return status != FRIEND && status != SELF;
-  }
-
-  @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/handshake.png";
   }
 
   @Override

@@ -30,13 +30,13 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
-    return object != null && object.getSocialStatus() != SELF;
+  protected String getStyleIcon() {
+    return "assignment-late-icon";
   }
 
   @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/exclamation_mark.png";
+  protected boolean isItemVisible() {
+    return object != null && object.getSocialStatus() != SELF;
   }
 
   @Override

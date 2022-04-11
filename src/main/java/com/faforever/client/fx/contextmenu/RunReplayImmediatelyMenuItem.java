@@ -27,6 +27,11 @@ public class RunReplayImmediatelyMenuItem extends AbstractMenuItem<GameBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "play-circle-outline-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     boolean isValid = object != null && object.getStartTime() != null;
     if (!isValid) {
@@ -36,11 +41,6 @@ public class RunReplayImmediatelyMenuItem extends AbstractMenuItem<GameBean> {
     Optional<TrackingLiveReplay> trackingLiveReplayOptional = liveReplayService.getTrackingLiveReplay();
     return trackingLiveReplayOptional.isEmpty() || trackingLiveReplayOptional.stream()
         .anyMatch(trackingLiveReplay -> !trackingLiveReplay.getGameId().equals(object.getId()) || trackingLiveReplay.getAction() != RUN_REPLAY);
-  }
-
-  @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/watch.png";
   }
 
   @Override

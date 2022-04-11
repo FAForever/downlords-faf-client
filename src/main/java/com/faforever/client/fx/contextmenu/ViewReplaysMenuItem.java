@@ -25,13 +25,13 @@ public class ViewReplaysMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
-    return object != null;
+  protected String getStyleIcon() {
+    return "search-icon";
   }
 
   @Override
-  protected String getIconResourceUrl() {
-    return "images/icons/search.png";
+  protected boolean isItemVisible() {
+    return object != null;
   }
 
   @Override
