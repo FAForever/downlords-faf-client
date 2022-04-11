@@ -156,6 +156,12 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   @Test
+  public void testSetTabName() {
+    initializeDefaultChatChannel();
+    assertEquals("testChannel", instance.root.getText());
+  }
+
+  @Test
   public void testChannelTopicUpdate() {
     defaultChatChannel.setTopic("topc1: https://faforever.com");
     initializeDefaultChatChannel();
