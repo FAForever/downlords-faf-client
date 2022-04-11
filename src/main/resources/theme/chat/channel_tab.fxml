@@ -15,6 +15,9 @@
 <?import javafx.scene.web.WebView?>
 <Tab fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
      fx:controller="com.faforever.client.chat.ChannelTabController">
+    <graphic>
+        <Region styleClass="icon, icon16x16, hashtag-icon" />
+    </graphic>
     <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0"
           onKeyReleased="#onChatChannelKeyReleased">
         <children>
