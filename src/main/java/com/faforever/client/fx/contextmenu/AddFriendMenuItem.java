@@ -32,11 +32,6 @@ public class AddFriendMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected String getStyleIcon() {
-    return "add-person-1-icon";
-  }
-
-  @Override
   protected boolean isItemVisible() {
     if (object == null) {
       return false;
