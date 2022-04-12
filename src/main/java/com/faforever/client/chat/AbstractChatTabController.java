@@ -466,7 +466,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.warn("Message could not be sent: {}", text, throwable);
       notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
-
       JavaFxUtil.runLater(() -> {
         messageTextField.setDisable(false);
         messageTextField.requestFocus();
@@ -489,7 +488,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          // TODO onDisplay error to user somehow
           log.warn("Message could not be sent: {}", text, throwable);
           notificationService.addImmediateErrorNotification(throwable, "chat.sendFailed");
           JavaFxUtil.runLater(() -> messageTextField.setDisable(false));
