@@ -1,8 +1,13 @@
 package com.faforever.client.os;
 
+import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
+import com.faforever.client.user.UserService;
 import com.install4j.api.launcher.StartupNotification;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorException;
@@ -25,6 +30,7 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
 
   private final ReplayService replayService;
   private final NotificationService notificationService;
+  private final UserService userService;
 
   @Override
   public void afterPropertiesSet() {
@@ -53,7 +59,16 @@ public class FileOpeningHandler implements ApplicationRunner, InitializingBean {
   public void run(ApplicationArguments args) {
     String[] sourceArgs = args.getSourceArgs();
     if (sourceArgs.length > 0) {
-      runReplay(Path.of(sourceArgs[0]));
+      ChangeListener<ConnectionState> connectionStateListener = new ChangeListener<>() {
+        @Override
+        public void changed(ObservableValue<? extends ConnectionState> observable, ConnectionState oldValue, ConnectionState newValue) {
+          if (newValue == ConnectionState.CONNECTED) {
+            JavaFxUtil.removeListener(userService.connectionStateProperty(), this);
+            runReplay(Path.of(sourceArgs[0]));
+          }
+        }
+      };
+      JavaFxUtil.addListener(userService.connectionStateProperty(), connectionStateListener);
     }
   }
 }
