@@ -18,6 +18,9 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+<?import javafx.scene.shape.Box?>
+<?import javafx.scene.shape.Rectangle?>
 <GridPane fx:id="createGameRoot" hgap="10.0" vgap="10.0"
           xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.game.CreateGameController">
@@ -158,6 +161,12 @@
         <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false"
                 onAction="#onCreateButtonClicked" text="%game.create.create"
                 GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
+            <graphic>
+                <HBox fx:id="iconsContainer" spacing="4.0">
+                    <Region fx:id="passwordIconView" styleClass="icon, icon16x16, lock-icon"/>
+                    <Region fx:id="friendsIconView" styleClass="icon, icon16x16, people-icon"/>
+                </HBox>
+            </graphic>
             <GridPane.margin>
                 <Insets top="15"/>
             </GridPane.margin>

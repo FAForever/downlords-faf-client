@@ -44,12 +44,15 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow.AnchorLocation;
@@ -116,6 +119,9 @@ public class CreateGameController implements Controller<Pane> {
   public Button generateMapButton;
   public ToggleButton mapFilterButton;
   public Popup mapFilterPopup;
+  public Region friendsIconView;
+  public Region passwordIconView;
+  public HBox iconsContainer;
   @VisibleForTesting
   FilteredList<MapVersionBean> filteredMaps;
   private Runnable onCloseButtonClickedListener;
@@ -124,8 +130,13 @@ public class CreateGameController implements Controller<Pane> {
 
   public void initialize() {
     contextMenuBuilder.addCopyLabelContextMenu(mapNameLabel, mapDescriptionLabel);
-    JavaFxUtil.bindManagedToVisible(versionLabel);
+    JavaFxUtil.bindManagedToVisible(versionLabel, iconsContainer, friendsIconView, passwordIconView);
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
+    JavaFxUtil.bind(iconsContainer.visibleProperty(), friendsIconView.visibleProperty().or(passwordIconView.visibleProperty()));
+    JavaFxUtil.bind(friendsIconView.visibleProperty(), onlyForFriendsCheckBox.selectedProperty());
+    JavaFxUtil.bind(passwordIconView.visibleProperty(), passwordTextField.textProperty().isNotEmpty());
+    Tooltip.install(friendsIconView,  JavaFxUtil.createInstantTooltip(i18n.get("game.create.onlyFriends")));
+    Tooltip.install(passwordIconView,  JavaFxUtil.createInstantTooltip(i18n.get("game.create.withPassword")));
     modManagerController.setCloseable(false);
     mapSearchTextField.setOnKeyPressed(event -> {
       MultipleSelectionModel<MapVersionBean> selectionModel = mapListView.getSelectionModel();
