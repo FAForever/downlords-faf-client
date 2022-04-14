@@ -175,7 +175,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
       if (preferencesService.getPreferences().getForgedAlliance().isShowIceAdapterDebugWindow()) {
         cmd.add("--debug-window");
-        cmd.add("--info-window");
       }
 
       try {
