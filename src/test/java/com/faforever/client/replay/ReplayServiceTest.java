@@ -435,6 +435,10 @@ public class ReplayServiceTest extends ServiceTest {
   public void testHostReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
 
+    ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
+    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
+
     doThrow(new CompressorException("Compressor Error")).when(replayFileReader).parseReplay(replayFile);
 
     ReplayBean replay = new ReplayBean();
@@ -460,6 +464,10 @@ public class ReplayServiceTest extends ServiceTest {
   @Test
   public void testHostFafReplayFileExceptionTriggersNotification() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.fafreplay"));
+
+    ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
+    when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
+    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
 
     doThrow(new CompressorException("Compressor Error")).when(replayFileReader).parseReplay(replayFile);
 
@@ -546,6 +554,7 @@ public class ReplayServiceTest extends ServiceTest {
     verify(gameService).hostGame(newGameInfo);
     verifyNoInteractions(notificationService);
   }
+
   @Test
   public void testRunScFaOnlineReplay() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
@@ -600,7 +609,6 @@ public class ReplayServiceTest extends ServiceTest {
   @Test
   public void testHostScFaOnlineReplayNotFoundExceptionTriggersNotification() throws Exception {
     Path replayFile = Files.createFile(replayDirectory.resolve("replay.scfareplay"));
-
     doThrow(new FileNotFoundException()).when(replayFileReader).parseReplay(replayFile);
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
@@ -608,7 +616,7 @@ public class ReplayServiceTest extends ServiceTest {
     when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
     ReplayBean replay = new ReplayBean();
 
-    instance.hostFromReplay(replay);
+    instance.runReplay(replay);
 
     verify(notificationService).addImmediateWarnNotification("replayNotAvailable", 0);
     verifyNoMoreInteractions(gameService);

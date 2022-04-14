@@ -264,17 +264,16 @@ public class ReplayService {
     }
   }
 
-  public void hostFromReplay(ReplayBean item) {
+  public CompletableFuture<Void> hostFromReplay(ReplayBean item) {
     if (item.getReplayFile() != null) {
       try {
-        hostFromFafReplayFile(item.getReplayFile());
+        return hostFromFafReplayFile(item.getReplayFile());
       } catch (CompressorException | IOException e) {
         log.error("Could not read replay file `{}`", item.getReplayFile(), e);
         notificationService.addImmediateErrorNotification(e, "replay.couldNotParse");
       }
-    } else {
-      hostFromOnlineReplay(item.getId());
     }
+    return hostFromOnlineReplay(item.getId());
   }
 
 
@@ -342,7 +341,7 @@ public class ReplayService {
     if (fileName.endsWith(FAF_REPLAY_FILE_ENDING)) {
       runFafReplayFile(path);
     } else if (fileName.endsWith(SUP_COM_REPLAY_FILE_ENDING)) {
-      runSupComReplayFile(path);
+       runSupComReplayFile(path);
     }
   }
 
@@ -358,12 +357,12 @@ public class ReplayService {
   }
 
   private void runOnlineReplay(int replayId) {
-    downloadReplay(replayId)
+     downloadReplay(replayId)
         .thenAccept((path) -> {
           try {
             runReplayFile(path);
           } catch (IOException | CompressorException e) {
-            throw new RuntimeException(e);
+            throw new CompletionException(e);
           }
         })
         .exceptionally(throwable -> {
@@ -400,11 +399,11 @@ public class ReplayService {
     gameService.runWithReplay(tempSupComReplayFile, replayId, gameType, version, modVersions, simMods, mapName);
   }
 
-  private void hostFromOnlineReplay(int replayId) {
-    downloadReplay(replayId)
-        .thenComposeAsync((path) -> {
+  private CompletableFuture<Void> hostFromOnlineReplay(int replayId) {
+    return downloadReplay(replayId)
+        .thenAccept((path) -> {
           try {
-            return hostFromFafReplayFile(path);
+            hostFromFafReplayFile(path);
           } catch (IOException | CompressorException e) {
             throw new CompletionException(e);
           }
@@ -434,7 +433,7 @@ public class ReplayService {
         .thenCompose(featuredModBean -> {
         NewGameInfo newGameInfo = new NewGameInfo(
             replayMetadata.getTitle(),
-            null, featuredModBean, 
+            null, featuredModBean,
             mapName, 
             simMods, 
             GameVisibility.PUBLIC,
