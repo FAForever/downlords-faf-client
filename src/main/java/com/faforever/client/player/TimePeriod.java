@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 public enum TimePeriod {
   ALL_TIME("userInfo.ratingHistory.allTime", LocalDateTime.MIN),
   LAST_YEAR("userInfo.ratingHistory.lastYear", LocalDateTime.now().minusYears(1)),
-  LAST_MONTH("userInfo.ratingHistory.lastMonth", LocalDateTime.now().minusMonths(1));
+  LAST_MONTH("userInfo.ratingHistory.lastMonth", LocalDateTime.now().minusMonths(1)),
+  LAST_WEEK("userInfo.ratingHistory.lastWeek", LocalDateTime.now().minusWeeks(1)),
+  LAST_DAY("userInfo.ratingHistory.lastDay", LocalDateTime.now().minusDays(1));
 
   @Getter
   private final String i18nKey;
