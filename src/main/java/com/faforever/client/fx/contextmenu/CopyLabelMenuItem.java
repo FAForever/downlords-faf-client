@@ -26,6 +26,11 @@ public class CopyLabelMenuItem extends AbstractMenuItem<Label> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "copy-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null && !StringUtils.isBlank(object.getText());
   }

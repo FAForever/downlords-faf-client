@@ -27,6 +27,7 @@ import com.faforever.commons.api.dto.Leaderboard;
 import com.faforever.commons.api.dto.MatchmakerQueue;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.LobbyMode;
 import com.faforever.commons.lobby.MatchmakerInfo;
 import com.faforever.commons.lobby.MatchmakerMatchCancelledResponse;
@@ -270,7 +271,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testOnGameLaunchMessage() {
     testOnMatchFoundMessage();
-    GameLaunchResponse message = GameLaunchMessageBuilder.create().defaultValues().initMode(LobbyMode.AUTO_LOBBY).get();
+    GameLaunchResponse message = GameLaunchMessageBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).initMode(LobbyMode.AUTO_LOBBY).get();
 
     instance.onGameLaunchMessage(message);
 

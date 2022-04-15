@@ -2,9 +2,11 @@
 
 
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatCategoryItemController"
-      xmlns="http://javafx.com/javafx/8.0.141">
-    <Label fx:id="chatUserCategoryRoot" text="Label" onContextMenuRequested="#onContextMenuRequested"
-           styleClass="chat-user-list-category"/>
-</VBox>
+<?import javafx.scene.layout.HBox?>
+<HBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatCategoryItemController"
+      maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+      xmlns="http://javafx.com/javafx/8.0.141" fx:id="root" onMouseClicked="#onCategoryClicked"
+      styleClass="clickable, chat-user-list-category" spacing="6.0">
+    <Label fx:id="arrowLabel"/>
+    <Label fx:id="categoryLabel" onContextMenuRequested="#onContextMenuRequested"/>
+</HBox>

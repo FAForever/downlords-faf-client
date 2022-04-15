@@ -1,8 +1,12 @@
 package com.faforever.client.os;
 
+import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.test.ServiceTest;
+import com.faforever.client.user.UserService;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,6 +21,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 public class FileOpeningHandlerTest extends ServiceTest {
 
@@ -24,15 +30,22 @@ public class FileOpeningHandlerTest extends ServiceTest {
   private ReplayService replayService;
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private UserService userService;
 
   @InjectMocks
   private FileOpeningHandler instance;
 
   @Test
-  public void run() throws IOException, CompressorException {
+  public void testRunLocalReplay() throws IOException, CompressorException {
+    ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
+    when(userService.connectionStateProperty()).thenReturn(connectionState);
+
     ApplicationArguments args = new DefaultApplicationArguments("foo.fafreplay");
     instance.run(args);
+    verifyNoInteractions(replayService);
 
+    connectionState.set(ConnectionState.CONNECTED);
     verify(replayService).runReplayFile(Path.of("foo.fafreplay"));
   }
 

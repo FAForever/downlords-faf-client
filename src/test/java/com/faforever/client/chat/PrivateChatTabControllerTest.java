@@ -1,9 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
+import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
+import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameDetailController;
@@ -25,19 +28,26 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
+import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.net.URL;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -82,17 +92,21 @@ public class PrivateChatTabControllerTest extends UITest {
   private PreferencesService preferencesService;
   @Mock
   private EmoticonService emoticonService;
+  @Mock
+  private AvatarService avatarService;
 
   @InjectMocks
   private PrivateChatTabController instance;
+
   private String playerName;
+  private PlayerBean player;
 
   @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().notificationsPrefs().privateMessageToastEnabled(true).then().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
     when(playerService.getPlayerByNameIfOnline(playerName)).thenReturn(Optional.of(player));
@@ -100,9 +114,7 @@ public class PrivateChatTabControllerTest extends UITest {
     when(timeService.asShortTime(any())).thenReturn("");
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
-
-    TabPane tabPane = new TabPane();
-    tabPane.setSkin(new TabPaneSkin(tabPane));
+    when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
       if (clazz == PrivatePlayerInfoController.class) {
@@ -117,12 +129,13 @@ public class PrivateChatTabControllerTest extends UITest {
       return instance;
     });
 
-    instance.setReceiver(playerName);
-    WaitForAsyncUtils.asyncFx(() -> {
+    runOnFxThreadAndWait(() -> {
+      TabPane tabPane = new TabPane();
+      tabPane.setSkin(new TabPaneSkin(tabPane));
       getRoot().getChildren().setAll(tabPane);
       tabPane.getTabs().add(instance.getRoot());
-    }).get();
-
+      instance.setReceiver(playerName);
+    });
     verify(webViewConfigurer).configureWebView(eq(instance.messagesWebView));
   }
 
@@ -136,7 +149,8 @@ public class PrivateChatTabControllerTest extends UITest {
   }
 
   @Test
-  public void testOnChatMessageFocusedDoesntTriggersNotification() {
+  public void
+  testOnChatMessageFocusedDoesntTriggersNotification() {
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyNoInteractions(notificationService);
   }
@@ -158,5 +172,38 @@ public class PrivateChatTabControllerTest extends UITest {
     instance.onPlayerDisconnected(playerName);
 
     assertTrue(instance.isUserOffline());
+  }
+
+  @Test
+  public void checkSetAvatarToTabIfPlayerHasAvatar() {
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(mock(Image.class));
+    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
+    assertTrue(instance.avatarImageView.isVisible());
+    assertNotNull(instance.avatarImageView.getImage());
+    assertFalse(instance.defaultIconImageView.isVisible());
+  }
+
+  @Test
+  public void checkSetDefaultIconForTabIfPlayerHasNoAvatar() {
+    player.setAvatar(null);
+    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
+    assertFalse(instance.avatarImageView.isVisible());
+    assertNull(instance.avatarImageView.getImage());
+    assertTrue(instance.defaultIconImageView.isVisible());
+  }
+
+  @Test
+  public void checkPlayerAvatarListener() throws Exception {
+    Image oldAvatar = mock(Image.class);
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(oldAvatar);
+
+    runOnFxThreadAndWait(() -> instance.setReceiver(playerName));
+    assertEquals(oldAvatar, instance.avatarImageView.getImage());
+
+    Image newAvatar = mock(Image.class);
+    AvatarBean avatarBean = AvatarBeanBuilder.create().defaultValues().url(new URL("https://test11.com")).get();
+    when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
+    runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
+    assertEquals(newAvatar, instance.avatarImageView.getImage());
   }
 }

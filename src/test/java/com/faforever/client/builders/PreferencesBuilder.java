@@ -23,6 +23,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.preferences.TimeInfo;
 import com.faforever.client.preferences.ToastPosition;
+import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -178,6 +179,10 @@ public class PreferencesBuilder {
     return new MirrorPrefsBuilder();
   }
 
+  public UserPrefsBuilder userPrefs() {
+    return new UserPrefsBuilder();
+  }
+
   public DataPrefsBuilder dataPrefs() {
     return new DataPrefsBuilder();
   }
@@ -262,6 +267,11 @@ public class PreferencesBuilder {
 
     public ChatPrefsBuilder idleThreshold(int idleThreshold) {
       chatPrefs.setIdleThreshold(idleThreshold);
+      return this;
+    }
+
+    public ChatPrefsBuilder channelNameToHiddenCategories(ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories) {
+      chatPrefs.setChannelNameToHiddenCategories(channelNameToHiddenCategories);
       return this;
     }
   }
@@ -664,6 +674,16 @@ public class PreferencesBuilder {
 
     public DataPrefsBuilder dataDirectory(Path dataDirectory) {
       dataPrefs.setBaseDataDirectory(dataDirectory);
+      return this;
+    }
+  }
+
+  public class UserPrefsBuilder extends SubPreferencesBuilder {
+
+    private final UserPrefs userPrefs = preferences.getUser();
+
+    public UserPrefsBuilder setNotesByPlayerId(ObservableMap<Integer, String> notesByPlayerId) {
+      userPrefs.setNotesByPlayerId(notesByPlayerId);
       return this;
     }
   }

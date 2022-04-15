@@ -30,6 +30,11 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "assignment-late-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null && object.getSocialStatus() != SELF;
   }

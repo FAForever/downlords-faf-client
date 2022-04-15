@@ -39,6 +39,11 @@ public class NotifyMeMenuItem extends AbstractMenuItem<GameBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "notification-none-icon";
+  }
+
+  @Override
   protected String getItemText() {
     return i18n.get("vault.liveReplays.contextMenu.notifyMe");
   }

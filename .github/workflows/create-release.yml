@@ -6,33 +6,31 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Release Version'
+      release_type:
+        description: 'Release Type'
         required: true
+        type: choice
+        default: "Alpha"
+        options:
+          - "Production"
+          - "Alpha"
+          - "Experimental"
 
 jobs:
   release:
-
     environment: deploy
     runs-on: ubuntu-latest
     env:
-      INSTALL4J_DIR: "install4j/install4j9.0.2"
+      INSTALL4J_DIR: "install4j/install4j9.0.5"
 
     steps:
       - uses: actions/checkout@v2
-      
-      - name: Check Version Tag
-        id: tag_check
-        run: |
-          if [[ ${{ github.event.inputs.version }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo ::set-output name=major_release::true
-          fi
 
-      - name: Set up JDK 15
-        uses: actions/setup-java@v1
+      - name: Set up JDK 17.0.1
+        uses: actions/setup-java@v2
         with:
-          java-version: 15.0.1
-          java-package: jdk+fx
+          distribution: "temurin"
+          java-version: 17.0.1
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -42,20 +40,55 @@ jobs:
         env:
           JAVA_TOOL_OPTIONS: "-Dprism.verbose=true -Dprism.order=sw"
 
+      - name: Set Version
+        id: set_version
+        run: |
+          tagPrefix=$(date +%Y.%-m)
+          count=0
+          baseTag=$tagPrefix.$count
+          
+          while [[ $(git tag -l "$baseTag") ]]; 
+          do 
+            baseTag=$tagPrefix.$count; 
+            count=$(($count+1)); 
+          done
+          
+          if [[ "${{ github.event.inputs.release_type }}" == "Alpha" ]]; then
+            baseTag=$baseTag-alpha
+          elif [[ "${{ github.event.inputs.release_type }}" == "Experimental" ]]; then
+            baseTag=$baseTag-experimental
+          fi
+          
+          tag=$baseTag
+          
+          if [[ "${{ github.event.inputs.release_type }}" != "Production" ]]; then
+            count=1
+            tag=$baseTag-$count
+            while [[ $(git tag -l "$tag") ]]; 
+            do 
+              tag=$baseTag-$count; 
+              count=$(($count+1)); 
+            done
+          else 
+            tag=$baseTag
+          fi
+          
+          echo ::set-output name=tag::$tag
+
       - name: Download Install4j
         run: |
           mkdir -p "$HOME/install4j"
-          curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_9_0_2.tar.gz -o "$HOME/install4j/install4j.tar.gz"
+          curl https://download-gcdn.ej-technologies.com/install4j/install4j_unix_9_0_5.tar.gz -o "$HOME/install4j/install4j.tar.gz"
           tar xzf "$HOME/install4j/install4j.tar.gz" -C "$HOME/install4j"
 
       - name: Download Bundled JRE
         run: |
-            mkdir -p "$HOME/.install4j8/jres/"
-            curl https://content.faforever.com/jre/windows-amd64-15.0.1.tar.gz -o "$HOME/.install4j8/jres/windows-amd64-15.0.1.tar.gz"
+            mkdir -p "$HOME/.local/share/install4j/v9/jres"
+            curl https://content.faforever.com/build/jre/windows-amd64-17.0.1.tar.gz -o "$HOME/.local/share/install4j/v9/jres/windows-amd64-17.0.1.tar.gz"
 
       - name: Build Windows Files
         run: |
-          ./gradlew -Pversion="${{ github.event.inputs.version }}" \
+          ./gradlew -Pversion="${{ steps.set_version.outputs.tag }}" \
           -PjavafxPlatform=win \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_9_LICENSE }} \
@@ -65,79 +98,37 @@ jobs:
 
       - name: Build Linux Files
         run: |
-          ./gradlew -Pversion="${{ github.event.inputs.version }}" \
+          ./gradlew -Pversion="${{ steps.set_version.outputs.tag }}" \
           -PjavafxPlatform=linux \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_9_LICENSE }} \
           --stacktrace \
           buildInstall4jMediaFiles
 
-      - name: Create Draft Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          commitish: ${{ github.sha }}
-          tag_name: v${{ github.event.inputs.version }}
-          release_name: v${{ github.event.inputs.version }}
-          draft: true
-          prerelease: ${{ steps.tag_check.outputs.major_release != 'true'}}
-          generate_release_notes: true
-
       - name: Get Artifact Paths
         id: artifact_paths
         run: |
-          LINUX_TAR=$(ls build/install4j/dfc_unix_*.tar.gz | head -n 1)
-          LINUX_TAR_NAME=$(basename $LINUX_TAR)
-          WINDOWS_EXE=$(ls build/install4j/dfc_windows-x64_*.exe | head -n 1)
+          WINDOWS_EXE=$(ls build/install4j/faf_windows-x64_*.exe | head -n 1)
           WINDOWS_EXE_NAME=$(basename $WINDOWS_EXE)
-          WINDOWS_ZIP=$(ls build/install4j/dfc_windows-x64_*.zip | head -n 1)
-          WINDOWS_ZIP_NAME=$(basename $WINDOWS_ZIP)
-          EXE_PATH=$(dirname $WINDOWS_EXE)/
-          echo ::set-output name=EXE_PATH::${EXE_PATH}
-          echo ::set-output name=LINUX_TAR::${LINUX_TAR}
-          echo ::set-output name=LINUX_TAR_NAME::${LINUX_TAR_NAME}
           echo ::set-output name=WINDOWS_EXE::${WINDOWS_EXE}
           echo ::set-output name=WINDOWS_EXE_NAME::${WINDOWS_EXE_NAME}
-          echo ::set-output name=WINDOWS_ZIP::${WINDOWS_ZIP}
-          echo ::set-output name=WINDOWS_ZIP_NAME::${WINDOWS_ZIP_NAME}
 
-      - name: Upload Linux Files
-        id: upload-linux
-        uses: actions/upload-release-asset@v1
+      - name: Create Draft Release
+        id: create_release
+        uses: ncipollo/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact_paths.outputs.LINUX_TAR }}
-          asset_name: ${{ steps.artifact_paths.outputs.LINUX_TAR_NAME }}
-          asset_content_type: application/gzip
-
-      - name: Upload Windows exe
-        id: upload-exe
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact_paths.outputs.WINDOWS_EXE }}
-          asset_name: ${{ steps.artifact_paths.outputs.WINDOWS_EXE_NAME }}
-          asset_content_type: application/vnd.microsoft.portable-executable
-
-      - name: Upload Windows zip
-        id: upload-zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.artifact_paths.outputs.WINDOWS_ZIP }}
-          asset_name: ${{ steps.artifact_paths.outputs.WINDOWS_ZIP_NAME }}
-          asset_content_type: application/zip
+          commit: ${{ github.sha }}
+          tag: v${{ steps.set_version.outputs.tag }}
+          draft: true
+          prerelease: ${{ github.event.inputs.release_type == 'Production'}}
+          generateReleaseNotes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: build/install4j/faf_*
           
       - name: Upload to Mirror
-        if: steps.tag_check.outputs.major_release == 'true'
+        if: github.event.inputs.release_type == 'Production'
         uses: bayssmekanique/action-simple-file-upload@v1
         with:
           user: ${{ secrets.FTP_MIRROR_USERNAME }}

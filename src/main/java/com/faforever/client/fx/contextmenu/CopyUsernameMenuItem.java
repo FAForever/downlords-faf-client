@@ -23,6 +23,11 @@ public class CopyUsernameMenuItem extends AbstractMenuItem<String> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "copy-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return !StringUtils.isBlank(object);
   }

@@ -27,6 +27,11 @@ public class RunReplayImmediatelyMenuItem extends AbstractMenuItem<GameBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "play-circle-outline-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     boolean isValid = object != null && object.getStartTime() != null;
     if (!isValid) {

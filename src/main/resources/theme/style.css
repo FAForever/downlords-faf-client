@@ -114,7 +114,7 @@
     -fx-background-color: -fx-background;
 }
 
-.query-filter .context-menu {
+.query-filter {
     -fx-background-color: -fx-background;
 }
 
@@ -153,22 +153,35 @@
 
 .pagination {
   -fx-page-information-visible: true;
+  -fx-min-width: 50;
+  -fx-min-height: 50;
 }
-
+.pagination > .pagination-control > .control-box > .number-button,
+.pagination > .pagination-control > .control-box > .bullet-button,
+.pagination > .pagination-control > .control-box > .left-arrow-button,
+.pagination > .pagination-control > .control-box > .right-arrow-button,
 .page-button {
   -fx-background-color: transparent;
   -fx-border-color: -fx-box-border;
   -fx-border-width: 1;
   -fx-background-radius: 2px;
   -fx-border-radius: 2px;
+  -fx-min-width: 50;
+  -fx-min-height: 50;
 }
 
+.pagination > .pagination-control > .control-box > .number-button:hover,
+.pagination > .pagination-control > .control-box > .bullet-button:hover,
+.pagination > .pagination-control > .control-box > .left-arrow-button:hover,
+.pagination > .pagination-control > .control-box > .right-arrow-button:hover,
 .page-button:hover {
   -fx-border-color: -fx-box-border;
   -fx-background-color: -card-color;
   -fx-border-width: 1;
   -fx-background-radius: 2px;
   -fx-border-radius: 2px;
+  -fx-min-width: 50;
+  -fx-min-height: 50;
 }
 
 
@@ -286,78 +299,68 @@
 .chat-channel-users-pane {
   -fx-background-color: -fx-background;
   -fx-background: #FFFFFF08;
+  -fx-border-width: 0 0 0 0.0625em; /* 0 0 0 1 */
+  -fx-border-color: -darkened-color
+}
+
+.filter-toggle-button, .user-list-settings-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+}
+
+.filter-toggle-button:hover, .user-list-settings-button:hover {
+  -fx-border-color: -darkened-color;
 }
 
 .chat-user-item {
-  -fx-padding: 0;
+  -fx-padding: 0 0.375em 0.25em 0.375em; /* 0 6 4 6 */
+}
+
+.chat-user-item:hover {
+  -fx-background-color: derive(-fx-background, 10%);
+  -fx-background-radius: 0.375em; /* 6 */
+}
+
+.chat-user-item-map-name {
+  -fx-text-fill: derive(-darkened-color, 25%);
+  -fx-font-size: 9;
+  -fx-padding: 0.0625em 0 0 0; /* 1 0 0 0 */
 }
 
 .chat-user-item-username {
+  -fx-font-size: 14;
   -fx-text-fill: -fx-text-color;
-}
-
-.chat-user-list-view .list-cell {
-  -fx-background-color: transparent;
-  -fx-padding: 1px 8px 1px 8px;
 }
 
 .chat-user-list-category {
-  -fx-padding: 20px 0px 10px 0px;
+  -fx-padding: 0.625em 0 0.5em 4.375em; /* 10 0 8 70 */
+}
+
+.chat-user-list-category > .label {
   -fx-font-weight: bold;
-  -fx-text-fill: -fx-text-color;
+  -fx-font-size: 16;
 }
 
-/***************** Chat User Control *****************/
-
-.channel-tab-friends-title .chat-user-control-clan .text,
-.channel-tab-friends-title .chat-user-control-username .text {
-  -fx-fill: #16B7EB;
-}
-
-.channel-tab-foes-title .chat-user-control-clan .text,
-.channel-tab-foes-title .chat-user-control-username .text {
-  -fx-fill: #FF0000;
-}
-
-.channel-tab-moderators-title .chat-user-control-clan .text,
-.channel-tab-moderators-title .chat-user-control-username .text {
-  -fx-fill: #FFFFFF;
-}
-
-.channel-tab-chat-only-title .chat-user-control-clan .text,
-.channel-tab-chat-only-title .chat-user-control-username .text {
-  -fx-fill: #808080;
-}
-
-.channel-tab-others-title .chat-user-control-clan .text,
-.channel-tab-others-title .chat-user-control-username .text {
-  -fx-fill: #BFBEBA;
-}
-
-.chat-user-control-clan.self,
-.chat-user-control-username.self {
-  -fx-fill: HIGHLIGHT_COLOR;
-}
-
-.chat-user-control-clan {
+.filter-text-field {
+  -fx-text-fill: white;
   -fx-background-color: transparent;
+  -fx-border-color: transparent;
 }
 
-.chat-user-control-clan .label {
-  -fx-padding: 0;
+.user-list-tools {
+  -fx-border-width: 0 0 0.125em 0; /* 0 0 2 0 */
+  -fx-border-color: -divider-color;
+  -fx-padding: 0.625em 0.625em 0.125em 0.625em; /* 10 10 2 10 */
 }
 
-.chat-user-control-clan > .arrow-button,
-.chat-user-control-clan > .arrow-button > .arrow {
-  -fx-padding: 0;
-  visibility: hidden;
-}
+/* User List Settings */
 
-.chat-user-control-clan:hover > .arrow-button,
-.chat-user-control-clan:hover > .arrow-button > .arrow {
-  /* Restore value from Modena */
-  -fx-padding: 0.25em;
-  visibility: visible;
+.user-list-settings {
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-base;
+  -fx-border-width: 0.0625em; /* 1 */
+  -fx-border-color: -darkened-color;
+  -fx-padding: 0.625em; /* 10 */
 }
 
 /***************** Privat Chat User Info *****************/
@@ -371,6 +374,9 @@
 .filter-user {
   -fx-background-color: -fx-background;
   -fx-background: -fx-base;
+  -fx-border-width: 0.0625em; /* 1 */
+  -fx-border-color: -darkened-color;
+  -fx-padding: 0.625em; /* 10 */
 }
 
 /***************** Map Filter Window *****************/
@@ -381,6 +387,17 @@
 }
 
 /***************** User Info Window *****************/
+
+.division-name {
+  -fx-font-size: 16px;
+  -fx-padding: 0px 0 0px 0;
+}
+
+.rating-label {
+  -fx-font-size: 14px;
+  -fx-font-family: 'Source Sans Pro';
+  -fx-text-fill: #9f9f9f;
+}
 
 .user-info-header-area {
   -fx-background-color: -fx-background;
@@ -1019,7 +1036,6 @@
 
 .toggle-button.queue {
   -fx-border-color: -fx-accent;
-  -fx-min-height: 50px;
 }
 
 .toggle-button.queue:hover {
@@ -1033,7 +1049,6 @@
 .toggle-button.queue .text {
   -fx-font-family: 'Source Sans Pro Semibold';
   -fx-text-fill: -fx-text-color;
-  -fx-font-size: 24px;
 }
 
 .map-pool:hover {
@@ -1372,7 +1387,7 @@
   -fx-padding: 4 0 4 0;
 }
 
-/***************** Chat Channel ***************************/
+/***************** Private Chat Channel ***************************/
 
 .open-emoticons-window {
   -fx-background-color: transparent;
@@ -1382,6 +1397,11 @@
   -fx-background-color: transparent;
   -fx-border-width: 2 0 0 0;
   -fx-border-color: #424242;
+}
+
+.player-detail-info-content {
+  -fx-border-width: 0 0 0 0.0625em; /* 0 0 0 1 */
+  -fx-border-color: -darkened-color
 }
 
 /***************** Live Replay Tab ***************************/
@@ -1403,6 +1423,44 @@
 /***************** Player Card ***************************/
 
 .player-card-content {
-  -fx-padding: 4 0;
+  -fx-padding: 0.0625em 0em; /* 1 0 */
+}
+
+.player-label {
+  -fx-padding: 0.0625em 0.25em 0.0625em 0.125em; /* 1 4 1 2 */
+}
+
+.player-card-content .player-label:hover {
+  -fx-cursor: hand;
+  -fx-background-color: derive(-card-color, 5%);
+  -fx-background-radius: 0.375em; /* 6 */
+}
+
+/***************** General ***************************/
+
+.clickable {
+  -fx-cursor: hand;
+}
+
+.clickable:hover {
+  -fx-background-color: -fx-hover-accent;
+}
+
+/***************** Root Context Menu ***************************/
+
+.context-menu {
+  -fx-background-color: derive(-context-menu-color, 5%);
+  -fx-border-color: -context-menu-border-color;
+  -fx-border-width: 0.0625em; /* 1px */
+  -fx-border-radius: 0.1875em; /* 3px */
+  -fx-background-radius: 0.1875em;  /* 3px */
+}
+
+.context-menu .separator .line {
+  -fx-border-color: derive(-context-menu-color, 30%) transparent transparent transparent
+}
+
+.menu-item > .label {
+  -fx-text-fill: -menu-item-label-color;
 }
 

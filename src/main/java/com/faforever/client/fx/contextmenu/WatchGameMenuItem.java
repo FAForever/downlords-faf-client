@@ -34,6 +34,11 @@ public class WatchGameMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "play-circle-outline-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null && object.getStatus() == PlayerStatus.PLAYING;
   }

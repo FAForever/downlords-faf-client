@@ -4,11 +4,14 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
+import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -72,6 +75,8 @@ public class PlayerServiceTest extends ServiceTest {
   private AvatarService avatarService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private PreferencesService preferencesService;
 
   @InjectMocks
   private PlayerService instance;
@@ -87,6 +92,15 @@ public class PlayerServiceTest extends ServiceTest {
     when(userService.getUsername()).thenReturn("junit");
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
+
+    Map<Integer, String> notes = new HashMap<>();
+    notes.put(3, "junit3");
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .userPrefs()
+        .setNotesByPlayerId(FXCollections.observableMap(notes))
+        .then()
+        .get();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
@@ -267,7 +281,7 @@ public class PlayerServiceTest extends ServiceTest {
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     instance.getPlayersByIds(List.of(1, 2, 3, 4)).join();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(1,4)))));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(1, 4)))));
   }
 
   @Test
@@ -356,5 +370,32 @@ public class PlayerServiceTest extends ServiceTest {
 
     assertFalse(instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).isPresent());
     assertFalse(instance.getPlayerByIdIfOnline(playerInfo1.getId()).isPresent());
+  }
+
+  @Test
+  public void testAddPlayerNote() {
+    PlayerBean player = PlayerBeanBuilder.create().id(2).get();
+    assertFalse(instance.getNotesByPlayerId().containsKey(2));
+    instance.updateNote(player, "junit");
+    assertTrue(instance.getNotesByPlayerId().containsKey(2));
+    verify(preferencesService).storeInBackground();
+  }
+
+  @Test
+  public void testEditPlayerNote() {
+    PlayerBean player = PlayerBeanBuilder.create().id(3).get();
+    assertTrue(instance.getNotesByPlayerId().containsKey(3));
+    instance.updateNote(player, "updated");
+    assertEquals("updated", instance.getNotesByPlayerId().get(3));
+    verify(preferencesService).storeInBackground();
+  }
+
+  @Test
+  public void testRemovePlayerNote() {
+    PlayerBean player = PlayerBeanBuilder.create().id(3).get();
+    assertTrue(instance.getNotesByPlayerId().containsKey(3));
+    instance.removeNote(player);
+    assertFalse(instance.getNotesByPlayerId().containsKey(3));
+    verify(preferencesService).storeInBackground();
   }
 }

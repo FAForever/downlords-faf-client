@@ -137,7 +137,7 @@ public class PlayerRatingChart extends LineChart<Double, Double> {
           putMapRatingValue(++leftXCoordinate, value += augmentation);
         }
       } else {
-        putMapRatingValue(leftXCoordinate, rating1);
+        putMapRatingValue(++leftXCoordinate, rating1);
       }
     }
   }

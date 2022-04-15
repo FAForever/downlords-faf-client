@@ -10,12 +10,12 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.PopupUtil;
 import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -27,6 +27,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -190,5 +192,9 @@ public class GameDetailController implements Controller<Pane> {
 
   public void onJoinButtonClicked() {
     joinGameHelper.join(game.get());
+  }
+
+  public void onMapPreviewImageClicked() {
+    Optional.ofNullable(game.get()).ifPresent(gameBean -> PopupUtil.showImagePopup(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE)));
   }
 }

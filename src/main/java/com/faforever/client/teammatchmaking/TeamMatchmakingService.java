@@ -32,7 +32,7 @@ import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
-import com.faforever.commons.lobby.LobbyMode;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.MatchmakerInfo;
 import com.faforever.commons.lobby.MatchmakerMatchCancelledResponse;
 import com.faforever.commons.lobby.MatchmakerMatchFoundResponse;
@@ -227,7 +227,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   @VisibleForTesting
   protected void onGameLaunchMessage(GameLaunchResponse message) {
-    if (message.getLobbyMode() != LobbyMode.AUTO_LOBBY) {
+    if (message.getGameType() != GameType.MATCHMAKER) {
       return;
     }
 

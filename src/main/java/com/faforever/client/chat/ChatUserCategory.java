@@ -1,6 +1,12 @@
 package com.faforever.client.chat;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum ChatUserCategory {
+
   SELF("chat.category.self"),
   MODERATOR("chat.category.moderators"),
   FRIEND("chat.category.friends"),
@@ -9,12 +15,4 @@ public enum ChatUserCategory {
   FOE("chat.category.foes");
 
   private final String i18nKey;
-
-  ChatUserCategory(String i18nKey) {
-    this.i18nKey = i18nKey;
-  }
-
-  public String getI18nKey() {
-    return i18nKey;
-  }
 }

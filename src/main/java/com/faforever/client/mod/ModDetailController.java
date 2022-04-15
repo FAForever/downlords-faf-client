@@ -143,12 +143,12 @@ public class ModDetailController implements Controller<Node> {
         .thenAccept(modFileSize -> JavaFxUtil.runLater(() -> {
           if (modFileSize > -1) {
             String size = Bytes.formatSize(modFileSize, i18n.getUserSpecificLocale());
-            installButton.setText(i18n.get("modVault.installButtonFormat", size));
+            installButton.setText(i18n.get("modVault.install", size));
             installButton.setDisable(false);
             sizeLabel.setText(size);
           } else {
-            installButton.setText(i18n.get("notAvailable"));
-            installButton.setDisable(true);
+            installButton.setText(i18n.get("modVault.install"));
+            installButton.setDisable(false);
             sizeLabel.setText(i18n.get("notAvailable"));
           }
         }));

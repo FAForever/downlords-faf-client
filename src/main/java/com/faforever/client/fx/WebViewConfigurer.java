@@ -7,6 +7,7 @@ import javafx.concurrent.Worker.State;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
@@ -32,11 +33,11 @@ public class WebViewConfigurer {
 
   private final UiService uiService;
   private final ApplicationContext applicationContext;
-  private final PreferencesService preferencesService;
   private final ClientProperties clientProperties;
 
   public void configureWebView(WebView webView) {
     WebEngine engine = webView.getEngine();
+    webView.setPageFill(Color.TRANSPARENT);
     webView.setContextMenuEnabled(false);
     webView.setOnScroll(event -> {
       if (event.isControlDown()) {

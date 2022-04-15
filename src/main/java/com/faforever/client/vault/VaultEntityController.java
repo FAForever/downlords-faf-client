@@ -161,7 +161,6 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected void loadShowRoom() {
     JavaFxUtil.assertApplicationThread();
     enterSearchingState();
-    showRoomGroup.getChildren().clear();
     Object monitorForAddingFutures = new Object();
     List<ShowRoomCategory> showRoomCategories = getShowRoomCategories();
     AtomicReference<CompletableFuture<Void>> loadingEntitiesFutureReference = new AtomicReference<>(CompletableFuture.completedFuture(null));
@@ -187,7 +186,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
     loadingEntitiesFutureReference.get()
         .thenRun(() -> JavaFxUtil.runLater(() -> {
-          showRoomGroup.getChildren().addAll(childrenToAdd);
+          showRoomGroup.getChildren().setAll(childrenToAdd);
           enterShowRoomState();
         }))
         .exceptionally(throwable -> {
@@ -287,8 +286,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
         .collect(Collectors.toList());
 
     JavaFxUtil.runLater(() -> {
-      children.clear();
-      children.addAll(childrenToAdd);
+      children.setAll(childrenToAdd);
       Object userData = pane.getUserData();
       if (userData == null) {
         return;

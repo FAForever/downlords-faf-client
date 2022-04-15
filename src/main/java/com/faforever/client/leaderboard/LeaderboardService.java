@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,6 +80,19 @@ public class LeaderboardService {
   @Cacheable(value = CacheNames.LEAGUE, sync = true)
   public CompletableFuture<List<LeagueBean>> getLeagues() {
     ElideNavigatorOnCollection<League> navigator = ElideNavigator.of(League.class).collection();
+    return fafApiAccessor.getMany(navigator)
+        .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
+        .collectList()
+        .toFuture();
+  }
+
+  @Cacheable(value = CacheNames.DIVISIONS, sync = true)
+  public CompletableFuture<List<LeagueSeasonBean>> getActiveSeasons() {
+    ElideNavigatorOnCollection<LeagueSeason> navigator = ElideNavigator.of(LeagueSeason.class).collection()
+        .setFilter(qBuilder()
+            .instant("startDate").before(OffsetDateTime.now().toInstant(), false)
+            .and()
+            .instant("endDate").after(OffsetDateTime.now().toInstant(), false));
     return fafApiAccessor.getMany(navigator)
         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
         .collectList()
@@ -152,21 +166,34 @@ public class LeaderboardService {
         .toFuture();
   }
 
+  public CompletableFuture<Optional<LeagueEntryBean>> getHighestActiveLeagueEntryForPlayer(PlayerBean player) {
+    return getActiveLeagueEntriesForPlayer(player)
+        .thenApply(leagueEntryBeans -> leagueEntryBeans.stream()
+            .max((e1, e2) -> SUBDIVISION_COMPARATOR.compare(e1.getSubdivision(), e2.getSubdivision())));
+  }
+
+  public CompletableFuture<Optional<LeagueEntryBean>> getActiveLeagueEntryForPlayer(PlayerBean player, LeaderboardBean leaderboard) {
+    return getActiveLeagueEntriesForPlayer(player)
+        .thenApply(leagueEntries -> leagueEntries.stream()
+            .filter(leagueEntry -> Objects.equals(leagueEntry.getLeagueSeason().getLeaderboard(), leaderboard))
+            .findFirst());
+  }
+
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
-  public CompletableFuture<Optional<LeagueEntryBean>> getHighestLeagueEntryForPlayer(PlayerBean player) {
+  public CompletableFuture<List<LeagueEntryBean>> getActiveLeagueEntriesForPlayer(PlayerBean player) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder()
             .intNum("loginId").eq(player.getId())
             .and()
-            // This goes all the way back. Maybe we don't want that
             .instant("leagueSeason.startDate").before(OffsetDateTime.now().toInstant(), false)
+            .and()
+            .instant("leagueSeason.endDate").after(OffsetDateTime.now().toInstant(), false)
         );
     return fafApiAccessor.getMany(navigator)
         .map(dto -> leaderboardMapper.map(dto, player, new CycleAvoidingMappingContext()))
         .filter(leagueEntryBean -> leagueEntryBean.getSubdivision() != null)
-        .reduce((score1, score2) -> SUBDIVISION_COMPARATOR.compare(score1.getSubdivision(), score2.getSubdivision()) > 0 ? score1 : score2)
-        .toFuture()
-        .thenApply(Optional::ofNullable);
+        .collectList()
+        .toFuture();
   }
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)

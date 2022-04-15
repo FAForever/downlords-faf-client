@@ -25,6 +25,11 @@ public class ViewReplaysMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
+  protected String getStyleIcon() {
+    return "search-icon";
+  }
+
+  @Override
   protected boolean isItemVisible() {
     return object != null;
   }

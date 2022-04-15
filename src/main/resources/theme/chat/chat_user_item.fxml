@@ -1,21 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<HBox fx:id="chatUserItemRoot" alignment="CENTER_LEFT" spacing="3.0" xmlns="http://javafx.com/javafx/11.0.1"
-      onContextMenuRequested="#onContextMenuRequested" onMouseClicked="#onItemClicked" styleClass="chat-user-item"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatUserItemController">
-    <children>
-        <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
-        <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true"/>
-        <MenuButton fx:id="clanMenu" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                    onMouseClicked="#onClanMenuRequested"
-                    styleClass="chat-user-control-clan" text="[CLAN]"/>
-        <Label fx:id="usernameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" onMouseClicked="#onItemClicked"
-               styleClass="chat-user-item-username" text="&lt;Username&gt;" HBox.hgrow="ALWAYS"/>
-        <ImageView fx:id="playerStatusIndicator"/>
-        <ImageView fx:id="playerMapImage" fitHeight="16.0" fitWidth="16.0"/>
-    </children>
+<?import javafx.scene.layout.VBox?>
+<HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+      xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatUserItemController"
+      fx:id="root" styleClass="chat-user-item" spacing="4.0" onMouseClicked="#onItemClicked"
+      onContextMenuRequested="#onContextMenuRequested">
+    <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
+    <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+        <Label fx:id="usernameLabel" HBox.hgrow="ALWAYS" styleClass="chat-user-item-username">
+            <graphic>
+                <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+            </graphic>
+        </Label>
+        <Label fx:id="mapNameLabel" styleClass="chat-user-item-map-name" visible="false">
+            <graphic>
+                <ImageView fx:id="gameStatusImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
+                           preserveRatio="true"/>
+            </graphic>
+        </Label>
+    </VBox>
+    <ImageView fx:id="mapImageView" onMouseMoved="#onMapImageViewMouseMoved" onMouseExited="#onMapImageViewMouseExited"
+               fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" visible="false"/>
 </HBox>

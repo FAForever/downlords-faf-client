@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.OffsetDateTime;
@@ -336,13 +335,13 @@ public class MapDetailControllerTest extends UITest {
   @Test
   public void testSetMapNoSize() {
     when(mapService.getFileSize(testMap)).thenReturn(CompletableFuture.completedFuture(-1));
-    when(i18n.get("notAvailable")).thenReturn("notAvailable");
+    when(i18n.get("mapVault.install")).thenReturn("install");
 
     instance.setMapVersion(testMap);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(instance.installButton.isDisabled());
-    assertEquals("notAvailable", instance.installButton.getText());
+    assertFalse(instance.installButton.isDisabled());
+    assertEquals("install", instance.installButton.getText());
   }
 
   @Test

@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 
-<HBox fx:id="root" alignment="CENTER_LEFT" onContextMenuRequested="#openContextMenu"
-      onMouseClicked="#openPrivateChatChannel" spacing="3.0" styleClass="player-card-content"
-      xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.faforever.client.game.PlayerCardController">
+<HBox fx:id="root" alignment="CENTER_LEFT"
+      spacing="3.0" styleClass="player-card-content" xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardController">
     <StackPane maxWidth="32.0" prefWidth="24.0">
         <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true"
                    visible="false"/>
@@ -16,7 +18,8 @@
     <Region fx:id="factionIcon" styleClass="icon" visible="false"/>
     <ImageView fx:id="factionImage" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true"
                visible="false"/>
-    <Label fx:id="playerInfo" text="&lt;PlayerInfo&gt;" wrapText="true">
+    <Label fx:id="playerInfo" styleClass="player-label" text="&lt;PlayerInfo&gt;" wrapText="true"
+           onMouseClicked="#openContextMenu">
         <graphic>
             <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
                        preserveRatio="true"/>
