@@ -9,7 +9,8 @@
         <TableColumn fx:id="mapPreviewColumn" editable="false" minWidth="30.0" resizable="false" text="%game.map"/>
         <TableColumn fx:id="startTimeColumn" editable="false" minWidth="30.0" prefWidth="50.0" text="%game.startTime"/>
         <TableColumn fx:id="gameTitleColumn" editable="false" minWidth="150.0" prefWidth="200.0" text="%game.title"/>
-        <TableColumn fx:id="playersColumn" editable="false" minWidth="45.0" text="%game.players"/>
+        <TableColumn fx:id="playersColumn" editable="false" minWidth="45.0" prefWidth="60.0" text="%game.players"/>
+        <TableColumn fx:id="averageRatingColumn" editable="false" minWidth="45.0" prefWidth="60.0" text="%game.averageRating"/>
         <TableColumn fx:id="hostColumn" editable="false" minWidth="90.0" prefWidth="120.0" text="%game.host"/>
         <TableColumn fx:id="modsColumn" editable="false" minWidth="150.0" prefWidth="200.0" text="%game.mods"/>
         <TableColumn fx:id="watchColumn" editable="false" minWidth="100.0" prefWidth="150.0" sortable="false"
