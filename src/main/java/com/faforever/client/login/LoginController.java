@@ -6,6 +6,7 @@ import com.faforever.client.config.ClientProperties.Replay;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -68,6 +69,7 @@ public class LoginController implements Controller<Pane> {
   private final ClientUpdateService clientUpdateService;
   private final StatPingService statPingService;
   private final UiService uiService;
+  private final PlatformService platformService;
   private final OAuthValuesReceiver oAuthValuesReceiver;
 
   private CompletableFuture<Void> initializeFuture;
@@ -336,6 +338,7 @@ public class LoginController implements Controller<Pane> {
 
     return oAuthValuesReceiver.receiveValues(redirectUri, oauth)
         .thenCompose(values -> {
+          platformService.focusWindow(clientProperties.getMainWindowTitle());
           String actualState = values.getState();
           String expectedState = userService.getState();
           if (!expectedState.equals(actualState)) {
