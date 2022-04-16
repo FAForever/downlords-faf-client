@@ -2,6 +2,7 @@ package com.faforever.client.vault.replay;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
@@ -13,6 +14,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.table.NoSelectionModelTableView;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.text.DecimalFormat;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +58,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<GameBean, OffsetDateTime> startTimeColumn;
   public TableColumn<GameBean, String> gameTitleColumn;
   public TableColumn<GameBean, Number> playersColumn;
+  public TableColumn<GameBean, Number> averageRatingColumn;
   public TableColumn<GameBean, String> modsColumn;
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, GameBean> watchColumn;
@@ -73,7 +77,10 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
-        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
+        // Do not load coop map preview because they do not exist on API vault
+        () -> param.getValue().getGameType() != GameType.COOP
+            ? mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL)
+            : null,
         param.getValue().mapFolderNameProperty()
     ));
 
@@ -83,6 +90,9 @@ public class LiveReplayController extends AbstractViewController<Node> {
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
     playersColumn.setCellValueFactory(param -> param.getValue().numPlayersProperty());
     playersColumn.setCellFactory(param -> new StringCell<>(number -> i18n.number(number.intValue())));
+    averageRatingColumn.setCellValueFactory(param -> param.getValue().averageRatingProperty());
+    averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"),
+        number -> Math.round(number.doubleValue() / 100.0) * 100.0));
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);
