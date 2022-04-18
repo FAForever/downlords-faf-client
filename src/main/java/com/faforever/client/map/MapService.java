@@ -559,15 +559,6 @@ public class MapService implements InitializingBean, DisposableBean {
     return fafApiAccessor.patch(navigator, mapVersion).toFuture();
   }
 
-  public CompletableFuture<Void> unrankMapVersion(MapVersionBean map) {
-    String id = String.valueOf(map.getId());
-    MapVersion mapVersion = new MapVersion();
-    mapVersion.setRanked(false);
-    mapVersion.setId(id);
-    ElideNavigatorOnId<MapVersion> navigator = ElideNavigator.of(mapVersion);
-    return fafApiAccessor.patch(navigator, mapVersion).toFuture();
-  }
-
   /**
    * Tries to find a map my its folder name, first locally then on the server.
    */
