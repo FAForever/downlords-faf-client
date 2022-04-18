@@ -492,13 +492,15 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator) {
     String key = mapKey(username, channel);
     synchronized (chatChannelUsersByChannelAndName) {
-      return chatChannelUsersByChannelAndName.computeIfAbsent(key, s -> {
-        ChatChannelUser chatChannelUser = new ChatChannelUser(username, channel, isModerator);
+      ChatChannelUser user = chatChannelUsersByChannelAndName.computeIfAbsent(key, s -> {
+        ChatChannelUser chatChannelUser = new ChatChannelUser(username, channel);
         playerService.getPlayerByNameIfOnline(username)
             .ifPresentOrElse(player -> chatUserService.associatePlayerToChatUser(chatChannelUser, player),
                 () -> chatUserService.populateColor(chatChannelUser));
         return chatChannelUser;
       });
+      user.setModerator(isModerator);
+      return user;
     }
   }
 
@@ -539,6 +541,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public void joinChannel(String channelName) {
     log.debug("Joining channel: {}", channelName);
     client.addChannel(channelName);
+  }
+
+  @Override
+  public void setChannelTopic(String channelName, String text) {
+    client.getChannel(channelName)
+        .orElseThrow(() -> new IllegalArgumentException(String.format("No channel with `%s` name", channelName)))
+        .setTopic(text);
   }
 
   @Override
