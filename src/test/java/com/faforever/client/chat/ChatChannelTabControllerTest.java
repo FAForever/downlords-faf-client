@@ -247,6 +247,18 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   @Test
+  public void textTopicLimitListener() {
+    defaultChatChannel.setTopic("topic: https://faforever.com");
+    initializeDefaultChatChannel();
+    runOnFxThreadAndWait(() -> instance.onChangeTopicTextButtonClicked());
+    int length = "topic: https://faforever.com".length();
+    assertTrue(instance.topicCharactersLimitLabel.getText().contains(Integer.toString(length)));
+
+    runOnFxThreadAndWait(() -> instance.topicTextField.appendText("123"));
+    assertTrue(instance.topicCharactersLimitLabel.getText().contains(Integer.toString(length + + 3)));
+  }
+
+  @Test
   public void testSearchChatMessage() throws Exception {
     String highlighted = "<span class=\"highlight\">world</span>";
 
