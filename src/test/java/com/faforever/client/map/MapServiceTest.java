@@ -385,17 +385,7 @@ public class MapServiceTest extends UITest {
 
     instance.hideMapVersion(map);
 
-    verify(fafApiAccessor).patch(any(), argThat(mapVersion -> ((MapVersion) mapVersion).isHidden()));
-  }
-
-  @Test
-  public void testUnRankMapVersion() throws Exception {
-    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().folderName("palaneum.v0001").version(new ComparableVersion("1")).get();
-    when(fafApiAccessor.patch(any(), any())).thenReturn(Mono.empty());
-
-    instance.unrankMapVersion(map);
-
-    verify(fafApiAccessor).patch(any(), argThat(mapVersion -> !((MapVersion) mapVersion).isRanked()));
+    verify(fafApiAccessor).patch(any(), argThat(mapVersion -> ((MapVersion) mapVersion).getHidden()));
   }
 
   @Test
