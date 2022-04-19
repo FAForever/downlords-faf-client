@@ -3,6 +3,7 @@ package com.faforever.client.login;
 import com.faforever.client.builders.ClientConfigurationBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
@@ -91,6 +92,8 @@ public class LoginControllerTest extends UITest {
   private OfflineServicesController offlineServicesController;
   @Mock
   private OAuthValuesReceiver oAuthValuesReceiver;
+  @Mock
+  private PlatformService platformService;
 
   @Spy
   private ClientProperties clientProperties = new ClientProperties();
