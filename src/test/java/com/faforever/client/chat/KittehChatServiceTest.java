@@ -560,19 +560,6 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testAddOnModeratorSetListener() {
-    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(chatChannel.getUsers(), empty());
-    defaultChatUser1.setModerator(true);
-
-    connect();
-
-    join(defaultChannel, user1);
-
-    assertThat(defaultChatUser1.isModerator(), is(true));
-  }
-
-  @Test
   public void testSendMessageInBackground() throws Exception {
     connect();
 
