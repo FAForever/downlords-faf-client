@@ -81,6 +81,8 @@ public class LoginControllerTest extends UITest {
   @Mock
   private UiService uiService;
   @Mock
+  private PlatformService platformService;
+  @Mock
   private I18n i18n;
   @Mock
   private ClientUpdateService clientUpdateService;
