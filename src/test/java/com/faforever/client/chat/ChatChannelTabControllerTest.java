@@ -153,6 +153,18 @@ public class ChatChannelTabControllerTest extends UITest {
     assertEquals(2, instance.topicText.getChildren().size());
     assertEquals("topic ", ((Labeled) instance.topicText.getChildren().get(0)).getText());
     assertEquals("https://example.com/1", ((Labeled) instance.topicText.getChildren().get(1)).getText());
+    assertTrue(instance.topicPane.isVisible());
+  }
+
+  @Test
+  public void testNoChannelTopic() {
+    ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
+    defaultChatChannel.addUser(user);
+    when(userService.getUsername()).thenReturn(USER_NAME);
+
+    defaultChatChannel.setTopic(null);
+    initializeDefaultChatChannel();
+    assertFalse(instance.topicPane.isVisible());
   }
 
   @Test
@@ -163,7 +175,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testChannelTopicUpdate() {
-    defaultChatChannel.setTopic("topc1: https://faforever.com");
+    defaultChatChannel.setTopic("topic1: https://faforever.com");
     initializeDefaultChatChannel();
 
     assertEquals(2, instance.topicText.getChildren().size());
@@ -174,6 +186,64 @@ public class ChatChannelTabControllerTest extends UITest {
     assertEquals("https://faforever.com", ((Labeled) instance.topicText.getChildren().get(1)).getText());
     assertEquals("topic3: ", ((Labeled) instance.topicText.getChildren().get(2)).getText());
     assertEquals("https://faforever.com/example", ((Labeled) instance.topicText.getChildren().get(3)).getText());
+  }
+
+  @Test
+  public void testChangeTopicButtonForModerators() {
+    ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
+    defaultChatChannel.addUser(user);
+    when(userService.getUsername()).thenReturn(USER_NAME);
+    initializeDefaultChatChannel();
+    assertTrue(instance.changeTopicTextButton.isVisible());
+  }
+
+  @Test
+  public void testNoChangeTopicButtonForNonModerators() {
+    ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(false).get();
+    defaultChatChannel.addUser(user);
+    when(userService.getUsername()).thenReturn(USER_NAME);
+    initializeDefaultChatChannel();
+    assertFalse(instance.changeTopicTextButton.isVisible());
+  }
+
+  @Test
+  public void testOnAcceptTopicTextButtonClicked() {
+    defaultChatChannel.setTopic("topic1: https://faforever.com");
+    initializeDefaultChatChannel();
+
+    runOnFxThreadAndWait(() -> {
+      instance.topicTextField.setText("New Topic");
+      instance.onAcceptTopicTextButtonClicked();
+    });
+
+    verify(chatService).setChannelTopic(CHANNEL_NAME, "New Topic");
+  }
+
+  @Test
+  public void testOnChangeTopicTextButtonClicked() {
+    defaultChatChannel.setTopic("topic1: https://faforever.com");
+    initializeDefaultChatChannel();
+    runOnFxThreadAndWait(() -> instance.onChangeTopicTextButtonClicked());
+    assertEquals("topic1: https://faforever.com", instance.topicTextField.getText());
+    assertTrue(instance.topicTextField.isVisible());
+    assertFalse(instance.topicText.isVisible());
+  }
+
+  @Test
+  public void testOnCancelChangesTopicTextButtonClicked() {
+    defaultChatChannel.setTopic("topic: https://faforever.com");
+    initializeDefaultChatChannel();
+
+    runOnFxThreadAndWait(() -> {
+      instance.topicTextField.setText("New Topic");
+      instance.onCancelChangesTopicTextButtonClicked();
+    });
+
+    assertEquals(2, instance.topicText.getChildren().size());
+    assertEquals("topic: ", ((Labeled) instance.topicText.getChildren().get(0)).getText());
+    assertEquals("https://faforever.com", ((Labeled) instance.topicText.getChildren().get(1)).getText());
+    assertFalse(instance.topicTextField.isVisible());
+    assertTrue(instance.topicText.isVisible());
   }
 
   @Test
