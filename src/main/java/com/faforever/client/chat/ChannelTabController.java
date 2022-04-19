@@ -75,7 +75,6 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public WebView messagesWebView;
   public TextField messageTextField;
   public HBox topicPane;
-  public Label topicPrompt;
   public Label topicCharactersLimitLabel;
   public TextField topicTextField;
   public TextFlow topicText;
@@ -124,7 +123,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
   @Override
   public void initialize() {
     super.initialize();
-    JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicPrompt, topicTextField,
+    JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicTextField,
         acceptChangesTopicTextButton, cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel);
     JavaFxUtil.bind(topicText.visibleProperty(), topicTextField.visibleProperty().not());
     JavaFxUtil.bind(topicCharactersLimitLabel.visibleProperty(), topicTextField.visibleProperty());
@@ -143,7 +142,6 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public void setChatChannel(ChatChannel chatChannel, BooleanBinding chatTabSelectedProperty) {
     this.chatChannel = chatChannel;
     this.channelName = chatChannel.getName();
-    JavaFxUtil.bind(topicPrompt.visibleProperty(), chatChannel.topicProperty().isEmpty().and(topicTextField.visibleProperty().not()));
     Optional.ofNullable(chatChannel.getUser(userService.getUsername())).ifPresentOrElse(
         user -> {
           JavaFxUtil.bind(changeTopicTextButton.visibleProperty(), user.moderatorProperty().and(topicTextField.visibleProperty().not()));

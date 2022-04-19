@@ -27,6 +27,9 @@
                 <VBox>
                     <children>
                         <HBox fx:id="topicPane" spacing="8.0" styleClass="topic-channel">
+                            <TextFlow fx:id="topicText" HBox.hgrow="ALWAYS"/>
+                            <TextField fx:id="topicTextField" onAction="#onAcceptChangesTopicTextField"
+                                       HBox.hgrow="ALWAYS" visible="false"/>
                             <HBox alignment="CENTER_LEFT" spacing="4.0">
                                 <Button fx:id="changeTopicTextButton" visible="false"
                                         styleClass="topic-channel-button"
@@ -42,7 +45,7 @@
                                         <Region styleClass="icon, icon16x16, close-icon"/>
                                     </graphic>
                                 </Button>
-                                <Label fx:id="topicCharactersLimitLabel" text="LIMIT" visible="false"/>
+                                <Label fx:id="topicCharactersLimitLabel" visible="false"/>
                                 <Button fx:id="acceptChangesTopicTextButton" visible="false"
                                         styleClass="topic-channel-button"
                                         onAction="#onAcceptTopicTextButtonClicked">
@@ -50,11 +53,7 @@
                                         <Region styleClass="icon, icon16x16, check-icon"/>
                                     </graphic>
                                 </Button>
-                                <Label fx:id="topicPrompt" text="%chat.topicPrompt" disable="true" visible="false"/>
                             </HBox>
-                            <TextFlow fx:id="topicText" HBox.hgrow="ALWAYS"/>
-                            <TextField fx:id="topicTextField" onAction="#onAcceptChangesTopicTextField"
-                                       HBox.hgrow="ALWAYS" visible="false"/>
                         </HBox>
                         <Separator maxWidth="1.7976931348623157E308"/>
                         <AnchorPane VBox.vgrow="ALWAYS">
