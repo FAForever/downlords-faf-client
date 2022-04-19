@@ -247,7 +247,7 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   @Test
-  public void textTopicLimitListener() {
+  public void textCheckTextTopicLimitListener() {
     defaultChatChannel.setTopic("topic: https://faforever.com");
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.onChangeTopicTextButtonClicked());
