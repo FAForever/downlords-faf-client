@@ -1,18 +1,14 @@
 package com.faforever.client.login;
 
-import com.faforever.client.builders.ClientConfigurationBuilder.OAuthEndpointBuilder;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.verification.Timeout;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,7 +16,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URI;
-import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -47,8 +43,6 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
   private PlatformService platformService;
   @Mock
   private UserService userService;
-  @Spy
-  private ClientProperties clientProperties = new ClientProperties();
 
   @Test
   void receiveValues() throws Exception {
@@ -57,9 +51,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     when(i18n.get("login.browser.success.title")).thenReturn(title);
     when(i18n.get("login.browser.success.message")).thenReturn(message);
 
-    OAuthEndpoint oAuthEndpoint = OAuthEndpointBuilder.create().defaultValues().get();
-
-    CompletableFuture<Values> future = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
+    CompletableFuture<Values> future = instance.receiveValues(List.of(REDIRECT_URI));
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
@@ -87,11 +79,9 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     when(i18n.get("login.browser.success.title")).thenReturn(title);
     when(i18n.get("login.browser.success.message")).thenReturn(message);
 
-    OAuthEndpoint oAuthEndpoint = OAuthEndpointBuilder.create().defaultValues().get();
+    CompletableFuture<Values> future1 = instance.receiveValues(List.of(REDIRECT_URI));
 
-    CompletableFuture<Values> future1 = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
-
-    CompletableFuture<Values> future2 = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
+    CompletableFuture<Values> future2 = instance.receiveValues(List.of(REDIRECT_URI));
 
     assertEquals(future1, future2);
 
@@ -120,9 +110,8 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
     String message = "JUnit Login Message";
     when(i18n.get("login.browser.failed.title")).thenReturn(title);
     when(i18n.get("login.browser.failed.message")).thenReturn(message);
-    OAuthEndpoint oAuthEndpoint = OAuthEndpointBuilder.create().defaultValues().get();
 
-    CompletableFuture<Values> future = instance.receiveValues(Optional.of(REDIRECT_URI), Optional.ofNullable(oAuthEndpoint));
+    CompletableFuture<Values> future = instance.receiveValues(List.of(REDIRECT_URI));
 
     ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
 
@@ -145,8 +134,51 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
   void receiveValuesNoPortsAvailable() throws Exception {
     ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
     URI takenPort = URI.create("http://localhost:" + serverSocket.getLocalPort());
-    CompletableFuture<Values> future = instance.receiveValues(Optional.of(takenPort), Optional.empty());
+    CompletableFuture<Values> future = instance.receiveValues(List.of(takenPort));
     Exception throwable = assertThrows(ExecutionException.class, future::get);
     assertTrue(throwable.getCause() instanceof IllegalStateException);
+  }
+
+  @Test
+  void receiveValuesNoPortsGiven() throws Exception {
+    assertThrows(IllegalArgumentException.class, () -> instance.receiveValues(List.of()));
+  }
+
+  @Test
+  void receiveValuesInvalidUriGiven() throws Exception {
+    URI badUri = URI.create("http://www.google.com");
+    CompletableFuture<Values> future = instance.receiveValues(List.of(badUri));
+    Exception throwable = assertThrows(ExecutionException.class, future::get);
+    assertTrue(throwable.getCause() instanceof IllegalStateException);
+  }
+
+  @Test
+  void receiveValuesFirstPortNotAvailable() throws Exception {
+    String title = "JUnit Login Success";
+    String message = "JUnit Login Message";
+    when(i18n.get("login.browser.success.title")).thenReturn(title);
+    when(i18n.get("login.browser.success.message")).thenReturn(message);
+
+    ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
+    URI takenPort = URI.create("http://localhost:" + serverSocket.getLocalPort());
+
+    CompletableFuture<Values> future = instance.receiveValues(List.of(takenPort, REDIRECT_URI));
+    ArgumentCaptor<URI> captor = ArgumentCaptor.forClass(URI.class);
+
+    verify(userService, timeout(2000)).getHydraUrl(captor.capture());
+
+    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(captor.getValue())
+        .queryParam("code", "1234")
+        .queryParam("state", "abcd");
+
+    try (InputStream inputStream = uriBuilder.build().toUri().toURL().openStream()) {
+      String response = new String(inputStream.readAllBytes());
+      assertThat(response, containsString(title));
+      assertThat(response, containsString(message));
+    }
+
+    Values values = future.get();
+    assertThat(values.getCode(), is("1234"));
+    assertThat(values.getState(), is("abcd"));
   }
 }

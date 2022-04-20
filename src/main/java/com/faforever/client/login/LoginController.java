@@ -16,7 +16,6 @@ import com.faforever.client.status.Message;
 import com.faforever.client.status.Service;
 import com.faforever.client.status.StatPingService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
@@ -49,8 +48,8 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -330,13 +329,19 @@ public class LoginController implements Controller<Pane> {
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
 
-    Optional<OAuthEndpoint> oauth = Optional.ofNullable(environmentComboBox.getValue()).map(ServerEndpoints::getOauth);
+    List<URI> redirectUris = new ArrayList<>();
 
-    Optional<URI> redirectUri = !oauthRedirectUriField.getText().isEmpty()
-        ? Optional.of(URI.create(oauthRedirectUriField.getText()))
-        : Optional.empty();
+    if (!oauthRedirectUriField.getText().isBlank()) {
+      redirectUris.add(URI.create(oauthRedirectUriField.getText()));
+    }
 
-    return oAuthValuesReceiver.receiveValues(redirectUri, oauth)
+    ServerEndpoints endpoint = environmentComboBox.getValue();
+
+    if (endpoint != null) {
+      redirectUris.addAll(endpoint.getOauth().getRedirectUris());
+    }
+
+    return oAuthValuesReceiver.receiveValues(redirectUris)
         .thenCompose(values -> {
           platformService.focusWindow(clientProperties.getMainWindowTitle());
           String actualState = values.getState();

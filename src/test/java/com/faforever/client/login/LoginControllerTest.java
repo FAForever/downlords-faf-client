@@ -43,7 +43,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collections;
-import java.util.Optional;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -64,7 +64,7 @@ import static org.mockito.Mockito.when;
 public class LoginControllerTest extends UITest {
 
   private static final URI REDIRECT_URI = URI.create("http://localhost");
-  private static final Optional<URI> EXPLICIT_REDIRECT_URI = Optional.of(URI.create("http://localhost/fallback"));
+  private static final URI EXPLICIT_REDIRECT_URI = URI.create("http://localhost/fallback");
 
   @InjectMocks
   private LoginController instance;
@@ -118,8 +118,7 @@ public class LoginControllerTest extends UITest {
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
 
-    //noinspection OptionalGetWithoutIsPresent
-    instance.oauthRedirectUriField.setText(EXPLICIT_REDIRECT_URI.get().toASCIIString());
+    instance.oauthRedirectUriField.setText(EXPLICIT_REDIRECT_URI.toASCIIString());
   }
 
   @Test
@@ -142,13 +141,13 @@ public class LoginControllerTest extends UITest {
 
     when(userService.getState()).thenReturn(state);
     when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.completedFuture(null));
-    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
         .thenReturn(CompletableFuture.completedFuture(new Values(code, state, REDIRECT_URI)));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(oAuthValuesReceiver).receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty());
+    verify(oAuthValuesReceiver).receiveValues(List.of(EXPLICIT_REDIRECT_URI));
     verify(userService).login(code, REDIRECT_URI);
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
@@ -162,13 +161,13 @@ public class LoginControllerTest extends UITest {
 
     when(userService.getState()).thenReturn(state);
     when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.completedFuture(null));
-    when(oAuthValuesReceiver.receiveValues(eq(EXPLICIT_REDIRECT_URI), eq(Optional.empty())))
+    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI))))
         .thenReturn(CompletableFuture.completedFuture(new Values(code, wrongState, REDIRECT_URI)));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(oAuthValuesReceiver).receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty());
+    verify(oAuthValuesReceiver).receiveValues(List.of(EXPLICIT_REDIRECT_URI));
     verify(userService, never()).login(code, REDIRECT_URI);
     verify(userService).getState();
     verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.failed"));
@@ -181,7 +180,7 @@ public class LoginControllerTest extends UITest {
 
     when(userService.getState()).thenReturn(state);
     when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
-    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
         .thenReturn(CompletableFuture.completedFuture(new Values(code, state, REDIRECT_URI)));
 
     instance.onLoginButtonClicked().get();
@@ -195,7 +194,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginFailsNoPorts() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
         .thenReturn(CompletableFuture.failedFuture(new IllegalStateException()));
 
     instance.onLoginButtonClicked().get();
@@ -208,7 +207,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginFailsTimeout() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
 
     instance.onLoginButtonClicked().get();
@@ -221,7 +220,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginFailsTimeoutAlreadyLoggedIn() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(EXPLICIT_REDIRECT_URI, Optional.empty()))
+    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
     when(userService.getOwnUser()).thenReturn(new MeResult());
 

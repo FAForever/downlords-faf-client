@@ -1,10 +1,7 @@
 package com.faforever.client.login;
 
-import com.faforever.client.config.ClientProperties;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.update.ClientConfiguration.OAuthEndpoint;
 import com.faforever.client.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -24,15 +21,11 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /** Opens a minimal HTTP server that retrieves {@literal code} and {@literal state} from the browser. */
 @Component
@@ -44,7 +37,6 @@ public class OAuthValuesReceiver {
   private static final Pattern STATE_PATTERN = Pattern.compile("state=([^ &]+)");
   private static final List<String> ALLOWED_HOSTS = List.of("localhost");
 
-  private final ClientProperties clientProperties;
   private final PlatformService platformService;
   private final UserService userService;
   private final I18n i18n;
@@ -53,13 +45,18 @@ public class OAuthValuesReceiver {
   private CompletableFuture<Values> valuesFuture;
   private URI redirectUri;
 
-  public CompletableFuture<Values> receiveValues(Optional<URI> redirectUri, Optional<OAuthEndpoint> oAuthEndpoint) {
+  public CompletableFuture<Values> receiveValues(List<URI> redirectUris) {
     if (valuesFuture == null || valuesFuture.isDone()) {
+      if (redirectUris == null || redirectUris.isEmpty()) {
+        throw new IllegalArgumentException("No redirect uris provided");
+      }
+
       redirectUriLatch = new CountDownLatch(1);
       valuesFuture = CompletableFuture.supplyAsync(() -> {
-        Collection<URI> redirectUris = getRedirectUris(redirectUri, oAuthEndpoint);
-
-        for (URI uri : redirectUris) {
+        List<URI> filteredRedirectUris = redirectUris.stream()
+            .filter(uri -> ALLOWED_HOSTS.contains(uri.getHost()))
+            .toList();
+        for (URI uri : filteredRedirectUris) {
           try {
             return readWithUri(uri);
           } catch (SocketException e) {
@@ -80,29 +77,6 @@ public class OAuthValuesReceiver {
     }
 
     return valuesFuture;
-  }
-
-  private List<URI> getRedirectUris(Optional<URI> redirectUri, Optional<OAuthEndpoint> oAuthEndpoint) {
-    JavaFxUtil.assertBackgroundThread();
-    if (redirectUri.isPresent()) {
-      return Collections.singletonList(redirectUri.get());
-    }
-
-    if (!clientProperties.isUseRemotePreferences()) {
-      throw new NoRedirectUriException("No redirect URI has been specified and remote preferences are disabled");
-    }
-
-    OAuthEndpoint endpoint = oAuthEndpoint.orElseThrow(() -> new IllegalStateException("No endpoint has been specified"));
-    List<URI> redirectUris = endpoint.getRedirectUris().stream()
-        .filter(uri -> uri.getPort() > 0)
-        .filter(uri -> ALLOWED_HOSTS.contains(uri.getHost()))
-        .collect(Collectors.toList());
-
-    if (redirectUris.isEmpty()) {
-      throw new NoRedirectUriException("No valid redirect URI has been provided by endpoint: " + endpoint.getUrl());
-    }
-
-    return redirectUris;
   }
 
   private Values readWithUri(URI uri) throws IOException {
