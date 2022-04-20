@@ -94,8 +94,6 @@ public class LoginControllerTest extends UITest {
   private OfflineServicesController offlineServicesController;
   @Mock
   private OAuthValuesReceiver oAuthValuesReceiver;
-  @Mock
-  private PlatformService platformService;
 
   @Spy
   private ClientProperties clientProperties = new ClientProperties();
