@@ -35,7 +35,7 @@ public class OAuthValuesReceiver {
 
   private static final Pattern CODE_PATTERN = Pattern.compile("code=([^ &]+)");
   private static final Pattern STATE_PATTERN = Pattern.compile("state=([^ &]+)");
-  private static final List<String> ALLOWED_HOSTS = List.of("localhost");
+  private static final List<String> ALLOWED_HOSTS = List.of("localhost", "127.0.0.1");
 
   private final PlatformService platformService;
   private final UserService userService;
