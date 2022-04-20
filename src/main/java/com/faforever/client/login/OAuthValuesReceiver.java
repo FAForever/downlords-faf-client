@@ -45,15 +45,15 @@ public class OAuthValuesReceiver {
   private CompletableFuture<Values> valuesFuture;
   private URI redirectUri;
 
-  public CompletableFuture<Values> receiveValues(List<URI> redirectUris) {
+  public CompletableFuture<Values> receiveValues(List<URI> redirectUriCandidates) {
     if (valuesFuture == null || valuesFuture.isDone()) {
-      if (redirectUris == null || redirectUris.isEmpty()) {
+      if (redirectUriCandidates == null || redirectUriCandidates.isEmpty()) {
         throw new IllegalArgumentException("No redirect uris provided");
       }
 
       redirectUriLatch = new CountDownLatch(1);
       valuesFuture = CompletableFuture.supplyAsync(() -> {
-        List<URI> filteredRedirectUris = redirectUris.stream()
+        List<URI> filteredRedirectUris = redirectUriCandidates.stream()
             .filter(uri -> ALLOWED_HOSTS.contains(uri.getHost()))
             .toList();
         for (URI uri : filteredRedirectUris) {
@@ -65,7 +65,7 @@ public class OAuthValuesReceiver {
             throw new IllegalStateException("Could not read from port once opened", e);
           }
         }
-        throw new IllegalStateException("Could not read from any redirect URI: " + redirectUris);
+        throw new IllegalStateException("Could not read from any redirect URI: " + redirectUriCandidates);
       });
     } else {
       CompletableFuture.runAsync(() -> {

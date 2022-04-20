@@ -329,19 +329,19 @@ public class LoginController implements Controller<Pane> {
     clientProperties.getApi().setBaseUrl(apiBaseUrlField.getText());
     clientProperties.getOauth().setBaseUrl(oauthBaseUrlField.getText());
 
-    List<URI> redirectUris = new ArrayList<>();
+    List<URI> redirectUriCandidates = new ArrayList<>();
 
     if (!oauthRedirectUriField.getText().isBlank()) {
-      redirectUris.add(URI.create(oauthRedirectUriField.getText()));
+      redirectUriCandidates.add(URI.create(oauthRedirectUriField.getText()));
     }
 
     ServerEndpoints endpoint = environmentComboBox.getValue();
 
     if (endpoint != null) {
-      redirectUris.addAll(endpoint.getOauth().getRedirectUris());
+      redirectUriCandidates.addAll(endpoint.getOauth().getRedirectUris());
     }
 
-    return oAuthValuesReceiver.receiveValues(redirectUris)
+    return oAuthValuesReceiver.receiveValues(redirectUriCandidates)
         .thenCompose(values -> {
           platformService.focusWindow(clientProperties.getMainWindowTitle());
           String actualState = values.getState();
