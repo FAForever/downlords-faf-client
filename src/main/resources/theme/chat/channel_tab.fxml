@@ -28,7 +28,7 @@
                     <children>
                         <HBox fx:id="topicPane" spacing="8.0" styleClass="topic-channel">
                             <TextFlow fx:id="topicText" HBox.hgrow="ALWAYS"/>
-                            <TextField fx:id="topicTextField" onAction="#onAcceptChangesTopicTextField"
+                            <TextField fx:id="topicTextField" onAction="#onTopicTextFieldEntered"
                                        HBox.hgrow="ALWAYS" visible="false"/>
                             <HBox alignment="CENTER_LEFT" spacing="4.0">
                                 <Button fx:id="changeTopicTextButton" visible="false"
@@ -46,13 +46,6 @@
                                     </graphic>
                                 </Button>
                                 <Label fx:id="topicCharactersLimitLabel" visible="false"/>
-                                <Button fx:id="acceptChangesTopicTextButton" visible="false"
-                                        styleClass="topic-channel-button"
-                                        onAction="#onAcceptTopicTextButtonClicked">
-                                    <graphic>
-                                        <Region styleClass="icon, icon16x16, check-icon"/>
-                                    </graphic>
-                                </Button>
                             </HBox>
                         </HBox>
                         <Separator maxWidth="1.7976931348623157E308"/>

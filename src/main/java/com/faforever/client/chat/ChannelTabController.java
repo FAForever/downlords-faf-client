@@ -80,7 +80,6 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public TextField topicTextField;
   public TextFlow topicText;
   public Button changeTopicTextButton;
-  public Button acceptChangesTopicTextButton;
   public Button cancelChangesTopicTextButton;
   public ToggleButton userListVisibilityToggleButton;
   public Node chatUserList;
@@ -125,11 +124,10 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public void initialize() {
     super.initialize();
     JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicTextField,
-        acceptChangesTopicTextButton, cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel);
+        cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel);
     JavaFxUtil.bind(topicText.visibleProperty(), topicTextField.visibleProperty().not());
     JavaFxUtil.bind(topicCharactersLimitLabel.visibleProperty(), topicTextField.visibleProperty());
-    JavaFxUtil.bind(acceptChangesTopicTextButton.visibleProperty(), topicTextField.visibleProperty());
-    JavaFxUtil.bind(cancelChangesTopicTextButton.visibleProperty(), acceptChangesTopicTextButton.visibleProperty());
+    JavaFxUtil.bind(cancelChangesTopicTextButton.visibleProperty(), topicTextField.visibleProperty());
     JavaFxUtil.bind(chatMessageSearchTextField.visibleProperty(), chatMessageSearchContainer.visibleProperty());
     JavaFxUtil.bind(closeChatMessageSearchButton.visibleProperty(), chatMessageSearchContainer.visibleProperty());
     JavaFxUtil.bind(chatUserList.visibleProperty(), userListVisibilityToggleButton.selectedProperty());
@@ -143,7 +141,9 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public void setChatChannel(ChatChannel chatChannel, BooleanBinding chatTabSelectedProperty) {
     this.chatChannel = chatChannel;
     this.channelName = chatChannel.getName();
-    JavaFxUtil.bind(topicPane.visibleProperty(), chatChannel.topicProperty().isNotEmpty().or(changeTopicTextButton.visibleProperty()));
+    JavaFxUtil.bind(topicPane.visibleProperty(), chatChannel.topicProperty().isNotEmpty()
+        .or(changeTopicTextButton.visibleProperty())
+        .or(topicTextField.visibleProperty()));
 
     chatUserListController.setOnListInitialized(() ->
         Optional.ofNullable(chatChannel.getUser(userService.getUsername())).ifPresentOrElse(
@@ -204,13 +204,17 @@ public class ChannelTabController extends AbstractChatTabController implements I
             }
           });
     }
-    topicTextField.setVisible(false);
-    topicPane.setDisable(false);
   }
 
   private void updateChannelTopic() {
     setChannelTopic(chatChannel.getTopic());
     onChatMessage(new ChatMessage(channelName, Instant.now(), userService.getUsername(), i18n.get("chat.topicUpdated")));
+
+    if (topicPane.isDisable()) {
+      topicTextField.setVisible(false);
+      changeTopicTextButton.setVisible(true);
+      topicPane.setDisable(false);
+    }
   }
 
   public void onChatChannelKeyReleased(KeyEvent keyEvent) {
@@ -322,20 +326,21 @@ public class ChannelTabController extends AbstractChatTabController implements I
   }
 
   public void onChangeTopicTextButtonClicked() {
+    changeTopicTextButton.setVisible(false);
     String topic = chatChannel.getTopic();
-    topicTextField.setVisible(true);
     topicTextField.setText(topic != null ? topic : "");
+    topicTextField.setVisible(true);
     topicTextField.requestFocus();
     topicTextField.selectEnd();
   }
 
-  public void onAcceptTopicTextButtonClicked() {
+  public void onTopicTextFieldEntered() {
     String normalizedText = StringUtils.normalizeSpace(topicTextField.getText());
     if (!normalizedText.equals(chatChannel.getTopic())) {
       topicPane.setDisable(true);
       chatService.setChannelTopic(channelName, normalizedText);
     } else {
-      topicTextField.setVisible(false);
+      onCancelChangesTopicTextButtonClicked();
     }
   }
 
@@ -343,11 +348,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
     String topic = chatChannel.getTopic();
     topicTextField.setText(topic != null ? topic : "");
     topicTextField.setVisible(false);
-    topicPane.setDisable(false);
-  }
-
-  public void onAcceptChangesTopicTextField() {
-    onAcceptTopicTextButtonClicked();
+    changeTopicTextButton.setVisible(true);
   }
 
   private void updateTopicLimit() {

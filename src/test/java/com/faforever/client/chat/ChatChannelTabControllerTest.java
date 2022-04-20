@@ -234,13 +234,13 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAcceptTopicTextButtonClicked() {
+  public void testOnTopicTextFieldEntered() {
     defaultChatChannel.setTopic("topic1: https://faforever.com");
     initializeDefaultChatChannel();
 
     runOnFxThreadAndWait(() -> {
       instance.topicTextField.setText("New Topic");
-      instance.onAcceptTopicTextButtonClicked();
+      instance.onTopicTextFieldEntered();
     });
 
     verify(chatService).setChannelTopic(CHANNEL_NAME, "New Topic");
