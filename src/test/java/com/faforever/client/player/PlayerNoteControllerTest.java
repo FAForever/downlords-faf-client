@@ -5,13 +5,12 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.test.UITest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static com.faforever.client.player.PlayerNoteController.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.faforever.client.player.PlayerNoteController.CHARACTER_LIMIT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
 public class PlayerNoteControllerTest extends UITest {
