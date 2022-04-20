@@ -5,6 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.test.UITest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -37,7 +38,7 @@ public class PlayerNoteControllerTest extends UITest {
 
   @Test
   public void testCharacterLimit() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note(RandomStringUtils.random(CHARACTER_LIMIT)).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note(RandomStringUtils.randomAlphanumeric(CHARACTER_LIMIT)).get();
     runOnFxThreadAndWait(() -> instance.setPlayer(player));
     assertEquals(CHARACTER_LIMIT, instance.textArea.getLength());
 
