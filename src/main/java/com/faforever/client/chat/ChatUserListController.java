@@ -113,6 +113,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private final ExecutorService usersEventQueueExecutor = Executors.newSingleThreadExecutor();
 
   private Future<?> listInitializationFuture;
+  private Runnable onListInitializedHandler;
   private volatile boolean isListInQueue;
 
   /* ----- Listeners ----- */
@@ -184,6 +185,10 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     prepareData();
     initializeListeners();
     usersEventQueueExecutor.execute(() -> chatChannel.getUsers().forEach(this::onUserJoined));
+  }
+
+  public void setOnListInitialized(Runnable onListInitializedHandler) {
+    this.onListInitializedHandler = onListInitializedHandler;
   }
 
   private void prepareData() {

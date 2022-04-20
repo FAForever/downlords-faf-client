@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -190,6 +191,11 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testChangeTopicButtonForModerators() {
+    doAnswer(invocation -> {
+      invocation.getArgument(0, Runnable.class).run();
+      return invocation;
+    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
+
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
@@ -199,10 +205,31 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testNoChangeTopicButtonForNonModerators() {
+    doAnswer(invocation -> {
+      invocation.getArgument(0, Runnable.class).run();
+      return invocation;
+    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
+
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(false).get();
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
     initializeDefaultChatChannel();
+    assertFalse(instance.changeTopicTextButton.isVisible());
+  }
+
+  @Test
+  public void testCheckModeratorListener() {
+    doAnswer(invocation -> {
+      invocation.getArgument(0, Runnable.class).run();
+      return invocation;
+    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
+
+    ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
+    defaultChatChannel.addUser(user);
+    when(userService.getUsername()).thenReturn(USER_NAME);
+    initializeDefaultChatChannel();
+    assertTrue(instance.changeTopicTextButton.isVisible());
+    runOnFxThreadAndWait(() -> user.setModerator(false));
     assertFalse(instance.changeTopicTextButton.isVisible());
   }
 

@@ -48,6 +48,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -88,11 +89,11 @@ public class ChannelTabController extends AbstractChatTabController implements I
   private ChatPrefs chatPrefs;
   private String channelName;
   private ChatChannel chatChannel;
-  private boolean topicTriggeredByUser;
 
   /* Listeners */
   private final InvalidationListener topicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
   private final InvalidationListener changeTopicTextListener = observable -> updateTopicLimit();
+  private final ChangeListener<Boolean> moderatorListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> changeTopicTextButton.setVisible(newValue));
 
   private final ChangeListener<String> searchChatMessageListener = (observable, oldValue, newValue) -> {
     if (StringUtils.isBlank(newValue)) {
@@ -142,19 +143,17 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public void setChatChannel(ChatChannel chatChannel, BooleanBinding chatTabSelectedProperty) {
     this.chatChannel = chatChannel;
     this.channelName = chatChannel.getName();
-    Optional.ofNullable(chatChannel.getUser(userService.getUsername())).ifPresentOrElse(
-        user -> {
-          JavaFxUtil.bind(changeTopicTextButton.visibleProperty(), user.moderatorProperty().and(topicTextField.visibleProperty().not()));
-          JavaFxUtil.bind(topicPane.visibleProperty(), chatChannel.topicProperty().isNotEmpty().or(user.moderatorProperty()));
-        },
-        () -> log.warn("Cannot get own chat user of `{}` channel", channelName) // Shouldn't happen
-    );
+    JavaFxUtil.bind(topicPane.visibleProperty(), chatChannel.topicProperty().isNotEmpty().or(changeTopicTextButton.visibleProperty()));
 
+    chatUserListController.setOnListInitialized(() ->
+        Optional.ofNullable(chatChannel.getUser(userService.getUsername())).ifPresentOrElse(
+            ownUser -> JavaFxUtil.addAndTriggerListener(ownUser.moderatorProperty(), new WeakChangeListener<>(moderatorListener)),
+            () -> log.warn("Cannot get own chat user of `{}` channel", channelName))); // Shouldn't happen
     chatUserListController.setChatChannel(chatChannel, getRoot(), chatTabSelectedProperty);
     chatUserListController.getAutoCompletionHelper().bindTo(messageTextField());
 
     updateTabProperties();
-    updateChannelTopic();
+    setChannelTopic(chatChannel.getTopic());
     setReceiver(chatChannel.getName());
 
     initializeListeners();
@@ -190,10 +189,10 @@ public class ChannelTabController extends AbstractChatTabController implements I
     });
   }
 
-  private void updateChannelTopic() {
+  private void setChannelTopic(String topic) {
     List<Node> children = topicText.getChildren();
     children.clear();
-    if (StringUtils.isNotBlank(chatChannel.getTopic())) {
+    if (StringUtils.isNotBlank(topic)) {
       Arrays.stream(chatChannel.getTopic().split("\\s"))
           .forEach(word -> {
             if (URL_REGEX_PATTERN.matcher(word).matches()) {
@@ -207,11 +206,11 @@ public class ChannelTabController extends AbstractChatTabController implements I
     }
     topicTextField.setVisible(false);
     topicPane.setDisable(false);
-    if (topicTriggeredByUser) {
-      topicTriggeredByUser = false;
-      String username = userService.getUsername();
-      chatService.sendMessageInBackground(channelName, username + " updated the channel topic");
-    }
+  }
+
+  private void updateChannelTopic() {
+    setChannelTopic(chatChannel.getTopic());
+    onChatMessage(new ChatMessage(channelName, Instant.now(), userService.getUsername(), i18n.get("chat.topicUpdated")));
   }
 
   public void onChatChannelKeyReleased(KeyEvent keyEvent) {
@@ -334,7 +333,6 @@ public class ChannelTabController extends AbstractChatTabController implements I
     String normalizedText = StringUtils.normalizeSpace(topicTextField.getText());
     if (!normalizedText.equals(chatChannel.getTopic())) {
       topicPane.setDisable(true);
-      topicTriggeredByUser = true;
       chatService.setChannelTopic(channelName, normalizedText);
     } else {
       topicTextField.setVisible(false);
