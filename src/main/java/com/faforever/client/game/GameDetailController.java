@@ -16,7 +16,6 @@ import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -30,7 +29,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.time.OffsetDateTime;
 
 @Component
 @Slf4j
@@ -59,7 +58,8 @@ public class GameDetailController implements Controller<Pane> {
   public WatchButtonController watchButtonController;
   public Node watchButton;
 
-  private final ReadOnlyObjectWrapper<GameBean> game = new ReadOnlyObjectWrapper<>();
+  private GameBean game;
+
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
   private InvalidationListener numPlayersInvalidationListener;
@@ -81,7 +81,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGameStatusChanged() {
-    GameBean game = this.game.get();
     if (game != null) {
       switch (game.getStatus()) {
         case PLAYING -> JavaFxUtil.runLater(() -> joinButton.setVisible(false));
@@ -92,7 +91,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGamePropertyChanged() {
-    GameBean game = this.game.get();
     if (game != null) {
       JavaFxUtil.runLater(() -> {
         gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
@@ -105,7 +103,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onNumPlayersChanged() {
-    GameBean game = this.game.get();
     if (game != null) {
       JavaFxUtil.runLater(() ->
           numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())));
@@ -115,7 +112,7 @@ public class GameDetailController implements Controller<Pane> {
   public void setGame(GameBean game) {
     resetListeners();
 
-    this.game.set(game);
+    this.game = game;
     if (game == null) {
       hideGameDetail();
       return;
@@ -150,22 +147,23 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onStartTimeChanged() {
-    Optional.ofNullable(game.get())
-        .filter(gameBean -> gameBean.getStatus() == GameStatus.PLAYING)
-        .map(GameBean::getStartTime)
-        .ifPresentOrElse(startTime -> JavaFxUtil.runLater(() -> {
-              watchButtonController.setGame(game.get());
-              joinButton.setVisible(false);
-              watchButton.setVisible(true);
-            }),
-            () -> JavaFxUtil.runLater(() -> {
-              joinButton.setVisible(game.get() != null && game.get().getStatus() == GameStatus.OPEN);
-              watchButton.setVisible(false);
-            }));
+    if (game != null && game.getStatus() == GameStatus.PLAYING) {
+      OffsetDateTime startTime = game.getStartTime();
+      JavaFxUtil.runLater(() -> {
+        if (startTime != null) {
+          watchButtonController.setGame(game);
+          joinButton.setVisible(false);
+        }
+        watchButton.setVisible(startTime != null);
+      });
+    } else {
+      joinButton.setVisible(game != null && game.getStatus() == GameStatus.OPEN);
+      watchButton.setVisible(false);
+    }
   }
 
   private void onFeaturedModChanged() {
-    modService.getFeaturedMod(game.get().getFeaturedMod())
+    modService.getFeaturedMod(game.getFeaturedMod())
         .thenAccept(featuredMod -> {
           String fullName = featuredMod != null ? featuredMod.getDisplayName() : null;
           JavaFxUtil.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(fullName)));
@@ -173,7 +171,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void createTeams() {
-    TeamCardController.createAndAdd(game.get(), playerService, uiService, teamListPane);
+    TeamCardController.createAndAdd(game, playerService, uiService, teamListPane);
   }
 
   private void showGameDetail() {
@@ -190,10 +188,12 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void onJoinButtonClicked() {
-    joinGameHelper.join(game.get());
+    joinGameHelper.join(game);
   }
 
   public void onMapPreviewImageClicked() {
-    Optional.ofNullable(game.get()).ifPresent(gameBean -> PopupUtil.showImagePopup(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE)));
+    if (game != null) {
+      PopupUtil.showImagePopup(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
+    }
   }
 }
