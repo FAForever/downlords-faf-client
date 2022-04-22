@@ -15,12 +15,14 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,7 +64,7 @@ public class GameDetailControllerTest extends UITest {
     game = GameBeanBuilder.create().defaultValues().get();
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
-    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(null);
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(mock(Image.class));
     when(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()));
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
@@ -75,21 +78,11 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testSetGame() {
-    assertTrue(instance.gameTitleLabel.isVisible());
-    assertTrue(instance.hostLabel.isVisible());
-    assertTrue(instance.numberOfPlayersLabel.isVisible());
-    assertTrue(instance.mapImageView.isVisible());
-    assertTrue(instance.gameTypeLabel.isVisible());
-    assertTrue(instance.joinButton.isVisible());
+    assertTrue(instance.getRoot().isVisible());
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
 
     runOnFxThreadAndWait(() -> instance.setGame(null));
-    assertFalse(instance.gameTitleLabel.isVisible());
-    assertFalse(instance.hostLabel.isVisible());
-    assertFalse(instance.numberOfPlayersLabel.isVisible());
-    assertFalse(instance.mapImageView.isVisible());
-    assertFalse(instance.gameTypeLabel.isVisible());
-    assertFalse(instance.joinButton.isVisible());
+    assertFalse(instance.getRoot().isVisible());
     assertEquals(0, instance.teamListPane.getChildren().size());
   }
 
@@ -98,7 +91,7 @@ public class GameDetailControllerTest extends UITest {
     assertFalse(instance.watchButton.isVisible());
     assertTrue(instance.joinButton.isVisible());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.PLAYING));
-    assertTrue(instance.watchButton.isVisible());
+    assertFalse(instance.watchButton.isVisible());
     assertFalse(instance.joinButton.isVisible());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
     assertFalse(instance.watchButton.isVisible());
@@ -106,8 +99,13 @@ public class GameDetailControllerTest extends UITest {
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.UNKNOWN));
     assertFalse(instance.watchButton.isVisible());
     assertFalse(instance.joinButton.isVisible());
-    game.setStartTime(null);
-    runOnFxThreadAndWait(() -> game.setStatus(GameStatus.PLAYING));
+    runOnFxThreadAndWait(() -> {
+      game.setStatus(GameStatus.PLAYING);
+      game.setStartTime(OffsetDateTime.now());
+    });
+    assertTrue(instance.watchButton.isVisible());
+    assertFalse(instance.joinButton.isVisible());
+    runOnFxThreadAndWait(() -> game.setStartTime(null));
     assertFalse(instance.watchButton.isVisible());
     assertFalse(instance.joinButton.isVisible());
 

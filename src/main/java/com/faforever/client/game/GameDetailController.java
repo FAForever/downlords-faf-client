@@ -12,14 +12,16 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.vault.replay.WatchButtonController;
+import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,55 +52,41 @@ public class GameDetailController implements Controller<Pane> {
   public Label numberOfPlayersLabel;
   public Label hostLabel;
   public VBox teamListPane;
+  public StackPane mapPreviewContainer;
   public ImageView mapImageView;
   public Label gameTitleLabel;
   public Node joinButton;
   public WatchButtonController watchButtonController;
   public Node watchButton;
+
   private final ReadOnlyObjectWrapper<GameBean> game = new ReadOnlyObjectWrapper<>();
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
   private InvalidationListener numPlayersInvalidationListener;
   private InvalidationListener gamePropertiesInvalidationListener;
   private InvalidationListener featuredModInvalidationListener;
+  private InvalidationListener startTimeInvalidationListener;
 
   public void initialize() {
-    watchButton = watchButtonController.getRoot();
-
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
-        mapImageView, gameTypeLabel);
+        mapPreviewContainer, gameTypeLabel);
+    JavaFxUtil.bind(mapPreviewContainer.visibleProperty(), mapImageView.imageProperty().isNotNull());
     gameDetailRoot.parentProperty().addListener(observable -> {
       if (!(gameDetailRoot.getParent() instanceof Pane)) {
         return;
       }
       gameDetailRoot.maxWidthProperty().bind(((Pane) gameDetailRoot.getParent()).widthProperty());
     });
-
-    setGame(null);
   }
 
   private void onGameStatusChanged() {
     GameBean game = this.game.get();
     if (game != null) {
       switch (game.getStatus()) {
-        case PLAYING -> {
-          JavaFxUtil.runLater(() -> {
-            joinButton.setVisible(false);
-            watchButton.setVisible(game.getStartTime() != null);
-          });
-          if (game.getStartTime() != null) {
-            watchButtonController.setGame(game);
-          }
-        }
-        case OPEN -> JavaFxUtil.runLater(() -> {
-          joinButton.setVisible(true);
-          watchButton.setVisible(false);
-        });
-        case UNKNOWN, CLOSED -> JavaFxUtil.runLater(() -> {
-          joinButton.setVisible(false);
-          watchButton.setVisible(false);
-        });
+        case PLAYING -> JavaFxUtil.runLater(() -> joinButton.setVisible(false));
+        case OPEN -> JavaFxUtil.runLater(() -> joinButton.setVisible(true));
+        case UNKNOWN, CLOSED -> hideGameDetail();
       }
     }
   }
@@ -110,7 +98,8 @@ public class GameDetailController implements Controller<Pane> {
         gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
         hostLabel.setText(game.getHost());
         mapLabel.setText(game.getMapFolderName());
-        mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
+        // Do not load coop map preview because they do not exist on API vault
+        mapImageView.setImage(game.getGameType() != GameType.COOP ? mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE) : null);
       });
     }
   }
@@ -128,28 +117,17 @@ public class GameDetailController implements Controller<Pane> {
 
     this.game.set(game);
     if (game == null) {
-      gameTitleLabel.setVisible(false);
-      hostLabel.setVisible(false);
-      mapLabel.setVisible(false);
-      numberOfPlayersLabel.setVisible(false);
-      mapImageView.setVisible(false);
-      gameTypeLabel.setVisible(false);
-      joinButton.setVisible(false);
+      hideGameDetail();
       return;
     }
 
-    gameTitleLabel.setVisible(true);
-    hostLabel.setVisible(true);
-    mapLabel.setVisible(true);
-    numberOfPlayersLabel.setVisible(true);
-    mapImageView.setVisible(true);
-    gameTypeLabel.setVisible(true);
-    joinButton.setVisible(true);
+    showGameDetail();
 
     WeakInvalidationListener weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
     WeakInvalidationListener weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
     WeakInvalidationListener weakGamePropertiesListener = new WeakInvalidationListener(gamePropertiesInvalidationListener);
     WeakInvalidationListener weakNumPlayersListener = new WeakInvalidationListener(numPlayersInvalidationListener);
+    WeakInvalidationListener weakStartTimeListener = new WeakInvalidationListener(startTimeInvalidationListener);
 
     JavaFxUtil.addAndTriggerListener(game.featuredModProperty(), new WeakInvalidationListener(featuredModInvalidationListener));
     JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamListener);
@@ -159,6 +137,7 @@ public class GameDetailController implements Controller<Pane> {
     JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
     JavaFxUtil.addAndTriggerListener(game.numPlayersProperty(), weakNumPlayersListener);
     JavaFxUtil.addListener(game.maxPlayersProperty(), weakNumPlayersListener);
+    JavaFxUtil.addAndTriggerListener(game.startTimeProperty(), weakStartTimeListener);
   }
 
   public void resetListeners() {
@@ -167,6 +146,22 @@ public class GameDetailController implements Controller<Pane> {
     teamsInvalidationListener = observable -> createTeams();
     numPlayersInvalidationListener = observable -> onNumPlayersChanged();
     gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
+    startTimeInvalidationListener = observable -> onStartTimeChanged();
+  }
+
+  private void onStartTimeChanged() {
+    Optional.ofNullable(game.get())
+        .filter(gameBean -> gameBean.getStatus() == GameStatus.PLAYING)
+        .map(GameBean::getStartTime)
+        .ifPresentOrElse(startTime -> JavaFxUtil.runLater(() -> {
+              watchButtonController.setGame(game.get());
+              joinButton.setVisible(false);
+              watchButton.setVisible(true);
+            }),
+            () -> JavaFxUtil.runLater(() -> {
+              joinButton.setVisible(game.get() != null && game.get().getStatus() == GameStatus.OPEN);
+              watchButton.setVisible(false);
+            }));
   }
 
   private void onFeaturedModChanged() {
@@ -177,12 +172,16 @@ public class GameDetailController implements Controller<Pane> {
         });
   }
 
-  public ReadOnlyObjectProperty<GameBean> gameProperty() {
-    return game.getReadOnlyProperty();
-  }
-
   private void createTeams() {
     TeamCardController.createAndAdd(game.get(), playerService, uiService, teamListPane);
+  }
+
+  private void showGameDetail() {
+    JavaFxUtil.runLater(() -> getRoot().setVisible(true));
+  }
+
+  private void hideGameDetail() {
+    JavaFxUtil.runLater(() -> getRoot().setVisible(false));
   }
 
   @Override

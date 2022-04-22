@@ -2,7 +2,6 @@ package com.faforever.client.player;
 
 import com.faforever.client.achievements.AchievementService;
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
@@ -15,13 +14,13 @@ import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.AchievementState;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -31,12 +30,13 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class PrivatePlayerInfoController implements Controller<Node> {
+
   private final I18n i18n;
   private final AchievementService achievementService;
   private final LeaderboardService leaderboardService;
-  private final EventBus eventBus;
-  private final ChatUserService chatUserService;
+
   public ImageView userImageView;
   public Label usernameLabel;
   public ImageView countryImageView;
@@ -56,15 +56,6 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   private InvalidationListener chatUserPropertiesInvalidationListener;
   private InvalidationListener ratingInvalidationListener;
 
-  public PrivatePlayerInfoController(I18n i18n, AchievementService achievementService, LeaderboardService leaderboardService,
-                                     EventBus eventBus, ChatUserService chatUserService) {
-    this.i18n = i18n;
-    this.achievementService = achievementService;
-    this.leaderboardService = leaderboardService;
-    this.eventBus = eventBus;
-    this.chatUserService = chatUserService;
-  }
-
   @Override
   public Node getRoot() {
     return privateUserInfoRoot;
@@ -81,7 +72,6 @@ public class PrivatePlayerInfoController implements Controller<Node> {
         gamesPlayedLabelLabel,
         unlockedAchievementsLabelLabel
     );
-    onPlayerGameChanged(null);
   }
 
   private void initializePlayerListeners() {
