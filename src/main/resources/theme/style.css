@@ -1036,6 +1036,7 @@
 
 .toggle-button.queue {
   -fx-border-color: -fx-accent;
+  -fx-padding: 8 5;
 }
 
 .toggle-button.queue:hover {
@@ -1049,6 +1050,7 @@
 .toggle-button.queue .text {
   -fx-font-family: 'Source Sans Pro Semibold';
   -fx-text-fill: -fx-text-color;
+  -fx-font-size: 24px;
 }
 
 .map-pool:hover {
