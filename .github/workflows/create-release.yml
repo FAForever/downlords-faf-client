@@ -49,8 +49,8 @@ jobs:
           
           while [[ $(git tag -l "$baseTag") ]]; 
           do 
+            count=$(($count+1));
             baseTag=$tagPrefix.$count; 
-            count=$(($count+1)); 
           done
           
           if [[ "${{ github.event.inputs.release_type }}" == "Alpha" ]]; then
@@ -66,8 +66,8 @@ jobs:
             tag=$baseTag-$count
             while [[ $(git tag -l "$tag") ]]; 
             do 
-              tag=$baseTag-$count; 
-              count=$(($count+1)); 
+              count=$(($count+1));
+              tag=$baseTag-$count;
             done
           else 
             tag=$baseTag
