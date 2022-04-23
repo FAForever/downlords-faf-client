@@ -113,6 +113,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private final ExecutorService usersEventQueueExecutor = Executors.newSingleThreadExecutor();
 
   private Future<?> listInitializationFuture;
+  private volatile boolean isListInQueue;
 
   /* ----- Listeners ----- */
   private final ListChangeListener<ChatUserCategory> hiddenCategoriesListener = change -> {
@@ -231,20 +232,23 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     JavaFxUtil.addListener(channelTab.selectedProperty(), new WeakInvalidationListener(selectedChannelTabListener));
   }
 
-  private void initializeList() {
-    usersEventQueueExecutor.execute(() -> {
-      items = new FilteredList<>(new SortedList<>(source, ListItem.getComparator()));
-      listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
-      VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
-      scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
-      VBox.setVgrow(scrollPane, Priority.ALWAYS);
-      chatUserFilterController.finalizeFiltersSettings(items, searchUsernameTextField);
-      JavaFxUtil.runLater(() -> {
-        userListContainer.getChildren().add(scrollPane);
-        userListTools.setDisable(false);
-        updateUserCount();
+  private synchronized void initializeList() {
+    if (!isListInQueue) {
+      isListInQueue = true;
+      usersEventQueueExecutor.execute(() -> {
+        items = new FilteredList<>(new SortedList<>(source, ListItem.getComparator()));
+        listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
+        VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
+        scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        chatUserFilterController.finalizeFiltersSettings(items, searchUsernameTextField);
+        JavaFxUtil.runLater(() -> {
+          userListContainer.getChildren().add(scrollPane);
+          userListTools.setDisable(false);
+          updateUserCount();
+        });
       });
-    });
+    }
   }
 
   private void initializeListIfNeed() {
