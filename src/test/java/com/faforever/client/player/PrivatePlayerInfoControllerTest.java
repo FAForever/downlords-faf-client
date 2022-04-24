@@ -110,7 +110,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
     assertEquals("123", instance.gamesPlayedLabel.getText());
-    verify(gameDetailController, times(2)).setGame(player.getGame());
+    verify(gameDetailController).setGame(player.getGame());
     verify(achievementService).getPlayerAchievements(player.getId());
   }
 
@@ -130,7 +130,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController, times(2)).setGame(player.getGame());
+    verify(gameDetailController).setGame(player.getGame());
 
     player.setGame(GameBeanBuilder.create().defaultValues().get());
 
@@ -150,7 +150,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     player.setGame(null);
 
     assertFalse(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController, times(3)).setGame(player.getGame());
+    verify(gameDetailController, times(2)).setGame(player.getGame());
   }
 
   @Test
@@ -178,7 +178,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     assertFalse(instance.gamesPlayedLabelLabel.isVisible());
     assertFalse(instance.unlockedAchievementsLabel.isVisible());
     assertFalse(instance.unlockedAchievementsLabelLabel.isVisible());
-    verify(gameDetailController, times(2)).setGame(null);
+    verify(gameDetailController).setGame(null);
   }
 
   @Test
@@ -195,7 +195,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     assertFalse(instance.gamesPlayedLabelLabel.isVisible());
     assertFalse(instance.unlockedAchievementsLabel.isVisible());
     assertFalse(instance.unlockedAchievementsLabelLabel.isVisible());
-    verify(gameDetailController, times(2)).setGame(null);
+    verify(gameDetailController).setGame(null);
 
     player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
     chatChannelUser.setPlayer(player);
@@ -216,7 +216,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     assertTrue(instance.ratingsValues.getText().contains("123"));
     assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
     assertEquals("123", instance.gamesPlayedLabel.getText());
-    verify(gameDetailController, times(3)).setGame(player.getGame());
+    verify(gameDetailController, times(2)).setGame(player.getGame());
     verify(achievementService).getPlayerAchievements(player.getId());
   }
 

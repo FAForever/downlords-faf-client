@@ -28,7 +28,7 @@
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     </rowConstraints>
-    <StackPane GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
+    <StackPane fx:id="mapPreviewContainer" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
         <ImageView fx:id="mapImageView" fitWidth="256.0" fitHeight="256.0" preserveRatio="true"
                    styleClass="map-preview"/>
         <Pane styleClass="clickable" maxHeight="256.0" maxWidth="256.0" onMouseClicked="#onMapPreviewImageClicked" StackPane.alignment="CENTER"/>
