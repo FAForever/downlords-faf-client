@@ -251,6 +251,10 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
           userListContainer.getChildren().add(scrollPane);
           userListTools.setDisable(false);
           updateUserCount();
+
+          if (onListInitializedHandler != null) {
+            onListInitializedHandler.run();
+          }
         });
       });
     }
