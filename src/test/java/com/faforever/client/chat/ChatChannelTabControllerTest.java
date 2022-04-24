@@ -163,7 +163,7 @@ public class ChatChannelTabControllerTest extends UITest {
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
 
-    defaultChatChannel.setTopic(null);
+    defaultChatChannel.setTopic(new ChannelTopic("",""));
     initializeDefaultChatChannel();
     assertFalse(instance.topicPane.isVisible());
   }

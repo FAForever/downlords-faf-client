@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
+import org.kitteh.irc.client.library.Client.WithManagement;
 import org.kitteh.irc.client.library.defaults.DefaultClient;
 import org.kitteh.irc.client.library.defaults.element.DefaultActor;
 import org.kitteh.irc.client.library.defaults.element.DefaultChannelTopic;
@@ -36,6 +37,7 @@ import org.kitteh.irc.client.library.defaults.element.mode.DefaultChannelUserMod
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatus;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatusList;
 import org.kitteh.irc.client.library.defaults.feature.DefaultEventManager;
+import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.User;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
@@ -437,11 +439,12 @@ public class KittehChatServiceTest extends ServiceTest {
     eventManager.callEvent(new ChannelTopicEvent(client,
         new StringCommand("", "", List.of()),
         defaultChannel,
-        new DefaultChannelTopic(null, "old topic", null),
-        new DefaultChannelTopic(null, "new topic", null),
+        new DefaultChannelTopic(null, "old topic", new DefaultActor(mock(WithManagement.class), "junit1")),
+        new DefaultChannelTopic(null, "new topic", new DefaultActor(mock(WithManagement.class), "junit2")),
         false));
 
-    assertThat(chatChannel.getTopic(), is("new topic"));
+    assertEquals("junit2", chatChannel.getTopic().getAuthor());
+    assertEquals("new topic", chatChannel.getTopic().getContent());
   }
 
   @Test
