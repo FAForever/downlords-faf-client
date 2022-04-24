@@ -439,8 +439,8 @@ public class KittehChatServiceTest extends ServiceTest {
     eventManager.callEvent(new ChannelTopicEvent(client,
         new StringCommand("", "", List.of()),
         defaultChannel,
-        new DefaultChannelTopic(null, "old topic", new DefaultActor(mock(WithManagement.class), "junit1")),
-        new DefaultChannelTopic(null, "new topic", new DefaultActor(mock(WithManagement.class), "junit2")),
+        new DefaultChannelTopic(null, "old topic", new DefaultActor(mock(WithManagement.class), "junit1!IP")),
+        new DefaultChannelTopic(null, "new topic", new DefaultActor(mock(WithManagement.class), "junit2!IP")),
         false));
 
     assertEquals("junit2", chatChannel.getTopic().getAuthor());
