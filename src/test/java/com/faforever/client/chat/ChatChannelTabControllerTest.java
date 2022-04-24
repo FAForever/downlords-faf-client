@@ -148,7 +148,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testSetChannelTopic() {
-    defaultChatChannel.setTopic("topic https://example.com/1");
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME, "topic https://example.com/1"));
     initializeDefaultChatChannel();
 
     assertEquals(2, instance.topicText.getChildren().size());
@@ -176,12 +176,12 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testChannelTopicUpdate() {
-    defaultChatChannel.setTopic("topic1: https://faforever.com");
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME, "topic1: https://faforever.com"));
     initializeDefaultChatChannel();
 
     assertEquals(2, instance.topicText.getChildren().size());
 
-    runOnFxThreadAndWait(() -> defaultChatChannel.setTopic("topic2: https://faforever.com topic3: https://faforever.com/example"));
+    runOnFxThreadAndWait(() -> defaultChatChannel.setTopic(new ChannelTopic("junit2", "topic2: https://faforever.com topic3: https://faforever.com/example")));
     assertEquals(4, instance.topicText.getChildren().size());
     assertEquals("topic2: ", ((Labeled) instance.topicText.getChildren().get(0)).getText());
     assertEquals("https://faforever.com", ((Labeled) instance.topicText.getChildren().get(1)).getText());
@@ -235,7 +235,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testOnTopicTextFieldEntered() {
-    defaultChatChannel.setTopic("topic1: https://faforever.com");
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME,"topic1: https://faforever.com"));
     initializeDefaultChatChannel();
 
     runOnFxThreadAndWait(() -> {
@@ -248,7 +248,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testOnChangeTopicTextButtonClicked() {
-    defaultChatChannel.setTopic("topic1: https://faforever.com");
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME,"topic1: https://faforever.com"));
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.onChangeTopicTextButtonClicked());
     assertEquals("topic1: https://faforever.com", instance.topicTextField.getText());
@@ -258,7 +258,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testOnCancelChangesTopicTextButtonClicked() {
-    defaultChatChannel.setTopic("topic: https://faforever.com");
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME, "topic: https://faforever.com"));
     initializeDefaultChatChannel();
 
     runOnFxThreadAndWait(() -> {
@@ -275,7 +275,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void textCheckTextTopicLimitListener() {
-    defaultChatChannel.setTopic("topic: https://faforever.com");
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME, "topic: https://faforever.com"));
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.onChangeTopicTextButtonClicked());
     int length = "topic: https://faforever.com".length();

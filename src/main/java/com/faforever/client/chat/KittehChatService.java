@@ -38,10 +38,12 @@ import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
 import org.kitteh.irc.client.library.defaults.DefaultClient;
+import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.User;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
@@ -288,8 +290,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Handler
   private void onTopicChange(ChannelTopicEvent event) {
-    Channel channel = event.getChannel();
-    getOrCreateChannel(channel.getName()).setTopic(event.getNewTopic().getValue().orElse(""));
+    String author = event.getNewTopic().getSetter().map(Actor::getName)
+        .map(name -> name.replaceFirst("!.*", "")).orElse("");
+    String content = event.getNewTopic().getValue().orElse("");
+    getOrCreateChannel(event.getChannel().getName()).setTopic(new ChannelTopic(author, content));
   }
 
   @Handler

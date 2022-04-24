@@ -1,11 +1,12 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.JavaFxUtil;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import java.util.ArrayList;
@@ -13,27 +14,22 @@ import java.util.Collections;
 import java.util.List;
 
 @Value
+@RequiredArgsConstructor
 public class ChatChannel {
 
-  ObservableMap<String, ChatChannelUser> users;
-  StringProperty topic;
+  ObservableMap<String, ChatChannelUser> users = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+  ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
   String name;
 
-  public ChatChannel(String name) {
-    this.name = name;
-    users = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
-    topic = new SimpleStringProperty();
-  }
-
-  public String getTopic() {
+  public ChannelTopic getTopic() {
     return topic.get();
   }
 
-  public void setTopic(String topic) {
+  public void setTopic(ChannelTopic topic) {
     this.topic.set(topic);
   }
 
-  public StringProperty topicProperty() {
+  public ObjectProperty<ChannelTopic> topicProperty() {
     return topic;
   }
 

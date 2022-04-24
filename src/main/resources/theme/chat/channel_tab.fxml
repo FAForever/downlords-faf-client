@@ -26,7 +26,7 @@
             <SplitPane fx:id="splitPane" dividerPositions="0.8" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                 <VBox>
                     <children>
-                        <HBox fx:id="topicPane" spacing="8.0" styleClass="topic-channel">
+                        <HBox fx:id="topicPane" spacing="8.0" styleClass="topic-channel" alignment="CENTER_RIGHT">
                             <TextFlow fx:id="topicText" HBox.hgrow="ALWAYS"/>
                             <TextField fx:id="topicTextField" onAction="#onTopicTextFieldEntered"
                                        HBox.hgrow="ALWAYS" visible="false"/>
