@@ -37,7 +37,6 @@ import org.kitteh.irc.client.library.defaults.element.mode.DefaultChannelUserMod
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatus;
 import org.kitteh.irc.client.library.defaults.element.mode.DefaultModeStatusList;
 import org.kitteh.irc.client.library.defaults.feature.DefaultEventManager;
-import org.kitteh.irc.client.library.element.Actor;
 import org.kitteh.irc.client.library.element.Channel;
 import org.kitteh.irc.client.library.element.User;
 import org.kitteh.irc.client.library.element.mode.ChannelUserMode;
