@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
+import org.kitteh.irc.client.library.Client.WithManagement;
 import org.kitteh.irc.client.library.defaults.DefaultClient;
 import org.kitteh.irc.client.library.defaults.element.DefaultActor;
 import org.kitteh.irc.client.library.defaults.element.DefaultChannelTopic;
@@ -437,11 +438,12 @@ public class KittehChatServiceTest extends ServiceTest {
     eventManager.callEvent(new ChannelTopicEvent(client,
         new StringCommand("", "", List.of()),
         defaultChannel,
-        new DefaultChannelTopic(null, "old topic", null),
-        new DefaultChannelTopic(null, "new topic", null),
+        new DefaultChannelTopic(null, "old topic", new DefaultActor(mock(WithManagement.class), "junit1!IP")),
+        new DefaultChannelTopic(null, "new topic", new DefaultActor(mock(WithManagement.class), "junit2!IP")),
         false));
 
-    assertThat(chatChannel.getTopic(), is("new topic"));
+    assertEquals("junit2", chatChannel.getTopic().getAuthor());
+    assertEquals("new topic", chatChannel.getTopic().getContent());
   }
 
   @Test
@@ -557,19 +559,6 @@ public class KittehChatServiceTest extends ServiceTest {
     connect();
 
     assertThat(onChatConnectedFuture.get(TIMEOUT, TIMEOUT_UNIT), is(nullValue()));
-  }
-
-  @Test
-  public void testAddOnModeratorSetListener() {
-    ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
-    assertThat(chatChannel.getUsers(), empty());
-    defaultChatUser1.setModerator(true);
-
-    connect();
-
-    join(defaultChannel, user1);
-
-    assertThat(defaultChatUser1.isModerator(), is(true));
   }
 
   @Test

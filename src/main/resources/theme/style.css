@@ -1389,6 +1389,25 @@
   -fx-padding: 4 0 4 0;
 }
 
+/***************** Public Chat Channel ***************************/
+
+.topic-channel {
+  -fx-padding: 0.25em 0.25em 0.25em 0.5em; /* 4 4 4 8 */
+}
+
+.topic-channel-button {
+  -fx-border-color: -darkened-color;
+}
+
+.topic-channel-button {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+}
+
+.topic-channel-button:hover {
+  -fx-border-color: -darkened-color;
+}
+
 /***************** Private Chat Channel ***************************/
 
 .open-emoticons-window {

@@ -51,6 +51,8 @@ public interface ChatService {
 
   void whois(String username);
 
+  void setChannelTopic(String channelName, String text);
+
   /**
    * Increase or decrease the number of unread messages.
    *

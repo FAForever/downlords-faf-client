@@ -62,6 +62,10 @@ public class ChatChannelUser {
   private ChangeListener<String> countryInvalidationListener;
   private InvalidationListener displayedChangeListener;
 
+  public ChatChannelUser(String username, String channel) {
+    this(username, channel, false);
+  }
+
   public ChatChannelUser(String username, String channel, boolean moderator) {
     this.username.set(username);
     this.channel.set(channel);

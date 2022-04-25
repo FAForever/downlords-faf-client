@@ -33,12 +33,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +48,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -63,6 +64,8 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public static final String MODERATOR_STYLE_CLASS = "moderator";
   public static final String USER_STYLE_CLASS = "user-%s";
 
+  private static final int TOPIC_CHARACTERS_LIMIT = 350;
+
   private final PlatformService platformService;
 
   public Tab root;
@@ -72,19 +75,26 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public TextField chatMessageSearchTextField;
   public WebView messagesWebView;
   public TextField messageTextField;
-  public VBox topicPane;
+  public HBox topicPane;
+  public Label topicCharactersLimitLabel;
+  public TextField topicTextField;
   public TextFlow topicText;
+  public Button changeTopicTextButton;
+  public Button cancelChangesTopicTextButton;
   public ToggleButton userListVisibilityToggleButton;
   public Node chatUserList;
   public ChatUserListController chatUserListController;
 
   private ChatPrefs chatPrefs;
-
   private String channelName;
   private ChatChannel chatChannel;
+  private String topicContent = "";
 
   /* Listeners */
   private final InvalidationListener topicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
+  private final InvalidationListener changeTopicTextListener = observable -> updateTopicLimit();
+  private final ChangeListener<Boolean> moderatorListener = (observable, oldValue, newValue) ->
+      JavaFxUtil.runLater(() -> changeTopicTextButton.setVisible(newValue));
 
   private final ChangeListener<String> searchChatMessageListener = (observable, oldValue, newValue) -> {
     if (StringUtils.isBlank(newValue)) {
@@ -115,22 +125,36 @@ public class ChannelTabController extends AbstractChatTabController implements I
   @Override
   public void initialize() {
     super.initialize();
-    JavaFxUtil.bindManagedToVisible(topicPane, chatUserList);
+    JavaFxUtil.bindManagedToVisible(topicPane, chatUserList, changeTopicTextButton, topicTextField,
+        cancelChangesTopicTextButton, topicText, topicCharactersLimitLabel);
+    JavaFxUtil.bind(topicCharactersLimitLabel.visibleProperty(), topicTextField.visibleProperty());
+    JavaFxUtil.bind(cancelChangesTopicTextButton.visibleProperty(), topicTextField.visibleProperty());
     JavaFxUtil.bind(chatMessageSearchTextField.visibleProperty(), chatMessageSearchContainer.visibleProperty());
     JavaFxUtil.bind(closeChatMessageSearchButton.visibleProperty(), chatMessageSearchContainer.visibleProperty());
     JavaFxUtil.bind(chatUserList.visibleProperty(), userListVisibilityToggleButton.selectedProperty());
 
     userListVisibilityToggleButton.setSelected(preferencesService.getPreferences().getChat().isPlayerListShown());
+    topicTextField.setTextFormatter(new TextFormatter<>(change -> change.getControlNewText().length() <= TOPIC_CHARACTERS_LIMIT ? change : null));
+
+    JavaFxUtil.addAndTriggerListener(topicTextField.textProperty(), new WeakInvalidationListener(changeTopicTextListener));
   }
 
   public void setChatChannel(ChatChannel chatChannel, BooleanBinding chatTabSelectedProperty) {
     this.chatChannel = chatChannel;
     this.channelName = chatChannel.getName();
+    JavaFxUtil.bind(topicPane.visibleProperty(), topicText.visibleProperty()
+        .or(changeTopicTextButton.visibleProperty())
+        .or(topicTextField.visibleProperty()));
+
+    chatUserListController.setOnListInitialized(() ->
+        Optional.ofNullable(chatChannel.getUser(userService.getUsername())).ifPresentOrElse(
+            ownUser -> JavaFxUtil.addAndTriggerListener(ownUser.moderatorProperty(), new WeakChangeListener<>(moderatorListener)),
+            () -> log.warn("Cannot get own chat user of `{}` channel", channelName))); // Shouldn't happen
     chatUserListController.setChatChannel(chatChannel, getRoot(), chatTabSelectedProperty);
     chatUserListController.getAutoCompletionHelper().bindTo(messageTextField());
 
     updateTabProperties();
-    updateChannelTopic();
+    setChannelTopic(chatChannel.getTopic().getContent());
     setReceiver(chatChannel.getName());
 
     initializeListeners();
@@ -166,13 +190,13 @@ public class ChannelTabController extends AbstractChatTabController implements I
     });
   }
 
-  private void updateChannelTopic() {
+  private void setChannelTopic(String content) {
     List<Node> children = topicText.getChildren();
-    boolean empty = StringUtils.isBlank(chatChannel.getTopic());
-    topicPane.setVisible(!empty);
     children.clear();
-    if (!empty) {
-      Arrays.stream(chatChannel.getTopic().split("\\s"))
+    boolean notBlank = StringUtils.isNotBlank(content);
+    if (notBlank) {
+      topicContent = content;
+      Arrays.stream(content.split("\\s"))
           .forEach(word -> {
             if (URL_REGEX_PATTERN.matcher(word).matches()) {
               Hyperlink link = new Hyperlink(word);
@@ -182,6 +206,22 @@ public class ChannelTabController extends AbstractChatTabController implements I
               children.add(new Label(word + " "));
             }
           });
+    }
+    topicText.setVisible(notBlank);
+  }
+
+  private void updateChannelTopic() {
+    String oldTopicContent = topicContent;
+    ChannelTopic topic = chatChannel.getTopic();
+    setChannelTopic(topic.getContent());
+    if (StringUtils.isNotBlank(topic.getAuthor())) {
+      onChatMessage(new ChatMessage(channelName, Instant.now(), topic.getAuthor(), i18n.get("chat.topicUpdated", oldTopicContent, topic.getContent())));
+    }
+
+    if (topicPane.isDisable()) {
+      topicTextField.setVisible(false);
+      changeTopicTextButton.setVisible(true);
+      topicPane.setDisable(false);
     }
   }
 
@@ -291,6 +331,36 @@ public class ChannelTabController extends AbstractChatTabController implements I
     } else {
       return user.getColor().map(color -> String.format("color: %s;", JavaFxUtil.toRgbCode(color))).orElse("");
     }
+  }
+
+  public void onChangeTopicTextButtonClicked() {
+    changeTopicTextButton.setVisible(false);
+    topicText.setVisible(false);
+    topicTextField.setText(StringUtils.isNotBlank(topicContent) ? topicContent : "");
+    topicTextField.setVisible(true);
+    topicTextField.requestFocus();
+    topicTextField.selectEnd();
+  }
+
+  public void onTopicTextFieldEntered() {
+    String normalizedText = StringUtils.normalizeSpace(topicTextField.getText());
+    if (!normalizedText.equals(topicContent)) {
+      topicPane.setDisable(true);
+      chatService.setChannelTopic(channelName, normalizedText);
+    } else {
+      onCancelChangesTopicTextButtonClicked();
+    }
+  }
+
+  public void onCancelChangesTopicTextButtonClicked() {
+    topicTextField.setText(StringUtils.isNotBlank(topicContent) ? topicContent : "");
+    topicTextField.setVisible(false);
+    topicText.setVisible(true);
+    changeTopicTextButton.setVisible(true);
+  }
+
+  private void updateTopicLimit() {
+    topicCharactersLimitLabel.setText(String.format("%d / %d", topicTextField.getText().length(), TOPIC_CHARACTERS_LIMIT));
   }
 
   @Override
