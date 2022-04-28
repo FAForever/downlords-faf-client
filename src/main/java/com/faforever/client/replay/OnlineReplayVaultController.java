@@ -189,13 +189,8 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   }
 
   private void showReplayWithID(int replayId) {
-    replayService.findById(replayId).thenAccept(replay -> {
-      if (replay.isPresent()) {
-        JavaFxUtil.runLater(() -> onDisplayDetails(replay.get()));
-      } else {
-        notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId);
-      }
-    });
+    replayService.findById(replayId).thenAccept(possibleReplay -> possibleReplay.ifPresentOrElse(replayBean -> JavaFxUtil.runLater(() -> onDisplayDetails(replayBean)),
+        () -> notificationService.addImmediateWarnNotification("replay.replayNotFoundText", replayId)));
   }
 
   private void onShowUserReplaysEvent(ShowUserReplaysEvent event) {

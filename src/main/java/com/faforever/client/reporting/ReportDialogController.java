@@ -97,7 +97,7 @@ public class ReportDialogController implements Controller<Node> {
     statusColumn.setCellValueFactory(param -> param.getValue().reportStatusProperty());
     statusColumn.setCellFactory(param -> new StringCell<>(status -> i18n.get(status.getI18nKey())));
 
-    updateReportTable();
+    populateReportTable();
   }
 
   public void onReportButtonClicked() {
@@ -149,18 +149,21 @@ public class ReportDialogController implements Controller<Node> {
         })
         .thenCompose(submit -> {
           if (submit && !gameId.getText().isBlank()) {
-            return replayService.findById(Integer.parseInt(gameId.getText())).thenApply(replay -> {
-              if (replay.isEmpty()) {
+            return replayService.findById(Integer.parseInt(gameId.getText())).thenApply(possibleReplay -> {
+              if (possibleReplay.isEmpty()) {
                 warnNoGame();
                 return false;
               }
 
-              if (replay.get().getTeams().values().stream().flatMap(Collection::stream).noneMatch(username -> username.equals(offender.getText()))) {
+              ReplayBean actualReplay = possibleReplay.get();
+              if (actualReplay.getTeams().values().stream().flatMap(Collection::stream).noneMatch(username -> username.equals(offender.getText()))) {
                 warnOffenderNotInGame();
                 return false;
               }
 
-              report.setGame(replay.get());
+              ReplayBean replayBean = new ReplayBean();
+              replayBean.setId(actualReplay.getId());
+              report.setGame(replayBean);
               return true;
             });
           } else {
@@ -175,7 +178,7 @@ public class ReportDialogController implements Controller<Node> {
       return moderationService.postModerationReport(report);
     }).thenAccept(postedReport -> {
       if (postedReport != null) {
-        updateReportTable();
+        populateReportTable();
         clearReport();
         notificationService.addImmediateInfoNotification("report.success");
       }
@@ -249,7 +252,7 @@ public class ReportDialogController implements Controller<Node> {
     gameTime.setText("");
   }
 
-  private void updateReportTable() {
+  private void populateReportTable() {
     moderationService.getModerationReports().thenAccept(reports ->
         JavaFxUtil.runLater(() -> reportTable.setItems(FXCollections.observableList(reports))));
   }
