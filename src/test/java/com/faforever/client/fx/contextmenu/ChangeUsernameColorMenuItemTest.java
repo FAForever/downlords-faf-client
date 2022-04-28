@@ -19,7 +19,6 @@ import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -78,7 +77,7 @@ public class ChangeUsernameColorMenuItemTest extends UITest {
   public void testInvisibleItemWhenChatColorModeIsRandom() {
     preferences = PreferencesBuilder.create().chatPrefs().chatColorMode(ChatColorMode.RANDOM).then().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    runOnFxThreadAndWait(() -> instance.setObject(any(ChatChannelUser.class)));
+    runOnFxThreadAndWait(() -> instance.setObject(new ChatChannelUser("test", "test")));
     assertFalse(instance.isVisible());
   }
 }
