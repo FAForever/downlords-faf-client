@@ -41,7 +41,6 @@ import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameVisibility;
-import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -209,7 +208,11 @@ public class GameService implements InitializingBean, DisposableBean {
     eventBus.register(this);
 
     fafServerAccessor.addEventListener(GameInfo.class, this::onGameInfo);
-    fafServerAccessor.addEventListener(LoginSuccessResponse.class, message -> onLoggedIn());
+    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
+        onLoggedIn();
+      }
+    });
 
     connectionStateInvalidationListener = (observable) -> {
       if (fafServerAccessor.getConnectionState() == ConnectionState.DISCONNECTED) {
@@ -697,7 +700,6 @@ public class GameService implements InitializingBean, DisposableBean {
       }
     }
   }
-
 
   private void onLoggedIn() {
     if (isGameRunning()) {
