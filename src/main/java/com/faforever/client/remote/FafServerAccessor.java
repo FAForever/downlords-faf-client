@@ -1,7 +1,9 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.TokenService;
+import com.faforever.client.api.UnreachableApiException;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.UIDException;
@@ -16,6 +18,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.Version;
+import com.faforever.client.user.event.LogOutRequestEvent;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.FafLobbyClient;
 import com.faforever.commons.lobby.FafLobbyClient.Config;
@@ -36,12 +40,14 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.net.URL;
@@ -73,6 +79,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final FafLobbyClient lobbyClient;
 
   private boolean autoReconnect = false;
+  private final Retry serverRetrySpec;
 
   public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
                                TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
@@ -86,6 +93,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     this.uidService = uidService;
 
     lobbyClient = new FafLobbyClient(objectMapper);
+
+    Server server = clientProperties.getServer();
+    serverRetrySpec = Retry.fixedDelay(server.getRetryAttempts(), Duration.ofSeconds(server.getRetryDelaySeconds()))
+        .doBeforeRetry(retry -> {
+          connectionState.set(ConnectionState.DISCONNECTED);
+          log.warn("Could not reach server retrying: Attempt #{} of {}", retry.totalRetries(), server.getRetryAttempts());
+        })
+        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
+            new UnreachableApiException("API is unreachable after max retries", retrySignal.failure()));
   }
 
   @Override
@@ -98,10 +114,20 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         .doOnNext(unit -> {
           connectionState.set(ConnectionState.DISCONNECTED);
           if (autoReconnect) {
-            connectAndLogIn();
+            connectAndLogIn().exceptionally(this::onInternalLoginFailed);
           }
         })
         .subscribe();
+  }
+
+  @Nullable
+  private LoginSuccessResponse onInternalLoginFailed(Throwable throwable) {
+    eventBus.post(new LogOutRequestEvent());
+    throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+
+    log.error("Could not reconnect to server", throwable);
+    notificationService.addImmediateErrorNotification(throwable, "login.failed");
+    return null;
   }
 
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
@@ -146,7 +172,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         .doOnNext(loginMessage -> {
           connectionState.setValue(ConnectionState.CONNECTED);
           autoReconnect = true;
-        })
+        }).retryWhen(serverRetrySpec)
         .toFuture();
   }
 
@@ -176,7 +202,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void reconnect() {
     disconnect();
-    connectAndLogIn();
+    connectAndLogIn().exceptionally(this::onInternalLoginFailed);;
   }
 
   public void addFriend(int playerId) {

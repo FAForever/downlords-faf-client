@@ -146,7 +146,7 @@ public class FafApiAccessor implements InitializingBean {
     apiRetrySpec = Retry.backoff(api.getRetryAttempts(), Duration.ofSeconds(api.getRetryBackoffSeconds()))
         .jitter(api.getRetryJitter())
         .filter(error -> error instanceof UnreachableApiException)
-        .doBeforeRetry(retry -> log.warn("Could not retrieve value from api retrying: Attempt #{} of {}", retry.totalRetries(), retry.totalRetriesInARow()))
+        .doBeforeRetry(retry -> log.warn("Could not retrieve value from api retrying: Attempt #{} of {}", retry.totalRetries(), api.getRetryAttempts()))
         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
             new UnreachableApiException("API is unreachable after max retries", retrySignal.failure()));
   }
