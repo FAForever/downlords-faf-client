@@ -40,7 +40,6 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
@@ -114,20 +113,21 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         .doOnNext(unit -> {
           connectionState.set(ConnectionState.DISCONNECTED);
           if (autoReconnect) {
-            connectAndLogIn().exceptionally(this::onInternalLoginFailed);
+            connectAndLogIn().exceptionally(throwable -> {
+              onInternalLoginFailed(throwable);
+              return null;
+            });
           }
         })
         .subscribe();
   }
 
-  @Nullable
-  private LoginSuccessResponse onInternalLoginFailed(Throwable throwable) {
+  private void onInternalLoginFailed(Throwable throwable) {
     eventBus.post(new LogOutRequestEvent());
     throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
 
     log.error("Could not reconnect to server", throwable);
     notificationService.addImmediateErrorNotification(throwable, "login.failed");
-    return null;
   }
 
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
@@ -202,7 +202,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void reconnect() {
     disconnect();
-    connectAndLogIn().exceptionally(this::onInternalLoginFailed);;
+    connectAndLogIn().exceptionally(throwable -> {
+      onInternalLoginFailed(throwable);
+      return null;
+    });
   }
 
   public void addFriend(int playerId) {
