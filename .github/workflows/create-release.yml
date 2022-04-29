@@ -124,7 +124,7 @@ jobs:
           commit: ${{ github.sha }}
           tag: v${{ steps.set_version.outputs.tag }}
           draft: true
-          prerelease: ${{ github.event.inputs.release_type == 'Production'}}
+          prerelease: ${{ github.event.inputs.release_type != 'Production'}}
           generateReleaseNotes: true
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: build/install4j/faf_*
