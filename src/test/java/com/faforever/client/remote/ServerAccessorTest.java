@@ -35,8 +35,6 @@ import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.IceServerListResponse;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.lobby.LobbyMode;
-import com.faforever.commons.lobby.LoginException;
-import com.faforever.commons.lobby.LoginFailedResponse;
 import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.faforever.commons.lobby.MatchmakerInfo;
 import com.faforever.commons.lobby.MatchmakerInfo.MatchmakerQueue;
@@ -93,7 +91,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -101,8 +98,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.core.Is.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
@@ -148,6 +143,8 @@ public class ServerAccessorTest extends ServiceTest {
   private ServerMessage receivedMessage;
 
   private final String token = "abc";
+  private final int playerUid = 123;
+  private final long sessionId = 456;
   private final Sinks.Many<String> serverReceivedSink = Sinks.many().replay().latest();
   private final Flux<String> serverMessagesReceived = serverReceivedSink.asFlux();
   private final Sinks.Many<String> serverSentSink = Sinks.many().unicast().onBackpressureBuffer();
@@ -237,9 +234,6 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   private void connectAndLogIn() throws Exception {
-    int playerUid = 123;
-    long sessionId = 456;
-
     CompletableFuture<LoginSuccessResponse> loginFuture = instance.connectAndLogIn();
 
     assertMessageContainsComponents("ask_session",
@@ -790,24 +784,6 @@ public class ServerAccessorTest extends ServiceTest {
         }""");
 
     assertThat(parsedMessage, equalTo(socialMessage));
-  }
-
-  @Test
-  public void testOnAuthenticationFailed() throws Exception {
-    LoginFailedResponse authenticationFailedMessage = new LoginFailedResponse("boo");
-
-    CompletableFuture<LoginSuccessResponse> loginFuture = instance.connectAndLogIn();
-    sendFromServer(authenticationFailedMessage);
-    Exception exception = assertThrows(ExecutionException.class, () -> loginFuture.get(TIMEOUT, TIMEOUT_UNIT));
-    assertEquals(LoginException.class, exception.getCause().getClass());
-
-    ServerMessage parsedMessage = parseServerString("""
-        {
-         "command" : "authentication_failed",
-         "text" : "boo"
-        }""");
-
-    assertThat(parsedMessage, equalTo(authenticationFailedMessage));
   }
 
   @Test

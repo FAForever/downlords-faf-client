@@ -19,6 +19,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.commons.lobby.ConnectionStatus;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.FafLobbyClient;
 import com.faforever.commons.lobby.FafLobbyClient.Config;
@@ -78,7 +79,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private CompletableFuture<LoginSuccessResponse> loginFuture;
 
   public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
-                               TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
+                           TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.taskScheduler = taskScheduler;
@@ -99,7 +100,13 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
     setPingIntervalSeconds(25);
 
-    lobbyClient.getDisconnects().doOnNext(unit -> connectionState.set(ConnectionState.DISCONNECTED)).subscribe();
+    lobbyClient.getConnectionStatus().doOnNext(connectionStatus -> {
+      switch (connectionStatus) {
+        case DISCONNECTED -> connectionState.set(ConnectionState.DISCONNECTED);
+        case CONNECTING -> connectionState.set(ConnectionState.CONNECTING);
+        case CONNECTED -> connectionState.set(ConnectionState.CONNECTED);
+      }
+    }).subscribe();
   }
 
   private void onInternalLoginFailed(Throwable throwable) {
@@ -130,51 +137,46 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
-    connectionState.setValue(ConnectionState.CONNECTING);
-    if (loginFuture == null || loginFuture.isDone()) {
+    if (loginFuture == null || (loginFuture.isDone() && connectionState.get() != ConnectionState.CONNECTED)) {
       lobbyClient.setAutoReconnect(false);
       Server server = clientProperties.getServer();
-      loginFuture = tokenService.getRefreshedTokenValue()
-          .map(token -> new Config(
-              token,
-              Version.getCurrentVersion(),
-              clientProperties.getUserAgent(),
-              clientProperties.getServer().getHost(),
-              clientProperties.getServer().getPort() + 1,
-              sessionId -> {
-                try {
-                  return uidService.generate(String.valueOf(sessionId), preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("uid.log"));
-                } catch (IOException e) {
-                  throw new UIDException("Cannot generate UID", e, "uid.generate.error");
-                }
-              },
-              1024 * 1024,
-              false,
-              60,
-              server.getRetryAttempts(),
-              server.getRetryDelaySeconds()
-          ))
-          .flatMap(lobbyClient::connectAndLogin)
-          .doOnNext(loginMessage -> {
-            connectionState.setValue(ConnectionState.CONNECTED);
-            lobbyClient.setAutoReconnect(true);
-          })
-          .toFuture();
+      Config config = new Config(
+          tokenService.getRefreshedTokenValue(),
+          Version.getCurrentVersion(),
+          clientProperties.getUserAgent(),
+          clientProperties.getServer().getHost(),
+          clientProperties.getServer().getPort() + 1,
+          sessionId -> {
+            try {
+              return uidService.generate(String.valueOf(sessionId), preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("uid.log"));
+            } catch (IOException e) {
+              throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+            }
+          },
+          1024 * 1024,
+          false,
+          60,
+          server.getRetryAttempts(),
+          server.getRetryDelaySeconds()
+      );
+
+      loginFuture = lobbyClient.connectAndLogin(config)
+          .doOnNext(loginMessage -> lobbyClient.setAutoReconnect(true)).toFuture();
     }
     return loginFuture;
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
     return lobbyClient.requestHostGame(
-        newGameInfo.getTitle(),
-        newGameInfo.getMap(),
-        newGameInfo.getFeaturedMod().getTechnicalName(),
-        GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
-        newGameInfo.getPassword(),
-        newGameInfo.getRatingMin(),
-        newGameInfo.getRatingMax(),
-        newGameInfo.getEnforceRatingRange()
-    )
+            newGameInfo.getTitle(),
+            newGameInfo.getMap(),
+            newGameInfo.getFeaturedMod().getTechnicalName(),
+            GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
+            newGameInfo.getPassword(),
+            newGameInfo.getRatingMin(),
+            newGameInfo.getRatingMax(),
+            newGameInfo.getEnforceRatingRange()
+        )
         .toFuture();
   }
 
@@ -189,11 +191,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public void reconnect() {
+    lobbyClient.getConnectionStatus()
+        .filter(ConnectionStatus.DISCONNECTED::equals)
+        .next()
+        .take(Duration.ofSeconds(5))
+        .doOnSuccess(ignored -> connectAndLogIn().exceptionally(throwable -> {
+          onInternalLoginFailed(throwable);
+          return null;
+        })).subscribe();
     disconnect();
-    connectAndLogIn().exceptionally(throwable -> {
-      onInternalLoginFailed(throwable);
-      return null;
-    });
   }
 
   public void addFriend(int playerId) {
