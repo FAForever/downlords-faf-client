@@ -53,8 +53,8 @@ public class TokenService implements InitializingBean {
             Mono.firstWithSignal(
                 Mono.delay(Duration.ofSeconds(token.getExpiresIn() - 30)),
                 logoutSink.asFlux().next()
-            ).then())
-        .doOnNext(token -> log.debug("Token still valid for {} seconds", token.getExpiresIn()));
+            ).then()
+        ).doOnNext(token -> log.trace("Token still valid for {} seconds", token.getExpiresIn()));
 
     refreshedTokenMono = Mono.defer(this::refreshAccess)
         .map(OAuth2AccessToken::getValue)

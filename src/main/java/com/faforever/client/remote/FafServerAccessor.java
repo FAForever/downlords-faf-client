@@ -1,7 +1,6 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.api.TokenService;
-import com.faforever.client.api.UnreachableApiException;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.MatchmakerQueueBean;
@@ -46,7 +45,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.net.URL;
@@ -77,8 +75,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   private final FafLobbyClient lobbyClient;
 
-  private boolean autoReconnect = false;
-  private final Retry serverRetrySpec;
+  private CompletableFuture<LoginSuccessResponse> loginFuture;
 
   public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
                                TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
@@ -92,15 +89,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     this.uidService = uidService;
 
     lobbyClient = new FafLobbyClient(objectMapper);
-
-    Server server = clientProperties.getServer();
-    serverRetrySpec = Retry.fixedDelay(server.getRetryAttempts(), Duration.ofSeconds(server.getRetryDelaySeconds()))
-        .doBeforeRetry(retry -> {
-          connectionState.set(ConnectionState.DISCONNECTED);
-          log.warn("Could not reach server retrying: Attempt #{} of {}", retry.totalRetries(), server.getRetryAttempts());
-        })
-        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) ->
-            new UnreachableApiException("API is unreachable after max retries", retrySignal.failure()));
   }
 
   @Override
@@ -109,17 +97,9 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     addEventListener(IrcPasswordInfo.class, this::onIrcPassword);
     addEventListener(NoticeInfo.class, this::onNotice);
 
-    lobbyClient.getDisconnects()
-        .doOnNext(unit -> {
-          connectionState.set(ConnectionState.DISCONNECTED);
-          if (autoReconnect) {
-            connectAndLogIn().exceptionally(throwable -> {
-              onInternalLoginFailed(throwable);
-              return null;
-            });
-          }
-        })
-        .subscribe();
+    setPingIntervalSeconds(25);
+
+    lobbyClient.getDisconnects().doOnNext(unit -> connectionState.set(ConnectionState.DISCONNECTED)).subscribe();
   }
 
   private void onInternalLoginFailed(Throwable throwable) {
@@ -151,29 +131,37 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
     connectionState.setValue(ConnectionState.CONNECTING);
-    return tokenService.getRefreshedTokenValue()
-        .map(token -> new Config(
-            token,
-            Version.getCurrentVersion(),
-            clientProperties.getUserAgent(),
-            clientProperties.getServer().getHost(),
-            clientProperties.getServer().getPort() + 1,
-            sessionId -> {
-          try {
-            return uidService.generate(String.valueOf(sessionId), preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("uid.log"));
-          } catch (IOException e) {
-            throw new UIDException("Cannot generate UID", e, "uid.generate.error");
-          }
-        },
-            1024 * 1024,
-            false
-        ))
-        .flatMap(lobbyClient::connectAndLogin)
-        .doOnNext(loginMessage -> {
-          connectionState.setValue(ConnectionState.CONNECTED);
-          autoReconnect = true;
-        }).retryWhen(serverRetrySpec)
-        .toFuture();
+    if (loginFuture == null || loginFuture.isDone()) {
+      lobbyClient.setAutoReconnect(false);
+      Server server = clientProperties.getServer();
+      loginFuture = tokenService.getRefreshedTokenValue()
+          .map(token -> new Config(
+              token,
+              Version.getCurrentVersion(),
+              clientProperties.getUserAgent(),
+              clientProperties.getServer().getHost(),
+              clientProperties.getServer().getPort() + 1,
+              sessionId -> {
+                try {
+                  return uidService.generate(String.valueOf(sessionId), preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("uid.log"));
+                } catch (IOException e) {
+                  throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+                }
+              },
+              1024 * 1024,
+              false,
+              60,
+              server.getRetryAttempts(),
+              server.getRetryDelaySeconds()
+          ))
+          .flatMap(lobbyClient::connectAndLogin)
+          .doOnNext(loginMessage -> {
+            connectionState.setValue(ConnectionState.CONNECTED);
+            lobbyClient.setAutoReconnect(true);
+          })
+          .toFuture();
+    }
+    return loginFuture;
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
@@ -195,7 +183,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public void disconnect() {
-    autoReconnect = false;
+    loginFuture.cancel(true);
     log.info("Closing lobby server connection");
     lobbyClient.disconnect();
   }
@@ -342,6 +330,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void sendIceMessage(int remotePlayerId, Object message) {
     sendGpgMessage(GpgGameOutboundMessage.Companion.iceMessage(remotePlayerId, message));
+  }
+
+  public void setPingIntervalSeconds(int pingIntervalSeconds) {
+    lobbyClient.setMinPingIntervalSeconds(pingIntervalSeconds);
   }
 
   @Override
