@@ -41,7 +41,6 @@ import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameVisibility;
-import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -103,9 +102,11 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 public class GameService implements InitializingBean, DisposableBean {
 
   private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
-  private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = "\ndebug = {\n" +
-      "    enable_debug_facilities = true\n" +
-      "}";
+  private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = """
+
+      debug = {
+          enable_debug_facilities = true
+      }""".trim();
 
   @VisibleForTesting
   final BooleanProperty gameRunning;
@@ -209,7 +210,11 @@ public class GameService implements InitializingBean, DisposableBean {
     eventBus.register(this);
 
     fafServerAccessor.addEventListener(GameInfo.class, this::onGameInfo);
-    fafServerAccessor.addEventListener(LoginSuccessResponse.class, message -> onLoggedIn());
+    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
+        onLoggedIn();
+      }
+    });
 
     connectionStateInvalidationListener = (observable) -> {
       if (fafServerAccessor.getConnectionState() == ConnectionState.DISCONNECTED) {
@@ -586,6 +591,7 @@ public class GameService implements InitializingBean, DisposableBean {
           return iceAdapter.start();
         })
         .thenApply(adapterPort -> {
+          fafServerAccessor.setPingIntervalSeconds(5);
           gameKilled = false;
           try {
             process = forgedAllianceService.startGameOnline(gameLaunchMessage,
@@ -627,6 +633,7 @@ public class GameService implements InitializingBean, DisposableBean {
   CompletableFuture<Void> spawnTerminationListener(Process process, Boolean forOnlineGame) {
     rehostRequested = false;
     return process.onExit().thenAccept(finishedProcess -> {
+      fafServerAccessor.setPingIntervalSeconds(25);
       int exitCode = finishedProcess.exitValue();
       log.info("Forged Alliance terminated with exit code {}", exitCode);
       Optional<Path> logFile = loggingService.getMostRecentGameLogFile();
@@ -697,7 +704,6 @@ public class GameService implements InitializingBean, DisposableBean {
       }
     }
   }
-
 
   private void onLoggedIn() {
     if (isGameRunning()) {

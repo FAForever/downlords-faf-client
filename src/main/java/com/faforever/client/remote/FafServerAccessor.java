@@ -2,6 +2,7 @@ package com.faforever.client.remote;
 
 import com.faforever.client.api.TokenService;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.Server;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.UIDException;
@@ -16,6 +17,9 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.Version;
+import com.faforever.client.user.event.LogOutRequestEvent;
+import com.faforever.client.util.ConcurrentUtil;
+import com.faforever.commons.lobby.ConnectionStatus;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.FafLobbyClient;
 import com.faforever.commons.lobby.FafLobbyClient.Config;
@@ -72,10 +76,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   private final FafLobbyClient lobbyClient;
 
-  private boolean autoReconnect = false;
+  private CompletableFuture<LoginSuccessResponse> loginFuture;
 
   public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
-                               TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
+                           TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.taskScheduler = taskScheduler;
@@ -94,14 +98,23 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     addEventListener(IrcPasswordInfo.class, this::onIrcPassword);
     addEventListener(NoticeInfo.class, this::onNotice);
 
-    lobbyClient.getDisconnects()
-        .doOnNext(unit -> {
-          connectionState.set(ConnectionState.DISCONNECTED);
-          if (autoReconnect) {
-            connectAndLogIn();
-          }
-        })
-        .subscribe();
+    setPingIntervalSeconds(25);
+
+    lobbyClient.getConnectionStatus().doOnNext(connectionStatus -> {
+      switch (connectionStatus) {
+        case DISCONNECTED -> connectionState.set(ConnectionState.DISCONNECTED);
+        case CONNECTING -> connectionState.set(ConnectionState.CONNECTING);
+        case CONNECTED -> connectionState.set(ConnectionState.CONNECTED);
+      }
+    }).subscribe();
+  }
+
+  private void onInternalLoginFailed(Throwable throwable) {
+    eventBus.post(new LogOutRequestEvent());
+    throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+
+    log.error("Could not reconnect to server", throwable);
+    notificationService.addImmediateErrorNotification(throwable, "login.failed");
   }
 
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
@@ -124,43 +137,46 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<LoginSuccessResponse> connectAndLogIn() {
-    connectionState.setValue(ConnectionState.CONNECTING);
-    return tokenService.getRefreshedTokenValue()
-        .map(token -> new Config(
-            token,
-            Version.getCurrentVersion(),
-            clientProperties.getUserAgent(),
-            clientProperties.getServer().getHost(),
-            clientProperties.getServer().getPort() + 1,
-            sessionId -> {
-          try {
-            return uidService.generate(String.valueOf(sessionId), preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("uid.log"));
-          } catch (IOException e) {
-            throw new UIDException("Cannot generate UID", e, "uid.generate.error");
-          }
-        },
-            1024 * 1024,
-            false
-        ))
-        .flatMap(lobbyClient::connectAndLogin)
-        .doOnNext(loginMessage -> {
-          connectionState.setValue(ConnectionState.CONNECTED);
-          autoReconnect = true;
-        })
-        .toFuture();
+    if (loginFuture == null || (loginFuture.isDone() && connectionState.get() != ConnectionState.CONNECTED)) {
+      lobbyClient.setAutoReconnect(false);
+      Server server = clientProperties.getServer();
+      Config config = new Config(
+          tokenService.getRefreshedTokenValue(),
+          Version.getCurrentVersion(),
+          clientProperties.getUserAgent(),
+          clientProperties.getServer().getHost(),
+          clientProperties.getServer().getPort() + 1,
+          sessionId -> {
+            try {
+              return uidService.generate(String.valueOf(sessionId), preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("uid.log"));
+            } catch (IOException e) {
+              throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+            }
+          },
+          1024 * 1024,
+          false,
+          60,
+          server.getRetryAttempts(),
+          server.getRetryDelaySeconds()
+      );
+
+      loginFuture = lobbyClient.connectAndLogin(config)
+          .doOnNext(loginMessage -> lobbyClient.setAutoReconnect(true)).toFuture();
+    }
+    return loginFuture;
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
     return lobbyClient.requestHostGame(
-        newGameInfo.getTitle(),
-        newGameInfo.getMap(),
-        newGameInfo.getFeaturedMod().getTechnicalName(),
-        GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
-        newGameInfo.getPassword(),
-        newGameInfo.getRatingMin(),
-        newGameInfo.getRatingMax(),
-        newGameInfo.getEnforceRatingRange()
-    )
+            newGameInfo.getTitle(),
+            newGameInfo.getMap(),
+            newGameInfo.getFeaturedMod().getTechnicalName(),
+            GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
+            newGameInfo.getPassword(),
+            newGameInfo.getRatingMin(),
+            newGameInfo.getRatingMax(),
+            newGameInfo.getEnforceRatingRange()
+        )
         .toFuture();
   }
 
@@ -169,14 +185,21 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   }
 
   public void disconnect() {
-    autoReconnect = false;
+    loginFuture.cancel(true);
     log.info("Closing lobby server connection");
     lobbyClient.disconnect();
   }
 
   public void reconnect() {
+    lobbyClient.getConnectionStatus()
+        .filter(ConnectionStatus.DISCONNECTED::equals)
+        .next()
+        .take(Duration.ofSeconds(5))
+        .doOnSuccess(ignored -> connectAndLogIn().exceptionally(throwable -> {
+          onInternalLoginFailed(throwable);
+          return null;
+        })).subscribe();
     disconnect();
-    connectAndLogIn();
   }
 
   public void addFriend(int playerId) {
@@ -313,6 +336,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void sendIceMessage(int remotePlayerId, Object message) {
     sendGpgMessage(GpgGameOutboundMessage.Companion.iceMessage(remotePlayerId, message));
+  }
+
+  public void setPingIntervalSeconds(int pingIntervalSeconds) {
+    lobbyClient.setMinPingIntervalSeconds(pingIntervalSeconds);
   }
 
   @Override

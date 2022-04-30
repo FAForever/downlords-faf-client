@@ -370,7 +370,7 @@ public class LoginController implements Controller<Pane> {
   }
 
   private Void onLoginFailed(Throwable throwable) {
-    if (userService.getOwnUser() != null) {
+    if (userService.getOwnUser() != null && userService.getOwnPlayer() != null) {
       log.info("Previous login request failed but user is already logged in", throwable);
       return null;
     }

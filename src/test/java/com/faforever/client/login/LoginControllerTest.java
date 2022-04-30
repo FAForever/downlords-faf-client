@@ -23,6 +23,7 @@ import com.faforever.client.update.UpdateInfo;
 import com.faforever.client.update.VersionTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.api.dto.MeResult;
+import com.faforever.commons.lobby.Player;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,7 @@ import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -223,6 +225,7 @@ public class LoginControllerTest extends UITest {
     when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
     when(userService.getOwnUser()).thenReturn(new MeResult());
+    when(userService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of()));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();

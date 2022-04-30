@@ -82,6 +82,8 @@ public class ClientProperties {
   public static class Server {
     private String host;
     private int port;
+    private int retryDelaySeconds = 5;
+    private int retryAttempts = 12;
   }
 
   @Data

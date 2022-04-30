@@ -58,7 +58,7 @@ import static java.util.Arrays.asList;
 public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableBean {
 
   private static final int CONNECTION_ATTEMPTS = 50;
-  private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 100;
+  private static final int CONNECTION_ATTEMPT_DELAY_MILLIS = 250;
 
   private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
