@@ -407,6 +407,19 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   @Test
+  public void testOnClearSearchUsernameButtonClicked() throws Exception {
+    prepareDataAndSetChatChannel(true);
+
+    assertFalse(instance.clearSearchUsernameButton.isVisible());
+    runOnFxThreadAndWait(() -> instance.searchUsernameTextField.setText("junit"));
+    assertTrue(instance.clearSearchUsernameButton.isVisible());
+
+    runOnFxThreadAndWait(() -> instance.onClearSearchUsernameButtonClicked());
+    assertFalse(instance.clearSearchUsernameButton.isVisible());
+    assertTrue(instance.searchUsernameTextField.getText().isEmpty());
+  }
+
+  @Test
   public void testOnAdvancedFiltersToggleButtonClickedAndHidingPopup() {
     runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
     runOnFxThreadAndWait(() -> instance.onAdvancedFiltersToggleButtonClicked());
