@@ -89,6 +89,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   public HBox userListTools;
   public ToggleButton advancedFiltersToggleButton;
   public TextField searchUsernameTextField;
+  public Button clearSearchUsernameButton;
   public Button listCustomizationButton;
   public VBox userListContainer;
 
@@ -171,6 +172,9 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   @Override
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(clearSearchUsernameButton);
+    JavaFxUtil.bind(clearSearchUsernameButton.visibleProperty(), searchUsernameTextField.textProperty().isNotEmpty());
+
     initializeAdvancedFiltersPopup();
   }
 
@@ -386,6 +390,11 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
       Bounds screenBounds = advancedFiltersToggleButton.localToScreen(advancedFiltersToggleButton.getBoundsInLocal());
       advancedFiltersPopup.show(advancedFiltersToggleButton.getScene().getWindow(), screenBounds.getMinX() - 10, screenBounds.getMinY());
     }
+  }
+
+  public void onClearSearchUsernameButtonClicked() {
+    searchUsernameTextField.clear();
+    searchUsernameTextField.requestFocus();
   }
 
   @Override

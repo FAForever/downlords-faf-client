@@ -303,12 +303,12 @@
   -fx-border-color: -darkened-color
 }
 
-.filter-toggle-button, .user-list-settings-button {
+.filter-toggle-button, .user-list-settings-button, .clear-search-username-button {
   -fx-background-color: transparent;
   -fx-border-color: transparent;
 }
 
-.filter-toggle-button:hover, .user-list-settings-button:hover {
+.filter-toggle-button:hover, .user-list-settings-button:hover, .clear-search-username-button:hover {
   -fx-border-color: -darkened-color;
 }
 

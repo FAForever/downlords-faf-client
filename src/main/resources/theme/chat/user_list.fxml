@@ -22,8 +22,15 @@
                         <Region styleClass="icon,filter-icon,icon16x16"/>
                     </graphic>
                 </ToggleButton>
-                <TextField fx:id="searchUsernameTextField" maxWidth="1.7976931348623157E308" minWidth="10.0" promptText="%loading"
+                <TextField fx:id="searchUsernameTextField" maxWidth="1.7976931348623157E308" minWidth="10.0"
+                           promptText="%loading"
                            prefColumnCount="5" styleClass="filter-text-field" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="clearSearchUsernameButton" visible="false"
+                        onAction="#onClearSearchUsernameButtonClicked" styleClass="clear-search-username-button">
+                    <graphic>
+                        <Region styleClass="icon, icon16x16, close-icon"/>
+                    </graphic>
+                </Button>
                 <Button mnemonicParsing="false" styleClass="user-list-settings-button" fx:id="listCustomizationButton"
                         onAction="#onListCustomizationButtonClicked">
                     <graphic>
