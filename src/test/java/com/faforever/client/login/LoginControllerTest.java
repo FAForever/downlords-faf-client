@@ -65,6 +65,7 @@ import static org.mockito.Mockito.when;
 
 public class LoginControllerTest extends UITest {
 
+  public static final String CODE = "asda";
   private static final URI REDIRECT_URI = URI.create("http://localhost");
   private static final URI EXPLICIT_REDIRECT_URI = URI.create("http://localhost/fallback");
 
@@ -138,57 +139,45 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginSucceeds() throws Exception {
-    String state = "abc";
-    String code = "asda";
-
-    when(userService.getState()).thenReturn(state);
-    when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.completedFuture(null));
-    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
-        .thenReturn(CompletableFuture.completedFuture(new Values(code, state, REDIRECT_URI)));
+    when(userService.login(eq(CODE), eq(REDIRECT_URI), anyString())).thenReturn(CompletableFuture.completedFuture(null));
+    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
+        .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(oAuthValuesReceiver).receiveValues(List.of(EXPLICIT_REDIRECT_URI));
-    verify(userService).login(code, REDIRECT_URI);
+    verify(oAuthValuesReceiver).receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString());
+    verify(userService).login(eq(CODE), eq(REDIRECT_URI), anyString());
     assertTrue(instance.loginProgressPane.isVisible());
     assertFalse(instance.loginFormPane.isVisible());
   }
 
   @Test
   public void testLoginFailsWrongState() throws Exception {
-    String state = "abc";
-    String wrongState = "xyz";
-    String code = "asda";
+    String wrongState = "a";
 
-    when(userService.getState()).thenReturn(state);
-    when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.completedFuture(null));
-    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI))))
-        .thenReturn(CompletableFuture.completedFuture(new Values(code, wrongState, REDIRECT_URI)));
+    when(userService.login(eq(CODE), eq(REDIRECT_URI), anyString())).thenReturn(CompletableFuture.completedFuture(null));
+    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
+        .thenReturn(CompletableFuture.completedFuture(new Values(CODE, wrongState, REDIRECT_URI)));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(oAuthValuesReceiver).receiveValues(List.of(EXPLICIT_REDIRECT_URI));
-    verify(userService, never()).login(code, REDIRECT_URI);
-    verify(userService).getState();
+    verify(oAuthValuesReceiver).receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString());
+    verify(userService, never()).login(anyString(), any(), anyString());
     verify(notificationService).addImmediateErrorNotification(any(IllegalStateException.class), eq("login.failed"));
   }
 
   @Test
   public void testLoginFails() throws Exception {
-    String state = "abc";
-    String code = "asda";
-
-    when(userService.getState()).thenReturn(state);
-    when(userService.login(code, REDIRECT_URI)).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
-    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
-        .thenReturn(CompletableFuture.completedFuture(new Values(code, state, REDIRECT_URI)));
+    when(userService.login(eq(CODE), eq(REDIRECT_URI), anyString())).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
+    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
+        .thenAnswer(invocation -> CompletableFuture.completedFuture(new Values(CODE, invocation.getArgument(1), REDIRECT_URI)));
 
     instance.onLoginButtonClicked().get();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(userService).login(code, REDIRECT_URI);
+    verify(userService).login(eq(CODE), eq(REDIRECT_URI), anyString());
     verify(notificationService).addImmediateErrorNotification(any(), eq("login.failed"));
     assertFalse(instance.loginProgressPane.isVisible());
     assertTrue(instance.loginFormPane.isVisible());
@@ -196,7 +185,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginFailsNoPorts() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
+    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new IllegalStateException()));
 
     instance.onLoginButtonClicked().get();
@@ -209,7 +198,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginFailsTimeout() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
+    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
 
     instance.onLoginButtonClicked().get();
@@ -222,7 +211,7 @@ public class LoginControllerTest extends UITest {
 
   @Test
   public void testLoginFailsTimeoutAlreadyLoggedIn() throws Exception {
-    when(oAuthValuesReceiver.receiveValues(List.of(EXPLICIT_REDIRECT_URI)))
+    when(oAuthValuesReceiver.receiveValues(eq(List.of(EXPLICIT_REDIRECT_URI)), anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new SocketTimeoutException()));
     when(userService.getOwnUser()).thenReturn(new MeResult());
     when(userService.getOwnPlayer()).thenReturn(new Player(0, "junit", null, null, "US", Map.of(), Map.of()));
@@ -343,7 +332,7 @@ public class LoginControllerTest extends UITest {
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
     verify(userService, never()).loginWithRefreshToken();
-    verify(userService, never()).login(anyString(), any());
+    verify(userService, never()).login(anyString(), any(), anyString());
   }
 
   @Test
@@ -376,7 +365,7 @@ public class LoginControllerTest extends UITest {
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
     verify(i18n).get("login.clientTooOldError", "1.2.0", "2.1.2");
     verify(userService, never()).loginWithRefreshToken();
-    verify(userService, never()).login(anyString(), any());
+    verify(userService, never()).login(anyString(), any(), anyString());
   }
 
   @Test

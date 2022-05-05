@@ -39,6 +39,7 @@ import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -70,9 +71,6 @@ public class LoginController implements Controller<Pane> {
   private final UiService uiService;
   private final PlatformService platformService;
   private final OAuthValuesReceiver oAuthValuesReceiver;
-
-  private CompletableFuture<Void> initializeFuture;
-
   public Pane messagesContainer;
   public Pane errorPane;
   public Pane loginFormPane;
@@ -94,9 +92,15 @@ public class LoginController implements Controller<Pane> {
   public TextField oauthBaseUrlField;
   public TextField oauthRedirectUriField;
   public CheckBox rememberMeCheckBox;
-
   @VisibleForTesting
   CompletableFuture<UpdateInfo> updateInfoFuture;
+  private CompletableFuture<Void> initializeFuture;
+  private String state;
+  private String verifier;
+
+  private static boolean shouldDisplayAnnouncement(Message message) {
+    return message.getEndOn().isAfter(OffsetDateTime.now());
+  }
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane,
@@ -208,10 +212,6 @@ public class LoginController implements Controller<Pane> {
     return statPingService.getMessages()
         .filter(LoginController::shouldDisplayAnnouncement)
         .collectList().toFuture();
-  }
-
-  private static boolean shouldDisplayAnnouncement(Message message) {
-    return message.getEndOn().isAfter(OffsetDateTime.now());
   }
 
   private CompletableFuture<List<Service>> checkOfflineServices() {
@@ -341,16 +341,26 @@ public class LoginController implements Controller<Pane> {
       redirectUriCandidates.addAll(endpoint.getOauth().getRedirectUris());
     }
 
-    return oAuthValuesReceiver.receiveValues(redirectUriCandidates)
+    if (state == null) {
+      state = RandomStringUtils.randomAlphanumeric(64, 128);
+    }
+
+    if (verifier == null) {
+      verifier = RandomStringUtils.randomAlphanumeric(64, 128);
+    }
+
+    return oAuthValuesReceiver.receiveValues(redirectUriCandidates, state, verifier)
         .thenCompose(values -> {
           platformService.focusWindow(clientProperties.getMainWindowTitle());
           String actualState = values.getState();
-          String expectedState = userService.getState();
-          if (!expectedState.equals(actualState)) {
-            handleInvalidSate(actualState, expectedState);
+          if (!state.equals(actualState)) {
+            handleInvalidSate(actualState, state);
             return CompletableFuture.completedFuture(null);
           }
-          return loginWithCode(values.getCode(), values.getRedirectUri());
+          return loginWithCode(values.getCode(), values.getRedirectUri(), verifier);
+        }).thenAccept(aVoid -> {
+          state = null;
+          verifier = null;
         })
         .exceptionally(throwable -> onLoginFailed(ConcurrentUtil.unwrapIfCompletionException(throwable)));
   }
@@ -364,9 +374,9 @@ public class LoginController implements Controller<Pane> {
     );
   }
 
-  private CompletableFuture<Void> loginWithCode(String code, URI redirectUri) {
+  private CompletableFuture<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
     showLoginProgress();
-    return userService.login(code, redirectUri);
+    return userService.login(code, redirectUri, codeVerifier);
   }
 
   private Void onLoginFailed(Throwable throwable) {

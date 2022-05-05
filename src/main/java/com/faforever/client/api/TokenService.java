@@ -11,6 +11,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
@@ -75,7 +76,7 @@ public class TokenService implements InitializingBean {
     return refreshedTokenMono;
   }
 
-  public Mono<Void> loginWithAuthorizationCode(String code, URI redirectUri) {
+  public Mono<Void> loginWithAuthorizationCode(String code, URI redirectUri, String codeVerifier) {
     return Mono.fromRunnable(() -> {
           MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
           Oauth oauth = clientProperties.getOauth();
@@ -83,6 +84,7 @@ public class TokenService implements InitializingBean {
           map.add("client_id", oauth.getClientId());
           map.add("redirect_uri", redirectUri.toASCIIString());
           map.add("grant_type", "authorization_code");
+          map.add("code_verifier", codeVerifier);
           hydraPropertiesMap = map;
         })
         .then(tokenRetrievalMono)
@@ -119,6 +121,7 @@ public class TokenService implements InitializingBean {
         .accept(MediaType.APPLICATION_JSON)
         .bodyValue(hydraPropertiesMap)
         .retrieve()
+        .onStatus(HttpStatus::isError, response -> response.bodyToMono(String.class).flatMap(body -> Mono.error(new TokenRetrievalException(body))))
         .bodyToMono(OAuth2AccessToken.class)
         .doOnSubscribe(subscription -> log.trace("Retrieving OAuth token"))
         .switchIfEmpty(Mono.fromCallable(() -> {
