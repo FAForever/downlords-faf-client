@@ -31,11 +31,14 @@ public class PopupUtil {
     double centerScreenY = screenBounds.getHeight() / 2 - imageSize / 2;
 
     ImageView mapImageView = new ImageView(image);
+    Popup popup = new Popup();
+
+    mapImageView.getStyleClass().add("clickable");
     mapImageView.setFitHeight(imageSize);
     mapImageView.setSmooth(true);
     mapImageView.setPreserveRatio(true);
+    mapImageView.setOnMouseClicked(event -> popup.hide());
 
-    Popup popup = new Popup();
     popup.setAutoHide(true);
     popup.setAutoFix(true);
     popup.getScene().setRoot(new StackPane(mapImageView));

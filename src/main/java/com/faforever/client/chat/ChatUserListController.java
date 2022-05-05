@@ -44,6 +44,7 @@ import javafx.stage.PopupWindow;
 import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.controlsfx.control.textfield.TextFields;
 import org.fxmisc.flowless.Cell;
 import org.fxmisc.flowless.VirtualFlow;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -171,7 +172,18 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   @Override
   public void initialize() {
+    searchUsernameTextField = createSearchUsernameTextField();
+    userListTools.getChildren().add(1, searchUsernameTextField);
     initializeAdvancedFiltersPopup();
+  }
+
+  private TextField createSearchUsernameTextField() {
+    TextField textField = TextFields.createClearableTextField();
+    textField.getStyleClass().add("filter-text-field");
+    textField.setPromptText(i18n.get("loading"));
+    textField.setMinWidth(10.0);
+    HBox.setHgrow(textField, Priority.ALWAYS);
+    return textField;
   }
 
   public void setChatChannel(ChatChannel chatChannel, Tab channelTab, BooleanBinding chatTabSelectedProperty) {
