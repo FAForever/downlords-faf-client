@@ -76,7 +76,7 @@ public class TokenService implements InitializingBean {
     return refreshedTokenMono;
   }
 
-  public Mono<Void> loginWithAuthorizationCode(String code, URI redirectUri, String codeVerifier) {
+  public Mono<Void> loginWithAuthorizationCode(String code, String codeVerifier, URI redirectUri) {
     return Mono.fromRunnable(() -> {
           MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
           Oauth oauth = clientProperties.getOauth();

@@ -54,17 +54,17 @@ public class UserService implements InitializingBean {
 
   private CompletableFuture<Void> loginFuture;
 
-  public String getHydraUrl(URI redirectUri, String state, String codeVerifier) {
+  public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
     Oauth oauth = clientProperties.getOauth();
     String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256().hashString(codeVerifier, StandardCharsets.US_ASCII).asBytes());
     return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s",
         oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes(), codeChallenge);
   }
 
-  public CompletableFuture<Void> login(String code, URI redirectUri, String codeVerifier) {
+  public CompletableFuture<Void> login(String code, String codeVerifier, URI redirectUri) {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with authorization code");
-      loginFuture = tokenService.loginWithAuthorizationCode(code, redirectUri, codeVerifier).toFuture()
+      loginFuture = tokenService.loginWithAuthorizationCode(code, codeVerifier, redirectUri).toFuture()
           .thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;

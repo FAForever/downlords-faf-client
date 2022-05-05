@@ -376,7 +376,7 @@ public class LoginController implements Controller<Pane> {
 
   private CompletableFuture<Void> loginWithCode(String code, URI redirectUri, String codeVerifier) {
     showLoginProgress();
-    return userService.login(code, redirectUri, codeVerifier);
+    return userService.login(code, codeVerifier, redirectUri);
   }
 
   private Void onLoginFailed(Throwable throwable) {

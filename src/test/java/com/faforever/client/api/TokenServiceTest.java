@@ -84,7 +84,7 @@ public class TokenServiceTest extends ServiceTest {
     );
     prepareTokenResponse(tokenProperties);
 
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", REDIRECT_URI, VERIFIER))
+    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
         .verifyComplete();
     Map<String, String> requestParams = URLEncodedUtils
         .parse(mockApi.takeRequest().getBody().readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
@@ -117,7 +117,7 @@ public class TokenServiceTest extends ServiceTest {
         .parse(mockApi.takeRequest().getBody().readString(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
         .stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
 
-    instance.loginWithAuthorizationCode("abc", REDIRECT_URI, VERIFIER).block();
+    instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI).block();
 
     assertEquals("refresh_token", requestParams.get("grant_type"));
     assertEquals(oauth.getClientId(), requestParams.get("client_id"));
@@ -205,7 +205,7 @@ public class TokenServiceTest extends ServiceTest {
   @Test
   public void testTokenIsNull() throws Exception {
     prepareTokenResponse(null);
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", REDIRECT_URI, VERIFIER))
+    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
             .verifyError(TokenRetrievalException.class);
   }
 
@@ -215,7 +215,7 @@ public class TokenServiceTest extends ServiceTest {
     Map<String, String> tokenProperties = Map.of(OAuth2AccessToken.REFRESH_TOKEN, "refresh");
     prepareTokenResponse(tokenProperties);
 
-    StepVerifier.create(instance.loginWithAuthorizationCode("abc", REDIRECT_URI, VERIFIER))
+    StepVerifier.create(instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI))
         .verifyComplete();
 
     assertEquals(tokenProperties.get(OAuth2AccessToken.REFRESH_TOKEN), preferences.getLogin().getRefreshToken());
@@ -226,7 +226,7 @@ public class TokenServiceTest extends ServiceTest {
     preferences.getLogin().setRememberMe(false);
     prepareTokenResponse(Map.of(OAuth2AccessToken.REFRESH_TOKEN, "refresh"));
 
-    instance.loginWithAuthorizationCode("abc", REDIRECT_URI, VERIFIER).block();
+    instance.loginWithAuthorizationCode("abc", VERIFIER, REDIRECT_URI).block();
 
     assertNull(preferences.getLogin().getRefreshToken());
   }

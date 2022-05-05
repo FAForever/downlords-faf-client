@@ -76,7 +76,7 @@ public class OAuthValuesReceiver {
         try {
           redirectUriLatch.await();
         } catch (InterruptedException ignored) {}
-        platformService.showDocument(userService.getHydraUrl(this.redirectUri, this.state, this.codeVerifier));
+        platformService.showDocument(userService.getHydraUrl(this.state, this.codeVerifier, this.redirectUri));
       });
     }
 
@@ -88,7 +88,7 @@ public class OAuthValuesReceiver {
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
       redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 
-      platformService.showDocument(userService.getHydraUrl(redirectUri, this.state, this.codeVerifier));
+      platformService.showDocument(userService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
       redirectUriLatch.countDown();
 
       Socket socket = serverSocket.accept();
