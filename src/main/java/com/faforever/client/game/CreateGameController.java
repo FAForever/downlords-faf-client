@@ -11,6 +11,7 @@ import com.faforever.client.fx.DualStringListCell;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
+import com.faforever.client.fx.contextmenu.CopyLabelMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -36,6 +37,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -46,6 +48,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundSize;
@@ -123,7 +127,7 @@ public class CreateGameController implements Controller<Pane> {
   private InvalidationListener createButtonStateListener;
 
   public void initialize() {
-    contextMenuBuilder.addCopyLabelContextMenu(mapNameLabel, mapDescriptionLabel);
+    contextMenuBuilder.addCopyLabelContextMenu(mapDescriptionLabel);
     JavaFxUtil.bindManagedToVisible(versionLabel);
     JavaFxUtil.bind(mapPreviewPane.prefHeightProperty(), mapPreviewPane.widthProperty());
     modManagerController.setCloseable(false);
@@ -522,10 +526,20 @@ public class CreateGameController implements Controller<Pane> {
     }
   }
 
-  public void onMapPreviewImageClicked() {
-    Optional.ofNullable(mapListView.getSelectionModel())
-        .map(SelectionModel::getSelectedItem)
-        .map(MapVersionBean::getFolderName)
-        .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE)));
+  public void onMapPreviewImageClicked(MouseEvent mouseEvent) {
+    MouseButton button = mouseEvent.getButton();
+    if (button == MouseButton.PRIMARY) {
+      Optional.ofNullable(mapListView.getSelectionModel())
+          .map(SelectionModel::getSelectedItem)
+          .map(MapVersionBean::getFolderName)
+          .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE)));
+
+      // No other way to make same design without using StackPane class therefore we use this dirty hack
+    } else if (button == MouseButton.SECONDARY && mapNameLabel.getBoundsInParent().contains(mouseEvent.getX(), mouseEvent.getY())) {
+      contextMenuBuilder.newBuilder()
+          .addItem(CopyLabelMenuItem.class, mapNameLabel)
+          .build()
+          .show(mapNameLabel, mouseEvent.getScreenX(), mouseEvent.getScreenY());
+    }
   }
 }
