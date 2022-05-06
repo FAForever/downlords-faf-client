@@ -46,6 +46,7 @@ import javafx.scene.control.SelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.Image;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -526,19 +527,21 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onMapPreviewImageClicked(MouseEvent mouseEvent) {
-    MouseButton button = mouseEvent.getButton();
-    if (button == MouseButton.PRIMARY) {
+    if (mouseEvent.getButton() == MouseButton.PRIMARY) {
       Optional.ofNullable(mapListView.getSelectionModel())
           .map(SelectionModel::getSelectedItem)
           .map(MapVersionBean::getFolderName)
           .ifPresent(mapName -> PopupUtil.showImagePopup(mapService.loadPreview(mapName, PreviewSize.LARGE)));
+    }
+  }
 
-      // No other way to make same design without using StackPane class therefore we use this dirty hack
-    } else if (button == MouseButton.SECONDARY && mapNameLabel.getBoundsInParent().contains(mouseEvent.getX(), mouseEvent.getY())) {
+  public void onMapNameLabelContextMenuRequest(ContextMenuEvent contextMenuEvent) {
+    // No other way to make same design without using StackPane class therefore we use this dirty hack
+    if (mapNameLabel.getBoundsInParent().contains(contextMenuEvent.getX(), contextMenuEvent.getY())) {
       contextMenuBuilder.newBuilder()
           .addItem(CopyLabelMenuItem.class, mapNameLabel)
           .build()
-          .show(mapNameLabel, mouseEvent.getScreenX(), mouseEvent.getScreenY());
+          .show(mapNameLabel, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
     }
   }
 }
