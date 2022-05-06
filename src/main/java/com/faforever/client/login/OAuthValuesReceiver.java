@@ -44,8 +44,12 @@ public class OAuthValuesReceiver {
   private CountDownLatch redirectUriLatch;
   private CompletableFuture<Values> valuesFuture;
   private URI redirectUri;
+  private String state;
+  private String codeVerifier;
 
-  public CompletableFuture<Values> receiveValues(List<URI> redirectUriCandidates) {
+  public CompletableFuture<Values> receiveValues(List<URI> redirectUriCandidates, String state, String codeVerifier) {
+    this.state = state;
+    this.codeVerifier = codeVerifier;
     if (valuesFuture == null || valuesFuture.isDone()) {
       if (redirectUriCandidates == null || redirectUriCandidates.isEmpty()) {
         throw new IllegalArgumentException("No redirect uris provided");
@@ -72,7 +76,7 @@ public class OAuthValuesReceiver {
         try {
           redirectUriLatch.await();
         } catch (InterruptedException ignored) {}
-        platformService.showDocument(userService.getHydraUrl(this.redirectUri));
+        platformService.showDocument(userService.getHydraUrl(this.state, this.codeVerifier, this.redirectUri));
       });
     }
 
@@ -84,7 +88,7 @@ public class OAuthValuesReceiver {
     try (ServerSocket serverSocket = new ServerSocket(Math.max(0, uri.getPort()), 1, InetAddress.getLoopbackAddress())) {
       redirectUri = UriComponentsBuilder.fromUri(uri).port(serverSocket.getLocalPort()).build().toUri();
 
-      platformService.showDocument(userService.getHydraUrl(redirectUri));
+      platformService.showDocument(userService.getHydraUrl(this.state, this.codeVerifier, redirectUri));
       redirectUriLatch.countDown();
 
       Socket socket = serverSocket.accept();

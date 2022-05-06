@@ -17,9 +17,9 @@ import com.faforever.commons.api.dto.MeResult;
 import com.faforever.commons.lobby.Player;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.hash.Hashing;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -36,6 +38,8 @@ import java.util.concurrent.CompletionException;
 @RequiredArgsConstructor
 @Slf4j
 public class UserService implements InitializingBean {
+
+  private static final Encoder BASE64_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
   private final ReadOnlyObjectWrapper<MeResult> ownUser = new ReadOnlyObjectWrapper<>();
   private final ReadOnlyObjectWrapper<Player> ownPlayer = new ReadOnlyObjectWrapper<>();
@@ -48,23 +52,19 @@ public class UserService implements InitializingBean {
   private final TokenService tokenService;
   private final NotificationService notificationService;
 
-  @Getter
-  private String state;
   private CompletableFuture<Void> loginFuture;
 
-  public String getHydraUrl(URI redirectUri) {
-    state = UUID.randomUUID().toString();
+  public String getHydraUrl(String state, String codeVerifier, URI redirectUri) {
     Oauth oauth = clientProperties.getOauth();
-    return String.format("%s/oauth2/auth?response_type=code&client_id=%s" +
-            "&state=%s&redirect_uri=%s" +
-            "&scope=%s",
-        oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes());
+    String codeChallenge = BASE64_ENCODER.encodeToString(Hashing.sha256().hashString(codeVerifier, StandardCharsets.US_ASCII).asBytes());
+    return String.format("%s/oauth2/auth?response_type=code&client_id=%s&state=%s&redirect_uri=%s&scope=%s&code_challenge_method=S256&code_challenge=%s",
+        oauth.getBaseUrl(), oauth.getClientId(), state, redirectUri.toASCIIString(), oauth.getScopes(), codeChallenge);
   }
 
-  public CompletableFuture<Void> login(String code, URI redirectUri) {
+  public CompletableFuture<Void> login(String code, String codeVerifier, URI redirectUri) {
     if (loginFuture == null || loginFuture.isDone()) {
       log.info("Logging in with authorization code");
-      loginFuture = tokenService.loginWithAuthorizationCode(code, redirectUri).toFuture()
+      loginFuture = tokenService.loginWithAuthorizationCode(code, codeVerifier, redirectUri).toFuture()
           .thenCompose(aVoid -> loginToServices());
     }
     return loginFuture;
