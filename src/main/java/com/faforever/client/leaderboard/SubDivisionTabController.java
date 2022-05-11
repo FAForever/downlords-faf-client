@@ -67,11 +67,8 @@ public class SubDivisionTabController implements Controller<Tab> {
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
     gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));
 
-    winRateColumn.setCellValueFactory(param -> Bindings.createFloatBinding(() -> {
-      LeagueEntryBean entry = param.getValue();
-      float winRate = (float) entry.getScore() / entry.getGamesPlayed() * 100;
-      return winRate > 100 ? 100 : winRate;
-    }));
+    winRateColumn.setCellValueFactory(param -> Bindings.createFloatBinding(() ->
+        Math.min((float) param.getValue().getScore() / param.getValue().getGamesPlayed() * 100, 100)));
     winRateColumn.setCellFactory(param -> new StringCell<>(winRate -> i18n.rounded(winRate.doubleValue(), 1)));
 
     scoreColumn.setCellValueFactory(param -> param.getValue().scoreProperty());
