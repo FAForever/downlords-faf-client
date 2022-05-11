@@ -214,7 +214,7 @@ public class PlayerService implements InitializingBean {
     if (StringUtils.isBlank(text)) {
       removeNote(player);
     } else {
-      String normalizedText = text.replaceAll("(\\n\\n)+", "");
+      String normalizedText = text.replaceAll("\\n\\n+", "\n");
       notesByPlayerId.put(player.getId(), normalizedText);
     }
   }

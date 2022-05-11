@@ -403,6 +403,6 @@ public class PlayerServiceTest extends ServiceTest {
   public void testNormalizeTextBeforeUpdatingPlayerNote() {
     PlayerBean player = PlayerBeanBuilder.create().id(2).get();
     instance.updateNote(player, "junit\n1\n\n2\n\n\n3\n4");
-    assertEquals("junit\n12\n3\n4", instance.getNotesByPlayerId().get(2));
+    assertEquals("junit\n1\n2\n3\n4", instance.getNotesByPlayerId().get(2));
   }
 }
