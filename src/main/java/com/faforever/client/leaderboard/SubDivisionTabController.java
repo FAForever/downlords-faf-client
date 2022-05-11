@@ -16,6 +16,8 @@ import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.google.common.math.Quantiles.Scale;
+import javafx.beans.binding.Bindings;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -26,6 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.text.DecimalFormat;
+import java.util.function.Function;
 
 import static javafx.collections.FXCollections.observableList;
 
@@ -44,6 +49,7 @@ public class SubDivisionTabController implements Controller<Tab> {
   public TableColumn<LeagueEntryBean, Number> rankColumn;
   public TableColumn<LeagueEntryBean, String> nameColumn;
   public TableColumn<LeagueEntryBean, Number> gamesPlayedColumn;
+  public TableColumn<LeagueEntryBean, Number> winRateColumn;
   public TableColumn<LeagueEntryBean, Number> scoreColumn;
   public TableView<LeagueEntryBean> ratingTable;
 
@@ -64,6 +70,13 @@ public class SubDivisionTabController implements Controller<Tab> {
 
     gamesPlayedColumn.setCellValueFactory(param -> param.getValue().gamesPlayedProperty());
     gamesPlayedColumn.setCellFactory(param -> new StringCell<>(count -> i18n.number(count.intValue())));
+
+    winRateColumn.setCellValueFactory(param -> Bindings.createFloatBinding(() -> {
+      LeagueEntryBean entry = param.getValue();
+      float winRate = (float) entry.getScore() / entry.getGamesPlayed() * 100;
+      return winRate > 100 ? 100 : winRate;
+    }));
+    winRateColumn.setCellFactory(param -> new StringCell<>(winRate -> i18n.rounded(winRate.doubleValue(), 1)));
 
     scoreColumn.setCellValueFactory(param -> param.getValue().scoreProperty());
     scoreColumn.setCellFactory(param -> new StringCell<>(score -> i18n.number(score.intValue())));
