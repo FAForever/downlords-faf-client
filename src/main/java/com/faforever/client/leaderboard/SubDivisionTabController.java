@@ -16,7 +16,6 @@ import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.google.common.math.Quantiles.Scale;
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableColumn;
@@ -28,9 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.text.DecimalFormat;
-import java.util.function.Function;
 
 import static javafx.collections.FXCollections.observableList;
 
