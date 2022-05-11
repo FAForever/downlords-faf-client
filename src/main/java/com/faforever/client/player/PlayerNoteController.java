@@ -33,9 +33,7 @@ public class PlayerNoteController implements Controller<VBox> {
   public Button cancelButton;
   public Button okButton;
 
-
-  TextFormatter<String> formatter = new TextFormatter<>(change ->
-      isCharacterLimitReached(change) || hasMultipleSeparators(change) ? null : change);
+  TextFormatter<String> formatter = new TextFormatter<>(change -> isCharacterLimitReached(change) ? null : change);
 
   private PlayerBean player;
 
@@ -48,10 +46,6 @@ public class PlayerNoteController implements Controller<VBox> {
 
   private boolean isCharacterLimitReached(Change change) {
     return change.getControlNewText().length() > CHARACTER_LIMIT;
-  }
-
-  private boolean hasMultipleSeparators(Change change) {
-    return change.getControlText().endsWith("\n") && change.getControlNewText().endsWith("\n");
   }
 
   public void setPlayer(PlayerBean player) {
