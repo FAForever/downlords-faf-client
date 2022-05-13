@@ -398,4 +398,11 @@ public class PlayerServiceTest extends ServiceTest {
     assertFalse(instance.getNotesByPlayerId().containsKey(3));
     verify(preferencesService).storeInBackground();
   }
+
+  @Test
+  public void testNormalizeTextBeforeUpdatingPlayerNote() {
+    PlayerBean player = PlayerBeanBuilder.create().id(2).get();
+    instance.updateNote(player, "junit\n1\n\n2\n\n\n3\n4");
+    assertEquals("junit\n1\n2\n3\n4", instance.getNotesByPlayerId().get(2));
+  }
 }

@@ -46,17 +46,6 @@ public class PlayerNoteControllerTest extends UITest {
   }
 
   @Test
-  public void testNoMultipleSeparators() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().note("junit\n").get();
-    runOnFxThreadAndWait(() -> instance.setPlayer(player));
-
-    assertEquals("junit\n", instance.textArea.getText());
-
-    runOnFxThreadAndWait(() -> instance.textArea.appendText("\n"));
-    assertEquals("junit\n", instance.textArea.getText());
-  }
-
-  @Test
   public void testOnOkButtonClicked() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().note("junit").get();
     runOnFxThreadAndWait(() -> {
