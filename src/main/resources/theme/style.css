@@ -1428,7 +1428,8 @@
 /***************** Live Replay Tab ***************************/
 
 .live-replay-tab .table-row-cell {
-  -fx-padding: 3px 4px;
+  -fx-cell-size: 3.5em; /* 56 */
+  -fx-padding: 0.25em 0em; /* 4 0 */
 }
 
 .live-replay-tab .table-row-cell:odd {
