@@ -18,6 +18,7 @@ import java.time.Duration;
 public class CoopResultBean {
   @EqualsAndHashCode.Include
   ObjectProperty<Integer> id = new SimpleObjectProperty<>();
+  // TODO: Why returns `null` value?
   StringProperty playerNames = new SimpleStringProperty();
   BooleanProperty secondaryObjectives = new SimpleBooleanProperty();
   ObjectProperty<Duration> duration = new SimpleObjectProperty<>();
