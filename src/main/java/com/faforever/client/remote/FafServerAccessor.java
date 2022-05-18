@@ -155,7 +155,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
           },
           1024 * 1024,
           false,
-          60,
           server.getRetryAttempts(),
           server.getRetryDelaySeconds()
       );
