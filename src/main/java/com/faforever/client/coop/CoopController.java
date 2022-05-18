@@ -21,8 +21,6 @@ import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
-import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
@@ -50,21 +48,15 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
 import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.*;
 import static javafx.collections.FXCollections.observableList;
 
 @Component
