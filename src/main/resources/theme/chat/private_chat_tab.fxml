@@ -12,6 +12,8 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Tooltip?>
 <Tab xmlns:fx="http://javafx.com/fxml/1" fx:id="privateChatTabRoot" xmlns="http://javafx.com/javafx/8.0.111"
      fx:controller="com.faforever.client.chat.PrivateChatTabController">
     <graphic>
@@ -37,13 +39,24 @@
                                            onAction="#onSendMessage"
                                            promptText="%chat.messagePrompt" styleClass="channel-chat-text-field">
                                 </TextField>
-                                <Button fx:id="emoticonsButton" mnemonicParsing="false"
-                                        onAction="#openEmoticonsPopupWindow"
-                                        styleClass="open-emoticons-window" StackPane.alignment="CENTER_RIGHT">
-                                    <graphic>
-                                        <Region styleClass="icon,friend-icon"/>
-                                    </graphic>
-                                </Button>
+                                <HBox alignment="CENTER_RIGHT">
+                                    <Button fx:id="muteButton" visible="false" onAction="#onMuteButtonClicked"
+                                            styleClass="mute-button">
+                                        <tooltip>
+                                            <Tooltip fx:id="muteButtonTooltip" />
+                                        </tooltip>
+                                        <graphic>
+                                            <Region fx:id="muteButtonIcon" styleClass="icon, interacting-icon, mute-icon"/>
+                                        </graphic>
+                                    </Button>
+                                    <Button fx:id="emoticonsButton" mnemonicParsing="false"
+                                            onAction="#openEmoticonsPopupWindow"
+                                            styleClass="emoticons-button" >
+                                        <graphic>
+                                            <Region styleClass="icon, interacting-icon, friend-icon"/>
+                                        </graphic>
+                                    </Button>
+                                </HBox>
                             </children>
                         </StackPane>
                     </VBox>

@@ -139,6 +139,20 @@ public final class JavaFxUtil {
     return tooltip;
   }
 
+  public static void makeTooltipInstant(Tooltip tooltip) {
+    tooltip.setShowDuration(Duration.seconds(30));
+    tooltip.setShowDelay(Duration.ZERO);
+    tooltip.setHideDelay(Duration.ZERO);
+  }
+
+  public static Tooltip createInstantTooltip(String text) {
+    Tooltip tooltip = new Tooltip(text);
+    tooltip.setShowDuration(Duration.seconds(30));
+    tooltip.setShowDelay(Duration.ZERO);
+    tooltip.setHideDelay(Duration.ZERO);
+    return tooltip;
+  }
+
   /**
    * Centers a window FOR REAL. https://javafx-jira.kenai.com/browse/RT-40368
    */

@@ -89,9 +89,9 @@
                                 </TextField>
                                 <Button fx:id="emoticonsButton" mnemonicParsing="false"
                                         onAction="#openEmoticonsPopupWindow"
-                                        styleClass="open-emoticons-window" StackPane.alignment="CENTER_RIGHT">
+                                        styleClass="emoticons-button" StackPane.alignment="CENTER_RIGHT">
                                     <graphic>
-                                        <Region styleClass="icon,friend-icon"/>
+                                        <Region styleClass="icon, interacting-icon, friend-icon"/>
                                     </graphic>
                                 </Button>
                             </children>

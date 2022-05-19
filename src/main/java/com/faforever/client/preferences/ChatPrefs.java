@@ -11,15 +11,18 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.scene.paint.Color;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -64,6 +67,7 @@ public class ChatPrefs {
   BooleanProperty showMapName = new SimpleBooleanProperty(false);
   BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
   MapProperty<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  SetProperty<Integer> mutedUserIds = new SimpleSetProperty<>(FXCollections.observableSet());
 
   public ChatPrefs() {
     Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
@@ -268,5 +272,13 @@ public class ChatPrefs {
 
   public void setChannelNameToHiddenCategories(ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories) {
     this.channelNameToHiddenCategories.set(channelNameToHiddenCategories);
+  }
+
+  public SetProperty<Integer> getMutedUserIds() {
+    return mutedUserIds;
+  }
+
+  public void setMutedUserIds(ObservableSet<Integer> mutedUserIds) {
+    this.mutedUserIds.setValue(mutedUserIds);
   }
 }

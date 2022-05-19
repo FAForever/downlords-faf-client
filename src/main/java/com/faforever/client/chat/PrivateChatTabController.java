@@ -22,11 +22,16 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
+import javafx.css.PseudoClass;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
@@ -45,7 +50,10 @@ import static com.faforever.client.player.SocialStatus.FOE;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PrivateChatTabController extends AbstractChatTabController {
 
+  private final PseudoClass MUTED = PseudoClass.getPseudoClass("muted");
+
   private final AvatarService avatarService;
+  private final MuteService muteService;
 
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
@@ -54,9 +62,14 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public TextInputControl messageTextField;
   public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
+  public Button muteButton;
+  public Region muteButtonIcon;
+  public Tooltip muteButtonTooltip;
 
   private boolean userOffline;
   private final ChangeListener<AvatarBean> avatarPropertyListener = (observable, oldValue, newValue) -> updateAvatarInTab(newValue);
+  private final ChangeListener<PlayerBean> playerPropertyListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> muteButton.setVisible(newValue != null));
+  private InvalidationListener mutedUserIdsListener;
 
   @Inject
   // TODO cut dependencies
@@ -75,13 +88,13 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService,
                                   ChatUserService chatUserService, EmoticonService emoticonService,
-                                  AvatarService avatarService) {
+                                  AvatarService avatarService, MuteService muteService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
         eventBus, countryFlagService, chatUserService, emoticonService);
     this.avatarService = avatarService;
+    this.muteService = muteService;
   }
-
 
   boolean isUserOffline() {
     return userOffline;
@@ -101,6 +114,13 @@ public class PrivateChatTabController extends AbstractChatTabController {
         JavaFxUtil.addAndTriggerListener(player.avatarProperty(), new WeakChangeListener<>(avatarPropertyListener)));
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username, false);
     privatePlayerInfoController.setChatUser(chatUser);
+    JavaFxUtil.addAndTriggerListener(chatUser.playerProperty(), new WeakChangeListener<>(playerPropertyListener));
+    mutedUserIdsListener = observable -> JavaFxUtil.runLater(() -> {
+      boolean muted = muteService.isUserMuted(username);
+      muteButtonIcon.pseudoClassStateChanged(MUTED, muted);
+      muteButtonTooltip.setText(i18n.get(muted ? "chat.unmuteUser" : "chat.muteUser"));
+    });
+    JavaFxUtil.addAndTriggerListener(muteService.getMutedUserIds(), new WeakInvalidationListener(mutedUserIdsListener));
   }
 
   public void initialize() {
@@ -118,6 +138,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
         onPlayerConnected(change.getKey());
       }
     });
+    JavaFxUtil.makeTooltipInstant(muteButtonTooltip);
   }
 
   @Override
@@ -153,6 +174,15 @@ public class PrivateChatTabController extends AbstractChatTabController {
   private void updateAvatarInTab(AvatarBean avatarBean) {
     Image avatar = avatarService.loadAvatar(avatarBean);
     JavaFxUtil.runLater(() -> avatarImageView.setImage(avatar));
+  }
+
+  public void onMuteButtonClicked() {
+    String username = getReceiver();
+    if (muteService.isUserMuted(username)) {
+      muteService.unmuteUser(username);
+    } else {
+      muteService.muteUser(username);
+    }
   }
 
   @VisibleForTesting

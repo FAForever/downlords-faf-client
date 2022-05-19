@@ -1410,7 +1410,7 @@
 
 /***************** Private Chat Channel ***************************/
 
-.open-emoticons-window {
+.emoticons-button, .mute-button {
   -fx-background-color: transparent;
 }
 
