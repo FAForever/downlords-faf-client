@@ -13,7 +13,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
-import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -42,7 +41,6 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.time.Instant;
-import java.util.Optional;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 
@@ -53,7 +51,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
   private final PseudoClass MUTED = PseudoClass.getPseudoClass("muted");
 
   private final AvatarService avatarService;
-  private final MuteService muteService;
 
   public Tab privateChatTabRoot;
   public ImageView avatarImageView;
@@ -91,9 +88,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   AvatarService avatarService, MuteService muteService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
-        eventBus, countryFlagService, chatUserService, emoticonService);
+        eventBus, countryFlagService, chatUserService, emoticonService, muteService);
     this.avatarService = avatarService;
-    this.muteService = muteService;
   }
 
   boolean isUserOffline() {
@@ -153,10 +149,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-
-    if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
+    String username = chatMessage.getUsername();
+    if (isUserFoe(username) || isUserMuted(username)) {
       return;
     }
 
@@ -169,6 +163,17 @@ public class PrivateChatTabController extends AbstractChatTabController {
       incrementUnreadMessagesCount(1);
       eventBus.post(new UnreadPrivateMessageEvent(chatMessage));
     }
+  }
+
+  private boolean isUserFoe(String username) {
+    return playerService.getPlayerByNameIfOnline(username)
+        .map(PlayerBean::getSocialStatus)
+        .filter(status -> status == FOE && preferencesService.getPreferences().getChat().getHideFoeMessages())
+        .isPresent();
+  }
+
+  private boolean isUserMuted(String username) {
+    return muteService.isUserMuted(username);
   }
 
   private void updateAvatarInTab(AvatarBean avatarBean) {

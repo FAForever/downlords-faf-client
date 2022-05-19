@@ -112,8 +112,8 @@ public class ChannelTabController extends AbstractChatTabController implements I
   @SuppressWarnings("FieldCanBeLocal")
   private InvalidationListener userListVisibilityListener;
 
-  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService, EmoticonService emoticonService, PlatformService platformService) {
-    super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService, uiService, eventBus, countryFlagService, chatUserService, emoticonService);
+  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, ImageUploadService imageUploadService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService, EmoticonService emoticonService, PlatformService platformService, MuteService muteService) {
+    super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService, uiService, eventBus, countryFlagService, chatUserService, emoticonService, muteService);
     this.platformService = platformService;
   }
 
@@ -311,8 +311,10 @@ public class ChannelTabController extends AbstractChatTabController implements I
       return;
     }
 
-    if (playerService.getPlayerByNameIfOnline(chatMessage.getUsername()).filter(player -> player.getSocialStatus() == FOE).isPresent()) {
-      log.debug("Ignored ping from {}", chatMessage.getUsername());
+    String username = chatMessage.getUsername();
+    if (playerService.getPlayerByNameIfOnline(username).filter(player -> player.getSocialStatus() == FOE).isPresent()
+        || muteService.isUserMuted(username)) {
+      log.debug("Ignored ping from {}", username);
     } else if (!hasFocus()) {
       audioService.playChatMentionSound();
       showNotificationIfNecessary(chatMessage);

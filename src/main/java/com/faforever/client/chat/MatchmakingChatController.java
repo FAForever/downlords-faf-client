@@ -60,10 +60,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    ChatService chatService,
                                    WebViewConfigurer webViewConfigurer,
                                    CountryFlagService countryFlagService,
-                                   ChatUserService chatUserService, EmoticonService emoticonService) {
+                                   ChatUserService chatUserService, EmoticonService emoticonService,
+                                   MuteService muteService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
-        eventBus, countryFlagService, chatUserService, emoticonService);
+        eventBus, countryFlagService, chatUserService, emoticonService, muteService);
   }
 
   @Override

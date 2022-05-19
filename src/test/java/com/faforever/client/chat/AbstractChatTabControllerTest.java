@@ -104,6 +104,8 @@ public class AbstractChatTabControllerTest extends UITest {
   private ChatUserService chatUserService;
   @Mock
   private EmoticonService emoticonService;
+  @Mock
+  private MuteService muteService;
 
   private AbstractChatTabController instance;
   private CountDownLatch chatReadyLatch;
@@ -125,7 +127,7 @@ public class AbstractChatTabControllerTest extends UITest {
 
     instance = new AbstractChatTabController(webViewConfigurer, userService, chatService, preferencesService,
         playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService,
-        uiService, eventBus, countryFlagService, chatUserService, emoticonService) {
+        uiService, eventBus, countryFlagService, chatUserService, emoticonService, muteService) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
