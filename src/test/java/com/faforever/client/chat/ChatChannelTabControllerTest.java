@@ -78,6 +78,8 @@ public class ChatChannelTabControllerTest extends UITest {
   @Mock
   private ImageUploadService imageUploadService;
   @Mock
+  private MuteService muteService;
+  @Mock
   private I18n i18n;
   @Mock
   private NotificationService notificationService;
