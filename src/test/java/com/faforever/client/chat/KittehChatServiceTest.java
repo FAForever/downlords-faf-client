@@ -530,15 +530,6 @@ public class KittehChatServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testChatMessageEvenTriggeredIfUserIsNotMuted() {
-    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick(), false);
-    chatUser.setPlayer(player1);
-    connect();
-    sendPrivateMessage(user1, "private message");
-    verify(eventBus).post(any(ChatMessageEvent.class));
-  }
-
-  @Test
   public void testAddModerator() {
     connect();
 
