@@ -133,7 +133,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final WebViewConfigurer webViewConfigurer;
   protected final ChatUserService chatUserService;
   protected final EmoticonService emoticonService;
-  protected final MuteService muteService;
   private final ImageUploadService imageUploadService;
   private final CountryFlagService countryFlagService;
 
@@ -171,7 +170,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
                                    ImageUploadService imageUploadService,
                                    NotificationService notificationService, ReportingService reportingService, UiService uiService,
                                    EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService,
-                                   EmoticonService emoticonService, MuteService muteService) {
+                                   EmoticonService emoticonService) {
 
     this.webViewConfigurer = webViewConfigurer;
     this.uiService = uiService;
@@ -189,7 +188,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     this.countryFlagService = countryFlagService;
     this.chatUserService = chatUserService;
     this.emoticonService = emoticonService;
-    this.muteService = muteService;
 
     waitingMessages = new ArrayList<>();
     unreadMessagesCount = new SimpleIntegerProperty();

@@ -1,9 +1,11 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.net.ConnectionState;
+import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableSet;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -63,4 +65,12 @@ public interface ChatService {
   ReadOnlyIntegerProperty unreadMessagesCount();
 
   String getDefaultChannelName();
+
+  boolean isUserMuted(String username);
+
+  void muteUser(String username);
+
+  void unmuteUser(String username);
+
+  ObservableSet<Integer> getMutedUserIds();
 }

@@ -85,10 +85,10 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService,
                                   ChatUserService chatUserService, EmoticonService emoticonService,
-                                  AvatarService avatarService, MuteService muteService) {
+                                  AvatarService avatarService) {
     super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
         timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
-        eventBus, countryFlagService, chatUserService, emoticonService, muteService);
+        eventBus, countryFlagService, chatUserService, emoticonService);
     this.avatarService = avatarService;
   }
 
@@ -112,11 +112,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
     privatePlayerInfoController.setChatUser(chatUser);
     JavaFxUtil.addAndTriggerListener(chatUser.playerProperty(), new WeakChangeListener<>(playerPropertyListener));
     mutedUserIdsListener = observable -> JavaFxUtil.runLater(() -> {
-      boolean muted = muteService.isUserMuted(username);
+      boolean muted = chatService.isUserMuted(username);
       muteButtonIcon.pseudoClassStateChanged(MUTED, muted);
       muteButtonTooltip.setText(i18n.get(muted ? "chat.unmuteUser" : "chat.muteUser"));
     });
-    JavaFxUtil.addAndTriggerListener(muteService.getMutedUserIds(), new WeakInvalidationListener(mutedUserIdsListener));
+    JavaFxUtil.addAndTriggerListener(chatService.getMutedUserIds(), new WeakInvalidationListener(mutedUserIdsListener));
   }
 
   public void initialize() {
@@ -173,7 +173,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   }
 
   private boolean isUserMuted(String username) {
-    return muteService.isUserMuted(username);
+    return chatService.isUserMuted(username);
   }
 
   private void updateAvatarInTab(AvatarBean avatarBean) {
@@ -183,10 +183,10 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   public void onMuteButtonClicked() {
     String username = getReceiver();
-    if (muteService.isUserMuted(username)) {
-      muteService.unmuteUser(username);
+    if (chatService.isUserMuted(username)) {
+      chatService.unmuteUser(username);
     } else {
-      muteService.muteUser(username);
+      chatService.muteUser(username);
     }
   }
 

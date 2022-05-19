@@ -5,6 +5,7 @@ import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
+import com.faforever.client.domain.AbstractEntityBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.net.ConnectionState;
@@ -35,10 +36,11 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
@@ -111,6 +113,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private final ObservableMap<String, ChatChannel> channels = observableHashMap();
   /** Key is the result of {@link #mapKey(String, String)}. */
   private final ObservableMap<String, ChatChannelUser> chatChannelUsersByChannelAndName = observableMap(new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
+  private ObservableSet<Integer> mutedUserIds;
   private final SimpleIntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
   @VisibleForTesting
   ObjectProperty<ConnectionState> connectionState = new SimpleObjectProperty<>(ConnectionState.DISCONNECTED);
@@ -147,6 +150,9 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
         }
     );
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> updateUserColors(newValue));
+
+    mutedUserIds = chatPrefs.getMutedUserIds();
+    JavaFxUtil.addListener(mutedUserIds, (SetChangeListener<Integer>) observable -> preferencesService.storeInBackground());
   }
 
   private void updateUserColors(ChatColorMode chatColorMode) {
@@ -603,6 +609,30 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public String getDefaultChannelName() {
     return defaultChannelName;
+  }
+
+  @Override
+  public boolean isUserMuted(String username) {
+    return mutedUserIds.contains(getPlayerId(username));
+  }
+
+  @Override
+  public void muteUser(String username) {
+    mutedUserIds.add(getPlayerId(username));
+  }
+
+  @Override
+  public void unmuteUser(String username) {
+    mutedUserIds.remove(getPlayerId(username));
+  }
+
+  @Override
+  public ObservableSet<Integer> getMutedUserIds() {
+    return mutedUserIds;
+  }
+
+  private Integer getPlayerId(String username) {
+    return getOrCreateChatUser(username, username, false).getPlayer().map(AbstractEntityBean::getId).orElse(null);
   }
 
   private void onModeratorSet(String channelName, String username) {
