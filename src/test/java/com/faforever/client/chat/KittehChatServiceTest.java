@@ -59,6 +59,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.net.InetAddress;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -516,6 +517,25 @@ public class KittehChatServiceTest extends ServiceTest {
     sendPrivateMessage(user1, message);
 
     verify(eventBus, never()).post(any(ChatMessageEvent.class));
+  }
+
+  @Test
+  public void testChatMessageEventNotTriggeredIfUserIsMuted() {
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick(), false);
+    chatUser.setPlayer(player1);
+    instance.getMutedUserIds().add(player1.getId());
+    connect();
+    sendPrivateMessage(user1, "private message");
+    verify(eventBus, never()).post(any(ChatMessageEvent.class));
+  }
+
+  @Test
+  public void testChatMessageEvenTriggeredIfUserIsNotMuted() {
+    ChatChannelUser chatUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick(), false);
+    chatUser.setPlayer(player1);
+    connect();
+    sendPrivateMessage(user1, "private message");
+    verify(eventBus).post(any(ChatMessageEvent.class));
   }
 
   @Test

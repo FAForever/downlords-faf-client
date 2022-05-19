@@ -118,15 +118,6 @@ public class ChatControllerTest extends UITest {
   }
 
   @Test
-  public void testDoesNotCreatePrivateTabIfUserIsMuted() {
-    assertEquals(1, instance.tabPane.getTabs().size());
-    when(chatService.isUserMuted(TEST_USER_NAME)).thenReturn(true);
-    ChatMessage chatMessage = new ChatMessage(TEST_USER_NAME, Instant.now(), TEST_USER_NAME, "message");
-    runOnFxThreadAndWait(() -> instance.onChatMessage(new ChatMessageEvent(chatMessage)));
-    assertEquals(1, instance.tabPane.getTabs().size());
-  }
-
-  @Test
   public void testGetRoot() throws Exception {
     assertThat(instance.getRoot(), is(instance.chatRoot));
     assertThat(instance.getRoot().getParent(), is(nullValue()));

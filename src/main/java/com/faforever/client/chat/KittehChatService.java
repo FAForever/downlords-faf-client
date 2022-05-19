@@ -347,13 +347,14 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     User user = event.getActor();
     ircLog.debug("Received private message: {}", event);
 
-    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), user.getNick(), false);
+    String username = user.getNick();
+    ChatChannelUser sender = getOrCreateChatUser(username, username, false);
     if (sender.getPlayer().map(PlayerBean::getSocialStatus).filter(status -> status == SocialStatus.FOE).isPresent()
-        && preferencesService.getPreferences().getChat().getHideFoeMessages()) {
-      ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
+        && preferencesService.getPreferences().getChat().getHideFoeMessages() || isUserMuted(username)) {
+      ircLog.debug("Suppressing chat message from foe or muted '{}'", username);
       return;
     }
-    eventBus.post(new ChatMessageEvent(new ChatMessage(user.getNick(), Instant.now(), user.getNick(), event.getMessage())));
+    eventBus.post(new ChatMessageEvent(new ChatMessage(username, Instant.now(), username, event.getMessage())));
   }
 
   @Handler
