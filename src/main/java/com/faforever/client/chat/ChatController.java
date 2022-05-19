@@ -178,7 +178,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     JavaFxUtil.runLater(() -> {
       if (!message.isPrivate()) {
         getOrCreateChannelTab(message.getSource()).onChatMessage(message);
-      } else {
+      } else if (!chatService.isUserMuted(message.getSource())){
         addAndGetPrivateMessageTab(message.getSource()).onChatMessage(message);
       }
     });
