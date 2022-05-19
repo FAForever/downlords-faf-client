@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.net.ConnectionState;
-import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
