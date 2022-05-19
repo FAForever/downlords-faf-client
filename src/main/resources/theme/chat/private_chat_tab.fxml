@@ -46,7 +46,7 @@
                                             <Tooltip fx:id="muteButtonTooltip" />
                                         </tooltip>
                                         <graphic>
-                                            <Region fx:id="muteButtonIcon" styleClass="icon, interacting-icon, mute-icon"/>
+                                            <Region fx:id="muteButtonIcon" styleClass="icon, interacting-icon, blocked-eye-icon"/>
                                         </graphic>
                                     </Button>
                                     <Button fx:id="emoticonsButton" mnemonicParsing="false"
