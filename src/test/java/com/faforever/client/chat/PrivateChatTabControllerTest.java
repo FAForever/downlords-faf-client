@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.AvatarBeanBuilder;
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
@@ -26,6 +27,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
+import javafx.collections.FXCollections;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
@@ -115,6 +117,8 @@ public class PrivateChatTabControllerTest extends UITest {
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
+    when(chatService.getOrCreateChatUser(playerName, playerName, false)).thenReturn(ChatChannelUserBuilder.create(playerName, playerName).get());
+    when(chatService.getMutedUserIds()).thenReturn(FXCollections.observableSet());
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
       if (clazz == PrivatePlayerInfoController.class) {
@@ -149,8 +153,14 @@ public class PrivateChatTabControllerTest extends UITest {
   }
 
   @Test
-  public void
-  testOnChatMessageFocusedDoesntTriggersNotification() {
+  public void testIgnoreMessageWhenUserIsMuted() {
+    when(chatService.isUserMuted(playerName)).thenReturn(true);
+    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
+    verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testOnChatMessageFocusedDoesntTriggersNotification() {
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verifyNoInteractions(notificationService);
   }
@@ -205,5 +215,19 @@ public class PrivateChatTabControllerTest extends UITest {
     when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
     runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
     assertEquals(newAvatar, instance.avatarImageView.getImage());
+  }
+
+  @Test
+  public void testOnMuteButtonClickedWhenUserIsNotMuted() {
+    when(chatService.isUserMuted(playerName)).thenReturn(false);
+    runOnFxThreadAndWait(() -> instance.onMuteButtonClicked());
+    verify(chatService).muteUser(playerName);
+  }
+
+  @Test
+  public void testOnMuteButtonClickedWhenUserIsMuted() {
+    when(chatService.isUserMuted(playerName)).thenReturn(true);
+    runOnFxThreadAndWait(() -> instance.onMuteButtonClicked());
+    verify(chatService).unmuteUser(playerName);
   }
 }

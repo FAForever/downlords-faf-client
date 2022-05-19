@@ -404,6 +404,14 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   @Test
+  public void testOnMentionDoesNotTriggerNotificationIfUserIsMuted() {
+    this.getRoot().setVisible(false);
+    when(chatService.isUserMuted(USER_NAME)).thenReturn(true);
+    instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello test user!"));
+    verify(audioService, never()).playChatMentionSound();
+  }
+
+  @Test
   public void getInlineStyleChangeToRandom() {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 

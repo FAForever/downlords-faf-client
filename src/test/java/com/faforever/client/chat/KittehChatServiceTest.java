@@ -696,4 +696,17 @@ public class KittehChatServiceTest extends ServiceTest {
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
   }
+
+  @Test
+  public void testMuteUser() {
+    instance.muteUser(user1.getNick());
+    assertTrue(instance.isUserMuted(user1.getNick()));
+  }
+
+  @Test
+  public void testUnmuteUser() {
+    instance.getMutedUserIds().add(1);
+    instance.unmuteUser(user1.getNick());
+    assertFalse(instance.isUserMuted(user1.getNick()));
+  }
 }
