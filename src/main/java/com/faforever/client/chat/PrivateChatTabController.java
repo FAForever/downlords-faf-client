@@ -48,7 +48,7 @@ import static com.faforever.client.player.SocialStatus.FOE;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class PrivateChatTabController extends AbstractChatTabController {
 
-  private final PseudoClass MUTED = PseudoClass.getPseudoClass("muted");
+  static final PseudoClass MUTED = PseudoClass.getPseudoClass("muted");
 
   private final AvatarService avatarService;
 

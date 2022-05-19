@@ -28,6 +28,7 @@ import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
@@ -102,12 +103,14 @@ public class PrivateChatTabControllerTest extends UITest {
 
   private String playerName;
   private PlayerBean player;
+  private ChatChannelUser chatUser;
 
   @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().notificationsPrefs().privateMessageToastEnabled(true).then().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
 
+    chatUser = ChatChannelUserBuilder.create(playerName, playerName).get();
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 
@@ -117,7 +120,7 @@ public class PrivateChatTabControllerTest extends UITest {
     when(i18n.get(any(), any())).then(invocation -> invocation.getArgument(0));
     when(uiService.getThemeFileUrl(any())).then(invocation -> getThemeFileUrl(invocation.getArgument(0)));
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(".*"));
-    when(chatService.getOrCreateChatUser(playerName, playerName, false)).thenReturn(ChatChannelUserBuilder.create(playerName, playerName).get());
+    when(chatService.getOrCreateChatUser(playerName, playerName, false)).thenReturn(chatUser);
     when(chatService.getMutedUserIds()).thenReturn(FXCollections.observableSet());
 
     loadFxml("theme/chat/private_chat_tab.fxml", clazz -> {
@@ -229,5 +232,31 @@ public class PrivateChatTabControllerTest extends UITest {
     when(chatService.isUserMuted(playerName)).thenReturn(true);
     runOnFxThreadAndWait(() -> instance.onMuteButtonClicked());
     verify(chatService).unmuteUser(playerName);
+  }
+
+  @Test
+  public void testPlayerPropertyListener() {
+    runOnFxThreadAndWait(() -> chatUser.setPlayer(player));
+    assertTrue(instance.muteButton.isVisible());
+
+    runOnFxThreadAndWait(() -> chatUser.setPlayer(null));
+    assertFalse(instance.muteButton.isVisible());
+  }
+
+  @Test
+  public void testMutedUserIdsListener() {
+    ObservableSet<Integer> mutedUserIds = chatService.getMutedUserIds();
+
+    when(chatService.isUserMuted(playerName)).thenReturn(true);
+    when(i18n.get("chat.unmuteUser")).thenReturn("unmute");
+    runOnFxThreadAndWait(() -> mutedUserIds.add(1));
+    assertTrue(instance.muteButtonIcon.getPseudoClassStates().contains(PrivateChatTabController.MUTED));
+    assertEquals("unmute", instance.muteButtonTooltip.getText());
+
+    when(chatService.isUserMuted(playerName)).thenReturn(false);
+    when(i18n.get("chat.muteUser")).thenReturn("mute");
+    runOnFxThreadAndWait(() -> mutedUserIds.remove(1));
+    assertFalse(instance.muteButtonIcon.getPseudoClassStates().contains(PrivateChatTabController.MUTED));
+    assertEquals("mute", instance.muteButtonTooltip.getText());
   }
 }
