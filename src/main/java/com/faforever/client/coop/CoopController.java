@@ -178,7 +178,9 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private String commaDelimitedPlayerList(CoopResultBean coopResult) {
-    return coopResult.getReplay().getTeams().values().stream().flatMap(List::stream).collect(Collectors.joining(i18n.get("textSeparator")));
+    return coopResult.getReplay().getTeams().values().stream()
+        .flatMap(List::stream)
+        .collect(Collectors.joining(i18n.get("textSeparator")));
   }
 
   private void onReplayButtonClicked(ReplayButtonController button) {
