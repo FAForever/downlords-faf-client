@@ -54,6 +54,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
 import static java.util.Collections.emptySet;
@@ -177,7 +178,7 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private String commaDelimitedPlayerList(CoopResultBean coopResult) {
-    return String.join(", ", coopResult.getReplay().getTeams().values().stream().flatMap(List::stream).toList());
+    return coopResult.getReplay().getTeams().values().stream().flatMap(List::stream).collect(Collectors.joining(i18n.get("textSeparator")));
   }
 
   private void onReplayButtonClicked(ReplayButtonController button) {
