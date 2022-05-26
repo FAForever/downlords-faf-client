@@ -238,10 +238,15 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private List<CoopResultBean> filterOnlyUniquePlayers(List<CoopResultBean> result) {
-    Set<String> uniquePlayerNames = new HashSet<>();
-    result.removeIf(coopResult -> !uniquePlayerNames.add(commaDelimitedPlayerList(coopResult)));
+    Set<Set<String>> uniquePlayerNames = new HashSet<>();
+    result.removeIf(coopResult -> !uniquePlayerNames.add(getAllPlayerNamesFromTeams(coopResult)));
     return result;
   }
+
+  private Set<String> getAllPlayerNamesFromTeams(CoopResultBean coopResult) {
+    return coopResult.getReplay().getTeams().values().stream().flatMap(List::stream).collect(Collectors.toUnmodifiableSet());
+  }
+
 
   private CoopMissionBean getSelectedMission() {
     return missionComboBox.getSelectionModel().getSelectedItem();
