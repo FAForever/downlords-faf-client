@@ -29,7 +29,6 @@ import org.testfx.util.WaitForAsyncUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
 import static java.util.Collections.emptyList;
@@ -71,9 +70,9 @@ public class CoopControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
-    when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));
-    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
+    when(coopService.getLeaderboard(any(), anyInt())).thenReturn(completedFuture(emptyList()));
+    when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
+    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.getRoot()).thenReturn(new Pane());
@@ -125,7 +124,7 @@ public class CoopControllerTest extends UITest {
             .get())
         .get());
 
-    when(coopService.getLeaderboard(any(), eq(1))).thenReturn(CompletableFuture.completedFuture(result));
+    when(coopService.getLeaderboard(any(), eq(1))).thenReturn(completedFuture(result));
 
     runOnFxThreadAndWait(() -> {
       instance.initialize();
@@ -155,7 +154,7 @@ public class CoopControllerTest extends UITest {
             .get())
         .get());
 
-    when(coopService.getLeaderboard(any(), eq(2))).thenReturn(CompletableFuture.completedFuture(result));
+    when(coopService.getLeaderboard(any(), eq(2))).thenReturn(completedFuture(result));
 
     runOnFxThreadAndWait(() -> {
       instance.initialize();
@@ -198,7 +197,7 @@ public class CoopControllerTest extends UITest {
             .get())
         .get());
 
-    when(coopService.getLeaderboard(any(), eq(0))).thenReturn(CompletableFuture.completedFuture(result));
+    when(coopService.getLeaderboard(any(), eq(0))).thenReturn(completedFuture(result));
 
     runOnFxThreadAndWait(() -> {
       instance.initialize();
