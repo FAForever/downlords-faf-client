@@ -88,7 +88,7 @@
                 <TableView fx:id="leaderboardTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                            VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="rankColumn" editable="false" maxWidth="64.0" minWidth="24.0"
+                        <TableColumn fx:id="rankColumn" editable="false" maxWidth="64.0" minWidth="36.0"
                                      prefWidth="32.0" sortable="false" text="%coop.leaderboard.rank"/>
                         <TableColumn fx:id="playerCountColumn" editable="false" maxWidth="1000.0" minWidth="24.0"
                                      prefWidth="50.0" sortable="false" text="%coop.leaderboard.players"/>
@@ -97,6 +97,8 @@
                         <TableColumn fx:id="secondaryObjectivesColumn" editable="false" maxWidth="1000.0"
                                      minWidth="24.0" prefWidth="-1.0" sortable="false"
                                      text="%coop.leaderboard.secondary"/>
+                        <TableColumn fx:id="dateColumn" editable="false" maxWidth="1000.0" minWidth="24.0"
+                                     prefWidth="-1.0" sortable="false" text="%game.date"/>
                         <TableColumn fx:id="timeColumn" editable="false" maxWidth="1000.0" minWidth="24.0"
                                      prefWidth="-1.0" sortable="false" text="%coop.leaderboard.time"/>
                         <TableColumn fx:id="replayColumn" editable="false" maxWidth="1000.0" minWidth="50.0"

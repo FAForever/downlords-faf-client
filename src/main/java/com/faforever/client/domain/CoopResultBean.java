@@ -6,8 +6,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
@@ -18,7 +16,6 @@ import java.time.Duration;
 public class CoopResultBean {
   @EqualsAndHashCode.Include
   ObjectProperty<Integer> id = new SimpleObjectProperty<>();
-  StringProperty playerNames = new SimpleStringProperty();
   BooleanProperty secondaryObjectives = new SimpleBooleanProperty();
   ObjectProperty<Duration> duration = new SimpleObjectProperty<>();
   IntegerProperty ranking = new SimpleIntegerProperty();
@@ -35,18 +32,6 @@ public class CoopResultBean {
 
   public ObjectProperty<Integer> idProperty() {
     return id;
-  }
-
-  public String getPlayerNames() {
-    return playerNames.get();
-  }
-
-  public StringProperty playerNamesProperty() {
-    return playerNames;
-  }
-
-  public void setPlayerNames(String playerNames) {
-    this.playerNames.set(playerNames);
   }
 
   public boolean getSecondaryObjectives() {

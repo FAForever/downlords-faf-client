@@ -1,7 +1,10 @@
 package com.faforever.client.coop;
 
+import com.faforever.client.builders.CoopResultBeanBuilder;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
+import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
+import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameService;
@@ -23,17 +26,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static com.faforever.client.game.KnownFeaturedMod.COOP;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,9 +70,9 @@ public class CoopControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(coopService.getLeaderboard(any(), anyInt())).thenReturn(CompletableFuture.completedFuture(emptyList()));
-    when(coopService.getMissions()).thenReturn(CompletableFuture.completedFuture(emptyList()));
-    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
+    when(coopService.getLeaderboard(any(), anyInt())).thenReturn(completedFuture(emptyList()));
+    when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
+    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.getRoot()).thenReturn(new Pane());
@@ -89,12 +94,116 @@ public class CoopControllerTest extends UITest {
     verify(gameService).hostGame(captor.capture());
 
     NewGameInfo newGameInfo = captor.getValue();
-    assertThat(newGameInfo.getFeaturedMod().getTechnicalName(), is("coop"));
+    assertEquals("coop", newGameInfo.getFeaturedMod().getTechnicalName());
   }
 
   @Test
   public void testGetRoot() throws Exception {
-    assertThat(instance.getRoot(), is(instance.coopRoot));
-    assertThat(instance.getRoot().getParent(), is(nullValue()));
+    assertEquals(instance.coopRoot, instance.getRoot());
+    assertNull(instance.getRoot().getParent());
+  }
+
+  @Test
+  public void testNoDuplicatedPlayersInTableWhenSetCountPlayersToOne() {
+    List<CoopResultBean> result = new ArrayList<>();
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit2"))))
+            .get())
+        .get());
+
+    when(coopService.getLeaderboard(any(), eq(1))).thenReturn(completedFuture(result));
+
+    runOnFxThreadAndWait(() -> {
+      instance.initialize();
+      instance.numberOfPlayersComboBox.getSelectionModel().select(1);
+    });
+    assertEquals(2, instance.leaderboardTable.getItems().size());
+  }
+
+  @Test
+  public void testNoDuplicatedPlayersInTableWhenSetCountPlayersToTwo() {
+    List<CoopResultBean> result = new ArrayList<>();
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("test1"), "3", List.of("test2"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit2"), "3", List.of("junit1"))))
+            .get())
+        .get());
+
+    when(coopService.getLeaderboard(any(), eq(2))).thenReturn(completedFuture(result));
+
+    runOnFxThreadAndWait(() -> {
+      instance.initialize();
+      instance.numberOfPlayersComboBox.getSelectionModel().select(2);
+    });
+    assertEquals(2, instance.leaderboardTable.getItems().size());
+  }
+
+  @Test
+  public void testNoDuplicatedPlayersInTableWhenSetCountPlayersToAll() {
+    List<CoopResultBean> result = new ArrayList<>();
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"), "3", List.of("junit2"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit2"), "3", List.of("junit1"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("junit1"))))
+            .get())
+        .get());
+
+    result.add(CoopResultBeanBuilder.create().defaultValues()
+        .replay(ReplayBeanBuilder.create().defaultValues()
+            .teams(FXCollections.observableMap(Map.of("2", List.of("test1", "test3"), "3", List.of("test2"))))
+            .get())
+        .get());
+
+    when(coopService.getLeaderboard(any(), eq(0))).thenReturn(completedFuture(result));
+
+    runOnFxThreadAndWait(() -> {
+      instance.initialize();
+      instance.numberOfPlayersComboBox.getSelectionModel().select(1);
+      instance.numberOfPlayersComboBox.getSelectionModel().select(0);
+    });
+    assertEquals(3, instance.leaderboardTable.getItems().size());
   }
 }

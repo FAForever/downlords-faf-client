@@ -23,11 +23,6 @@ public class CoopResultBeanBuilder {
     return this;
   }
 
-  public CoopResultBeanBuilder playerNames(String playerNames) {
-    coopResultBean.setPlayerNames(playerNames);
-    return this;
-  }
-
   public CoopResultBeanBuilder secondaryObjectives(boolean secondaryObjectives) {
     coopResultBean.setSecondaryObjectives(secondaryObjectives);
     return this;

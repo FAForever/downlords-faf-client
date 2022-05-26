@@ -47,8 +47,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -90,6 +92,7 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResultBean, Integer> playerCountColumn;
   public TableColumn<CoopResultBean, String> playerNamesColumn;
   public TableColumn<CoopResultBean, Boolean> secondaryObjectivesColumn;
+  public TableColumn<CoopResultBean, OffsetDateTime> dateColumn;
   public TableColumn<CoopResultBean, Duration> timeColumn;
   public TableColumn<CoopResultBean, String> replayColumn;
 
@@ -117,6 +120,9 @@ public class CoopController extends AbstractViewController<Node> {
 
     secondaryObjectivesColumn.setCellValueFactory(param -> param.getValue().secondaryObjectivesProperty());
     secondaryObjectivesColumn.setCellFactory(param -> new StringCell<>(aBoolean -> aBoolean ? i18n.get("yes") : i18n.get("no")));
+
+    dateColumn.setCellValueFactory(param -> param.getValue().getReplay().endTimeProperty());
+    dateColumn.setCellFactory(param -> new StringCell<>(timeService::asDate));
 
     timeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getDuration()));
     timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
@@ -220,6 +226,7 @@ public class CoopController extends AbstractViewController<Node> {
 
   private void loadLeaderboard() {
     coopService.getLeaderboard(getSelectedMission(), numberOfPlayersComboBox.getSelectionModel().getSelectedItem())
+        .thenApply(this::filterOnlyUniquePlayers)
         .thenAccept(coopLeaderboardEntries -> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
@@ -231,6 +238,17 @@ public class CoopController extends AbstractViewController<Node> {
           return null;
         });
   }
+
+  private List<CoopResultBean> filterOnlyUniquePlayers(List<CoopResultBean> result) {
+    Set<Set<String>> uniquePlayerNames = new HashSet<>();
+    result.removeIf(coopResult -> !uniquePlayerNames.add(getAllPlayerNamesFromTeams(coopResult)));
+    return result;
+  }
+
+  private Set<String> getAllPlayerNamesFromTeams(CoopResultBean coopResult) {
+    return coopResult.getReplay().getTeams().values().stream().flatMap(List::stream).collect(Collectors.toUnmodifiableSet());
+  }
+
 
   private CoopMissionBean getSelectedMission() {
     return missionComboBox.getSelectionModel().getSelectedItem();
