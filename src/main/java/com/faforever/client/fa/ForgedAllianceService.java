@@ -5,6 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.steam.SteamService;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class ForgedAllianceService {
 
   public static final String DEBUGGER_EXE = "FAFDebugger.exe";
 
+  private final SteamService steamService;
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
@@ -134,6 +136,8 @@ public class ForgedAllianceService {
       executeDirectory = getExecutablePath().getParent();
     }
 
+    steamService.startSteamApi();
+
     ProcessBuilder processBuilder = new ProcessBuilder();
     processBuilder.inheritIO();
     processBuilder.directory(executeDirectory.toFile());
@@ -141,6 +145,8 @@ public class ForgedAllianceService {
 
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
-    return processBuilder.start();
+    Process process = processBuilder.start();
+    process.onExit().thenAccept(ignored -> steamService.shutdownSteamApi());
+    return process;
   }
 }

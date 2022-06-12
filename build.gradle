@@ -327,8 +327,9 @@ dependencies {
   implementation("io.github.micheljung:fxstage:0.8.2")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:8.0.0")
-  implementation("org.mapstruct:mapstruct:1.4.2.Final")
-
+  def mapstructVersion = "1.4.2.Final"
+  implementation("org.mapstruct:mapstruct:${mapstructVersion}")
+  implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
 
   def javafxVersion = "18"
   implementation("org.openjfx:javafx-base:${javafxVersion}:${javafxPlatform}")
@@ -361,7 +362,7 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   annotationProcessor("org.projectlombok:lombok")
-  annotationProcessor("org.mapstruct:mapstruct-processor:1.4.2.Final")
+  annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
   testAnnotationProcessor("org.projectlombok:lombok")
   testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.4.2.Final")
   compileOnly("org.projectlombok:lombok")
