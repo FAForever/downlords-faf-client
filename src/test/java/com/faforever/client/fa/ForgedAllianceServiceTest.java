@@ -7,6 +7,7 @@ import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.steam.SteamService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,8 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   private LoggingService loggingService;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private SteamService steamService;
 
   @BeforeEach
   public void setUp() throws Exception {
