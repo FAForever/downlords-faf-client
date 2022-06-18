@@ -20,6 +20,7 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import javafx.beans.InvalidationListener;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableMap;
@@ -429,7 +430,14 @@ public class SearchController implements Controller<Pane> {
   }
 
   public void setSearchButtonDisabledCondition(BooleanBinding inSearchableState) {
-    searchButton.disableProperty().bind(queryTextField.textProperty().isEmpty().or(inSearchableState.not()));
+    Optional<Property> firstSortProperty = sortPropertyComboBox.getItems().stream().findFirst();
+    BooleanBinding isSortChanged = firstSortProperty.isEmpty()
+        ? Bindings.selectBoolean(false)
+        : sortPropertyComboBox.valueProperty().isNotEqualTo(firstSortProperty.get());
+    searchButton.disableProperty().bind(
+        queryTextField.textProperty().isEmpty().and(isSortChanged.not())
+        .or(inSearchableState.not())
+    );
   }
 
   public void setOnlyShowLastYearCheckBoxVisible(boolean visible) {
