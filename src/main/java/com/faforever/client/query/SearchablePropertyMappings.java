@@ -46,14 +46,14 @@ public class SearchablePropertyMappings {
 
   public static final Map<String, Property> MAP_PROPERTY_MAPPING = ImmutableMap.<String, Property>builder()
       .put("displayName", new Property("map.name", true))
-      .put("author.login", new Property("map.author", false))
+      .put("author.login", new Property("map.author", true))
 
-      .put("gamesPlayed", new Property("map.playCount", false))
+      .put("gamesPlayed", new Property("map.playCount", true))
 
-      .put("latestVersion.createTime", new Property("map.uploadedDateTime", false))
-      .put("latestVersion.updateTime", new Property("map.updatedDateTime", false))
+      .put("latestVersion.createTime", new Property("map.uploadedDateTime", true))
+      .put("latestVersion.updateTime", new Property("map.updatedDateTime", true))
       .put("latestVersion.description", new Property("map.description", false))
-      .put("latestVersion.maxPlayers", new Property("map.maxPlayers", false))
+      .put("latestVersion.maxPlayers", new Property("map.maxPlayers", true))
       .put("latestVersion.width", new Property("map.widthPixels", false))
       .put("latestVersion.height", new Property("map.heightPixels", false))
       .put("latestVersion.folderName", new Property("map.folderName", false))
@@ -64,10 +64,10 @@ public class SearchablePropertyMappings {
 
   public static final Map<String, Property> MOD_PROPERTY_MAPPING = ImmutableMap.<String, Property>builder()
       .put("displayName", new Property("mod.displayName", true))
-      .put("author", new Property("mod.author", false))
+      .put("author", new Property("mod.author", true))
       .put("uploader.login", new Property("mod.uploader.login", false))
-      .put("latestVersion.createTime", new Property("mod.uploadedDateTime", false))
-      .put("latestVersion.updateTime", new Property("mod.updatedDateTime", false))
+      .put("latestVersion.createTime", new Property("mod.uploadedDateTime", true))
+      .put("latestVersion.updateTime", new Property("mod.updatedDateTime", true))
       .put("latestVersion.description", new Property("mod.description", false))
       .put("latestVersion.id", new Property("mod.id", false))
       .put("latestVersion.uid", new Property("mod.uid", false))
