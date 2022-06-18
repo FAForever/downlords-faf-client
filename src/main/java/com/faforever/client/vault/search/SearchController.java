@@ -429,17 +429,6 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.specificationController.setRootType(rootType);
   }
 
-  public void setSearchButtonDisabledCondition(BooleanBinding inSearchableState) {
-    Optional<Property> firstSortProperty = sortPropertyComboBox.getItems().stream().findFirst();
-    BooleanBinding isSortChanged = firstSortProperty.isEmpty()
-        ? Bindings.selectBoolean(false)
-        : sortPropertyComboBox.valueProperty().isNotEqualTo(firstSortProperty.get());
-    searchButton.disableProperty().bind(
-        queryTextField.textProperty().isEmpty().and(isSortChanged.not())
-        .or(inSearchableState.not())
-    );
-  }
-
   public void setOnlyShowLastYearCheckBoxVisible(boolean visible) {
     showLastYearCheckBox = visible;
     onlyShowLastYearCheckBox.setSelected(visible);
