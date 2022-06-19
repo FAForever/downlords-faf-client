@@ -131,6 +131,9 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
     initSearchController();
 
+    BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);
+    searchController.setSearchButtonDisabledCondition(inSearchableState);
+
     pagination.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> {
       if (!oldValue.equals(newValue)) {
         SearchConfig searchConfig = searchController.getLastSearchConfig();

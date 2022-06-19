@@ -429,6 +429,10 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.specificationController.setRootType(rootType);
   }
 
+  public void setSearchButtonDisabledCondition(BooleanBinding inSearchableState) {
+    searchButton.disableProperty().bind(inSearchableState.not());
+  }
+
   public void setOnlyShowLastYearCheckBoxVisible(boolean visible) {
     showLastYearCheckBox = visible;
     onlyShowLastYearCheckBox.setSelected(visible);
