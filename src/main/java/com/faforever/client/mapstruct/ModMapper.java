@@ -15,16 +15,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring", imports = ModType.class, uses = {PlayerMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
+@Mapper(componentModel = "spring", uses = {PlayerMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface ModMapper {
     @Mapping(target = "uid", source = "modInfo.uid")
     @Mapping(target = "mod.author", source = "modInfo.author")
-    @Mapping(target = "modType", expression = "java(modInfo.isUiOnly() ? ModType.UI : ModType.SIM)")
+    @Mapping(target = "modType", source = "modInfo.uiOnly")
     @Mapping(target = "mountPoints", source = "modInfo.mountInfos")
     @Mapping(target = "mod", expression = "java(new ModBean())")
     @Mapping(target = "mod.displayName", source = "modInfo.name")
     @Mapping(target = "imagePath", expression = "java(mapImagePath(modInfo, basePath))")
     ModVersionBean map(com.faforever.commons.mod.Mod modInfo, Path basePath);
+
+    default ModType mapModType(boolean isUIOnly) {
+        return isUIOnly ? ModType.UI : ModType.SIM;
+    }
 
     default Path mapImagePath(com.faforever.commons.mod.Mod modInfo, Path basePath) {
         return Optional.ofNullable(modInfo.getIcon())
