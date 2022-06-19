@@ -297,7 +297,7 @@ dependencies {
   implementation("org.springframework:spring-websocket")
 
 
-  def commonsVersion = "df1d6de3562a432ee7cfd6eff72c86b7937595c7"
+  def commonsVersion = "af8691abf34c4e3b533e1d7c2dddec4606a9fb92"
 
   implementation("com.github.FAForever.faf-java-commons:faf-commons-data:${commonsVersion}") {
             exclude module: 'guava'
@@ -327,7 +327,7 @@ dependencies {
   implementation("io.github.micheljung:fxstage:0.8.2")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:8.0.0")
-  def mapstructVersion = "1.4.2.Final"
+  def mapstructVersion = "1.5.1.Final"
   implementation("org.mapstruct:mapstruct:${mapstructVersion}")
   implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
 
