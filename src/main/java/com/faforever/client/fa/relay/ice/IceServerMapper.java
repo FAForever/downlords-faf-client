@@ -5,9 +5,9 @@ import com.faforever.client.mapstruct.MapperConfiguration;
 import com.faforever.client.player.PlayerService;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.IceServer;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.mapstruct.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Base64;
@@ -17,11 +17,11 @@ import java.util.List;
 import java.util.Map;
 
 @Mapper(config = MapperConfiguration.class)
-@RequiredArgsConstructor
 public abstract class IceServerMapper {
   int TTL = 86400;
 
-  private final PlayerService playerService;
+  @Autowired
+  private PlayerService playerService;
 
   public Map<String, Object> map(IceServer iceServer) {
     Map<String, Object> map = new HashMap<>();
