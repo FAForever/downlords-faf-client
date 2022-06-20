@@ -24,7 +24,7 @@ public class CoturnService {
   private final FafApiAccessor fafApiAccessor;
   private final PreferencesService preferencesService;
 
-  @Cacheable(value = CacheNames.CLAN, sync = true)
+  @Cacheable(value = CacheNames.COTURN, sync = true)
   public CompletableFuture<List<CoturnServer>> getActiveCoturns() {
     ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
     return fafApiAccessor.getMany(navigator)
