@@ -253,6 +253,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     lobbyClient.broadcastMessage(message);
   }
 
+  @Deprecated
   public CompletableFuture<List<IceServer>> getIceServers() {
     return lobbyClient.getIceServers().collectList().toFuture();
   }

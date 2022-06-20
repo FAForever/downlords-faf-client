@@ -40,6 +40,7 @@ public final class CacheNames {
   public static final String MATCHMAKER_QUEUES = "matchmakerQueues";
   public static final String MATCHMAKER_POOLS = "matchmakerPools";
   public static final String MODERATION_REPORTS = "moderationReports";
+  public static final String COTURN = "coturn";
 
   private CacheNames() {
     throw new AssertionError("Not instantiatable");

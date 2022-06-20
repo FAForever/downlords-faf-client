@@ -11,6 +11,7 @@ import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
 import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
 import com.faforever.commons.lobby.GameLaunchResponse;
@@ -42,8 +43,6 @@ import java.net.ConnectException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -67,6 +66,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final EventBus eventBus;
   private final FafServerAccessor fafServerAccessor;
   private final PreferencesService preferencesService;
+  private final IceServerMapper iceServerMapper;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private CompletableFuture<Integer> iceAdapterClientFuture;
@@ -92,27 +92,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
    * value where value can can be a string or list of strings
    */
   private List<Map<String, Object>> toIceServers(Collection<IceServer> iceServers) {
-    List<Map<String, Object>> result = new LinkedList<>();
-    for (IceServer iceServer : iceServers) {
-      Map<String, Object> map = new HashMap<>();
-      List<String> urls = new LinkedList<>();
-      if (iceServer.getUrl() != null && !iceServer.getUrl().equals("null")) {
-        urls.add(iceServer.getUrl());
-      }
-      if (iceServer.getUrls() != null) {
-        urls.addAll(iceServer.getUrls());
-      }
-
-      map.put("urls", urls);
-
-      map.put("credential", iceServer.getCredential());
-      map.put("credentialType", "token");
-      map.put("username", iceServer.getUsername());
-
-      result.add(map);
-    }
-
-    return (result);
+    return iceServers.stream().map(iceServerMapper::map).toList();
   }
 
   @Subscribe
@@ -208,7 +188,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
             TcpClient tcpClient = new TcpClient("localhost", adapterPort, iceAdapterCallbacks);
             peer = tcpClient.getPeer();
 
-            setIceServers();
             setLobbyInitMode();
             break;
           } catch (ConnectException e) {
@@ -251,13 +230,18 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     return workDirectory.resolve("faf-ice-adapter.jar").toString();
   }
 
+  @Deprecated
   private void setIceServers() {
     fafServerAccessor.getIceServers()
-        .thenAccept(iceServers -> iceAdapterProxy.setIceServers(toIceServers(iceServers)))
+        .thenAccept(iceServers -> iceAdapterProxy.setIceServers(iceServerMapper.mapIceServers(iceServers)))
         .exceptionally(throwable -> {
           log.warn("Could not set ICE servers", throwable);
           return null;
         });
+  }
+
+  public void setIceServers(Collection<CoturnServer> coturnServers) {
+    iceAdapterProxy.setIceServers(iceServerMapper.mapCoturnServers(coturnServers));
   }
 
   private void setLobbyInitMode() {

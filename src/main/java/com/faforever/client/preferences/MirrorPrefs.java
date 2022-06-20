@@ -9,11 +9,7 @@ import java.net.URI;
 
 @FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class MirrorPrefs {
-  ObservableList<URI> mirrorURLs;
-
-  public MirrorPrefs() {
-    mirrorURLs = FXCollections.observableArrayList();
-  }
+  ObservableList<URI> mirrorURLs = FXCollections.observableArrayList();
 
   public ObservableList<URI> getMirrorURLs() {
     return mirrorURLs;
