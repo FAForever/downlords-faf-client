@@ -327,7 +327,7 @@ dependencies {
   implementation("io.github.micheljung:fxstage:0.8.2")
   implementation("io.github.micheljung:jfx-waitomo-theme:0.3.0")
   implementation("org.kitteh.irc:client-lib:8.0.0")
-  def mapstructVersion = "1.5.1.Final"
+  def mapstructVersion = "1.5.2.Final"
   implementation("org.mapstruct:mapstruct:${mapstructVersion}")
   implementation("com.code-disaster.steamworks4j:steamworks4j:1.9.0")
 
@@ -364,7 +364,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
   annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
   testAnnotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.4.2.Final")
+  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.2.Final")
   compileOnly("org.projectlombok:lombok")
   testCompileOnly("org.projectlombok:lombok")
 
