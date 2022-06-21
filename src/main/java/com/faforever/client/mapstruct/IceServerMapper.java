@@ -1,10 +1,9 @@
-package com.faforever.client.fa.relay.ice;
+package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.mapstruct.MapperConfiguration;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.commons.api.dto.CoturnServer;
-import com.faforever.commons.lobby.IceServer;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,24 +22,7 @@ public abstract class IceServerMapper {
   @Autowired
   private PlayerService playerService;
 
-  public Map<String, Object> map(IceServer iceServer) {
-    Map<String, Object> map = new HashMap<>();
-    List<String> urls = new ArrayList<>();
-    if (iceServer.getUrl() != null && !"null".equals(iceServer.getUrl())) {
-      urls.add(iceServer.getUrl());
-    }
-    if (iceServer.getUrls() != null) {
-      urls.addAll(iceServer.getUrls());
-    }
-
-    map.put("urls", urls);
-    map.put("credential", iceServer.getCredential());
-    map.put("credentialType", "token");
-    map.put("username", iceServer.getUsername());
-    return map;
-  }
-
-  public abstract List<Map<String, Object>> mapIceServers(Collection<IceServer> iceServers);
+  public abstract CoturnHostPort mapToHostPort(CoturnServer coturnServer);
 
   public Map<String, Object> map(CoturnServer coturnServer) {
     Map<String, Object> map = new HashMap<>();
@@ -50,7 +32,7 @@ public abstract class IceServerMapper {
     long timestamp = System.currentTimeMillis() / 1000 + TTL;
     String tokenName = String.format("%d:%d", timestamp, currentPlayer.getId());
 
-    String token = Base64.getEncoder().encodeToString(new HmacUtils("sha1", coturnServer.getKey()).hmac(tokenName));
+    String token = Base64.getEncoder().encodeToString(new HmacUtils("HmacSHA1", coturnServer.getKey()).hmac(tokenName));
 
     String host = coturnServer.getHost();
     if (coturnServer.getPort() != null) {
@@ -69,6 +51,6 @@ public abstract class IceServerMapper {
     return map;
   }
 
-  public abstract List<Map<String, Object>> mapCoturnServers(Collection<CoturnServer> coturnServers);
+  public abstract List<Map<String, Object>> map(Collection<CoturnServer> coturnServers);
 
 }

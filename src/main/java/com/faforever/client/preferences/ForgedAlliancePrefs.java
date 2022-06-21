@@ -9,7 +9,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
@@ -58,7 +58,7 @@ public class ForgedAlliancePrefs {
   ObjectProperty<Path> executionDirectory = new SimpleObjectProperty<>();
   BooleanProperty runFAWithDebugger = new SimpleBooleanProperty(false);
   BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
-  ObservableList<String> preferredCoturnServers = FXCollections.emptyObservableList();
+  ObservableSet<CoturnHostPort> preferredCoturnServers = FXCollections.observableSet();
 
   public Path getPreferencesFile() {
     return preferencesFile.get();
@@ -188,7 +188,7 @@ public class ForgedAlliancePrefs {
     return showIceAdapterDebugWindow;
   }
 
-  public ObservableList<String> getPreferredCoturnServers() {
+  public ObservableSet<CoturnHostPort> getPreferredCoturnServers() {
     return preferredCoturnServers;
   }
 }

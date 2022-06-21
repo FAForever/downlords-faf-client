@@ -427,7 +427,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
 
   public Path getPathForMap(MapVersionBean mapVersion) {
-    return getPathForMapInsensitive(mapVersion.getFolderName());
+    return getPathForMapCaseInsensitive(mapVersion.getFolderName());
   }
 
   private Path getMapsDirectory(String technicalName) {
@@ -445,7 +445,7 @@ public class MapService implements InitializingBean, DisposableBean {
     return path;
   }
 
-  public Path getPathForMapInsensitive(String approxName) {
+  public Path getPathForMapCaseInsensitive(String approxName) {
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(getMapsDirectory(approxName))) {
       for (Path entry : directoryStream) {
         if (entry.getFileName().toString().equalsIgnoreCase(approxName)) {
@@ -505,8 +505,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
     if (mapGeneratorService.isGeneratedMap(folderName)) {
-      return generateIfNotInstalled(folderName).thenRun(() -> {
-      });
+      return generateIfNotInstalled(folderName).thenRun(() -> {});
     }
 
     if (isInstalled(folderName)) {
@@ -526,7 +525,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
 
     return taskService.submitTask(task).getFuture()
-        .thenAccept(aVoid -> tryAddInstalledMap(getPathForMapInsensitive(folderName)));
+        .thenAccept(aVoid -> tryAddInstalledMap(getPathForMapCaseInsensitive(folderName)));
   }
 
   @Override

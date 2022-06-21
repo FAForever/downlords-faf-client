@@ -8,7 +8,7 @@ import java.util.Map;
  */
 interface IceAdapterApi {
 
-  /** Gracefully shuts down the. */
+  /** Gracefully shuts down the ice adapter. */
   void quit();
 
   /** Tell the game to create the lobby and host game on Lobby-State. */

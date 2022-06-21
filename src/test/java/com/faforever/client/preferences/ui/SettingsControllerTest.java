@@ -3,13 +3,17 @@ package com.faforever.client.preferences.ui;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
+import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.mapstruct.IceServerMapper;
+import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.LanguageChannel;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -25,16 +29,20 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.api.dto.CoturnServer;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -53,10 +61,13 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -91,12 +102,17 @@ public class SettingsControllerTest extends UITest {
   private ClientUpdateService clientUpdateService;
   @Mock
   private TaskService taskService;
+  @Mock
+  private CoturnService coturnService;
+  @Spy
+  private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
 
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
 
   @BeforeEach
   public void setUp() throws Exception {
+    MapperSetup.injectMappers(iceServerMapper);
     preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferenceService.getPreferences()).thenReturn(preferences);
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -107,6 +123,9 @@ public class SettingsControllerTest extends UITest {
             FIRST_THEME,
             SECOND_THEME
         ));
+    CoturnServer coturnServer = new CoturnServer();
+    coturnServer.setHost("Test");
+    when(coturnService.getActiveCoturns()).thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
     when(gameService.isGamePrefsPatchedToAllowMultiInstances()).thenReturn(CompletableFuture.completedFuture(true));
 
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
@@ -216,6 +235,25 @@ public class SettingsControllerTest extends UITest {
     List<URI> expected = Collections.singletonList(URI.create("https://faf-mirror.example.com/"));
     assertThat(preferences.getMirror().getMirrorURLs(), is(expected));
     assertThat(instance.mirrorURITextField.getText(), is(""));
+  }
+
+  @Test
+  public void testCoturnSelected() throws Exception {
+    ObservableSet<CoturnHostPort> preferredCoturnServers = preferences.getForgedAlliance().getPreferredCoturnServers();
+    preferredCoturnServers.clear();
+    runOnFxThreadAndWait(() -> instance.initialize());
+
+    assertEquals(0, preferredCoturnServers.size());
+
+    runOnFxThreadAndWait(() -> instance.preferredCoturnListView.getSelectionModel().select(0));
+
+    assertEquals(1, preferredCoturnServers.size());
+    assertTrue(preferredCoturnServers.contains(new CoturnHostPort("Test", null)));
+    verify(preferenceService, times(4)).storeInBackground();
+
+    runOnFxThreadAndWait(() -> instance.initialize());
+
+    assertEquals(1, instance.preferredCoturnListView.getSelectionModel().getSelectedItems().size());
   }
 
   @Test

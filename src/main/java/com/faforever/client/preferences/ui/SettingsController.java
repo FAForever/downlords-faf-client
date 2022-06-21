@@ -5,6 +5,7 @@ import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatFormat;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
+import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -12,6 +13,7 @@ import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
+import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.CancelAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -20,6 +22,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
@@ -41,6 +44,7 @@ import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.user.UserService;
+import com.faforever.commons.api.dto.CoturnServer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
@@ -51,6 +55,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableSet;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -58,6 +63,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
@@ -83,6 +89,7 @@ import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -105,6 +112,8 @@ public class SettingsController implements Controller<Node> {
   private final ClientUpdateService clientUpdateService;
   private final GameService gameService;
   private final TaskService taskService;
+  private final CoturnService coturnService;
+  private final IceServerMapper iceServerMapper;
   private final InvalidationListener availableLanguagesListener;
 
   public TextField executableDecoratorField;
@@ -168,7 +177,8 @@ public class SettingsController implements Controller<Node> {
   public ComboBox<Level> logLevelComboBox;
   public CheckBox mapAndModAutoUpdateCheckBox;
   public TextField mirrorURITextField;
-  public ListView<URI> mirrorURLsListView;
+  public ListView<URI> mirrorURLListView;
+  public ListView<CoturnServer> preferredCoturnListView;
 
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
@@ -176,7 +186,7 @@ public class SettingsController implements Controller<Node> {
   public SettingsController(ApplicationContext applicationContext, UserService userService, PreferencesService preferencesService, UiService uiService,
                             I18n i18n, EventBus eventBus, NotificationService notificationService,
                             PlatformService platformService, ClientProperties clientProperties,
-                            ClientUpdateService clientUpdateService, GameService gameService, TaskService taskService) {
+                            ClientUpdateService clientUpdateService, GameService gameService, TaskService taskService, CoturnService coturnService, IceServerMapper iceServerMapper) {
     this.applicationContext = applicationContext;
     this.userService = userService;
     this.preferencesService = preferencesService;
@@ -189,6 +199,8 @@ public class SettingsController implements Controller<Node> {
     this.clientUpdateService = clientUpdateService;
     this.gameService = gameService;
     this.taskService = taskService;
+    this.coturnService = coturnService;
+    this.iceServerMapper = iceServerMapper;
 
     availableLanguagesListener = observable -> {
       LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
@@ -260,7 +272,8 @@ public class SettingsController implements Controller<Node> {
     configureStartTab();
 
     initAutoChannelListView();
-    initMirrorUrlsListView();
+    initMirrorUrlListView();
+    initPreferredCoturnListView();
     initUnitDatabaseSelection();
     initAllowReplaysWhileInGame();
     initNotifyMeOnAtMention();
@@ -332,15 +345,38 @@ public class SettingsController implements Controller<Node> {
     executionDirectoryField.textProperty().bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
   }
 
-  private void initMirrorUrlsListView() {
-    mirrorURLsListView.setSelectionModel(new NoSelectionModelListView<>());
-    mirrorURLsListView.setFocusTraversable(false);
-    mirrorURLsListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
-    mirrorURLsListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
-    JavaFxUtil.addListener(mirrorURLsListView.getItems(), (ListChangeListener<URI>) c -> {
+  private void initMirrorUrlListView() {
+    mirrorURLListView.setSelectionModel(new NoSelectionModelListView<>());
+    mirrorURLListView.setFocusTraversable(false);
+    mirrorURLListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
+    mirrorURLListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
+    JavaFxUtil.addListener(mirrorURLListView.getItems(), (ListChangeListener<URI>) c -> {
       preferencesService.storeInBackground();
-      mirrorURLsListView.setVisible(!mirrorURLsListView.getItems().isEmpty());
+      mirrorURLListView.setVisible(!mirrorURLListView.getItems().isEmpty());
     });
+  }
+
+  private void initPreferredCoturnListView() {
+    coturnService.getActiveCoturns().thenAccept(coturnServers -> JavaFxUtil.runLater(() -> {
+      preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+      preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
+      preferredCoturnListView.setCellFactory(param -> new StringListCell<>(CoturnServer::getRegion));
+      ObservableSet<CoturnHostPort> preferredCoturnServers = preferencesService.getPreferences().getForgedAlliance().getPreferredCoturnServers();
+      Map<CoturnHostPort, CoturnServer> hostPortCoturnServerMap = coturnServers.stream()
+          .collect(Collectors.toMap(iceServerMapper::mapToHostPort, server -> server));
+
+      preferredCoturnServers.stream()
+          .filter(hostPortCoturnServerMap::containsKey)
+          .map(hostPortCoturnServerMap::get)
+          .forEach(coturnServer -> preferredCoturnListView.getSelectionModel().select(coturnServer));
+
+      JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(), (InvalidationListener) observable -> {
+        List<CoturnServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
+        preferredCoturnServers.clear();
+        selectedCoturns.stream().map(iceServerMapper::mapToHostPort).forEach(preferredCoturnServers::add);
+        preferencesService.storeInBackground();
+      });
+    }));
   }
 
   private void initAutoChannelListView() {
@@ -702,7 +738,7 @@ public class SettingsController implements Controller<Node> {
     try {
       URI uri = new URL(text).toURI();
 
-      if (mirrorURLsListView.getItems().contains(uri)) {
+      if (mirrorURLListView.getItems().contains(uri)) {
         return;
       }
       preferencesService.getPreferences().getMirror().getMirrorURLs().add(uri);

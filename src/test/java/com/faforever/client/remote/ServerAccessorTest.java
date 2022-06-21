@@ -31,8 +31,6 @@ import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
-import com.faforever.commons.lobby.IceServer;
-import com.faforever.commons.lobby.IceServerListResponse;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
 import com.faforever.commons.lobby.LobbyMode;
 import com.faforever.commons.lobby.LoginSuccessResponse;
@@ -502,22 +500,6 @@ public class ServerAccessorTest extends ServiceTest {
   }
 
   @Test
-  public void testGetIceServers() throws Exception {
-
-    instance.getIceServers();
-
-    assertMessageContainsComponents("ice_servers");
-
-    IceServerListResponse iceServers = new IceServerListResponse(List.of(
-        new IceServer("google.com", List.of(), "test", "cred", "credType")
-    ), 0);
-    sendFromServer(iceServers);
-
-    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(receivedMessage, is(iceServers));
-  }
-
-  @Test
   public void testRestoreGameSession() {
 
     instance.restoreGameSession(1);
@@ -784,25 +766,6 @@ public class ServerAccessorTest extends ServiceTest {
         }""");
 
     assertThat(parsedMessage, equalTo(socialMessage));
-  }
-
-  @Test
-  public void testOnIceServers() throws InterruptedException, JsonProcessingException {
-    IceServerListResponse iceServersMessage = new IceServerListResponse(List.of(), 0);
-
-    instance.getIceServers();
-    sendFromServer(iceServersMessage);
-    assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
-    assertThat(receivedMessage, is(iceServersMessage));
-
-    ServerMessage parsedMessage = parseServerString("""
-        {
-          "command" : "ice_servers",
-          "ice_servers" : [ ],
-          "ttl" : 0
-        }""");
-
-    assertThat(parsedMessage, equalTo(iceServersMessage));
   }
 
   @Test

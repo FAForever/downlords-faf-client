@@ -7,6 +7,7 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.dto.LeaderboardEntry;
@@ -118,6 +119,7 @@ public class FafApiAccessor implements InitializingBean {
 
   @VisibleForTesting
   static final java.util.Map<Class<? extends ElideEntity>, List<Condition<?>>> FILTERS = java.util.Map.ofEntries(
+      java.util.Map.entry(CoturnServer.class, List.of(qBuilder().bool("active").isTrue())),
       java.util.Map.entry(ModVersion.class, List.of(qBuilder().bool("hidden").isFalse())),
       java.util.Map.entry(Mod.class, List.of(qBuilder().bool("latestVersion.hidden").isFalse())),
       java.util.Map.entry(ModReviewsSummary.class, List.of(qBuilder().bool("mod.latestVersion.hidden").isFalse())),
@@ -258,7 +260,7 @@ public class FafApiAccessor implements InitializingBean {
     enrichBuilder(navigator);
     enrichCollectionFilter(navigator);
     String endpointPath;
-    if (!customFilter.isEmpty()) {
+    if (!customFilter.isBlank()) {
       endpointPath = enrichWithCustomFilter(navigator.build(), customFilter);
     } else {
       endpointPath = navigator.build();
@@ -278,7 +280,7 @@ public class FafApiAccessor implements InitializingBean {
     enrichCollectionFilter(navigator);
     enrichBuilder(navigator);
     String endpointPath = navigator.build();
-    if (!customFilter.isEmpty()) {
+    if (!customFilter.isBlank()) {
       endpointPath = enrichWithCustomFilter(endpointPath, customFilter);
     }
 
