@@ -21,7 +21,6 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 import java.util.Set;
 
-import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -48,7 +47,7 @@ public class CoturnServiceTest extends ServiceTest {
   public void testGetActiveCoturns() {
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
     instance.getActiveCoturns();
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("active").isTrue())));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
   }
 
   @Test
@@ -67,7 +66,7 @@ public class CoturnServiceTest extends ServiceTest {
 
     assertEquals(1, servers.size());
     assertEquals("other", servers.get(0).getHost());
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("active").isTrue())));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
   }
 
   @Test
@@ -84,7 +83,7 @@ public class CoturnServiceTest extends ServiceTest {
 
     assertEquals(1, servers.size());
     assertEquals("other", servers.get(0).getHost());
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("active").isTrue())));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
   }
 
   @Test
@@ -105,6 +104,6 @@ public class CoturnServiceTest extends ServiceTest {
 
     assertEquals(1, servers.size());
     assertEquals("test", servers.get(0).getHost());
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("active").isTrue())));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasDtoClass(CoturnServer.class)));
   }
 }
