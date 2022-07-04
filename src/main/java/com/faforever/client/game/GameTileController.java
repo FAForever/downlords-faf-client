@@ -19,6 +19,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Region;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -53,6 +54,7 @@ public class GameTileController implements Controller<Node> {
   public Label avgRatingLabel;
   public Label hostLabel;
   public ImageView avatarImageView;
+  public Region defaultHostIconImageView;
   public Label modsLabel;
   public ImageView mapImageView;
   private Consumer<GameBean> onSelectedListener;
@@ -66,8 +68,10 @@ public class GameTileController implements Controller<Node> {
   }
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(modsLabel, gameTypeLabel, lockIconLabel);
-    modsLabel.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
+    JavaFxUtil.bindManagedToVisible(modsLabel, gameTypeLabel, lockIconLabel, defaultHostIconImageView, avatarImageView);
+    JavaFxUtil.bind(modsLabel.visibleProperty(), modsLabel.textProperty().isNotEmpty());
+    JavaFxUtil.bind(defaultHostIconImageView.visibleProperty(), avatarImageView.imageProperty().isNull());
+    JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
 
     numPlayersInvalidationListener = observable -> onNumPlayersChanged();
     gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();

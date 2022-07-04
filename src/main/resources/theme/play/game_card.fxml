@@ -61,11 +61,13 @@
                 <Label fx:id="hostLabel" maxHeight="1.7976931348623157E308" minWidth="0.0"
                        text="&lt;Host&gt;">
                     <graphic>
-                        <Region styleClass="icon,host-icon"/>
+                        <Pane>
+                            <Region fx:id="defaultHostIconImageView" styleClass="icon, host-icon"/>
+                            <ImageView fx:id="avatarImageView" fitHeight="14.0" pickOnBounds="true"
+                                       preserveRatio="true"/>
+                        </Pane>
                     </graphic>
                 </Label>
-                <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true"
-                           preserveRatio="true"/>
             </children>
         </HBox>
         <Label fx:id="modsLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
