@@ -62,7 +62,7 @@
                        text="&lt;Host&gt;">
                     <graphic>
                         <Pane>
-                            <Region fx:id="defaultHostIconImageView" styleClass="icon, host-icon"/>
+                            <Region fx:id="defaultHostIcon" styleClass="icon, host-icon"/>
                             <ImageView fx:id="avatarImageView" fitHeight="14.0" pickOnBounds="true"
                                        preserveRatio="true"/>
                         </Pane>

@@ -54,7 +54,7 @@ public class GameTileController implements Controller<Node> {
   public Label avgRatingLabel;
   public Label hostLabel;
   public ImageView avatarImageView;
-  public Region defaultHostIconImageView;
+  public Region defaultHostIcon;
   public Label modsLabel;
   public ImageView mapImageView;
   private Consumer<GameBean> onSelectedListener;
@@ -68,9 +68,9 @@ public class GameTileController implements Controller<Node> {
   }
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(modsLabel, gameTypeLabel, lockIconLabel, defaultHostIconImageView, avatarImageView);
+    JavaFxUtil.bindManagedToVisible(modsLabel, gameTypeLabel, lockIconLabel, defaultHostIcon, avatarImageView);
     JavaFxUtil.bind(modsLabel.visibleProperty(), modsLabel.textProperty().isNotEmpty());
-    JavaFxUtil.bind(defaultHostIconImageView.visibleProperty(), avatarImageView.imageProperty().isNull());
+    JavaFxUtil.bind(defaultHostIcon.visibleProperty(), avatarImageView.imageProperty().isNull());
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
 
     numPlayersInvalidationListener = observable -> onNumPlayersChanged();

@@ -124,7 +124,7 @@ public class GameTileControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
-    assertFalse(instance.defaultHostIconImageView.isVisible());
+    assertFalse(instance.defaultHostIcon.isVisible());
     assertTrue(instance.avatarImageView.isVisible());
   }
 
@@ -134,7 +134,7 @@ public class GameTileControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
-    assertTrue(instance.defaultHostIconImageView.isVisible());
+    assertTrue(instance.defaultHostIcon.isVisible());
     assertFalse(instance.avatarImageView.isVisible());
   }
 }
