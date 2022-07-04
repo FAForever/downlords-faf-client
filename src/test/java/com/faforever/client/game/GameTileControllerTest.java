@@ -10,6 +10,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,14 +19,17 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -112,5 +116,25 @@ public class GameTileControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
     assertTrue(instance.getRoot().getPseudoClassStates().contains(GameTileController.FRIEND_IN_GAME_PSEUDO_CLASS));
+  }
+
+  @Test
+  public void testShowAvatarInsteadOfDefaultHostIcon() {
+    when(playerService.getCurrentAvatarByPlayerName(game.getHost())).thenReturn(Optional.of(mock(Image.class)));
+
+    runOnFxThreadAndWait(() -> instance.setGame(game));
+
+    assertFalse(instance.defaultHostIcon.isVisible());
+    assertTrue(instance.avatarImageView.isVisible());
+  }
+
+  @Test
+  public void testShowDefaultHostIconIfNoAvatar() {
+    when(playerService.getCurrentAvatarByPlayerName(game.getHost())).thenReturn(Optional.empty());
+
+    runOnFxThreadAndWait(() -> instance.setGame(game));
+
+    assertTrue(instance.defaultHostIcon.isVisible());
+    assertFalse(instance.avatarImageView.isVisible());
   }
 }
