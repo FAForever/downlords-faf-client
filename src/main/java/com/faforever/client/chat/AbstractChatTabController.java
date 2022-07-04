@@ -29,6 +29,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
@@ -721,7 +723,19 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * Subclasses may override in order to perform actions when the view is being displayed.
    */
   protected void onDisplay() {
-    JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+    // If channel tab has just been created, scene for the text field does not initialize immediately
+    if (messageTextField().getScene() == null) {
+      InvalidationListener listener = new InvalidationListener() {
+        @Override
+        public void invalidated(Observable observable) {
+          messageTextField().sceneProperty().removeListener(this);
+          JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+        }
+      };
+      JavaFxUtil.addListener(messageTextField().sceneProperty(), listener);
+    } else {
+      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+    }
   }
 
   /**
