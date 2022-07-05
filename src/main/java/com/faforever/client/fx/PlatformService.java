@@ -186,7 +186,7 @@ public class PlatformService {
     try {
       waitForUserInput.await();
     } catch (InterruptedException e) {
-      log.warn("Thread interrupted while waiting for user path selection", e);
+      log.warn("Thread interrupted while waiting for user folder selection", e);
     }
     return Optional.ofNullable(result.get()).map(File::toPath);
   }
