@@ -690,10 +690,20 @@
                                             <rowConstraints>
                                                 <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
                                                 <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                             </rowConstraints>
                                             <children>
                                                 <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
                                                        styleClass="setting-title" text="%settings.fa.vaultLocation"/>
+                                                <Label styleClass="setting-description"
+                                                       fx:id="vaultLocationWarningLabel"
+                                                       text="%settings.fa.vaultLocation.warning"
+                                                       GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS"
+                                                       GridPane.rowIndex="2">
+                                                    <graphic>
+                                                        <Region styleClass="icon, icon16x16, warn-icon"/>
+                                                    </graphic>
+                                                </Label>
                                                 <TextField fx:id="vaultLocationTextField"
                                                            promptText="%settings.useDefaultDirectory" GridPane.rowIndex="1"/>
                                                 <Button mnemonicParsing="false" onAction="#onSelectVaultLocation"

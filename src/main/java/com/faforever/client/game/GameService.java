@@ -22,6 +22,7 @@ import com.faforever.client.mapstruct.GameMapper;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.Action;
+import com.faforever.client.notification.CancelAction;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
@@ -29,6 +30,7 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
@@ -57,6 +59,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.scene.control.CheckBox;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
@@ -138,6 +141,7 @@ public class GameService implements InitializingBean, DisposableBean {
   private final String faWindowTitle;
   private final MaskPatternLayout logMasker;
   private final GameMapper gameMapper;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Process process;
   private CompletableFuture<Void> matchmakerFuture;
@@ -191,6 +195,7 @@ public class GameService implements InitializingBean, DisposableBean {
         item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
     ));
     inOthersParty = false;
+    forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
   }
 
   @Override
@@ -227,6 +232,10 @@ public class GameService implements InitializingBean, DisposableBean {
       }
     };
     JavaFxUtil.addListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
+
+    if (!checkVaultBasePathIsValidForAcsii()) {
+      log.warn("Vault base path contains non ASCII characters");
+    }
   }
 
   private InvalidationListener generateNumberOfPlayersChangeListener(GameBean game) {
@@ -286,11 +295,29 @@ public class GameService implements InitializingBean, DisposableBean {
       return completedFuture(null);
     }
 
+    if (!checkVaultBasePathIsValidForAcsii() && !forgedAlliancePrefs.getDontShowNonAsciiVaultBasePathWarning()) {
+      CheckBox checkBox = new CheckBox(i18n.get("vaultBasePath.warning.dontShowWarning"));
+      JavaFxUtil.bindBidirectional(checkBox.selectedProperty(), forgedAlliancePrefs.dontShowNonAsciiVaultBasePathWarning());
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("vaultBasePath.warning.title"),
+          i18n.get("vaultBasePath.warning.description"),
+          WARN,
+          List.of(new CancelAction(i18n), new Action(i18n.get("vaultBasePath.warning.hostGame"), (event) -> createGame(newGameInfo))),
+          checkBox
+      ));
+      return completedFuture(null);
+    }
+
+    return createGame(newGameInfo);
+  }
+
+  private CompletableFuture<Void> createGame(NewGameInfo newGameInfo) {
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
         .thenAccept(this::startGame);
   }
+
 
   private void addAlreadyInQueueNotification() {
     notificationService.addImmediateWarnNotification("teammatchmaking.notification.customAlreadyInQueue.message");
@@ -313,6 +340,23 @@ public class GameService implements InitializingBean, DisposableBean {
       return completedFuture(null);
     }
 
+    if (!checkVaultBasePathIsValidForAcsii() && !forgedAlliancePrefs.getDontShowNonAsciiVaultBasePathWarning()) {
+      CheckBox checkBox = new CheckBox(i18n.get("vaultBasePath.warning.dontShowWarning"));
+      JavaFxUtil.bindBidirectional(checkBox.selectedProperty(), forgedAlliancePrefs.dontShowNonAsciiVaultBasePathWarning());
+      notificationService.addNotification(new ImmediateNotification(
+          i18n.get("vaultBasePath.warning.title"),
+          i18n.get("vaultBasePath.warning.description"),
+          WARN,
+          List.of(new CancelAction(i18n), new Action(i18n.get("vaultBasePath.warning.joinGame"), (event) -> joinGame_(game, password))),
+          checkBox
+      ));
+      return completedFuture(null);
+    }
+
+    return joinGame_(game, password);
+  }
+
+  private CompletableFuture<Void> joinGame_(GameBean game, String password) {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Set<String> simModUIds = game.getSimMods().keySet();
@@ -858,6 +902,10 @@ public class GameService implements InitializingBean, DisposableBean {
   public CompletableFuture<Boolean> isGamePrefsPatchedToAllowMultiInstances() throws IOException {
     String gamePrefsContent = getGamePrefsContent();
     return completedFuture(GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN.matcher(gamePrefsContent).find());
+  }
+
+  public boolean checkVaultBasePathIsValidForAcsii() {
+    return US_ASCII.newEncoder().canEncode(preferencesService.getPreferences().getForgedAlliance().getVaultBaseDirectory().toString());
   }
 
   @Override

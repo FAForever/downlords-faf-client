@@ -127,6 +127,7 @@ public class SettingsController implements Controller<Node> {
   public TextField dataLocationTextField;
   public TextField gameLocationTextField;
   public TextField vaultLocationTextField;
+  public Label vaultLocationWarningLabel;
   public CheckBox autoDownloadMapsToggle;
   public CheckBox useFAFDebuggerToggle;
   public CheckBox showIceAdapterDebugWindowToggle;
@@ -221,6 +222,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
     eventBus.register(this);
     themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName));
     themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName));
@@ -337,6 +339,8 @@ public class SettingsController implements Controller<Node> {
     useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
     showIceAdapterDebugWindowToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
     vaultLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
+    JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->
+        vaultLocationWarningLabel.setVisible(!gameService.checkVaultBasePathIsValidForAcsii()));
 
     useFAFDebuggerToggle.selectedProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue && !oldValue) {
