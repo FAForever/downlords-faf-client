@@ -65,6 +65,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Screen;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
@@ -635,8 +636,10 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectBackgroundImage() {
-    platformService.askForPath(i18n.get("settings.appearance.chooseImage")).ifPresent(newImagePath -> {
-      preferencesService.getPreferences().getMainWindow().setBackgroundImagePath(newImagePath);
+    WindowPrefs windowPrefs = preferencesService.getPreferences().getMainWindow();
+    platformService.askForFile(i18n.get("settings.appearance.chooseImage"), windowPrefs.getBackgroundImagePath(),
+        new ExtensionFilter(i18n.get("fileChooser.dialog.imageFiles"), "*.png", "*.jpg", "*.jpeg")).ifPresent(newImagePath -> {
+      windowPrefs.setBackgroundImagePath(newImagePath);
       preferencesService.storeInBackground();
     });
   }

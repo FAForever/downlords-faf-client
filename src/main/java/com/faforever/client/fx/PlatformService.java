@@ -9,6 +9,8 @@ import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import javafx.application.HostServices;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
@@ -27,9 +29,8 @@ import static org.bridj.Platform.show;
 
 @Slf4j
 public class PlatformService {
-  /**
-   * Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
-   */
+
+  // Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
   public static final Pattern URL_REGEX_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
   private final HostServices hostServices;
 
@@ -180,6 +181,32 @@ public class PlatformService {
         directoryChooser.setInitialDirectory(initialDirectory.toFile());
       }
       result.set(directoryChooser.showDialog(StageHolder.getStage().getScene().getWindow()));
+      waitForUserInput.countDown();
+    });
+    try {
+      waitForUserInput.await();
+    } catch (InterruptedException e) {
+      log.warn("Thread interrupted while waiting for user folder selection", e);
+    }
+    return Optional.ofNullable(result.get()).map(File::toPath);
+  }
+
+  public Optional<Path> askForFile(String title, @Nullable Path initialDirectoryOrFile, ExtensionFilter extensionFilter) {
+    AtomicReference<File> result = new AtomicReference<>();
+    CountDownLatch waitForUserInput = new CountDownLatch(1);
+    JavaFxUtil.runLater(() -> {
+      FileChooser fileChooser = new FileChooser();
+      fileChooser.setTitle(title);
+      fileChooser.getExtensionFilters().add(extensionFilter);
+
+      if (initialDirectoryOrFile != null) {
+        File file = initialDirectoryOrFile.toFile();
+        if (!file.isDirectory()) {
+          file = file.getParentFile();
+        }
+        fileChooser.setInitialDirectory(file);
+      }
+      result.set(fileChooser.showOpenDialog(StageHolder.getStage().getScene().getWindow()));
       waitForUserInput.countDown();
     });
     try {
