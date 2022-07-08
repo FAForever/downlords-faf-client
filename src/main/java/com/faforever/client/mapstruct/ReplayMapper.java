@@ -87,7 +87,7 @@ public interface ReplayMapper {
 
   @MapEndTime
   default OffsetDateTime mapEndFromParser(ReplayDataParser parser) {
-    return TimeUtil.fromPythonTime(parser.getMetadata().getGameEnd());
+    return fromPythonTime(parser.getMetadata().getGameEnd());
   }
 
   @MapTeams
