@@ -340,7 +340,7 @@ public class SettingsController implements Controller<Node> {
     showIceAdapterDebugWindowToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
     vaultLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
     JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->
-        vaultLocationWarningLabel.setVisible(!gameService.checkVaultBasePathIsValidForAcsii()));
+        vaultLocationWarningLabel.setVisible(preferencesService.isVaultBasePathInvalidForAscii()));
 
     useFAFDebuggerToggle.selectedProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue && !oldValue) {

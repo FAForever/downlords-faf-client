@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * A notification that requires the user's immediate attention. It is displayed until the user performs a suggested
@@ -37,5 +38,9 @@ public class ImmediateNotification {
 
   public ImmediateNotification(String title, String text, Severity severity, List<Action> actions, Parent customUI) {
     this(title, text, severity, null, actions, customUI);
+  }
+
+  public ImmediateNotification(String title, String text, Severity severity, List<Action> actions, Supplier<Parent> customUiSupplier) {
+    this(title, text, severity, null, actions, customUiSupplier.get());
   }
 }
