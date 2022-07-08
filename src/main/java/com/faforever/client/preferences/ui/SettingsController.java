@@ -135,6 +135,7 @@ public class SettingsController implements Controller<Node> {
   public CheckBox displayPmReceivedToastCheckBox;
   public CheckBox playPmReceivedSoundCheckBox;
   public CheckBox afterGameReviewCheckBox;
+  public CheckBox disableSteamStartCheckBox;
   public Region settingsRoot;
   public ComboBox<Theme> themeComboBox;
   public ToggleGroup toastPositionToggleGroup;
@@ -228,6 +229,7 @@ public class SettingsController implements Controller<Node> {
     hideFoeToggle.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
     disallowJoinsCheckBox.selectedProperty().bindBidirectional(preferences.disallowJoinsViaDiscordProperty());
+    disableSteamStartCheckBox.selectedProperty().bindBidirectional(preferences.getGeneral().disableSteamStartProperty());
 
     JavaFxUtil.addListener(preferences.getChat().chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
     setSelectedColorMode(preferences.getChat().getChatColorMode());
