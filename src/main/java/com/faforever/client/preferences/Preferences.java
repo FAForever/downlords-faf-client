@@ -33,6 +33,9 @@ public class Preferences {
 
   @Getter
   @JsonMerge
+  GeneralPrefs general = new GeneralPrefs();
+  @Getter
+  @JsonMerge
   DataPrefs data = new DataPrefs();
   @Getter
   @JsonMerge
