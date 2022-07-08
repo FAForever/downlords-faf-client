@@ -42,7 +42,7 @@ public class ForgedAlliancePrefs {
   ObjectProperty<Path> installationPath = new SimpleObjectProperty<>(STEAM_FA_PATH);
   ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
   ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>(DEFAULT_VAULT_DIRECTORY);
-  BooleanProperty dontShowNonAsciiVaultBasePathWarning = new SimpleBooleanProperty(false);
+  BooleanProperty warnNonAsciiBasePath = new SimpleBooleanProperty(false);
   BooleanProperty forceRelay = new SimpleBooleanProperty(false);
   BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
   BooleanProperty allowReplaysWhileInGame = new SimpleBooleanProperty(false);
@@ -193,15 +193,15 @@ public class ForgedAlliancePrefs {
     return preferredCoturnServers;
   }
 
-  public boolean getDontShowNonAsciiVaultBasePathWarning() {
-    return dontShowNonAsciiVaultBasePathWarning.get();
+  public boolean getWarnNonAsciiBasePath() {
+    return warnNonAsciiBasePath.get();
   }
 
-  public void setDontShowNonAsciiVaultBasePathWarning(boolean dontShowNonAsciiVaultBasePathWarning) {
-    this.dontShowNonAsciiVaultBasePathWarning.set(dontShowNonAsciiVaultBasePathWarning);
+  public void setWarnNonAsciiBasePath(boolean warnNonAsciiBasePath) {
+    this.warnNonAsciiBasePath.set(warnNonAsciiBasePath);
   }
 
-  public BooleanProperty dontShowNonAsciiVaultBasePathWarning() {
-    return dontShowNonAsciiVaultBasePathWarning;
+  public BooleanProperty warnNonAsciiBasePathProperty() {
+    return warnNonAsciiBasePath;
   }
 }
