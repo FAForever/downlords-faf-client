@@ -295,9 +295,9 @@ public class GameService implements InitializingBean, DisposableBean {
       return completedFuture(null);
     }
 
-    if (!checkVaultBasePathIsValidForAcsii() && !forgedAlliancePrefs.getWarnNonAsciiBasePath()) {
+    if (!checkVaultBasePathIsValidForAcsii() && !forgedAlliancePrefs.getWarnNonAsciiVaultPath()) {
       CheckBox checkBox = new CheckBox(i18n.get("vaultBasePath.warning.dontShowWarning"));
-      JavaFxUtil.bindBidirectional(checkBox.selectedProperty(), forgedAlliancePrefs.warnNonAsciiBasePathProperty());
+      JavaFxUtil.bindBidirectional(checkBox.selectedProperty(), forgedAlliancePrefs.warnNonAsciiVaultPathProperty());
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("vaultBasePath.warning.title"),
           i18n.get("vaultBasePath.warning.description"),
@@ -340,9 +340,9 @@ public class GameService implements InitializingBean, DisposableBean {
       return completedFuture(null);
     }
 
-    if (!checkVaultBasePathIsValidForAcsii() && !forgedAlliancePrefs.getWarnNonAsciiBasePath()) {
+    if (!checkVaultBasePathIsValidForAcsii() && !forgedAlliancePrefs.getWarnNonAsciiVaultPath()) {
       CheckBox checkBox = new CheckBox(i18n.get("vaultBasePath.warning.dontShowWarning"));
-      JavaFxUtil.bindBidirectional(checkBox.selectedProperty(), forgedAlliancePrefs.warnNonAsciiBasePathProperty());
+      JavaFxUtil.bindBidirectional(checkBox.selectedProperty(), forgedAlliancePrefs.warnNonAsciiVaultPathProperty());
       notificationService.addNotification(new ImmediateNotification(
           i18n.get("vaultBasePath.warning.title"),
           i18n.get("vaultBasePath.warning.description"),
