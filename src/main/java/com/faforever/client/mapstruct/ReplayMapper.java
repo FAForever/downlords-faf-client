@@ -25,7 +25,7 @@ import java.util.Map;
 
 import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
-@Mapper(componentModel = "spring", imports = {TimeUtil.class}, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
+@Mapper(imports = {TimeUtil.class}, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface ReplayMapper {
   @Mapping(target="title", source="name")
   @Mapping(target="teamPlayerStats", expression="java(mapToTeamPlayerStats(dto, context))")

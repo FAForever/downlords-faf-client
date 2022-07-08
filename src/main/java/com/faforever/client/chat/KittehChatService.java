@@ -38,7 +38,6 @@ import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.engio.mbassy.listener.Handler;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.kitteh.irc.client.library.Client;
 import org.kitteh.irc.client.library.Client.Builder.Server.SecurityType;
@@ -58,6 +57,7 @@ import org.kitteh.irc.client.library.event.channel.ChannelPartEvent;
 import org.kitteh.irc.client.library.event.channel.ChannelTopicEvent;
 import org.kitteh.irc.client.library.event.client.ClientNegotiationCompleteEvent;
 import org.kitteh.irc.client.library.event.connection.ClientConnectionEndedEvent;
+import org.kitteh.irc.client.library.event.connection.ClientConnectionFailedEvent;
 import org.kitteh.irc.client.library.event.user.PrivateMessageEvent;
 import org.kitteh.irc.client.library.event.user.PrivateNoticeEvent;
 import org.kitteh.irc.client.library.event.user.UserQuitEvent;
@@ -433,6 +433,12 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     connectionState.set(ConnectionState.DISCONNECTED);
   }
 
+  @Handler
+  private void onFailedConnect(ClientConnectionFailedEvent event) {
+    connectionState.set(ConnectionState.DISCONNECTED);
+    client.shutdown();
+  }
+
   private void onSocialMessage(SocialInfo socialMessage) {
     this.autoChannels = new ArrayList<>(socialMessage.getChannels());
     autoChannels.remove(defaultChannelName);
@@ -467,7 +473,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
     client.getEventManager().registerEventListener(this);
     client.getActorTracker().setQueryChannelInformation(false);
-    client.connect();
   }
 
   @Override
@@ -582,7 +587,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Override
   public void reconnect() {
-    client.reconnect();
+    if (client.isConnectionAlive()) {
+      client.reconnect();
+    } else {
+      client.connect();
+    }
   }
 
   @Override

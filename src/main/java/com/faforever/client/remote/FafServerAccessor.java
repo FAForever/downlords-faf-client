@@ -26,7 +26,6 @@ import com.faforever.commons.lobby.FafLobbyClient.Config;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameVisibility;
 import com.faforever.commons.lobby.GpgGameOutboundMessage;
-import com.faforever.commons.lobby.IceServer;
 import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.LoginSuccessResponse;
 import com.faforever.commons.lobby.MatchmakerState;
@@ -251,10 +250,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void broadcastMessage(String message) {
     lobbyClient.broadcastMessage(message);
-  }
-
-  public CompletableFuture<List<IceServer>> getIceServers() {
-    return lobbyClient.getIceServers().collectList().toFuture();
   }
 
   private void onNotice(NoticeInfo noticeMessage) {

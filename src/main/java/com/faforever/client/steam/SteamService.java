@@ -5,9 +5,9 @@ import com.codedisaster.steamworks.SteamException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 @Slf4j
 public class SteamService implements InitializingBean, DisposableBean {
 

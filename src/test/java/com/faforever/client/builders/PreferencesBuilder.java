@@ -7,6 +7,7 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.DateInfo;
 import com.faforever.client.preferences.DeveloperPrefs;
@@ -36,6 +37,7 @@ import javafx.scene.paint.Color;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -330,6 +332,17 @@ public class PreferencesBuilder {
 
     public ForgedAlliancePrefsBuilder runFAFDebugger(boolean runFAFDebugger) {
       forgedAlliancePrefs.setRunFAWithDebugger(runFAFDebugger);
+      return this;
+    }
+
+    public ForgedAlliancePrefsBuilder showIceAdapterDebugWindow(boolean showDebugger) {
+      forgedAlliancePrefs.setShowIceAdapterDebugWindow(showDebugger);
+      return this;
+    }
+
+    public ForgedAlliancePrefsBuilder preferredCoturns(Collection<CoturnHostPort> preferredCoturns) {
+      forgedAlliancePrefs.getPreferredCoturnServers().clear();
+      forgedAlliancePrefs.getPreferredCoturnServers().addAll(preferredCoturns);
       return this;
     }
   }

@@ -22,6 +22,7 @@ import static com.faforever.client.config.CacheNames.AVATARS;
 import static com.faforever.client.config.CacheNames.CLAN;
 import static com.faforever.client.config.CacheNames.COOP_LEADERBOARD;
 import static com.faforever.client.config.CacheNames.COOP_MAPS;
+import static com.faforever.client.config.CacheNames.COTURN;
 import static com.faforever.client.config.CacheNames.COUNTRY_FLAGS;
 import static com.faforever.client.config.CacheNames.COUNTRY_NAMES;
 import static com.faforever.client.config.CacheNames.DIVISIONS;
@@ -97,6 +98,7 @@ public class CacheConfig extends CachingConfigurerSupport {
         new CaffeineCache(MATCHMAKER_QUEUES, newBuilder().expireAfterWrite(10, MINUTES).build()),
         new CaffeineCache(MATCHMAKER_POOLS, newBuilder().expireAfterWrite(1, MINUTES).build()),
         new CaffeineCache(MODERATION_REPORTS, newBuilder().expireAfterWrite(10, MINUTES).build()),
+        new CaffeineCache(COTURN, newBuilder().expireAfterWrite(1, HOURS).build()),
 
         // Images should only be cached as long as they are in use. This avoids loading an image multiple times, while
         // at the same time it doesn't prevent unused images from being garbage collected.

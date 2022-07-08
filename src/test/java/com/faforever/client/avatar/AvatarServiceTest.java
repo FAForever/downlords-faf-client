@@ -40,7 +40,6 @@ public class AvatarServiceTest extends ServiceTest {
   private AssetService assetService;
   @Mock
   private EventBus eventBus;
-
   @Spy
   private AvatarMapper avatarMapper = Mappers.getMapper(AvatarMapper.class);
 

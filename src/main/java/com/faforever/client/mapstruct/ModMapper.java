@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring", uses = {PlayerMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
+@Mapper(uses = {PlayerMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface ModMapper {
     @Mapping(target = "uid", source = "modInfo.uid")
     @Mapping(target = "mod.author", source = "modInfo.author")

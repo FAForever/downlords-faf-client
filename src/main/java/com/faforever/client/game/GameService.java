@@ -8,6 +8,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
+import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
@@ -119,6 +120,7 @@ public class GameService implements InitializingBean, DisposableBean {
 
   private final FafServerAccessor fafServerAccessor;
   private final ForgedAllianceService forgedAllianceService;
+  private final CoturnService coturnService;
   private final MapService mapService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
@@ -148,7 +150,7 @@ public class GameService implements InitializingBean, DisposableBean {
   public GameService(ClientProperties clientProperties,
                      FafServerAccessor fafServerAccessor,
                      ForgedAllianceService forgedAllianceService,
-                     MapService mapService,
+                     CoturnService coturnService, MapService mapService,
                      PreferencesService preferencesService,
                      LoggingService loggingService,
                      GameUpdater gameUpdater,
@@ -164,6 +166,7 @@ public class GameService implements InitializingBean, DisposableBean {
                      GameMapper gameMapper) {
     this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
+    this.coturnService = coturnService;
     this.mapService = mapService;
     this.preferencesService = preferencesService;
     this.loggingService = loggingService;
@@ -590,6 +593,9 @@ public class GameService implements InitializingBean, DisposableBean {
           localReplayPort = port;
           return iceAdapter.start();
         })
+        .thenCompose(adapterPort -> coturnService.getSelectedCoturns()
+            .thenAccept(iceAdapter::setIceServers)
+            .thenApply(aVoid -> adapterPort))
         .thenApply(adapterPort -> {
           fafServerAccessor.setPingIntervalSeconds(5);
           gameKilled = false;

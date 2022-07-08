@@ -14,6 +14,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
+import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
@@ -141,6 +142,8 @@ public class GameServiceTest extends ServiceTest {
   private LoggingService loggingService;
   @Mock
   private Process process;
+  @Mock
+  private CoturnService coturnService;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfo>> GameInfoListenerCaptor;
@@ -160,6 +163,7 @@ public class GameServiceTest extends ServiceTest {
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues().get();
 
+    when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());

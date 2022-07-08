@@ -68,7 +68,7 @@ public final class ElideMatchers {
   }
 
   @Value
-  public static class ElideParamMatcher implements ArgumentMatcher<ElideNavigatorOnCollection<?>> {
+  private static class ElideParamMatcher implements ArgumentMatcher<ElideNavigatorOnCollection<?>> {
     Matcher<String> matcher;
 
     @Override
@@ -78,7 +78,7 @@ public final class ElideMatchers {
   }
 
   @Value
-  public static class ElideIdMatcher implements ArgumentMatcher<ElideNavigatorOnId<?>> {
+  private static class ElideIdMatcher implements ArgumentMatcher<ElideNavigatorOnId<?>> {
     Matcher<String> matcher;
 
     @Override
@@ -88,7 +88,7 @@ public final class ElideMatchers {
   }
 
   @Value
-  public static class ElideRelationshipMatcher implements ArgumentMatcher<ElideNavigatorOnCollection<?>> {
+  private static class ElideRelationshipMatcher implements ArgumentMatcher<ElideNavigatorOnCollection<?>> {
     Matcher<String> matcher;
 
     @Override
