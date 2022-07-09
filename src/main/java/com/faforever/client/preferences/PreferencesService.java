@@ -298,7 +298,8 @@ public class PreferencesService implements InitializingBean {
   }
 
   public boolean isVaultBasePathInvalidForAscii() {
-    return !US_ASCII.newEncoder().canEncode(preferences.getForgedAlliance().getVaultBaseDirectory().toString());
+    Path vaultBaseDirectory = preferences.getForgedAlliance().getVaultBaseDirectory();
+    return vaultBaseDirectory != null && !US_ASCII.newEncoder().canEncode(vaultBaseDirectory.toString());
   }
 
   private ClientConfiguration getRemotePreferences() throws IOException {
