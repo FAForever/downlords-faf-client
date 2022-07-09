@@ -34,7 +34,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Spy;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
