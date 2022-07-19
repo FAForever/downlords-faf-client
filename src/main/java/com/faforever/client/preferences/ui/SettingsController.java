@@ -76,7 +76,6 @@ import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
@@ -101,7 +100,7 @@ import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
 @RequiredArgsConstructor
-public class SettingsController implements Controller<Node>, InitializingBean {
+public class SettingsController implements Controller<Node> {
 
   private final ApplicationContext applicationContext;
   private final NotificationService notificationService;
@@ -189,24 +188,6 @@ public class SettingsController implements Controller<Node>, InitializingBean {
   private ChangeListener<Theme> currentThemeChangeListener;
   private InvalidationListener availableLanguagesListener;
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    availableLanguagesListener = observable -> {
-      LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
-      Locale currentLocale = localization.getLanguage();
-      List<Node> nodes = i18n.getAvailableLanguages().stream()
-          .map(locale -> {
-            LanguageItemController controller = uiService.loadFxml("theme/settings/language_item.fxml");
-            controller.setLocale(locale);
-            controller.setOnSelectedListener(this::onLanguageSelected);
-            controller.setSelected(locale.equals(currentLocale));
-            return controller.getRoot();
-          })
-          .collect(Collectors.toList());
-      languagesContainer.getChildren().setAll(nodes);
-    };
-  }
-
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
     eventBus.register(this);
@@ -252,6 +233,20 @@ public class SettingsController implements Controller<Node>, InitializingBean {
             Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
         // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
       }
+    };
+    availableLanguagesListener = observable -> {
+      LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
+      Locale currentLocale = localization.getLanguage();
+      List<Node> nodes = i18n.getAvailableLanguages().stream()
+          .map(locale -> {
+            LanguageItemController controller = uiService.loadFxml("theme/settings/language_item.fxml");
+            controller.setLocale(locale);
+            controller.setOnSelectedListener(this::onLanguageSelected);
+            controller.setSelected(locale.equals(currentLocale));
+            return controller.getRoot();
+          })
+          .collect(Collectors.toList());
+      languagesContainer.getChildren().setAll(nodes);
     };
 
     configureTimeSetting();

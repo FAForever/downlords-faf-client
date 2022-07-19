@@ -161,12 +161,11 @@ public class GameServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     MapperSetup.injectMappers(gameMapper);
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
-    preferences = PreferencesBuilder.create().defaultValues().forgedAlliancePrefs().warnNonAsciiVaultPath(true).then().get();
+    preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
-    when(preferencesService.isVaultBasePathInvalidForAscii()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
     when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
@@ -852,10 +851,5 @@ public class GameServiceTest extends ServiceTest {
     verify(fafServerAccessor).notifyGameEnded();
     verify(iceAdapter).stop();
     verify(replayServer).stop();
-  }
-
-  @Test
-  public void testShowWarningIfVaultPathIsInvalidForAscii() {
-    verify(notificationService).addPersistentWarnNotification(eq("vaultBasePath.nonAscii.warning.title"), any());
   }
 }
