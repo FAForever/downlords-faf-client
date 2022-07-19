@@ -29,7 +29,6 @@ import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
