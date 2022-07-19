@@ -8,6 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.reporting.ReportingService;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
+import javafx.scene.Parent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -130,6 +131,10 @@ public class NotificationService {
 
   public void addImmediateWarnNotification(String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), WARN, List.of(new DismissAction(i18n))));
+  }
+
+  public void addImmediateWarnNotification(String title, String text, List<Action> actions, Parent customUI) {
+    addNotification(new ImmediateNotification(title, text, WARN, actions, customUI));
   }
 
   public void addImmediateInfoNotification(String messageKey, Object... args) {

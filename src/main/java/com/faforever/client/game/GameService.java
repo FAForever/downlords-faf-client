@@ -228,18 +228,6 @@ public class GameService implements InitializingBean, DisposableBean {
       }
     };
     JavaFxUtil.addListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
-
-    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
-    if (preferencesService.isVaultBasePathInvalidForAscii()) {
-      log.warn("Vault base path contains non ASCII characters: {}", forgedAlliancePrefs.getVaultBaseDirectory());
-      if (forgedAlliancePrefs.getWarnNonAsciiVaultPath()) {
-        notificationService.addPersistentWarnNotification("vaultBasePath.nonAscii.warning.title",
-            List.of(new Action(i18n.get("vaultBasePath.nonAscii.warning.ignore"), event -> {
-              forgedAlliancePrefs.setWarnNonAsciiVaultPath(false);
-              preferencesService.storeInBackground();
-            })));
-      }
-    }
   }
 
   private InvalidationListener generateNumberOfPlayersChangeListener(GameBean game) {
