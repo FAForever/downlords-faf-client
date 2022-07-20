@@ -64,6 +64,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
+
 @Slf4j
 @Lazy
 @Service
@@ -293,6 +295,11 @@ public class PreferencesService implements InitializingBean {
         && (Files.isRegularFile(binPath.resolve(FORGED_ALLIANCE_EXE))
         || Files.isRegularFile(binPath.resolve(SUPREME_COMMANDER_EXE))
     );
+  }
+
+  public boolean isVaultBasePathInvalidForAscii() {
+    Path vaultBaseDirectory = preferences.getForgedAlliance().getVaultBaseDirectory();
+    return vaultBaseDirectory != null && !US_ASCII.newEncoder().canEncode(vaultBaseDirectory.toString());
   }
 
   private ClientConfiguration getRemotePreferences() throws IOException {

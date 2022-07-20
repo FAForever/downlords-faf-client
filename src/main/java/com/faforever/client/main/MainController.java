@@ -13,6 +13,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
+import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.login.LoginController;
@@ -73,6 +74,7 @@ import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -80,7 +82,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -99,6 +100,7 @@ import static javafx.scene.layout.Background.EMPTY;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 // TODO divide and conquer
 public class MainController implements Controller<Node>, InitializingBean {
 
@@ -107,16 +109,17 @@ public class MainController implements Controller<Node>, InitializingBean {
   private static final PseudoClass NOTIFICATION_ERROR_PSEUDO_CLASS = PseudoClass.getPseudoClass("error");
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
-  private final Cache<NavigationItem, AbstractViewController<?>> viewCache;
+  private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
   private final PreferencesService preferencesService;
+  private final ClientProperties clientProperties;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final UiService uiService;
   private final EventBus eventBus;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
-  private final String mainWindowTitle;
   private final Environment environment;
+  private final VaultPathHandler vaultPathHandler;
 
   public Pane mainHeaderPane;
   public Pane contentPane;
@@ -146,24 +149,6 @@ public class MainController implements Controller<Node>, InitializingBean {
   Popup persistentNotificationsPopup;
   private FxStage fxStage;
   private boolean alwaysReloadTabs;
-
-  @Inject
-  public MainController(PreferencesService preferencesService, I18n i18n,
-                        NotificationService notificationService,
-                        UiService uiService, EventBus eventBus,
-                        GamePathHandler gamePathHandler, PlatformService platformService,
-                        ClientProperties clientProperties, Environment environment) {
-    this.preferencesService = preferencesService;
-    this.i18n = i18n;
-    this.notificationService = notificationService;
-    this.uiService = uiService;
-    this.eventBus = eventBus;
-    this.gamePathHandler = gamePathHandler;
-    this.platformService = platformService;
-    this.viewCache = CacheBuilder.newBuilder().build();
-    this.mainWindowTitle = clientProperties.getMainWindowTitle();
-    this.environment = environment;
-  }
 
   @Override
   public void afterPropertiesSet() {
@@ -450,7 +435,7 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   private void enterLoggedInState() {
     Stage stage = StageHolder.getStage();
-    stage.setTitle(mainWindowTitle);
+    stage.setTitle(clientProperties.getMainWindowTitle());
 
     fxStage.setContent(getRoot());
     fxStage.getNonCaptionNodes().setAll(leftMenuPane, rightMenuPane, navigationDropdown);
@@ -459,6 +444,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     eventBus.post(new LoggedInEvent());
 
     gamePathHandler.detectAndUpdateGamePath();
+    vaultPathHandler.verifyVaultPathAndShowWarning();
     openStartTab();
   }
 

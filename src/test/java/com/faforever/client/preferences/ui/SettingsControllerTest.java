@@ -6,10 +6,10 @@ import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.preferences.ChatPrefs;
@@ -104,6 +104,8 @@ public class SettingsControllerTest extends UITest {
   private TaskService taskService;
   @Mock
   private CoturnService coturnService;
+  @Mock
+  private VaultPathHandler vaultPathHandler;
   @Spy
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
 
@@ -294,18 +296,11 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testSetVaultLocation() throws Exception {
-    MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
-    Path newVaultLocation = Path.of(".");
-    when(platformService.askForPath(any())).thenReturn(Optional.of(newVaultLocation));
-    when(applicationContext.getBean(MoveDirectoryTask.class)).thenReturn(moveDirectoryTask);
-
+  public void testOnSelectVaultLocation() throws Exception {
+    Optional<Path> path = Optional.of(mock(Path.class));
+    when(platformService.askForPath(any())).thenReturn(path);
     instance.onSelectVaultLocation();
-
-    verify(moveDirectoryTask).setOldDirectory(preferences.getForgedAlliance().getVaultBaseDirectory());
-    verify(moveDirectoryTask).setNewDirectory(newVaultLocation);
-    verify(platformService).askForPath(any());
-    verify(notificationService).addNotification(any(ImmediateNotification.class));
+    verify(vaultPathHandler).onVaultPathUpdated(path.get());
   }
 
   @Test

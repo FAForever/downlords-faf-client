@@ -38,6 +38,8 @@ import java.nio.file.Path;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PreferencesServiceTest extends ServiceTest {
 
@@ -85,5 +87,14 @@ public class PreferencesServiceTest extends ServiceTest {
   public void testPreferencesSerializable() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     assertDoesNotThrow(() -> objectMapper.readValue(objectMapper.writeValueAsString(preferences), Preferences.class));
+  }
+
+  @Test
+  public void testIsVaultBasePathInvalidForAscii() {
+    instance.getPreferences().getForgedAlliance().setVaultBaseDirectory(Path.of("C:\\User\\test"));
+    assertFalse(instance.isVaultBasePathInvalidForAscii());
+
+    instance.getPreferences().getForgedAlliance().setVaultBaseDirectory(Path.of("C:\\Юзер\\test"));
+    assertTrue(instance.isVaultBasePathInvalidForAscii());
   }
 }

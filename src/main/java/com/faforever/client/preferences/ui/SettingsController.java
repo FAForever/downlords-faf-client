@@ -11,12 +11,11 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.GameService;
+import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.notification.Action;
-import com.faforever.client.notification.CancelAction;
-import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
@@ -75,6 +74,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Screen;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -99,6 +99,7 @@ import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
+@RequiredArgsConstructor
 public class SettingsController implements Controller<Node> {
 
   private final ApplicationContext applicationContext;
@@ -115,7 +116,7 @@ public class SettingsController implements Controller<Node> {
   private final TaskService taskService;
   private final CoturnService coturnService;
   private final IceServerMapper iceServerMapper;
-  private final InvalidationListener availableLanguagesListener;
+  private final VaultPathHandler vaultPathHandler;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -127,6 +128,7 @@ public class SettingsController implements Controller<Node> {
   public TextField dataLocationTextField;
   public TextField gameLocationTextField;
   public TextField vaultLocationTextField;
+  public Label vaultLocationWarningLabel;
   public CheckBox autoDownloadMapsToggle;
   public CheckBox useFAFDebuggerToggle;
   public CheckBox showIceAdapterDebugWindowToggle;
@@ -184,43 +186,10 @@ public class SettingsController implements Controller<Node> {
 
   private ChangeListener<Theme> selectedThemeChangeListener;
   private ChangeListener<Theme> currentThemeChangeListener;
-
-  public SettingsController(ApplicationContext applicationContext, UserService userService, PreferencesService preferencesService, UiService uiService,
-                            I18n i18n, EventBus eventBus, NotificationService notificationService,
-                            PlatformService platformService, ClientProperties clientProperties,
-                            ClientUpdateService clientUpdateService, GameService gameService, TaskService taskService, CoturnService coturnService, IceServerMapper iceServerMapper) {
-    this.applicationContext = applicationContext;
-    this.userService = userService;
-    this.preferencesService = preferencesService;
-    this.uiService = uiService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.notificationService = notificationService;
-    this.platformService = platformService;
-    this.clientProperties = clientProperties;
-    this.clientUpdateService = clientUpdateService;
-    this.gameService = gameService;
-    this.taskService = taskService;
-    this.coturnService = coturnService;
-    this.iceServerMapper = iceServerMapper;
-
-    availableLanguagesListener = observable -> {
-      LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
-      Locale currentLocale = localization.getLanguage();
-      List<Node> nodes = i18n.getAvailableLanguages().stream()
-          .map(locale -> {
-            LanguageItemController controller = uiService.loadFxml("theme/settings/language_item.fxml");
-            controller.setLocale(locale);
-            controller.setOnSelectedListener(this::onLanguageSelected);
-            controller.setSelected(locale.equals(currentLocale));
-            return controller.getRoot();
-          })
-          .collect(Collectors.toList());
-      languagesContainer.getChildren().setAll(nodes);
-    };
-  }
+  private InvalidationListener availableLanguagesListener;
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
     eventBus.register(this);
     themeComboBox.setButtonCell(new StringListCell<>(Theme::getDisplayName));
     themeComboBox.setCellFactory(param -> new StringListCell<>(Theme::getDisplayName));
@@ -264,6 +233,20 @@ public class SettingsController implements Controller<Node> {
             Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
         // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
       }
+    };
+    availableLanguagesListener = observable -> {
+      LocalizationPrefs localization = preferencesService.getPreferences().getLocalization();
+      Locale currentLocale = localization.getLanguage();
+      List<Node> nodes = i18n.getAvailableLanguages().stream()
+          .map(locale -> {
+            LanguageItemController controller = uiService.loadFxml("theme/settings/language_item.fxml");
+            controller.setLocale(locale);
+            controller.setOnSelectedListener(this::onLanguageSelected);
+            controller.setSelected(locale.equals(currentLocale));
+            return controller.getRoot();
+          })
+          .collect(Collectors.toList());
+      languagesContainer.getChildren().setAll(nodes);
     };
 
     configureTimeSetting();
@@ -337,6 +320,8 @@ public class SettingsController implements Controller<Node> {
     useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
     showIceAdapterDebugWindowToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
     vaultLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
+    JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->
+        vaultLocationWarningLabel.setVisible(preferencesService.isVaultBasePathInvalidForAscii()));
 
     useFAFDebuggerToggle.selectedProperty().addListener(((observable, oldValue, newValue) -> {
       if (newValue && !oldValue) {
@@ -615,31 +600,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectVaultLocation() {
-    platformService.askForPath(i18n.get("settings.vault.select")).ifPresent(newVaultDirectory -> {
-      log.info("User changed vault directory to: `{}`", newVaultDirectory);
-
-      ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
-
-      MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
-      moveDirectoryTask.setOldDirectory(forgedAlliancePrefs.getVaultBaseDirectory());
-      moveDirectoryTask.setNewDirectory(newVaultDirectory);
-      moveDirectoryTask.setAfterCopyAction(() -> {
-        forgedAlliancePrefs.setVaultBaseDirectory(newVaultDirectory);
-        preferencesService.storeInBackground();
-      });
-      notificationService.addNotification(new ImmediateNotification(i18n.get("settings.vault.change"), i18n.get("settings.vault.change.message"), Severity.INFO,
-          List.of(
-              new Action(i18n.get("no"), event -> {
-                moveDirectoryTask.setPreserveOldDirectory(false);
-                taskService.submitTask(moveDirectoryTask);
-              }),
-              new Action(i18n.get("yes"), event -> {
-                moveDirectoryTask.setPreserveOldDirectory(true);
-                taskService.submitTask(moveDirectoryTask);
-              }),
-              new CancelAction(i18n)
-          )));
-    });
+    platformService.askForPath(i18n.get("settings.vault.select")).ifPresent(vaultPathHandler::onVaultPathUpdated);
   }
 
   public void onSelectDataLocation() {

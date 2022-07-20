@@ -345,6 +345,11 @@ public class PreferencesBuilder {
       forgedAlliancePrefs.getPreferredCoturnServers().addAll(preferredCoturns);
       return this;
     }
+
+    public ForgedAlliancePrefsBuilder warnNonAsciiVaultPath(boolean warnNonAsciiVaultPath) {
+      forgedAlliancePrefs.setWarnNonAsciiVaultPath(warnNonAsciiVaultPath);
+      return this;
+    }
   }
 
   public class GeneratorPrefsBuilder extends SubPreferencesBuilder {
