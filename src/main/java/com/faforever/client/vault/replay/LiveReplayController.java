@@ -77,12 +77,9 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
-        // Do not load coop map preview because they do not exist on API vault
-        () -> param.getValue().getGameType() != GameType.COOP
-            ? mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL)
-            : null,
-        param.getValue().mapFolderNameProperty()
-    ));
+        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
+        param.getValue().mapFolderNameProperty())
+    );
 
     startTimeColumn.setCellValueFactory(param -> param.getValue().startTimeProperty());
     startTimeColumn.setCellFactory(param -> new StringCell<>(this.timeService::asShortTime));

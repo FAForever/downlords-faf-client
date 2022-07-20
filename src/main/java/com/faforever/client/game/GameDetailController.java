@@ -96,8 +96,7 @@ public class GameDetailController implements Controller<Pane> {
         gameTitleLabel.setText(StringUtils.normalizeSpace(game.getTitle()));
         hostLabel.setText(game.getHost());
         mapLabel.setText(game.getMapFolderName());
-        // Do not load coop map preview because they do not exist on API vault
-        mapImageView.setImage(game.getGameType() != GameType.COOP ? mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE) : null);
+        mapImageView.setImage(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
       });
     }
   }
