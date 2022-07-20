@@ -22,6 +22,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
 
+<?import javafx.scene.layout.Region?>
 <GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" prefHeight="823.0" prefWidth="1199.0"
           xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.coop.CoopController">
@@ -85,7 +86,11 @@
                 <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                     <children>
                         <Label maxWidth="1.7976931348623157E308" styleClass="h2" text="%coop.leaderboard"
-                               HBox.hgrow="ALWAYS"/>
+                               HBox.hgrow="ALWAYS" contentDisplay="RIGHT">
+                            <graphic>
+                                <Region fx:id="leaderboardInfoIcon" styleClass="icon, icon16x16, info-icon"/>
+                            </graphic>
+                        </Label>
                         <ComboBox fx:id="numberOfPlayersComboBox" HBox.hgrow="NEVER">
                             <items>
                                 <FXCollections fx:factory="observableArrayList">

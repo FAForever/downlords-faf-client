@@ -39,6 +39,7 @@ import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -93,6 +94,7 @@ public class CoopController extends AbstractViewController<Node> {
   public Button playButton;
   public PasswordField passwordTextField;
   public ImageView mapPreviewImageView;
+  public Region leaderboardInfoIcon;
   public TableView<CoopResultBean> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
   public TableColumn<CoopResultBean, Integer> rankColumn;
@@ -141,6 +143,11 @@ public class CoopController extends AbstractViewController<Node> {
       button.setOnClickedAction(this::onReplayButtonClicked);
       return button.getRoot();
     }));
+
+    Tooltip tooltip = new Tooltip(i18n.get("coop.leaderboard.table.criteria"));
+    tooltip.setShowDelay(javafx.util.Duration.ZERO);
+    tooltip.setShowDuration(javafx.util.Duration.seconds(30));
+    Tooltip.install(leaderboardInfoIcon, tooltip);
 
     // Without this and no coop missions, the WebView is empty and the transparent background can't be applied to <html>
     descriptionWebView.getEngine().loadContent("<html></html>");
