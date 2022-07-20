@@ -143,16 +143,11 @@ public class ChatUserService implements InitializingBean {
       case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
       default -> null;
     };
-    Image mapImage;
-    // Do not load coop map preview because they do not exist on API vault
-    if (status != PlayerStatus.IDLE && player.getGame() != null && player.getGame().getGameType() != GameType.COOP) {
-      mapImage = mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL);
-    } else {
-      mapImage = null;
-    }
     chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
     chatChannelUser.setGameStatusImage(playerStatusImage);
-    chatChannelUser.setMapImage(mapImage);
+    chatChannelUser.setMapImage(status != PlayerStatus.IDLE && player.getGame() != null
+        ? mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL)
+        : null);
   }
 
   public void associatePlayerToChatUser(ChatChannelUser chatChannelUser, PlayerBean player) {
