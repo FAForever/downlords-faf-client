@@ -103,7 +103,7 @@
                     </padding>
                 </HBox>
                 <TableView fx:id="leaderboardTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                           prefWidth="376.0" VBox.vgrow="ALWAYS">
+                           VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="rankColumn" editable="false" maxWidth="64.0" minWidth="36.0"
                                      prefWidth="32.0" sortable="false" text="%coop.leaderboard.rank"/>
