@@ -11,16 +11,20 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.web.WebView?>
 
-<GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" xmlns="http://javafx.com/javafx/16"
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.coop.CoopController">
+<GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" prefHeight="823.0" prefWidth="1199.0"
+          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.faforever.client.coop.CoopController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="55.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="45.0" prefWidth="100.0"/>
@@ -31,31 +35,44 @@
     <children>
         <VBox spacing="10.0">
             <children>
-                <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10.0">
+                <GridPane hgap="4.0" minHeight="220.0" minWidth="500.0" vgap="4.0">
+                    <columnConstraints>
+                        <ColumnConstraints halignment="CENTER" hgrow="NEVER" minWidth="200.0"/>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="25.0" vgrow="SOMETIMES"/>
+                        <RowConstraints minHeight="10.0" prefHeight="200.0" valignment="CENTER" vgrow="SOMETIMES"/>
+                    </rowConstraints>
                     <children>
-                        <TextField fx:id="titleTextField" maxWidth="1.7976931348623157E308"
-                                   promptText="%game.create.title" styleClass="game-title-input"/>
-                        <PasswordField fx:id="passwordTextField" maxWidth="1.7976931348623157E308"
-                                       promptText="%game.create.password"/>
-                        <AnchorPane>
+                        <HBox spacing="5.0" GridPane.columnIndex="1">
                             <children>
-                                <ComboBox fx:id="missionComboBox" minWidth="75.0" AnchorPane.leftAnchor="0.0"
-                                          AnchorPane.rightAnchor="150.0"/>
-                                <Button fx:id="playButton" defaultButton="true" layoutX="310.0" mnemonicParsing="false"
-                                        onAction="#onPlayButtonClicked" text="%coop.host.button"
-                                        AnchorPane.rightAnchor="0.0"/>
+                                <TextField fx:id="titleTextField" maxWidth="1.7976931348623157E308" minWidth="100.0"
+                                           prefWidth="400.0" promptText="%game.create.title"/>
+                                <PasswordField fx:id="passwordTextField" maxWidth="1.7976931348623157E308"
+                                               minWidth="100.0" prefWidth="350.0" promptText="%game.create.password"/>
+                                <Button fx:id="playButton" defaultButton="true" minWidth="100.0" mnemonicParsing="false"
+                                        onAction="#onPlayButtonClicked" text="%coop.host.button" textOverrun="CLIP"
+                                        HBox.hgrow="ALWAYS"/>
                             </children>
-                        </AnchorPane>
+                        </HBox>
+                        <StackPane GridPane.rowIndex="1">
+                            <ImageView fx:id="mapPreviewImageView" fitHeight="200.0" fitWidth="200.0"
+                                       pickOnBounds="true" preserveRatio="true"/>
+                            <Pane maxHeight="200.0" maxWidth="200.0" onMouseClicked="#onMapPreviewImageClicked"
+                                  styleClass="clickable" StackPane.alignment="CENTER"/>
+                        </StackPane>
+
+                        <ComboBox fx:id="missionComboBox" prefHeight="25.0" prefWidth="200.0"/>
+                        <WebView fx:id="descriptionWebView" maxHeight="-1.0" minHeight="100.0" minWidth="-1.0"
+                                 prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                 GridPane.valignment="TOP"/>
                     </children>
-                    <VBox.margin>
-                        <Insets top="10.0"/>
-                    </VBox.margin>
-                </VBox>
+                    <padding>
+                        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>
+                    </padding>
+                </GridPane>
                 <Separator/>
-                <WebView fx:id="descriptionWebView" maxHeight="-1.0" minHeight="100.0" minWidth="-1.0"
-                         prefHeight="200.0" prefWidth="-1.0"/>
-                <Separator/>
-                <Label styleClass="h2" text="%coop.openGames"/>
                 <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308"
                             maxWidth="1.7976931348623157E308" minWidth="0.0" VBox.vgrow="ALWAYS"/>
             </children>
@@ -86,7 +103,7 @@
                     </padding>
                 </HBox>
                 <TableView fx:id="leaderboardTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                           VBox.vgrow="ALWAYS">
+                           prefWidth="376.0" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="rankColumn" editable="false" maxWidth="64.0" minWidth="36.0"
                                      prefWidth="32.0" sortable="false" text="%coop.leaderboard.rank"/>

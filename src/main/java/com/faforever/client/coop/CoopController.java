@@ -13,10 +13,13 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.GamesTableController;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
@@ -36,6 +39,7 @@ import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -50,6 +54,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -76,6 +81,7 @@ public class CoopController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final TimeService timeService;
+  private final MapService mapService;
   private final WebViewConfigurer webViewConfigurer;
   private final ModService modService;
 
@@ -86,6 +92,7 @@ public class CoopController extends AbstractViewController<Node> {
   public TextField titleTextField;
   public Button playButton;
   public PasswordField passwordTextField;
+  public ImageView mapPreviewImageView;
   public TableView<CoopResultBean> leaderboardTable;
   public ComboBox<Integer> numberOfPlayersComboBox;
   public TableColumn<CoopResultBean, Integer> rankColumn;
@@ -255,7 +262,10 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private void setSelectedMission(CoopMissionBean mission) {
-    JavaFxUtil.runLater(() -> descriptionWebView.getEngine().loadContent(mission.getDescription()));
+    JavaFxUtil.runLater(() -> {
+      descriptionWebView.getEngine().loadContent(mission.getDescription());
+      mapPreviewImageView.setImage(mapService.loadPreview(mission.getMapFolderName(), PreviewSize.LARGE));
+    });
     loadLeaderboard();
   }
 
@@ -270,6 +280,10 @@ public class CoopController extends AbstractViewController<Node> {
         .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(titleTextField.getText(),
             Strings.emptyToNull(passwordTextField.getText()), featuredModBean, getSelectedMission().getMapFolderName(),
             emptySet())));
+  }
+
+  public void onMapPreviewImageClicked() {
+    Optional.ofNullable(mapPreviewImageView.getImage()).ifPresent(PopupUtil::showImagePopup);
   }
 
   public Node getRoot() {
