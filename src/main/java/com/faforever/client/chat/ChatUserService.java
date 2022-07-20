@@ -12,7 +12,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -143,11 +142,12 @@ public class ChatUserService implements InitializingBean {
       case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
       default -> null;
     };
+    Image mapImage = status != PlayerStatus.IDLE && player.getGame() != null
+        ? mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL)
+        : null;
     chatChannelUser.setStatusTooltipText(i18n.get(status.getI18nKey()));
     chatChannelUser.setGameStatusImage(playerStatusImage);
-    chatChannelUser.setMapImage(status != PlayerStatus.IDLE && player.getGame() != null
-        ? mapService.loadPreview(player.getGame().getMapFolderName(), PreviewSize.SMALL)
-        : null);
+    chatChannelUser.setMapImage(mapImage);
   }
 
   public void associatePlayerToChatUser(ChatChannelUser chatChannelUser, PlayerBean player) {
