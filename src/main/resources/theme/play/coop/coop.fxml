@@ -23,8 +23,8 @@
 <?import javafx.scene.web.WebView?>
 
 <?import javafx.scene.layout.Region?>
-<GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" prefHeight="823.0" prefWidth="1199.0"
-          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+<GridPane fx:id="coopRoot" gridLinesVisible="true" hgap="10.0" xmlns="http://javafx.com/javafx/17"
+          xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.coop.CoopController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="55.0"/>
