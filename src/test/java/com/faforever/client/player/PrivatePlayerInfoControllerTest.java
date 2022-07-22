@@ -13,7 +13,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameDetailController;
-import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.UITest;
