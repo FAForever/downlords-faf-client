@@ -13,7 +13,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
-import com.faforever.commons.lobby.GameType;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
@@ -102,17 +101,18 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onNumPlayersChanged() {
-    if (game != null) {
-      JavaFxUtil.runLater(() ->
-          numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())));
-    }
+    JavaFxUtil.runLater(() -> {
+      if (game != null) {
+        numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()));
+      }
+    });
   }
 
   public void setGame(GameBean game) {
     resetListeners();
 
     this.game = game;
-    if (game == null) {
+    if (game == null || game.getStatus() == GameStatus.CLOSED) {
       hideGameDetail();
       return;
     }
@@ -146,19 +146,19 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onStartTimeChanged() {
-    if (game != null && game.getStatus() == GameStatus.PLAYING) {
-      OffsetDateTime startTime = game.getStartTime();
-      JavaFxUtil.runLater(() -> {
+    JavaFxUtil.runLater(() -> {
+      if (game != null && game.getStatus() == GameStatus.PLAYING) {
+        OffsetDateTime startTime = game.getStartTime();
         if (startTime != null) {
           watchButtonController.setGame(game);
           joinButton.setVisible(false);
         }
         watchButton.setVisible(startTime != null);
-      });
-    } else {
-      joinButton.setVisible(game != null && game.getStatus() == GameStatus.OPEN);
-      watchButton.setVisible(false);
-    }
+      } else {
+        joinButton.setVisible(game != null && game.getStatus() == GameStatus.OPEN);
+        watchButton.setVisible(false);
+      }
+    });
   }
 
   private void onFeaturedModChanged() {

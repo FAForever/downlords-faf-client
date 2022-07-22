@@ -24,6 +24,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
+import javafx.event.Event;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TextInputControl;
@@ -101,6 +102,11 @@ public class PrivateChatTabController extends AbstractChatTabController {
         JavaFxUtil.addAndTriggerListener(player.avatarProperty(), new WeakChangeListener<>(avatarPropertyListener)));
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username, false);
     privatePlayerInfoController.setChatUser(chatUser);
+  }
+
+  @Override
+  protected void onClosed(Event event) {
+    privatePlayerInfoController.dispose();
   }
 
   public void initialize() {
