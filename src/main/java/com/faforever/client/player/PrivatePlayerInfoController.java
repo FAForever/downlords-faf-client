@@ -16,6 +16,7 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.lobby.GameStatus;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.InvalidationListener;
@@ -223,6 +224,11 @@ public class PrivatePlayerInfoController implements Controller<Node> {
         gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
       });
     });
+  }
+
+  @VisibleForTesting
+  protected Timeline getPlayTimeTimeline() {
+    return playTimeTimeline;
   }
 }
 

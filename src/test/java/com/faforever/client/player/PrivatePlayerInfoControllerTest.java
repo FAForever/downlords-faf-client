@@ -9,26 +9,34 @@ import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatUserService;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameDetailController;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
+import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
+import javafx.animation.Animation.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -51,6 +59,8 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   private EventBus eventBus;
   @Mock
   private ChatUserService chatUserService;
+  @Mock
+  private TimeService timeService;
   @Mock
   private GameDetailController gameDetailController;
   @Mock
@@ -218,6 +228,61 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     assertEquals("123", instance.gamesPlayedLabel.getText());
     verify(gameDetailController, times(2)).setGame(player.getGame());
     verify(achievementService).getPlayerAchievements(player.getId());
+  }
+
+  @Test
+  public void testNoPlaytimeWhenNoGame() {
+    player.setGame(null);
+    runOnFxThreadAndWait(() -> instance.setChatUser(chatChannelUser));
+
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertFalse(instance.playtimeValueLabel.isVisible());
+    assertNull(instance.getPlayTimeTimeline());
+  }
+
+  @Test
+  public void testNoPlaytimeWhenGameIsClosed() {
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get());
+    runOnFxThreadAndWait(() -> instance.setChatUser(chatChannelUser));
+
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertFalse(instance.playtimeValueLabel.isVisible());
+    assertNull(instance.getPlayTimeTimeline());
+  }
+
+  @Test
+  public void testNoPlaytimeWhenPlayerIsInLobby() {
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get());
+
+    runOnFxThreadAndWait(() -> instance.setChatUser(chatChannelUser));
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertFalse(instance.playtimeValueLabel.isVisible());
+    assertNull(instance.getPlayTimeTimeline());
+  }
+
+  @Test
+  public void testShowPlaytimeWhenGameIsRunning() {
+    player.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get());
+
+    runOnFxThreadAndWait(() -> instance.setChatUser(chatChannelUser));
+    assertTrue(instance.playtimeLabel.isVisible());
+    assertTrue(instance.playtimeValueLabel.isVisible());
+    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+  }
+
+  @Test
+  public void testHidePlaytimeWhenGameHasJustEnded() throws Exception {
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get();
+    player.setGame(game);
+
+    runOnFxThreadAndWait(() -> instance.setChatUser(chatChannelUser));
+    Thread.sleep(2000);
+    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+    runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
+
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertFalse(instance.playtimeValueLabel.isVisible());
+    assertSame(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
   }
 
   @Test

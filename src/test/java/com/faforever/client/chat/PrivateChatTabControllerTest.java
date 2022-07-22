@@ -26,6 +26,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
+import javafx.event.Event;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.image.Image;
@@ -205,5 +206,11 @@ public class PrivateChatTabControllerTest extends UITest {
     when(avatarService.loadAvatar(avatarBean)).thenReturn(newAvatar);
     runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
     assertEquals(newAvatar, instance.avatarImageView.getImage());
+  }
+
+  @Test
+  public void testOnClosedTab() {
+    instance.onClosed(null);
+    verify(privatePlayerInfoController).dispose();
   }
 }
