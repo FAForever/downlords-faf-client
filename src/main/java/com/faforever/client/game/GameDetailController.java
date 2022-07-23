@@ -11,8 +11,13 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
+import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
+import com.google.common.annotations.VisibleForTesting;
+import javafx.animation.Animation.Status;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
@@ -21,6 +26,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +46,7 @@ public class GameDetailController implements Controller<Pane> {
   private final MapService mapService;
   private final ModService modService;
   private final PlayerService playerService;
+  private final TimeService timeService;
   private final UiService uiService;
   private final JoinGameHelper joinGameHelper;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -53,11 +60,14 @@ public class GameDetailController implements Controller<Pane> {
   public StackPane mapPreviewContainer;
   public ImageView mapImageView;
   public Label gameTitleLabel;
+  public Label playtimeLabel;
   public Node joinButton;
   public WatchButtonController watchButtonController;
   public Node watchButton;
 
   private GameBean game;
+  private boolean playtimeVisible;
+  private Timeline playTimeTimeline;
 
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
@@ -69,7 +79,7 @@ public class GameDetailController implements Controller<Pane> {
   public void initialize() {
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
-        mapPreviewContainer, gameTypeLabel);
+        mapPreviewContainer, gameTypeLabel, playtimeLabel);
     JavaFxUtil.bind(mapPreviewContainer.visibleProperty(), mapImageView.imageProperty().isNotNull());
     gameDetailRoot.parentProperty().addListener(observable -> {
       if (!(gameDetailRoot.getParent() instanceof Pane)) {
@@ -80,13 +90,51 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onGameStatusChanged() {
-    if (game != null) {
-      switch (game.getStatus()) {
-        case PLAYING -> JavaFxUtil.runLater(() -> joinButton.setVisible(false));
-        case OPEN -> JavaFxUtil.runLater(() -> joinButton.setVisible(true));
-        case UNKNOWN, CLOSED -> hideGameDetail();
+    JavaFxUtil.runLater(() -> {
+      if (game != null) {
+        switch (game.getStatus()) {
+          case PLAYING -> {
+            joinButton.setVisible(false);
+            calculatePlaytime(game);
+          }
+          case OPEN -> joinButton.setVisible(true);
+          case UNKNOWN, CLOSED -> {
+            hideGameDetail();
+            stopPlaytime();
+          }
+        }
+      } else {
+        stopPlaytime();
       }
+    });
+  }
+
+  private void calculatePlaytime(GameBean game) {
+    if (playtimeVisible && (playTimeTimeline == null || playTimeTimeline.getStatus() == Status.STOPPED)) {
+      playtimeLabel.setVisible(true);
+      playTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> {
+        if (game.getStatus() == GameStatus.PLAYING && game.getStartTime() != null) {
+          updatePlaytimeValue(game.getStartTime());
+        }
+      }), new KeyFrame(Duration.seconds(1)));
+      playTimeTimeline.setCycleCount(Timeline.INDEFINITE);
+      playTimeTimeline.play();
     }
+  }
+
+  private void stopPlaytime() {
+    if (playTimeTimeline != null) {
+      playTimeTimeline.stop();
+    }
+    JavaFxUtil.runLater(() -> playtimeLabel.setVisible(false));
+  }
+
+  private void updatePlaytimeValue(OffsetDateTime gameStartTime) {
+    JavaFxUtil.runLater(() -> playtimeLabel.setText(timeService.shortDuration(java.time.Duration.between(gameStartTime, OffsetDateTime.now()))));
+  }
+
+  public void dispose() {
+    stopPlaytime();
   }
 
   private void onGamePropertyChanged() {
@@ -181,6 +229,10 @@ public class GameDetailController implements Controller<Pane> {
     JavaFxUtil.runLater(() -> getRoot().setVisible(false));
   }
 
+  public void setPlaytimeVisible(boolean visible) {
+    playtimeVisible = visible;
+  }
+
   @Override
   public Pane getRoot() {
     return gameDetailRoot;
@@ -194,5 +246,10 @@ public class GameDetailController implements Controller<Pane> {
     if (game != null) {
       PopupUtil.showImagePopup(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
     }
+  }
+
+  @VisibleForTesting
+  protected Timeline getPlayTimeTimeline() {
+    return playTimeTimeline;
   }
 }

@@ -13,12 +13,8 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
-import com.faforever.client.util.TimeService;
 import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.lobby.GameStatus;
-import com.google.common.annotations.VisibleForTesting;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
@@ -26,15 +22,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.time.OffsetDateTime;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -45,7 +38,6 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   private final I18n i18n;
   private final AchievementService achievementService;
   private final LeaderboardService leaderboardService;
-  private final TimeService timeService;
 
   public ImageView userImageView;
   public Label usernameLabel;
@@ -60,16 +52,12 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   public Node privateUserInfoRoot;
   public Label gamesPlayedLabelLabel;
   public Label unlockedAchievementsLabelLabel;
-  public Label playtimeLabel;
-  public Label playtimeValueLabel;
   public Separator separator;
 
   private ChatChannelUser chatUser;
   private InvalidationListener gameInvalidationListener;
-  private InvalidationListener gameStatusInvalidationListener;
   private InvalidationListener chatUserPropertiesInvalidationListener;
   private InvalidationListener ratingInvalidationListener;
-  private Timeline playTimeTimeline;
 
   @Override
   public Node getRoot() {
@@ -78,9 +66,9 @@ public class PrivatePlayerInfoController implements Controller<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(gameDetailWrapper, countryLabel, gamesPlayedLabel, unlockedAchievementsLabel,
-        ratingsLabels, ratingsValues, gamesPlayedLabelLabel, unlockedAchievementsLabelLabel, playtimeLabel,
-        playtimeValueLabel, separator);
+        ratingsLabels, ratingsValues, gamesPlayedLabelLabel, unlockedAchievementsLabelLabel, separator);
     JavaFxUtil.bind(separator.visibleProperty(), gameDetailWrapper.visibleProperty());
+    gameDetailController.setPlaytimeVisible(true);
   }
 
   private void initializePlayerListeners() {
@@ -162,48 +150,6 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   private void onPlayerGameChanged(GameBean game) {
     gameDetailController.setGame(game);
     gameDetailWrapper.setVisible(game != null && game.getStatus() != GameStatus.CLOSED);
-    if (game != null) {
-      gameStatusInvalidationListener = observable -> calculatePlaytime(game);
-      JavaFxUtil.addAndTriggerListener(game.statusProperty(), new WeakInvalidationListener(gameStatusInvalidationListener));
-    }
-  }
-
-  private void calculatePlaytime(GameBean game) {
-    if (game == null || game.getStatus() != GameStatus.PLAYING) {
-      clearAndHidePlaytime();
-    } else {
-      playTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> {
-        if (game.getStatus() == GameStatus.PLAYING && game.getStartTime() != null) {
-          updatePlaytimeValue(game.getStartTime());
-        }
-      }), new KeyFrame(Duration.seconds(1)));
-      playTimeTimeline.setCycleCount(Timeline.INDEFINITE);
-      playTimeTimeline.play();
-      JavaFxUtil.runLater(() -> {
-        playtimeLabel.setVisible(true);
-        playtimeValueLabel.setVisible(true);
-      });
-    }
-  }
-
-  private void clearAndHidePlaytime() {
-    if (playTimeTimeline != null) {
-      playTimeTimeline.stop();
-    }
-    JavaFxUtil.runLater(() -> {
-      playtimeLabel.setVisible(false);
-      playtimeValueLabel.setVisible(false);
-    });
-  }
-
-  private void updatePlaytimeValue(OffsetDateTime gameStartTime) {
-    JavaFxUtil.runLater(() -> playtimeValueLabel.setText(timeService.shortDuration(java.time.Duration.between(gameStartTime, OffsetDateTime.now()))));
-  }
-
-  public void dispose() {
-    if (playTimeTimeline != null) {
-      playTimeTimeline.stop();
-    }
   }
 
   private void loadReceiverRatingInformation(PlayerBean player) {
@@ -226,9 +172,8 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     });
   }
 
-  @VisibleForTesting
-  protected Timeline getPlayTimeTimeline() {
-    return playTimeTimeline;
+  public void dispose() {
+    gameDetailController.dispose();
   }
 }
 

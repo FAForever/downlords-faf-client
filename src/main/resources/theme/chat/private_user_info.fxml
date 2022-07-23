@@ -23,10 +23,8 @@
         <RowConstraints vgrow="SOMETIMES"/>
         <RowConstraints minHeight="15.0" vgrow="SOMETIMES"/>
         <RowConstraints vgrow="SOMETIMES"/>
-        <RowConstraints vgrow="SOMETIMES"/>
     </rowConstraints>
     <children>
-        <Label fx:id="playtimeLabel" visible="false" text="%game.playtime" GridPane.rowIndex="6"/>
         <Label fx:id="usernameLabel" alignment="CENTER" contentDisplay="TOP" graphicTextGap="20.0"
                maxWidth="1.7976931348623157E308" minWidth="-Infinity" styleClass="h1" text="username"
                GridPane.columnSpan="2147483647">
@@ -62,8 +60,6 @@
                GridPane.rowIndex="4"/>
         <Label fx:id="unlockedAchievementsLabelLabel" text="%chat.privateMessage.achievements.unlocked"
                GridPane.rowIndex="4"/>
-        <Label fx:id="playtimeValueLabel" visible="false" text="playtimeValue" textAlignment="RIGHT" GridPane.columnIndex="1"
-               GridPane.rowIndex="6"/>
     </children>
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>

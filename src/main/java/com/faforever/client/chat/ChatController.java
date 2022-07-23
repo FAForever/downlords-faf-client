@@ -214,9 +214,9 @@ public class ChatController extends AbstractViewController<AnchorPane> {
 
   private void openPrivateMessageTabForUser(String username) {
     JavaFxUtil.assertApplicationThread();
-    if (username.equalsIgnoreCase(userService.getUsername())) {
-      return;
-    }
+    //if (username.equalsIgnoreCase(userService.getUsername())) {
+    //  return;
+    //}
     AbstractChatTabController controller = addAndGetPrivateMessageTab(username);
     Tab tab = controller.getRoot();
     eventBus.post(new NavigateEvent(NavigationItem.CHAT));
