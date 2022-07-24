@@ -14,10 +14,12 @@ import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.AchievementState;
+import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   public Node privateUserInfoRoot;
   public Label gamesPlayedLabelLabel;
   public Label unlockedAchievementsLabelLabel;
+  public Separator separator;
 
   private ChatChannelUser chatUser;
   private InvalidationListener gameInvalidationListener;
@@ -62,16 +65,10 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   }
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(
-        gameDetailWrapper,
-        countryLabel,
-        gamesPlayedLabel,
-        unlockedAchievementsLabel,
-        ratingsLabels,
-        ratingsValues,
-        gamesPlayedLabelLabel,
-        unlockedAchievementsLabelLabel
-    );
+    JavaFxUtil.bindManagedToVisible(gameDetailWrapper, countryLabel, gamesPlayedLabel, unlockedAchievementsLabel,
+        ratingsLabels, ratingsValues, gamesPlayedLabelLabel, unlockedAchievementsLabelLabel, separator);
+    JavaFxUtil.bind(separator.visibleProperty(), gameDetailWrapper.visibleProperty());
+    gameDetailController.setPlaytimeVisible(true);
   }
 
   private void initializePlayerListeners() {
@@ -150,9 +147,9 @@ public class PrivatePlayerInfoController implements Controller<Node> {
         });
   }
 
-  private void onPlayerGameChanged(GameBean newGame) {
-    gameDetailController.setGame(newGame);
-    gameDetailWrapper.setVisible(newGame != null);
+  private void onPlayerGameChanged(GameBean game) {
+    gameDetailController.setGame(game);
+    gameDetailWrapper.setVisible(game != null && game.getStatus() != GameStatus.CLOSED);
   }
 
   private void loadReceiverRatingInformation(PlayerBean player) {
@@ -173,6 +170,10 @@ public class PrivatePlayerInfoController implements Controller<Node> {
         gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
       });
     });
+  }
+
+  public void dispose() {
+    gameDetailController.dispose();
   }
 }
 

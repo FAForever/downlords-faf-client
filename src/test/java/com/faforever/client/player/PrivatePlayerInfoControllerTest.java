@@ -15,6 +15,7 @@ import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,8 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   private EventBus eventBus;
   @Mock
   private ChatUserService chatUserService;
+  @Mock
+  private TimeService timeService;
   @Mock
   private GameDetailController gameDetailController;
   @Mock

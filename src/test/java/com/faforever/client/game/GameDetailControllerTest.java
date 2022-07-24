@@ -12,8 +12,10 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
+import javafx.animation.Animation.Status;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +31,10 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,6 +54,8 @@ public class GameDetailControllerTest extends UITest {
   @Mock
   private JoinGameHelper joinGameHelper;
   @Mock
+  private TimeService timeService;
+  @Mock
   private ContextMenuBuilder contextMenuBuilder;
 
   @Mock
@@ -65,6 +72,7 @@ public class GameDetailControllerTest extends UITest {
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(mock(Image.class));
+    when(timeService.shortDuration(any())).thenReturn("duration");
     when(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()));
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
@@ -160,5 +168,61 @@ public class GameDetailControllerTest extends UITest {
   public void testJoinGame() {
     instance.onJoinButtonClicked();
     verify(joinGameHelper).join(game);
+  }
+
+  @Test
+  public void testNoPlaytimeWhenNoGame() {
+    runOnFxThreadAndWait(() -> {
+      instance.setPlaytimeVisible(true);
+      instance.setGame(null);
+    });
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertNull(instance.getPlayTimeTimeline());
+  }
+
+  @Test
+  public void testNoPlaytimeWhenGameIsClosed() {
+    runOnFxThreadAndWait(() -> {
+      instance.setPlaytimeVisible(true);
+      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get());
+    });
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertNull(instance.getPlayTimeTimeline());
+  }
+
+  @Test
+  public void testNoPlaytimeWhenPlayerIsInLobby() {
+    runOnFxThreadAndWait(() -> {
+      instance.setPlaytimeVisible(true);
+      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get());
+    });
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertNull(instance.getPlayTimeTimeline());
+  }
+
+  @Test
+  public void testShowPlaytimeWhenGameIsRunning() {
+    runOnFxThreadAndWait(() -> {
+      instance.setPlaytimeVisible(true);
+      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get());
+    });
+    assertTrue(instance.playtimeLabel.isVisible());
+    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+  }
+
+  @Test
+  public void testHidePlaytimeWhenGameHasJustEnded() throws Exception {
+    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get();
+
+    runOnFxThreadAndWait(() -> {
+      instance.setPlaytimeVisible(true);
+      instance.setGame(game);
+    });
+    Thread.sleep(2000);
+    assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
+    runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
+
+    assertFalse(instance.playtimeLabel.isVisible());
+    assertSame(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
   }
 }

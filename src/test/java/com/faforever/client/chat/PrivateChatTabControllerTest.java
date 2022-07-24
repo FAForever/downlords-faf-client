@@ -206,4 +206,10 @@ public class PrivateChatTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> player.setAvatar(avatarBean));
     assertEquals(newAvatar, instance.avatarImageView.getImage());
   }
+
+  @Test
+  public void testOnClosedTab() {
+    instance.onClosed(null);
+    verify(privatePlayerInfoController).dispose();
+  }
 }
