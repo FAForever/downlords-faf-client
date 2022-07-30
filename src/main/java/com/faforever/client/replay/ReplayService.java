@@ -113,7 +113,15 @@ public class ReplayService {
 
   @VisibleForTesting
   static String parseMapFolderName(ReplayDataParser parser) {
-    String mapPath = parser.getMap();
+    // Prefer the scenario file path as that contains all the information to actually launch the map. The map in the
+    // parser is just the scmap which may have a different folder and will not contain all the info to launch the map
+    // or even may not be a map in the vault like in the case of any coop map.
+    String mapPath = parser.getGameOptions()
+        .stream()
+        .filter(gameOption -> "ScenarioFile".equals(gameOption.getKey()))
+        .findFirst()
+        .map(gameOption -> (String) gameOption.getValue())
+        .orElse(parser.getMap());
     //mapPath looks like /maps/my_awesome_map.v008/my_awesome_map.lua
     Matcher matcher = invalidCharacters.matcher(mapPath);
     if (matcher.find()) {
@@ -286,7 +294,8 @@ public class ReplayService {
           .map(gameOption -> new GameOption(gameOption.getKey(), gameOption.getValue()))
           .collect(Collectors.toList())
       );
-      replay.getGameOptions().add(0, new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser))));
+      replay.getGameOptions()
+          .add(0, new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser))));
       if (replay.getMapVersion() == null) {
         MapVersionBean mapVersion = new MapVersionBean();
         MapBean map = new MapBean();
@@ -304,7 +313,8 @@ public class ReplayService {
 
   public CompletableFuture<Integer> getFileSize(ReplayBean replay) {
     try {
-      return fileSizeReader.getFileSize(new URL(String.format(clientProperties.getVault().getReplayDownloadUrlFormat(), replay.getId())));
+      return fileSizeReader.getFileSize(new URL(String.format(clientProperties.getVault()
+          .getReplayDownloadUrlFormat(), replay.getId())));
     } catch (MalformedURLException e) {
       log.error("Could not open connection to download replay", e);
       return CompletableFuture.completedFuture(-1);
@@ -355,7 +365,10 @@ public class ReplayService {
     ReplayDataParser replayData = replayFileReader.parseReplay(path);
     byte[] rawReplayBytes = replayData.getData();
 
-    Path tempSupComReplayFile = preferencesService.getPreferences().getData().getCacheDirectory().resolve(TEMP_SCFA_REPLAY_FILE_NAME);
+    Path tempSupComReplayFile = preferencesService.getPreferences()
+        .getData()
+        .getCacheDirectory()
+        .resolve(TEMP_SCFA_REPLAY_FILE_NAME);
 
     Files.createDirectories(tempSupComReplayFile.getParent());
     Files.copy(new ByteArrayInputStream(rawReplayBytes), tempSupComReplayFile, StandardCopyOption.REPLACE_EXISTING);
@@ -388,7 +401,8 @@ public class ReplayService {
   @Cacheable(value = CacheNames.REPLAYS_RECENT, sync = true)
   public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getNewestReplaysWithPageCount(int count, int page) {
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class).collection()
-        .setFilter(qBuilder().instant("endTime").after(Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))
+        .setFilter(qBuilder().instant("endTime")
+            .after(Instant.now().minus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))
         .addSortingRule("endTime", false);
     return getReplayPage(navigator, count, page);
   }
@@ -396,7 +410,11 @@ public class ReplayService {
   @Cacheable(value = CacheNames.REPLAYS_SEARCH, sync = true)
   public CompletableFuture<Tuple2<List<ReplayBean>, Integer>> getReplaysForPlayerWithPageCount(int playerId, int count, int page) {
     ElideNavigatorOnCollection<Game> navigator = ElideNavigator.of(Game.class).collection()
-        .setFilter(qBuilder().intNum("playerStats.player.id").eq(playerId).and().instant("endTime").after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))
+        .setFilter(qBuilder().intNum("playerStats.player.id")
+            .eq(playerId)
+            .and()
+            .instant("endTime")
+            .after(Instant.now().minus(365, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS), false))
         .addSortingRule("endTime", false);
     return getReplayPage(navigator, count, page);
   }
@@ -409,7 +427,9 @@ public class ReplayService {
         .pageNumber(page);
     return fafApiAccessor.getManyWithPageCount(navigator)
         .map(tuple -> tuple.mapT1(mods ->
-            mods.stream().map(dto -> replayMapper.map(dto.getGame(), new CycleAvoidingMappingContext())).collect(toList())
+            mods.stream()
+                .map(dto -> replayMapper.map(dto.getGame(), new CycleAvoidingMappingContext()))
+                .collect(toList())
         ))
         .toFuture();
   }

@@ -12,6 +12,7 @@ import com.faforever.client.util.ConcurrentUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
@@ -20,11 +21,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.faforever.client.game.KnownFeaturedMod.BALANCE_TESTING;
@@ -38,8 +42,7 @@ import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 public class GameUpdaterImpl implements GameUpdater {
 
   private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP, BALANCE_TESTING, LADDER_1V1)
-      .map(KnownFeaturedMod::getTechnicalName)
-      .collect(Collectors.toList());
+      .map(KnownFeaturedMod::getTechnicalName).toList();
 
   private final List<FeaturedModUpdater> featuredModUpdaters = new ArrayList<>();
   private final ModService modService;
@@ -57,7 +60,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   @Override
-  public CompletableFuture<Void> update(FeaturedModBean featuredMod, Integer version, Set<String> simModUIDs) {
+  public CompletableFuture<Void> update(FeaturedModBean featuredMod, Set<String> simModUIDs, @Nullable Map<String, Integer> featuredModFileVersions, @Nullable Integer baseVersion) {
     gameType = featuredMod.getTechnicalName();
 
     // The following ugly code is sponsored by the featured-mod-mess. FAF and Coop are both featured mods - but others,
@@ -67,12 +70,16 @@ public class GameUpdaterImpl implements GameUpdater {
     CompletableFuture<PatchResult> featuredModUpdateFuture;
 
     if (!NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
+      // Assume that the highest version of a featured mod file is the version of the mod we want.
+      // Really don't want to encourage the ability for featuredModFiles to not be packaged together
+      Integer featuredModVersion = Optional.ofNullable(featuredModFileVersions).map(Map::values).stream().flatMap(Collection::stream).max(Comparator.nullsLast(Comparator.naturalOrder())).orElse(null);
+
       featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()))
-          .thenCompose(baseMod -> updateFeaturedMod(baseMod, null))
+          .thenCompose(baseMod -> updateFeaturedMod(baseMod, baseVersion))
           .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion()))
-          .thenCompose(aVoid -> updateFeaturedMod(featuredMod, version));
+          .thenCompose(aVoid -> updateFeaturedMod(featuredMod, featuredModVersion));
     } else {
-      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> updateFeaturedMod(featuredMod, version))
+      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> updateFeaturedMod(featuredMod, baseVersion))
           .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion()).thenApply(aVoid -> patchResult));
     }
 

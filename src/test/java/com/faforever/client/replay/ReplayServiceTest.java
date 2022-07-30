@@ -37,6 +37,7 @@ import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
 import com.faforever.commons.api.dto.GameReviewsSummary;
 import com.faforever.commons.api.elide.ElideEntity;
+import com.faforever.commons.replay.GameOption;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +51,6 @@ import org.springframework.context.ApplicationContext;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -209,6 +209,15 @@ public class ReplayServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testParseMapFolderNamePrefersScenarioFile() throws Exception {
+    when(replayDataParser.getMap()).thenReturn(BAD_MAP_PATH);
+    when(replayDataParser.getGameOptions()).thenReturn(List.of(new GameOption("ScenarioFile", COOP_MAP_PATH)));
+
+    String mapName = ReplayService.parseMapFolderName(replayDataParser);
+    assertEquals(COOP_MAP_NAME, mapName);
+  }
+
+  @Test
   public void testParseMapFolderName() throws Exception {
     when(replayDataParser.getMap()).thenReturn(COOP_MAP_PATH);
     String mapName = ReplayService.parseMapFolderName(replayDataParser);
@@ -243,12 +252,7 @@ public class ReplayServiceTest extends ServiceTest {
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file1);
     doThrow(new FakeTestException()).when(replayFileReader).parseReplay(file2);
 
-    Collection<ReplayBean> localReplays = new ArrayList<>();
-    try {
-      localReplays.addAll(instance.loadLocalReplayPage(2, 1).get().getT1());
-    } catch (FakeTestException exception) {
-      // expected
-    }
+    Collection<ReplayBean> localReplays = new ArrayList<>(instance.loadLocalReplayPage(2, 1).get().getT1());
 
     assertThat(localReplays, empty());
     verify(notificationService, times(2)).addNotification(any(PersistentNotification.class));
@@ -429,7 +433,7 @@ public class ReplayServiceTest extends ServiceTest {
     instance.enrich(new ReplayBean(), path);
 
     verify(replayDataParser).getChatMessages();
-    verify(replayDataParser).getGameOptions();
+    verify(replayDataParser, times(2)).getGameOptions();
   }
 
   @Test
