@@ -14,7 +14,6 @@ on:
         options:
           - "Production"
           - "Alpha"
-          - "Experimental"
 
 jobs:
   release:
