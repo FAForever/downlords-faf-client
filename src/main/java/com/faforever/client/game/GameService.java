@@ -286,7 +286,7 @@ public class GameService implements InitializingBean, DisposableBean {
       return completedFuture(null);
     }
 
-    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), null, newGameInfo.getSimMods())
+    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
         .thenAccept(this::startGame);
@@ -317,7 +317,7 @@ public class GameService implements InitializingBean, DisposableBean {
 
     Set<String> simModUIds = game.getSimMods().keySet();
     return modService.getFeaturedMod(game.getFeaturedMod())
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, simModUIds))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUIds))
         .thenAccept(aVoid -> {
           try {
             modService.enableSimMods(simModUIds);
@@ -353,20 +353,20 @@ public class GameService implements InitializingBean, DisposableBean {
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer version, Map<String, Integer> modVersions, Set<String> simMods, String mapName) {
+  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer baseFafVersion, Map<String, Integer> featuredModFileVersions, Set<String> simMods, String mapFolderName) {
     if (!canStartReplay()) {
       return completedFuture(null);
     }
 
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      gameDirectoryFuture.thenAccept(pathSet -> runWithReplay(path, replayId, featuredMod, version, modVersions, simMods, mapName));
+      gameDirectoryFuture.thenAccept(pathSet -> runWithReplay(path, replayId, featuredMod, baseFafVersion, featuredModFileVersions, simMods, mapFolderName));
       return completedFuture(null);
     }
 
     return modService.getFeaturedMod(featuredMod)
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, version, simMods))
-        .thenCompose(aVoid -> downloadMapIfNecessary(mapName)
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapFolderName)
             .handleAsync((ignoredResult, throwable) -> {
               try {
                 return askWhetherToStartWithOutMap(throwable);
@@ -462,7 +462,7 @@ public class GameService implements InitializingBean, DisposableBean {
     Set<String> simModUids = game.getSimMods().keySet();
 
     return modService.getFeaturedMod(gameType)
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, simModUids))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
               Process processCreated;
@@ -517,7 +517,7 @@ public class GameService implements InitializingBean, DisposableBean {
     log.info("Matchmaking search has been started");
 
     matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
-        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, null, Set.of()))
+        .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
             .thenCompose(aVoid -> startGame(gameLaunchMessage)));
@@ -557,8 +557,12 @@ public class GameService implements InitializingBean, DisposableBean {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, @Nullable Integer version, Set<String> simModUids) {
-    return gameUpdater.update(featuredModBean, version, simModUids);
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids) {
+    return updateGameIfNecessary(featuredModBean, simModUids, null, null);
+  }
+
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids, @Nullable Map<String, Integer> featuredModFileVersions, @Nullable Integer version) {
+    return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version);
   }
 
   public boolean isGameRunning() {
@@ -802,7 +806,7 @@ public class GameService implements InitializingBean, DisposableBean {
     }
 
     modService.getFeaturedMod(TUTORIALS.getTechnicalName())
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, null, emptySet()))
+        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, emptySet()))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))
         .thenAccept(aVoid -> {
           try {

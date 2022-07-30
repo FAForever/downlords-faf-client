@@ -286,7 +286,12 @@ public class CoopController extends AbstractViewController<Node> {
     modService.getFeaturedMod(COOP.getTechnicalName())
         .thenAccept(featuredModBean -> gameService.hostGame(new NewGameInfo(titleTextField.getText(),
             Strings.emptyToNull(passwordTextField.getText()), featuredModBean, getSelectedMission().getMapFolderName(),
-            emptySet())));
+            emptySet())))
+        .exceptionally(throwable -> {
+          log.error("Could not host coop game", throwable);
+          notificationService.addImmediateErrorNotification(throwable, "coop.host.error");
+          return null;
+        });
   }
 
   public void onMapPreviewImageClicked() {
