@@ -69,7 +69,7 @@ public class GameUpdaterImpl implements GameUpdater {
     if (!NAMES_OF_FEATURED_BASE_MODS.contains(featuredMod.getTechnicalName())) {
       featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()))
           .thenCompose(baseMod -> updateFeaturedMod(baseMod, null))
-          .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion()))
+          .thenCompose(patchResult -> updateGameBinaries(new ComparableVersion(version.toString())))
           .thenCompose(aVoid -> updateFeaturedMod(featuredMod, version));
     } else {
       featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> updateFeaturedMod(featuredMod, version))
