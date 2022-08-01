@@ -2,6 +2,7 @@ package com.faforever.client.fa;
 
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fa.Kernel32Ex.WindowsPriority;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -120,7 +121,9 @@ public class ForgedAllianceService {
         .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
         .executable(getExecutablePath());
 
-    if (preferencesService.getPreferences().getForgedAlliance().isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
+    if (preferencesService.getPreferences()
+        .getForgedAlliance()
+        .isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
       baseCommandBuilder = baseCommandBuilder.debuggerExecutable(getDebuggerExecutablePath());
     }
 
@@ -142,6 +145,7 @@ public class ForgedAllianceService {
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     Process process = processBuilder.start();
+    ProcessUtils.setProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
     return process;
   }
 }

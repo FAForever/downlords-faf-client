@@ -177,7 +177,9 @@ bootRun {
             "-XX:ParallelGCThreads=1",
             "-XX:+UseG1GC",
             "-Djava.net.preferIPv4Stack=true",
-            "-XX:TieredStopAtLevel=1"
+            "-XX:TieredStopAtLevel=1",
+            // Needed for getting process handle via reflection
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
     ]
 }
 
