@@ -67,6 +67,8 @@
 -DnativeDir=natives
 -Dprism.forceGPU=true
 -Djava.library.path=.
+# Needed for getting process handle via reflection
+--add-opens=java.base/java.lang=ALL-UNNAMED
         </content>
       </vmOptionsFile>
       <iconImageFiles>
