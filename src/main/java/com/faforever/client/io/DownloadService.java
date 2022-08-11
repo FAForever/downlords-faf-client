@@ -10,13 +10,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -25,10 +21,8 @@ import java.nio.file.StandardCopyOption;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Lazy
@@ -38,40 +32,21 @@ public class DownloadService {
   private final PreferencesService preferencesService;
 
   /*
-   * Download file first trying each mirror in order. If all mirrors fail then try the original URL.
-   */
-  public void downloadFileWithMirrors(URL url, Path targetFile, ByteCountListener progressListener, String md5sum) throws IOException, NoSuchAlgorithmException, ChecksumMismatchException {
-    for (URL mirrorUrl : getMirrorsFor(url)) {
-      try {
-        downloadFile(mirrorUrl, targetFile, progressListener, md5sum);
-        return;
-      } catch (FileNotFoundException e) {
-        // URL throws FileNotFoundException when it encounters HTTP errors such as 404
-        log.info("Could not find file at `{}`", mirrorUrl);
-      } catch (ChecksumMismatchException e) {
-        log.warn("Checksum did not match for `{}`", mirrorUrl, e);
-      } catch (IOException e) {
-        log.error("Could not download file at `{}`", mirrorUrl, e);
-      }
-    }
-
-    // No mirrors available or they all failed
-    downloadFile(url, targetFile, progressListener, md5sum);
-  }
-
-  /*
-   * Download a file from an URL using a temporary path and copy it to targetFile if it downloaded and the checksum
+   * Download a file from a URL using a temporary path and copy it to targetFile if it downloaded and the checksum
    * matched.
    */
-  public void downloadFile(URL url, Path targetFile, ByteCountListener progressListener, String md5sum) throws IOException, NoSuchAlgorithmException, ChecksumMismatchException {
+  public void downloadFile(URL url, Map<String, String> requestProperties, Path targetFile, ByteCountListener progressListener, String md5sum) throws IOException, NoSuchAlgorithmException, ChecksumMismatchException {
     Path tempFile = Files.createTempFile(targetFile.getParent(), "download", null);
-    log.info("Downloading file from `{}` to `{}`", url, tempFile);
+
 
     URLConnection urlConnection = url.openConnection();
+    requestProperties.forEach(urlConnection::setRequestProperty);
+
+    log.info("Downloading file from `{}` to `{}`", url, tempFile);
 
     ResourceLocks.acquireDownloadLock();
     MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-    try (InputStream inputStream = url.openStream();
+    try (InputStream inputStream = urlConnection.getInputStream();
          DigestInputStream digestInputStream = new DigestInputStream(inputStream, messageDigest);
          OutputStream outputStream = Files.newOutputStream(tempFile)) {
 
@@ -97,25 +72,5 @@ public class DownloadService {
         log.warn("Could not delete temporary file: `{}`", tempFile.toAbsolutePath(), e);
       }
     }
-  }
-
-  /*
-   * Get URLs to the same file on all available mirrors.
-   */
-  public List<URL> getMirrorsFor(URL url) {
-    return preferencesService.getPreferences().getMirror().getMirrorURLs().stream()
-        .map(mirror -> getMirrorURL(mirror, url))
-        .flatMap(Optional::stream)
-        .collect(Collectors.toList());
-  }
-
-  public Optional<URL> getMirrorURL(URI mirror, URL url) {
-      try {
-        URI uri = new URL(mirror.toURL(), "." + url.getPath()).toURI();
-        return Optional.of(uri.normalize().toURL());
-      } catch (MalformedURLException | URISyntaxException e) {
-        log.warn("Failed to create mirror URL: mirror=`{}`, url=`{}`", mirror, url, e);
-        return Optional.empty();
-      }
   }
 }
