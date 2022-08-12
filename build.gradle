@@ -346,7 +346,7 @@ dependencies {
   implementation("org.fxmisc.flowless:flowless:0.6.10")
   implementation("de.codecentric.centerdevice:javafxsvg:1.3.0")
 
-  implementation("org.javassist:javassist:3.29.0-GA")
+  implementation("org.javassist:javassist:3.29.1-GA")
 
   implementation("com.install4j:install4j-runtime:9.0.2")
 
