@@ -82,10 +82,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
@@ -181,7 +177,6 @@ public class SettingsController implements Controller<Node> {
   public ComboBox<Level> logLevelComboBox;
   public CheckBox mapAndModAutoUpdateCheckBox;
   public TextField mirrorURITextField;
-  public ListView<URI> mirrorURLListView;
   public ListView<CoturnServer> preferredCoturnListView;
 
   private ChangeListener<Theme> selectedThemeChangeListener;
@@ -258,7 +253,6 @@ public class SettingsController implements Controller<Node> {
     configureStartTab();
 
     initAutoChannelListView();
-    initMirrorUrlListView();
     initPreferredCoturnListView();
     initUnitDatabaseSelection();
     initAllowReplaysWhileInGame();
@@ -331,17 +325,6 @@ public class SettingsController implements Controller<Node> {
 
     executableDecoratorField.textProperty().bindBidirectional(forgedAlliancePrefs.executableDecoratorProperty());
     executionDirectoryField.textProperty().bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
-  }
-
-  private void initMirrorUrlListView() {
-    mirrorURLListView.setSelectionModel(new NoSelectionModelListView<>());
-    mirrorURLListView.setFocusTraversable(false);
-    mirrorURLListView.setItems(preferencesService.getPreferences().getMirror().getMirrorURLs());
-    mirrorURLListView.setCellFactory(param -> uiService.<RemovableListCellController<URI>>loadFxml("theme/settings/removable_cell.fxml"));
-    JavaFxUtil.addListener(mirrorURLListView.getItems(), (ListChangeListener<URI>) c -> {
-      preferencesService.storeInBackground();
-      mirrorURLListView.setVisible(!mirrorURLListView.getItems().isEmpty());
-    });
   }
 
   private void initPreferredCoturnListView() {
@@ -690,30 +673,6 @@ public class SettingsController implements Controller<Node> {
       notificationService.addImmediateErrorNotification(throwable, "settings.fa.updateDebugger.failed");
       return null;
     });
-  }
-
-  public void onAddMirrorURL() {
-    String text = mirrorURITextField.getText();
-    if (text.isBlank()) {
-      return;
-    }
-    if (!text.endsWith("/")) {
-      text = text + "/";
-    }
-
-    try {
-      URI uri = new URL(text).toURI();
-
-      if (mirrorURLListView.getItems().contains(uri)) {
-        return;
-      }
-      preferencesService.getPreferences().getMirror().getMirrorURLs().add(uri);
-      preferencesService.storeInBackground();
-      mirrorURITextField.clear();
-    } catch (URISyntaxException | MalformedURLException e) {
-      log.warn("Failed to add invalid URL: {}", text, e);
-      notificationService.addImmediateWarnNotification("settings.data.mirrorURLs.add.error", e.getMessage());
-    }
   }
 
   public void onClearCacheClicked() {

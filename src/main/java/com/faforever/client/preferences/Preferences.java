@@ -75,9 +75,6 @@ public class Preferences {
   VaultPrefs vault = new VaultPrefs();
   @Getter
   @JsonMerge
-  MirrorPrefs mirror = new MirrorPrefs();
-  @Getter
-  @JsonMerge
   UserPrefs user = new UserPrefs();
 
   StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);

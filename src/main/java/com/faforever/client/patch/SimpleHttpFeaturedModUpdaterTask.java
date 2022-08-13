@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -141,9 +142,14 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     Files.createDirectories(targetPath.getParent());
     updateMessage(i18n.get("updater.downloadingFile", featuredModFile.getName()));
 
-    String url = featuredModFile.getUrl();
     String md5sum = featuredModFile.getMd5();
-    downloadService.downloadFileWithMirrors(new URL(url), targetPath, this::updateProgress, md5sum);
+
+    // We can perform cloudflare hmac verification either with a query parameter or by sending a request header hmac with the value
+    // Using a request header is preferred as this allows us to cache the url on cloudflare without the query string as the
+    // query string effectively renders the cache ineffective.
+    Map<String, String> requestParameters = Map.of(featuredModFile.getHmacParameter(), featuredModFile.getHmacToken());
+
+    downloadService.downloadFile(new URL(featuredModFile.getCacheableUrl()), requestParameters, targetPath, this::updateProgress, md5sum);
   }
 
   public void setFeaturedMod(FeaturedModBean featuredMod) {
