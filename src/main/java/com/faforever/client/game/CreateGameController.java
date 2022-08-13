@@ -169,7 +169,8 @@ public class CreateGameController implements Controller<Pane> {
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH, true);
 
     modService.getFeaturedMods().thenAccept(featuredModBeans -> JavaFxUtil.runLater(() -> {
-      featuredModListView.setItems(FXCollections.observableList(featuredModBeans).filtered(FeaturedModBean::getVisible));
+      featuredModListView.setItems(FXCollections.observableList(featuredModBeans)
+          .filtered(FeaturedModBean::getVisible));
       selectLastOrDefaultGameType();
     }));
 
@@ -189,7 +190,8 @@ public class CreateGameController implements Controller<Pane> {
     JavaFxUtil.addAndTriggerListener(userService.connectionStateProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(titleTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(passwordTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
-    JavaFxUtil.addListener(featuredModListView.getSelectionModel().selectedItemProperty(), new WeakInvalidationListener(createButtonStateListener));
+    JavaFxUtil.addListener(featuredModListView.getSelectionModel()
+        .selectedItemProperty(), new WeakInvalidationListener(createButtonStateListener));
 
     initMapFilterPopup();
   }
@@ -215,7 +217,7 @@ public class CreateGameController implements Controller<Pane> {
           yield "game.create.titleNotAscii";
         } else if (password != null && !charsetEncoder.canEncode(password)) {
           yield "game.create.passwordNotAscii";
-        }else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
+        } else if (featuredModListView.getSelectionModel().getSelectedItem() == null) {
           yield "game.create.featuredModMissing";
         } else {
           yield "game.create.create";
@@ -237,7 +239,8 @@ public class CreateGameController implements Controller<Pane> {
 
     mapFilterController = uiService.loadFxml("theme/play/map_filter.fxml");
     mapFilterController.setMapNameTextField(mapSearchTextField);
-    mapFilterController.getFilterAppliedProperty().addListener(((observable, old, newValue) -> mapFilterButton.setSelected(newValue)));
+    mapFilterController.getFilterAppliedProperty()
+        .addListener(((observable, old, newValue) -> mapFilterButton.setSelected(newValue)));
     mapFilterController.setFilteredMapList(filteredMaps);
     mapFilterPopup.getContent().setAll(mapFilterController.getRoot());
   }
@@ -268,7 +271,9 @@ public class CreateGameController implements Controller<Pane> {
 
   protected void initMapSelection() {
     filteredMaps = new FilteredList<>(
-        mapService.getInstalledMaps().filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH).sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName()))
+        mapService.getInstalledMaps()
+            .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH)
+            .sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName().toLowerCase()))
     );
     JavaFxUtil.addListener(filteredMaps.predicateProperty(), (observable, oldValue, newValue) -> {
       if (!filteredMaps.isEmpty()) {
@@ -278,7 +283,9 @@ public class CreateGameController implements Controller<Pane> {
 
     mapListView.setItems(filteredMaps);
     mapListView.setCellFactory(param -> new StringListCell<>(mapVersion -> mapVersion.getMap().getDisplayName()));
-    mapListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> setSelectedMap(newValue));
+    mapListView.getSelectionModel()
+        .selectedItemProperty()
+        .addListener((observable, oldValue, newValue) -> setSelectedMap(newValue));
   }
 
   protected void setSelectedMap(MapVersionBean mapVersion) {
@@ -503,7 +510,10 @@ public class CreateGameController implements Controller<Pane> {
    * @return returns true of the map was found and false if not
    */
   boolean selectMap(String mapFolderName) {
-    Optional<MapVersionBean> mapBeanOptional = mapListView.getItems().stream().filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapFolderName)).findAny();
+    Optional<MapVersionBean> mapBeanOptional = mapListView.getItems()
+        .stream()
+        .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapFolderName))
+        .findAny();
     if (mapBeanOptional.isEmpty()) {
       return false;
     }
