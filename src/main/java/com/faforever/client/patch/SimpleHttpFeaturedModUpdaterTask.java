@@ -15,8 +15,6 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URL;
@@ -24,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -145,25 +142,14 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     Files.createDirectories(targetPath.getParent());
     updateMessage(i18n.get("updater.downloadingFile", featuredModFile.getName()));
 
-    String urlString = featuredModFile.getUrl();
     String md5sum = featuredModFile.getMd5();
 
-    // We perform cloudflare hmac verification either with a query parameter or by sending a request header hmac with the value
+    // We can perform cloudflare hmac verification either with a query parameter or by sending a request header hmac with the value
     // Using a request header is preferred as this allows us to cache the url on cloudflare without the query string as the
     // query string effectively renders the cache ineffective.
-    MultiValueMap<String, String> queryParameters = UriComponentsBuilder.fromHttpUrl(urlString).build().getQueryParams();
-    Map<String, String> requestParameters = new HashMap<>();
+    Map<String, String> requestParameters = Map.of(featuredModFile.getHmacParameter(), featuredModFile.getHmacToken());
 
-    URL url;
-
-    if (queryParameters.containsKey("verify")) {
-      url = UriComponentsBuilder.fromHttpUrl(urlString).replaceQueryParam("verify").build().toUri().toURL();
-      requestParameters.put("hmac", queryParameters.getFirst("verify"));
-    } else {
-      url = new URL(urlString);
-    }
-
-    downloadService.downloadFile(url, requestParameters, targetPath, this::updateProgress, md5sum);
+    downloadService.downloadFile(new URL(featuredModFile.getCacheableUrl()), requestParameters, targetPath, this::updateProgress, md5sum);
   }
 
   public void setFeaturedMod(FeaturedModBean featuredMod) {

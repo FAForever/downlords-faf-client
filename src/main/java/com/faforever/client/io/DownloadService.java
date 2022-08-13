@@ -1,6 +1,5 @@
 package com.faforever.client.io;
 
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
 import com.faforever.commons.io.ByteCountListener;
@@ -29,7 +28,6 @@ import java.util.Objects;
 @Slf4j
 @RequiredArgsConstructor
 public class DownloadService {
-  private final PreferencesService preferencesService;
 
   /*
    * Download a file from a URL using a temporary path and copy it to targetFile if it downloaded and the checksum
