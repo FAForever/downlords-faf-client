@@ -46,7 +46,6 @@ import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -230,16 +229,6 @@ public class SettingsControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAddMirrorButtonPressed() throws Exception {
-    preferences.getMirror().getMirrorURLs().clear();
-    instance.mirrorURITextField.setText("https://faf-mirror.example.com/");
-    instance.onAddMirrorURL();
-    List<URI> expected = Collections.singletonList(URI.create("https://faf-mirror.example.com/"));
-    assertThat(preferences.getMirror().getMirrorURLs(), is(expected));
-    assertThat(instance.mirrorURITextField.getText(), is(""));
-  }
-
-  @Test
   public void testCoturnSelected() throws Exception {
     ObservableSet<CoturnHostPort> preferredCoturnServers = preferences.getForgedAlliance().getPreferredCoturnServers();
     preferredCoturnServers.clear();
@@ -256,43 +245,6 @@ public class SettingsControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.initialize());
 
     assertEquals(1, instance.preferredCoturnListView.getSelectionModel().getSelectedItems().size());
-  }
-
-  @Test
-  public void testOnAddMirrorButtonPressedDuplicate() throws Exception {
-    preferences.getMirror().getMirrorURLs().clear();
-    instance.mirrorURITextField.setText("https://faf-mirror.example.com");
-    instance.onAddMirrorURL();
-    assertThat(instance.mirrorURITextField.getText(), is(""));
-    instance.mirrorURITextField.setText("https://faf-mirror.example.com");
-    instance.onAddMirrorURL();
-    assertThat(instance.mirrorURITextField.getText(), is("https://faf-mirror.example.com"));
-    instance.onAddMirrorURL();
-    List<URI> expected = Collections.singletonList(URI.create("https://faf-mirror.example.com/"));
-    assertThat(preferences.getMirror().getMirrorURLs(), is(expected));
-    assertThat(instance.mirrorURITextField.getText(), is("https://faf-mirror.example.com"));
-  }
-
-  @Test
-  public void testOnAddMirrorButtonPressedEmpty() throws Exception {
-    preferences.getMirror().getMirrorURLs().clear();
-    instance.mirrorURITextField.setText("");
-    instance.onAddMirrorURL();
-    assertThat(preferences.getMirror().getMirrorURLs(), is(Collections.emptyList()));
-    assertThat(instance.mirrorURITextField.getText(), is(""));
-  }
-
-  @Test
-  public void testOnAddMirrorButtonPressedBadUrl() throws Exception {
-    preferences.getMirror().getMirrorURLs().clear();
-    instance.mirrorURITextField.setText("faf-mirror.example.com");
-    instance.onAddMirrorURL();
-    assertThat(preferences.getMirror().getMirrorURLs(), is(Collections.emptyList()));
-    assertThat(instance.mirrorURITextField.getText(), is("faf-mirror.example.com"));
-    instance.mirrorURITextField.setText("spam://faf-mirror.example.com");
-    instance.onAddMirrorURL();
-    assertThat(preferences.getMirror().getMirrorURLs(), is(Collections.emptyList()));
-    assertThat(instance.mirrorURITextField.getText(), is("spam://faf-mirror.example.com"));
   }
 
   @Test
