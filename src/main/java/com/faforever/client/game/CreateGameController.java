@@ -407,7 +407,7 @@ public class CreateGameController implements Controller<Pane> {
     mapGeneratorService.getNewestGenerator()
         .thenCompose(aVoid -> mapGeneratorService.getGeneratorStyles())
         .thenAccept(generateMapController::setStyles)
-        .thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
+        .thenRun(() -> JavaFxUtil.runLater(() -> {
           Pane root = generateMapController.getRoot();
           generateMapController.setCreateGameController(this);
           Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
@@ -492,8 +492,13 @@ public class CreateGameController implements Controller<Pane> {
         enforceRating);
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
+      throwable  = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.error("Game could not be hosted", throwable);
-      notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
+      if (throwable instanceof NotifiableException) {
+        notificationService.addErrorNotification((NotifiableException) throwable);
+      } else {
+        notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
+      }
       return null;
     });
   }

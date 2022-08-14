@@ -193,7 +193,7 @@ public class MapUploadController implements Controller<Node> {
 
     uploadMapTask.getFuture()
         .thenAccept(v -> eventBus.post(new MapUploadedEvent(mapInfo)))
-        .thenAccept(aVoid -> enterUploadCompleteState())
+        .thenRun(this::enterUploadCompleteState)
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {
             onUploadFailed(throwable.getCause());

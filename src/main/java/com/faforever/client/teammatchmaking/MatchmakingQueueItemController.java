@@ -79,8 +79,8 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
       refreshingLabel.setVisible(false);
       joinLeaveQueueButton.setSelected(queue.isJoined());
     });
-    queuePopulationInvalidationListener = observable ->
-        JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue()).toUpperCase()));
+    queuePopulationInvalidationListener = observable -> JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
+        .toUpperCase()));
     queueMatchStatusChangeListener = (observable, oldValue, newValue) -> {
       disableMatchStatus();
       if (newValue == null) {
@@ -107,19 +107,22 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
     JavaFxUtil.addAndTriggerListener(queue.matchingStatusProperty(), new WeakChangeListener<>(queueMatchStatusChangeListener));
     JavaFxUtil.addAndTriggerListener(queue.playersInQueueProperty(), new WeakInvalidationListener(queuePopulationInvalidationListener));
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty()
+        .getMembers(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(queue.teamSizeProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
-    JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.getParty()
+        .ownerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(userService.ownPlayerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addAndTriggerListener(queue.joinedProperty(), new WeakInvalidationListener(queueStateInvalidationListener));
   }
 
   private void setQueueButtonState() {
-    boolean disable = userService.getOwnPlayer() == null
-        || teamMatchmakingService.getParty().getMembers().size() > queue.getTeamSize()
-        || teamMatchmakingService.partyMembersNotReady()
-        || !teamMatchmakingService.getParty().getOwner().equals(playerService.getCurrentPlayer());
+    boolean disable = userService.getOwnPlayer() == null || teamMatchmakingService.getParty()
+        .getMembers()
+        .size() > queue.getTeamSize() || teamMatchmakingService.partyMembersNotReady() || !teamMatchmakingService.getParty()
+        .getOwner()
+        .equals(playerService.getCurrentPlayer());
     JavaFxUtil.runLater(() -> joinLeaveQueueButton.setDisable(disable));
   }
 
@@ -129,9 +132,8 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
         OffsetDateTime now = OffsetDateTime.now();
         Duration timeUntilPopQueue = Duration.between(now, queue.getQueuePopTime());
         if (!timeUntilPopQueue.isNegative()) {
-          queuePopTimeLabel.setText(i18n.get("teammatchmaking.queuePopTimer",
-              timeUntilPopQueue.toMinutes(),
-              timeUntilPopQueue.toSecondsPart()).toUpperCase());
+          queuePopTimeLabel.setText(i18n.get("teammatchmaking.queuePopTimer", timeUntilPopQueue.toMinutes(), timeUntilPopQueue.toSecondsPart())
+              .toUpperCase());
         }
       }
     }), new KeyFrame(javafx.util.Duration.seconds(1)));
@@ -149,11 +151,12 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     if (queue.isJoined()) {
       teamMatchmakingService.leaveQueue(queue);
     } else {
-      boolean success = teamMatchmakingService.joinQueue(queue);
-      if (!success) {
-        joinLeaveQueueButton.setSelected(false);
-        refreshingLabel.setVisible(false);
-      }
+      teamMatchmakingService.joinQueue(queue).thenAccept(success -> {
+        if (!success) {
+          joinLeaveQueueButton.setSelected(false);
+          refreshingLabel.setVisible(false);
+        }
+      });
     }
     refreshingLabel.setVisible(true);
   }

@@ -25,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -93,7 +94,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
 
   @Test
   public void testOnJoinLeaveQueueButtonClicked() {
-    when(teamMatchmakingService.joinQueue(any())).thenReturn(true);
+    when(teamMatchmakingService.joinQueue(any())).thenReturn(CompletableFuture.completedFuture(true));
 
     runOnFxThreadAndWait(() -> instance.joinLeaveQueueButton.fire());
 
@@ -109,7 +110,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
 
   @Test
   public void testOnJoinQueueFailed() {
-    when(teamMatchmakingService.joinQueue(any())).thenReturn(false);
+    when(teamMatchmakingService.joinQueue(any())).thenReturn(CompletableFuture.completedFuture(false));
 
     runOnFxThreadAndWait(() -> instance.joinLeaveQueueButton.fire());
 
