@@ -6,6 +6,7 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
 import com.faforever.client.domain.PartyBean.PartyMember;
@@ -15,6 +16,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
+import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.TransientNotification;
@@ -54,7 +56,6 @@ import reactor.core.publisher.Flux;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -74,6 +75,8 @@ import static org.mockito.Mockito.when;
 
 public class TeamMatchmakingServiceTest extends ServiceTest {
 
+  @Mock
+  private ModService modService;
   @Mock
   private PlayerService playerService;
   @Mock
@@ -108,8 +111,6 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     MapperSetup.injectMappers(matchmakerMapper);
     player = PlayerBeanBuilder.create().defaultValues().username("junit").get();
     otherPlayer = PlayerBeanBuilder.create().defaultValues().username("junit2").id(2).get();
-    List<PlayerBean> playerList = new ArrayList<>();
-    playerList.add(player);
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     when(gameService.startSearchMatchmaker()).thenReturn(matchmakingFuture);
@@ -381,11 +382,26 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testJoinQueue() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
+    when(modService.getFeaturedMod(anyString())).thenReturn(CompletableFuture.completedFuture(new FeaturedModBean()));
+    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-    Boolean success = instance.joinQueue(queue);
+    Boolean success = instance.joinQueue(queue).join();
 
     verify(fafServerAccessor).gameMatchmaking(queue, MatchmakerState.START);
     assertThat(success, is(true));
+  }
+
+  @Test
+  public void testJoinQueueFailed() {
+    MatchmakerQueueBean queue = new MatchmakerQueueBean();
+    when(modService.getFeaturedMod(anyString())).thenReturn(CompletableFuture.completedFuture(new FeaturedModBean()));
+    when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
+
+    Boolean success = instance.joinQueue(queue).join();
+
+    verify(notificationService).addImmediateErrorNotification(any(), anyString());
+    verify(fafServerAccessor, never()).gameMatchmaking(queue, MatchmakerState.START);
+    assertThat(success, is(false));
   }
 
   @Test
@@ -393,7 +409,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     when(gameService.isGameRunning()).thenReturn(true);
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
 
-    Boolean success = instance.joinQueue(queue);
+    Boolean success = instance.joinQueue(queue).join();
 
     verify(notificationService).addImmediateWarnNotification(anyString());
     assertThat(success, is(false));

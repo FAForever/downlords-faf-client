@@ -525,7 +525,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
 
     return taskService.submitTask(task).getFuture()
-        .thenAccept(aVoid -> tryAddInstalledMap(getPathForMapCaseInsensitive(folderName)));
+        .thenRun(() -> tryAddInstalledMap(getPathForMapCaseInsensitive(folderName)));
   }
 
   @Override

@@ -318,6 +318,7 @@ public class GameServiceTest extends ServiceTest {
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
 
     mockStartGameProcess(gameLaunchMessage, false);
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafServerAccessor.requestHostGame(newGameInfo)).thenReturn(completedFuture(gameLaunchMessage));
     when(mapService.download(newGameInfo.getMap())).thenReturn(completedFuture(null));

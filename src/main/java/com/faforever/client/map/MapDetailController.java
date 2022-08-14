@@ -316,7 +316,7 @@ public class MapDetailController implements Controller<Node> {
   }
 
   public void hideMap() {
-    mapService.hideMapVersion(mapVersion).thenAccept(aVoid -> JavaFxUtil.runLater(() -> {
+    mapService.hideMapVersion(mapVersion).thenRun(() -> JavaFxUtil.runLater(() -> {
       mapVersion.setHidden(true);
       renewAuthorControls();
     })).exceptionally(throwable -> {

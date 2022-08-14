@@ -3,6 +3,7 @@ package com.faforever.client.coop;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
@@ -19,6 +20,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
@@ -288,8 +290,13 @@ public class CoopController extends AbstractViewController<Node> {
             Strings.emptyToNull(passwordTextField.getText()), featuredModBean, getSelectedMission().getMapFolderName(),
             emptySet())))
         .exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Could not host coop game", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "coop.host.error");
+          if (throwable instanceof NotifiableException) {
+            notificationService.addErrorNotification((NotifiableException) throwable);
+          } else {
+            notificationService.addImmediateErrorNotification(throwable, "coop.host.error");
+          }
           return null;
         });
   }

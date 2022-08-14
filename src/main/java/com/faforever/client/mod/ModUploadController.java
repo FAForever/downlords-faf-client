@@ -177,7 +177,7 @@ public class ModUploadController implements Controller<Node> {
 
     modUploadTask.getFuture()
         .thenAccept(v -> eventBus.post(new ModUploadedEvent(modVersionInfo)))
-        .thenAccept(aVoid -> enterUploadCompleteState())
+        .thenRun(this::enterUploadCompleteState)
         .exceptionally(throwable -> {
           if (!(throwable instanceof CancellationException)) {
             onUploadFailed(throwable.getCause());

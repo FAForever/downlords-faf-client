@@ -5,6 +5,7 @@ import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -289,7 +290,7 @@ public class GameService implements InitializingBean, DisposableBean {
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
-        .thenAccept(this::startGame);
+        .thenCompose(this::startGame);
   }
 
   private void addAlreadyInQueueNotification() {
@@ -318,7 +319,7 @@ public class GameService implements InitializingBean, DisposableBean {
     Set<String> simModUIds = game.getSimMods().keySet();
     return modService.getFeaturedMod(game.getFeaturedMod())
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUIds))
-        .thenAccept(aVoid -> {
+        .thenRun(() -> {
           try {
             modService.enableSimMods(simModUIds);
           } catch (IOException e) {
@@ -327,18 +328,23 @@ public class GameService implements InitializingBean, DisposableBean {
         })
         .thenCompose(aVoid -> downloadMapIfNecessary(game.getMapFolderName()))
         .thenCompose(aVoid -> fafServerAccessor.requestJoinGame(game.getId(), password))
-        .thenAccept(gameLaunchMessage -> {
+        .thenCompose(gameLaunchMessage -> {
           synchronized (currentGame) {
             // Store password in case we rehost
             game.setPassword(password);
             currentGame.set(game);
           }
 
-          startGame(gameLaunchMessage);
+          return startGame(gameLaunchMessage);
         })
         .exceptionally(throwable -> {
+          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Game could not be joined", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          if (throwable instanceof NotifiableException) {
+            notificationService.addErrorNotification((NotifiableException) throwable);
+          } else {
+            notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
+          }
           return null;
         });
   }
@@ -557,7 +563,7 @@ public class GameService implements InitializingBean, DisposableBean {
     return process != null && process.isAlive();
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids) {
+  public CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids) {
     return updateGameIfNecessary(featuredModBean, simModUids, null, null);
   }
 
@@ -615,7 +621,11 @@ public class GameService implements InitializingBean, DisposableBean {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Game could not be started", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "game.start.couldNotStart");
+          if (throwable instanceof NotifiableException) {
+            notificationService.addErrorNotification((NotifiableException) throwable);
+          } else {
+            notificationService.addImmediateErrorNotification(throwable, "games.couldNotStart");
+          }
           iceAdapter.stop();
           setGameRunning(false);
           return null;
@@ -693,7 +703,7 @@ public class GameService implements InitializingBean, DisposableBean {
       GameBean game = currentGame.get();
 
       modService.getFeaturedMod(game.getFeaturedMod())
-          .thenAccept(featuredModBean -> hostGame(new NewGameInfo(
+          .thenCompose(featuredModBean -> hostGame(new NewGameInfo(
               game.getTitle(),
               game.getPassword(),
               featuredModBean,
@@ -808,11 +818,11 @@ public class GameService implements InitializingBean, DisposableBean {
     modService.getFeaturedMod(TUTORIALS.getTechnicalName())
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, emptySet()))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))
-        .thenAccept(aVoid -> {
+        .thenCompose(aVoid -> {
           try {
             process = forgedAllianceService.startGameOffline(technicalMapName);
             setGameRunning(true);
-            spawnTerminationListener(process, false);
+            return spawnTerminationListener(process, false);
           } catch (IOException e) {
             throw new CompletionException(e);
           }
@@ -820,7 +830,11 @@ public class GameService implements InitializingBean, DisposableBean {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Launching tutorials failed", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
+          if (throwable instanceof NotifiableException) {
+            notificationService.addErrorNotification((NotifiableException) throwable);
+          } else {
+            notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
+          }
           return null;
         });
   }
