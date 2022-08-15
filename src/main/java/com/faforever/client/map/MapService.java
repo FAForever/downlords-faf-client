@@ -18,6 +18,7 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
 import com.faforever.client.mapstruct.ReplayMapper;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
@@ -108,6 +109,7 @@ public class MapService implements InitializingBean, DisposableBean {
   public static final String DEBUG = "debug";
   private static final String MAP_VERSION_REGEX = ".*[.v](?<version>\\d{4})$"; // Matches to an string like 'adaptive_twin_rivers.v0031'
 
+  private final NotificationService notificationService;
   private final PreferencesService preferencesService;
   private final TaskService taskService;
   private final ApplicationContext applicationContext;
@@ -596,6 +598,23 @@ public class MapService implements InitializingBean, DisposableBean {
 
   }
 
+  public CompletableFuture<Void> downloadAllMatchmakerMaps(MatchmakerQueueBean matchmakerQueue) {
+    ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection()
+        .setFilter(qBuilder().intNum("mapPool.matchmakerQueueMapPool.matchmakerQueue.id").eq(matchmakerQueue.getId()));
+    return fafApiAccessor.getMany(navigator)
+        .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
+        .distinct()
+        .filter(mapVersion -> !mapGeneratorService.isGeneratedMap(mapVersion.getFolderName()))
+        .flatMap(mapVersion -> Mono.fromCompletionStage(() -> downloadAndInstallMap(mapVersion, null, null))
+            .onErrorResume(throwable -> {
+              log.warn("Unable to download map `{}`", mapVersion.getFolderName(), throwable);
+              notificationService.addPersistentErrorNotification(throwable, "map.download.error", mapVersion.getFolderName());
+              return Mono.empty();
+            }))
+        .then()
+        .toFuture();
+  }
+
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
   public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakerQueueBean matchmakerQueue, int count, int page) {
     PlayerBean player = playerService.getCurrentPlayer();
@@ -609,9 +628,7 @@ public class MapService implements InitializingBean, DisposableBean {
     // The api doesn't support the ne operation so we manually replace it with isnull which rsql does not support
     String customFilter = ((String) new QBuilder().and(conditions).query(new RSQLVisitor())).replace("ex", "isnull");
     Flux<MapVersionBean> matchmakerMapsFlux = fafApiAccessor.getMany(navigator, customFilter)
-        .flatMap(mapPoolAssignment -> Mono.fromCallable(() ->
-            mapMapper.mapFromPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
-        )
+        .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
         .distinct()
         .sort(Comparator.comparing(MapVersionBean::getSize).thenComparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER));
     return Mono.zip(

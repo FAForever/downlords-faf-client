@@ -12,6 +12,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
+import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.mod.ModService;
@@ -84,6 +85,7 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 @RequiredArgsConstructor
 public class TeamMatchmakingService implements InitializingBean {
 
+  private final MapService mapService;
   private final ModService modService;
   private final PlayerService playerService;
   private final NotificationService notificationService;
@@ -238,7 +240,8 @@ public class TeamMatchmakingService implements InitializingBean {
       return CompletableFuture.completedFuture(false);
     }
 
-    return modService.getFeaturedMod(FAF.getTechnicalName())
+    return mapService.downloadAllMatchmakerMaps(queue)
+        .thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenCompose(featuredModBean -> gameService.updateGameIfNecessary(featuredModBean, Set.of()))
         .thenRun(() -> fafServerAccessor.gameMatchmaking(queue, MatchmakerState.START))
         .thenApply(aVoid -> true)
