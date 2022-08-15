@@ -385,6 +385,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testJoinQueue() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
+    when(mapService.downloadAllMatchmakerMaps(queue)).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(CompletableFuture.completedFuture(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
