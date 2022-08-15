@@ -14,6 +14,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenTeamMatchmakingEvent;
+import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.mod.ModService;
@@ -75,6 +76,8 @@ import static org.mockito.Mockito.when;
 
 public class TeamMatchmakingServiceTest extends ServiceTest {
 
+  @Mock
+  private MapService mapService;
   @Mock
   private ModService modService;
   @Mock
@@ -382,6 +385,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testJoinQueue() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
+    when(mapService.downloadAllMatchmakerMaps(queue)).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(CompletableFuture.completedFuture(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -394,11 +398,13 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testJoinQueueFailed() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
+    when(mapService.downloadAllMatchmakerMaps(queue)).thenReturn(CompletableFuture.completedFuture(null));
     when(modService.getFeaturedMod(anyString())).thenReturn(CompletableFuture.completedFuture(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
 
     Boolean success = instance.joinQueue(queue).join();
 
+    verify(mapService).downloadAllMatchmakerMaps(queue);
     verify(notificationService).addImmediateErrorNotification(any(), anyString());
     verify(fafServerAccessor, never()).gameMatchmaking(queue, MatchmakerState.START);
     assertThat(success, is(false));
