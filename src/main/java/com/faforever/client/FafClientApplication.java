@@ -13,10 +13,13 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import com.faforever.client.util.WindowsUtil;
+import com.sun.jna.platform.win32.Shell32Util;
+import com.sun.jna.platform.win32.ShlObj;
 import de.codecentric.centerdevice.javafxsvg.SvgImageLoaderFactory;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -35,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,19 +89,6 @@ public class FafClientApplication extends Application {
 
   @Override
   public void init() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
-    if (org.bridj.Platform.isWindows() && WindowsUtil.isAdmin()) {
-      CountDownLatch waitForUserInput = new CountDownLatch(1);
-      JavaFxUtil.runLater(() -> {
-        Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);
-        Optional<ButtonType> buttonType = alert.showAndWait();
-        if (buttonType.filter(button -> button == ButtonType.NO).isPresent()) {
-          System.exit(EXIT_STATUS_RAN_AS_ADMIN);
-        }
-        waitForUserInput.countDown();
-      });
-      waitForUserInput.await();
-    }
-
     SvgImageLoaderFactory.install();
     Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
     JavaFxUtil.fixTooltipDuration();
@@ -108,6 +99,31 @@ public class FafClientApplication extends Application {
         .run(getParameters().getRaw().toArray(new String[0]));
 
     Thread.setDefaultUncaughtExceptionHandler(applicationContext.getBean(GlobalExceptionHandler.class));
+
+    checkIfProgramDataAccessCanBeMessedUp();
+  }
+
+  private void checkIfProgramDataAccessCanBeMessedUp() throws InterruptedException {
+    if (org.bridj.Platform.isWindows() && WindowsUtil.isAdmin()) {
+      PreferencesService preferencesService = applicationContext.getBean(PreferencesService.class);
+      Path programDataPath = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA));
+      if (preferencesService.getPreferences().getData().getBaseDataDirectory().startsWith(programDataPath)) {
+        warnAboutProgramData();
+      }
+    }
+  }
+
+  private void warnAboutProgramData() throws InterruptedException {
+    CountDownLatch waitForUserInput = new CountDownLatch(1);
+    JavaFxUtil.runLater(() -> {
+      Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);
+      Optional<ButtonType> buttonType = alert.showAndWait();
+      if (buttonType.filter(button -> button == ButtonType.NO).isPresent()) {
+        System.exit(EXIT_STATUS_RAN_AS_ADMIN);
+      }
+      waitForUserInput.countDown();
+    });
+    waitForUserInput.await();
   }
 
   @Override
