@@ -25,7 +25,7 @@ public class DataPrefs {
 
   static {
     if (org.bridj.Platform.isWindows()) {
-      DEFAULT_FAF_DATA_DIRECTORY = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+      DEFAULT_FAF_DATA_DIRECTORY = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_APPDATA), "FAForever");
     } else {
       DEFAULT_FAF_DATA_DIRECTORY = Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
     }
