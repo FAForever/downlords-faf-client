@@ -22,20 +22,37 @@ public class ImmediateNotification {
   private final Throwable throwable;
   private final List<Action> actions;
   private final Parent customUI;
+  /**
+   * If false notification will not close by clicking beside it.
+   */
+  private final boolean overlayClose;
+  private Runnable dismissAction;
 
   public ImmediateNotification(String title, String text, Severity severity) {
     this(title, text, severity, null);
   }
 
   public ImmediateNotification(String title, String text, Severity severity, List<Action> actions) {
-    this(title, text, severity, null, actions, null);
+    this(title, text, severity, null, actions, null, true);
   }
 
   public ImmediateNotification(String title, String text, Severity severity, Throwable throwable, List<Action> actions) {
-    this(title, text, severity, throwable, actions, null);
+    this(title, text, severity, throwable, actions, null, true);
   }
 
   public ImmediateNotification(String title, String text, Severity severity, List<Action> actions, Parent customUI) {
-    this(title, text, severity, null, actions, customUI);
+    this(title, text, severity, null, actions, customUI, true);
+  }
+
+  public ImmediateNotification(String title, String text, Severity severity, Throwable throwable, List<Action> actions, Parent customUI) {
+    this(title, text, severity, throwable, actions, customUI, true);
+  }
+
+  public void setCloseAction(Runnable dismissAction) {
+    this.dismissAction = dismissAction;
+  }
+
+  public void dismiss(){
+    dismissAction.run();
   }
 }

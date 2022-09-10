@@ -390,7 +390,8 @@ public class UiService implements InitializingBean, DisposableBean {
           getThemeFile("theme/colors.css"),
           getThemeFile("theme/icons.css"),
           getSceneStyleSheet(),
-          getThemeFile("theme/style_extension.css")
+          getThemeFile("theme/style_extension.css"),
+          getThemeFile("theme/progress.css")
       };
     } catch (IOException e) {
       throw new AssetLoadException("Could not retrieve stylesheets", e, "theme.stylesheets.couldNotGet");
