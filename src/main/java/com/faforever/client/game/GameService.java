@@ -16,6 +16,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameCleanupException;
 import com.faforever.client.game.error.GameLaunchException;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.map.MapService;
@@ -126,6 +127,7 @@ public class GameService implements InitializingBean, DisposableBean {
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
   private final GameUpdater gameUpdater;
+  private final LeaderboardService leaderboardService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PlayerService playerService;
@@ -155,6 +157,7 @@ public class GameService implements InitializingBean, DisposableBean {
                      PreferencesService preferencesService,
                      LoggingService loggingService,
                      GameUpdater gameUpdater,
+                     LeaderboardService leaderboardService,
                      NotificationService notificationService,
                      I18n i18n,
                      PlayerService playerService,
@@ -172,6 +175,7 @@ public class GameService implements InitializingBean, DisposableBean {
     this.preferencesService = preferencesService;
     this.loggingService = loggingService;
     this.gameUpdater = gameUpdater;
+    this.leaderboardService = leaderboardService;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.playerService = playerService;
@@ -290,7 +294,7 @@ public class GameService implements InitializingBean, DisposableBean {
     return updateGameIfNecessary(newGameInfo.getFeaturedMod(), newGameInfo.getSimMods())
         .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
-        .thenCompose(this::startGame);
+        .thenCompose(gameLaunchMessage -> startGame(gameLaunchMessage, false));
   }
 
   private void addAlreadyInQueueNotification() {
@@ -335,7 +339,7 @@ public class GameService implements InitializingBean, DisposableBean {
             currentGame.set(game);
           }
 
-          return startGame(gameLaunchMessage);
+          return startGame(gameLaunchMessage, false);
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
@@ -526,7 +530,7 @@ public class GameService implements InitializingBean, DisposableBean {
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
-            .thenCompose(aVoid -> startGame(gameLaunchMessage)));
+            .thenCompose(aVoid -> startGame(gameLaunchMessage, true)));
 
     matchmakerFuture.whenComplete((aVoid, throwable) -> {
       if (throwable != null) {
@@ -591,7 +595,7 @@ public class GameService implements InitializingBean, DisposableBean {
    * Actually starts the game, including relay and replay server. Call this method when everything else is prepared
    * (mod/map download, connectivity check etc.)
    */
-  private CompletableFuture<Void> startGame(GameLaunchResponse gameLaunchMessage) {
+  private CompletableFuture<Void> startGame(GameLaunchResponse gameLaunchMessage, boolean isMatchmakerGame) {
     if (isRunning()) {
       log.info("Forged Alliance is already running, not starting game");
       CompletableFuture.completedFuture(null);
@@ -609,11 +613,25 @@ public class GameService implements InitializingBean, DisposableBean {
         .thenApply(adapterPort -> {
           fafServerAccessor.setPingIntervalSeconds(5);
           gameKilled = false;
-          try {
-            process = forgedAllianceService.startGameOnline(gameLaunchMessage,
-                adapterPort, localReplayPort, rehostRequested);
-          } catch (IOException e) {
-            throw new GameLaunchException("Could not start game", e, "game.start.couldNotStart");
+          if (isMatchmakerGame) {
+            leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchMessage.getLeaderboard()).thenAccept(leagueBeanOptional -> {
+              String divisionName = leagueBeanOptional.map(bean ->
+                      bean.getSubdivision().getDivision().getNameKey() + " " + bean.getSubdivision().getNameKey())
+                  .orElse("unlisted");
+              try {
+                process = forgedAllianceService.startGameOnlineWithDivision(gameLaunchMessage,
+                    adapterPort, localReplayPort, rehostRequested, divisionName);
+              } catch (IOException e) {
+                throw new GameLaunchException("Could not start game", e, "game.start.couldNotStart");
+              }
+            });
+          } else {
+            try {
+              process = forgedAllianceService.startGameOnline(gameLaunchMessage,
+                  adapterPort, localReplayPort, rehostRequested);
+            } catch (IOException e) {
+              throw new GameLaunchException("Could not start game", e, "game.start.couldNotStart");
+            }
           }
           setGameRunning(true);
           return process;

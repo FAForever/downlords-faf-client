@@ -64,6 +64,16 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testStartGameOnlineWithDivision() throws Exception {
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
+    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOnlineWithDivision(gameLaunchMessage, 0, 0, false, "unlisted"));
+    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
+
+    verify(playerService).getCurrentPlayer();
+    verify(loggingService).getNewGameLogFile(gameLaunchMessage.getUid());
+  }
+
+  @Test
   public void testStartReplay() throws Exception {
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));

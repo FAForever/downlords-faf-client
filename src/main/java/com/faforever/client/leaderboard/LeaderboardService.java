@@ -179,6 +179,13 @@ public class LeaderboardService {
             .findFirst());
   }
 
+  public CompletableFuture<Optional<LeagueEntryBean>> getActiveLeagueEntryForPlayer(PlayerBean player, String leaderboardName) {
+    return getActiveLeagueEntriesForPlayer(player)
+        .thenApply(leagueEntries -> leagueEntries.stream()
+            .filter(leagueEntry -> Objects.equals(leagueEntry.getLeagueSeason().getLeaderboard().getTechnicalName(), leaderboardName))
+            .findFirst());
+  }
+
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public CompletableFuture<List<LeagueEntryBean>> getActiveLeagueEntriesForPlayer(PlayerBean player) {
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()

@@ -4,6 +4,7 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.GameInfoMessageBuilder;
 import com.faforever.client.builders.GameLaunchMessageBuilder;
+import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
@@ -11,6 +12,7 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.LeagueEntryBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
@@ -18,6 +20,7 @@ import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mapstruct.GameMapper;
@@ -59,6 +62,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -131,6 +135,8 @@ public class GameServiceTest extends ServiceTest {
   @Mock
   private ModService modService;
   @Mock
+  private LeaderboardService leaderboardService;
+  @Mock
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
@@ -187,6 +193,11 @@ public class GameServiceTest extends ServiceTest {
 
   private void mockStartGameProcess(GameLaunchResponse gameLaunchResponse, boolean rehost) throws IOException {
     when(forgedAllianceService.startGameOnline(gameLaunchResponse, GPG_PORT, LOCAL_REPLAY_PORT, rehost)
+    ).thenReturn(process);
+  }
+
+  private void mockStartGameWithDivisionProcess(GameLaunchResponse gameLaunchResponse, String divisionName) throws IOException {
+    when(forgedAllianceService.startGameOnlineWithDivision(gameLaunchResponse, GPG_PORT, LOCAL_REPLAY_PORT, false, divisionName)
     ).thenReturn(process);
   }
 
@@ -521,7 +532,8 @@ public class GameServiceTest extends ServiceTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    mockStartGameProcess(gameLaunchMessage, false);
+    mockStartGameWithDivisionProcess(gameLaunchMessage, "unlisted");
+    when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, Set.of(),null, null)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
@@ -534,7 +546,42 @@ public class GameServiceTest extends ServiceTest {
     verify(fafServerAccessor).startSearchMatchmaker();
     verify(mapService).download(map);
     verify(replayServer).start(eq(uid), any());
-    verify(forgedAllianceService).startGameOnline(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false);
+    verify(forgedAllianceService).startGameOnlineWithDivision(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false, "unlisted");
+  }
+
+  @Test
+  public void testStartSearchLadder1v1WithLeagueEntry() throws Exception {
+    int uid = 123;
+    String map = "scmp_037";
+    GameLaunchResponse gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
+        .uid(uid).mod("FAF").mapname(map)
+        .expectedPlayers(2)
+        .faction(com.faforever.commons.lobby.Faction.CYBRAN)
+        .initMode(LobbyMode.AUTO_LOBBY)
+        .gameType(GameType.MATCHMAKER)
+        .mapPosition(4)
+        .team(1)
+        .ratingType(LADDER_1v1_RATING_TYPE)
+        .get();
+
+    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
+
+    mockStartGameWithDivisionProcess(gameLaunchMessage, "test_name I");
+    LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
+    when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.of(leagueEntry)));
+    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(featuredMod, Set.of(),null, null)).thenReturn(completedFuture(null));
+    when(mapService.isInstalled(map)).thenReturn(false);
+    when(mapService.download(map)).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
+
+    instance.startSearchMatchmaker().join();
+
+    verify(fafServerAccessor).startSearchMatchmaker();
+    verify(mapService).download(map);
+    verify(replayServer).start(eq(uid), any());
+    verify(forgedAllianceService).startGameOnlineWithDivision(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false, "test_name I");
   }
 
   @Test
@@ -554,7 +601,8 @@ public class GameServiceTest extends ServiceTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
 
-    mockStartGameProcess(gameLaunchMessage, false);
+    mockStartGameWithDivisionProcess(gameLaunchMessage, "unlisted");
+    when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, Set.of(), null, null)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
@@ -712,12 +760,13 @@ public class GameServiceTest extends ServiceTest {
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
-    mockStartGameProcess(gameLaunchMessage, false);
+    mockStartGameWithDivisionProcess(gameLaunchMessage, "unlisted");
+    when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, "global")).thenReturn(completedFuture(Optional.empty()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     instance.startSearchMatchmaker().join();
-    verify(forgedAllianceService).startGameOnline(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false);
+    verify(forgedAllianceService).startGameOnlineWithDivision(gameLaunchMessage, GPG_PORT, LOCAL_REPLAY_PORT, false, "unlisted");
   }
 
   @Test
@@ -732,7 +781,8 @@ public class GameServiceTest extends ServiceTest {
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
-    mockStartGameProcess(gameLaunchMessage, false);
+    mockStartGameWithDivisionProcess(gameLaunchMessage, "unlisted");
+    when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, "global")).thenReturn(completedFuture(Optional.empty()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));

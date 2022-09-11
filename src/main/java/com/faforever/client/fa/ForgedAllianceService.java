@@ -3,6 +3,7 @@ package com.faforever.client.fa;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.Kernel32Ex.WindowsPriority;
+import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -37,6 +38,7 @@ public class ForgedAllianceService {
 
   public static final String DEBUGGER_EXE = "FAFDebugger.exe";
 
+  private final LeaderboardService leaderboardService;
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
@@ -51,6 +53,18 @@ public class ForgedAllianceService {
   }
 
   public Process startGameOnline(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost) throws IOException {
+    LaunchCommandBuilder launchCommandBuilder = prepareLaunchCommand(gameLaunchMessage, gpgPort, localReplayPort, rehost);
+
+    return launch(launchCommandBuilder.build());
+  }
+
+  public Process startGameOnlineWithDivision(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost, String divisionName) throws IOException {
+    LaunchCommandBuilder launchCommandBuilder = prepareLaunchCommand(gameLaunchMessage, gpgPort, localReplayPort, rehost);
+
+    return launch(launchCommandBuilder.division(divisionName).build());
+  }
+
+  private LaunchCommandBuilder prepareLaunchCommand(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost) {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRatingBean> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
@@ -60,7 +74,8 @@ public class ForgedAllianceService {
     float deviation = leaderboardRating.map(LeaderboardRatingBean::getDeviation).orElse(0f);
 
     int uid = gameLaunchMessage.getUid();
-    List<String> launchCommand = defaultLaunchCommand()
+
+    return defaultLaunchCommand()
         .uid(uid)
         .faction(gameLaunchMessage.getFaction())
         .mapPosition(gameLaunchMessage.getMapPosition())
@@ -77,10 +92,7 @@ public class ForgedAllianceService {
         .logFile(loggingService.getNewGameLogFile(uid))
         .localGpgPort(gpgPort)
         .localReplayPort(localReplayPort)
-        .rehost(rehost)
-        .build();
-
-    return launch(launchCommand);
+        .rehost(rehost);
   }
 
 

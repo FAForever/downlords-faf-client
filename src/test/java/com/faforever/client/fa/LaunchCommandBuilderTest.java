@@ -54,6 +54,11 @@ public class LaunchCommandBuilderTest extends ServiceTest {
   }
 
   @Test
+  public void testDivisionNullAllowed() throws Exception {
+    assertDoesNotThrow(() -> defaultBuilder().division(null).build());
+  }
+
+  @Test
   public void testCountryNullAllowed() throws Exception {
     assertDoesNotThrow(() -> defaultBuilder().country(null).build());
   }
@@ -195,7 +200,20 @@ public class LaunchCommandBuilderTest extends ServiceTest {
   }
 
   @Test
-  public void testCountryPort() throws Exception {
+  public void testDivision() throws Exception {
+    assertThat(
+        defaultBuilder().division("Gold II").build(),
+        contains(
+            Path.of("test.exe").toAbsolutePath().toString(),
+            "/init", "init.lua",
+            "/nobugreport",
+            "/log", Path.of("preferences.log").toAbsolutePath().toString(),
+            "/division", "Gold II"
+        ));
+  }
+
+  @Test
+  public void testCountry() throws Exception {
     assertThat(
         defaultBuilder().country("USA").build(),
         contains(

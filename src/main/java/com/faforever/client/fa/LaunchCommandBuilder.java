@@ -28,6 +28,7 @@ public class LaunchCommandBuilder {
   private Path debuggerExecutable;
   private Float mean;
   private Float deviation;
+  private String division;
   private String country;
   private String clan;
   private String username;
@@ -95,6 +96,11 @@ public class LaunchCommandBuilder {
 
   public LaunchCommandBuilder deviation(Float deviation) {
     this.deviation = deviation;
+    return this;
+  }
+
+  public LaunchCommandBuilder division(String division) {
+    this.division = division;
     return this;
   }
 
@@ -229,6 +235,11 @@ public class LaunchCommandBuilder {
     if (deviation != null) {
       command.add("/deviation");
       command.add(String.valueOf(deviation));
+    }
+
+    if (division != null) {
+      command.add("/division");
+      command.add(division);
     }
 
     if (replayFile != null) {
