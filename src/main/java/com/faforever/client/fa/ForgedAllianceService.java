@@ -3,11 +3,9 @@ package com.faforever.client.fa;
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.Kernel32Ex.WindowsPriority;
-import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.commons.lobby.GameLaunchResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +36,6 @@ public class ForgedAllianceService {
 
   public static final String DEBUGGER_EXE = "FAFDebugger.exe";
 
-  private final LeaderboardService leaderboardService;
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
@@ -52,47 +49,39 @@ public class ForgedAllianceService {
     return launch(launchCommand);
   }
 
-  public Process startGameOnline(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost) throws IOException {
-    LaunchCommandBuilder launchCommandBuilder = prepareLaunchCommand(gameLaunchMessage, gpgPort, localReplayPort, rehost);
-
-    return launch(launchCommandBuilder.build());
-  }
-
-  public Process startGameOnlineWithDivision(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost, String divisionName) throws IOException {
-    LaunchCommandBuilder launchCommandBuilder = prepareLaunchCommand(gameLaunchMessage, gpgPort, localReplayPort, rehost);
-
-    return launch(launchCommandBuilder.division(divisionName).build());
-  }
-
-  private LaunchCommandBuilder prepareLaunchCommand(GameLaunchResponse gameLaunchMessage, int gpgPort, int localReplayPort, boolean rehost) {
+  public Process startGameOnline(GameParameters gameParameters) throws IOException {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
     Optional<LeaderboardRatingBean> leaderboardRating = Optional.of(currentPlayer.getLeaderboardRatings())
-        .map(rating -> rating.get(gameLaunchMessage.getLeaderboard()));
+        .map(rating -> rating.get(gameParameters.getLeaderboard()));
 
     float mean = leaderboardRating.map(LeaderboardRatingBean::getMean).orElse(0f);
     float deviation = leaderboardRating.map(LeaderboardRatingBean::getDeviation).orElse(0f);
 
-    int uid = gameLaunchMessage.getUid();
+    int uid = gameParameters.getUid();
 
-    return defaultLaunchCommand()
+    List<String> launchCommand = defaultLaunchCommand()
         .uid(uid)
-        .faction(gameLaunchMessage.getFaction())
-        .mapPosition(gameLaunchMessage.getMapPosition())
-        .expectedPlayers(gameLaunchMessage.getExpectedPlayers())
-        .team(gameLaunchMessage.getTeam())
-        .gameOptions(gameLaunchMessage.getGameOptions())
+        .faction(gameParameters.getFaction())
+        .mapPosition(gameParameters.getMapPosition())
+        .expectedPlayers(gameParameters.getExpectedPlayers())
+        .team(gameParameters.getTeam())
+        .gameOptions(gameParameters.getGameOptions())
         .clan(currentPlayer.getClan())
         .country(currentPlayer.getCountry())
         .username(currentPlayer.getUsername())
         .numberOfGames(currentPlayer.getNumberOfGames())
-        .deviation(deviation)
         .mean(mean)
-        .additionalArgs(gameLaunchMessage.getArgs())
+        .deviation(deviation)
+        .division(gameParameters.getDivision())
+        .additionalArgs(gameParameters.getAdditionalArgs())
         .logFile(loggingService.getNewGameLogFile(uid))
-        .localGpgPort(gpgPort)
-        .localReplayPort(localReplayPort)
-        .rehost(rehost);
+        .localGpgPort(gameParameters.getLocalGpgPort())
+        .localReplayPort(gameParameters.getLocalReplayPort())
+        .rehost(gameParameters.isRehost())
+        .build();
+
+    return launch(launchCommand);
   }
 
 

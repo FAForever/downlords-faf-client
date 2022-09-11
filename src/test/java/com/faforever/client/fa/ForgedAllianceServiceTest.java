@@ -1,6 +1,5 @@
 package com.faforever.client.fa;
 
-import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.logging.LoggingService;
@@ -8,7 +7,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
-import com.faforever.commons.lobby.GameLaunchResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -55,22 +53,15 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOnline() throws Exception {
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOnline(gameLaunchMessage, 0, 0, false));
+    GameParameters gameParameters = new GameParameters();
+    gameParameters.setUid(1);
+    gameParameters.setLocalGpgPort(0);
+    gameParameters.setLocalReplayPort(0);
+    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOnline(gameParameters));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(playerService).getCurrentPlayer();
-    verify(loggingService).getNewGameLogFile(gameLaunchMessage.getUid());
-  }
-
-  @Test
-  public void testStartGameOnlineWithDivision() throws Exception {
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
-    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOnlineWithDivision(gameLaunchMessage, 0, 0, false, "unlisted"));
-    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
-
-    verify(playerService).getCurrentPlayer();
-    verify(loggingService).getNewGameLogFile(gameLaunchMessage.getUid());
+    verify(loggingService).getNewGameLogFile(gameParameters.getUid());
   }
 
   @Test
