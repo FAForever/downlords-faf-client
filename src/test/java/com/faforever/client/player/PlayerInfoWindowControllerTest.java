@@ -147,7 +147,7 @@ public class PlayerInfoWindowControllerTest extends UITest {
     when(leaderboardService.getActiveSeasons()).thenReturn(CompletableFuture.completedFuture(List.of(
         LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get()
     )));
-    when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard)).thenReturn(
+    when(leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.getTechnicalName())).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
     when(userLeaderboardInfoController.getRoot()).thenReturn(new VBox());
     final LeaderboardRatingBean leaderboardRating = LeaderboardRatingBeanBuilder.create()

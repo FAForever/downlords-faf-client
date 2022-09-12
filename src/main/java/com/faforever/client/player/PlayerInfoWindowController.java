@@ -255,7 +255,7 @@ public class PlayerInfoWindowController implements Controller<Node> {
             controller.setLeaderboardInfo(player, leaderboard);
 
             if (leagueSeasonBeans.stream().anyMatch(season -> Objects.equals(season.getLeaderboard(), leaderboard))) {
-              leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard).thenAccept(leagueEntry ->
+              leaderboardService.getActiveLeagueEntryForPlayer(player, leaderboard.getTechnicalName()).thenAccept(leagueEntry ->
                   leagueEntry.ifPresentOrElse(controller::setLeagueInfo, controller::setUnlistedLeague));
             }
 
