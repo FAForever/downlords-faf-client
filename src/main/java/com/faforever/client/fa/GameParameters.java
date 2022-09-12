@@ -23,6 +23,7 @@ public class GameParameters {
   private Faction faction;
 
   private String division;
+  private String subdivision;
   private Integer localGpgPort;
   private Integer localReplayPort;
   private boolean rehost;

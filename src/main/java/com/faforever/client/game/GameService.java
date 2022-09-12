@@ -530,10 +530,11 @@ public class GameService implements InitializingBean, DisposableBean {
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
-            .thenCompose(aVoid -> getDivisionName(gameLaunchResponse.getLeaderboard()))
-            .thenApply(divisionName -> {
+            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(),gameLaunchResponse.getLeaderboard()))
+            .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
-              parameters.setDivision(divisionName);
+              parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey()).orElse("unlisted"));
+              parameters.setSubdivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getNameKey()).orElse(null));
               return parameters;
             })
             .thenCompose(this::startGame));
@@ -557,13 +558,6 @@ public class GameService implements InitializingBean, DisposableBean {
     });
 
     return matchmakerFuture;
-  }
-
-  private CompletableFuture<String> getDivisionName(String leaderboard) {
-    return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), leaderboard).thenApply(leagueBeanOptional ->
-      leagueBeanOptional.map(bean ->
-              bean.getSubdivision().getDivision().getNameKey() + " " + bean.getSubdivision().getNameKey())
-          .orElse("unlisted"));
   }
 
   /**

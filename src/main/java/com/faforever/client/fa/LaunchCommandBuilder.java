@@ -29,6 +29,7 @@ public class LaunchCommandBuilder {
   private Float mean;
   private Float deviation;
   private String division;
+  private String subdivision;
   private String country;
   private String clan;
   private String username;
@@ -101,6 +102,11 @@ public class LaunchCommandBuilder {
 
   public LaunchCommandBuilder division(String division) {
     this.division = division;
+    return this;
+  }
+
+  public LaunchCommandBuilder subdivision(String subdivision) {
+    this.subdivision = subdivision;
     return this;
   }
 
@@ -240,6 +246,11 @@ public class LaunchCommandBuilder {
     if (division != null) {
       command.add("/division");
       command.add(division);
+    }
+
+    if (StringUtils.hasText(subdivision)) {
+      command.add("/subdivision");
+      command.add(subdivision);
     }
 
     if (replayFile != null) {

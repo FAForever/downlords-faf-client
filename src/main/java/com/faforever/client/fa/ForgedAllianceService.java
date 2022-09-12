@@ -74,6 +74,7 @@ public class ForgedAllianceService {
         .mean(mean)
         .deviation(deviation)
         .division(gameParameters.getDivision())
+        .subdivision(gameParameters.getSubdivision())
         .additionalArgs(gameParameters.getAdditionalArgs())
         .logFile(loggingService.getNewGameLogFile(uid))
         .localGpgPort(gameParameters.getLocalGpgPort())

@@ -567,7 +567,8 @@ public class GameServiceTest extends ServiceTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
     GameParameters gameParameters = gameMapper.map(gameLaunchMessage);
-    gameParameters.setDivision("test_name I");
+    gameParameters.setDivision("test_name");
+    gameParameters.setSubdivision("I");
 
     mockStartGameProcess(gameParameters);
     LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
