@@ -603,6 +603,7 @@ public class GameServiceTest extends ServiceTest {
 
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
     GameParameters gameParameters = gameMapper.map(gameLaunchMessage);
+    gameParameters.setDivision("unlisted");
 
     mockStartGameProcess(gameParameters);
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
@@ -791,7 +792,9 @@ public class GameServiceTest extends ServiceTest {
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
-    mockStartGameProcess(gameMapper.map(gameLaunchMessage));
+    GameParameters gameParameters = gameMapper.map(gameLaunchMessage);
+    gameParameters.setDivision("unlisted");
+    mockStartGameProcess(gameParameters);
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, "global")).thenReturn(completedFuture(Optional.empty()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
