@@ -10,8 +10,10 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 
 @Slf4j
@@ -31,15 +34,17 @@ import java.util.TimerTask;
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class IsReadyForGameController implements Controller<Parent> {
-  public static final int MILLIS_TIME_BEFORE_CLOSE = 1000;
   private final I18n i18n;
-  public HBox root;
+  public VBox root;
   public Label description;
   public RingProgressIndicator progressIndicator;
+  public Button isReadyButton;
   private int timeLeft;
   private Timeline queuePopTimeUpdater;
   @Setter
-  private Runnable timedOut;
+  private Runnable isReadyCallBack;
+  @Setter
+  private Runnable dismissCallBack;
 
 
   @Override
@@ -86,11 +91,16 @@ public class IsReadyForGameController implements Controller<Parent> {
 
   private void end() {
     queuePopTimeUpdater.stop();
-    try {
-      Thread.sleep(MILLIS_TIME_BEFORE_CLOSE);
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+    if(isReadyButton.isDisable()){
+      isReadyButton.setText(i18n.get("isReady.launching"));
+    } else {
+      dismissCallBack.run();
     }
-    timedOut.run();
+  }
+
+  public void onReady() {
+    isReadyCallBack.run();
+    isReadyButton.setDisable(true);
+    isReadyButton.setText(i18n.get("isReady.waiting"));
   }
 }

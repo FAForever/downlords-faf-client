@@ -2,15 +2,22 @@
 
 <?import com.faforever.client.ui.progress.*?>
 <?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<HBox fx:id="root" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.tournament.game.IsReadyForGameController">
-   <children>
-      <Region HBox.hgrow="ALWAYS" />
-      <RingProgressIndicator fx:id="progressIndicator" />
-      <Region HBox.hgrow="ALWAYS" />
-   </children>
-   <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-   </padding>
-</HBox>
+<VBox fx:id="root" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.tournament.game.IsReadyForGameController">
+   <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308">
+      <children>
+         <Region HBox.hgrow="ALWAYS" />
+         <RingProgressIndicator fx:id="progressIndicator" />
+         <Region HBox.hgrow="ALWAYS" />
+      </children>
+      <padding>
+         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+      </padding>
+   </HBox>
+   <Button fx:id="isReadyButton" alignment="CENTER" defaultButton="true" maxWidth="1.7976931348623157E308" onAction="#onReady" text="%isReady.iAmReady" VBox.vgrow="ALWAYS">
+      <VBox.margin>
+         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+      </VBox.margin></Button>
+</VBox>

@@ -514,14 +514,29 @@ public class GameService implements InitializingBean, DisposableBean {
       return matchmakerFuture;
     }
 
+    matchmakerFuture =  listenToServerInitiatedGame(FAF.getTechnicalName());
+    return matchmakerFuture;
+  }
+
+  public CompletableFuture<Void> startListeningToTournamentGame(String featuredModTechnicalName) {
+    if (isRunning()) {
+      log.info("Game is running, ignoring tournament search request");
+      notificationService.addImmediateWarnNotification("game.gameRunning");
+      return completedFuture(null);
+    }
+
+    return listenToServerInitiatedGame(featuredModTechnicalName);
+  }
+
+  private CompletableFuture<Void> listenToServerInitiatedGame(String featuredModTechnicalName) {
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> startSearchMatchmaker());
     }
 
-    log.info("Matchmaking search has been started");
+    log.info("Listening to server made game has been started");
 
-    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
+    final var matchFuture = modService.getFeaturedMod(featuredModTechnicalName)
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
@@ -536,25 +551,25 @@ public class GameService implements InitializingBean, DisposableBean {
             })
             .thenCompose(this::startGame));
 
-    matchmakerFuture.whenComplete((aVoid, throwable) -> {
+    matchFuture.whenComplete((aVoid, throwable) -> {
       if (throwable != null) {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         if (throwable instanceof CancellationException) {
-          log.info("Matchmaking search has been cancelled");
+          log.info("Listening to server made game has been cancelled");
           if (isRunning()) {
             notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
             gameKilled = true;
             process.destroy();
           }
         } else {
-          log.warn("Matchmade game could not be started", throwable);
+          log.warn("Server initiated game could not be started", throwable);
         }
       } else {
         log.info("Matchmaker queue exited");
       }
     });
 
-    return matchmakerFuture;
+    return matchFuture;
   }
 
   /**

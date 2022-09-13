@@ -228,6 +228,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     lobbyClient.removeFriend(playerId);
   }
 
+  public void sendIsReady(String requestId) {
+    lobbyClient.sendReady(requestId);
+  }
+
   public void removeFoe(int playerId) {
     lobbyClient.removeFoe(playerId);
   }
