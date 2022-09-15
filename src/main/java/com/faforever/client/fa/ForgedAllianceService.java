@@ -5,6 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.Kernel32Ex.WindowsPriority;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -134,7 +135,8 @@ public class ForgedAllianceService {
 
   @NotNull
   private Process launch(List<String> launchCommand) throws IOException {
-    Path executeDirectory = preferencesService.getPreferences().getForgedAlliance().getExecutionDirectory();
+    ForgedAlliancePrefs prefs = preferencesService.getPreferences().getForgedAlliance();
+    Path executeDirectory = prefs.getExecutionDirectory();
     if (executeDirectory == null) {
       executeDirectory = getExecutablePath().getParent();
     }
@@ -147,7 +149,9 @@ public class ForgedAllianceService {
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     Process process = processBuilder.start();
-    ProcessUtils.setProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
+    if (prefs.isChangeProcessPriority()) {
+      ProcessUtils.setProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
+    }
     return process;
   }
 }
