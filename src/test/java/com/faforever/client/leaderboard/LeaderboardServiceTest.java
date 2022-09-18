@@ -222,7 +222,7 @@ public class LeaderboardServiceTest extends ServiceTest {
 
   @Test
   public void testGetActiveLeagueEntryForPlayer() {
-    LeaderboardBean leaderboard = LeaderboardBeanBuilder.create().defaultValues().id(2).get();
+    LeaderboardBean leaderboard = LeaderboardBeanBuilder.create().defaultValues().id(2).technicalName("ladder").get();
     LeagueSeasonBean season = LeagueSeasonBeanBuilder.create().defaultValues().leaderboard(leaderboard).get();
     LeagueEntryBean leagueEntryBean1 = LeagueEntryBeanBuilder.create().defaultValues().get();
     LeagueEntryBean leagueEntryBean2 = LeagueEntryBeanBuilder.create().defaultValues().leagueSeason(season).get();
@@ -232,9 +232,10 @@ public class LeaderboardServiceTest extends ServiceTest {
         leaderboardMapper.map(leagueEntryBean2, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
 
-    Optional<LeagueEntryBean> result = instance.getActiveLeagueEntryForPlayer(player, leaderboard).toCompletableFuture().join();
+    Optional<LeagueEntryBean> result = instance.getActiveLeagueEntryForPlayer(player, "ladder").toCompletableFuture().join();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId()))));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("loginId").eq(player.getId())
+        .and().string("leagueSeason.leaderboard.technicalName").eq(leaderboard.getTechnicalName()))));
     Assertions.assertEquals(leagueEntryBean2, result.orElse(null));
   }
 

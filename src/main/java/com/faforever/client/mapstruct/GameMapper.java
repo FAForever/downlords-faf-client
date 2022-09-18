@@ -1,8 +1,10 @@
 package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fa.GameParameters;
 import com.faforever.client.util.TimeUtil;
 import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameLaunchResponse;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,6 +17,9 @@ import java.util.Map;
 @Mapper(collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, config = MapperConfiguration.class)
 public interface GameMapper {
   String OBSERVERS_TEAM = "-1";
+
+  @Mapping(target = "additionalArgs", source = "args")
+  GameParameters map(GameLaunchResponse dto);
 
   @Mapping(target = "id", source = "uid")
   @Mapping(target = "numPlayers", expression = "java(getNumPlayers(dto))")
