@@ -3,8 +3,8 @@ package com.faforever.client.fa;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.net.Inet4Address;
 import java.net.URI;
@@ -248,7 +248,7 @@ public class LaunchCommandBuilder {
       command.add(division);
     }
 
-    if (StringUtils.hasText(subdivision)) {
+    if (StringUtils.isNotBlank(subdivision)) {
       command.add("/subdivision");
       command.add(subdivision);
     }
@@ -271,7 +271,7 @@ public class LaunchCommandBuilder {
       command.add(country);
     }
 
-    if (StringUtils.hasText(clan)) {
+    if (StringUtils.isNotBlank(clan)) {
       command.add("/clan");
       command.add(clan);
     }
@@ -305,7 +305,7 @@ public class LaunchCommandBuilder {
       command.add(String.valueOf(mapPosition));
     }
 
-    if (StringUtils.hasText(map)) {
+    if (StringUtils.isNotBlank(map)) {
       command.add("/map");
       command.add(map);
     }
