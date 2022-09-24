@@ -540,7 +540,7 @@ public class GameService implements InitializingBean, DisposableBean {
     final var matchFuture = modService.getFeaturedMod(featuredModTechnicalName)
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> gameLaunchMessageFuture)
-        .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
+        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
             .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(),gameLaunchResponse.getLeaderboard()))
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
@@ -550,7 +550,7 @@ public class GameService implements InitializingBean, DisposableBean {
                   .orElse(null));
               return parameters;
             })
-            .thenCompose(aVoid -> startGame(gameLaunchMessage)));
+            .thenCompose(this::startGame));
 
     matchFuture.whenComplete((aVoid, throwable) -> {
       if (throwable != null) {
