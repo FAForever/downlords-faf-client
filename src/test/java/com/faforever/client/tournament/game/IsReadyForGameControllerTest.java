@@ -25,13 +25,6 @@ class IsReadyForGameControllerTest extends UITest {
   }
 
   @Test
-  public void testInitialization(){
-    instance.setTimeout(1);
-    instance.setDismissCallBack(() -> {});
-    instance.setReadyCallback(() -> {});
-  }
-
-  @Test
   public void testTimeOut() {
     AtomicBoolean dismissCalled = new AtomicBoolean(false);
     instance.setDismissCallBack(() -> dismissCalled.set(true));

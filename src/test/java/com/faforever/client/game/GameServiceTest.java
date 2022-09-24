@@ -799,7 +799,7 @@ public class GameServiceTest extends ServiceTest {
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, "global")).thenReturn(completedFuture(Optional.empty()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(completedFuture(gameLaunchMessage));
     CompletableFuture<Void> future = instance.startSearchMatchmaker();
     when(process.isAlive()).thenReturn(true);
     future.cancel(false);
@@ -821,7 +821,7 @@ public class GameServiceTest extends ServiceTest {
     mockStartGameProcess(gameMapper.map(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(completedFuture(gameLaunchMessage));
     instance.startSearchMatchmaker().cancel(false);
     verify(notificationService, never()).addServerNotification(any());
   }
