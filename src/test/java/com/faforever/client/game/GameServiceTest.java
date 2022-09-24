@@ -536,7 +536,7 @@ public class GameServiceTest extends ServiceTest {
 
     mockStartGameProcess(gameParameters);
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, Set.of(),null, null)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
@@ -545,7 +545,7 @@ public class GameServiceTest extends ServiceTest {
 
     instance.startSearchMatchmaker().join();
 
-    verify(fafServerAccessor).startSearchMatchmaker();
+    verify(fafServerAccessor).getGameLaunchMessage();
     verify(mapService).download(map);
     verify(replayServer).start(eq(uid), any());
     verify(forgedAllianceService).startGameOnline(gameParameters);
