@@ -47,14 +47,7 @@ public class TournamentGameService implements InitializingBean {
   }
 
   private void onGameLaunch(GameLaunchResponse gameLaunchResponse) {
-    if(isTournamentGame(gameLaunchResponse)){
-      dismissNotification();
-    }
-  }
-
-  private boolean isTournamentGame(GameLaunchResponse gameLaunchResponse) {
-    //TODO: implement
-    return true;
+    dismissNotification();
   }
 
   private void onMatchCanceled(MatchmakerMatchCancelledResponse matchmakerMatchCancelledResponse) {
@@ -72,7 +65,7 @@ public class TournamentGameService implements InitializingBean {
       respondToReadyRequest(isReadyRequest.getRequestId(), isReadyRequest);
       return;
     }
-    bringStageToFront();
+    uiService.bringMainStageToFront();
     final var controller = initializeIsReadyController(isReadyRequest);
     notification =
         new ImmediateNotification(i18n.get("isReady.title"), i18n.get("isReady.message", isReadyRequest.getGameName()),
@@ -106,20 +99,13 @@ public class TournamentGameService implements InitializingBean {
   private IsReadyForGameController initializeIsReadyController(IsReadyRequest isReadyRequest) {
     IsReadyForGameController controller = uiService.loadFxml("theme/tournaments/is_ready_for_game.fxml");
     controller.setTimeout(isReadyRequest.getResponseTimeSeconds());
-    controller.setIsReadyCallBack(() -> respondToReadyRequest(isReadyRequest.getRequestId(), isReadyRequest));
+    controller.setReadyCallback(() -> respondToReadyRequest(isReadyRequest.getRequestId(), isReadyRequest));
     controller.setDismissCallBack(() -> JavaFxUtil.runLater(this::dismissNotification));
     return controller;
   }
 
-  private static void bringStageToFront() {
-    Stage stage = StageHolder.getStage();
-    if (!stage.isFocused() || !stage.isShowing()) {
-      JavaFxUtil.runLater(stage::toFront);
-    }
-  }
 
   private void respondToReadyRequest(String requestId, IsReadyRequest isReadyRequest) {
-    //TODO: Quit tmm queues
     matchFuture = gameService.startListeningToTournamentGame(isReadyRequest.getFeaturedMod());
     try{
       fafServerAccessor.sendIsReady(requestId);

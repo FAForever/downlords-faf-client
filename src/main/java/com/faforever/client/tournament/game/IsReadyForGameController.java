@@ -1,32 +1,26 @@
 package com.faforever.client.tournament.game;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.progress.RingProgressIndicator;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.extern.apachecommons.CommonsLog;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.TimerTask;
-import java.util.function.Consumer;
 
 
 @Slf4j
@@ -40,9 +34,10 @@ public class IsReadyForGameController implements Controller<Parent> {
   public RingProgressIndicator progressIndicator;
   public Button isReadyButton;
   private int timeLeft;
-  private Timeline queuePopTimeUpdater;
+  @VisibleForTesting
+  Timeline queuePopTimeUpdater;
   @Setter
-  private Runnable isReadyCallBack;
+  private Runnable readyCallback;
   @Setter
   private Runnable dismissCallBack;
 
@@ -99,7 +94,7 @@ public class IsReadyForGameController implements Controller<Parent> {
   }
 
   public void onReady() {
-    isReadyCallBack.run();
+    readyCallback.run();
     isReadyButton.setDisable(true);
     isReadyButton.setText(i18n.get("isReady.waiting"));
   }

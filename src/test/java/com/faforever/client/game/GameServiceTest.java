@@ -205,7 +205,7 @@ public class GameServiceTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName()))
         .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(new CompletableFuture<>());
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(new CompletableFuture<>());
   }
 
   @Test
@@ -573,7 +573,7 @@ public class GameServiceTest extends ServiceTest {
     mockStartGameProcess(gameParameters);
     LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.of(leagueEntry)));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, Set.of(),null, null)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
@@ -582,7 +582,7 @@ public class GameServiceTest extends ServiceTest {
 
     instance.startSearchMatchmaker().join();
 
-    verify(fafServerAccessor).startSearchMatchmaker();
+    verify(fafServerAccessor).getGameLaunchMessage();
     verify(mapService).download(map);
     verify(replayServer).start(eq(uid), any());
     verify(forgedAllianceService).startGameOnline(gameParameters);
@@ -608,7 +608,7 @@ public class GameServiceTest extends ServiceTest {
 
     mockStartGameProcess(gameParameters);
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(featuredMod, Set.of(), null, null)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
@@ -776,7 +776,7 @@ public class GameServiceTest extends ServiceTest {
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, "global")).thenReturn(completedFuture(Optional.empty()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(completedFuture(gameLaunchMessage));
     instance.startSearchMatchmaker().join();
     verify(forgedAllianceService).startGameOnline(gameParameters);
   }
@@ -799,7 +799,7 @@ public class GameServiceTest extends ServiceTest {
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, "global")).thenReturn(completedFuture(Optional.empty()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     CompletableFuture<Void> future = instance.startSearchMatchmaker();
     when(process.isAlive()).thenReturn(true);
     future.cancel(false);
@@ -821,7 +821,7 @@ public class GameServiceTest extends ServiceTest {
     mockStartGameProcess(gameMapper.map(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
+    when(fafServerAccessor.getGameLaunchMessage()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
     instance.startSearchMatchmaker().cancel(false);
     verify(notificationService, never()).addServerNotification(any());
   }

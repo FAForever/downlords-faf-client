@@ -536,11 +536,12 @@ public class GameService implements InitializingBean, DisposableBean {
 
     log.info("Listening to server made game has been started");
 
+    final var gameLaunchMessageFuture = fafServerAccessor.getGameLaunchMessage();
     final var matchFuture = modService.getFeaturedMod(featuredModTechnicalName)
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
-        .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
-        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
-            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
+        .thenCompose(aVoid -> gameLaunchMessageFuture)
+        .thenCompose((gameLaunchMessage) -> downloadMapIfNecessary(gameLaunchMessage.getMapName())
+            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(),gameLaunchResponse.getLeaderboard()))
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
               parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey())
@@ -549,7 +550,7 @@ public class GameService implements InitializingBean, DisposableBean {
                   .orElse(null));
               return parameters;
             })
-            .thenCompose(this::startGame));
+            .thenCompose(aVoid -> startGame(gameLaunchMessage)));
 
     matchFuture.whenComplete((aVoid, throwable) -> {
       if (throwable != null) {
