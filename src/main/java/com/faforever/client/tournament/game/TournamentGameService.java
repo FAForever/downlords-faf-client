@@ -8,11 +8,9 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.ui.StageHolder;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.IsReadyRequest;
 import com.faforever.commons.lobby.MatchmakerMatchCancelledResponse;
-import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +58,7 @@ public class TournamentGameService implements InitializingBean {
 
   private void onReadRequest(IsReadyRequest isReadyRequest) {
     log.info("Tournament game is ready, asking user.");
-    if(notification != null){
+    if (notification != null) {
       log.warn("Tournament ready request ignored because tournament is already in progress.");
       respondToReadyRequest(isReadyRequest.getRequestId(), isReadyRequest);
       return;
@@ -79,16 +77,16 @@ public class TournamentGameService implements InitializingBean {
     timer.schedule(new TimerTask() {
       @Override
       public void run() {
-        if(notification != currentNotification){
+        if (notification != currentNotification) {
           return;
         }
-        JavaFxUtil.runLater(()-> dismissNotification());
+        JavaFxUtil.runLater(() -> dismissNotification());
       }
     }, SAFETY_CLOSE_NOTIFICATION_SECONDS * 1000);
   }
 
   private void dismissNotification() {
-    if(notification == null){
+    if (notification == null) {
       return;
     }
     notification.dismiss();
@@ -107,16 +105,16 @@ public class TournamentGameService implements InitializingBean {
 
   private void respondToReadyRequest(String requestId, IsReadyRequest isReadyRequest) {
     matchFuture = gameService.startListeningToTournamentGame(isReadyRequest.getFeaturedMod());
-    try{
+    try {
       fafServerAccessor.sendIsReady(requestId);
-    }catch (Exception e){
+    } catch (Exception e) {
       dismissNotification();
       cancelMatch();
       notificationService.addImmediateErrorNotification(e, "isReady.readyUpFailed");
     }
   }
 
-  private void cancelMatch(){
+  private void cancelMatch() {
     if (matchFuture != null) {
       matchFuture.cancel(false);
     }

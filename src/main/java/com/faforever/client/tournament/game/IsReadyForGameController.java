@@ -79,14 +79,14 @@ public class IsReadyForGameController implements Controller<Parent> {
     final var percent = timeGone.toSeconds() / (double) responseTimeSeconds;
     this.timeLeft = (int) (responseTimeSeconds - timeGone.toSeconds());
     progressIndicator.setProgress((int) (percent * 100));
-    if(timeLeft <= 0 && queuePopTimeUpdater != null){
+    if (timeLeft <= 0 && queuePopTimeUpdater != null) {
       end();
     }
   }
 
   private void end() {
     queuePopTimeUpdater.stop();
-    if(isReadyButton.isDisable()){
+    if (isReadyButton.isDisable()) {
       isReadyButton.setText(i18n.get("isReady.launching"));
     } else {
       dismissCallBack.run();

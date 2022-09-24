@@ -1,20 +1,7 @@
 package com.faforever.client.tournament.game;
 
-import com.faforever.client.builders.MapBeanBuilder;
-import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.TutorialBeanBuilder;
-import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.TutorialBean;
-import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.MapService;
-import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.test.UITest;
-import com.faforever.client.tutorial.TutorialDetailController;
-import com.faforever.client.tutorial.TutorialService;
-import javafx.scene.image.Image;
-import javafx.util.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
