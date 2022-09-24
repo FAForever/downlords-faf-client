@@ -61,6 +61,12 @@ public class ForgedAlliancePrefs {
   BooleanProperty showIceAdapterDebugWindow = new SimpleBooleanProperty(false);
   ObservableSet<CoturnHostPort> preferredCoturnServers = FXCollections.observableSet();
 
+  /**
+   * Whether the game process' priority should be set to high after launch. Enabling this may cause issues with some
+   * antivirus programs, see <a href="https://github.com/FAForever/downlords-faf-client/issues/2781">#2781</a>.
+   */
+  BooleanProperty changeProcessPriority = new SimpleBooleanProperty(false);
+
   public Path getPreferencesFile() {
     return preferencesFile.get();
   }
@@ -203,5 +209,17 @@ public class ForgedAlliancePrefs {
 
   public BooleanProperty warnNonAsciiVaultPathProperty() {
     return warnNonAsciiVaultPath;
+  }
+
+  public boolean isChangeProcessPriority() {
+    return changeProcessPriority.get();
+  }
+
+  public void setChangeProcessPriority(boolean changeProcessPriority) {
+    this.changeProcessPriority.set(changeProcessPriority);
+  }
+
+  public BooleanProperty changeProcessPriorityProperty() {
+    return changeProcessPriority;
   }
 }
