@@ -33,8 +33,8 @@ import java.util.List;
 
 
 /**
- * Base class for the progress indicator controls represented by circualr shapes
- *
+ * Base class for the progress indicator controls represented by circular shapes
+ * *
  * @author Andrea Vacondio
  */
 abstract class ProgressCircleIndicator extends Control {

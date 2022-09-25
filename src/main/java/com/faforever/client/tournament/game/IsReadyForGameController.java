@@ -1,6 +1,7 @@
 package com.faforever.client.tournament.game;
 
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.progress.RingProgressIndicator;
 import javafx.animation.KeyFrame;
@@ -40,11 +41,12 @@ public class IsReadyForGameController implements Controller<Parent> {
   private Runnable readyCallback;
   @Setter
   private Runnable dismissCallBack;
+  private boolean clickedReady = false;
 
 
   @Override
   public void initialize() {
-    progressIndicator.setProgressLableStringConverter(new StringConverter<>() {
+    progressIndicator.setProgressLabelStringConverter(new StringConverter<>() {
       @Override
       public String toString(Integer object) {
         return i18n.number(timeLeft);
@@ -67,26 +69,26 @@ public class IsReadyForGameController implements Controller<Parent> {
     OffsetDateTime start = OffsetDateTime.now();
 
     queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
-      updateQueue(responseTimeSeconds, start);
+      updateTimer(responseTimeSeconds, start);
     }), new KeyFrame(javafx.util.Duration.seconds(1)));
     queuePopTimeUpdater.setCycleCount(Timeline.INDEFINITE);
     queuePopTimeUpdater.play();
   }
 
-  private void updateQueue(int responseTimeSeconds, OffsetDateTime start) {
+  private void updateTimer(int responseTimeSeconds, OffsetDateTime start) {
     OffsetDateTime now = OffsetDateTime.now();
     Duration timeGone = Duration.between(start, now);
     final var percent = timeGone.toSeconds() / (double) responseTimeSeconds;
     this.timeLeft = (int) (responseTimeSeconds - timeGone.toSeconds());
     progressIndicator.setProgress((int) (percent * 100));
     if (timeLeft <= 0 && queuePopTimeUpdater != null) {
-      end();
+      queuePopTimeUpdater.stop();
+      JavaFxUtil.runLater(this::end);
     }
   }
 
   private void end() {
-    queuePopTimeUpdater.stop();
-    if (isReadyButton.isDisable()) {
+    if (clickedReady) {
       isReadyButton.setText(i18n.get("isReady.launching"));
     } else {
       dismissCallBack.run();
@@ -96,6 +98,7 @@ public class IsReadyForGameController implements Controller<Parent> {
   public void onReady() {
     readyCallback.run();
     isReadyButton.setDisable(true);
+    clickedReady = true;
     isReadyButton.setText(i18n.get("isReady.waiting"));
   }
 }

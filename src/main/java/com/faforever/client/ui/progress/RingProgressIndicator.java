@@ -38,7 +38,7 @@ import java.util.List;
  * @author Andrea Vacondio
  */
 public class RingProgressIndicator extends ProgressCircleIndicator {
-  public ObjectProperty<StringConverter<Integer>> progressLableStringConverter = new SimpleObjectProperty<>(new StringConverter<>() {
+  public ObjectProperty<StringConverter<Integer>> progressLabelStringConverter = new SimpleObjectProperty<>(new StringConverter<>() {
     @Override
     public String toString(Integer object) {
       return String.format("%d%%", object);
@@ -121,15 +121,15 @@ public class RingProgressIndicator extends ProgressCircleIndicator {
     return StyleableProperties.STYLEABLES;
   }
 
-  public StringConverter<Integer> getProgressLableStringConverter() {
-    return progressLableStringConverter.get();
+  public StringConverter<Integer> getProgressLabelStringConverter() {
+    return progressLabelStringConverter.get();
   }
 
-  public ObjectProperty<StringConverter<Integer>> progressLableStringConverterProperty() {
-    return progressLableStringConverter;
+  public ObjectProperty<StringConverter<Integer>> progressLabelStringConverterProperty() {
+    return progressLabelStringConverter;
   }
 
-  public void setProgressLableStringConverter(StringConverter<Integer> progressLableStringConverter) {
-    this.progressLableStringConverter.set(progressLableStringConverter);
+  public void setProgressLabelStringConverter(StringConverter<Integer> progressLabelStringConverter) {
+    this.progressLabelStringConverter.set(progressLabelStringConverter);
   }
 }

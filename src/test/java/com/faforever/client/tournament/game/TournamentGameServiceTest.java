@@ -63,6 +63,6 @@ public class TournamentGameServiceTest extends ServiceTest {
     isReadyCallbackCapture.getValue().run();
 
     verify(fafServerAccessor).sendIsReady("abc");
-    verify(gameService).startListeningToTournamentGame("faf");
+    verify(gameService).startListeningForTournamentGame("faf");
   }
 }

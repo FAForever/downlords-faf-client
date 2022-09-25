@@ -60,19 +60,18 @@ public class TournamentGameService implements InitializingBean {
     log.info("Tournament game is ready, asking user.");
     if (notification != null) {
       log.warn("Tournament ready request ignored because tournament is already in progress.");
-      respondToReadyRequest(isReadyRequest.getRequestId(), isReadyRequest);
       return;
     }
     uiService.bringMainStageToFront();
-    final var controller = initializeIsReadyController(isReadyRequest);
+    final IsReadyForGameController controller = initializeIsReadyController(isReadyRequest);
     notification =
         new ImmediateNotification(i18n.get("isReady.title"), i18n.get("isReady.message", isReadyRequest.getGameName()),
             Severity.INFO, null, List.of(), controller.getRoot(), false);
     notificationService.addNotification(notification);
-    safetyCloseMechanism();
+    ensureNotificationCloses();
   }
 
-  private void safetyCloseMechanism() {
+  private void ensureNotificationCloses() {
     final var currentNotification = notification;
     timer.schedule(new TimerTask() {
       @Override
@@ -98,18 +97,19 @@ public class TournamentGameService implements InitializingBean {
     IsReadyForGameController controller = uiService.loadFxml("theme/tournaments/is_ready_for_game.fxml");
     controller.setTimeout(isReadyRequest.getResponseTimeSeconds());
     controller.setReadyCallback(() -> respondToReadyRequest(isReadyRequest.getRequestId(), isReadyRequest));
-    controller.setDismissCallBack(() -> JavaFxUtil.runLater(this::dismissNotification));
+    controller.setDismissCallBack(this::dismissNotification);
     return controller;
   }
 
 
   private void respondToReadyRequest(String requestId, IsReadyRequest isReadyRequest) {
-    matchFuture = gameService.startListeningToTournamentGame(isReadyRequest.getFeaturedMod());
+    matchFuture = gameService.startListeningForTournamentGame(isReadyRequest.getFeaturedMod());
     try {
       fafServerAccessor.sendIsReady(requestId);
     } catch (Exception e) {
       dismissNotification();
       cancelMatch();
+      log.error("Could not send the server that player is ready for the tournament game", e);
       notificationService.addImmediateErrorNotification(e, "isReady.readyUpFailed");
     }
   }

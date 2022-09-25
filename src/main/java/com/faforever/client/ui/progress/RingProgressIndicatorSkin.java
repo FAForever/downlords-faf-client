@@ -90,7 +90,7 @@ public class RingProgressIndicatorSkin implements Skin<RingProgressIndicator> {
 
   private void setProgressLabel(int value) {
     if (value >= 0) {
-      percentLabel.setText(indicator.getProgressLableStringConverter().toString(value));
+      percentLabel.setText(indicator.getProgressLabelStringConverter().toString(value));
     }
   }
 

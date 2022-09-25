@@ -41,6 +41,7 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
@@ -514,30 +515,30 @@ public class GameService implements InitializingBean, DisposableBean {
       return matchmakerFuture;
     }
 
-    matchmakerFuture =  listenToServerInitiatedGame(FAF.getTechnicalName());
+    matchmakerFuture =  listenForServerInitiatedGame(FAF.getTechnicalName());
     return matchmakerFuture;
   }
 
-  public CompletableFuture<Void> startListeningToTournamentGame(String featuredModTechnicalName) {
+  public CompletableFuture<Void> startListeningForTournamentGame(String featuredModTechnicalName) {
     if (isRunning()) {
       log.info("Game is running, ignoring tournament search request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
       return completedFuture(null);
     }
 
-    return listenToServerInitiatedGame(featuredModTechnicalName);
+    return listenForServerInitiatedGame(featuredModTechnicalName);
   }
 
-  private CompletableFuture<Void> listenToServerInitiatedGame(String featuredModTechnicalName) {
+  private CompletableFuture<Void> listenForServerInitiatedGame(String featuredModTechnicalName) {
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> startSearchMatchmaker());
     }
 
-    log.info("Listening to server made game has been started");
+    log.info("Started listening for game launch message");
 
-    final var gameLaunchMessageFuture = fafServerAccessor.getGameLaunchMessage();
-    final var matchFuture = modService.getFeaturedMod(featuredModTechnicalName)
+    final CompletableFuture<GameLaunchResponse> gameLaunchMessageFuture = fafServerAccessor.getGameLaunchMessageFuture();
+    final CompletableFuture<Void> matchFuture = modService.getFeaturedMod(featuredModTechnicalName)
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> gameLaunchMessageFuture)
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
@@ -563,7 +564,7 @@ public class GameService implements InitializingBean, DisposableBean {
             process.destroy();
           }
         } else {
-          log.warn("Server initiated game could not be started", throwable);
+          log.warn("Game could not be started", throwable);
         }
       } else {
         log.info("Matchmaker queue exited");

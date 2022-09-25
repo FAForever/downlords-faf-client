@@ -655,7 +655,7 @@ public class ServerAccessorTest extends ServiceTest {
         .initMode(LobbyMode.AUTO_LOBBY)
         .get();
 
-    instance.getGameLaunchMessage();
+    instance.getGameLaunchMessageFuture();
     sendFromServer(gameLaunchMessage);
     assertTrue(messageReceivedByClientLatch.await(TIMEOUT, TIMEOUT_UNIT));
     assertThat(receivedMessage, is(gameLaunchMessage));
