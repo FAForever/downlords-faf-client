@@ -7,8 +7,6 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.update.GitHubRelease;
 import com.faforever.client.util.Assert;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.scene.image.Image;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +14,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
@@ -55,9 +52,6 @@ public class MapGeneratorService implements DisposableBean {
   private final ClientProperties clientProperties;
   private final PreferencesService preferencesService;
   private final WebClient webClient;
-
-  @Getter
-  private Image generatedMapPreviewImage;
   private ComparableVersion defaultGeneratorVersion;
 
   public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService,
@@ -67,13 +61,6 @@ public class MapGeneratorService implements DisposableBean {
     this.preferencesService = preferencesService;
     this.clientProperties = clientProperties;
     webClient = webClientBuilder.build();
-
-
-    try {
-      generatedMapPreviewImage = new Image(new ClassPathResource("/images/generatedMapIcon.png").getURL().toString(), true);
-    } catch (IOException | NoClassDefFoundError | ExceptionInInitializerError e) {
-      log.error("Could not load generated map preview image.", e);
-    }
   }
 
   @Override

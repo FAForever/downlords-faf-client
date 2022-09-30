@@ -319,7 +319,7 @@ public class MapService implements InitializingBean, DisposableBean {
     }
   }
 
-  @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapGeneratorService.getGeneratedMapPreviewImage())")
+  @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapService.getGeneratedMapPreviewImage())")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
     if(mapGeneratorService.isGeneratedMap(mapName)) {
       return getGeneratedMapPreview(mapName);
@@ -343,7 +343,11 @@ public class MapService implements InitializingBean, DisposableBean {
       }
     }
 
-    return mapGeneratorService.getGeneratedMapPreviewImage();
+    return getGeneratedMapPreviewImage();
+  }
+
+  public Image getGeneratedMapPreviewImage() {
+    return uiService.getThemeImage(UiService.GENERATED_MAP_IMAGE);
   }
 
 
