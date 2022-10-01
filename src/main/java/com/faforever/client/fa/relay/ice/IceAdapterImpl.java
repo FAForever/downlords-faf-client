@@ -12,6 +12,7 @@ import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
+import com.faforever.client.util.JavaUtil;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.lobby.ConnectToPeerGpgCommand;
 import com.faforever.commons.lobby.DisconnectFromPeerGpgCommand;
@@ -191,15 +192,15 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   List<String> buildCommand(Path workDirectory, int adapterPort, int gpgPort) {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
-    String classpath = getBinaryName(workDirectory);
-    if (preferencesService.getPreferences().getForgedAlliance().isShowIceAdapterDebugWindow()) {
-      classpath += ";" + getJavaFXClassPathJars();
-    }
+    String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
 
     List<String> cmd = Lists.newArrayList(
-        Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString(),
-        "-cp",
-        classpath,
+        Path.of(System.getProperty("java.home"))
+            .resolve("bin")
+            .resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java")
+            .toAbsolutePath()
+            .toString(),
+        "-cp", classpath,
         "com.faforever.iceadapter.IceAdapter",
         "--id", String.valueOf(currentPlayer.getId()),
         "--login", currentPlayer.getUsername(),
@@ -220,9 +221,9 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   private String getJavaFXClassPathJars() {
-    String classPathOfClient = System.getProperty("java.class.path");
-    List<String> split = List.of(classPathOfClient.split(";"));
-    return split.stream().filter(s -> s.contains("javafx-")).collect(Collectors.joining(";"));
+    return JavaUtil.CLASS_PATH_LIST.stream()
+        .filter(s -> s.contains("javafx-"))
+        .collect(Collectors.joining(JavaUtil.CLASSPATH_SEPARATOR));
   }
 
   private String getBinaryName(Path workDirectory) {
