@@ -612,7 +612,7 @@ public class GameService implements InitializingBean, DisposableBean {
     return replayServer.start(uid, () -> getByUid(uid))
         .thenCompose(port -> {
           localReplayPort = port;
-          return iceAdapter.start();
+          return iceAdapter.start(gameParameters.getUid());
         })
         .thenCompose(adapterPort -> coturnService.getSelectedCoturns()
             .thenAccept(iceAdapter::setIceServers)

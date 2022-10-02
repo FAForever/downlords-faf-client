@@ -173,7 +173,7 @@ public class GameServiceTest extends ServiceTest {
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
-    when(iceAdapter.start()).thenReturn(completedFuture(GPG_PORT));
+    when(iceAdapter.start(anyInt())).thenReturn(completedFuture(GPG_PORT));
     when(playerService.getCurrentPlayer()).thenReturn(junitPlayer);
 
     doAnswer(invocation -> {

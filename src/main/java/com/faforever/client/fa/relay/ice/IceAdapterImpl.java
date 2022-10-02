@@ -110,14 +110,14 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   @Override
-  public CompletableFuture<Integer> start() {
+  public CompletableFuture<Integer> start(int gameId) {
     CompletableFuture<Integer> iceAdapterClientFuture = CompletableFuture.supplyAsync(() -> {
       Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
       int adapterPort = SocketUtils.findAvailableTcpPort();
       int gpgPort = SocketUtils.findAvailableTcpPort();
 
-      List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort);
+      List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId);
       try {
         startIceAdapterProcess(workDirectory, cmd);
       } catch (IOException e) {
@@ -189,7 +189,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   }
 
   @VisibleForTesting
-  List<String> buildCommand(Path workDirectory, int adapterPort, int gpgPort) {
+  List<String> buildCommand(Path workDirectory, int adapterPort, int gpgPort, int gameId) {
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
     String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
@@ -203,6 +203,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         "-cp", classpath,
         "com.faforever.iceadapter.IceAdapter",
         "--id", String.valueOf(currentPlayer.getId()),
+        "--game-id", String.valueOf(gameId),
         "--login", currentPlayer.getUsername(),
         "--rpc-port", String.valueOf(adapterPort),
         "--gpgnet-port", String.valueOf(gpgPort)
