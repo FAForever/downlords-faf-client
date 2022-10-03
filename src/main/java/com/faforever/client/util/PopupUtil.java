@@ -2,10 +2,12 @@ package com.faforever.client.util;
 
 import com.faforever.client.ui.StageHolder;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Popup;
+import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Screen;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,5 +45,24 @@ public class PopupUtil {
     popup.setAutoFix(true);
     popup.getScene().setRoot(new StackPane(mapImageView));
     popup.show(StageHolder.getStage(), centerScreenX, centerScreenY);
+  }
+
+  public static Popup createPopup(Node content) {
+    return createPopup(null, true, content);
+  }
+
+  public static Popup createPopup(AnchorLocation location, Node content) {
+    return createPopup(location, true, content);
+  }
+
+  public static Popup createPopup(AnchorLocation location, boolean autoHide, Node content) {
+    Popup popup = new Popup();
+    popup.setAutoFix(true);
+    popup.setAutoHide(autoHide);
+    if (location != null) {
+      popup.setAnchorLocation(location);
+    }
+    popup.getContent().setAll(content);
+    return popup;
   }
 }

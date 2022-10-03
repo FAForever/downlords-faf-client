@@ -5,14 +5,11 @@ import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
-import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerService;
-import com.faforever.client.replay.ReplayService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
+import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ContentDisplay;
@@ -33,20 +30,16 @@ import java.util.regex.Pattern;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 public class BrowserCallback implements InitializingBean {
+
   private final PlatformService platformService;
   private final UrlPreviewResolver urlPreviewResolver;
-  private final ReplayService replayService;
   private final EventBus eventBus;
   private final ClanService clanService;
   private final UiService uiService;
-  private final PlayerService playerService;
-  private final I18n i18n;
-  private final NotificationService notificationService;
   private final ClientProperties clientProperties;
   @VisibleForTesting
   Popup clanInfoPopup;
   private Tooltip linkPreviewTooltip;
-  private Popup playerInfoPopup;
   private double lastMouseX;
   private double lastMouseY;
   private Pattern replayUrlPattern;
@@ -128,10 +121,7 @@ public class BrowserCallback implements InitializingBean {
       clanTooltipController.setClan(clan.get());
       clanTooltipController.getRoot().getStyleClass().add("tooltip");
 
-      clanInfoPopup = new Popup();
-      clanInfoPopup.getContent().setAll(clanTooltipController.getRoot());
-      clanInfoPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_LEFT);
-      clanInfoPopup.setAutoHide(true);
+      clanInfoPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_LEFT, clanTooltipController.getRoot());
       clanInfoPopup.show(StageHolder.getStage(), lastMouseX, lastMouseY + 10);
     }));
   }
@@ -156,7 +146,7 @@ public class BrowserCallback implements InitializingBean {
   @SuppressWarnings("unused")
   public void showClanWebsite(String clanTag) {
     clanService.getClanByTag(clanTag).thenAccept(clan -> {
-      if (!clan.isPresent()) {
+      if (clan.isEmpty()) {
         return;
       }
       platformService.showDocument(clan.get().getWebsiteUrl());

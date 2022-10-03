@@ -2,7 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.ToggleButton?>
@@ -25,8 +24,14 @@
                                       <FlowPane hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0" HBox.hgrow="SOMETIMES">
                                           <children>
                                               <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" styleClass="create-game-button" text="%games.create" />
-                                              <CheckBox fx:id="showPasswordProtectedGamesCheckBox" mnemonicParsing="false" text="%games.showPasswordProtectedGames" />
-                                              <CheckBox fx:id="showModdedGamesCheckBox" mnemonicParsing="false" text="%games.showModdedGames" />
+                                              <ToggleButton fx:id="filterButton" mnemonicParsing="false" text="%filter" onAction="#onFilterButtonClicked">
+                                                  <VBox.margin>
+                                                      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                                                  </VBox.margin>
+                                                  <graphic>
+                                                      <Region styleClass="icon,filter-icon,icon16x16"/>
+                                                  </graphic>
+                                              </ToggleButton>
                                               <ComboBox fx:id="chooseSortingTypeChoiceBox" />
                                               <Pane />
                                               <HBox alignment="BASELINE_LEFT" />

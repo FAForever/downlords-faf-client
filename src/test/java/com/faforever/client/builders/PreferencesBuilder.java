@@ -67,12 +67,12 @@ public class PreferencesBuilder {
   }
 
   public PreferencesBuilder showPasswordProtectedGames(boolean showPasswordProtectedGames) {
-    preferences.setShowPasswordProtectedGames(showPasswordProtectedGames);
+    preferences.setHidePrivateGames(showPasswordProtectedGames);
     return this;
   }
 
   public PreferencesBuilder showModdedGames(boolean showModdedGames) {
-    preferences.setShowModdedGames(showModdedGames);
+    preferences.setHideModdedGames(showModdedGames);
     return this;
   }
 

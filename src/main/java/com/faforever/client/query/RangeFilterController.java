@@ -10,9 +10,7 @@ import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
-import javafx.util.StringConverter;
 import lombok.Data;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -44,50 +42,8 @@ public class RangeFilterController implements FilterNodeController {
     rangeSlider.setShowTickLabels(true);
     rangeSlider.setMinorTickCount(0);
     valueTransform = (value) -> value;
-    lowValue.textProperty().bindBidirectional(rangeSlider.lowValueProperty(), new StringConverter<>() {
-      @Override
-      public String toString(Number number) {
-        if (!number.equals(rangeSlider.getMin())) {
-          return String.valueOf(number.intValue());
-        } else {
-          return "";
-        }
-      }
-
-      @Override
-      public Number fromString(String string) {
-        if (NumberUtils.isParsable(string)) {
-          return Double.parseDouble(string);
-        } else {
-          if (!string.equals("-") && !string.equals(".")) {
-            lowValue.setText("");
-          }
-          return rangeSlider.getMin();
-        }
-      }
-    });
-    highValue.textProperty().bindBidirectional(rangeSlider.highValueProperty(), new StringConverter<>() {
-      @Override
-      public String toString(Number number) {
-        if (!number.equals(rangeSlider.getMax())) {
-          return String.valueOf(number.intValue());
-        } else {
-          return "";
-        }
-      }
-
-      @Override
-      public Number fromString(String string) {
-        if (NumberUtils.isParsable(string)) {
-          return Double.parseDouble(string);
-        } else {
-          if (!string.equals("-") && !string.equals(".")) {
-            highValue.setText("");
-          }
-          return rangeSlider.getMax();
-        }
-      }
-    });
+    JavaFxUtil.bindTextFieldAndRangeSlide(lowValue, rangeSlider, false);
+    JavaFxUtil.bindTextFieldAndRangeSlide(highValue, rangeSlider, true);
   }
 
   public Optional<List<Condition>> getCondition() {

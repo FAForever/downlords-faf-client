@@ -37,7 +37,7 @@ public class CountryFlagServiceTest extends ServiceTest {
     String[] inputs = {"d", "D", "dk", "DK"};
     for (String input : inputs) {
       //Act
-      List<String> result = instance.getCountries(input);
+      List<String> result = instance.getISOCountries(input);
 
       //Assert
       assertThat(result, hasItem("DK"));
@@ -51,7 +51,7 @@ public class CountryFlagServiceTest extends ServiceTest {
     final String displayName = "Denmark";
     when(i18n.getCountryNameLocalized("DK")).thenReturn(displayName);
     //Act
-    List<String> result = instance.getCountries(input);
+    List<String> result = instance.getISOCountries(input);
 
     //Assert
     assertThat(result, hasItem("DK"));
@@ -61,7 +61,7 @@ public class CountryFlagServiceTest extends ServiceTest {
   public void shouldFindAllOnEmptyString() {
     //Arrange
     //Act
-    List<String> result = instance.getCountries("");
+    List<String> result = instance.getISOCountries("");
 
     //Assert
     assertThat(result, hasItems("DK", "DE", "GB", "AU", "BE")); //just a list of countries to match for
@@ -71,7 +71,7 @@ public class CountryFlagServiceTest extends ServiceTest {
   public void shouldReturnAllCountriesOnNullInput() {
     //Arrange
     //Act
-    List<String> result = instance.getCountries(null);
+    List<String> result = instance.getISOCountries(null);
 
     //Assert
     assertThat(result, hasItems("DK", "DE", "GB", "AU", "BE")); //just a list of countries to match for

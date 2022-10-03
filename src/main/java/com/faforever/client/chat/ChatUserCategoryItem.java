@@ -35,4 +35,9 @@ public class ChatUserCategoryItem extends ListItem {
   public ChatUserCategory getCategory() {
     return category;
   }
+
+  @Override
+  public boolean isCategory() {
+    return true;
+  }
 }

@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
+import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
@@ -8,6 +9,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -15,8 +17,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.MapProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -44,6 +44,7 @@ import javafx.stage.PopupWindow;
 import javafx.stage.PopupWindow.AnchorLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.textfield.TextFields;
 import org.fxmisc.flowless.Cell;
 import org.fxmisc.flowless.VirtualFlow;
@@ -69,6 +70,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.filter.FilterName.CLAN;
+import static com.faforever.client.filter.FilterName.COUNTRY_CODE;
+import static com.faforever.client.filter.FilterName.GAME_STATUS;
+import static com.faforever.client.filter.FilterName.PLAYER_RATING;
 import static java.util.Locale.US;
 
 @Slf4j
@@ -88,12 +93,12 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   public VBox root;
   public HBox userListTools;
-  public ToggleButton advancedFiltersToggleButton;
+  public ToggleButton filterButton;
   public TextField searchUsernameTextField;
   public Button listCustomizationButton;
   public VBox userListContainer;
 
-  private Popup advancedFiltersPopup;
+  private Popup filterPopup;
   private ChatUserFilterController chatUserFilterController;
 
   private final Map<ChatUserCategory, List<ChatUserItem>> categoriesToUsers = new HashMap<>();
@@ -146,9 +151,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
         updateUserCount();
       });
 
-  private final ChangeListener<Boolean> filterAppliedListener = (observable, oldValue, newValue) ->
-      advancedFiltersToggleButton.setSelected(newValue);
-
   @SuppressWarnings("FieldCanBeLocal")
   private MapChangeListener<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategoriesListener;
 
@@ -174,7 +176,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   public void initialize() {
     searchUsernameTextField = createSearchUsernameTextField();
     userListTools.getChildren().add(1, searchUsernameTextField);
-    initializeAdvancedFiltersPopup();
+    initializeFilter();
   }
 
   private TextField createSearchUsernameTextField() {
@@ -191,7 +193,9 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     this.channelTab = channelTab;
     this.channelName = chatChannel.getName();
     this.chatTabSelectedProperty = chatTabSelectedProperty;
-    this.channelNameToHiddenCategories = preferencesService.getPreferences().getChat().getChannelNameToHiddenCategories();
+    this.channelNameToHiddenCategories = preferencesService.getPreferences()
+        .getChat()
+        .getChannelNameToHiddenCategories();
     this.hiddenCategories = channelNameToHiddenCategories.get(channelName);
 
     prepareData();
@@ -258,7 +262,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
         VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
         scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
-        chatUserFilterController.finalizeFiltersSettings(items, searchUsernameTextField);
+        JavaFxUtil.addAndTriggerListener(chatUserFilterController.getPredicateProperty(), (observable, oldValue, newValue) -> items.setPredicate(newValue));
         JavaFxUtil.runLater(() -> {
           userListContainer.getChildren().add(scrollPane);
           userListTools.setDisable(false);
@@ -306,7 +310,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void onUserJoined(ChatChannelUser user) {
-    playerService.getPlayerByNameIfOnline(user.getUsername()).ifPresent(player -> chatUserService.associatePlayerToChatUser(user, player));
+    playerService.getPlayerByNameIfOnline(user.getUsername())
+        .ifPresent(player -> chatUserService.associatePlayerToChatUser(user, player));
     List<ChatUserItem> chatUserItems = usernameToChatUserList.computeIfAbsent(user.getUsername(), name -> new ArrayList<>());
     if (chatUserItems.isEmpty()) {
       user.getChatUserCategories().forEach(category -> {
@@ -368,35 +373,41 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     JavaFxUtil.runLater(() -> searchUsernameTextField.setPromptText(i18n.get("chat.userCount", chatChannel.getUserCount())));
   }
 
-  private void initializeAdvancedFiltersPopup() {
-    advancedFiltersPopup = new Popup();
-    advancedFiltersPopup.setAutoFix(true);
-    advancedFiltersPopup.setAutoHide(true);
-    advancedFiltersPopup.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT);
+  private void initializeFilter() {
+    chatUserFilterController = uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class);
+    chatUserFilterController.bindExternalFilter(searchUsernameTextField.textProperty(), (text, item) -> item.isCategory() || text.isEmpty()
+        || item.getUser().stream().anyMatch(user -> StringUtils.containsIgnoreCase(user.getUsername(), text)));
+    chatUserFilterController.setFollowingFilters(
+        GAME_STATUS,
+        PLAYER_RATING,
+        COUNTRY_CODE,
+        CLAN
+    );
+    chatUserFilterController.completeSetting();
 
-    chatUserFilterController = uiService.loadFxml("theme/chat/user_filter.fxml");
-    JavaFxUtil.addListener(chatUserFilterController.filterAppliedProperty(), new WeakChangeListener<>(filterAppliedListener));
-    advancedFiltersPopup.getContent().setAll(chatUserFilterController.getRoot());
+
+    JavaFxUtil.addAndTriggerListener(chatUserFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(chatUserFilterController.getFilterState()));
   }
 
   public void onListCustomizationButtonClicked() {
     UserListCustomizationController controller = uiService.loadFxml("theme/chat/user_list_customization.fxml");
-    Popup popup = new Popup();
-    popup.getContent().add(controller.getRoot());
-    popup.setAutoFix(true);
-    popup.setAutoHide(true);
-    popup.setAnchorLocation(AnchorLocation.WINDOW_TOP_RIGHT);
+    Popup popup = PopupUtil.createPopup(AnchorLocation.WINDOW_TOP_RIGHT, controller.getRoot());
     Bounds bounds = listCustomizationButton.localToScreen(listCustomizationButton.getBoundsInLocal());
     popup.show(listCustomizationButton.getScene().getWindow(), bounds.getMaxX(), bounds.getMaxY() + 5);
   }
 
-  public void onAdvancedFiltersToggleButtonClicked() {
-    advancedFiltersToggleButton.setSelected(chatUserFilterController.isFilterApplied());
-    if (advancedFiltersPopup.isShowing()) {
-      advancedFiltersPopup.hide();
+  public void onFilterButtonClicked() {
+    if (filterPopup == null) {
+      filterPopup = PopupUtil.createPopup(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT, chatUserFilterController.getRoot());
+    }
+
+    if (filterPopup.isShowing()) {
+      filterPopup.hide();
     } else {
-      Bounds screenBounds = advancedFiltersToggleButton.localToScreen(advancedFiltersToggleButton.getBoundsInLocal());
-      advancedFiltersPopup.show(advancedFiltersToggleButton.getScene().getWindow(), screenBounds.getMinX() - 10, screenBounds.getMinY());
+      Bounds screenBounds = filterButton.localToScreen(filterButton.getBoundsInLocal());
+      filterPopup.show(filterButton.getScene()
+          .getWindow(), screenBounds.getMinX() - 10, screenBounds.getMinY());
     }
   }
 
@@ -435,6 +446,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   @VisibleForTesting
   void waitForUsersEvent() throws Exception {
-    usersEventQueueExecutor.submit(() -> {  }).get();
+    usersEventQueueExecutor.submit(() -> {
+    }).get();
   }
 }

@@ -6,6 +6,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fa.FaStrings;
+import com.faforever.client.filter.MapFilterController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DualStringListCell;
 import com.faforever.client.fx.JavaFxUtil;
@@ -76,6 +77,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.filter.FilterName.MAP_HEIGHT;
+import static com.faforever.client.filter.FilterName.MAP_WIDTH;
+import static com.faforever.client.filter.FilterName.NUMBER_OF_PLAYERS;
 import static javafx.scene.layout.BackgroundPosition.CENTER;
 import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 
@@ -176,6 +180,7 @@ public class CreateGameController implements Controller<Pane> {
 
     bindGameVisibility();
     initMapSelection();
+    initMapFilterPopup();
     initFeaturedModList();
     initRatingBoundaries();
     selectLastMap();
@@ -192,8 +197,6 @@ public class CreateGameController implements Controller<Pane> {
     JavaFxUtil.addListener(passwordTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
     JavaFxUtil.addListener(featuredModListView.getSelectionModel()
         .selectedItemProperty(), new WeakInvalidationListener(createButtonStateListener));
-
-    initMapFilterPopup();
   }
 
   public void onCloseButtonClicked() {
@@ -232,17 +235,18 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void initMapFilterPopup() {
-    mapFilterPopup = new Popup();
-    mapFilterPopup.setAutoFix(false);
-    mapFilterPopup.setAutoHide(true);
-    mapFilterPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
+    mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
+    mapFilterController.bindExternalFilter(mapSearchTextField.textProperty(), (name, mapVersion) -> name.isEmpty() || mapVersion.getMap().getDisplayName().contains(name));
+    mapFilterController.setFollowingFilters(
+        NUMBER_OF_PLAYERS,
+        MAP_WIDTH,
+        MAP_HEIGHT
+    );
+    mapFilterController.completeSetting();
 
-    mapFilterController = uiService.loadFxml("theme/play/map_filter.fxml");
-    mapFilterController.setMapNameTextField(mapSearchTextField);
-    mapFilterController.getFilterAppliedProperty()
-        .addListener(((observable, old, newValue) -> mapFilterButton.setSelected(newValue)));
-    mapFilterController.setFilteredMapList(filteredMaps);
-    mapFilterPopup.getContent().setAll(mapFilterController.getRoot());
+    JavaFxUtil.addAndTriggerListener(mapFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(mapFilterButton.selectedProperty(), observable -> mapFilterButton.setSelected(mapFilterController.getFilterState()));
+    JavaFxUtil.addListener(mapFilterController.getPredicateProperty(), (observable, oldValue, newValue) -> filteredMaps.setPredicate(newValue));
   }
 
   private void validateTitle(String gameTitle) {
@@ -532,12 +536,15 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   public void onMapFilterButtonClicked() {
-    mapFilterButton.setSelected(mapFilterController.getFilterAppliedProperty().getValue());
+    if (mapFilterPopup == null) {
+      mapFilterPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_RIGHT, mapFilterController.getRoot());
+    }
+
     if (mapFilterPopup.isShowing()) {
       mapFilterPopup.hide();
     } else {
-      Bounds screenBounds = mapSearchTextField.localToScreen(mapSearchTextField.getBoundsInLocal());
-      mapFilterPopup.show(mapSearchTextField.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMinY());
+      Bounds screenBounds = mapFilterButton.localToScreen(mapFilterButton.getBoundsInLocal());
+      mapFilterPopup.show(mapFilterButton.getScene().getWindow(), screenBounds.getMinX() - 10, screenBounds.getMinY());
     }
   }
 

@@ -368,14 +368,14 @@ public class ChatUserServiceTest extends ServiceTest {
   @Test
   public void testStatusToIdle() {
     player.setGame(null);
-    when(i18n.get("game.gameStatus.none")).thenReturn("None");
+    when(i18n.get("game.gameStatus.idle")).thenReturn("Idle");
     instance.associatePlayerToChatUser(chatUser, player);
 
 
     verify(uiService, never()).getThemeImage(anyString());
     assertFalse(chatUser.getMapImage().isPresent());
     assertEquals(PlayerStatus.IDLE, chatUser.getGameStatus().orElse(null));
-    assertEquals("None", chatUser.getStatusTooltipText().orElse(null));
+    assertEquals("Idle", chatUser.getStatusTooltipText().orElse(null));
   }
 
   @Test

@@ -37,6 +37,8 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.controlsfx.control.RangeSlider;
 import org.springframework.util.Assert;
 
 import java.awt.image.BufferedImage;
@@ -487,5 +489,30 @@ public final class JavaFxUtil {
 
   public static void bindManagedToVisible(Node... nodes) {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
+  }
+
+  public static void bindTextFieldAndRangeSlide(TextField textField, RangeSlider rangeSlider, boolean highValue) {
+    textField.textProperty().bindBidirectional(highValue ? rangeSlider.highValueProperty() : rangeSlider.lowValueProperty(), new StringConverter<>() {
+      @Override
+      public String toString(Number number) {
+        if (!number.equals(highValue ? rangeSlider.getMax() : rangeSlider.getMin())) {
+          return String.valueOf(number.intValue());
+        } else {
+          return "";
+        }
+      }
+
+      @Override
+      public Number fromString(String string) {
+        if (NumberUtils.isParsable(string)) {
+          return Double.parseDouble(string);
+        } else {
+          if (!string.equals("-") && !string.equals(".")) {
+            textField.setText("");
+          }
+          return highValue ? rangeSlider.getMax() : rangeSlider.getMin();
+        }
+      }
+    });
   }
 }

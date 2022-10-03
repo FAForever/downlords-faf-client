@@ -353,30 +353,10 @@
   -fx-padding: 0.625em 0.625em 0.125em 0.625em; /* 10 10 2 10 */
 }
 
-/* User List Settings */
-
-.user-list-settings {
-  -fx-background-color: -fx-background;
-  -fx-background: -fx-base;
-  -fx-border-width: 0.0625em; /* 1 */
-  -fx-border-color: -darkened-color;
-  -fx-padding: 0.625em; /* 10 */
-}
-
 /***************** Privat Chat User Info *****************/
 
 .private-chat-user-info-data {
   -fx-font-size: 14px;
-}
-
-/***************** Chat User Filter *****************/
-
-.filter-user {
-  -fx-background-color: -fx-background;
-  -fx-background: -fx-base;
-  -fx-border-width: 0.0625em; /* 1 */
-  -fx-border-color: -darkened-color;
-  -fx-padding: 0.625em; /* 10 */
 }
 
 /***************** Map Filter Window *****************/
@@ -1488,5 +1468,16 @@
 
 .menu-item > .label {
   -fx-text-fill: -menu-item-label-color;
+}
+
+/***************** General Styled Popup *****************/
+
+.filter-popup,
+.user-list-settings {
+    -fx-background-color: -fx-background;
+    -fx-background: -fx-base;
+    -fx-border-width: 0.0625em; /* 1 */
+    -fx-border-color: -darkened-color;
+    -fx-padding: 0.625em; /* 10 */
 }
 

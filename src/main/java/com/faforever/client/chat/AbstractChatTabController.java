@@ -24,6 +24,7 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -762,12 +763,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     EmoticonsWindowController controller = uiService.loadFxml("theme/chat/emoticons/emoticons_window.fxml");
     controller.setTextInputControl(messageTextField());
     messageTextField().requestFocus();
-    Popup window = new Popup();
+    Popup window = PopupUtil.createPopup(AnchorLocation.WINDOW_BOTTOM_RIGHT, controller.getRoot());
     window.setConsumeAutoHidingEvents(false);
-    window.setAutoHide(true);
-    window.setAutoFix(false);
-    window.setAnchorLocation(AnchorLocation.WINDOW_BOTTOM_RIGHT);
-    window.getContent().setAll(controller.getRoot());
     window.show(emoticonsButton.getScene().getWindow(), anchorX, anchorY);
     emoticonsPopupWindowWeakReference = new WeakReference<>(window);
   }
