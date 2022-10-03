@@ -13,7 +13,7 @@
     <items>
         <CustomMenuItem hideOnClick="false" styleClass="filter-popup">
             <content>
-                <VBox fx:id="vBoxContent" spacing="6.0">
+                <VBox fx:id="contentVBox" spacing="6.0">
                     <HBox spacing="6.0" alignment="CENTER">
                         <TextField alignment="CENTER_RIGHT" fx:id="lowValueTextField" promptText="%search.lowValue"/>
                         <Label text="-"/>
