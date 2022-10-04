@@ -2,11 +2,13 @@ package com.faforever.client.vault;
 
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.replay.LocalReplayVaultController;
 import com.faforever.client.replay.OnlineReplayVaultController;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.vault.replay.LiveReplayController;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -24,8 +26,10 @@ public class ReplayController extends AbstractViewController<Node> {
 
   public OnlineReplayVaultController onlineReplayVaultController;
   public LocalReplayVaultController localReplayVaultController;
+  public LiveReplayController liveReplayController;
   public Tab onlineReplayVaultTab;
   public Tab localReplayVaultTab;
+  public Tab liveReplayVaultTab;
   private boolean isHandlingEvent;
   private AbstractViewController<?> lastTabController;
   private Tab lastTab;
@@ -46,6 +50,8 @@ public class ReplayController extends AbstractViewController<Node> {
     onlineReplayVaultTab.setContent(onlineReplayVaultController.getRoot());
     localReplayVaultController = uiService.loadFxml("theme/vault/vault_entity.fxml", LocalReplayVaultController.class);
     localReplayVaultTab.setContent(localReplayVaultController.getRoot());
+    liveReplayController = uiService.loadFxml("theme/vault/replay/live_replays.fxml");
+    liveReplayVaultTab.setContent(liveReplayController.getRoot());
     lastTab = onlineReplayVaultTab;
     lastTabController = onlineReplayVaultController;
     vaultRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -57,8 +63,9 @@ public class ReplayController extends AbstractViewController<Node> {
         eventBus.post(new OpenOnlineReplayVaultEvent());
       } else if (newValue == localReplayVaultTab) {
         eventBus.post(new OpenLocalReplayVaultEvent());
+      } else if (newValue == liveReplayVaultTab) {
+        eventBus.post(new OpenLiveReplayViewEvent());
       }
-      // TODO implement other tabs
     });
   }
 
@@ -73,6 +80,9 @@ public class ReplayController extends AbstractViewController<Node> {
       } else if (navigateEvent instanceof OpenLocalReplayVaultEvent) {
         lastTab = localReplayVaultTab;
         lastTabController = localReplayVaultController;
+      } else if (navigateEvent instanceof OpenLiveReplayViewEvent) {
+        lastTab = liveReplayVaultTab;
+        lastTabController = liveReplayController;
       }
       vaultRoot.getSelectionModel().select(lastTab);
       lastTabController.display(navigateEvent);

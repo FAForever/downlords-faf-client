@@ -4,6 +4,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -47,11 +48,12 @@ public class LiveReplayControllerTest extends UITest {
     Mockito.when(gameService.getGames()).thenReturn(FXCollections.observableArrayList(games));
 
     loadFxml("theme/vault/replay/live_replays.fxml", clazz -> instance);
+    runOnFxThreadAndWait(() -> instance.display(new OpenLiveReplayViewEvent()));
   }
 
   @Test
   public void testOnDisplay() {
-    assertThat(instance.liveReplayControllerRoot.getItems().size(), is(1));
-    assertThat(instance.liveReplayControllerRoot.getItems().get(0).getId(), is(2));
+    assertThat(instance.root.getItems().size(), is(1));
+    assertThat(instance.root.getItems().get(0).getId(), is(2));
   }
 }

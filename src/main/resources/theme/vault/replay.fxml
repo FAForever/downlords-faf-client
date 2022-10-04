@@ -7,9 +7,7 @@
       fx:controller="com.faforever.client.vault.ReplayController">
     <TabPane fx:id="vaultRoot" tabClosingPolicy="UNAVAILABLE">
         <Tab fx:id="onlineReplayVaultTab" text="%vault.onlineReplays"/>
-        <Tab fx:id="liveReplayVaultTab" text="%vault.liveReplays">
-            <fx:include fx:id="liveReplayVault" source="replay/live_replays.fxml"/>
-        </Tab>
+        <Tab fx:id="liveReplayVaultTab" text="%vault.liveReplays" />
         <Tab fx:id="localReplayVaultTab" text="%vault.localReplays"/>
     </TabPane>
 </VBox>
