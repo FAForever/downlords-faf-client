@@ -930,7 +930,7 @@
   -fx-background-radius: 10;
   -fx-border-radius: 10;
   -fx-border-width: 2;
-  -fx-border-color: #424242;
+  -fx-border-color: -divider-color;
 }
 
 .discord-color {
@@ -948,7 +948,7 @@
 .chat-tab-pane {
     -fx-tab-max-height: 0 ;
       -fx-border-width: 0 0 0 2;
-      -fx-border-color: #424242;
+      -fx-border-color: -divider-color;
 }
 
 .chat-tab-pane:bottom {
@@ -1414,10 +1414,14 @@
   -fx-background-color: transparent;
 }
 
+.channel-chat-container {
+  -fx-border-width: 2 0 0 0;
+  -fx-border-color: -divider-color;
+}
+
 .channel-chat-text-field {
   -fx-background-color: transparent;
-  -fx-border-width: 2 0 0 0;
-  -fx-border-color: #424242;
+  -fx-border-width: 0;
 }
 
 .player-detail-info-content {

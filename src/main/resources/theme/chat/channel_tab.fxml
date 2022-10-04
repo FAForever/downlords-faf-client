@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -13,8 +14,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.TextFlow?>
 <?import javafx.scene.web.WebView?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextArea?>
 <Tab fx:id="root" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
      fx:controller="com.faforever.client.chat.ChannelTabController">
     <graphic>
@@ -81,21 +80,21 @@
                                 </ToggleButton>
                             </children>
                         </AnchorPane>
-                        <StackPane>
+                        <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
                             <children>
                                 <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"
                                            onAction="#onSendMessage" promptText="%chat.messagePrompt"
-                                           styleClass="channel-chat-text-field">
+                                           styleClass="channel-chat-text-field" HBox.hgrow="ALWAYS">
                                 </TextField>
                                 <Button fx:id="emoticonsButton" mnemonicParsing="false"
                                         onAction="#openEmoticonsPopupWindow"
-                                        styleClass="open-emoticons-window" StackPane.alignment="CENTER_RIGHT">
+                                        styleClass="open-emoticons-window">
                                     <graphic>
-                                        <Region styleClass="icon,friend-icon"/>
+                                        <Region styleClass="icon, icon24x24, interacting-icon, friend-icon"/>
                                     </graphic>
                                 </Button>
                             </children>
-                        </StackPane>
+                        </HBox>
                     </children>
                 </VBox>
 
