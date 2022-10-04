@@ -20,9 +20,11 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ReplayController extends AbstractViewController<Node> {
+
   private final EventBus eventBus;
   private final UiService uiService;
-  public TabPane vaultRoot;
+
+  public TabPane root;
 
   public OnlineReplayVaultController onlineReplayVaultController;
   public LocalReplayVaultController localReplayVaultController;
@@ -40,8 +42,8 @@ public class ReplayController extends AbstractViewController<Node> {
   }
 
   @Override
-  public Node getRoot() {
-    return vaultRoot;
+  public TabPane getRoot() {
+    return root;
   }
 
   @Override
@@ -54,7 +56,7 @@ public class ReplayController extends AbstractViewController<Node> {
     liveReplayVaultTab.setContent(liveReplayController.getRoot());
     lastTab = onlineReplayVaultTab;
     lastTabController = onlineReplayVaultController;
-    vaultRoot.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+    root.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
       if (isHandlingEvent) {
         return;
       }
@@ -84,7 +86,7 @@ public class ReplayController extends AbstractViewController<Node> {
         lastTab = liveReplayVaultTab;
         lastTabController = liveReplayController;
       }
-      vaultRoot.getSelectionModel().select(lastTab);
+      root.getSelectionModel().select(lastTab);
       lastTabController.display(navigateEvent);
     } finally {
       isHandlingEvent = false;
