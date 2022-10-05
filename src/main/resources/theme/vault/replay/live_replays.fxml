@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-
-<TableView fx:id="liveReplayControllerRoot" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<TableView fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
            minHeight="0.0" minWidth="0.0" styleClass="live-replay-tab" xmlns="http://javafx.com/javafx/16"
            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.vault.replay.LiveReplayController">
     <columns>
