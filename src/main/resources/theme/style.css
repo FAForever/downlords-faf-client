@@ -1474,10 +1474,10 @@
 
 .filter-popup,
 .user-list-settings {
-    -fx-background-color: -fx-background;
-    -fx-background: -fx-base;
-    -fx-border-width: 0.0625em; /* 1 */
-    -fx-border-color: -darkened-color;
-    -fx-padding: 0.625em; /* 10 */
+  -fx-background-color: -fx-background;
+  -fx-background: -fx-base;
+  -fx-border-width: 0.0625em; /* 1 */
+  -fx-border-color: -darkened-color;
+  -fx-padding: 0.625em; /* 10 */
 }
 
