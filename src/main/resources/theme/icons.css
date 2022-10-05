@@ -46,6 +46,10 @@
   -fx-max-height: 0.5em;
 }
 
+.interacting-icon:hover {
+  -fx-background-color: -fx-accent;
+}
+
 .window-button .icon {
   -fx-padding: 0;
 }

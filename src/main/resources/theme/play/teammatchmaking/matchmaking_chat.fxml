@@ -43,19 +43,21 @@
             <WebView fx:id="messagesWebView" VBox.vgrow="ALWAYS" minHeight="100.0" minWidth="100.0" prefHeight="-1.0"
                      prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-            <StackPane>
+            <HBox alignment="CENTER_LEFT" styleClass="channel-chat-container">
                 <children>
-                    <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage"
-                               promptText="%chat.messagePrompt" styleClass="channel-chat-text-field">
+                    <TextField fx:id="messageTextField" maxWidth="1.7976931348623157E308"
+                               onAction="#onSendMessage" promptText="%chat.messagePrompt"
+                               styleClass="channel-chat-text-field" HBox.hgrow="ALWAYS">
                     </TextField>
-                    <Button fx:id="emoticonsButton" mnemonicParsing="false" onAction="#openEmoticonsPopupWindow"
-                            styleClass="open-emoticons-window" StackPane.alignment="CENTER_RIGHT">
+                    <Button fx:id="emoticonsButton" mnemonicParsing="false"
+                            onAction="#openEmoticonsPopupWindow"
+                            styleClass="open-emoticons-window">
                         <graphic>
-                            <Region styleClass="icon,friend-icon"/>
+                            <Region styleClass="icon, icon24x24, interacting-icon, friend-icon"/>
                         </graphic>
                     </Button>
                 </children>
-            </StackPane>
+            </HBox>
         </children>
     </VBox>
 </Tab>
