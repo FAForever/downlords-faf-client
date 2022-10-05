@@ -70,8 +70,8 @@ public class LiveReplayControllerTest extends UITest {
   public void testOnTableViewDisplay() {
     ArgumentCaptor<Predicate<GameBean>> argumentCaptor = ArgumentCaptor.forClass(Predicate.class);
     verify(gameFilterController).setDefaultPredicate(argumentCaptor.capture());
-    assertTrue(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
-    assertFalse(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
+    assertFalse(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
+    assertTrue(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
   }
 
   @Test
