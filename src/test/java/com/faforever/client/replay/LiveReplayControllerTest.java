@@ -5,6 +5,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.GameFilterController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -51,9 +52,6 @@ public class LiveReplayControllerTest extends UITest {
   @InjectMocks
   private LiveReplayController instance;
 
-  private final GameBean openedGame = GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get();
-  private final GameBean livingGame = GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get();
-
   @BeforeEach
   public void setUp() throws Exception {
 
@@ -65,14 +63,15 @@ public class LiveReplayControllerTest extends UITest {
     when(i18n.get(any())).thenReturn("test");
 
     loadFxml("theme/vault/replay/live_replays.fxml", clazz -> instance);
+    runOnFxThreadAndWait(() -> instance.display(new OpenLiveReplayViewEvent()));
   }
 
   @Test
   public void testOnTableViewDisplay() {
     ArgumentCaptor<Predicate<GameBean>> argumentCaptor = ArgumentCaptor.forClass(Predicate.class);
     verify(gameFilterController).setDefaultPredicate(argumentCaptor.capture());
-    assertTrue(argumentCaptor.getValue().test(livingGame));
-    assertFalse(argumentCaptor.getValue().test(openedGame));
+    assertTrue(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
+    assertFalse(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
   }
 
   @Test

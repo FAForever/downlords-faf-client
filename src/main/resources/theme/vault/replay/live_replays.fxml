@@ -15,10 +15,10 @@
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
             </VBox.margin>
             <graphic>
-                <Region styleClass="icon,filter-icon,icon16x16"/>
+                <Region styleClass="icon, filter-icon, icon16x16"/>
             </graphic>
         </ToggleButton>
-        <TableView fx:id="liveReplayTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+        <TableView fx:id="tableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                    minHeight="0.0" minWidth="0.0" styleClass="live-replay-tab" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="mapPreviewColumn" editable="false" minWidth="30.0" resizable="false"

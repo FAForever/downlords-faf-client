@@ -10,6 +10,8 @@ import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.MapPreviewTableCell;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.theme.UiService;
@@ -69,7 +71,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   public VBox root;
   public ToggleButton filterButton;
-  public TableView<GameBean> liveReplayTableView;
+  public TableView<GameBean> tableView;
   public TableColumn<GameBean, Image> mapPreviewColumn;
   public TableColumn<GameBean, OffsetDateTime> startTimeColumn;
   public TableColumn<GameBean, String> gameTitleColumn;
@@ -79,14 +81,22 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, GameBean> watchColumn;
 
+  private boolean initialized = false;
   private GameFilterController gameFilterController;
   private Popup gameFilterPopup;
 
   @Override
   public void initialize() {
-    liveReplayTableView.setSelectionModel(new NoSelectionModelTableView<>(liveReplayTableView));
-    initializeFilterController();
-    initializeGameTable();
+    tableView.setSelectionModel(new NoSelectionModelTableView<>(tableView));
+  }
+
+  @Override
+  protected void onDisplay(NavigateEvent navigateEvent) {
+    if (!initialized && navigateEvent instanceof OpenLiveReplayViewEvent) {
+      initializeFilterController();
+      initializeGameTable();
+      initialized = true;
+    }
   }
 
   private void initializeFilterController() {
@@ -112,7 +122,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
         (observable, oldValue, newValue) -> filteredGameList.setPredicate(newValue));
 
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
-    sortedList.comparatorProperty().bind(liveReplayTableView.comparatorProperty());
+    sortedList.comparatorProperty().bind(tableView.comparatorProperty());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
@@ -136,11 +146,11 @@ public class LiveReplayController extends AbstractViewController<Node> {
     watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
     watchColumn.setCellFactory(param -> new NodeTableCell<>(this::watchReplayButton));
 
-    liveReplayTableView.setItems(sortedList);
+    tableView.setItems(sortedList);
 
     startTimeColumn.setSortType(SortType.DESCENDING);
-    liveReplayTableView.getSortOrder().add(startTimeColumn);
-    liveReplayTableView.sort();
+    tableView.getSortOrder().add(startTimeColumn);
+    tableView.sort();
   }
 
   private Node watchReplayButton(GameBean game) {
