@@ -2,7 +2,6 @@ package com.faforever.client.replay;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.filter.GameFilterController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
@@ -47,7 +46,7 @@ public class LiveReplayControllerTest extends UITest {
   @Mock
   private TimeService timeService;
   @Mock
-  private GameFilterController gameFilterController;
+  private AbstractGameFilterController gameFilterController;
 
   @InjectMocks
   private LiveReplayController instance;
@@ -56,7 +55,7 @@ public class LiveReplayControllerTest extends UITest {
   public void setUp() throws Exception {
 
     when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
-    when(uiService.loadFxml("theme/filter/filter.fxml", GameFilterController.class)).thenReturn(gameFilterController);
+    when(uiService.loadFxml("theme/filter/filter.fxml", AbstractGameFilterController.class)).thenReturn(gameFilterController);
     when(gameFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(gameFilterController.getPredicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(mock(MapPreviewTableCellController.class));

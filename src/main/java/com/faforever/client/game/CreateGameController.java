@@ -77,9 +77,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.filter.FilterName.MAP_HEIGHT;
-import static com.faforever.client.filter.FilterName.MAP_WIDTH;
-import static com.faforever.client.filter.FilterName.NUMBER_OF_PLAYERS;
 import static javafx.scene.layout.BackgroundPosition.CENTER;
 import static javafx.scene.layout.BackgroundRepeat.NO_REPEAT;
 
@@ -237,11 +234,6 @@ public class CreateGameController implements Controller<Pane> {
   private void initMapFilterPopup() {
     mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
     mapFilterController.bindExternalFilter(mapSearchTextField.textProperty(), (name, mapVersion) -> name.isEmpty() || mapVersion.getMap().getDisplayName().contains(name));
-    mapFilterController.setFollowingFilters(
-        NUMBER_OF_PLAYERS,
-        MAP_WIDTH,
-        MAP_HEIGHT
-    );
     mapFilterController.completeSetting();
 
     JavaFxUtil.addAndTriggerListener(mapFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));

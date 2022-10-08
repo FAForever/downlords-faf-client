@@ -1,7 +1,7 @@
 package com.faforever.client.vault.replay;
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.filter.GameFilterController;
+import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.JavaFxUtil;
@@ -51,13 +51,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.filter.FilterName.FEATURE_MOD;
-import static com.faforever.client.filter.FilterName.GAME_TYPE;
-import static com.faforever.client.filter.FilterName.GAME_WITH_FRIENDS;
-import static com.faforever.client.filter.FilterName.ONE_PLAYER;
-import static com.faforever.client.filter.FilterName.PLAYER_NAME;
-import static com.faforever.client.filter.FilterName.SIM_MODS;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
@@ -82,7 +75,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<GameBean, GameBean> watchColumn;
 
   private boolean initialized = false;
-  private GameFilterController gameFilterController;
+  private LiveGamesFilterController liveGamesFilterController;
   private Popup gameFilterPopup;
 
   @Override
@@ -100,25 +93,17 @@ public class LiveReplayController extends AbstractViewController<Node> {
   }
 
   private void initializeFilterController() {
-    gameFilterController = uiService.loadFxml("theme/filter/filter.fxml", GameFilterController.class);
-    gameFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.PLAYING);
-    gameFilterController.setFollowingFilters(
-        SIM_MODS,
-        ONE_PLAYER,
-        GAME_WITH_FRIENDS,
-        GAME_TYPE,
-        FEATURE_MOD,
-        PLAYER_NAME
-    );
-    gameFilterController.completeSetting();
+    liveGamesFilterController = uiService.loadFxml("theme/filter/filter.fxml", LiveGamesFilterController.class);
+    liveGamesFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.PLAYING);
+    liveGamesFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(gameFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
-    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(gameFilterController.getFilterState()));
+    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(liveGamesFilterController.getFilterState()));
   }
 
   private void initializeGameTable() {
     FilteredList<GameBean> filteredGameList = new FilteredList<>(gameService.getGames());
-    JavaFxUtil.addAndTriggerListener(gameFilterController.getPredicateProperty(),
+    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.getPredicateProperty(),
         (observable, oldValue, newValue) -> filteredGameList.setPredicate(newValue));
 
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
@@ -181,7 +166,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   public void onFilterButtonClicked() {
     if (gameFilterPopup == null) {
-      gameFilterPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_LEFT, gameFilterController.getRoot());
+      gameFilterPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_LEFT, liveGamesFilterController.getRoot());
     }
 
     if (gameFilterPopup.isShowing()) {

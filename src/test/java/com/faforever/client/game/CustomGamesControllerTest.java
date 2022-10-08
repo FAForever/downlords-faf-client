@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.filter.GameFilterController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -51,7 +50,7 @@ public class CustomGamesControllerTest extends UITest {
   @Mock
   private GamesTilesContainerController gamesTilesContainerController;
   @Mock
-  private GameFilterController gameFilterController;
+  private AbstractGameFilterController gameFilterController;
 
   private ObservableList<GameBean> games;
   private Preferences preferences;
@@ -74,7 +73,7 @@ public class CustomGamesControllerTest extends UITest {
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(uiService.loadFxml("theme/filter/filter.fxml", GameFilterController.class)).thenReturn(gameFilterController);
+    when(uiService.loadFxml("theme/filter/filter.fxml", AbstractGameFilterController.class)).thenReturn(gameFilterController);
     when(gameFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(gameFilterController.getPredicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
 

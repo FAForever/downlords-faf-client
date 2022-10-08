@@ -71,6 +71,11 @@ public abstract class AbstractRangeSliderFilterController<U, T> extends Abstract
   }
 
   @Override
+  protected U getValue() {
+    return rangeProperty.getValue();
+  }
+
+  @Override
   public Node getRoot() {
     return root;
   }

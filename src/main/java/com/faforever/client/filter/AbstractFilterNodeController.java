@@ -2,22 +2,15 @@ package com.faforever.client.filter;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-public abstract class AbstractFilterNodeController<U, N extends ObservableValue<U>, T> implements Controller<Node> {
-
-  @Getter
-  @Setter
-  private FilterName filterName;
+public abstract class AbstractFilterNodeController<U, N extends Observable, T> implements Controller<Node> {
 
   private final ObjectProperty<Predicate<T>> predicate = new SimpleObjectProperty<>(item -> true);
 
@@ -27,8 +20,10 @@ public abstract class AbstractFilterNodeController<U, N extends ObservableValue<
 
   public abstract N getObservable();
 
+  protected abstract U getValue();
+
   public void registerListener(BiFunction<U, T, Boolean> filter) {
-    JavaFxUtil.addAndTriggerListener(getObservable(), observable -> predicate.set(item -> filter.apply(getObservable().getValue(), item)));
+    JavaFxUtil.addAndTriggerListener(getObservable(), observable -> predicate.set(item -> filter.apply(getValue(), item)));
   }
 
   public ObjectProperty<Predicate<T>> getPredicateProperty() {
@@ -37,9 +32,5 @@ public abstract class AbstractFilterNodeController<U, N extends ObservableValue<
 
   public Predicate<T> getPredicate() {
     return predicate.get();
-  }
-
-  public void bindBidirectional(Property<?> property) {
-    // // To be overridden by subclass
   }
 }

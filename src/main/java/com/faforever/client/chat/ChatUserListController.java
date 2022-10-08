@@ -70,10 +70,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.filter.FilterName.CLAN;
-import static com.faforever.client.filter.FilterName.COUNTRY_CODE;
-import static com.faforever.client.filter.FilterName.GAME_STATUS;
-import static com.faforever.client.filter.FilterName.PLAYER_RATING;
 import static java.util.Locale.US;
 
 @Slf4j
@@ -377,12 +373,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     chatUserFilterController = uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class);
     chatUserFilterController.bindExternalFilter(searchUsernameTextField.textProperty(), (text, item) -> item.isCategory() || text.isEmpty()
         || item.getUser().stream().anyMatch(user -> StringUtils.containsIgnoreCase(user.getUsername(), text)));
-    chatUserFilterController.setFollowingFilters(
-        GAME_STATUS,
-        PLAYER_RATING,
-        COUNTRY_CODE,
-        CLAN
-    );
     chatUserFilterController.completeSetting();
 
 

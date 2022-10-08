@@ -7,7 +7,8 @@ import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
@@ -19,7 +20,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.textfield.TextFields;
@@ -33,7 +33,7 @@ import java.util.List;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeController<List<U>, ObjectBinding<List<U>>, T> {
+public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeController<List<U>, ListProperty<U>, T> {
 
   public static int ITEM_AMOUNT_TO_ENABLE_SEARCH_BAR = 10;
 
@@ -45,8 +45,8 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   public CheckListView<String> listView;
 
   private final ObservableList<U> selectedItems = FXCollections.observableArrayList();
+  private final ListProperty<U> property = new SimpleListProperty<>(selectedItems);
   private final ObservableList<String> selectedStringItems = FXCollections.observableArrayList();
-  private final ObjectBinding<List<U>> observable =  Bindings.createObjectBinding(() -> Lists.newArrayList(selectedItems.listIterator()), selectedItems);
 
   private StringConverter<U> converter;
   private List<U> sourceList;
@@ -76,8 +76,13 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   }
 
   @Override
-  public ObjectBinding<List<U>> getObservable() {
-    return observable;
+  public ListProperty<U> getObservable() {
+    return property;
+  }
+
+  @Override
+  protected List<U> getValue() {
+    return property.getValue();
   }
 
   @Override

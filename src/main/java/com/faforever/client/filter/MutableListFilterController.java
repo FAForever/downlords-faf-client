@@ -8,9 +8,8 @@ import com.faforever.client.ui.list.NoFocusModelListView;
 import com.faforever.client.ui.list.NoSelectionModelListView;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.Property;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
@@ -18,7 +17,6 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -29,7 +27,7 @@ import java.util.List;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class MutableListFilterController<T> extends AbstractFilterNodeController<List<String>, ObjectBinding<List<String>>, T> {
+public class MutableListFilterController<T> extends AbstractFilterNodeController<List<String>, ListProperty<String>, T> {
 
   private final UiService uiService;
   private final I18n i18n;
@@ -39,9 +37,7 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   public TextField addItemTextField;
 
   private final ObservableList<String> items = FXCollections.observableArrayList();
-  private final ObjectBinding<List<String>> observable =  Bindings.createObjectBinding(() -> Lists.newArrayList(items.listIterator()), items);
-
-  private boolean bound;
+  private final ListProperty<String> property = new SimpleListProperty<>(items);
 
   @Override
   public void initialize() {
@@ -64,12 +60,12 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
 
   @Override
   public boolean hasDefaultValue() {
-    return bound || items.isEmpty();
+    return property.isBound() || items.isEmpty();
   }
 
   @Override
   public void resetFilter() {
-    if (!bound) {
+    if (!property.isBound()) {
       items.clear();
     }
   }
@@ -84,20 +80,13 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   }
 
   @Override
-  public ObjectBinding<List<String>> getObservable() {
-    return observable;
+  public ListProperty<String> getObservable() {
+    return property;
   }
 
   @Override
-  public void bindBidirectional(Property<?> property) {
-    if (property instanceof ListProperty<?>) {
-      ListProperty<String> listProperty = ((ListProperty<String>) property);
-      items.setAll(listProperty.getValue());
-      JavaFxUtil.addListener(items, (InvalidationListener) observable -> listProperty.setAll(items));
-      bound = true;
-    } else {
-      throw new IllegalArgumentException("Property have should instance of class " + ListProperty.class.getSimpleName());
-    }
+  protected List<String> getValue() {
+    return property.getValue();
   }
 
   @Override

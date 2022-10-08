@@ -1,6 +1,6 @@
 package com.faforever.client.filter;
 
-import javafx.beans.property.Property;
+import javafx.beans.property.StringProperty;
 import javafx.scene.control.TextField;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class FilterTextFieldController<T> extends AbstractFilterNodeController<String, Property<String>, T> {
+public class FilterTextFieldController<T> extends AbstractFilterNodeController<String, StringProperty, T> {
 
   public TextField root;
 
@@ -23,8 +23,13 @@ public class FilterTextFieldController<T> extends AbstractFilterNodeController<S
   }
 
   @Override
-  public Property<String> getObservable() {
+  public StringProperty getObservable() {
     return root.textProperty();
+  }
+
+  @Override
+  protected String getValue() {
+    return root.textProperty().getValue();
   }
 
   @Override

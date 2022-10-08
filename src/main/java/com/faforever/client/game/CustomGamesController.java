@@ -1,8 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.filter.FilterName;
-import com.faforever.client.filter.GameFilterController;
+import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
@@ -75,7 +74,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private FilteredList<GameBean> filteredItems;
   private Preferences preferences;
-  private GameFilterController gameFilterController;
+  private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
   private GamesTableController gamesTableController;
   private GamesTilesContainerController gamesTilesContainerController;
@@ -110,7 +109,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     ObservableList<GameBean> games = gameService.getGames();
     filteredItems = new FilteredList<>(games);
-    JavaFxUtil.addAndTriggerListener(gameFilterController.getPredicateProperty(),
+    JavaFxUtil.addAndTriggerListener(customGamesFilterController.getPredicateProperty(),
         (observable, oldValue, newValue) -> filteredItems.setPredicate(newValue));
 
     if (tilesButton.getId().equals(preferences.getGamesViewMode())) {
@@ -148,26 +147,19 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   private void initializeFilterController() {
-    gameFilterController = uiService.loadFxml("theme/filter/filter.fxml", GameFilterController.class);
-    gameFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM);
-    gameFilterController.setFollowingFilters(
-        FilterName.PRIVATE_GAME,
-        FilterName.SIM_MODS,
-        FilterName.FEATURE_MOD,
-        FilterName.MAP_FOLDER_NAME_BLACKLIST
-    );
-
-    gameFilterController.bindBidirectional(FilterName.PRIVATE_GAME, preferences.hidePrivateGamesProperty());
-    gameFilterController.bindBidirectional(FilterName.SIM_MODS, preferences.hideModdedGamesProperty());
-    gameFilterController.bindBidirectional(FilterName.MAP_FOLDER_NAME_BLACKLIST, preferences.getFilters().mapNameBlacklistProperty());
+    customGamesFilterController = uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class);
+    customGamesFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM);
+    JavaFxUtil.bindBidirectional(customGamesFilterController.getPrivateGamesProperty(), preferences.hidePrivateGamesProperty());
+    JavaFxUtil.bindBidirectional(customGamesFilterController.getSimsModsProperty(), preferences.hideModdedGamesProperty());
+    JavaFxUtil.bindBidirectional(customGamesFilterController.getMapFolderNameBlackListProperty(), preferences.getFilters().mapNameBlacklistProperty());
     JavaFxUtil.addListener(preferences.hideModdedGamesProperty(), observable -> preferencesService.storeInBackground());
     JavaFxUtil.addListener(preferences.hidePrivateGamesProperty(), observable -> preferencesService.storeInBackground());
     JavaFxUtil.addListener(preferences.getFilters().mapNameBlacklistProperty(), (InvalidationListener) observable -> preferencesService.storeInBackground());
 
-    gameFilterController.completeSetting();
+    customGamesFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(gameFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
-    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(gameFilterController.getFilterState()));
+    JavaFxUtil.addAndTriggerListener(customGamesFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(customGamesFilterController.getFilterState()));
   }
 
   @Override
@@ -254,7 +246,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public void onFilterButtonClicked() {
     if (gameFilterPopup == null) {
-      gameFilterPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_LEFT, gameFilterController.getRoot());
+      gameFilterPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_LEFT, customGamesFilterController.getRoot());
     }
 
     if (gameFilterPopup.isShowing()) {

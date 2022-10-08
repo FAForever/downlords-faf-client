@@ -43,16 +43,18 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
 
   private final BooleanProperty filterStateProperty = new SimpleBooleanProperty(false);
   private final ObjectProperty<Predicate<T>> predicateProperty = new SimpleObjectProperty<>(defaultPredicate);
-  private final FilterBuilder<T> filterBuilder;
 
-  protected AbstractFilterController(UiService uiService, I18n i18n) {
+  public AbstractFilterController(UiService uiService, I18n i18n) {
     this.i18n = i18n;
     this.uiService = uiService;
-
-    filterBuilder = new FilterBuilder<>(uiService, filters::add);
   }
 
-  protected abstract void build(FilterBuilder<T> filterBuilder, List<FilterName> filterNames);
+  @Override
+  public void initialize() {
+    build(new FilterBuilder<>(uiService, filters::add));
+  }
+
+  protected abstract void build(FilterBuilder<T> filterBuilder);
 
   public BooleanProperty getFilterStateProperty() {
     return filterStateProperty;
@@ -71,20 +73,8 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
     predicateProperty.setValue(defaultPredicate);
   }
 
-  public void setFollowingFilters(FilterName... filterNames) {
-    build(filterBuilder, List.of(filterNames));
-  }
-
   private void setFilterContent() {
     filtersContent.getChildren().setAll(filters.stream().map(Controller::getRoot).toList());
-  }
-
-  public void bindBidirectional(FilterName filterName, Property<?> property) {
-    filters.stream()
-        .filter(controller -> controller.getFilterName() == filterName)
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException(filterName.name() + " filter not found"))
-        .bindBidirectional(property);
   }
 
   public void completeSetting() {

@@ -43,7 +43,7 @@ public class GameFilterControllerTest extends UITest {
   private PlayerService playerService;
 
   @InjectMocks
-  private GameFilterController instance;
+  private AbstractGameFilterController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
