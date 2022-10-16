@@ -119,9 +119,13 @@ public class IceAdapterImplTest extends ServiceTest {
     PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 
-    List<String> command = instance.buildCommand(Path.of("."), 0 , 0);
+    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
 
-    String javaPath = Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
+    String javaPath = Path.of(System.getProperty("java.home"))
+        .resolve("bin")
+        .resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java")
+        .toAbsolutePath()
+        .toString();
 
     assertEquals(javaPath, command.get(0));
     assertEquals("-cp", command.get(1));
@@ -130,15 +134,17 @@ public class IceAdapterImplTest extends ServiceTest {
     assertEquals("com.faforever.iceadapter.IceAdapter", command.get(3));
     assertEquals("--id", command.get(4));
     assertEquals(String.valueOf(currentPlayer.getId()), command.get(5));
-    assertEquals("--login", command.get(6));
-    assertEquals(currentPlayer.getUsername(), command.get(7));
-    assertEquals("--rpc-port", command.get(8));
-    assertEquals(String.valueOf(0), command.get(9));
-    assertEquals("--gpgnet-port", command.get(10));
+    assertEquals("--game-id", command.get(6));
+    assertEquals(String.valueOf(4711), command.get(7));
+    assertEquals("--login", command.get(8));
+    assertEquals(currentPlayer.getUsername(), command.get(9));
+    assertEquals("--rpc-port", command.get(10));
     assertEquals(String.valueOf(0), command.get(11));
-    assertEquals("--force-relay", command.get(12));
-    assertEquals("--debug-window", command.get(13));
-    assertEquals("--info-window", command.get(14));
+    assertEquals("--gpgnet-port", command.get(12));
+    assertEquals(String.valueOf(0), command.get(13));
+    assertEquals("--force-relay", command.get(14));
+    assertEquals("--debug-window", command.get(15));
+    assertEquals("--info-window", command.get(16));
   }
 
   @Test
