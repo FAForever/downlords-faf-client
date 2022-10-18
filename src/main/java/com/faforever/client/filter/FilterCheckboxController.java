@@ -32,6 +32,7 @@ public class FilterCheckboxController<T> extends AbstractFilterNodeController<Bo
   }
 
   public void bindBidirectional(BooleanProperty property) {
+    // property.isBound() only changes when property.bind(...) method is called
     bound = true;
     JavaFxUtil.bindBidirectional(root.selectedProperty(), property);
   }

@@ -80,6 +80,7 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   }
 
   public void bindBidirectional(ListProperty<String> property) {
+    // property.isBound() only changes when property.bind(...) method is called
     bound = true;
     JavaFxUtil.bindBidirectional(this.property, property);
   }
