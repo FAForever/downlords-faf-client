@@ -5,6 +5,7 @@ import com.faforever.client.filter.converter.FeaturedModConverter;
 import com.faforever.client.filter.function.FeaturedModFilterFunction;
 import com.faforever.client.filter.function.SimModsFilterFunction;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
@@ -24,11 +25,13 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
 
   private final PlayerService playerService;
   private final ModService modService;
+  private final MapGeneratorService mapGeneratorService;
 
-  public LiveGamesFilterController(UiService uiService, I18n i18n, ModService modService, PlayerService playerService) {
+  public LiveGamesFilterController(UiService uiService, I18n i18n, ModService modService, PlayerService playerService, MapGeneratorService mapGeneratorService) {
     super(uiService, i18n);
     this.modService = modService;
     this.playerService = playerService;
+    this.mapGeneratorService = mapGeneratorService;
   }
 
   @Override
@@ -38,6 +41,8 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
     filterBuilder.checkbox(i18n.get("hideSingleGames"), (selected, game) -> !selected || game.getNumPlayers() != 1);
 
     filterBuilder.checkbox(i18n.get("showGamesWithFriends"), (selected, game) -> !selected || playerService.areFriendsInGame(game));
+
+    filterBuilder.checkbox(i18n.get("showGeneratedMaps"), (selected, game) -> !selected || mapGeneratorService.isGeneratedMap(game.getMapFolderName()));
 
     filterBuilder.multiCheckbox(i18n.get("gameType"), List.of(GameType.CUSTOM, GameType.MATCHMAKER, GameType.COOP), gameTypeConverter,
         (selectedGameTypes, game) -> selectedGameTypes.isEmpty() || selectedGameTypes.contains(game.getGameType()));

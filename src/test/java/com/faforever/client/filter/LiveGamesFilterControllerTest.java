@@ -2,6 +2,7 @@ package com.faforever.client.filter;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
@@ -39,6 +40,8 @@ public class LiveGamesFilterControllerTest extends UITest {
   private ModService modService;
   @Mock
   private PlayerService playerService;
+  @Mock
+  private MapGeneratorService mapGeneratorService;
 
   @Mock
   private FilterCheckboxController<GameBean> singleGamesController;
@@ -48,6 +51,8 @@ public class LiveGamesFilterControllerTest extends UITest {
   private FilterMultiCheckboxController<GameType, GameBean> gameTypeController;
   @Mock
   private FilterTextFieldController<GameBean> playerNameController;
+  @Mock
+  private FilterCheckboxController<GameBean> generatedMapsController;
 
   @InjectMocks
   private LiveGamesFilterController instance;
@@ -59,6 +64,7 @@ public class LiveGamesFilterControllerTest extends UITest {
         mock(FilterCheckboxController.class), // Sim mods
         singleGamesController,
         gamesWithFriendsController,
+        generatedMapsController,
         gameTypeController,
         mock(FilterMultiCheckboxController.class), // Featured mods
         playerNameController
@@ -124,6 +130,22 @@ public class LiveGamesFilterControllerTest extends UITest {
     assertTrue(filter.apply(false, game));
 
     when(playerService.areFriendsInGame(game)).thenReturn(false, true);
+    assertFalse(filter.apply(true, game));
+    assertTrue(filter.apply(true, game));
+  }
+
+  @Test
+  public void testGeneratedMapsFilter() {
+    ArgumentCaptor<BiFunction<Boolean, GameBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    verify(generatedMapsController).registerListener(argumentCaptor.capture());
+
+    GameBean game = create().defaultValues().get();
+
+    BiFunction<Boolean, GameBean, Boolean> filter = argumentCaptor.getValue();
+
+    assertTrue(filter.apply(false, game));
+
+    when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(false, true);
     assertFalse(filter.apply(true, game));
     assertTrue(filter.apply(true, game));
   }
