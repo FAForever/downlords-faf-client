@@ -2,7 +2,7 @@ package com.faforever.client.filter;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
-import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.ListProperty;
 import javafx.util.StringConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -132,6 +132,6 @@ public class FilterMultiCheckboxControllerTest extends UITest {
 
   @Test
   public void testGetObservable() {
-    assertInstanceOf(ObjectBinding.class, instance.getObservable());
+    assertInstanceOf(ListProperty.class, instance.getObservable());
   }
 }

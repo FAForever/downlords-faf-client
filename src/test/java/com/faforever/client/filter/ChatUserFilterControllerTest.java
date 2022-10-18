@@ -31,10 +31,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
-import static com.faforever.client.filter.FilterName.MAP_WIDTH;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,22 +50,35 @@ public class ChatUserFilterControllerTest extends UITest {
   @Mock
   private LeaderboardService leaderboardService;
 
+  @Mock
+  private FilterTextFieldController<ListItem> clanFilter;
+  @Mock
+  private FilterMultiCheckboxController<PlayerStatus, ListItem> playerStatusFilter;
+  @Mock
+  private RangeSliderWithChoiceFilterController<LeaderboardBean, ListItem> playerRatingFilter;
+  @Mock
+  private FilterMultiCheckboxController<Country, ListItem> countryFilter;
+
+  private final LeaderboardBean ladder = LeaderboardBeanBuilder.create().defaultValues().technicalName("ladder").get();
+  private final LeaderboardBean global = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
+
   @InjectMocks
   private ChatUserFilterController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
+    // Order is important
+    when(uiService.loadFxml(anyString())).thenReturn(clanFilter, playerStatusFilter, countryFilter);
+    when(uiService.loadFxml(anyString(), eq(RangeSliderWithChoiceFilterController.class))).thenReturn(playerRatingFilter);
+    when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(ladder, global)));
+
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }
 
   @Test
   public void testClanFilter() {
-    FilterTextFieldController<ListItem> controller = FilterTestUtil.mockFilter(FilterTextFieldController.class, uiService);
-
-    instance.setFollowingFilters(FilterName.CLAN);
-
     ArgumentCaptor<BiFunction<String, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
-    verify(controller).registerListener(argumentCaptor.capture());
+    verify(clanFilter).registerListener(argumentCaptor.capture());
 
     ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, "channel");
     ListItem user1 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
@@ -89,12 +102,8 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testGameStatusFilter() {
-    FilterMultiCheckboxController<PlayerStatus, ListItem> controller = FilterTestUtil.mockFilter(FilterMultiCheckboxController.class, uiService);
-
-    instance.setFollowingFilters(FilterName.GAME_STATUS);
-
     ArgumentCaptor<BiFunction<List<PlayerStatus>, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
-    verify(controller).registerListener(argumentCaptor.capture());
+    verify(playerStatusFilter).registerListener(argumentCaptor.capture());
 
     ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, "channel");
     ListItem idleUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel").player(
@@ -126,15 +135,8 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testPlayerRatingFilter() {
-    LeaderboardBean ladder = LeaderboardBeanBuilder.create().defaultValues().technicalName("ladder").get();
-    LeaderboardBean global = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
-    when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(ladder, global)));
-    RangeSliderWithChoiceFilterController<LeaderboardBean, ListItem> controller = FilterTestUtil.mockFilter(RangeSliderWithChoiceFilterController.class, uiService);
-
-    instance.setFollowingFilters(FilterName.PLAYER_RATING);
-
     ArgumentCaptor<BiFunction<ItemWithRange<LeaderboardBean, Integer>, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
-    verify(controller).registerListener(argumentCaptor.capture());
+    verify(playerRatingFilter).registerListener(argumentCaptor.capture());
 
     ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, "channel");
     ListItem user1 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
@@ -182,12 +184,8 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testCountryCodeFilter() {
-    FilterMultiCheckboxController<Country, ListItem> controller = FilterTestUtil.mockFilter(FilterMultiCheckboxController.class, uiService);
-
-    instance.setFollowingFilters(FilterName.COUNTRY_CODE);
-
     ArgumentCaptor<BiFunction<List<Country>, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
-    verify(controller).registerListener(argumentCaptor.capture());
+    verify(countryFilter).registerListener(argumentCaptor.capture());
 
     ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, "channel");
     ListItem russiaUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
@@ -217,10 +215,5 @@ public class ChatUserFilterControllerTest extends UITest {
     assertTrue(filter.apply(de, category));
     assertFalse(filter.apply(de, russiaUser));
     assertFalse(filter.apply(de, americanUser));
-  }
-
-  @Test
-  public void testThrowExceptionWhenFilterNotExist() {
-    assertThrows(IllegalArgumentException.class, () -> instance.setFollowingFilters(MAP_WIDTH));
   }
 }

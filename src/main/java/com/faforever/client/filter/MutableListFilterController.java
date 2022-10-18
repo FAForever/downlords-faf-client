@@ -11,7 +11,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
@@ -36,47 +35,53 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   public ListView<String> listView;
   public TextField addItemTextField;
 
-  private final ObservableList<String> items = FXCollections.observableArrayList();
-  private final ListProperty<String> property = new SimpleListProperty<>(items);
+  private final ListProperty<String> property = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private boolean bound;
 
   @Override
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(listView);
     listView.setSelectionModel(new NoSelectionModelListView<>());
     listView.setFocusModel(new NoFocusModelListView<>());
 
-    listView.setItems(items);
-    listView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
-
-    JavaFxUtil.bindManagedToVisible(listView);
-    JavaFxUtil.addAndTriggerListener(items, (InvalidationListener)  observable -> listView.setVisible(!items.isEmpty()));
-
-    addItemTextField.setOnAction(event -> {
-      if (!addItemTextField.getText().isEmpty()) {
-        items.add(addItemTextField.getText());
-        addItemTextField.clear();
-      }
+    JavaFxUtil.addAndTriggerListener(property, (InvalidationListener) observable -> {
+      listView.setItems(property.getValue());
+      JavaFxUtil.bind(listView.visibleProperty(), property.emptyProperty().not());
     });
+    listView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
+  }
+
+  public void onAddItem() {
+    if (!addItemTextField.getText().isEmpty()) {
+      property.getValue().add(addItemTextField.getText());
+      addItemTextField.clear();
+    }
   }
 
   @Override
   public boolean hasDefaultValue() {
-    return property.isBound() || items.isEmpty();
+    return bound || property.getValue().isEmpty();
   }
 
   @Override
   public void resetFilter() {
-    if (!property.isBound()) {
-      items.clear();
+    if (!bound) {
+      property.getValue().clear();
     }
   }
 
   public void setText(String text) {
     JavaFxUtil.bind(root.textProperty(), Bindings.createStringBinding(() -> i18n.get("filter.category", text,
-        String.join(", ", items)), items));
+        String.join(", ", property.getValue())), property, property.getValue()));
   }
 
   public void setPromptText(String promptText) {
     addItemTextField.setPromptText(promptText);
+  }
+
+  public void bindBidirectional(ListProperty<String> property) {
+    bound = true;
+    JavaFxUtil.bindBidirectional(this.property, property);
   }
 
   @Override

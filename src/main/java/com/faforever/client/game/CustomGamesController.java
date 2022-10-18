@@ -149,9 +149,9 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private void initializeFilterController() {
     customGamesFilterController = uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class);
     customGamesFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM);
-    JavaFxUtil.bindBidirectional(customGamesFilterController.getPrivateGamesProperty(), preferences.hidePrivateGamesProperty());
-    JavaFxUtil.bindBidirectional(customGamesFilterController.getSimsModsProperty(), preferences.hideModdedGamesProperty());
-    JavaFxUtil.bindBidirectional(customGamesFilterController.getMapFolderNameBlackListProperty(), preferences.getFilters().mapNameBlacklistProperty());
+    customGamesFilterController.bindBidirectionalToPrivateGamesProperty(preferences.hidePrivateGamesProperty());
+    customGamesFilterController.bindBidirectionalToSimsModsProperty(preferences.hideModdedGamesProperty());
+    customGamesFilterController.bindBidirectionalToMapFolderNameBlackListProperty(preferences.getFilters().mapNameBlacklistProperty());
     JavaFxUtil.addListener(preferences.hideModdedGamesProperty(), observable -> preferencesService.storeInBackground());
     JavaFxUtil.addListener(preferences.hidePrivateGamesProperty(), observable -> preferencesService.storeInBackground());
     JavaFxUtil.addListener(preferences.getFilters().mapNameBlacklistProperty(), (InvalidationListener) observable -> preferencesService.storeInBackground());

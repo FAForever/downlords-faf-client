@@ -42,15 +42,15 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
             .noneMatch(name -> game.getMapFolderName().contains(name)));
   }
 
-  public BooleanProperty getPrivateGamesProperty() {
-    return privateGameFilter.getObservable();
+  public void bindBidirectionalToPrivateGamesProperty(BooleanProperty property) {
+    privateGameFilter.bindBidirectional(property);
   }
 
-  public BooleanProperty getSimsModsProperty() {
-    return simModsFilter.getObservable();
+  public void bindBidirectionalToSimsModsProperty(BooleanProperty property) {
+    simModsFilter.bindBidirectional(property);
   }
 
-  public ListProperty<String> getMapFolderNameBlackListProperty() {
-    return mapFolderNameBlackListFilter.getObservable();
+  public void bindBidirectionalToMapFolderNameBlackListProperty(ListProperty<String> property) {
+    mapFolderNameBlackListFilter.bindBidirectional(property);
   }
 }

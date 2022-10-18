@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
@@ -46,7 +47,7 @@ public class LiveReplayControllerTest extends UITest {
   @Mock
   private TimeService timeService;
   @Mock
-  private AbstractGameFilterController gameFilterController;
+  private LiveGamesFilterController liveGamesFilterController;
 
   @InjectMocks
   private LiveReplayController instance;
@@ -55,9 +56,9 @@ public class LiveReplayControllerTest extends UITest {
   public void setUp() throws Exception {
 
     when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
-    when(uiService.loadFxml("theme/filter/filter.fxml", AbstractGameFilterController.class)).thenReturn(gameFilterController);
-    when(gameFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
-    when(gameFilterController.getPredicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    when(uiService.loadFxml("theme/filter/filter.fxml", LiveGamesFilterController.class)).thenReturn(liveGamesFilterController);
+    when(liveGamesFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(liveGamesFilterController.getPredicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(mock(MapPreviewTableCellController.class));
     when(i18n.get(any())).thenReturn("test");
 
@@ -68,19 +69,19 @@ public class LiveReplayControllerTest extends UITest {
   @Test
   public void testFilterOnlyLiveGames() {
     ArgumentCaptor<Predicate<GameBean>> argumentCaptor = ArgumentCaptor.forClass(Predicate.class);
-    verify(gameFilterController).setDefaultPredicate(argumentCaptor.capture());
+    verify(liveGamesFilterController).setDefaultPredicate(argumentCaptor.capture());
     assertFalse(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
     assertTrue(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
   }
 
   @Test
   public void testOnFilterButtonClicked() {
-    when(gameFilterController.getRoot()).thenReturn(new SplitPane());
+    when(liveGamesFilterController.getRoot()).thenReturn(new SplitPane());
     runOnFxThreadAndWait(() -> {
       getRoot().getChildren().add(instance.getRoot());
       instance.onFilterButtonClicked();
     });
-    Window window = gameFilterController.getRoot().getParent().getScene().getWindow();
+    Window window = liveGamesFilterController.getRoot().getParent().getScene().getWindow();
     assertTrue(window.getClass().isAssignableFrom(Popup.class));
     assertTrue(window.isShowing());
 

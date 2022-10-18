@@ -3,11 +3,9 @@ package com.faforever.client.filter;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
@@ -56,7 +53,7 @@ public class MutableListFilterControllerTest extends UITest {
   }
 
   @Test
-  public void testResetFilterWhenBounded() {
+  public void testResetFilterWhenBound() {
     runOnFxThreadAndWait(() -> instance.bindBidirectional(new SimpleListProperty<>(FXCollections.observableArrayList("1", "2"))));
     assertFalse(instance.listView.getItems().isEmpty());
     runOnFxThreadAndWait(() -> instance.resetFilter());
@@ -65,18 +62,13 @@ public class MutableListFilterControllerTest extends UITest {
 
   @Test
   public void testBindBidirectional() {
-    ObservableList<String> list = FXCollections.observableArrayList("1", "2");
-    SimpleListProperty<String> property = new SimpleListProperty<>(list);
+    SimpleListProperty<String> property = new SimpleListProperty<>(FXCollections.observableArrayList("1", "2"));
     runOnFxThreadAndWait(() -> instance.bindBidirectional(property));
     assertLinesMatch(List.of("1", "2"), instance.listView.getItems());
 
     runOnFxThreadAndWait(() -> addItemToList("3"));
-    assertLinesMatch(instance.listView.getItems(), property.getValue());
-  }
-
-  @Test
-  public void testBindBidirectionalAndThrowException() {
-    assertThrows(IllegalArgumentException.class, () -> instance.bindBidirectional(new SimpleDoubleProperty()));
+    assertLinesMatch(List.of("1", "2", "3"), property.getValue());
+    assertLinesMatch(List.of("1", "2", "3"), instance.listView.getItems());
   }
 
   @Test
@@ -87,7 +79,7 @@ public class MutableListFilterControllerTest extends UITest {
   }
 
   @Test
-  public void testHasDefaultValueWhenBounded() {
+  public void testHasDefaultValueWhenBound() {
     runOnFxThreadAndWait(() -> instance.bindBidirectional(new SimpleListProperty<>(FXCollections.observableArrayList())));
     assertTrue(instance.hasDefaultValue());
   }
@@ -107,7 +99,7 @@ public class MutableListFilterControllerTest extends UITest {
 
   @Test
   public void testGetObservable() {
-    assertInstanceOf(ObjectBinding.class, instance.getObservable());
+    assertInstanceOf(ListProperty.class, instance.getObservable());
   }
 
   @Test

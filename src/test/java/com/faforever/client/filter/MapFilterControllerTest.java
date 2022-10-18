@@ -15,11 +15,12 @@ import org.mockito.Mock;
 
 import java.util.function.BiFunction;
 
-import static com.faforever.client.filter.FilterName.GAME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 public class MapFilterControllerTest extends UITest {
@@ -29,27 +30,28 @@ public class MapFilterControllerTest extends UITest {
   @Mock
   private UiService uiService;
 
+  @Mock
+  private RangeSliderFilterController<MapVersionBean> mapWidthFilter;
+  @Mock
+  private RangeSliderFilterController<MapVersionBean> mapHeightFilter;
+  @Mock
+  private RangeSliderFilterController<MapVersionBean> numberOfPlayersFilter;
+
   @InjectMocks
   private MapFilterController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
+    // Order is important
+    when(uiService.loadFxml(anyString(), eq(RangeSliderFilterController.class))).thenReturn(mapWidthFilter, mapHeightFilter, numberOfPlayersFilter);
+
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }
 
   @Test
-  public void testThrowExceptionWhenFilterNotExist() {
-    assertThrows(IllegalArgumentException.class, () -> instance.setFollowingFilters(GAME_TYPE));
-  }
-
-  @Test
   public void testMapWidthFilter() {
-    RangeSliderFilterController<MapVersionBean> controller = FilterTestUtil.mockFilter(RangeSliderFilterController.class, uiService);
-
-    instance.setFollowingFilters(FilterName.MAP_WIDTH);
-
     ArgumentCaptor<BiFunction<Range<Integer>, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
-    verify(controller).registerListener(argumentCaptor.capture());
+    verify(mapWidthFilter).registerListener(argumentCaptor.capture());
 
     BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
@@ -66,12 +68,8 @@ public class MapFilterControllerTest extends UITest {
 
   @Test
   public void testMapHeightFilter() {
-    RangeSliderFilterController<MapVersionBean> controller = FilterTestUtil.mockFilter(RangeSliderFilterController.class, uiService);
-
-    instance.setFollowingFilters(FilterName.MAP_HEIGHT);
-
     ArgumentCaptor<BiFunction<Range<Integer>, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
-    verify(controller).registerListener(argumentCaptor.capture());
+    verify(mapHeightFilter).registerListener(argumentCaptor.capture());
 
     BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
@@ -88,12 +86,8 @@ public class MapFilterControllerTest extends UITest {
 
   @Test
   public void testMapNumberOfPlayerFilter() {
-    RangeSliderFilterController<MapVersionBean> controller = FilterTestUtil.mockFilter(RangeSliderFilterController.class, uiService);
-
-    instance.setFollowingFilters(FilterName.NUMBER_OF_PLAYERS);
-
     ArgumentCaptor<BiFunction<Range<Integer>, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
-    verify(controller).registerListener(argumentCaptor.capture());
+    verify(numberOfPlayersFilter).registerListener(argumentCaptor.capture());
 
     BiFunction<Range<Integer>, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 

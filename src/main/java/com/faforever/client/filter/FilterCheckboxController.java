@@ -1,5 +1,6 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.fx.JavaFxUtil;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.CheckBox;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -12,20 +13,27 @@ public class FilterCheckboxController<T> extends AbstractFilterNodeController<Bo
 
   public CheckBox root;
 
+  private boolean bound;
+
   public void setText(String text) {
     root.setText(text);
   }
 
   @Override
   public boolean hasDefaultValue() {
-    return root.selectedProperty().isBound() || !root.isSelected();
+    return bound || !root.isSelected();
   }
 
   @Override
   public void resetFilter() {
-    if (!root.selectedProperty().isBound()) {
+    if (!bound) {
       root.setSelected(false);
     }
+  }
+
+  public void bindBidirectional(BooleanProperty property) {
+    bound = true;
+    JavaFxUtil.bindBidirectional(root.selectedProperty(), property);
   }
 
   @Override

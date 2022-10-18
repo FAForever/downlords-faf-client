@@ -11,7 +11,7 @@
         <CustomMenuItem hideOnClick="false" styleClass="query-item">
             <content>
                 <VBox spacing="4.0">
-                    <TextField fx:id="addItemTextField" prefWidth="248.0"/>
+                    <TextField fx:id="addItemTextField" prefWidth="248.0" onAction="#onAddItem"/>
                     <ListView fx:id="listView" prefHeight="150"/>
                 </VBox>
             </content>
