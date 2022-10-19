@@ -109,7 +109,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     ObservableList<GameBean> games = gameService.getGames();
     filteredItems = new FilteredList<>(games);
-    JavaFxUtil.addAndTriggerListener(customGamesFilterController.getPredicateProperty(),
+    JavaFxUtil.addAndTriggerListener(customGamesFilterController.predicateProperty(),
         (observable, oldValue, newValue) -> filteredItems.setPredicate(newValue));
 
     if (tilesButton.getId().equals(preferences.getGamesViewMode())) {

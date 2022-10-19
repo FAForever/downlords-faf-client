@@ -9,6 +9,7 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.Property;
@@ -38,6 +39,7 @@ import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.controlsfx.control.RangeSlider;
 import org.springframework.util.Assert;
 
@@ -46,6 +48,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
@@ -129,8 +132,8 @@ public final class JavaFxUtil {
   }
 
   /**
-   * Better version of {@link Tooltip#setGraphic(Node)} that does not add unnecessary space. Javadoc of {@link
-   * Tooltip#setGraphic(Node)} explains that this method is meant for adding icons.
+   * Better version of {@link Tooltip#setGraphic(Node)} that does not add unnecessary space. Javadoc of
+   * {@link Tooltip#setGraphic(Node)} explains that this method is meant for adding icons.
    *
    * @param content - The content of the tooltip.
    * @return New Tooltip with added content.
@@ -442,10 +445,10 @@ public final class JavaFxUtil {
 
   /**
    * Since the JavaFX properties API is not thread safe, binding properties must be synchronized on the properties -
-   * which is what this method does. Since synchronization happens on both property in order {@code property1,
-   * property2}, this is prone to deadlocks. To avoid this, pass the property with the lower visibility (e.g. method- or
-   * controller-only) as first and the property with higher visibility (e.g. a property from a shared object or service)
-   * as second parameter.
+   * which is what this method does. Since synchronization happens on both property in order
+   * {@code property1, property2}, this is prone to deadlocks. To avoid this, pass the property with the lower
+   * visibility (e.g. method- or controller-only) as first and the property with higher visibility (e.g. a property from
+   * a shared object or service) as second parameter.
    */
   public static void bindBidirectional(StringProperty stringProperty, IntegerProperty integerProperty, NumberStringConverter numberStringConverter) {
     synchronized (stringProperty) {
@@ -457,10 +460,10 @@ public final class JavaFxUtil {
 
   /**
    * Since the JavaFX properties API is not thread safe, binding properties must be synchronized on the properties -
-   * which is what this method does. Since synchronization happens on both property in order {@code property1,
-   * property2}, this is prone to deadlocks. To avoid this, pass the property with the lower visibility (e.g. method- or
-   * controller-only) as first and the property with higher visibility (e.g. a property from a shared object or service)
-   * as second parameter.
+   * which is what this method does. Since synchronization happens on both property in order
+   * {@code property1, property2}, this is prone to deadlocks. To avoid this, pass the property with the lower
+   * visibility (e.g. method- or controller-only) as first and the property with higher visibility (e.g. a property from
+   * a shared object or service) as second parameter.
    */
   public static <T> void bindBidirectional(Property<T> property1, Property<T> property2) {
     synchronized (property1) {
@@ -491,28 +494,35 @@ public final class JavaFxUtil {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
   }
 
-  public static void bindTextFieldAndRangeSlide(TextField textField, RangeSlider rangeSlider, boolean highValue) {
-    textField.textProperty().bindBidirectional(highValue ? rangeSlider.highValueProperty() : rangeSlider.lowValueProperty(), new StringConverter<>() {
-      @Override
-      public String toString(Number number) {
-        if (!number.equals(highValue ? rangeSlider.getMax() : rangeSlider.getMin())) {
-          return String.valueOf(number.intValue());
-        } else {
-          return "";
-        }
-      }
-
-      @Override
-      public Number fromString(String string) {
-        if (NumberUtils.isParsable(string)) {
-          return Double.parseDouble(string);
-        } else {
-          if (!string.equals("-") && !string.equals(".")) {
-            textField.setText("");
+  public static void bindTextFieldAndRangeSlider(TextField lowValueTextField, TextField highValueTextField, RangeSlider rangeSlider) {
+    Map.of(
+        lowValueTextField, Pair.of(rangeSlider.lowValueProperty(), rangeSlider.getMin()),
+        highValueTextField, Pair.of(rangeSlider.highValueProperty(), rangeSlider.getMax())
+    ).forEach((textField, pair) -> {
+      DoubleProperty valueProperty = pair.getLeft();
+      Double value = pair.getRight();
+      textField.textProperty().bindBidirectional(valueProperty, new StringConverter<>() {
+        @Override
+        public String toString(Number number) {
+          if (!number.equals(value)) {
+            return String.valueOf(number.intValue());
+          } else {
+            return "";
           }
-          return highValue ? rangeSlider.getMax() : rangeSlider.getMin();
         }
-      }
+
+        @Override
+        public Number fromString(String string) {
+          if (NumberUtils.isParsable(string)) {
+            return Double.parseDouble(string);
+          } else {
+            if (!string.equals("-") && !string.equals(".")) {
+              textField.setText("");
+            }
+            return value;
+          }
+        }
+      });
     });
   }
 }

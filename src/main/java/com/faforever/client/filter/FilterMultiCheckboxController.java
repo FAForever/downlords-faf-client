@@ -45,7 +45,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   public CheckListView<String> listView;
 
   private final ObservableList<U> selectedItems = FXCollections.observableArrayList();
-  private final ListProperty<U> property = new SimpleListProperty<>(selectedItems);
+  private final ListProperty<U> selectedItemListProperty = new SimpleListProperty<>(selectedItems);
   private final ObservableList<String> selectedStringItems = FXCollections.observableArrayList();
 
   private StringConverter<U> converter;
@@ -77,12 +77,12 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   @Override
   public ListProperty<U> getObservable() {
-    return property;
+    return selectedItemListProperty;
   }
 
   @Override
   protected List<U> getValue() {
-    return property.getValue();
+    return selectedItemListProperty.getValue();
   }
 
   @Override
@@ -114,7 +114,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
     JavaFxUtil.addListener(searchTextField.textProperty(), observable ->
         filteredList.setPredicate(item -> StringUtils.containsIgnoreCase(item, searchTextField.getText())));
     JavaFxUtil.addListener(filteredList.predicateProperty(), observable -> restoreSelectedItems());
-    JavaFxUtil.addListener(listView.getCheckModel().getCheckedItems(), (ListChangeListener<String>) this::invalidated);
+    JavaFxUtil.addListener(listView.getCheckModel().getCheckedItems(), (ListChangeListener<String>) this::invalidate);
     JavaFxUtil.bind(root.textProperty(), Bindings.createStringBinding(() -> i18n.get("filter.category", text,
         String.join(", ", selectedStringItems)), selectedStringItems));
   }
@@ -125,7 +125,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   private void addListeners() {
     JavaFxUtil.addListener(listView.getCheckModel().getCheckedIndices(),
-        (InvalidationListener) observable -> invalidated(listView.getCheckModel().getCheckedIndices()));
+        (InvalidationListener) observable -> invalidate(listView.getCheckModel().getCheckedIndices()));
     JavaFxUtil.bind(root.textProperty(), Bindings.createStringBinding(() -> i18n.get("filter.category", text,
         String.join(", ", listView.getCheckModel().getCheckedItems())), listView.getCheckModel().getCheckedItems()));
   }
@@ -136,7 +136,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
     contentVBox.getChildren().add(0, searchTextField);
   }
 
-  private void invalidated(Change<? extends String> change) {
+  private void invalidate(Change<? extends String> change) {
     if (change.next()) {
       if (change.wasAdded()) {
         String checkedItem = change.getAddedSubList().get(0);
@@ -154,7 +154,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
     }
   }
 
-  private void invalidated(List<Integer> selectedIndices) {
+  private void invalidate(List<Integer> selectedIndices) {
     selectedItems.setAll(selectedIndices.stream().map(i -> sourceList.get(i)).toList());
   }
 
@@ -171,7 +171,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   }
 
   @VisibleForTesting
-  protected List<U> getSelectedItems() {
+  List<U> getSelectedItems() {
     return selectedItems;
   }
 }

@@ -10,6 +10,8 @@ import javafx.scene.layout.VBox;
 import org.apache.commons.lang3.Range;
 import org.controlsfx.control.RangeSlider;
 
+import java.util.function.BiFunction;
+
 public abstract class AbstractRangeSliderFilterController<U, T> extends AbstractFilterNodeController<U, ObjectBinding<U>, T> {
 
   public static Range<Integer> NO_CHANGE = Range.between(0, 0);
@@ -41,14 +43,12 @@ public abstract class AbstractRangeSliderFilterController<U, T> extends Abstract
     this.minValue = minValue;
     rangeSlider.setMin(minValue);
     rangeSlider.setLowValue(minValue);
-    JavaFxUtil.bindTextFieldAndRangeSlide(lowValueTextField, rangeSlider, false);
   }
 
   public void setMaxValue(double maxValue) {
     this.maxValue = maxValue;
     rangeSlider.setMax(maxValue);
     rangeSlider.setHighValue(maxValue);
-    JavaFxUtil.bindTextFieldAndRangeSlide(highValueTextField, rangeSlider, true);
   }
 
   @Override
@@ -68,6 +68,12 @@ public abstract class AbstractRangeSliderFilterController<U, T> extends Abstract
   public void resetFilter() {
     rangeSlider.setLowValue(minValue);
     rangeSlider.setHighValue(maxValue);
+  }
+
+  @Override
+  public void registerListener(BiFunction<U, T, Boolean> filter) {
+    super.registerListener(filter);
+    JavaFxUtil.bindTextFieldAndRangeSlider(lowValueTextField, highValueTextField, rangeSlider);
   }
 
   @Override

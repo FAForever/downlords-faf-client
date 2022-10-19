@@ -238,7 +238,7 @@ public class CreateGameController implements Controller<Pane> {
 
     JavaFxUtil.addAndTriggerListener(mapFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));
     JavaFxUtil.addAndTriggerListener(mapFilterButton.selectedProperty(), observable -> mapFilterButton.setSelected(mapFilterController.getFilterState()));
-    JavaFxUtil.addListener(mapFilterController.getPredicateProperty(), (observable, oldValue, newValue) -> filteredMaps.setPredicate(newValue));
+    JavaFxUtil.addListener(mapFilterController.predicateProperty(), (observable, oldValue, newValue) -> filteredMaps.setPredicate(newValue));
   }
 
   private void validateTitle(String gameTitle) {

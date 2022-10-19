@@ -35,7 +35,7 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   public ListView<String> listView;
   public TextField addItemTextField;
 
-  private final ListProperty<String> property = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ListProperty<String> itemListProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
   private boolean bound;
 
   @Override
@@ -44,35 +44,35 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
     listView.setSelectionModel(new NoSelectionModelListView<>());
     listView.setFocusModel(new NoFocusModelListView<>());
 
-    JavaFxUtil.addAndTriggerListener(property, (InvalidationListener) observable -> {
-      listView.setItems(property.getValue());
-      JavaFxUtil.bind(listView.visibleProperty(), property.emptyProperty().not());
+    JavaFxUtil.addAndTriggerListener(itemListProperty, (InvalidationListener) observable -> {
+      listView.setItems(itemListProperty.getValue());
+      JavaFxUtil.bind(listView.visibleProperty(), itemListProperty.emptyProperty().not());
     });
     listView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
   }
 
   public void onAddItem() {
     if (!addItemTextField.getText().isEmpty()) {
-      property.getValue().add(addItemTextField.getText());
+      itemListProperty.getValue().add(addItemTextField.getText());
       addItemTextField.clear();
     }
   }
 
   @Override
   public boolean hasDefaultValue() {
-    return bound || property.getValue().isEmpty();
+    return bound || itemListProperty.getValue().isEmpty();
   }
 
   @Override
   public void resetFilter() {
     if (!bound) {
-      property.getValue().clear();
+      itemListProperty.getValue().clear();
     }
   }
 
   public void setText(String text) {
     JavaFxUtil.bind(root.textProperty(), Bindings.createStringBinding(() -> i18n.get("filter.category", text,
-        String.join(", ", property.getValue())), property, property.getValue()));
+        String.join(", ", itemListProperty.getValue())), itemListProperty, itemListProperty.getValue()));
   }
 
   public void setPromptText(String promptText) {
@@ -82,17 +82,17 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   public void bindBidirectional(ListProperty<String> property) {
     // property.isBound() only changes when property.bind(...) method is called
     bound = true;
-    JavaFxUtil.bindBidirectional(this.property, property);
+    JavaFxUtil.bindBidirectional(this.itemListProperty, property);
   }
 
   @Override
   public ListProperty<String> getObservable() {
-    return property;
+    return itemListProperty;
   }
 
   @Override
   protected List<String> getValue() {
-    return property.getValue();
+    return itemListProperty.getValue();
   }
 
   @Override

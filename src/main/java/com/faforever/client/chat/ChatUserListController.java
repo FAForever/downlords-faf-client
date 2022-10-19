@@ -258,7 +258,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
         VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
         scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
-        JavaFxUtil.addAndTriggerListener(chatUserFilterController.getPredicateProperty(), (observable, oldValue, newValue) -> items.setPredicate(newValue));
+        JavaFxUtil.addAndTriggerListener(chatUserFilterController.predicateProperty(), (observable, oldValue, newValue) -> items.setPredicate(newValue));
         JavaFxUtil.runLater(() -> {
           userListContainer.getChildren().add(scrollPane);
           userListTools.setDisable(false);

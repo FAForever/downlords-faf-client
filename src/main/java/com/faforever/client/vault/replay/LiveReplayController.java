@@ -103,7 +103,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   private void initializeGameTable() {
     FilteredList<GameBean> filteredGameList = new FilteredList<>(gameService.getGames());
-    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.getPredicateProperty(),
+    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.predicateProperty(),
         (observable, oldValue, newValue) -> filteredGameList.setPredicate(newValue));
 
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);

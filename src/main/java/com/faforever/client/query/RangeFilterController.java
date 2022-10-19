@@ -42,8 +42,7 @@ public class RangeFilterController implements FilterNodeController {
     rangeSlider.setShowTickLabels(true);
     rangeSlider.setMinorTickCount(0);
     valueTransform = (value) -> value;
-    JavaFxUtil.bindTextFieldAndRangeSlide(lowValue, rangeSlider, false);
-    JavaFxUtil.bindTextFieldAndRangeSlide(highValue, rangeSlider, true);
+    JavaFxUtil.bindTextFieldAndRangeSlider(lowValue, highValue, rangeSlider);
   }
 
   public Optional<List<Condition>> getCondition() {

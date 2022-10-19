@@ -39,7 +39,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   private final ObservableMap<Property<?>, Predicate<T>> externalFilters = FXCollections.observableHashMap();
   private final List<AbstractFilterNodeController<?, ? extends ObservableValue<?>, T>> filters = new ArrayList<>();
   private Predicate<T> defaultPredicate = t -> true;
-  private boolean onResetAllTriggered = false;
+  private boolean resetInProgress = false;
 
   private final BooleanProperty filterStateProperty = new SimpleBooleanProperty(false);
   private final ObjectProperty<Predicate<T>> predicateProperty = new SimpleObjectProperty<>(defaultPredicate);
@@ -60,7 +60,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
     return filterStateProperty;
   }
 
-  public ObjectProperty<Predicate<T>> getPredicateProperty() {
+  public ObjectProperty<Predicate<T>> predicateProperty() {
     return predicateProperty;
   }
 
@@ -79,13 +79,13 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
 
   public void completeSetting() {
     setFilterContent();
-    filters.forEach(filter -> JavaFxUtil.addListener(filter.getPredicateProperty(), observable -> invalidated()));
-    externalFilters.addListener((InvalidationListener) observable -> invalidated());
-    invalidated();
+    filters.forEach(filter -> JavaFxUtil.addListener(filter.getPredicateProperty(), observable -> invalidate()));
+    externalFilters.addListener((InvalidationListener) observable -> invalidate());
+    invalidate();
   }
 
-  private synchronized void invalidated() {
-    if (!onResetAllTriggered) {
+  private synchronized void invalidate() {
+    if (!resetInProgress) {
       Predicate<T> finalPredicate = Stream.concat(filters.stream()
               .map(AbstractFilterNodeController::getPredicate), externalFilters.values().stream())
           .reduce(Predicate::and)
@@ -106,11 +106,11 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   }
 
   public void onResetAllButtonClicked() {
-    onResetAllTriggered = true;
+    resetInProgress = true;
     filters.stream().filter(filter -> !filter.hasDefaultValue()).forEach(AbstractFilterNodeController::resetFilter);
     resetAllButton.setDisable(true);
-    onResetAllTriggered = false;
-    invalidated();
+    resetInProgress = false;
+    invalidate();
   }
 
   @Override

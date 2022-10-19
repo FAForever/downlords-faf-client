@@ -58,7 +58,7 @@ public class LiveReplayControllerTest extends UITest {
     when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
     when(uiService.loadFxml("theme/filter/filter.fxml", LiveGamesFilterController.class)).thenReturn(liveGamesFilterController);
     when(liveGamesFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
-    when(liveGamesFilterController.getPredicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    when(liveGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(mock(MapPreviewTableCellController.class));
     when(i18n.get(any())).thenReturn("test");
 

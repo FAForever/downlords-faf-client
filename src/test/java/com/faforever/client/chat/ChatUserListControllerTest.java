@@ -108,7 +108,7 @@ public class ChatUserListControllerTest extends UITest {
     when(chatService.connectionStateProperty()).thenReturn(connectionState);
     when(uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class)).thenReturn(chatUserFilterController);
     when(chatUserFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
-    when(chatUserFilterController.getPredicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    when(chatUserFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
 
     loadFxml("theme/chat/user_list.fxml", clazz -> instance);
   }

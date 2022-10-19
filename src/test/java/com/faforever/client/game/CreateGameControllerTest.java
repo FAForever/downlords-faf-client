@@ -123,7 +123,7 @@ public class CreateGameControllerTest extends UITest {
         .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
     when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class)).thenReturn(mapFilterController);
     when(mapFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
-    when(mapFilterController.getPredicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    when(mapFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(mapFilterController.getRoot()).thenReturn(new SplitPane());
 
     loadFxml("theme/play/create_game.fxml", clazz -> {

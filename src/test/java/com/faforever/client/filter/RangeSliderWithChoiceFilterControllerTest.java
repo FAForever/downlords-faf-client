@@ -10,10 +10,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@SuppressWarnings("unchecked")
 public class RangeSliderWithChoiceFilterControllerTest extends UITest {
 
   private final StringConverter<String> converter = new StringConverter<>() {
@@ -43,6 +46,7 @@ public class RangeSliderWithChoiceFilterControllerTest extends UITest {
       instance.setText("text");
       instance.setMinValue(-1000);
       instance.setMaxValue(1000);
+      instance.registerListener(mock(BiFunction.class));
     });
   }
 
