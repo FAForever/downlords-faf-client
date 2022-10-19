@@ -20,7 +20,6 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.ObservableMap;
@@ -321,8 +320,7 @@ public class SearchController implements Controller<Pane> {
     RangeFilterController rangeFilterController = uiService.loadFxml("theme/vault/search/rangeFilter.fxml");
     rangeFilterController.setTitle(title);
     rangeFilterController.setPropertyName(propertyName);
-    rangeFilterController.setMin(min);
-    rangeFilterController.setMax(max);
+    rangeFilterController.setMinMax(min, max);
     rangeFilterController.setIncrement(tickUnit);
     rangeFilterController.setTickUnit(tickUnit);
     rangeFilterController.setSnapToTicks(true);

@@ -10,10 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
-import java.util.function.BiFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("unchecked")
@@ -44,9 +42,7 @@ public class RangeSliderWithChoiceFilterControllerTest extends UITest {
       instance.setConverter(converter);
       instance.setItems(List.of("first", "second", "third", "four"));
       instance.setText("text");
-      instance.setMinValue(-1000);
-      instance.setMaxValue(1000);
-      instance.registerListener(mock(BiFunction.class));
+      instance.setMinMaxValue(-1000, 1000);
     });
   }
 

@@ -39,16 +39,16 @@ public abstract class AbstractRangeSliderFilterController<U, T> extends Abstract
     rangeSlider.setShowTickMarks(true);
   }
 
-  public void setMinValue(double minValue) {
+  public void setMinMaxValue(double minValue, double maxValue) {
     this.minValue = minValue;
     rangeSlider.setMin(minValue);
     rangeSlider.setLowValue(minValue);
-  }
 
-  public void setMaxValue(double maxValue) {
     this.maxValue = maxValue;
     rangeSlider.setMax(maxValue);
     rangeSlider.setHighValue(maxValue);
+
+    JavaFxUtil.bindTextFieldAndRangeSlider(lowValueTextField, highValueTextField, rangeSlider);
   }
 
   @Override
@@ -73,7 +73,6 @@ public abstract class AbstractRangeSliderFilterController<U, T> extends Abstract
   @Override
   public void registerListener(BiFunction<U, T, Boolean> filter) {
     super.registerListener(filter);
-    JavaFxUtil.bindTextFieldAndRangeSlider(lowValueTextField, highValueTextField, rangeSlider);
   }
 
   @Override

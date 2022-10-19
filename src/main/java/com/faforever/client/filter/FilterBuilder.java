@@ -53,8 +53,7 @@ public class FilterBuilder<T> {
   public RangeSliderFilterController<T> rangeSlider(String text, double minValue, double maxValue, BiFunction<Range<Integer>, T, Boolean> filter) {
     RangeSliderFilterController<T> controller = uiService.loadFxml("theme/filter/range_slider_filter.fxml", RangeSliderFilterController.class);
     controller.setText(text);
-    controller.setMinValue(minValue);
-    controller.setMaxValue(maxValue);
+    controller.setMinMaxValue(minValue, maxValue);
     controller.registerListener(filter);
     onFilterBuilt.accept(controller);
     return controller;
@@ -63,8 +62,7 @@ public class FilterBuilder<T> {
   public <I> RangeSliderWithChoiceFilterController<I, T> rangeSliderWithCombobox(String text, CompletableFuture<List<I>> future, StringConverter<I> converter, double minValue, double maxValue, BiFunction<ItemWithRange<I, Integer>, T, Boolean> filter) {
     RangeSliderWithChoiceFilterController<I, T> controller = uiService.loadFxml("theme/filter/range_slider_filter.fxml", RangeSliderWithChoiceFilterController.class);
     controller.setText(text);
-    controller.setMinValue(minValue);
-    controller.setMaxValue(maxValue);
+    controller.setMinMaxValue(minValue, maxValue);
     controller.setConverter(converter);
     future.thenAccept(items -> {
       controller.setItems(items);

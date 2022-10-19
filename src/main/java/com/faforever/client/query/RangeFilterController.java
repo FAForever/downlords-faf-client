@@ -42,7 +42,6 @@ public class RangeFilterController implements FilterNodeController {
     rangeSlider.setShowTickLabels(true);
     rangeSlider.setMinorTickCount(0);
     valueTransform = (value) -> value;
-    JavaFxUtil.bindTextFieldAndRangeSlider(lowValue, highValue, rangeSlider);
   }
 
   public Optional<List<Condition>> getCondition() {
@@ -85,16 +84,16 @@ public class RangeFilterController implements FilterNodeController {
     menu.textProperty().bind(Bindings.createStringBinding(() -> i18n.get("query.rangeFilter", title, lowValue.getText(), highValue.getText()), lowValue.textProperty(), highValue.textProperty()));
   }
 
-  public void setMin(double min) {
+  public void setMinMax(double min, double max) {
     rangeSlider.setMin(min);
     rangeSlider.setLowValue(min);
     lowValue.setText("");
-  }
 
-  public void setMax(double max) {
     rangeSlider.setMax(max);
     rangeSlider.setHighValue(max);
     highValue.setText("");
+
+    JavaFxUtil.bindTextFieldAndRangeSlider(lowValue, highValue, rangeSlider);
   }
 
   public void setIncrement(double increment) {
