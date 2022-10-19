@@ -79,7 +79,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
 
   public void completeSetting() {
     setFilterContent();
-    filters.forEach(filter -> JavaFxUtil.addListener(filter.getPredicateProperty(), observable -> invalidate()));
+    filters.forEach(filter -> JavaFxUtil.addListener(filter.predicateProperty(), observable -> invalidate()));
     externalFilters.addListener((InvalidationListener) observable -> invalidate());
     invalidate();
   }

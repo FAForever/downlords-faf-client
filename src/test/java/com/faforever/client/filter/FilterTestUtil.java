@@ -20,7 +20,7 @@ public class FilterTestUtil {
     F filter = mock(filterClazz);
     when(uiServiceMock.loadFxml(anyString(), eq(filterClazz))).thenReturn(filter);
     when(uiServiceMock.loadFxml(anyString())).thenReturn(filter);
-    when(filter.getPredicateProperty()).thenReturn(mock(ObjectProperty.class));
+    when(filter.predicateProperty()).thenReturn(mock(ObjectProperty.class));
     when(filter.getPredicate()).thenReturn(mock(Predicate.class));
     Node node = null;
     if (filterClazz.isAssignableFrom(FilterCheckboxController.class)) {

@@ -26,7 +26,7 @@ public abstract class AbstractFilterNodeController<U, N extends Observable, T> i
     JavaFxUtil.addAndTriggerListener(getObservable(), observable -> predicate.set(item -> filter.apply(getValue(), item)));
   }
 
-  public ObjectProperty<Predicate<T>> getPredicateProperty() {
+  public ObjectProperty<Predicate<T>> predicateProperty() {
     return predicate;
   }
 

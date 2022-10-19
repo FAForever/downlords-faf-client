@@ -69,7 +69,7 @@ public class FilterCheckboxControllerTest extends UITest {
   @Test
   public void testRegisterListener() {
     FilteredList<Object> list = new FilteredList<>(FXCollections.observableArrayList(new Object()));
-    JavaFxUtil.addListener(instance.getPredicateProperty(), observable -> list.setPredicate(instance.getPredicate()));
+    JavaFxUtil.addListener(instance.predicateProperty(), observable -> list.setPredicate(instance.getPredicate()));
     AtomicBoolean atomicBoolean = new AtomicBoolean();
 
     instance.registerListener((selected, item) -> atomicBoolean.getAndSet(selected));
