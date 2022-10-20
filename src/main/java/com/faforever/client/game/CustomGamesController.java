@@ -18,7 +18,6 @@ import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -149,13 +148,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private void initializeFilterController() {
     customGamesFilterController = uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class);
     customGamesFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM);
-    customGamesFilterController.bindBidirectionalToPrivateGamesProperty(preferences.hidePrivateGamesProperty());
-    customGamesFilterController.bindBidirectionalToSimsModsProperty(preferences.hideModdedGamesProperty());
-    customGamesFilterController.bindBidirectionalToMapFolderNameBlackListProperty(preferences.getFilters().mapNameBlacklistProperty());
-    JavaFxUtil.addListener(preferences.hideModdedGamesProperty(), observable -> preferencesService.storeInBackground());
-    JavaFxUtil.addListener(preferences.hidePrivateGamesProperty(), observable -> preferencesService.storeInBackground());
-    JavaFxUtil.addListener(preferences.getFilters().mapNameBlacklistProperty(), (InvalidationListener) observable -> preferencesService.storeInBackground());
-
     customGamesFilterController.completeSetting();
 
     JavaFxUtil.addAndTriggerListener(customGamesFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));

@@ -52,9 +52,14 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   @Override
   public void initialize() {
     build(new FilterBuilder<>(uiService, filters::add));
+    afterBuilt();
   }
 
   protected abstract void build(FilterBuilder<T> filterBuilder);
+
+  protected void afterBuilt() {
+    // To be overridden by subclass
+  };
 
   public BooleanProperty getFilterStateProperty() {
     return filterStateProperty;

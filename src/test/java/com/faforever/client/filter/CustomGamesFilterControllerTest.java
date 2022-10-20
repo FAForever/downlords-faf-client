@@ -1,9 +1,11 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
@@ -37,6 +39,8 @@ public class CustomGamesFilterControllerTest extends UITest {
   private ModService modService;
   @Mock
   private PlayerService playerService;
+  @Mock
+  private PreferencesService preferencesService;
 
   @Mock
   private MutableListFilterController<GameBean> mapFolderNameBlackListFilter;
@@ -56,6 +60,7 @@ public class CustomGamesFilterControllerTest extends UITest {
         mapFolderNameBlackListFilter
     );
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(FXCollections.observableArrayList()));
+    when(preferencesService.getPreferences()).thenReturn(PreferencesBuilder.create().get());
 
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }
