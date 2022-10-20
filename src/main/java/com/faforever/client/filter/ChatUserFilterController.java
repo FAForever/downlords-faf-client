@@ -24,11 +24,11 @@ import java.util.Optional;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ChatUserFilterController extends AbstractFilterController<ListItem> {
 
+  public final static int MIN_RATING = -1000;
+  public final static int MAX_RATING = 4000;
+
   private final CountryFlagService countryFlagService;
   private final LeaderboardService leaderboardService;
-
-  private final static int MIN_RATING = -1000;
-  private final static int MAX_RATING = 4000;
 
   private final StringConverter<PlayerStatus> playerStatusConverter = new StringConverter<>() {
     @Override
