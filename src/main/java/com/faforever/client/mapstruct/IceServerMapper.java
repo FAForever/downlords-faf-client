@@ -29,6 +29,8 @@ public abstract class IceServerMapper {
 
     PlayerBean currentPlayer = playerService.getCurrentPlayer();
 
+    // Build hmac verification as described here:
+    // https://github.com/coturn/coturn/blob/f67326fe3585eafd664720b43c77e142d9bed73c/README.turnserver#L710
     long timestamp = System.currentTimeMillis() / 1000 + TTL;
     String tokenName = String.format("%d:%d", timestamp, currentPlayer.getId());
 
