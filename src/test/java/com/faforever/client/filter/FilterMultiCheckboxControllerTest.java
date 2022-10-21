@@ -10,9 +10,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.faforever.client.filter.FilterMultiCheckboxController.ITEM_AMOUNT_TO_ENABLE_SEARCH_BAR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -33,20 +33,22 @@ public class FilterMultiCheckboxControllerTest extends UITest {
   }
 
   @Test
-  public void testResetFilter() {
+  public void testResetFilterWithSearchBar() {
+    List<Integer> items = IntStream.rangeClosed(1, 10).boxed().toList();
     runOnFxThreadAndWait(() -> {
-      instance.setItems(IntStream.rangeClosed(1, ITEM_AMOUNT_TO_ENABLE_SEARCH_BAR + 10).boxed().toList());
-      instance.searchTextField.setText("13");
-      instance.listView.getCheckModel().check("13");
+      instance.setItems(items);
+      instance.searchTextField.setText("6");
+      instance.listView.getCheckModel().check("6");
     });
     assertFalse(instance.getSelectedItems().isEmpty());
     runOnFxThreadAndWait(() -> instance.resetFilter());
     assertTrue(instance.searchTextField.getText().isEmpty());
     assertTrue(instance.getSelectedItems().isEmpty());
+    assertLinesMatch(items.stream().map(Object::toString).collect(Collectors.toList()), instance.listView.getItems());
   }
 
   @Test
-  public void testResetFilterWhenNoSearchBar() {
+  public void testResetFilter() {
     runOnFxThreadAndWait(() -> {
       instance.setItems(List.of(1, 2));
       instance.listView.getCheckModel().check("1");
@@ -54,36 +56,37 @@ public class FilterMultiCheckboxControllerTest extends UITest {
     assertFalse(instance.getSelectedItems().isEmpty());
     runOnFxThreadAndWait(() -> instance.resetFilter());
     assertTrue(instance.getSelectedItems().isEmpty());
+    assertLinesMatch(List.of("1", "2"), instance.listView.getItems());
   }
 
   @Test
-  public void testCheckUncheckItems() {
-    runOnFxThreadAndWait(() -> instance.setItems(IntStream.rangeClosed(1, ITEM_AMOUNT_TO_ENABLE_SEARCH_BAR + 10).boxed().toList()));
+  public void testCheckUncheckItemsWithUsingSearchBar() {
+    runOnFxThreadAndWait(() -> instance.setItems(IntStream.rangeClosed(1, 10).boxed().toList()));
     runOnFxThreadAndWait(() -> {
       instance.listView.getCheckModel().check("2");
       instance.listView.getCheckModel().check("4");
-      instance.searchTextField.setText("11");
-      instance.listView.getCheckModel().check("11");
+      instance.searchTextField.setText("8");
+      instance.listView.getCheckModel().check("8");
       instance.searchTextField.setText("4");
       instance.listView.getCheckModel().clearCheck("4");
     });
-    assertTrue(instance.getSelectedItems().containsAll(List.of(2, 11)));
+    assertTrue(instance.getSelectedItems().containsAll(List.of(2, 8)));
 
     runOnFxThreadAndWait(() -> {
       instance.searchTextField.setText("5");
       instance.listView.getCheckModel().check("5");
     });
-    assertTrue(instance.getSelectedItems().containsAll(List.of(2, 5, 11)));
+    assertTrue(instance.getSelectedItems().containsAll(List.of(2, 5, 8)));
 
     runOnFxThreadAndWait(() -> instance.searchTextField.clear());
-    assertTrue(instance.getSelectedItems().containsAll(List.of(2, 5, 11)));
+    assertTrue(instance.getSelectedItems().containsAll(List.of(2, 5, 8)));
 
     runOnFxThreadAndWait(() -> instance.listView.getCheckModel().clearCheck("2"));
-    assertTrue(instance.getSelectedItems().containsAll(List.of(5, 11)));
+    assertTrue(instance.getSelectedItems().containsAll(List.of(5, 8)));
   }
 
   @Test
-  public void testCheckUncheckItemsWhenNoSearchBar() {
+  public void testCheckUncheckItems() {
     runOnFxThreadAndWait(() -> instance.setItems(List.of(1, 2, 3, 4)));
     runOnFxThreadAndWait(() -> {
       instance.listView.getCheckModel().check("2");

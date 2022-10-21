@@ -5,7 +5,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.list.NoFocusModelListView;
 import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -19,7 +18,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.control.CheckListView;
 import org.controlsfx.control.textfield.TextFields;
@@ -32,10 +30,7 @@ import java.util.List;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-@Slf4j
 public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeController<List<U>, ListProperty<U>, T> {
-
-  public static int ITEM_AMOUNT_TO_ENABLE_SEARCH_BAR = 10;
 
   private final I18n i18n;
 
@@ -58,6 +53,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   public void initialize() {
     listView.setSelectionModel(new NoSelectionModelListView<>());
     listView.setFocusModel(new NoFocusModelListView<>());
+    addSearchBar();
   }
 
   @Override
@@ -67,11 +63,9 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   @Override
   public void resetFilter() {
-    if (searchTextField != null) {
-      selectedStringItems.clear();
-      searchTextField.setText("");
-      selectedItems.clear();
-    }
+    selectedStringItems.clear();
+    searchTextField.setText("");
+    selectedItems.clear();
     listView.getCheckModel().clearChecks();
   }
 
@@ -97,20 +91,13 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   public void setItems(List<U> items) {
     this.sourceList = items;
-
-    if (sourceList.size() > ITEM_AMOUNT_TO_ENABLE_SEARCH_BAR) {
-      convertedSourceList = convertToStringItems(items);
-      filteredList = new FilteredList<>(FXCollections.observableList(convertedSourceList), item -> true);
-      listView.setItems(filteredList);
-      addSearchBar();
-      addListenersWithSearch();
-    } else {
-      listView.setItems(FXCollections.observableList(items.stream().map(this::convertToString).toList()));
-      addListeners();
-    }
+    convertedSourceList = convertToStringItems(items);
+    filteredList = new FilteredList<>(FXCollections.observableList(convertedSourceList));
+    listView.setItems(filteredList);
+    addListeners();
   }
 
-  private void addListenersWithSearch() {
+  private void addListeners() {
     JavaFxUtil.addListener(searchTextField.textProperty(), observable ->
         filteredList.setPredicate(item -> StringUtils.containsIgnoreCase(item, searchTextField.getText())));
     JavaFxUtil.addListener(filteredList.predicateProperty(), observable -> restoreSelectedItems());
@@ -121,13 +108,6 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   private void restoreSelectedItems() {
     selectedStringItems.forEach(item -> listView.getCheckModel().check(item));
-  }
-
-  private void addListeners() {
-    JavaFxUtil.addListener(listView.getCheckModel().getCheckedIndices(),
-        (InvalidationListener) observable -> invalidate(listView.getCheckModel().getCheckedIndices()));
-    JavaFxUtil.bind(root.textProperty(), Bindings.createStringBinding(() -> i18n.get("filter.category", text,
-        String.join(", ", listView.getCheckModel().getCheckedItems())), listView.getCheckModel().getCheckedItems()));
   }
 
   private void addSearchBar() {
@@ -152,10 +132,6 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
         }
       }
     }
-  }
-
-  private void invalidate(List<Integer> selectedIndices) {
-    selectedItems.setAll(selectedIndices.stream().map(i -> sourceList.get(i)).toList());
   }
 
   public void setConverter(StringConverter<U> converter) {
