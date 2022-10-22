@@ -10,6 +10,7 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ModVersionBean;
+import com.faforever.client.filter.MapFilterController;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -29,10 +30,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -110,9 +111,6 @@ public class CreateGameControllerTest extends UITest {
     when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
     when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());
     when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
-    when(uiService.loadFxml("theme/play/map_filter.fxml")).thenReturn(mapFilterController);
-    when(mapFilterController.getFilterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
-    when(mapFilterController.getRoot()).thenReturn(new Pane());
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
@@ -123,6 +121,10 @@ public class CreateGameControllerTest extends UITest {
     when(userService.getConnectionState()).thenReturn(ConnectionState.CONNECTED);
     when(modService.updateAndActivateModVersions(any()))
         .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
+    when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class)).thenReturn(mapFilterController);
+    when(mapFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(mapFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    when(mapFilterController.getRoot()).thenReturn(new SplitPane());
 
     loadFxml("theme/play/create_game.fxml", clazz -> {
       if (clazz.equals(ModManagerController.class)) {
@@ -501,18 +503,11 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testOnMapFilterButtonClicked() {
-    settingMapFilterPopupForTestEnvironment();
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.mapFilterButton));
     runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
     assertTrue(instance.mapFilterPopup.isShowing());
 
     runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
     assertFalse(instance.mapFilterPopup.isShowing());
-  }
-
-  private void settingMapFilterPopupForTestEnvironment() {
-    runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.mapSearchTextField);
-      instance.mapFilterPopup.setOpacity(0.0);
-    });
   }
 }

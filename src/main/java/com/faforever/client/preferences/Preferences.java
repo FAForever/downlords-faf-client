@@ -76,12 +76,15 @@ public class Preferences {
   @Getter
   @JsonMerge
   UserPrefs user = new UserPrefs();
+  @Getter
+  @JsonMerge
+  FiltersPrefs filters = new FiltersPrefs();
 
   StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
   BooleanProperty preReleaseCheckEnabled = new SimpleBooleanProperty(false);
   BooleanProperty mapAndModAutoUpdate = new SimpleBooleanProperty(true);
-  BooleanProperty showPasswordProtectedGames = new SimpleBooleanProperty(true);
-  BooleanProperty showModdedGames = new SimpleBooleanProperty(true);
+  BooleanProperty hidePrivateGames = new SimpleBooleanProperty(false);
+  BooleanProperty hideModdedGames = new SimpleBooleanProperty(false);
   ListProperty<String> ignoredNotifications = new SimpleListProperty<>(observableArrayList());
   StringProperty gamesViewMode = new SimpleStringProperty();
   MapProperty<String, SortType> gameTableSorting = new SimpleMapProperty<>(observableHashMap());
@@ -107,12 +110,12 @@ public class Preferences {
     return gameTileSortingOrder;
   }
 
-  public BooleanProperty showPasswordProtectedGamesProperty() {
-    return showPasswordProtectedGames;
+  public BooleanProperty hidePrivateGamesProperty() {
+    return hidePrivateGames;
   }
 
-  public BooleanProperty showModdedGamesProperty() {
-    return showModdedGames;
+  public BooleanProperty hideModdedGamesProperty() {
+    return hideModdedGames;
   }
 
   public String getGamesViewMode() {
@@ -220,20 +223,20 @@ public class Preferences {
     return preReleaseCheckEnabled;
   }
 
-  public boolean isShowPasswordProtectedGames() {
-    return showPasswordProtectedGames.get();
+  public boolean isHidePrivateGames() {
+    return hidePrivateGames.get();
   }
 
-  public void setShowPasswordProtectedGames(boolean showPasswordProtectedGames) {
-    this.showPasswordProtectedGames.set(showPasswordProtectedGames);
+  public void setHidePrivateGames(boolean hidePrivateGames) {
+    this.hidePrivateGames.set(hidePrivateGames);
   }
 
-  public boolean isShowModdedGames() {
-    return showModdedGames.get();
+  public boolean isHideModdedGames() {
+    return hideModdedGames.get();
   }
 
-  public void setShowModdedGames(boolean showModdedGames) {
-    this.showModdedGames.set(showModdedGames);
+  public void setHideModdedGames(boolean hideModdedGames) {
+    this.hideModdedGames.set(hideModdedGames);
   }
 
   public enum UnitDataBaseType {

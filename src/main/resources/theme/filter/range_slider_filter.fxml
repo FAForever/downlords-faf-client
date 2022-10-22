@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.controlsfx.control.RangeSlider?>
+<MenuButton xmlns:fx="http://javafx.com/fxml/1" fx:id="root"
+            xmlns="http://javafx.com/javafx/8.0.121" styleClass="query-filter">
+    <items>
+        <CustomMenuItem hideOnClick="false" styleClass="filter-popup">
+            <content>
+                <VBox fx:id="contentVBox" spacing="6.0">
+                    <HBox spacing="6.0" alignment="CENTER">
+                        <TextField alignment="CENTER_RIGHT" fx:id="lowValueTextField" promptText="%search.lowValue"/>
+                        <Label text="-"/>
+                        <TextField fx:id="highValueTextField" promptText="%search.highValue"/>
+                    </HBox>
+                    <RangeSlider fx:id="rangeSlider"/>
+                    <padding>
+                        <Insets left="8.0" right="8.0" top="8.0" bottom="8.0"/>
+                    </padding>
+                </VBox>
+            </content>
+        </CustomMenuItem>
+    </items>
+</MenuButton>

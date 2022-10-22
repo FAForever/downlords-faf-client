@@ -4,7 +4,7 @@ import lombok.Getter;
 
 public enum PlayerStatus {
 
-  IDLE("game.gameStatus.none"),
+  IDLE("game.gameStatus.idle"),
   HOSTING("game.gameStatus.hosting"),
   LOBBYING("game.gameStatus.lobby"),
   PLAYING("game.gameStatus.playing");

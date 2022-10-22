@@ -1,22 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<TableView fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-           minHeight="0.0" minWidth="0.0" styleClass="live-replay-tab" xmlns="http://javafx.com/javafx/16"
-           xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.vault.replay.LiveReplayController">
-    <columns>
-        <TableColumn fx:id="mapPreviewColumn" editable="false" minWidth="30.0" resizable="false" text="%game.map"/>
-        <TableColumn fx:id="startTimeColumn" editable="false" minWidth="30.0" prefWidth="50.0" text="%game.startTime"/>
-        <TableColumn fx:id="gameTitleColumn" editable="false" minWidth="150.0" prefWidth="200.0" text="%game.title"/>
-        <TableColumn fx:id="playersColumn" editable="false" minWidth="45.0" prefWidth="60.0" text="%game.players"/>
-        <TableColumn fx:id="averageRatingColumn" editable="false" minWidth="45.0" prefWidth="60.0" text="%game.averageRating"/>
-        <TableColumn fx:id="hostColumn" editable="false" minWidth="90.0" prefWidth="120.0" text="%game.host"/>
-        <TableColumn fx:id="modsColumn" editable="false" minWidth="150.0" prefWidth="200.0" text="%game.mods"/>
-        <TableColumn fx:id="watchColumn" editable="false" minWidth="100.0" prefWidth="150.0" sortable="false"
-                     text="%game.watch"/>
-    </columns>
-    <columnResizePolicy>
-        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-    </columnResizePolicy>
-</TableView>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.vault.replay.LiveReplayController">
+    <children>
+        <ToggleButton fx:id="filterButton" mnemonicParsing="false" onAction="#onFilterButtonClicked" text="%filter">
+            <VBox.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </VBox.margin>
+            <graphic>
+                <Region styleClass="icon, filter-icon, icon16x16"/>
+            </graphic>
+        </ToggleButton>
+        <TableView fx:id="tableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                   minHeight="0.0" minWidth="0.0" styleClass="live-replay-tab" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="mapPreviewColumn" editable="false" minWidth="30.0" resizable="false"
+                             text="%game.map"/>
+                <TableColumn fx:id="startTimeColumn" editable="false" minWidth="30.0" prefWidth="50.0"
+                             text="%game.startTime"/>
+                <TableColumn fx:id="gameTitleColumn" editable="false" minWidth="150.0" prefWidth="200.0"
+                             text="%game.title"/>
+                <TableColumn fx:id="playersColumn" editable="false" minWidth="45.0" prefWidth="60.0"
+                             text="%game.players"/>
+                <TableColumn fx:id="averageRatingColumn" editable="false" minWidth="45.0" prefWidth="60.0"
+                             text="%game.averageRating"/>
+                <TableColumn fx:id="hostColumn" editable="false" minWidth="90.0" prefWidth="120.0" text="%game.host"/>
+                <TableColumn fx:id="modsColumn" editable="false" minWidth="150.0" prefWidth="200.0" text="%game.mods"/>
+                <TableColumn fx:id="watchColumn" editable="false" minWidth="100.0" prefWidth="150.0" sortable="false"
+                             text="%game.watch"/>
+            </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
+        </TableView>
+    </children>
+</VBox>

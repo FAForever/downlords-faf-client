@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.CustomMenuItem?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<MenuButton fx:id="root" styleClass="query-filter" xmlns="http://javafx.com/javafx/18"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.filter.MutableListFilterController">
+    <items>
+        <CustomMenuItem hideOnClick="false" styleClass="query-item">
+            <content>
+                <VBox spacing="4.0">
+                    <TextField fx:id="addItemTextField" prefWidth="248.0" onAction="#onAddItem"/>
+                    <ListView fx:id="listView" prefHeight="150"/>
+                </VBox>
+            </content>
+        </CustomMenuItem>
+    </items>
+</MenuButton>

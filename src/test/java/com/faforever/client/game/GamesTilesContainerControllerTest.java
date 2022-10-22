@@ -3,13 +3,11 @@ package com.faforever.client.game;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -21,10 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -62,76 +56,46 @@ public class GamesTilesContainerControllerTest extends UITest {
   }
 
   @Test
-  public void testCreateTiledFlowPaneWithEmptyList() throws Exception {
+  public void testCreateTiledFlowPaneWithEmptyList() {
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
 
-    CountDownLatch createdTiledFlowPaneCountDown = new CountDownLatch(1);
-
-    JavaFxUtil.runLater(() -> {
-      instance.createTiledFlowPane(observableList, new ComboBox<>());
-      createdTiledFlowPaneCountDown.countDown();
-    });
-
-    createdTiledFlowPaneCountDown.await(5, TimeUnit.SECONDS);
-
+    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList, new ComboBox<>()));
     assertThat(instance.tiledFlowPane.getChildren(), empty());
   }
 
   @Test
-  public void testCreateTiledFlowPaneWithPopulatedList() throws Exception {
+  public void testCreateTiledFlowPaneWithPopulatedList() {
     when(gameTileController.getRoot()).thenReturn(new Pane());
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
     observableList.add(new GameBean());
 
-    CountDownLatch initializedCountDown = new CountDownLatch(1);
-
-    JavaFxUtil.runLater(() -> {
-      instance.createTiledFlowPane(observableList, new ComboBox<>());
-      initializedCountDown.countDown();
-    });
-
-    initializedCountDown.await();
+    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList, new ComboBox<>()));
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
   }
 
   @Test
-  public void testCreateTiledFlowPaneWithPostInstantiatedGameInfoBean() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-
+  public void testCreateTiledFlowPaneWithPostInstantiatedGameInfoBean() {
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
-
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
 
-    JavaFxUtil.runLater(() -> {
+    runOnFxThreadAndWait(() -> {
       instance.createTiledFlowPane(observableList, new ComboBox<>());
-      instance.tiledFlowPane.getChildren().addListener((Observable observable) -> latch.countDown());
       observableList.add(new GameBean());
     });
-
-    latch.await();
     assertThat(instance.tiledFlowPane.getChildren(), hasSize(1));
   }
 
   @Test
-  public void testCreateTiledFlowPaneWithPopulatedListAndPostInstantiatedGameInfoBean() throws Exception {
-    CountDownLatch latch = new CountDownLatch(3);
+  public void testCreateTiledFlowPaneWithPopulatedListAndPostInstantiatedGameInfoBean() {
     ObservableList<Node> children = instance.tiledFlowPane.getChildren();
-    children.addListener((Observable observable) -> latch.countDown());
-
     doAnswer(invocation -> new Pane()).when(gameTileController).getRoot();
 
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
-    JavaFxUtil.runLater(() -> {
+    runOnFxThreadAndWait(() -> {
       observableList.add(GameBeanBuilder.create().defaultValues().get());
       instance.createTiledFlowPane(observableList, new ComboBox<>());
       observableList.add(GameBeanBuilder.create().defaultValues().get());
-      latch.countDown();
     });
-
-    latch.await();
-
-    WaitForAsyncUtils.waitForFxEvents();
-
     assertThat(children, hasSize(2));
   }
 
@@ -141,7 +105,7 @@ public class GamesTilesContainerControllerTest extends UITest {
   }
 
   @Test
-  public void testSorting() throws Exception {
+  public void testSorting() {
     ObservableList<GameBean> observableList = FXCollections.observableArrayList();
     GameBean game1 = GameBeanBuilder.create().defaultValues().get();
     GameBean game2 = GameBeanBuilder.create().defaultValues().title("xyz").get();
@@ -155,13 +119,7 @@ public class GamesTilesContainerControllerTest extends UITest {
     observableList.addAll(game1, game2);
     preferences.setGameTileSortingOrder(TilesSortingOrder.PLAYER_ASC);
 
-    CountDownLatch createdTiledFlowPaneCountDown = new CountDownLatch(1);
-    JavaFxUtil.runLater(() -> {
-      instance.createTiledFlowPane(observableList, new ComboBox<>());
-      createdTiledFlowPaneCountDown.countDown();
-    });
-    createdTiledFlowPaneCountDown.await();
-
+    runOnFxThreadAndWait(() -> instance.createTiledFlowPane(observableList, new ComboBox<>()));
     assertEquals(instance.gameIdToGameCard.get(game2.getId()), instance.tiledFlowPane.getChildren().get(0));
   }
 }

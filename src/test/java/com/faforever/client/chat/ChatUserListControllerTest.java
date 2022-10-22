@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
+import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
@@ -19,12 +20,13 @@ import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.Window;
@@ -103,10 +105,10 @@ public class ChatUserListControllerTest extends UITest {
     chatPrefs = preferences.getChat();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(uiService.loadFxml("theme/chat/user_filter.fxml")).thenReturn(chatUserFilterController);
-    when(chatUserFilterController.getRoot()).thenReturn(new Pane());
-    when(chatUserFilterController.filterAppliedProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(chatService.connectionStateProperty()).thenReturn(connectionState);
+    when(uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class)).thenReturn(chatUserFilterController);
+    when(chatUserFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(chatUserFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
 
     loadFxml("theme/chat/user_list.fxml", clazz -> instance);
   }
@@ -407,14 +409,17 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   @Test
-  public void testOnAdvancedFiltersToggleButtonClickedAndHidingPopup() {
-    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
-    runOnFxThreadAndWait(() -> instance.onAdvancedFiltersToggleButtonClicked());
+  public void testOnFilterButtonClicked() {
+    when(chatUserFilterController.getRoot()).thenReturn(new SplitPane());
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot());
+      instance.onFilterButtonClicked();
+    });
     Window window = chatUserFilterController.getRoot().getParent().getScene().getWindow();
     assertTrue(window.getClass().isAssignableFrom(Popup.class));
     assertTrue(window.isShowing());
 
-    runOnFxThreadAndWait(() -> instance.onAdvancedFiltersToggleButtonClicked());
+    runOnFxThreadAndWait(() -> instance.onFilterButtonClicked());
     assertFalse(window.isShowing());
   }
 

@@ -3,13 +3,13 @@ package com.faforever.client.game;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
-import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -22,9 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.atLeast;
@@ -53,6 +50,8 @@ public class CustomGamesControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private GamesTilesContainerController gamesTilesContainerController;
+  @Mock
+  private CustomGamesFilterController customGamesFilterController;
 
   private ObservableList<GameBean> games;
   private Preferences preferences;
@@ -75,6 +74,9 @@ public class CustomGamesControllerTest extends UITest {
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class)).thenReturn(customGamesFilterController);
+    when(customGamesFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(customGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
 
     when(gameDetailController.getRoot()).thenReturn(new Pane());
 
@@ -103,38 +105,6 @@ public class CustomGamesControllerTest extends UITest {
     preferences.setShowGameDetailsSidePane(false);
     instance.setSelectedGame(GameBeanBuilder.create().defaultValues().get());
     assertFalse(instance.gameDetailPane.isVisible());
-  }
-
-  @Test
-  public void testUpdateFilters() {
-    GameBean game = GameBeanBuilder.create().defaultValues().get();
-    GameBean gameWithMod = GameBeanBuilder.create().defaultValues().simMods(Map.of("123-456-789", "Fake mod name")).get();
-    GameBean gameWithPW = GameBeanBuilder.create().defaultValues().password("password").passwordProtected(true).get();
-    GameBean gameWithModAndPW = GameBeanBuilder.create().defaultValues().simMods(Map.of("123-456-789", "Fake mod name")).password("password").passwordProtected(true).get();
-    GameBean matchmakerGame = GameBeanBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).get();
-
-
-    ObservableList<GameBean> games = FXCollections.observableArrayList();
-    games.addAll(game, gameWithMod, gameWithPW, gameWithModAndPW, matchmakerGame);
-    runOnFxThreadAndWait(() -> instance.setFilteredList(games));
-
-    instance.showModdedGamesCheckBox.setSelected(false);
-    instance.showModdedGamesCheckBox.setSelected(true);
-    instance.showPasswordProtectedGamesCheckBox.setSelected(true);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(4, instance.filteredItems.size());
-
-    instance.showModdedGamesCheckBox.setSelected(false);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(2, instance.filteredItems.size());
-
-    instance.showPasswordProtectedGamesCheckBox.setSelected(false);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(1, instance.filteredItems.size());
-
-    instance.showModdedGamesCheckBox.setSelected(true);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(2, instance.filteredItems.size());
   }
 
   @Test

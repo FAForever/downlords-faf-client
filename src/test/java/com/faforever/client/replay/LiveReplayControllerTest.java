@@ -2,6 +2,7 @@ package com.faforever.client.replay;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
@@ -9,19 +10,29 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
+import com.faforever.client.vault.map.MapPreviewTableCellController;
 import com.faforever.client.vault.replay.LiveReplayController;
 import com.faforever.commons.lobby.GameStatus;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.scene.control.SplitPane;
+import javafx.stage.Popup;
+import javafx.stage.Window;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
-import java.util.List;
+import java.util.function.Predicate;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class LiveReplayControllerTest extends UITest {
 
@@ -35,25 +46,46 @@ public class LiveReplayControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private TimeService timeService;
+  @Mock
+  private LiveGamesFilterController liveGamesFilterController;
 
   @InjectMocks
   private LiveReplayController instance;
 
-  private final GameBean openedGame = GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get();
-  private final GameBean livingGame = GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get();
-  private final List<GameBean> games = List.of(openedGame, livingGame);
-
   @BeforeEach
   public void setUp() throws Exception {
-    Mockito.when(gameService.getGames()).thenReturn(FXCollections.observableArrayList(games));
+
+    when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
+    when(uiService.loadFxml("theme/filter/filter.fxml", LiveGamesFilterController.class)).thenReturn(liveGamesFilterController);
+    when(liveGamesFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(liveGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
+    when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(mock(MapPreviewTableCellController.class));
+    when(i18n.get(any())).thenReturn("test");
 
     loadFxml("theme/vault/replay/live_replays.fxml", clazz -> instance);
     runOnFxThreadAndWait(() -> instance.display(new OpenLiveReplayViewEvent()));
   }
 
   @Test
-  public void testOnDisplay() {
-    assertThat(instance.root.getItems().size(), is(1));
-    assertThat(instance.root.getItems().get(0).getId(), is(2));
+  public void testFilterOnlyLiveGames() {
+    ArgumentCaptor<Predicate<GameBean>> argumentCaptor = ArgumentCaptor.forClass(Predicate.class);
+    verify(liveGamesFilterController).setDefaultPredicate(argumentCaptor.capture());
+    assertFalse(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(1).status(GameStatus.OPEN).get()));
+    assertTrue(argumentCaptor.getValue().test(GameBeanBuilder.create().defaultValues().id(2).status(GameStatus.PLAYING).get()));
+  }
+
+  @Test
+  public void testOnFilterButtonClicked() {
+    when(liveGamesFilterController.getRoot()).thenReturn(new SplitPane());
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot());
+      instance.onFilterButtonClicked();
+    });
+    Window window = liveGamesFilterController.getRoot().getParent().getScene().getWindow();
+    assertTrue(window.getClass().isAssignableFrom(Popup.class));
+    assertTrue(window.isShowing());
+
+    runOnFxThreadAndWait(() -> instance.onFilterButtonClicked());
+    assertFalse(window.isShowing());
   }
 }

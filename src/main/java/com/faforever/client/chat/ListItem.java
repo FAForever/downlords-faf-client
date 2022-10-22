@@ -19,6 +19,8 @@ public abstract class ListItem {
 
   public abstract ChatUserCategory getCategory();
 
+  public abstract boolean isCategory();
+
   public Optional<ChatChannelUser> getUser() {
     return Optional.empty();
   }

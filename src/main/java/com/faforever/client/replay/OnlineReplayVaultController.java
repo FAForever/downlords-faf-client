@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.faforever.client.filter.ChatUserFilterController.MAX_RATING;
+import static com.faforever.client.filter.ChatUserFilterController.MIN_RATING;
+
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -143,7 +146,7 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
 
     //TODO: Use rating rather than estimated mean with an assumed deviation of 300 when that is available
     searchController.addRangeFilter("playerStats.ratingChanges.meanBefore", i18n.get("game.rating"),
-        0, 3000, 100, (value) -> value + 300);
+        MIN_RATING, MAX_RATING, 100, (value) -> value + 300);
 
     searchController.addDateRangeFilter("endTime", i18n.get("game.date"), 1);
     searchController.addRangeFilter("replayTicks", i18n.get("game.duration"), 0, 60, 1, value -> (int) (value*60*10));

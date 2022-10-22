@@ -47,6 +47,7 @@ import javafx.scene.image.Image;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.luaj.vm2.LuaError;
@@ -171,6 +172,7 @@ public class MapServiceTest extends UITest {
   }
 
   @Test
+  @Disabled("Unstable test: Map could not be read")
   public void testGetLocalMapsOfficialMap() throws Exception {
     instance.officialMaps = ImmutableSet.of("SCMP_001");
 

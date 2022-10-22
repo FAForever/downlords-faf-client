@@ -14,13 +14,12 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
@@ -74,10 +73,18 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, Boolean> passwordProtectionColumn;
   public TableColumn<GameBean, String> coopMissionName;
-  private final ChangeListener<Boolean> showModdedGamesChangedListener = (observable, oldValue, newValue) -> modsColumn.setVisible(newValue);
-  private final ChangeListener<Boolean> showPasswordProtectedGamesChangedListener = (observable, oldValue, newValue) -> passwordProtectionColumn.setVisible(newValue);
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
+
+  private final InvalidationListener tooltipShowingListener = observable -> {
+    if (tooltip.isShowing()) {
+      gameTooltipController.displayGame();
+    } else {
+      gameTooltipController.setGame(null);
+    }
+  };
+  private final InvalidationListener selectedItemListener = observable -> JavaFxUtil.runLater(() -> selectedGame.setValue(gamesTable.getSelectionModel()
+      .getSelectedItem()));
 
   public ObjectProperty<GameBean> selectedGameProperty() {
     return selectedGame;
@@ -94,13 +101,7 @@ public class GamesTableController implements Controller<Node> {
   public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider, boolean listenToFilterPreferences) {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
-    tooltip.showingProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue) {
-        gameTooltipController.displayGame();
-      } else {
-        gameTooltipController.setGame(null);
-      }
-    });
+    JavaFxUtil.addListener(tooltip.showingProperty(), tooltipShowingListener);
 
     SortedList<GameBean> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
@@ -148,22 +149,26 @@ public class GamesTableController implements Controller<Node> {
       coopMissionName.setCellValueFactory(param -> new SimpleObjectProperty<>(coopMissionNameProvider.apply(param.getValue().getMapFolderName())));
     }
 
-    gamesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
-        -> JavaFxUtil.runLater(() -> selectedGame.set(newValue)));
+    JavaFxUtil.addListener(gamesTable.getSelectionModel().selectedItemProperty(), selectedItemListener);
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences && coopMissionNameProvider == null) {
-      modsColumn.setVisible(preferencesService.getPreferences().isShowModdedGames());
-      passwordProtectionColumn.setVisible(preferencesService.getPreferences().isShowPasswordProtectedGames());
-      JavaFxUtil.addListener(preferencesService.getPreferences().showModdedGamesProperty(), new WeakChangeListener<>(showModdedGamesChangedListener));
-      JavaFxUtil.addListener(preferencesService.getPreferences().showPasswordProtectedGamesProperty(), new WeakChangeListener<>(showPasswordProtectedGamesChangedListener));
+      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().hideModdedGamesProperty(), observable -> modsColumn.setVisible(!preferencesService.getPreferences().isHideModdedGames()));
+      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().hidePrivateGamesProperty(), observable -> passwordProtectionColumn.setVisible(!preferencesService.getPreferences().isHidePrivateGames()));
+    }
+
+    selectFirstGame();
+  }
+
+  private void selectFirstGame() {
+    if (!gamesTable.getItems().isEmpty()) {
+      gamesTable.getSelectionModel().selectFirst();
     }
   }
 
   private void applyLastSorting(TableView<GameBean> gamesTable) {
-    final Map<String, SortType> lookup = new HashMap<>();
+    final Map<String, SortType> lookup = new HashMap<>(preferencesService.getPreferences().getGameTableSorting());
     final ObservableList<TableColumn<GameBean, ?>> sortOrder = gamesTable.getSortOrder();
-    preferencesService.getPreferences().getGameTableSorting().forEach(lookup::put);
     sortOrder.clear();
     gamesTable.getColumns().forEach(gameTableColumn -> {
       if (lookup.containsKey(gameTableColumn.getId())) {
@@ -266,5 +271,10 @@ public class GamesTableController implements Controller<Node> {
 
   public TableColumn<GameBean, RatingRange> getRatingRangeColumn() {
     return ratingRangeColumn;
+  }
+
+  public void removeListeners() {
+    JavaFxUtil.removeListener(tooltip.showingProperty(), tooltipShowingListener);
+    JavaFxUtil.removeListener(gamesTable.getSelectionModel().selectedItemProperty(), selectedItemListener);
   }
 }

@@ -77,19 +77,19 @@
         <Label styleClass="h2" text="%game.create.map" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
         <VBox GridPane.columnIndex="2" GridPane.rowIndex="4" >
             <children>
-                <HBox alignment="CENTER_RIGHT">
+                <HBox alignment="CENTER_RIGHT" spacing="4.0">
                     <children>
-                        <TextField fx:id="mapSearchTextField" promptText="%game.create.searchMap" HBox.hgrow="ALWAYS">
-                            <HBox.margin>
-                                <Insets right="5.0"/>
-                            </HBox.margin>
-                        </TextField>
                         <ToggleButton fx:id="mapFilterButton" mnemonicParsing="false"
                                       onAction="#onMapFilterButtonClicked">
                             <graphic>
                                 <Region styleClass="icon,filter-icon"/>
                             </graphic>
                         </ToggleButton>
+                        <TextField fx:id="mapSearchTextField" promptText="%game.create.searchMap" HBox.hgrow="ALWAYS">
+                            <HBox.margin>
+                                <Insets right="5.0"/>
+                            </HBox.margin>
+                        </TextField>
                     </children>
                 </HBox>
             </children>

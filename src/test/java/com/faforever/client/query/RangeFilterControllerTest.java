@@ -44,8 +44,7 @@ public class RangeFilterControllerTest extends UITest {
     loadFxml("theme/vault/search/rangeFilter.fxml", clazz -> instance);
 
     instance.setPropertyName(propertyName);
-    instance.setMin(min);
-    instance.setMax(max);
+    instance.setMinMax(min, max);
     instance.setIncrement(increment);
     instance.setSnapToTicks(true);
     instance.setTickUnit(increment);

@@ -40,6 +40,7 @@ import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.event.LoggedInEvent;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.client.user.event.LoginSuccessEvent;
+import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -187,17 +188,11 @@ public class MainController implements Controller<Node>, InitializingBean {
     eventBus.register(this);
 
     PersistentNotificationsController persistentNotificationsController = uiService.loadFxml("theme/persistent_notifications.fxml");
-    persistentNotificationsPopup = new Popup();
-    persistentNotificationsPopup.getContent().setAll(persistentNotificationsController.getRoot());
-    persistentNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_RIGHT);
-    persistentNotificationsPopup.setAutoFix(true);
-    persistentNotificationsPopup.setAutoHide(true);
+    persistentNotificationsPopup = PopupUtil.createPopup(AnchorLocation.CONTENT_TOP_RIGHT, persistentNotificationsController.getRoot());
 
     TransientNotificationsController transientNotificationsController = uiService.loadFxml("theme/transient_notifications.fxml");
-    transientNotificationsPopup = new Popup();
-    transientNotificationsPopup.setAutoFix(true);
+    transientNotificationsPopup = PopupUtil.createPopup(transientNotificationsController.getRoot());
     transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
-    transientNotificationsPopup.getContent().setAll(transientNotificationsController.getRoot());
 
     transientNotificationsController.getRoot().getChildren().addListener(new ToastDisplayer(transientNotificationsController));
 
@@ -646,23 +641,23 @@ public class MainController implements Controller<Node>, InitializingBean {
       Rectangle2D visualBounds = getTransientNotificationAreaBounds();
       double anchorX = visualBounds.getMaxX() - 1;
       double anchorY = visualBounds.getMaxY() - 1;
-      switch (preferencesService.getPreferences().getNotification().toastPositionProperty().get()) {
-        case BOTTOM_RIGHT -> transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
+      AnchorLocation location = switch (preferencesService.getPreferences().getNotification().toastPositionProperty().get()) {
+        case BOTTOM_RIGHT -> AnchorLocation.CONTENT_BOTTOM_RIGHT;
         case TOP_RIGHT -> {
-          transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_RIGHT);
           anchorY = visualBounds.getMinY();
+          yield AnchorLocation.CONTENT_TOP_RIGHT;
         }
         case BOTTOM_LEFT -> {
-          transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_LEFT);
           anchorX = visualBounds.getMinX();
+          yield AnchorLocation.CONTENT_BOTTOM_LEFT;
         }
         case TOP_LEFT -> {
-          transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_TOP_LEFT);
           anchorX = visualBounds.getMinX();
           anchorY = visualBounds.getMinY();
+          yield AnchorLocation.CONTENT_TOP_LEFT;
         }
-        default -> transientNotificationsPopup.setAnchorLocation(AnchorLocation.CONTENT_BOTTOM_RIGHT);
-      }
+      };
+      transientNotificationsPopup.setAnchorLocation(location);
       transientNotificationsPopup.show(mainRoot.getScene().getWindow(), anchorX, anchorY);
     }
   }
