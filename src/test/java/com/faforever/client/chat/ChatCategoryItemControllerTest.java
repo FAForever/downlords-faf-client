@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.MouseEvents;
@@ -148,6 +149,34 @@ public class ChatCategoryItemControllerTest extends UITest {
   }
 
   @Test
+  public void testBindToUserList() {
+    ObservableList<ChatUserItem> userList = FXCollections.observableArrayList();
+    runOnFxThreadAndWait(() -> instance.bindToUserList(userList));
+    assertEquals("0", instance.userCounterLabel.getText());
+
+    runOnFxThreadAndWait(() -> userList.add(new ChatUserItem(ChatChannelUserBuilder.create("test", "test")
+        .defaultValues()
+        .get(), ChatUserCategory.FRIEND)));
+    assertEquals("1", instance.userCounterLabel.getText());
+  }
+
+  @Test
+  public void testDispose() {
+    ObservableList<ChatUserItem> userList = FXCollections.observableArrayList(new ChatUserItem(ChatChannelUserBuilder.create("test", "test")
+        .defaultValues()
+        .get(), ChatUserCategory.FRIEND));
+    runOnFxThreadAndWait(() -> instance.bindToUserList(userList));
+    assertEquals("1", instance.userCounterLabel.getText());
+
+    runOnFxThreadAndWait(() -> {
+      instance.dispose();
+      userList.clear();
+    });
+    assertEquals("1", instance.userCounterLabel.getText());
+    assertFalse(instance.userCounterLabel.textProperty().isBound());
+  }
+
+  @Test
   public void testGetRoot() {
     assertNotNull(instance.getRoot());
   }
@@ -157,7 +186,8 @@ public class ChatCategoryItemControllerTest extends UITest {
   }
 
   private void setHiddenCategoryToPrefs(ChatUserCategory category) {
-    ObservableList<ChatUserCategory> hiddenCategories = chatPrefs.getChannelNameToHiddenCategories().getOrDefault(CHANNEL_NAME, FXCollections.observableArrayList());
+    ObservableList<ChatUserCategory> hiddenCategories = chatPrefs.getChannelNameToHiddenCategories()
+        .getOrDefault(CHANNEL_NAME, FXCollections.observableArrayList());
     if (hiddenCategories.isEmpty()) {
       hiddenCategories.add(category);
       chatPrefs.getChannelNameToHiddenCategories().put(CHANNEL_NAME, hiddenCategories);

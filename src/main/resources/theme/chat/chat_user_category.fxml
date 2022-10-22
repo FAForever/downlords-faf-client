@@ -6,7 +6,8 @@
 <HBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.chat.ChatCategoryItemController"
       maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/8.0.141" fx:id="root" onMouseClicked="#onCategoryClicked"
-      styleClass="clickable, chat-user-list-category" spacing="6.0">
+      styleClass="clickable, chat-user-list-category" spacing="6.0" alignment="BASELINE_LEFT">
     <Label fx:id="arrowLabel"/>
     <Label fx:id="categoryLabel" onContextMenuRequested="#onContextMenuRequested"/>
+    <Label fx:id="userCounterLabel" styleClass="user-counter"/>
 </HBox>

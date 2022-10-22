@@ -40,6 +40,7 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
   public Node root;
   public Label categoryLabel;
   public Label arrowLabel;
+  public Label userCounterLabel;
 
   private ChatPrefs chatPrefs;
 
@@ -87,6 +88,14 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
       }
       updateArrowLabel();
     }
+  }
+
+  public void bindToUserList(ObservableList<ChatUserItem> userList) {
+    JavaFxUtil.bind(userCounterLabel.textProperty(), Bindings.size(userList).asString());
+  }
+
+  public void dispose() {
+    JavaFxUtil.unbind(userCounterLabel.textProperty());
   }
 
   private void updateArrowLabel() {

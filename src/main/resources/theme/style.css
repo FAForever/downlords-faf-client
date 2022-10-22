@@ -341,6 +341,12 @@
   -fx-font-size: 16;
 }
 
+.chat-user-list-category > .user-counter {
+  -fx-font-weight: normal;
+  -fx-font-size: 12;
+  -fx-text-fill: derive(-darkened-color, 15%);
+}
+
 .filter-text-field {
   -fx-text-fill: white;
   -fx-background-color: transparent;
