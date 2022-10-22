@@ -443,7 +443,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   @VisibleForTesting
   void waitForUsersEvent() throws Exception {
-    usersEventQueueExecutor.submit(() -> {
-    }).get();
+    usersEventQueueExecutor.submit(() -> {  }).get();
   }
 }

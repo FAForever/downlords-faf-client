@@ -4,11 +4,9 @@ import com.faforever.client.theme.UiService;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.fxmisc.flowless.Cell;
 
 @RequiredArgsConstructor
-@Slf4j
 public class ChatUserCategoryItem extends ListItem {
 
   private final ChatUserCategory category;
