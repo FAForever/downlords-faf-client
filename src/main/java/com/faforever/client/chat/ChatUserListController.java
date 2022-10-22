@@ -98,6 +98,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private ChatUserFilterController chatUserFilterController;
 
   private final Map<ChatUserCategory, List<ChatUserItem>> categoriesToUsers = new HashMap<>();
+  private final Map<ChatUserCategory, FilteredList<ChatUserItem>> categoriesToFilteredUsers = new HashMap<>();
   private final Map<String, List<ChatUserItem>> usernameToChatUserList = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
   private final ObservableList<ListItem> source = FXCollections.observableArrayList();
 
@@ -206,8 +207,11 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private void prepareData() {
     Arrays.stream(ChatUserCategory.values()).forEach(category -> {
       visibleCategories.add(category);
-      categoriesToUsers.put(category, FXCollections.observableArrayList());
-      source.add(new ChatUserCategoryItem(category, channelName));
+      ObservableList<ChatUserItem> usersSource = FXCollections.observableArrayList();
+      categoriesToUsers.put(category, usersSource);
+      FilteredList<ChatUserItem> filteredUsers = new FilteredList<>(usersSource);
+      categoriesToFilteredUsers.put(category, filteredUsers);
+      source.add(new ChatUserCategoryItem(category, filteredUsers, channelName));
     });
     if (hiddenCategories != null) {
       hiddenCategories.forEach(visibleCategories::remove);
@@ -258,7 +262,10 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
         VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
         scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
-        JavaFxUtil.addAndTriggerListener(chatUserFilterController.predicateProperty(), (observable, oldValue, newValue) -> items.setPredicate(newValue));
+        JavaFxUtil.addListener(chatUserFilterController.predicateProperty(), (observable, oldValue, newValue) -> {
+          items.setPredicate(newValue);
+          categoriesToFilteredUsers.values().forEach(list -> list.setPredicate(newValue));
+        });
         JavaFxUtil.runLater(() -> {
           userListContainer.getChildren().add(scrollPane);
           userListTools.setDisable(false);
@@ -436,6 +443,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   @VisibleForTesting
   void waitForUsersEvent() throws Exception {
-    usersEventQueueExecutor.submit(() -> {  }).get();
+    usersEventQueueExecutor.submit(() -> {
+    }).get();
   }
 }
