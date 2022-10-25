@@ -78,7 +78,8 @@ public class LeaderboardService {
 
   @Cacheable(value = CacheNames.LEAGUE, sync = true)
   public CompletableFuture<List<LeagueBean>> getLeagues() {
-    ElideNavigatorOnCollection<League> navigator = ElideNavigator.of(League.class).collection();
+    ElideNavigatorOnCollection<League> navigator = ElideNavigator.of(League.class).collection()
+        .setFilter(qBuilder().bool("enabled").isTrue());
     return fafApiAccessor.getMany(navigator)
         .map(dto -> leaderboardMapper.map(dto, new CycleAvoidingMappingContext()))
         .collectList()

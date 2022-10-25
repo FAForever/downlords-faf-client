@@ -108,6 +108,7 @@ public class LeaderboardServiceTest extends ServiceTest {
     List<LeagueBean> results = instance.getLeagues().toCompletableFuture().join();
 
     verify(fafApiAccessor).getMany(any());
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().bool("enabled").isTrue())));
     assertThat(results, hasSize(1));
     assertThat(results.get(0), is(leagueBean));
   }
