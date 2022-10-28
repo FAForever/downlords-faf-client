@@ -30,6 +30,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: 17.0.1
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -103,6 +104,7 @@ jobs:
           -PjavafxPlatform=linux \
           -Pinstall4jHomeDir=$HOME/$INSTALL4J_DIR \
           -Pinstall4jLicense=${{ secrets.INSTALL4J_9_LICENSE }} \
+          --info \
           --stacktrace \
           buildInstall4jMediaFiles
 
