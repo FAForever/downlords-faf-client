@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.faforever.client.vault.replay.LiveReplayController">
     <children>
-        <ToggleButton fx:id="filterButton" mnemonicParsing="false" onAction="#onFilterButtonClicked" text="%filter">
+        <HBox alignment="CENTER_LEFT" spacing="10.0">
             <VBox.margin>
                 <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
             </VBox.margin>
-            <graphic>
-                <Region styleClass="icon, filter-icon, icon16x16"/>
-            </graphic>
-        </ToggleButton>
+            <ToggleButton fx:id="filterButton" mnemonicParsing="false" onAction="#onFilterButtonClicked" text="%itemFilter">
+                <graphic>
+                    <Region styleClass="icon, filter-icon, icon16x16"/>
+                </graphic>
+            </ToggleButton>
+            <Label fx:id="filteredGamesCountLabel" styleClass="filtered-items-count"/>
+        </HBox>
         <TableView fx:id="tableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                    minHeight="0.0" minWidth="0.0" styleClass="live-replay-tab" VBox.vgrow="ALWAYS">
             <columns>
