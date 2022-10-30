@@ -116,10 +116,12 @@ public class LiveReplayController extends AbstractViewController<Node> {
     IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredGameList);
     IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), onlineGamesPredicate));
     JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
-    InvalidationListener gamesListListener = observable -> JavaFxUtil.runLater(() ->
-        filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", filteredGamesSizeBinding.get(), gameListSizeBinding.get())));
-    JavaFxUtil.addAndTriggerListener(filteredGamesSizeBinding, gamesListListener);
-    JavaFxUtil.addAndTriggerListener(gameListSizeBinding, gamesListListener);
+    InvalidationListener gameListSizeListener = observable -> JavaFxUtil.runLater(() -> {
+      int gameListSize = gameListSizeBinding.get();
+      filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
+    });
+    JavaFxUtil.addAndTriggerListener(filteredGamesSizeBinding, gameListSizeListener);
+    JavaFxUtil.addAndTriggerListener(gameListSizeBinding, gameListSizeListener);
 
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(tableView.comparatorProperty());
