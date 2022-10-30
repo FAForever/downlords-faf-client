@@ -8,6 +8,8 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,8 @@ public class CustomGamesFilterControllerTest extends UITest {
   private MutableListFilterController<GameBean> mapFolderNameBlackListFilter;
   @Mock
   private FilterCheckboxController<GameBean> privateGameFilter;
+  @Mock
+  private FilterCheckboxController<GameBean> simModsFilter;
 
   @InjectMocks
   private CustomGamesFilterController instance;
@@ -55,12 +59,15 @@ public class CustomGamesFilterControllerTest extends UITest {
     // Order is important
     when(uiService.loadFxml(anyString())).thenReturn(
         privateGameFilter,
-        mock(FilterCheckboxController.class), // Sim mods
+        simModsFilter,
         mock(FilterMultiCheckboxController.class),  // Featured mods
         mapFolderNameBlackListFilter
     );
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(FXCollections.observableArrayList()));
     when(preferencesService.getPreferences()).thenReturn(PreferencesBuilder.create().get());
+    when(mapFolderNameBlackListFilter.getObservable()).thenReturn(new SimpleListProperty<>());
+    when(privateGameFilter.getObservable()).thenReturn(new SimpleBooleanProperty());
+    when(simModsFilter.getObservable()).thenReturn(new SimpleBooleanProperty());
 
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }
