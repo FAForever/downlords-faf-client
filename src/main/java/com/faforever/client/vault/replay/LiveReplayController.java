@@ -120,7 +120,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
       int gameListSize = gameListSizeBinding.get();
       filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
     });
-    JavaFxUtil.addAndTriggerListener(filteredGamesSizeBinding, gameListSizeListener);
+    JavaFxUtil.addListener(filteredGamesSizeBinding, gameListSizeListener);
     JavaFxUtil.addAndTriggerListener(gameListSizeBinding, gameListSizeListener);
 
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
