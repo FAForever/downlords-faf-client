@@ -130,7 +130,7 @@ public class GamesTableController implements Controller<Node> {
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new HostTableCell(playerService));
     modsColumn.setCellValueFactory(param -> param.getValue().simModsProperty());
-    modsColumn.setCellFactory(param -> new StringCell<>(this::modCell));
+    modsColumn.setCellFactory(param -> new StringCell<>(this::convertSimModsToContent));
     coopMissionName.setVisible(coopMissionNameProvider != null);
 
     if (averageRatingColumn != null) {
@@ -186,7 +186,7 @@ public class GamesTableController implements Controller<Node> {
   }
 
   @NotNull
-  private String modCell(Map<String, String> simMods) {
+  private String convertSimModsToContent(Map<String, String> simMods) {
     List<String> modNames = simMods.values().stream()
         .limit(2)
         .collect(Collectors.toList());
