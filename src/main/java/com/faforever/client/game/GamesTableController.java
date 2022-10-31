@@ -18,8 +18,6 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
@@ -29,7 +27,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SortEvent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -69,7 +66,7 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<GameBean, PlayerFill> playersColumn;
   public TableColumn<GameBean, Number> averageRatingColumn;
   public TableColumn<GameBean, RatingRange> ratingRangeColumn;
-  public TableColumn<GameBean, String> modsColumn;
+  public TableColumn<GameBean, Map<String, String>> modsColumn;
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, Boolean> passwordProtectionColumn;
   public TableColumn<GameBean, String> coopMissionName;
@@ -132,8 +129,8 @@ public class GamesTableController implements Controller<Node> {
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new HostTableCell(playerService));
-    modsColumn.setCellValueFactory(this::modCell);
-    modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
+    modsColumn.setCellValueFactory(param -> param.getValue().simModsProperty());
+    modsColumn.setCellFactory(param -> new StringCell<>(this::modCell));
     coopMissionName.setVisible(coopMissionNameProvider != null);
 
     if (averageRatingColumn != null) {
@@ -189,17 +186,15 @@ public class GamesTableController implements Controller<Node> {
   }
 
   @NotNull
-  private ObservableValue<String> modCell(CellDataFeatures<GameBean, String> param) {
-    Map<String, String> simMods = param.getValue().getSimMods();
-    int simModCount = simMods.size();
-    List<String> modNames;
-      modNames = simMods.values().stream()
-          .limit(2)
-          .collect(Collectors.toList());
-    if (simModCount > 2) {
-      return new SimpleStringProperty(i18n.get("game.mods.twoAndMore", modNames.get(0), modNames.size() - 1));
+  private String modCell(Map<String, String> simMods) {
+    List<String> modNames = simMods.values().stream()
+        .limit(2)
+        .collect(Collectors.toList());
+
+    if (simMods.size() > 2) {
+      return i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1);
     }
-    return new SimpleStringProperty(Joiner.on(i18n.get("textSeparator")).join(modNames));
+    return Joiner.on(i18n.get("textSeparator")).join(modNames);
   }
 
   @NotNull
