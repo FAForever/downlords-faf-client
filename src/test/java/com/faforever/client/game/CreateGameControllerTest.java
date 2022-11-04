@@ -520,8 +520,9 @@ public class CreateGameControllerTest extends UITest {
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().map(MapBeanBuilder.create().displayName("dual").get()).folderName("gap.v0001").get();
+    assertTrue(filter.apply("", mapVersionBean));
     assertTrue(filter.apply("Gap", mapVersionBean));
-    assertTrue(filter.apply("gap", mapVersionBean));
+    assertFalse(filter.apply("duel", mapVersionBean));
     assertTrue(filter.apply("aP", mapVersionBean));
     assertTrue(filter.apply("Dual", mapVersionBean));
     assertTrue(filter.apply("ua", mapVersionBean));
