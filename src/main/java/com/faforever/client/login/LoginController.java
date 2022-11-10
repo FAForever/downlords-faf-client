@@ -268,7 +268,12 @@ public class LoginController implements Controller<Pane> {
       errorPane.setVisible(true);
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
       loginErrorLabel.setVisible(true);
-      downloadUpdateButton.setVisible(true);
+
+      if (org.bridj.Platform.isWindows()) {
+        // The automatic download and installation of update doesn't work on Linux as there is no unified installer
+        downloadUpdateButton.setVisible(true);
+      }
+
       loginFormPane.setDisable(true);
       loginFormPane.setVisible(false);
       loginButton.setVisible(false);
