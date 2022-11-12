@@ -36,6 +36,7 @@ import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
+import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.MatchmakerInfo;
 import com.faforever.commons.lobby.MatchmakerMatchCancelledResponse;
@@ -147,7 +148,18 @@ public class TeamMatchmakingService implements InitializingBean {
                   queueIdToQueue.put(matchmakerQueue.getId(), matchmakerQueue);
                   matchmakerQueue.joinedProperty().addListener(queueJoinInvalidationListener);
                   matchmakerMapper.update(messageQueue, matchmakerQueue);
+                  JavaFxUtil.addAndTriggerListener(gameService.getGames(), (InvalidationListener) observable -> updateMatchmakerGameCount(matchmakerQueue));
                 })));
+  }
+
+  private void updateMatchmakerGameCount(MatchmakerQueueBean matchmakerQueue) {
+    String leaderboard = matchmakerQueue.getLeaderboard().getTechnicalName();
+    int activeGames = (int) gameService.getGames().stream()
+        .filter(game -> GameStatus.CLOSED != game.getStatus())
+        .filter(game -> GameType.MATCHMAKER == game.getGameType())
+        .filter(game -> leaderboard.equals(game.getLeaderboard()))
+        .count();
+    matchmakerQueue.setActiveGames(activeGames);
   }
 
   private CompletableFuture<Optional<MatchmakerQueueBean>> getQueueFromApi(String queueTechnicalName) {
