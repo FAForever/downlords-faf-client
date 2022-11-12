@@ -195,7 +195,8 @@ public class GameService implements InitializingBean, DisposableBean {
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
-        item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
+        game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(),
+            game.mapFolderNameProperty(), game.simModsProperty()}
     ));
     inOthersParty = false;
   }
