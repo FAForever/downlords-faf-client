@@ -43,6 +43,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -509,5 +510,22 @@ public class CreateGameControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> instance.mapFilterButton.fire());
     assertFalse(instance.mapFilterPopup.isShowing());
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testMapNameSearch() {
+    ArgumentCaptor<BiFunction<String, MapVersionBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    verify(mapFilterController).bindExternalFilter(eq(instance.mapSearchTextField.textProperty()), argumentCaptor.capture());
+    BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
+
+    MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().map(MapBeanBuilder.create().displayName("dual").get()).folderName("gap.v0001").get();
+    assertTrue(filter.apply("", mapVersionBean));
+    assertTrue(filter.apply("Gap", mapVersionBean));
+    assertFalse(filter.apply("duel", mapVersionBean));
+    assertTrue(filter.apply("aP", mapVersionBean));
+    assertTrue(filter.apply("Dual", mapVersionBean));
+    assertTrue(filter.apply("ua", mapVersionBean));
+    assertFalse(filter.apply("ap.v1000", mapVersionBean));
   }
 }

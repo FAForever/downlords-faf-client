@@ -233,7 +233,11 @@ public class CreateGameController implements Controller<Pane> {
 
   private void initMapFilterPopup() {
     mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
-    mapFilterController.bindExternalFilter(mapSearchTextField.textProperty(), (name, mapVersion) -> name.isEmpty() || mapVersion.getMap().getDisplayName().contains(name));
+    mapFilterController.bindExternalFilter(mapSearchTextField.textProperty(),
+        (text, mapVersion) -> text.isEmpty() || mapVersion.getMap()
+            .getDisplayName()
+            .toLowerCase()
+            .contains(text.toLowerCase()) || mapVersion.getFolderName().toLowerCase().contains(text.toLowerCase()));
     mapFilterController.completeSetting();
 
     JavaFxUtil.addAndTriggerListener(mapFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));
