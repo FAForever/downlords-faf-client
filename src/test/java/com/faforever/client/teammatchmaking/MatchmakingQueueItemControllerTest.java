@@ -154,6 +154,15 @@ public class MatchmakingQueueItemControllerTest extends UITest {
   }
 
   @Test
+  public void testActiveGamesListener() {
+    assertThat(instance.activeGamesLabel.getText(), is(String.valueOf(queue.getActiveGames())));
+    when(i18n.get(eq("teammatchmaking.activeGames"), anyInt())).thenReturn("10");
+    runOnFxThreadAndWait(() -> queue.setActiveGames(10));
+    verify(i18n).get("teammatchmaking.activeGames", queue.getActiveGames());
+    assertThat(instance.activeGamesLabel.getText(), is(String.valueOf(queue.getActiveGames())));
+  }
+
+  @Test
   public void testQueueStateListener() {
     assertThat(instance.refreshingLabel.isVisible(), is(false));
     assertThat(instance.joinLeaveQueueButton.isSelected(), is(false));

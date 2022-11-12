@@ -19,6 +19,7 @@ public class MatchmakerQueueBeanBuilder {
     queuePopTime(OffsetDateTime.now());
     teamSize(1);
     playersInQueue(2);
+    activeGames(0);
     joined(false);
     matchingStatus(null);
     leaderboard(LeaderboardBeanBuilder.create().defaultValues().get());
@@ -43,6 +44,11 @@ public class MatchmakerQueueBeanBuilder {
 
   public MatchmakerQueueBeanBuilder playersInQueue(int playersInQueue) {
     matchmakerQueueBean.setPlayersInQueue(playersInQueue);
+    return this;
+  }
+
+  public MatchmakerQueueBeanBuilder activeGames(int activeGames) {
+    matchmakerQueueBean.setActiveGames(activeGames);
     return this;
   }
 
