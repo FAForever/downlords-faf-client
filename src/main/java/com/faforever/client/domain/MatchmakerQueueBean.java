@@ -21,10 +21,12 @@ import java.time.OffsetDateTime;
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 @Value
 public class MatchmakerQueueBean extends AbstractEntityBean<MatchmakerQueueBean> {
+  @ToString.Include
   StringProperty technicalName = new SimpleStringProperty();
   ObjectProperty<OffsetDateTime> queuePopTime= new SimpleObjectProperty<OffsetDateTime>();
   IntegerProperty teamSize = new SimpleIntegerProperty(0);
   IntegerProperty playersInQueue = new SimpleIntegerProperty(0);
+  IntegerProperty activeGames = new SimpleIntegerProperty(0);
   BooleanProperty joined = new SimpleBooleanProperty(false);
   ObjectProperty<MatchingStatus> matchingStatus = new SimpleObjectProperty<>();
   ObjectProperty<LeaderboardBean> leaderboard = new SimpleObjectProperty<>();
@@ -125,6 +127,18 @@ public class MatchmakerQueueBean extends AbstractEntityBean<MatchmakerQueueBean>
 
   public IntegerProperty playersInQueueProperty() {
     return playersInQueue;
+  }
+
+  public int getActiveGames() {
+    return activeGames.get();
+  }
+
+  public IntegerProperty activeGamesProperty() {
+    return activeGames;
+  }
+
+  public void setActiveGames(int activeGames) {
+    this.activeGames.set(activeGames);
   }
 
   public boolean isJoined() {

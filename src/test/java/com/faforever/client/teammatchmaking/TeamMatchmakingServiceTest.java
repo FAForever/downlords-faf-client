@@ -117,6 +117,7 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
     when(gameService.startSearchMatchmaker()).thenReturn(matchmakingFuture);
+    when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);
@@ -124,9 +125,12 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
   private void setPartyMembers() {
     ObservableList<PartyMember> testMembers = FXCollections.observableArrayList();
-    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member1").get()).get());
-    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member2").get()).get());
-    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member3").get()).get());
+    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member1").get())
+        .get());
+    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member2").get())
+        .get());
+    testMembers.add(PartyMemberBuilder.create(PlayerBeanBuilder.create().defaultValues().username("member3").get())
+        .get());
     testMembers.add(new PartyMember(player));
     instance.getParty().setMembers(testMembers);
     instance.getParty().setOwner(player);
@@ -275,7 +279,11 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
   @Test
   public void testOnGameLaunchMessage() {
     testOnMatchFoundMessage();
-    GameLaunchResponse message = GameLaunchMessageBuilder.create().defaultValues().gameType(GameType.MATCHMAKER).initMode(LobbyMode.AUTO_LOBBY).get();
+    GameLaunchResponse message = GameLaunchMessageBuilder.create()
+        .defaultValues()
+        .gameType(GameType.MATCHMAKER)
+        .initMode(LobbyMode.AUTO_LOBBY)
+        .get();
 
     instance.onGameLaunchMessage(message);
 
@@ -295,15 +303,18 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.onMatchmakerInfo(createMatchmakerInfoMessage());
 
-    verify(fafApiAccessor, never()).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("queue1"))));
+    verify(fafApiAccessor, never()).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName")
+        .eq("queue1"))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("queue2"))));
   }
 
   @NotNull
   private MatchmakerInfo createMatchmakerInfoMessage() {
-    MatchmakerInfo.MatchmakerQueue messageQueue1 = new MatchmakerInfo.MatchmakerQueue("queue1", OffsetDateTime.ofInstant(Instant.now().plusSeconds(10), ZoneOffset.UTC),
+    MatchmakerInfo.MatchmakerQueue messageQueue1 = new MatchmakerInfo.MatchmakerQueue("queue1", OffsetDateTime.ofInstant(Instant.now()
+        .plusSeconds(10), ZoneOffset.UTC),
         10, 1, 0, List.of(), List.of());
-    MatchmakerInfo.MatchmakerQueue messageQueue2 = new MatchmakerInfo.MatchmakerQueue("queue2", OffsetDateTime.ofInstant(Instant.now().plusSeconds(10), ZoneOffset.UTC),
+    MatchmakerInfo.MatchmakerQueue messageQueue2 = new MatchmakerInfo.MatchmakerQueue("queue2", OffsetDateTime.ofInstant(Instant.now()
+        .plusSeconds(10), ZoneOffset.UTC),
         10, 1, 0, List.of(), List.of());
     ObservableList<MatchmakerInfo.MatchmakerQueue> queues = FXCollections.observableArrayList();
     queues.addAll(messageQueue1, messageQueue2);

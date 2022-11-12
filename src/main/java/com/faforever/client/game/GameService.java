@@ -59,6 +59,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
@@ -137,6 +138,7 @@ public class GameService implements InitializingBean, DisposableBean {
   private final PlatformService platformService;
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
+  @Getter
   private final ObservableList<GameBean> games;
   private final String faWindowTitle;
   private final MaskPatternLayout logMasker;
@@ -193,7 +195,8 @@ public class GameService implements InitializingBean, DisposableBean {
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
-        item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
+        game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(),
+            game.mapFolderNameProperty(), game.simModsProperty()}
     ));
     inOthersParty = false;
   }
@@ -495,10 +498,6 @@ public class GameService implements InitializingBean, DisposableBean {
         });
   }
 
-  public ObservableList<GameBean> getGames() {
-    return games;
-  }
-
   public GameBean getByUid(int uid) {
     GameBean game = gameIdToGame.get(uid);
     if (game == null) {
@@ -530,11 +529,13 @@ public class GameService implements InitializingBean, DisposableBean {
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
-            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(),gameLaunchResponse.getLeaderboard()))
+            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
-              parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey()).orElse("unlisted"));
-              parameters.setSubdivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getNameKey()).orElse(null));
+              parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey())
+                  .orElse("unlisted"));
+              parameters.setSubdivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getNameKey())
+                  .orElse(null));
               return parameters;
             })
             .thenCompose(this::startGame));
@@ -751,13 +752,20 @@ public class GameService implements InitializingBean, DisposableBean {
     }
 
     Integer gameId = gameInfoMessage.getUid();
-    GameBean game = gameIdToGame.computeIfAbsent(gameId, integer -> {
-      GameBean newGame = new GameBean();
-      newGame.averageRatingProperty().bind(Bindings.createDoubleBinding(() -> calcAverageRating(newGame), newGame.teamsProperty()));
-      return newGame;
+    GameBean game = gameIdToGame.compute(gameId, (id, knownGame) -> {
+      if (knownGame == null) {
+        GameBean newGame = new GameBean();
+        newGame.averageRatingProperty()
+            .bind(Bindings.createDoubleBinding(() -> calcAverageRating(newGame), newGame.teamsProperty()));
+        gameMapper.update(gameInfoMessage, newGame);
+        return newGame;
+      } else {
+        return gameMapper.update(gameInfoMessage, knownGame);
+      }
     });
-    gameMapper.update(gameInfoMessage, game);
+
     playerService.updatePlayersInGame(game);
+
     if (game.getStatus() == GameStatus.CLOSED) {
       boolean removed = gameIdToGame.remove(game.getId(), game);
       if (!removed) {
