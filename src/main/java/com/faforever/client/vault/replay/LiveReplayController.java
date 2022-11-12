@@ -20,7 +20,9 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.base.Joiner;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
@@ -28,6 +30,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableColumn.SortType;
@@ -49,6 +52,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
@@ -73,6 +77,9 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<GameBean, String> modsColumn;
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, GameBean> watchColumn;
+  public Label filteredGamesCountLabel;
+
+  private final Predicate<GameBean> onlineGamesPredicate = game -> game.getStatus() == GameStatus.PLAYING;
 
   private boolean initialized = false;
   private LiveGamesFilterController liveGamesFilterController;
@@ -94,7 +101,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   private void initializeFilterController() {
     liveGamesFilterController = uiService.loadFxml("theme/filter/filter.fxml", LiveGamesFilterController.class);
-    liveGamesFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.PLAYING);
+    liveGamesFilterController.setDefaultPredicate(onlineGamesPredicate);
     liveGamesFilterController.completeSetting();
 
     JavaFxUtil.addAndTriggerListener(liveGamesFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
@@ -105,6 +112,16 @@ public class LiveReplayController extends AbstractViewController<Node> {
     FilteredList<GameBean> filteredGameList = new FilteredList<>(gameService.getGames());
     JavaFxUtil.addAndTriggerListener(liveGamesFilterController.predicateProperty(),
         (observable, oldValue, newValue) -> filteredGameList.setPredicate(newValue));
+
+    IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredGameList);
+    IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), onlineGamesPredicate));
+    JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
+    InvalidationListener gameListSizeListener = observable -> JavaFxUtil.runLater(() -> {
+      int gameListSize = gameListSizeBinding.get();
+      filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
+    });
+    JavaFxUtil.addListener(filteredGamesSizeBinding, gameListSizeListener);
+    JavaFxUtil.addAndTriggerListener(gameListSizeBinding, gameListSizeListener);
 
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(tableView.comparatorProperty());

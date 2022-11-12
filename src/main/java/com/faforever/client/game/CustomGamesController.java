@@ -18,13 +18,16 @@ import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.InvalidationListener;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -44,6 +47,7 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -70,6 +74,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public StackPane gamesRoot;
   public ScrollPane gameDetailPane;
   public ComboBox<TilesSortingOrder> chooseSortingTypeChoiceBox;
+  public Label filteredGamesCountLabel;
 
   private FilteredList<GameBean> filteredItems;
   private Preferences preferences;
@@ -78,9 +83,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private GamesTableController gamesTableController;
   private GamesTilesContainerController gamesTilesContainerController;
 
+  private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
   private final ChangeListener<GameBean> gameChangeListener = (observable, oldValue, newValue) -> setSelectedGame(newValue);
 
   public void initialize() {
+    JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox);
+
     preferences = preferencesService.getPreferences();
 
     initializeFilterController();
@@ -92,7 +100,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
       }
     });
 
-    chooseSortingTypeChoiceBox.setVisible(false);
     chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
     chooseSortingTypeChoiceBox.setConverter(new StringConverter<>() {
       @Override
@@ -106,10 +113,19 @@ public class CustomGamesController extends AbstractViewController<Node> {
       }
     });
 
-    ObservableList<GameBean> games = gameService.getGames();
-    filteredItems = new FilteredList<>(games);
+    filteredItems = new FilteredList<>(gameService.getGames());
     JavaFxUtil.addAndTriggerListener(customGamesFilterController.predicateProperty(),
         (observable, oldValue, newValue) -> filteredItems.setPredicate(newValue));
+
+    IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredItems);
+    IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), openGamesPredicate));
+    JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
+    InvalidationListener gameListSizeListener = observable -> JavaFxUtil.runLater(() -> {
+      int gameListSize = gameListSizeBinding.get();
+      filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
+    });
+    JavaFxUtil.addListener(filteredGamesSizeBinding, gameListSizeListener);
+    JavaFxUtil.addAndTriggerListener(gameListSizeBinding, gameListSizeListener);
 
     if (tilesButton.getId().equals(preferences.getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
@@ -147,7 +163,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private void initializeFilterController() {
     customGamesFilterController = uiService.loadFxml("theme/filter/filter.fxml", CustomGamesFilterController.class);
-    customGamesFilterController.setDefaultPredicate(game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM);
+    customGamesFilterController.setDefaultPredicate(openGamesPredicate);
     customGamesFilterController.completeSetting();
 
     JavaFxUtil.addAndTriggerListener(customGamesFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));

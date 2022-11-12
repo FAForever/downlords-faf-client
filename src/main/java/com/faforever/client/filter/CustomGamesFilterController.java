@@ -54,9 +54,9 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
   protected void afterBuilt() {
     Preferences preferences = preferencesService.getPreferences();
 
-    privateGameFilter.bindBidirectional(preferences.hidePrivateGamesProperty());
-    simModsFilter.bindBidirectional(preferences.hideModdedGamesProperty());
-    mapFolderNameBlackListFilter.bindBidirectional(preferences.getFilters().mapNameBlacklistProperty());
+    JavaFxUtil.bindBidirectional(privateGameFilter.getObservable(), preferences.hidePrivateGamesProperty());
+    JavaFxUtil.bindBidirectional(simModsFilter.getObservable(), preferences.hideModdedGamesProperty());
+    JavaFxUtil.bindBidirectional(mapFolderNameBlackListFilter.getObservable(), preferences.getFilters().mapNameBlacklistProperty());
 
     JavaFxUtil.addListener(preferences.hideModdedGamesProperty(), propertyListener);
     JavaFxUtil.addListener(preferences.hidePrivateGamesProperty(), propertyListener);

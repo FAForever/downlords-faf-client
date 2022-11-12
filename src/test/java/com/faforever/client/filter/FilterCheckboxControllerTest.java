@@ -2,7 +2,6 @@ package com.faforever.client.filter;
 
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.test.UITest;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +30,7 @@ public class FilterCheckboxControllerTest extends UITest {
   }
 
   @Test
-  public void testHasDefaultValueWhenNotBound() {
+  public void testHasDefaultValue() {
     runOnFxThreadAndWait(() -> instance.getRoot().fire());
     assertFalse(instance.hasDefaultValue());
 
@@ -40,30 +39,11 @@ public class FilterCheckboxControllerTest extends UITest {
   }
 
   @Test
-  public void testHasDefaultValueWhenBound() {
-    runOnFxThreadAndWait(() -> instance.bindBidirectional(new SimpleBooleanProperty(false)));
-    assertTrue(instance.hasDefaultValue());
-    runOnFxThreadAndWait(() -> instance.getRoot().fire());
-    assertTrue(instance.hasDefaultValue());
-  }
-
-  @Test
-  public void testResetFilterWhenNotBound() {
+  public void testResetFilter() {
     runOnFxThreadAndWait(() -> instance.getRoot().fire());
     assertTrue(instance.getRoot().isSelected());
     runOnFxThreadAndWait(() -> instance.resetFilter());
     assertFalse(instance.getRoot().isSelected());
-  }
-
-  @Test
-  public void testResetFilterWhenBound() {
-    runOnFxThreadAndWait(() -> {
-      instance.bindBidirectional(new SimpleBooleanProperty(false));
-      instance.getRoot().fire();
-    });
-    assertTrue(instance.getRoot().isSelected());
-    runOnFxThreadAndWait(() -> instance.resetFilter());
-    assertTrue(instance.getRoot().isSelected());
   }
 
   @Test

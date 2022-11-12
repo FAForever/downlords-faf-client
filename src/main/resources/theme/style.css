@@ -1487,3 +1487,7 @@
   -fx-padding: 0.625em; /* 10 */
 }
 
+.filtered-items-count {
+  -fx-text-fill: derive(-darkened-color, 15%);
+}
+

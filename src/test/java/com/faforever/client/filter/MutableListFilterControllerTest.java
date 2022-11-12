@@ -4,20 +4,15 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
@@ -53,35 +48,10 @@ public class MutableListFilterControllerTest extends UITest {
   }
 
   @Test
-  public void testResetFilterWhenBound() {
-    runOnFxThreadAndWait(() -> instance.bindBidirectional(new SimpleListProperty<>(FXCollections.observableArrayList("1", "2"))));
-    assertFalse(instance.listView.getItems().isEmpty());
-    runOnFxThreadAndWait(() -> instance.resetFilter());
-    assertFalse(instance.listView.getItems().isEmpty());
-  }
-
-  @Test
-  public void testBindBidirectional() {
-    SimpleListProperty<String> property = new SimpleListProperty<>(FXCollections.observableArrayList("1", "2"));
-    runOnFxThreadAndWait(() -> instance.bindBidirectional(property));
-    assertLinesMatch(List.of("1", "2"), instance.listView.getItems());
-
-    runOnFxThreadAndWait(() -> addItemToList("3"));
-    assertLinesMatch(List.of("1", "2", "3"), property.getValue());
-    assertLinesMatch(List.of("1", "2", "3"), instance.listView.getItems());
-  }
-
-  @Test
   public void testHasDefaultValue() {
     assertTrue(instance.hasDefaultValue());
     addItemToList("text");
     assertFalse(instance.hasDefaultValue());
-  }
-
-  @Test
-  public void testHasDefaultValueWhenBound() {
-    runOnFxThreadAndWait(() -> instance.bindBidirectional(new SimpleListProperty<>(FXCollections.observableArrayList())));
-    assertTrue(instance.hasDefaultValue());
   }
 
   @Test

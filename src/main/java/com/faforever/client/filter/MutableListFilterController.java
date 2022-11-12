@@ -36,7 +36,6 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   public TextField addItemTextField;
 
   private final ListProperty<String> itemListProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
-  private boolean bound;
 
   @Override
   public void initialize() {
@@ -60,14 +59,12 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
 
   @Override
   public boolean hasDefaultValue() {
-    return bound || itemListProperty.getValue().isEmpty();
+    return itemListProperty.getValue().isEmpty();
   }
 
   @Override
   public void resetFilter() {
-    if (!bound) {
-      itemListProperty.getValue().clear();
-    }
+    itemListProperty.getValue().clear();
   }
 
   public void setText(String text) {
@@ -77,12 +74,6 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
 
   public void setPromptText(String promptText) {
     addItemTextField.setPromptText(promptText);
-  }
-
-  public void bindBidirectional(ListProperty<String> property) {
-    // property.isBound() only changes when property.bind(...) method is called
-    bound = true;
-    JavaFxUtil.bindBidirectional(this.itemListProperty, property);
   }
 
   @Override
