@@ -8,6 +8,7 @@ import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.mapstruct.IceServerMapper;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
@@ -63,6 +64,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
+  private final OperatingSystem operatingSystem;
   private final ApplicationContext applicationContext;
   private final PlayerService playerService;
   private final EventBus eventBus;
@@ -195,9 +197,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
 
     List<String> cmd = Lists.newArrayList(
-        Path.of(System.getProperty("java.home"))
-            .resolve("bin")
-            .resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java")
+        operatingSystem.getJavaExecutablePath()
             .toAbsolutePath()
             .toString(),
         "-cp", classpath,

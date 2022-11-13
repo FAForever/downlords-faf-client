@@ -48,4 +48,11 @@ public class OsWindows implements OperatingSystem {
     String uidDir = System.getProperty("nativeDir", "natives");
     return Path.of(uidDir).resolve("faf-uid.exe");
   }
+
+  @Override
+  public @NotNull Path getJavaExecutablePath() {
+    return Path.of(System.getProperty("java.home"))
+        .resolve("bin")
+        .resolve("java.exe");
+  }
 }

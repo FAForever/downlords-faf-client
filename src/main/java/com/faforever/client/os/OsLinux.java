@@ -24,4 +24,11 @@ public class OsLinux implements OperatingSystem {
     String uidDir = System.getProperty("nativeDir", "lib");
     return Path.of(uidDir).resolve("faf-uid");
   }
+
+  @Override
+  public @NotNull Path getJavaExecutablePath() {
+    return Path.of(System.getProperty("java.home"))
+        .resolve("bin")
+        .resolve("java");
+  }
 }

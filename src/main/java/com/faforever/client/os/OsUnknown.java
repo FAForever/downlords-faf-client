@@ -23,4 +23,9 @@ public class OsUnknown implements OperatingSystem {
   public @NotNull Path getUidExecutablePath() {
     throw new NotImplementedException("Cannot derive uid binary in unsupported OS");
   }
+
+  @Override
+  public @NotNull Path getJavaExecutablePath() {
+    throw new NotImplementedException("Cannot derive java binary name in unsupported OS");
+  }
 }
