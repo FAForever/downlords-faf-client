@@ -141,7 +141,7 @@ public class GameBeanBuilder {
     return this;
   }
 
-  public GameBeanBuilder teams(Map<String, List<String>> teams) {
+  public GameBeanBuilder teams(Map<Integer, List<Integer>> teams) {
     gameBean.setTeams(teams);
     return this;
   }

@@ -55,11 +55,11 @@ public class TeamCardController implements Controller<Node> {
   static void createAndAdd(GameBean game, PlayerService playerService, UiService uiService, Pane teamsPane) {
     List<Node> teamCardPanes = new ArrayList<>();
     if (game != null) {
-      for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
-        String team = entry.getKey();
+      for (Map.Entry<Integer, List<Integer>> entry : game.getTeams().entrySet()) {
+        Integer team = entry.getKey();
         if (team != null) {
           List<PlayerBean> players = entry.getValue().stream()
-              .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
+              .flatMap(playerName -> playerService.getPlayerByIdIfOnline(playerName).stream())
               .collect(Collectors.toList());
 
           TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
@@ -72,7 +72,7 @@ public class TeamCardController implements Controller<Node> {
     JavaFxUtil.runLater(() -> teamsPane.getChildren().setAll(teamCardPanes));
   }
 
-  public void setPlayersInTeam(String team, Collection<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
+  public void setPlayersInTeam(Integer team, Collection<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
     int totalRating = 0;
     for (PlayerBean player : playerList) {
       // If the server wasn't bugged, this would never be the case.
@@ -108,7 +108,7 @@ public class TeamCardController implements Controller<Node> {
         teamTitle = i18n.get("game.tooltip.observers");
       } else {
         try {
-          teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);
+          teamTitle = i18n.get("game.tooltip.teamTitle", team - 1, totalRating);
         } catch (NumberFormatException e) {
           teamTitle = "";
           log.warn("Received unknown team in server message: team `{}`", team);

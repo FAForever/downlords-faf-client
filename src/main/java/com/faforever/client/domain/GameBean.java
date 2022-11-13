@@ -25,8 +25,8 @@ import java.util.Map;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class GameBean {
-  public static final String OBSERVERS_TEAM = "-1";
-  public static final String NO_TEAM = "1";
+  public static final Integer OBSERVERS_TEAM = -1;
+  public static final Integer NO_TEAM = 1;
 
   private final StringProperty host = new SimpleStringProperty();
   @ToString.Include
@@ -55,7 +55,7 @@ public class GameBean {
    * Maps a sim mod's UID to its name.
    */
   private final ObjectProperty<Map<String, String>> simMods = new SimpleObjectProperty<>(Map.of());
-  private final ObjectProperty<Map<String, List<String>>> teams = new SimpleObjectProperty<>(Map.of());
+  private final ObjectProperty<Map<Integer, List<Integer>>> teams = new SimpleObjectProperty<>(Map.of());
 
   public String getHost() {
     return host.get();
@@ -253,13 +253,13 @@ public class GameBean {
   }
 
   /**
-   * Returns an unmodifiable map that maps team names ("1", "2", ...) to a list of player names.
+   * Returns an unmodifiable map that maps team numbers (1, 2, ...) to a list of player ids.
    */
-  public Map<String, List<String>> getTeams() {
+  public Map<Integer, List<Integer>> getTeams() {
     return teams.get();
   }
 
-  public void setTeams(Map<String, List<String>> teams) {
+  public void setTeams(Map<Integer, List<Integer>> teams) {
     if (teams == null) {
       this.teams.set(Map.of());
     } else {
@@ -267,7 +267,7 @@ public class GameBean {
     }
   }
 
-  public ObjectProperty<Map<String, List<String>>> teamsProperty() {
+  public ObjectProperty<Map<Integer, List<Integer>>> teamsProperty() {
     return teams;
   }
 

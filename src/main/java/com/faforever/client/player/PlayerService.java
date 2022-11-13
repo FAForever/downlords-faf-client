@@ -162,7 +162,7 @@ public class PlayerService implements InitializingBean {
   public List<PlayerBean> getAllPlayersInGame(GameBean game) {
     return game.getTeams().values().stream()
         .flatMap(Collection::stream)
-        .flatMap(playerName -> getPlayerByNameIfOnline(playerName).stream())
+        .flatMap(playerId -> getPlayerByIdIfOnline(playerId).stream())
         .collect(Collectors.toList());
   }
 

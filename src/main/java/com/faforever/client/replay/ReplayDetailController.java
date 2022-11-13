@@ -386,7 +386,7 @@ public class ReplayDetailController implements Controller<Node> {
               .filter(playerBean -> playerIds.contains(playerBean.getId()))
               .collect(Collectors.toSet());
 
-          controller.setPlayersInTeam(team, teamPlayers, playerRatingFunction, playerFactionFunction, RatingPrecision.EXACT);
+          controller.setPlayersInTeam(Integer.valueOf(team), teamPlayers, playerRatingFunction, playerFactionFunction, RatingPrecision.EXACT);
 
           JavaFxUtil.runLater(() -> teamsContainer.getChildren().add(controller.getRoot()));
         }));

@@ -269,7 +269,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetPlayerByNamePlayerOnline() {
-    Optional<PlayerBean> result = instance.getPlayerByName("junit2").join();
+    instance.getPlayerByName("junit2").join();
 
     verify(fafApiAccessor, never()).getMany(any());
   }
@@ -298,7 +298,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testPlayerLeftOpenGame() {
-    Map<String, List<String>> teams = new HashMap<>(Map.of("1", List.of(playerInfo1.getLogin()), "2", List.of(playerInfo2.getLogin())));
+    Map<Integer, List<Integer>> teams = new HashMap<>(Map.of(1, List.of(playerInfo1.getId()), 2, List.of(playerInfo2.getId())));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
 
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
@@ -309,7 +309,7 @@ public class PlayerServiceTest extends ServiceTest {
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
 
-    teams.remove("1");
+    teams.remove(1);
 
     instance.updatePlayersInGame(game);
 
@@ -319,7 +319,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testThereIsFriendInGame() {
-    ObservableMap<String, List<String>> teams = FXCollections.observableMap(Map.of("team1", List.of(playerInfo1.getLogin(), playerInfo2.getLogin())));
+    ObservableMap<Integer, List<Integer>> teams = FXCollections.observableMap(Map.of(1, List.of(playerInfo1.getId(), playerInfo2.getId())));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
@@ -331,7 +331,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testNoFriendInGame() {
-    ObservableMap<String, List<String>> teams = FXCollections.observableMap(Map.of("team1", List.of(playerInfo1.getLogin())));
+    ObservableMap<Integer, List<Integer>> teams = FXCollections.observableMap(Map.of(1, List.of(playerInfo1.getId())));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
     player2.setId(100);
@@ -343,14 +343,14 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentPlayerInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of("1", List.of("junit"))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(1))).get();
 
     assertTrue(instance.isCurrentPlayerInGame(game));
   }
 
   @Test
   public void testCurrentPlayerNotInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of("1", List.of("other"))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(2))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
   }

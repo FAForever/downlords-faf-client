@@ -96,7 +96,7 @@ public class LiveGamesFilterControllerTest extends UITest {
     verify(playerNameController).registerListener(argumentCaptor.capture());
 
     GameBean game = create().defaultValues()
-        .teams(Map.of("1", List.of("player1", "player2"), "2", List.of("Enemy1", "ENEmy2")))
+        .teams(Map.of(1, List.of(1, 2), 2, List.of(3, 4)))
         .get();
     BiFunction<String, GameBean, Boolean> filter = argumentCaptor.getValue();
     assertTrue(filter.apply("", game));

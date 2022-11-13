@@ -155,7 +155,7 @@ public class GameDetailControllerTest extends UITest {
   @Test
   public void testTeamListener() {
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
-    runOnFxThreadAndWait(() -> game.getTeams().putAll(Map.of("1", List.of("Me"), "2", List.of("You"))));
+    runOnFxThreadAndWait(() -> game.getTeams().putAll(Map.of(1, List.of(1), 2, List.of(2))));
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
   }
 

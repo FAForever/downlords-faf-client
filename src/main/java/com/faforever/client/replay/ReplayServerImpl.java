@@ -2,12 +2,13 @@ package com.faforever.client.replay;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.update.ClientUpdateService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.replay.ReplayMetadata;
@@ -29,9 +30,12 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Lazy
 @Component
@@ -57,7 +61,7 @@ public class ReplayServerImpl implements ReplayServer {
   private final I18n i18n;
   private final UserService userService;
   private final ReplayFileWriter replayFileWriter;
-  private final ClientUpdateService clientUpdateService;
+  private final PlayerService playerService;
 
   private ReplayMetadata replayInfo;
   private ServerSocket serverSocket;
@@ -172,6 +176,14 @@ public class ReplayServerImpl implements ReplayServer {
   }
 
   private void finishReplayInfo(GameBean game) {
+    Map<String, List<String>> teamStrings = game.getTeams().entrySet().stream()
+        .collect(Collectors.toMap(String::valueOf, entry -> entry.getValue()
+            .stream()
+            .map(playerService::getPlayerByIdIfOnline)
+            .flatMap(Optional::stream)
+            .map(PlayerBean::getUsername)
+            .collect(Collectors.toList())));
+
     replayInfo.setHost(game.getHost());
     replayInfo.setUid(game.getId());
     replayInfo.setTitle(game.getTitle());
@@ -181,7 +193,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.setMaxPlayers(game.getMaxPlayers());
     replayInfo.setNumPlayers(game.getNumPlayers());
     replayInfo.setSimMods(game.getSimMods());
-    replayInfo.setTeams(game.getTeams());
+    replayInfo.setTeams(teamStrings);
     replayInfo.setFeaturedModVersions(Map.of());
     replayInfo.setGameEnd(pythonTime());
     replayInfo.setRecorder(userService.getUsername());
