@@ -13,6 +13,7 @@ public class LeagueBeanBuilder {
 
   public LeagueBeanBuilder defaultValues() {
     technicalName("test");
+    enabled(true);
     nameKey("test_description");
     descriptionKey("test_name");
     id(0);
@@ -21,6 +22,11 @@ public class LeagueBeanBuilder {
 
   public LeagueBeanBuilder technicalName(String technicalName) {
     leagueBean.setTechnicalName(technicalName);
+    return this;
+  }
+
+  public LeagueBeanBuilder enabled(boolean enabled) {
+    leagueBean.setEnabled(enabled);
     return this;
   }
 

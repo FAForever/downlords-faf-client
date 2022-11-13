@@ -1,6 +1,8 @@
 package com.faforever.client.domain;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -16,6 +18,7 @@ import java.net.URL;
 public class LeagueBean extends AbstractEntityBean<LeagueBean> {
   @ToString.Include
   StringProperty technicalName = new SimpleStringProperty();
+  BooleanProperty enabled = new SimpleBooleanProperty();
   StringProperty nameKey = new SimpleStringProperty();
   StringProperty descriptionKey = new SimpleStringProperty();
   ObjectProperty<URL> imageUrl = new SimpleObjectProperty<>();
@@ -56,5 +59,17 @@ public class LeagueBean extends AbstractEntityBean<LeagueBean> {
 
   public StringProperty technicalNameProperty() {
     return technicalName;
+  }
+
+  public boolean getEnabled() {
+    return enabled.get();
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled.set(enabled);
+  }
+
+  public BooleanProperty enabledProperty() {
+    return enabled;
   }
 }
