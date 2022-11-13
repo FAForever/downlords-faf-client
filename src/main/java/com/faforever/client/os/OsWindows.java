@@ -55,4 +55,9 @@ public class OsWindows implements OperatingSystem {
         .resolve("bin")
         .resolve("java.exe");
   }
+
+  @Override
+  public @NotNull String getGithubAssetFileEnding() {
+    return ".exe";
+  }
 }

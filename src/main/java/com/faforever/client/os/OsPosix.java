@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public class OsLinux implements OperatingSystem {
+public class OsPosix implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
     var username = System.getProperty("user.name");
@@ -30,5 +30,10 @@ public class OsLinux implements OperatingSystem {
     return Path.of(System.getProperty("java.home"))
         .resolve("bin")
         .resolve("java");
+  }
+
+  @Override
+  public @NotNull String getGithubAssetFileEnding() {
+    return ".tar.gz";
   }
 }

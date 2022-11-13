@@ -28,4 +28,9 @@ public class OsUnknown implements OperatingSystem {
   public @NotNull Path getJavaExecutablePath() {
     throw new NotImplementedException("Cannot derive java binary name in unsupported OS");
   }
+
+  @Override
+  public @NotNull String getGithubAssetFileEnding() {
+    throw new NotImplementedException("Cannot derive github asset file ending in unsupported OS");
+  }
 }

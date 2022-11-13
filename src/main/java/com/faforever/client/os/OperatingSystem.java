@@ -15,6 +15,8 @@ public interface OperatingSystem {
 
   @NotNull Path getJavaExecutablePath();
 
+  @NotNull String getGithubAssetFileEnding();
+
   /**
    * The character to separate different paths in a list e.g. for list of classpath files (as String).
    * <p>

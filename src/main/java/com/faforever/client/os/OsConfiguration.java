@@ -20,7 +20,13 @@ public class OsConfiguration {
   @Profile(FafClientApplication.PROFILE_LINUX)
   @Bean
   public OperatingSystem linux() {
-    return new OsLinux();
+    return new OsPosix();
+  }
+
+  @Profile(FafClientApplication.PROFILE_MAC)
+  @Bean
+  public OperatingSystem macos() {
+    return new OsPosix();
   }
 
   @Bean
@@ -29,7 +35,9 @@ public class OsConfiguration {
     if (org.bridj.Platform.isWindows()) {
       return new OsWindows();
     } else if (org.bridj.Platform.isLinux()) {
-      return new OsLinux();
+      return new OsPosix();
+    } else if (org.bridj.Platform.isMacOSX()) {
+      return new OsPosix();
     } else {
       log.warn("Detected unsupported operating system. Feature may not work. Use on your own risk.");
       return new OsUnknown();
