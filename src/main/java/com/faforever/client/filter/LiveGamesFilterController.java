@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -40,7 +39,7 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
   protected void build(FilterBuilder<GameBean> filterBuilder) {
     filterBuilder.checkbox(i18n.get("moddedGames"), new SimModsFilterFunction());
 
-    filterBuilder.checkbox(i18n.get("hideSingleGames"), (selected, game) -> !selected || game.getNumPlayers() != 1);
+    filterBuilder.checkbox(i18n.get("hideSingleGames"), (selected, game) -> !selected || game.getNumActivePlayers() != 1);
 
     filterBuilder.checkbox(i18n.get("showGamesWithFriends"), (selected, game) -> !selected || playerService.areFriendsInGame(game));
 
@@ -56,8 +55,6 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
         .values()
         .stream()
         .flatMap(Collection::stream)
-        .map(playerService::getPlayerByIdIfOnline)
-        .flatMap(Optional::stream)
         .map(PlayerBean::getUsername)
         .anyMatch(name -> StringUtils.containsIgnoreCase(name, text)));
   }

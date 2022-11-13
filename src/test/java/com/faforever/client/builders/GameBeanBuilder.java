@@ -1,11 +1,11 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
-import com.faforever.commons.lobby.GameVisibility;
 import javafx.collections.FXCollections;
 
 import java.time.OffsetDateTime;
@@ -27,7 +27,6 @@ public class GameBeanBuilder {
     victoryCondition(VictoryCondition.DEMORALIZATION);
     host("Host");
     mapFolderName("mapName");
-    numPlayers(2);
     simMods(FXCollections.emptyObservableMap());
     status(GameStatus.OPEN);
     title("Title");
@@ -66,18 +65,8 @@ public class GameBeanBuilder {
     return this;
   }
 
-  public GameBeanBuilder numPlayers(Integer numPlayers) {
-    gameBean.setNumPlayers(numPlayers);
-    return this;
-  }
-
   public GameBeanBuilder maxPlayers(Integer maxPlayers) {
     gameBean.setMaxPlayers(maxPlayers);
-    return this;
-  }
-
-  public GameBeanBuilder averageRating(double averageRating) {
-    gameBean.setAverageRating(averageRating);
     return this;
   }
 
@@ -103,11 +92,6 @@ public class GameBeanBuilder {
 
   public GameBeanBuilder password(String password) {
     gameBean.setPassword(password);
-    return this;
-  }
-
-  public GameBeanBuilder visibility(GameVisibility visibility) {
-    gameBean.setVisibility(visibility);
     return this;
   }
 
@@ -141,7 +125,7 @@ public class GameBeanBuilder {
     return this;
   }
 
-  public GameBeanBuilder teams(Map<Integer, List<Integer>> teams) {
+  public GameBeanBuilder teams(Map<Integer, List<PlayerBean>> teams) {
     gameBean.setTeams(teams);
     return this;
   }

@@ -1,15 +1,13 @@
 package com.faforever.client.domain;
 
+import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
-import com.faforever.commons.lobby.GameVisibility;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -18,9 +16,11 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
@@ -36,15 +36,12 @@ public class GameBean {
   @EqualsAndHashCode.Include
   @ToString.Include
   private final IntegerProperty id = new SimpleIntegerProperty();
-  private final IntegerProperty numPlayers = new SimpleIntegerProperty();
   private final IntegerProperty maxPlayers = new SimpleIntegerProperty();
-  private final DoubleProperty averageRating = new SimpleDoubleProperty();
   private final StringProperty leaderboard = new SimpleStringProperty();
   private final ObjectProperty<Integer> ratingMin = new SimpleObjectProperty<>(null);
   private final ObjectProperty<Integer> ratingMax = new SimpleObjectProperty<>(null);
   private final BooleanProperty passwordProtected = new SimpleBooleanProperty();
   private final StringProperty password = new SimpleStringProperty();
-  private final ObjectProperty<GameVisibility> visibility = new SimpleObjectProperty<>();
   @ToString.Include
   private final ObjectProperty<GameStatus> status = new SimpleObjectProperty<>();
   private final ObjectProperty<VictoryCondition> victoryCondition = new SimpleObjectProperty<>();
@@ -55,7 +52,7 @@ public class GameBean {
    * Maps a sim mod's UID to its name.
    */
   private final ObjectProperty<Map<String, String>> simMods = new SimpleObjectProperty<>(Map.of());
-  private final ObjectProperty<Map<Integer, List<Integer>>> teams = new SimpleObjectProperty<>(Map.of());
+  private final ObjectProperty<Map<Integer, List<PlayerBean>>> teams = new SimpleObjectProperty<>(Map.of());
 
   public String getHost() {
     return host.get();
@@ -117,18 +114,6 @@ public class GameBean {
     return id;
   }
 
-  public Integer getNumPlayers() {
-    return numPlayers.get();
-  }
-
-  public void setNumPlayers(Integer numPlayers) {
-    this.numPlayers.setValue(numPlayers);
-  }
-
-  public IntegerProperty numPlayersProperty() {
-    return numPlayers;
-  }
-
   public Integer getMaxPlayers() {
     return maxPlayers.get();
   }
@@ -139,18 +124,6 @@ public class GameBean {
 
   public IntegerProperty maxPlayersProperty() {
     return maxPlayers;
-  }
-
-  public double getAverageRating() {
-    return averageRating.get();
-  }
-
-  public DoubleProperty averageRatingProperty() {
-    return averageRating;
-  }
-
-  public void setAverageRating(double averageRating) {
-    this.averageRating.set(averageRating);
   }
 
   public String getLeaderboard() {
@@ -255,11 +228,11 @@ public class GameBean {
   /**
    * Returns an unmodifiable map that maps team numbers (1, 2, ...) to a list of player ids.
    */
-  public Map<Integer, List<Integer>> getTeams() {
+  public Map<Integer, List<PlayerBean>> getTeams() {
     return teams.get();
   }
 
-  public void setTeams(Map<Integer, List<Integer>> teams) {
+  public void setTeams(Map<Integer, List<PlayerBean>> teams) {
     if (teams == null) {
       this.teams.set(Map.of());
     } else {
@@ -267,20 +240,8 @@ public class GameBean {
     }
   }
 
-  public ObjectProperty<Map<Integer, List<Integer>>> teamsProperty() {
+  public ObjectProperty<Map<Integer, List<PlayerBean>>> teamsProperty() {
     return teams;
-  }
-
-  public void setVisibility(GameVisibility visibility) {
-    this.visibility.setValue(visibility);
-  }
-
-  public GameVisibility getVisibility() {
-    return visibility.get();
-  }
-
-  public ObjectProperty<GameVisibility> visibilityProperty() {
-    return visibility;
   }
 
   public Boolean isPasswordProtected() {
@@ -317,5 +278,29 @@ public class GameBean {
 
   public ObjectProperty<OffsetDateTime> startTimeProperty() {
     return startTime;
+  }
+
+  public Collection<PlayerBean> getAllPlayersInGame() {
+    return getTeams().values().stream().flatMap(Collection::stream).toList();
+  }
+
+  public Integer getNumActivePlayers() {
+    return getNonObservingPlayersInGame().size();
+  }
+
+  private Collection<PlayerBean> getNonObservingPlayersInGame() {
+    return getTeams().entrySet()
+        .stream()
+        .filter(entry -> OBSERVERS_TEAM.equals(entry.getKey()))
+        .map(Entry::getValue)
+        .flatMap(Collection::stream)
+        .toList();
+  }
+
+  public double getAverageRating() {
+    return getNonObservingPlayersInGame().stream()
+        .mapToInt(player -> RatingUtil.getLeaderboardRating(player, getLeaderboard()))
+        .average()
+        .orElse(0.0);
   }
 }

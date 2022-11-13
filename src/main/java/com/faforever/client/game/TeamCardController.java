@@ -7,7 +7,6 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
@@ -21,13 +20,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -44,32 +41,6 @@ public class TeamCardController implements Controller<Node> {
     this.uiService = uiService;
     this.i18n = i18n;
     ratingChangeControllersByPlayerId = new HashMap<>();
-  }
-
-  /**
-   * Creates a new {@link TeamCardController} and adds its root to the specified {@code teamsPane}.
-   *
-   * @param game the game to create teams from
-   * @param playerService the service to use to look up players by name
-   */
-  static void createAndAdd(GameBean game, PlayerService playerService, UiService uiService, Pane teamsPane) {
-    List<Node> teamCardPanes = new ArrayList<>();
-    if (game != null) {
-      for (Map.Entry<Integer, List<Integer>> entry : game.getTeams().entrySet()) {
-        Integer team = entry.getKey();
-        if (team != null) {
-          List<PlayerBean> players = entry.getValue().stream()
-              .flatMap(playerName -> playerService.getPlayerByIdIfOnline(playerName).stream())
-              .collect(Collectors.toList());
-
-          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-          teamCardController.setPlayersInTeam(team, players,
-              player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
-          teamCardPanes.add(teamCardController.getRoot());
-        }
-      }
-    }
-    JavaFxUtil.runLater(() -> teamsPane.getChildren().setAll(teamCardPanes));
   }
 
   public void setPlayersInTeam(Integer team, Collection<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {

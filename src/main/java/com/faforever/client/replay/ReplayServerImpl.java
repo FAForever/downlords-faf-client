@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -179,8 +178,6 @@ public class ReplayServerImpl implements ReplayServer {
     Map<String, List<String>> teamStrings = game.getTeams().entrySet().stream()
         .collect(Collectors.toMap(String::valueOf, entry -> entry.getValue()
             .stream()
-            .map(playerService::getPlayerByIdIfOnline)
-            .flatMap(Optional::stream)
             .map(PlayerBean::getUsername)
             .collect(Collectors.toList())));
 
@@ -191,7 +188,7 @@ public class ReplayServerImpl implements ReplayServer {
     replayInfo.setVictoryCondition(game.getVictoryCondition());
     replayInfo.setFeaturedMod(game.getFeaturedMod());
     replayInfo.setMaxPlayers(game.getMaxPlayers());
-    replayInfo.setNumPlayers(game.getNumPlayers());
+    replayInfo.setNumPlayers(game.getNumActivePlayers());
     replayInfo.setSimMods(game.getSimMods());
     replayInfo.setTeams(teamStrings);
     replayInfo.setFeaturedModVersions(Map.of());

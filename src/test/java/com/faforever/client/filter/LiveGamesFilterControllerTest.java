@@ -1,6 +1,8 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
@@ -95,8 +97,13 @@ public class LiveGamesFilterControllerTest extends UITest {
     ArgumentCaptor<BiFunction<String, GameBean, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(playerNameController).registerListener(argumentCaptor.capture());
 
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().id(1).username("player1").get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().id(2).username("player2").get();
+    PlayerBean enemy1 = PlayerBeanBuilder.create().defaultValues().id(3).username("enemy1").get();
+    PlayerBean enemy2 = PlayerBeanBuilder.create().defaultValues().id(4).username("enemy2").get();
+
     GameBean game = create().defaultValues()
-        .teams(Map.of(1, List.of(1, 2), 2, List.of(3, 4)))
+        .teams(Map.of(1, List.of(player1, player2), 2, List.of(enemy1, enemy2)))
         .get();
     BiFunction<String, GameBean, Boolean> filter = argumentCaptor.getValue();
     assertTrue(filter.apply("", game));
@@ -112,10 +119,11 @@ public class LiveGamesFilterControllerTest extends UITest {
 
     BiFunction<Boolean, GameBean, Boolean> filter = argumentCaptor.getValue();
 
-    assertTrue(filter.apply(false, create().defaultValues().numPlayers(1).get()));
-    assertTrue(filter.apply(false, create().defaultValues().numPlayers(8).get()));
-    assertTrue(filter.apply(true, create().defaultValues().numPlayers(10).get()));
-    assertFalse(filter.apply(true, create().defaultValues().numPlayers(1).get()));
+    PlayerBean playerBean = PlayerBeanBuilder.create().get();
+    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, List.of(playerBean))).get()));
+    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, List.of(playerBean, playerBean))).get()));
+    assertTrue(filter.apply(true, create().defaultValues().teams(Map.of(1, List.of(playerBean), 2, List.of(playerBean))).get()));
+    assertFalse(filter.apply(true, create().defaultValues().teams(Map.of(1, List.of(playerBean))).get()));
   }
 
   @Test

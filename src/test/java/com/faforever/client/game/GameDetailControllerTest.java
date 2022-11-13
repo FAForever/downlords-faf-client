@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -73,7 +74,7 @@ public class GameDetailControllerTest extends UITest {
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(mock(Image.class));
     when(timeService.shortDuration(any())).thenReturn("duration");
-    when(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()));
+    when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {
@@ -135,12 +136,12 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testNumPlayersListener() {
-    assertEquals(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
-    when(i18n.get("game.detail.players.format", 12, 16)).thenReturn("12/16");
-    game.setNumPlayers(12);
+    assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
+    when(i18n.get("game.detail.players.format", 2, 16)).thenReturn("2/16");
+    game.setTeams(Map.of(1, List.of(PlayerBeanBuilder.create().get()), 2, List.of(PlayerBeanBuilder.create().get())));
     game.setMaxPlayers(16);
     WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
+    assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
   }
 
   @Test
@@ -155,7 +156,7 @@ public class GameDetailControllerTest extends UITest {
   @Test
   public void testTeamListener() {
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
-    runOnFxThreadAndWait(() -> game.getTeams().putAll(Map.of(1, List.of(1), 2, List.of(2))));
+    runOnFxThreadAndWait(() -> game.getTeams().putAll(Map.of(1, List.of(PlayerBeanBuilder.create().get()), 2, List.of(PlayerBeanBuilder.create().get()))));
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
   }
 

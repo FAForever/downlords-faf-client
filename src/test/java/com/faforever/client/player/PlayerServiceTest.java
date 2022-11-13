@@ -298,7 +298,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testPlayerLeftOpenGame() {
-    Map<Integer, List<Integer>> teams = new HashMap<>(Map.of(1, List.of(playerInfo1.getId()), 2, List.of(playerInfo2.getId())));
+    Map<Integer, List<PlayerBean>> teams = new HashMap<>(Map.of(1, List.of(playerMapper.update(playerInfo1, new PlayerBean())), 2, List.of(playerMapper.update(playerInfo2, new PlayerBean()))));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
 
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
@@ -319,7 +319,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testThereIsFriendInGame() {
-    ObservableMap<Integer, List<Integer>> teams = FXCollections.observableMap(Map.of(1, List.of(playerInfo1.getId(), playerInfo2.getId())));
+    ObservableMap<Integer, List<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, List.of(playerMapper.update(playerInfo1, new PlayerBean()), playerMapper.update(playerInfo2, new PlayerBean()))));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
@@ -331,7 +331,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testNoFriendInGame() {
-    ObservableMap<Integer, List<Integer>> teams = FXCollections.observableMap(Map.of(1, List.of(playerInfo1.getId())));
+    ObservableMap<Integer, List<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, List.of(playerMapper.update(playerInfo1, new PlayerBean()))));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
     player2.setId(100);
@@ -343,14 +343,14 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentPlayerInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(1))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(PlayerBeanBuilder.create().defaultValues().id(1).get()))).get();
 
     assertTrue(instance.isCurrentPlayerInGame(game));
   }
 
   @Test
   public void testCurrentPlayerNotInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(2))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(PlayerBeanBuilder.create().defaultValues().id(2).get()))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
   }

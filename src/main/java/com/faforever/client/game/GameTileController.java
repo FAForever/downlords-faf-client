@@ -60,7 +60,7 @@ public class GameTileController implements Controller<Node> {
   private Consumer<GameBean> onSelectedListener;
   private GameBean game;
 
-  private InvalidationListener numPlayersInvalidationListener;
+  private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gamePropertiesInvalidationListener;
 
   public void setOnSelectedListener(Consumer<GameBean> onSelectedListener) {
@@ -73,7 +73,7 @@ public class GameTileController implements Controller<Node> {
     JavaFxUtil.bind(defaultHostIcon.visibleProperty(), avatarImageView.imageProperty().isNull());
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
 
-    numPlayersInvalidationListener = observable -> onNumPlayersChanged();
+    teamsInvalidationListener = observable -> onNumPlayersChanged();
     gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
   }
 
@@ -97,7 +97,7 @@ public class GameTileController implements Controller<Node> {
   private void onNumPlayersChanged() {
     boolean friendsInGame = playerService.areFriendsInGame(game);
     JavaFxUtil.runLater(() -> {
-      numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()));
+      numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers()));
       avgRatingLabel.setText(i18n.get("game.avgRating.format", Math.round(game.getAverageRating() / 100.0) * 100.0));
       getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, friendsInGame);
     });
@@ -111,16 +111,14 @@ public class GameTileController implements Controller<Node> {
         .thenAccept(featuredModBean -> JavaFxUtil.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
 
     WeakInvalidationListener weakGamePropertiesListener = new WeakInvalidationListener(gamePropertiesInvalidationListener);
-    WeakInvalidationListener weakNumPlayersListener = new WeakInvalidationListener(numPlayersInvalidationListener);
+    WeakInvalidationListener weakNumPlayersListener = new WeakInvalidationListener(teamsInvalidationListener);
 
     JavaFxUtil.addListener(game.titleProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.mapFolderNameProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.simModsProperty(), weakGamePropertiesListener);
     JavaFxUtil.addAndTriggerListener(game.passwordProtectedProperty(), weakGamePropertiesListener);
-    JavaFxUtil.addListener(game.numPlayersProperty(), weakNumPlayersListener);
-    JavaFxUtil.addListener(game.maxPlayersProperty(), weakNumPlayersListener);
-    JavaFxUtil.addAndTriggerListener(game.averageRatingProperty(), weakNumPlayersListener);
+    JavaFxUtil.addListener(game.teamsProperty(), weakNumPlayersListener);
   }
 
   private String getSimModsLabelContent(Map<String, String> simMods) {
