@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -18,6 +19,7 @@ import com.faforever.commons.lobby.GameStatus;
 import javafx.animation.Animation.Status;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -60,6 +62,8 @@ public class GameDetailControllerTest extends UITest {
 
   @Mock
   private WatchButtonController watchButtonController;
+  @Mock
+  private TeamCardController teamCardController;
 
   @InjectMocks
   private GameDetailController instance;
@@ -70,10 +74,14 @@ public class GameDetailControllerTest extends UITest {
   public void setUp() throws Exception {
     game = GameBeanBuilder.create().defaultValues().get();
     when(watchButtonController.getRoot()).thenReturn(new Button());
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(teamCardController.getRoot()).then(invocation -> new Pane());
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(mock(Image.class));
     when(timeService.shortDuration(any())).thenReturn("duration");
-    when(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()));
+    when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
+    when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {
@@ -135,18 +143,23 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testNumPlayersListener() {
-    assertEquals(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
-    when(i18n.get("game.detail.players.format", 12, 16)).thenReturn("12/16");
-    game.setNumPlayers(12);
-    game.setMaxPlayers(16);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(String.format("%d/%d", game.getNumPlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
+    assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
+    when(i18n.get("game.detail.players.format", 2, 16)).thenReturn("2/16");
+    runOnFxThreadAndWait(() -> {
+      game.setTeams(Map.of(1, List.of(PlayerBeanBuilder.create().get()), 2, List.of(PlayerBeanBuilder.create().get())));
+      game.setMaxPlayers(16);
+    });
+    assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
   }
 
   @Test
   public void testModListener() {
     assertEquals("Forged Alliance Forever", instance.gameTypeLabel.getText());
-    FeaturedModBean mod = FeaturedModBeanBuilder.create().defaultValues().technicalName("ladder").displayName("LADDER").get();
+    FeaturedModBean mod = FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .technicalName("ladder")
+        .displayName("LADDER")
+        .get();
     when(modService.getFeaturedMod(mod.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(mod));
     runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.getTechnicalName()));
     assertEquals(mod.getDisplayName(), instance.gameTypeLabel.getText());
@@ -155,7 +168,8 @@ public class GameDetailControllerTest extends UITest {
   @Test
   public void testTeamListener() {
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
-    runOnFxThreadAndWait(() -> game.getTeams().putAll(Map.of("1", List.of("Me"), "2", List.of("You"))));
+    runOnFxThreadAndWait(() -> game.getTeams()
+        .putAll(Map.of(1, List.of(PlayerBeanBuilder.create().get()), 2, List.of(PlayerBeanBuilder.create().get()))));
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
   }
 
@@ -204,7 +218,11 @@ public class GameDetailControllerTest extends UITest {
   public void testShowPlaytimeWhenGameIsRunning() {
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);
-      instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get());
+      instance.setGame(GameBeanBuilder.create()
+          .defaultValues()
+          .status(GameStatus.PLAYING)
+          .startTime(OffsetDateTime.now())
+          .get());
     });
     assertTrue(instance.playtimeLabel.isVisible());
     assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
@@ -212,7 +230,11 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testHidePlaytimeWhenGameHasJustEnded() throws Exception {
-    GameBean game = GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).startTime(OffsetDateTime.now()).get();
+    GameBean game = GameBeanBuilder.create()
+        .defaultValues()
+        .status(GameStatus.PLAYING)
+        .startTime(OffsetDateTime.now())
+        .get();
 
     runOnFxThreadAndWait(() -> {
       instance.setPlaytimeVisible(true);

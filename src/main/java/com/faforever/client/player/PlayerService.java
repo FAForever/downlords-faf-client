@@ -103,7 +103,7 @@ public class PlayerService implements InitializingBean {
       List<PlayerBean> playersInGameToRemove = new ArrayList<>(currentPlayersInGame);
 
       currentPlayersInGame.clear();
-      currentPlayersInGame.addAll(getAllPlayersInGame(game));
+      currentPlayersInGame.addAll(game.getAllPlayersInGame());
 
       playersInGameToRemove.removeAll(currentPlayersInGame);
       playersInGameToRemove.forEach(player -> removeGameFromPlayer(game, player));
@@ -155,15 +155,8 @@ public class PlayerService implements InitializingBean {
     if (game == null) {
       return false;
     }
-    return getAllPlayersInGame(game).stream()
+    return game.getAllPlayersInGame().stream()
         .anyMatch(player -> friendList.contains(player.getId()));
-  }
-
-  public List<PlayerBean> getAllPlayersInGame(GameBean game) {
-    return game.getTeams().values().stream()
-        .flatMap(Collection::stream)
-        .flatMap(playerName -> getPlayerByNameIfOnline(playerName).stream())
-        .collect(Collectors.toList());
   }
 
   public Optional<Image> getCurrentAvatarByPlayerName(String name) {
@@ -173,7 +166,7 @@ public class PlayerService implements InitializingBean {
   public boolean isCurrentPlayerInGame(GameBean game) {
     // TODO the following can be removed as soon as the server tells us which game a player is in.
     PlayerBean player = getCurrentPlayer();
-    return getAllPlayersInGame(game).stream().anyMatch(player::equals);
+    return game.getAllPlayersInGame().stream().anyMatch(player::equals);
   }
 
   public boolean isOnline(Integer playerId) {
@@ -189,18 +182,18 @@ public class PlayerService implements InitializingBean {
 
     PlayerBean player;
     synchronized (playersById) {
-      player = playersById.computeIfAbsent(playerInfo.getId(), id -> {
-        PlayerBean newPlayer = new PlayerBean();
-        newPlayer.setUsername(playerInfo.getLogin());
-        JavaFxUtil.addAndTriggerListener(newPlayer.usernameProperty(), observable -> playersByName.put(newPlayer.getUsername(), newPlayer));
-        setPlayerSocialStatus(id, newPlayer);
-        newPlayer.setNote(notesByPlayerId.getOrDefault(id, ""));
-        return newPlayer;
+      player = playersById.compute(playerInfo.getId(), (id, knownPlayer) -> {
+        if (knownPlayer == null) {
+          PlayerBean newPlayer = new PlayerBean();
+          newPlayer.setUsername(playerInfo.getLogin());
+          JavaFxUtil.addAndTriggerListener(newPlayer.usernameProperty(), observable -> playersByName.put(newPlayer.getUsername(), newPlayer));
+          setPlayerSocialStatus(id, newPlayer);
+          newPlayer.setNote(notesByPlayerId.getOrDefault(id, ""));
+          return playerMapper.update(playerInfo, newPlayer);
+        } else {
+          return playerMapper.update(playerInfo, knownPlayer);
+        }
       });
-    }
-
-    synchronized (player) {
-      playerMapper.update(playerInfo, player);
     }
 
     if (player.getIdleSince() == null) {

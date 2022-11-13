@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -8,9 +9,9 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.mod.ModService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
+import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
@@ -35,6 +36,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -45,7 +49,6 @@ public class GameDetailController implements Controller<Pane> {
   private final I18n i18n;
   private final MapService mapService;
   private final ModService modService;
-  private final PlayerService playerService;
   private final TimeService timeService;
   private final UiService uiService;
   private final JoinGameHelper joinGameHelper;
@@ -71,7 +74,6 @@ public class GameDetailController implements Controller<Pane> {
 
   private InvalidationListener teamsInvalidationListener;
   private InvalidationListener gameStatusInvalidationListener;
-  private InvalidationListener numPlayersInvalidationListener;
   private InvalidationListener gamePropertiesInvalidationListener;
   private InvalidationListener featuredModInvalidationListener;
   private InvalidationListener startTimeInvalidationListener;
@@ -151,7 +153,7 @@ public class GameDetailController implements Controller<Pane> {
   private void onNumPlayersChanged() {
     JavaFxUtil.runLater(() -> {
       if (game != null) {
-        numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumPlayers(), game.getMaxPlayers()));
+        numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers()));
       }
     });
   }
@@ -170,25 +172,25 @@ public class GameDetailController implements Controller<Pane> {
     WeakInvalidationListener weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
     WeakInvalidationListener weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
     WeakInvalidationListener weakGamePropertiesListener = new WeakInvalidationListener(gamePropertiesInvalidationListener);
-    WeakInvalidationListener weakNumPlayersListener = new WeakInvalidationListener(numPlayersInvalidationListener);
     WeakInvalidationListener weakStartTimeListener = new WeakInvalidationListener(startTimeInvalidationListener);
 
     JavaFxUtil.addAndTriggerListener(game.featuredModProperty(), new WeakInvalidationListener(featuredModInvalidationListener));
+    JavaFxUtil.addListener(game.maxPlayersProperty(), weakTeamListener);
     JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamListener);
     JavaFxUtil.addAndTriggerListener(game.statusProperty(), weakGameStatusListener);
     JavaFxUtil.addAndTriggerListener(game.titleProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.mapFolderNameProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
-    JavaFxUtil.addAndTriggerListener(game.numPlayersProperty(), weakNumPlayersListener);
-    JavaFxUtil.addListener(game.maxPlayersProperty(), weakNumPlayersListener);
     JavaFxUtil.addAndTriggerListener(game.startTimeProperty(), weakStartTimeListener);
   }
 
   public void resetListeners() {
     featuredModInvalidationListener = observable -> onFeaturedModChanged();
     gameStatusInvalidationListener = observable -> onGameStatusChanged();
-    teamsInvalidationListener = observable -> createTeams();
-    numPlayersInvalidationListener = observable -> onNumPlayersChanged();
+    teamsInvalidationListener = observable -> {
+      createTeams();
+      onNumPlayersChanged();
+    };
     gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
     startTimeInvalidationListener = observable -> onStartTimeChanged();
   }
@@ -218,7 +220,20 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void createTeams() {
-    TeamCardController.createAndAdd(game, playerService, uiService, teamListPane);
+    List<Node> teamCardPanes = new ArrayList<>();
+    if (game != null) {
+      for (Map.Entry<Integer, List<PlayerBean>> entry : game.getTeams().entrySet()) {
+        Integer team = entry.getKey();
+
+        if (team != null) {
+          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+          teamCardController.setPlayersInTeam(team, entry.getValue(),
+              player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
+          teamCardPanes.add(teamCardController.getRoot());
+        }
+      }
+    }
+    JavaFxUtil.runLater(() -> teamListPane.getChildren().setAll(teamCardPanes));
   }
 
   private void showGameDetail() {

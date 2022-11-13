@@ -7,7 +7,6 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
@@ -21,13 +20,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -46,33 +43,7 @@ public class TeamCardController implements Controller<Node> {
     ratingChangeControllersByPlayerId = new HashMap<>();
   }
 
-  /**
-   * Creates a new {@link TeamCardController} and adds its root to the specified {@code teamsPane}.
-   *
-   * @param game the game to create teams from
-   * @param playerService the service to use to look up players by name
-   */
-  static void createAndAdd(GameBean game, PlayerService playerService, UiService uiService, Pane teamsPane) {
-    List<Node> teamCardPanes = new ArrayList<>();
-    if (game != null) {
-      for (Map.Entry<? extends String, ? extends List<String>> entry : game.getTeams().entrySet()) {
-        String team = entry.getKey();
-        if (team != null) {
-          List<PlayerBean> players = entry.getValue().stream()
-              .flatMap(playerName -> playerService.getPlayerByNameIfOnline(playerName).stream())
-              .collect(Collectors.toList());
-
-          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-          teamCardController.setPlayersInTeam(team, players,
-              player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
-          teamCardPanes.add(teamCardController.getRoot());
-        }
-      }
-    }
-    JavaFxUtil.runLater(() -> teamsPane.getChildren().setAll(teamCardPanes));
-  }
-
-  public void setPlayersInTeam(String team, Collection<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
+  public void setPlayersInTeam(Integer team, Collection<PlayerBean> playerList, Function<PlayerBean, Integer> ratingProvider, Function<PlayerBean, Faction> playerFactionProvider, RatingPrecision ratingPrecision) {
     int totalRating = 0;
     for (PlayerBean player : playerList) {
       // If the server wasn't bugged, this would never be the case.
@@ -108,7 +79,7 @@ public class TeamCardController implements Controller<Node> {
         teamTitle = i18n.get("game.tooltip.observers");
       } else {
         try {
-          teamTitle = i18n.get("game.tooltip.teamTitle", Integer.parseInt(team) - 1, totalRating);
+          teamTitle = i18n.get("game.tooltip.teamTitle", team - 1, totalRating);
         } catch (NumberFormatException e) {
           teamTitle = "";
           log.warn("Received unknown team in server message: team `{}`", team);

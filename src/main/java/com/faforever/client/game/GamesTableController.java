@@ -121,8 +121,8 @@ public class GamesTableController implements Controller<Node> {
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
     playersColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
-        () -> new PlayerFill(param.getValue().getNumPlayers(), param.getValue().getMaxPlayers()),
-        param.getValue().numPlayersProperty(), param.getValue().maxPlayersProperty())
+        () -> new PlayerFill(param.getValue().getNumActivePlayers(), param.getValue().getMaxPlayers()),
+        param.getValue().teamsProperty())
     );
     playersColumn.setCellFactory(param -> playersCell());
     ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getRatingMin(), param.getValue().getRatingMax())));
@@ -134,7 +134,8 @@ public class GamesTableController implements Controller<Node> {
     coopMissionName.setVisible(coopMissionNameProvider != null);
 
     if (averageRatingColumn != null) {
-      averageRatingColumn.setCellValueFactory(param -> param.getValue().averageRatingProperty());
+      averageRatingColumn.setCellValueFactory(param -> Bindings.createDoubleBinding(() -> param.getValue()
+          .getAverageRating(), param.getValue().teamsProperty()));
       averageRatingColumn.setCellFactory(param -> new DecimalCell<>(
           new DecimalFormat("0"),
           number -> Math.round(number.doubleValue() / 100.0) * 100.0)

@@ -2,6 +2,7 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -54,7 +55,7 @@ public class GameTooltipControllerTest extends UITest {
     Map<String, String> simMods = new HashMap<>();
     when(game.getSimMods()).thenReturn(simMods);
     when(game.simModsProperty()).thenReturn(new SimpleObjectProperty<>(simMods));
-    Map<String, List<String>> teams = new HashMap<>();
+    Map<Integer, List<PlayerBean>> teams = new HashMap<>();
     when(game.getTeams()).thenReturn(teams);
     when(game.teamsProperty()).thenReturn(new SimpleObjectProperty<>(teams));
 
@@ -64,7 +65,7 @@ public class GameTooltipControllerTest extends UITest {
     assertFalse(instance.modsPane.isVisible());
     assertThat(instance.teamsPane.getPrefColumns(), is(0));
 
-    teams.put("team1", List.of("Bob"));
+    teams.put(1, List.of(PlayerBeanBuilder.create().defaultValues().get()));
     instance.setGame(game);
     instance.displayGame();
     WaitForAsyncUtils.waitForFxEvents();

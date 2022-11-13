@@ -2,10 +2,11 @@ package com.faforever.client.game;
 
 
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
+import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -19,13 +20,16 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
 @RequiredArgsConstructor
 public class GameTooltipController implements Controller<Node> {
 
   private final UiService uiService;
-  private final PlayerService playerService;
 
   public TitledPane modsPane;
   public TilePane teamsPane;
@@ -69,8 +73,22 @@ public class GameTooltipController implements Controller<Node> {
 
   private void createTeams() {
     if (game != null) {
-      TeamCardController.createAndAdd(game, playerService, uiService, teamsPane);
-      JavaFxUtil.runLater(() -> teamsPane.setPrefColumns(Math.min(game.getTeams().size(), maxPrefColumns)));
+      List<Node> teamCardPanes = new ArrayList<>();
+      for (Map.Entry<Integer, List<PlayerBean>> entry : game.getTeams().entrySet()) {
+        Integer team = entry.getKey();
+        if (team != null) {
+
+          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+          teamCardController.setPlayersInTeam(team, entry.getValue(),
+              player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
+          teamCardPanes.add(teamCardController.getRoot());
+        }
+      }
+
+      JavaFxUtil.runLater(() -> {
+        teamsPane.getChildren().setAll(teamCardPanes);
+        teamsPane.setPrefColumns(Math.min(game.getTeams().size(), maxPrefColumns));
+      });
     }
   }
 
