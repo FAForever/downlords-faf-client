@@ -7,6 +7,8 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Scanner;
 
+import static com.faforever.client.preferences.PreferencesService.APP_DATA_SUB_FOLDER;
+
 public class OsWindows implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
@@ -40,6 +42,11 @@ public class OsWindows implements OperatingSystem {
   @Override
   public boolean supportsUpdateInstall() {
     return true;
+  }
+
+  @Override
+  public @NotNull Path getPreferencesDirectory() {
+    return Path.of(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
   }
 
   @Override

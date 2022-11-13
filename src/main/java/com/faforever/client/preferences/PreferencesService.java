@@ -4,6 +4,7 @@ import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.error.GameLaunchException;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.serialization.ColorMixin;
 import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.serialization.PathDeserializer;
@@ -92,9 +93,9 @@ public class PreferencesService implements InitializingBean {
   private ClientConfiguration clientConfiguration;
   private TimerTask storeInBackgroundTask;
 
-  public PreferencesService(ClientProperties clientProperties) {
+  public PreferencesService(OperatingSystem operatingSystem, ClientProperties clientProperties) {
     this.clientProperties = clientProperties;
-    this.preferencesFilePath = getPreferencesDirectory().resolve(PREFS_FILE_NAME);
+    this.preferencesFilePath = operatingSystem.getPreferencesDirectory().resolve(PREFS_FILE_NAME);
     ObjectMapper objectMapper = new ObjectMapper()
         .setSerializationInclusion(Include.NON_EMPTY)
         .enable(SerializationFeature.INDENT_OUTPUT)
@@ -121,13 +122,6 @@ public class PreferencesService implements InitializingBean {
     preferencesUpdater = objectMapper.readerForUpdating(preferences);
     preferencesWriter = objectMapper.writerFor(Preferences.class);
     configurationReader = objectMapper.readerFor(ClientConfiguration.class);
-  }
-
-  public Path getPreferencesDirectory() {
-    if (org.bridj.Platform.isWindows()) {
-      return Path.of(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
-    }
-    return Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
   }
 
   @Override

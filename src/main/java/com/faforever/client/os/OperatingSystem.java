@@ -11,6 +11,8 @@ public interface OperatingSystem {
 
   boolean supportsUpdateInstall();
 
+  @NotNull Path getPreferencesDirectory();
+
   @NotNull Path getUidExecutablePath();
 
   @NotNull Path getJavaExecutablePath();

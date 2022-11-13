@@ -20,6 +20,11 @@ public class OsUnknown implements OperatingSystem {
   }
 
   @Override
+  public @NotNull Path getPreferencesDirectory() {
+    throw new NotImplementedException("Cannot derive preferences directory in unsupported OS");
+  }
+
+  @Override
   public @NotNull Path getUidExecutablePath() {
     throw new NotImplementedException("Cannot derive uid binary in unsupported OS");
   }

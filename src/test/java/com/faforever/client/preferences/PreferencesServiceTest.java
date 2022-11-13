@@ -2,6 +2,7 @@ package com.faforever.client.preferences;
 
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.serialization.ColorMixin;
 import com.faforever.client.serialization.FactionMixin;
 import com.faforever.client.serialization.PathDeserializer;
@@ -30,29 +31,32 @@ import javafx.collections.ObservableSet;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.nio.file.Path;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 public class PreferencesServiceTest extends ServiceTest {
 
 
-  @InjectMocks
   private PreferencesService instance;
 
+  @Mock
+  private OperatingSystem operatingSystem;
   @Spy
   private ClientProperties clientProperties = new ClientProperties();
   private ObjectMapper objectMapper;
 
   @BeforeEach
   public void setUp() throws Exception {
+    when(operatingSystem.getPreferencesDirectory()).thenReturn(Path.of("."));
+    instance = new PreferencesService(operatingSystem, clientProperties);
+
     objectMapper = new ObjectMapper()
         .setSerializationInclusion(Include.NON_EMPTY)
         .enable(SerializationFeature.INDENT_OUTPUT)
@@ -76,11 +80,6 @@ public class PreferencesServiceTest extends ServiceTest {
         .addAbstractTypeMapping(SetProperty.class, SimpleSetProperty.class);
 
     objectMapper.registerModule(preferencesModule);
-  }
-
-  @Test
-  public void testGetPreferencesDirectory() throws Exception {
-    assertThat(instance.getPreferencesDirectory(), notNullValue());
   }
 
   @Test
