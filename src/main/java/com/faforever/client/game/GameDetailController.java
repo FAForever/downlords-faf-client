@@ -175,6 +175,7 @@ public class GameDetailController implements Controller<Pane> {
     WeakInvalidationListener weakStartTimeListener = new WeakInvalidationListener(startTimeInvalidationListener);
 
     JavaFxUtil.addAndTriggerListener(game.featuredModProperty(), new WeakInvalidationListener(featuredModInvalidationListener));
+    JavaFxUtil.addListener(game.maxPlayersProperty(), weakTeamListener);
     JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamListener);
     JavaFxUtil.addAndTriggerListener(game.statusProperty(), weakGameStatusListener);
     JavaFxUtil.addAndTriggerListener(game.titleProperty(), weakGamePropertiesListener);

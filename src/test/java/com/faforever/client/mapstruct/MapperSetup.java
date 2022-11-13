@@ -9,16 +9,17 @@ import java.util.Map;
 public class MapperSetup {
   private static final Map<Class<?>, Object> INJECTED_MAPPERS = new HashMap<>();
 
-  public static <T> void injectMappers(T mapper) throws IllegalAccessException {
-    Class<T> mapperClass = (Class<T>) mapper.getClass();
-    if (mapperClass.getName().contains("MockitoMock")) {
-      mapperClass = (Class<T>) mapperClass.getSuperclass();
+  public static void injectMappers(Object object) throws IllegalAccessException {
+    Class<?> objectClass = object.getClass();
+    if (objectClass.getName().contains("MockitoMock")) {
+      objectClass = objectClass.getSuperclass();
     }
-    INJECTED_MAPPERS.put(mapperClass, mapper);
-    for (Field field : mapperClass.getDeclaredFields()) {
+
+    INJECTED_MAPPERS.put(objectClass, object);
+    for (Field field : objectClass.getDeclaredFields()) {
       Class<?> internalMapperType = field.getType();
       if (INJECTED_MAPPERS.containsKey(internalMapperType)) {
-        injectMapper(mapper, field, INJECTED_MAPPERS.get(internalMapperType));
+        injectMapper(object, field, INJECTED_MAPPERS.get(internalMapperType));
         continue;
       }
 
@@ -27,14 +28,14 @@ public class MapperSetup {
         continue;
       }
 
-      injectMapper(mapper, field, internalMapper);
+      injectMapper(object, field, internalMapper);
 
       INJECTED_MAPPERS.put(internalMapperType, internalMapper);
       injectMappers(internalMapper);
     }
   }
 
-  private static <T> void injectMapper(T mapper, Field field, Object internalMapper) throws IllegalAccessException {
+  private static void injectMapper(Object mapper, Field field, Object internalMapper) throws IllegalAccessException {
     field.setAccessible(true);
     field.set(mapper, internalMapper);
     field.setAccessible(false);

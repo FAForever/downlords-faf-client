@@ -298,11 +298,10 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testPlayerLeftOpenGame() {
-    Map<Integer, List<PlayerBean>> teams = new HashMap<>(Map.of(1, List.of(playerMapper.update(playerInfo1, new PlayerBean())), 2, List.of(playerMapper.update(playerInfo2, new PlayerBean()))));
+    PlayerBean player1 = playerMapper.update(playerInfo1, new PlayerBean());
+    PlayerBean player2 = playerMapper.update(playerInfo2, new PlayerBean());
+    Map<Integer, List<PlayerBean>> teams = new HashMap<>(Map.of(1, List.of(player1), 2, List.of(player2)));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
-
-    PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
 
     instance.updatePlayersInGame(game);
 

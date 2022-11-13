@@ -39,6 +39,9 @@ public abstract class GameMapper {
   public abstract GameBean update(GameInfo dto, @MappingTarget GameBean bean);
 
   public Map<Integer, List<PlayerBean>> map(List<TeamIds> teamIds) {
+    if (teamIds == null || teamIds.isEmpty()) {
+      return Map.of();
+    }
     return teamIds.stream()
         .collect(Collectors.toMap(TeamIds::getTeamId, memberIds -> memberIds.getPlayerIds()
             .stream()

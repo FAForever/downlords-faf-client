@@ -111,14 +111,14 @@ public class GameTileController implements Controller<Node> {
         .thenAccept(featuredModBean -> JavaFxUtil.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
 
     WeakInvalidationListener weakGamePropertiesListener = new WeakInvalidationListener(gamePropertiesInvalidationListener);
-    WeakInvalidationListener weakNumPlayersListener = new WeakInvalidationListener(teamsInvalidationListener);
+    WeakInvalidationListener weakTeamsListener = new WeakInvalidationListener(teamsInvalidationListener);
 
     JavaFxUtil.addListener(game.titleProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.mapFolderNameProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.simModsProperty(), weakGamePropertiesListener);
     JavaFxUtil.addAndTriggerListener(game.passwordProtectedProperty(), weakGamePropertiesListener);
-    JavaFxUtil.addListener(game.teamsProperty(), weakNumPlayersListener);
+    JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamsListener);
   }
 
   private String getSimModsLabelContent(Map<String, String> simMods) {
