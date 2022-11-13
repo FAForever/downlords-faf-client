@@ -9,7 +9,7 @@ import com.faforever.client.exception.UIDException;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.UidService;
+import com.faforever.client.io.UidService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
@@ -147,7 +147,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
           clientProperties.getServer().getPort() + 1,
           sessionId -> {
             try {
-              return uidService.generate(String.valueOf(sessionId), preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("uid.log"));
+              return uidService.generate(String.valueOf(sessionId));
             } catch (IOException e) {
               throw new UIDException("Cannot generate UID", e, "uid.generate.error");
             }

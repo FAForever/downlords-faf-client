@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoggedInEvent;
@@ -35,6 +36,7 @@ import static java.util.Collections.singletonList;
 @Slf4j
 public class ClientUpdateService implements InitializingBean {
 
+  private final OperatingSystem operatingSystem;
   private final TaskService taskService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -53,6 +55,7 @@ public class ClientUpdateService implements InitializingBean {
   }
 
   public ClientUpdateService(
+      OperatingSystem operatingSystem,
       TaskService taskService,
       NotificationService notificationService,
       I18n i18n,
@@ -60,6 +63,7 @@ public class ClientUpdateService implements InitializingBean {
       ApplicationContext applicationContext,
       PreferencesService preferencesService,
       EventBus eventBus) {
+    this.operatingSystem = operatingSystem;
     this.taskService = taskService;
     this.notificationService = notificationService;
     this.i18n = i18n;
@@ -128,8 +132,7 @@ public class ClientUpdateService implements InitializingBean {
 
       List<Action> actions = new ArrayList<>();
 
-      if (org.bridj.Platform.isWindows()) {
-        // The automatic download and installation of update doesn't work on Linux as there is no unified installer
+      if (operatingSystem.supportsUpdateInstall()) {
         actions.add(new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)));
       }
 

@@ -8,6 +8,7 @@ import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.status.Message;
@@ -28,6 +29,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -71,6 +74,8 @@ public class LoginControllerTest extends UITest {
 
   @InjectMocks
   private LoginController instance;
+  @Mock
+  private OperatingSystem operatingSystem;
   @Mock
   private GameService gameService;
   @Mock
@@ -299,8 +304,10 @@ public class LoginControllerTest extends UITest {
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
   }
 
-  @Test
-  public void testInitializeWithMandatoryUpdateWithAutoLogin() throws Exception {
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void testInitializeWithMandatoryUpdateWithAutoLogin(boolean supportsUpdateInstall) throws Exception {
     UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
         .defaultValues()
@@ -314,6 +321,7 @@ public class LoginControllerTest extends UITest {
 
     VersionTest.setCurrentVersion("1.2.0");
 
+    when(operatingSystem.supportsUpdateInstall()).thenReturn(supportsUpdateInstall);
     when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
@@ -326,7 +334,7 @@ public class LoginControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.loginErrorLabel.isVisible(), is(true));
-    assertThat(instance.downloadUpdateButton.isVisible(), is(true));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(supportsUpdateInstall));
     assertThat(instance.loginFormPane.isDisable(), is(true));
 
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();
@@ -335,8 +343,9 @@ public class LoginControllerTest extends UITest {
     verify(userService, never()).login(anyString(), anyString(), any());
   }
 
-  @Test
-  public void testInitializeWithMandatoryUpdateNoAutoLogin() throws Exception {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void testInitializeWithMandatoryUpdateNoAutoLogin(boolean supportsUpdateInstall) throws Exception {
     UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
     ClientConfiguration clientConfiguration = ClientConfigurationBuilder.create()
         .defaultValues()
@@ -347,6 +356,7 @@ public class LoginControllerTest extends UITest {
 
     VersionTest.setCurrentVersion("1.2.0");
 
+    when(operatingSystem.supportsUpdateInstall()).thenReturn(supportsUpdateInstall);
     when(clientUpdateService.getNewestUpdate()).thenReturn(CompletableFuture.completedFuture(updateInfo));
     when(preferencesService.getRemotePreferencesAsync()).thenReturn(CompletableFuture.completedFuture(clientConfiguration));
 
@@ -359,7 +369,7 @@ public class LoginControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.initialize());
 
     assertThat(instance.loginErrorLabel.isVisible(), is(true));
-    assertThat(instance.downloadUpdateButton.isVisible(), is(true));
+    assertThat(instance.downloadUpdateButton.isVisible(), is(supportsUpdateInstall));
     assertThat(instance.loginFormPane.isDisable(), is(true));
 
     verify(clientUpdateService, atLeastOnce()).getNewestUpdate();

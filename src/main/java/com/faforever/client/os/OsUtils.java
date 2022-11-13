@@ -20,7 +20,7 @@ public final class OsUtils {
 
   public static String execAndGetOutput(String... cmd) throws IOException {
     Scanner scanner = new Scanner(
-        Runtime.getRuntime().exec(cmd).getInputStream(), UTF_8.name()
+        Runtime.getRuntime().exec(cmd).getInputStream(), UTF_8
     ).useDelimiter("\\A");
     return scanner.hasNext() ? scanner.next().trim() : "";
   }

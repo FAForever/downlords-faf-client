@@ -1,11 +1,15 @@
-package com.faforever.client.util;
+package com.faforever.client.os;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.Scanner;
 
-public class WindowsUtil {
-  public static boolean isAdmin() {
+public class OsWindows implements OperatingSystem {
+  @Override
+  public boolean runsAsAdmin() {
     try {
       ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe");
       Process process = processBuilder.start();
@@ -31,5 +35,17 @@ public class WindowsUtil {
     } catch (IOException e) {
       return false;
     }
+  }
+
+  @Override
+  public boolean supportsUpdateInstall() {
+    return true;
+  }
+
+  @Override
+  @NotNull
+  public Path getUidExecutablePath() {
+    String uidDir = System.getProperty("nativeDir", "natives");
+    return Path.of(uidDir).resolve("faf-uid.exe");
   }
 }

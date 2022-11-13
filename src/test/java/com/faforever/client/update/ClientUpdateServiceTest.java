@@ -5,6 +5,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
@@ -15,6 +16,8 @@ import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -40,6 +43,8 @@ public class ClientUpdateServiceTest extends ServiceTest {
 
   @TempDir
   public Path fafBinDirectory;
+  @Mock
+  private OperatingSystem operatingSystem;
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -102,8 +107,10 @@ public class ClientUpdateServiceTest extends ServiceTest {
   /**
    * Newer prerelease version is available on server.
    */
-  @Test
-  public void testCheckForBetaUpdateInBackgroundUpdateAvailable() throws Exception {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void testCheckForBetaUpdateInBackgroundUpdateAvailable(boolean supportsUpdateInstall) throws Exception {
+    when(operatingSystem.supportsUpdateInstall()).thenReturn(supportsUpdateInstall);
     VersionTest.setCurrentVersion("v0.4.8.0-alpha");
 
     preferences.setPreReleaseCheckEnabled(true);

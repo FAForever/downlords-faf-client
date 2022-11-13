@@ -10,6 +10,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.status.Message;
@@ -60,6 +61,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LoginController implements Controller<Pane> {
 
+  private final OperatingSystem operatingSystem;
   private final GameService gameService;
   private final UserService userService;
   private final PreferencesService preferencesService;
@@ -269,8 +271,7 @@ public class LoginController implements Controller<Pane> {
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
       loginErrorLabel.setVisible(true);
 
-      if (org.bridj.Platform.isWindows()) {
-        // The automatic download and installation of update doesn't work on Linux as there is no unified installer
+      if (operatingSystem.supportsUpdateInstall()) {
         downloadUpdateButton.setVisible(true);
       }
 
