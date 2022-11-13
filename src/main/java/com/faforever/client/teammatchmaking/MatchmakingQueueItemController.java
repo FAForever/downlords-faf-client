@@ -47,6 +47,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   public VBox queueItemRoot;
   public Label playersInQueueLabel;
+  public Label activeGamesLabel;
   public Label queuePopTimeLabel;
   public ToggleButton joinLeaveQueueButton;
   public Label refreshingLabel;
@@ -60,6 +61,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   private InvalidationListener queueButtonStateInvalidationListener;
   private InvalidationListener queueStateInvalidationListener;
   private InvalidationListener queuePopulationInvalidationListener;
+  private InvalidationListener queueGamesInvalidationListener;
   private ChangeListener<MatchingStatus> queueMatchStatusChangeListener;
 
   @Override
@@ -80,6 +82,8 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
       joinLeaveQueueButton.setSelected(queue.isJoined());
     });
     queuePopulationInvalidationListener = observable -> JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
+        .toUpperCase()));
+    queueGamesInvalidationListener = observable -> JavaFxUtil.runLater(() -> activeGamesLabel.setText(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())
         .toUpperCase()));
     queueMatchStatusChangeListener = (observable, oldValue, newValue) -> {
       disableMatchStatus();
@@ -107,6 +111,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
     JavaFxUtil.addAndTriggerListener(queue.matchingStatusProperty(), new WeakChangeListener<>(queueMatchStatusChangeListener));
     JavaFxUtil.addAndTriggerListener(queue.playersInQueueProperty(), new WeakInvalidationListener(queuePopulationInvalidationListener));
+    JavaFxUtil.addAndTriggerListener(queue.activeGamesProperty(), new WeakInvalidationListener(queueGamesInvalidationListener));
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty()
         .getMembers(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(queue.teamSizeProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));

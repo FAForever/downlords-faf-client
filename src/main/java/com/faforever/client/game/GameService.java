@@ -40,7 +40,6 @@ import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
-import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameVisibility;
@@ -49,7 +48,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -59,6 +57,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
@@ -137,6 +136,7 @@ public class GameService implements InitializingBean, DisposableBean {
   private final PlatformService platformService;
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
+  @Getter
   private final ObservableList<GameBean> games;
   private final String faWindowTitle;
   private final MaskPatternLayout logMasker;
@@ -193,7 +193,8 @@ public class GameService implements InitializingBean, DisposableBean {
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
     games = FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
-        item -> new Observable[]{item.statusProperty(), item.teamsProperty()}
+        game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(),
+            game.mapFolderNameProperty(), game.simModsProperty()}
     ));
     inOthersParty = false;
   }
@@ -207,7 +208,7 @@ public class GameService implements InitializingBean, DisposableBean {
       }
 
       InvalidationListener listener = generateNumberOfPlayersChangeListener(newValue);
-      JavaFxUtil.addAndTriggerListener(newValue.numPlayersProperty(), listener);
+      JavaFxUtil.addAndTriggerListener(newValue.teamsProperty(), listener);
 
       ChangeListener<GameStatus> statusChangeListener = generateGameStatusListener(newValue);
       JavaFxUtil.addAndTriggerListener(newValue.statusProperty(), statusChangeListener);
@@ -376,14 +377,13 @@ public class GameService implements InitializingBean, DisposableBean {
 
     return modService.getFeaturedMod(featuredMod)
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
-        .thenCompose(aVoid -> downloadMapIfNecessary(mapFolderName)
-            .handleAsync((ignoredResult, throwable) -> {
-              try {
-                return askWhetherToStartWithOutMap(throwable);
-              } catch (Throwable e) {
-                throw new CompletionException(e);
-              }
-            }))
+        .thenCompose(aVoid -> downloadMapIfNecessary(mapFolderName).handleAsync((ignoredResult, throwable) -> {
+          try {
+            return askWhetherToStartWithOutMap(throwable);
+          } catch (Throwable e) {
+            throw new CompletionException(e);
+          }
+        }))
         .thenRun(() -> {
           try {
             Process processForReplay = forgedAllianceService.startReplay(path, replayId);
@@ -436,10 +436,9 @@ public class GameService implements InitializingBean, DisposableBean {
     CountDownLatch userAnswered = new CountDownLatch(1);
     AtomicReference<Boolean> proceed = new AtomicReference<>(false);
     List<Action> actions = Arrays.asList(new Action(i18n.get("replay.ignoreMapNotFound"), event -> {
-          proceed.set(true);
-          userAnswered.countDown();
-        }),
-        new Action(i18n.get("replay.abortAfterMapNotFound"), event -> userAnswered.countDown()));
+      proceed.set(true);
+      userAnswered.countDown();
+    }), new Action(i18n.get("replay.abortAfterMapNotFound"), event -> userAnswered.countDown()));
     notificationService.addNotification(new ImmediateNotification(i18n.get("replay.mapDownloadFailed"), i18n.get("replay.mapDownloadFailed.wannaContinue"), Severity.WARN, actions));
     userAnswered.await();
     if (!proceed.get()) {
@@ -475,28 +474,24 @@ public class GameService implements InitializingBean, DisposableBean {
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
-              Process processCreated;
-              try {
-                processCreated = forgedAllianceService.startReplay(replayUrl, gameId);
-              } catch (IOException e) {
-                throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
-              }
-              if (preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame() && isRunning()) {
-                return;
-              }
-              this.process = processCreated;
-              setGameRunning(true);
-              spawnTerminationListener(this.process);
-            }
-        ).exceptionally(throwable -> {
+          Process processCreated;
+          try {
+            processCreated = forgedAllianceService.startReplay(replayUrl, gameId);
+          } catch (IOException e) {
+            throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
+          }
+          if (preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame() && isRunning()) {
+            return;
+          }
+          this.process = processCreated;
+          setGameRunning(true);
+          spawnTerminationListener(this.process);
+        })
+        .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           notifyCantPlayReplay(gameId, throwable);
           return null;
         });
-  }
-
-  public ObservableList<GameBean> getGames() {
-    return games;
   }
 
   public GameBean getByUid(int uid) {
@@ -530,11 +525,13 @@ public class GameService implements InitializingBean, DisposableBean {
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
-            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(),gameLaunchResponse.getLeaderboard()))
+            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
-              parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey()).orElse("unlisted"));
-              parameters.setSubdivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getNameKey()).orElse(null));
+              parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey())
+                  .orElse("unlisted"));
+              parameters.setSubdivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getNameKey())
+                  .orElse(null));
               return parameters;
             })
             .thenCompose(this::startGame));
@@ -751,13 +748,10 @@ public class GameService implements InitializingBean, DisposableBean {
     }
 
     Integer gameId = gameInfoMessage.getUid();
-    GameBean game = gameIdToGame.computeIfAbsent(gameId, integer -> {
-      GameBean newGame = new GameBean();
-      newGame.averageRatingProperty().bind(Bindings.createDoubleBinding(() -> calcAverageRating(newGame), newGame.teamsProperty()));
-      return newGame;
-    });
-    gameMapper.update(gameInfoMessage, game);
+    GameBean game = gameIdToGame.compute(gameId, (id, knownGame) -> gameMapper.update(gameInfoMessage, knownGame == null ? new GameBean() : knownGame));
+
     playerService.updatePlayersInGame(game);
+
     if (game.getStatus() == GameStatus.CLOSED) {
       boolean removed = gameIdToGame.remove(game.getId(), game);
       if (!removed) {
@@ -794,13 +788,6 @@ public class GameService implements InitializingBean, DisposableBean {
     String lastGamePassword = preferencesService.getPreferences().getLastGame().getLastGamePassword();
     game.setPassword(lastGamePassword);
     return game;
-  }
-
-  private double calcAverageRating(GameBean game) {
-    return playerService.getAllPlayersInGame(game).stream()
-        .mapToInt(player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()))
-        .average()
-        .orElse(0.0);
   }
 
   public void killGame() {

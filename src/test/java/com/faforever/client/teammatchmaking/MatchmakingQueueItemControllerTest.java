@@ -67,6 +67,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     when(i18n.getOrDefault(eq(queue.getTechnicalName()), anyString())).thenReturn(queue.getTechnicalName());
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())).thenReturn(String.valueOf(queue.getPlayersInQueue()));
+    when(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())).thenReturn(String.valueOf(queue.getActiveGames()));
     when(playerService.getCurrentPlayer()).thenReturn(player);
     Player ownPlayer = new Player(0, "junit", null, null, "us", null, Map.of());
     when(userService.getOwnPlayer()).thenReturn(ownPlayer);
@@ -151,6 +152,15 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     runOnFxThreadAndWait(() -> queue.setPlayersInQueue(10));
     verify(i18n).get("teammatchmaking.playersInQueue", queue.getPlayersInQueue());
     assertThat(instance.playersInQueueLabel.getText(), is(String.valueOf(queue.getPlayersInQueue())));
+  }
+
+  @Test
+  public void testActiveGamesListener() {
+    assertThat(instance.activeGamesLabel.getText(), is(String.valueOf(queue.getActiveGames())));
+    when(i18n.get(eq("teammatchmaking.activeGames"), anyInt())).thenReturn("10");
+    runOnFxThreadAndWait(() -> queue.setActiveGames(10));
+    verify(i18n).get("teammatchmaking.activeGames", queue.getActiveGames());
+    assertThat(instance.activeGamesLabel.getText(), is(String.valueOf(queue.getActiveGames())));
   }
 
   @Test

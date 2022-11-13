@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
@@ -19,6 +20,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -110,10 +114,10 @@ public class GamesTilesContainerControllerTest extends UITest {
     GameBean game1 = GameBeanBuilder.create().defaultValues().get();
     GameBean game2 = GameBeanBuilder.create().defaultValues().title("xyz").get();
 
-    game1.setNumPlayers(12);
+    game1.setTeams(Map.of(1, List.of(PlayerBeanBuilder.create().get(), PlayerBeanBuilder.create().get())));
     game1.setId(234);
     game2.setId(123);
-    game2.setNumPlayers(1);
+    game2.setTeams(Map.of(1, List.of(PlayerBeanBuilder.create().get())));
 
 
     observableList.addAll(game1, game2);

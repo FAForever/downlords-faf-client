@@ -18,6 +18,7 @@
     <FlowPane hgap="10">
         <Label fx:id="queuePopTimeLabel" styleClass="player-card-text" text="%teammatchmaking.queuePopTimer"/>
         <Label fx:id="playersInQueueLabel" styleClass="player-card-text" text="%teammatchmaking.playersInQueue"/>
+        <Label fx:id="activeGamesLabel" styleClass="player-card-text" text="%teammatchmaking.activeGames"/>
         <padding>
             <Insets left="15.0"/>
         </padding>

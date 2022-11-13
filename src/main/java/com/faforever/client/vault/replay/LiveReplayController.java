@@ -136,9 +136,11 @@ public class LiveReplayController extends AbstractViewController<Node> {
     startTimeColumn.setCellFactory(param -> new StringCell<>(this.timeService::asShortTime));
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
-    playersColumn.setCellValueFactory(param -> param.getValue().numPlayersProperty());
+    playersColumn.setCellValueFactory(param -> Bindings.createIntegerBinding(() -> param.getValue().getNumActivePlayers(), param.getValue()
+        .teamsProperty()));
     playersColumn.setCellFactory(param -> new StringCell<>(number -> i18n.number(number.intValue())));
-    averageRatingColumn.setCellValueFactory(param -> param.getValue().averageRatingProperty());
+    averageRatingColumn.setCellValueFactory(param -> Bindings.createDoubleBinding(() -> param.getValue().getAverageRating(), param.getValue()
+        .teamsProperty()));
     averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"),
         number -> Math.round(number.doubleValue() / 100.0) * 100.0));
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());

@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.chat.ChatService.PARTY_CHANNEL_SUFFIX;
@@ -261,7 +262,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         PartyMemberItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_member_card.fxml");
         controller.setMember(member);
         return controller.getRoot();
-      }).collect(Collectors.toList());
+      }).toList();
       JavaFxUtil.runLater(() -> {
         playerCard.pseudoClassStateChanged(LEADER_PSEUDO_CLASS,
             (teamMatchmakingService.getParty().getOwner().equals(player) && teamMatchmakingService.getParty().getMembers().size() > 1));
@@ -312,7 +313,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private void selectFactionsBasedOnParty() {
     List<Faction> factions = teamMatchmakingService.getParty().getMembers().stream()
-        .filter(member -> member.getPlayer().getId() == player.getId())
+        .filter(member -> Objects.equals(member.getPlayer().getId(), player.getId()))
         .findFirst()
         .map(PartyMember::getFactions)
         .orElse(List.of());

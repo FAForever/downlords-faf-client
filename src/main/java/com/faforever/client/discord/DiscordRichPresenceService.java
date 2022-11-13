@@ -78,7 +78,7 @@ public class DiscordRichPresenceService implements DisposableBean {
 
       DiscordRichPresence.Builder discordRichPresence = new DiscordRichPresence.Builder(getDiscordState(game));
       discordRichPresence.setDetails(MessageFormat.format("{0} | {1}", game.getFeaturedMod(), game.getTitle()));
-      discordRichPresence.setParty(String.valueOf(game.getId()), game.getNumPlayers(), game.getMaxPlayers());
+      discordRichPresence.setParty(String.valueOf(game.getId()), game.getNumActivePlayers(), game.getMaxPlayers());
       discordRichPresence.setSmallImage(clientProperties.getDiscord().getSmallImageKey(), "");
       discordRichPresence.setBigImage(clientProperties.getDiscord().getBigImageKey(), "");
       String joinSecret = null;
