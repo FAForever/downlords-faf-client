@@ -303,6 +303,17 @@ return console.askOkCancel(message, true);
                   <property name="write" type="boolean" value="true" />
                 </serializedBean>
               </action>
+              <action id="810" beanClass="com.install4j.runtime.beans.actions.firewall.AddWindowsFirewallRuleAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+                <serializedBean>
+                  <property name="launcherId" type="string">25</property>
+                </serializedBean>
+              </action>
+              <action id="811" beanClass="com.install4j.runtime.beans.actions.firewall.AddWindowsFirewallRuleAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+                <serializedBean>
+                  <property name="direction" type="enum" class="com.install4j.runtime.beans.actions.firewall.WindowsFirewallDirection" value="OUTGOING" />
+                  <property name="launcherId" type="string">25</property>
+                </serializedBean>
+              </action>
             </actions>
             <formComponents>
               <formComponent id="173" beanClass="com.install4j.runtime.beans.formcomponents.ProgressComponent">
