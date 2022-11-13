@@ -1,11 +1,17 @@
-package com.faforever.client.util;
+package com.faforever.client.os;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.Scanner;
 
-public class WindowsUtil {
-  public static boolean isAdmin() {
+import static com.faforever.client.preferences.PreferencesService.APP_DATA_SUB_FOLDER;
+
+public class OsWindows implements OperatingSystem {
+  @Override
+  public boolean runsAsAdmin() {
     try {
       ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe");
       Process process = processBuilder.start();
@@ -31,5 +37,34 @@ public class WindowsUtil {
     } catch (IOException e) {
       return false;
     }
+  }
+
+  @Override
+  public boolean supportsUpdateInstall() {
+    return true;
+  }
+
+  @Override
+  public @NotNull Path getPreferencesDirectory() {
+    return Path.of(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
+  }
+
+  @Override
+  @NotNull
+  public Path getUidExecutablePath() {
+    String uidDir = System.getProperty("nativeDir", "natives");
+    return Path.of(uidDir).resolve("faf-uid.exe");
+  }
+
+  @Override
+  public @NotNull Path getJavaExecutablePath() {
+    return Path.of(System.getProperty("java.home"))
+        .resolve("bin")
+        .resolve("java.exe");
+  }
+
+  @Override
+  public @NotNull String getGithubAssetFileEnding() {
+    return ".exe";
   }
 }

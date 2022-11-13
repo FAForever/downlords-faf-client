@@ -13,7 +13,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.game.NewGameInfo;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.legacy.UidService;
+import com.faforever.client.io.UidService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
@@ -176,7 +176,7 @@ public class ServerAccessorTest extends ServiceTest {
       messageReceivedByClientLatch.countDown();
     });
 
-    when(uidService.generate(any(), any())).thenReturn("encrypteduidstring");
+    when(uidService.generate(any())).thenReturn("encrypteduidstring");
 
     connectAndLogIn();
   }

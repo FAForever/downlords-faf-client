@@ -12,6 +12,7 @@ import com.faforever.client.fa.relay.ice.event.GpgOutboundMessageEvent;
 import com.faforever.client.fa.relay.ice.event.IceAdapterStateChanged;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -49,6 +50,8 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @InjectMocks
   private IceAdapterImpl instance;
+  @Mock
+  private OperatingSystem operatingSystem;
   @Mock
   private ApplicationContext applicationContext;
   @Mock
@@ -109,6 +112,9 @@ public class IceAdapterImplTest extends ServiceTest {
 
   @Test
   public void testBuildCommand() throws Exception {
+    Path javaExecutablePath = Path.of("some", "path", "java");
+
+    when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
     Preferences preferences = PreferencesBuilder.create().defaultValues()
         .forgedAlliancePrefs()
         .showIceAdapterDebugWindow(true)
@@ -121,13 +127,7 @@ public class IceAdapterImplTest extends ServiceTest {
 
     List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
 
-    String javaPath = Path.of(System.getProperty("java.home"))
-        .resolve("bin")
-        .resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java")
-        .toAbsolutePath()
-        .toString();
-
-    assertEquals(javaPath, command.get(0));
+    assertEquals(javaExecutablePath.toAbsolutePath().toString(), command.get(0));
     assertEquals("-cp", command.get(1));
     assertTrue(command.get(2).contains("faf-ice-adapter.jar"));
     assertTrue(command.get(2).contains("javafx-"));

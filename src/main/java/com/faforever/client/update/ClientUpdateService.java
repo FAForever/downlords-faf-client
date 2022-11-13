@@ -5,6 +5,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoggedInEvent;
@@ -20,12 +21,13 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static com.faforever.client.notification.Severity.INFO;
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.io.Bytes.formatSize;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 
@@ -34,6 +36,7 @@ import static java.util.Collections.singletonList;
 @Slf4j
 public class ClientUpdateService implements InitializingBean {
 
+  private final OperatingSystem operatingSystem;
   private final TaskService taskService;
   private final NotificationService notificationService;
   private final I18n i18n;
@@ -52,6 +55,7 @@ public class ClientUpdateService implements InitializingBean {
   }
 
   public ClientUpdateService(
+      OperatingSystem operatingSystem,
       TaskService taskService,
       NotificationService notificationService,
       I18n i18n,
@@ -59,6 +63,7 @@ public class ClientUpdateService implements InitializingBean {
       ApplicationContext applicationContext,
       PreferencesService preferencesService,
       EventBus eventBus) {
+    this.operatingSystem = operatingSystem;
     this.taskService = taskService;
     this.notificationService = notificationService;
     this.i18n = i18n;
@@ -125,13 +130,19 @@ public class ClientUpdateService implements InitializingBean {
         return;
       }
 
+      List<Action> actions = new ArrayList<>();
+
+      if (operatingSystem.supportsUpdateInstall()) {
+        actions.add(new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)));
+      }
+
+      actions.add(new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
+          event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
+      ));
+
       notificationService.addNotification(new PersistentNotification(
           i18n.get(updateInfo.isPrerelease() ? "clientUpdateAvailable.prereleaseNotification" : "clientUpdateAvailable.notification", updateInfo.getName(), formatSize(updateInfo.getSize(), i18n.getUserSpecificLocale())),
-          INFO, asList(
-          new Action(i18n.get("clientUpdateAvailable.downloadAndInstall"), event -> downloadAndInstallInBackground(updateInfo)),
-          new Action(i18n.get("clientUpdateAvailable.releaseNotes"), Action.Type.OK_STAY,
-              event -> platformService.showDocument(updateInfo.getReleaseNotesUrl().toExternalForm())
-          )))
+          INFO, actions)
       );
     }).exceptionally(throwable -> {
       log.error("Client update check failed", throwable);

@@ -10,6 +10,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.status.Message;
@@ -60,6 +61,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LoginController implements Controller<Pane> {
 
+  private final OperatingSystem operatingSystem;
   private final GameService gameService;
   private final UserService userService;
   private final PreferencesService preferencesService;
@@ -268,7 +270,11 @@ public class LoginController implements Controller<Pane> {
       errorPane.setVisible(true);
       loginErrorLabel.setText(i18n.get("login.clientTooOldError", Version.getCurrentVersion(), minimumVersion));
       loginErrorLabel.setVisible(true);
-      downloadUpdateButton.setVisible(true);
+
+      if (operatingSystem.supportsUpdateInstall()) {
+        downloadUpdateButton.setVisible(true);
+      }
+
       loginFormPane.setDisable(true);
       loginFormPane.setVisible(false);
       loginButton.setVisible(false);

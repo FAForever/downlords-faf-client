@@ -2,7 +2,7 @@ package com.faforever.client.config;
 
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.PlatformService;
-import com.faforever.client.legacy.UidService;
+import com.faforever.client.io.UidService;
 import com.faforever.client.test.UITest;
 import com.google.common.base.Stopwatch;
 import javafx.stage.Stage;

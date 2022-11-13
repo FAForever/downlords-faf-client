@@ -13,10 +13,10 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
-import com.faforever.client.util.WindowsUtil;
 import de.codecentric.centerdevice.javafxsvg.SvgImageLoaderFactory;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -36,7 +36,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -70,22 +69,18 @@ public class FafClientApplication extends Application {
     launch(args);
   }
 
-  private static String[] getAdditionalProfiles() {
-    List<String> additionalProfiles = new ArrayList<>();
-
-    if (org.bridj.Platform.isWindows()) {
-      additionalProfiles.add(PROFILE_WINDOWS);
-    } else if (org.bridj.Platform.isLinux()) {
-      additionalProfiles.add(PROFILE_LINUX);
-    } else if (org.bridj.Platform.isMacOSX()) {
-      additionalProfiles.add(PROFILE_MAC);
-    }
-    return additionalProfiles.toArray(new String[0]);
-  }
-
   @Override
   public void init() throws InterruptedException, NoSuchFieldException, IllegalAccessException {
-    if (org.bridj.Platform.isWindows() && WindowsUtil.isAdmin()) {
+    SvgImageLoaderFactory.install();
+    Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
+    JavaFxUtil.fixTooltipDuration();
+
+    applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
+        .bannerMode(Mode.OFF)
+        .run(getParameters().getRaw().toArray(new String[0]));
+
+    OperatingSystem operatingSystem = applicationContext.getBean(OperatingSystem.class);
+    if (operatingSystem.runsAsAdmin()) {
       CountDownLatch waitForUserInput = new CountDownLatch(1);
       JavaFxUtil.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);
@@ -97,15 +92,6 @@ public class FafClientApplication extends Application {
       });
       waitForUserInput.await();
     }
-
-    SvgImageLoaderFactory.install();
-    Font.loadFont(FafClientApplication.class.getResourceAsStream("/font/dfc-icons.ttf"), 10);
-    JavaFxUtil.fixTooltipDuration();
-
-    applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
-        .profiles(getAdditionalProfiles())
-        .bannerMode(Mode.OFF)
-        .run(getParameters().getRaw().toArray(new String[0]));
 
     Thread.setDefaultUncaughtExceptionHandler(applicationContext.getBean(GlobalExceptionHandler.class));
   }
