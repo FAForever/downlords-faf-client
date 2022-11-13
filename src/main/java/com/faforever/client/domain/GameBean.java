@@ -291,7 +291,7 @@ public class GameBean {
   private Collection<PlayerBean> getNonObservingPlayersInGame() {
     return getTeams().entrySet()
         .stream()
-        .filter(entry -> OBSERVERS_TEAM.equals(entry.getKey()))
+        .filter(entry -> !OBSERVERS_TEAM.equals(entry.getKey()))
         .map(Entry::getValue)
         .flatMap(Collection::stream)
         .toList();
