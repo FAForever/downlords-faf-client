@@ -79,7 +79,7 @@ public class FafClientApplication extends Application {
         .bannerMode(Mode.OFF)
         .run(getParameters().getRaw().toArray(new String[0]));
 
-    var operatingSystem = applicationContext.getBean(OperatingSystem.class);
+    OperatingSystem operatingSystem = applicationContext.getBean(OperatingSystem.class);
     if (operatingSystem.runsAsAdmin()) {
       CountDownLatch waitForUserInput = new CountDownLatch(1);
       JavaFxUtil.runLater(() -> {

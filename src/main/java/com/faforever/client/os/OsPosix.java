@@ -8,7 +8,7 @@ import java.util.Objects;
 public class OsPosix implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
-    var username = System.getProperty("user.name");
+    String username = System.getProperty("user.name");
     return Objects.equals(username, "root");
   }
 
