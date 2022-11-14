@@ -3,10 +3,13 @@ package com.faforever.client.fx;
 import com.faforever.client.ui.StageHolder;
 import com.google.common.collect.Sets;
 import com.sun.jna.Platform;
+import com.sun.jna.platform.DesktopWindow;
+import com.sun.jna.platform.WindowUtils;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
+import com.sun.jna.ptr.IntByReference;
 import javafx.application.HostServices;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -42,9 +45,9 @@ public class PlatformService {
   }
 
   /**
-   * Opens the specified URI in a new browser window or tab.
-   * Note: The code is copied from {@link com.sun.javafx.application.HostServicesDelegate#showDocument(String)}
-   * The only fix is that all any exceptions are intercepted by our side, and we can tell the user what happened wrong.
+   * Opens the specified URI in a new browser window or tab. Note: The code is copied from
+   * {@link com.sun.javafx.application.HostServicesDelegate#showDocument(String)} The only fix is that all any
+   * exceptions are intercepted by our side, and we can tell the user what happened wrong.
    */
   public void showDocument(String url) {
     final String[] browsers = {
@@ -106,14 +109,25 @@ public class PlatformService {
    * Show a Window, restore it to it's state before minimizing (normal/restored or maximized) and move it to foreground
    * will only work on windows systems
    */
-
   public void focusWindow(String windowTitle) {
+    focusWindow(windowTitle, null);
+  }
+
+
+  public void focusWindow(String windowTitle, @Nullable Long processId) {
     if (!isWindows) {
+      return;
+    }
+    focusWindow(getWindow(windowTitle, processId));
+  }
+
+  private void focusWindow(HWND window) {
+    if (window == null) {
+      log.warn("No window to focus");
       return;
     }
 
     User32 user32 = User32.INSTANCE;
-    HWND window = user32.FindWindow(null, windowTitle);
 
     // Does only set the window to visible, does not restore/bring it to foreground
     user32.ShowWindow(window, User32.SW_SHOW);
@@ -131,18 +145,37 @@ public class PlatformService {
     }
 
     String foregroundWindowTitle = getForegroundWindowTitle();
-    if (foregroundWindowTitle == null || !getForegroundWindowTitle().equals(windowTitle.trim())) {
+    if (foregroundWindowTitle == null || !getForegroundWindowTitle().equals(WindowUtils.getWindowTitle(window))) {
       user32.SetForegroundWindow(window);
+      user32.SetFocus(window);
     }
   }
 
+  public void minimizeFocusedWindow() {
+    if (isWindows) {
+      User32.INSTANCE.ShowWindow(getFocusedWindow(), User32.SW_MINIMIZE);
+    }
+  }
+
+  private HWND getFocusedWindow() {
+    return isWindows ? User32.INSTANCE.GetForegroundWindow() : null;
+  }
 
   public void startFlashingWindow(String windowTitle) {
+    startFlashingWindow(windowTitle, null);
+  }
+
+  public void startFlashingWindow(String windowTitle, @Nullable Long processId) {
     if (!isWindows) {
       return;
     }
 
-    HWND window = User32.INSTANCE.FindWindow(null, windowTitle);
+    HWND window = getWindow(windowTitle, processId);
+
+    if (window == null) {
+      log.warn("No window to start flashing");
+      return;
+    }
 
     WinUser.FLASHWINFO flashwinfo = new WinUser.FLASHWINFO();
     flashwinfo.hWnd = window;
@@ -154,13 +187,21 @@ public class PlatformService {
     User32.INSTANCE.FlashWindowEx(flashwinfo);
   }
 
-
   public void stopFlashingWindow(String windowTitle) {
+    startFlashingWindow(windowTitle, null);
+  }
+
+  public void stopFlashingWindow(String windowTitle, @Nullable Long processId) {
     if (!isWindows) {
       return;
     }
 
-    HWND window = User32.INSTANCE.FindWindow(null, windowTitle);
+    HWND window = getWindow(windowTitle, processId);
+
+    if (window == null) {
+      log.warn("No window to stop flashing");
+      return;
+    }
 
     WinUser.FLASHWINFO flashwinfo = new WinUser.FLASHWINFO();
     flashwinfo.hWnd = window;
@@ -172,24 +213,41 @@ public class PlatformService {
 
   @Nullable
   private String getForegroundWindowTitle() {
-    if (!isWindows) {
-      return null;
+    return isWindows ? WindowUtils.getWindowTitle(User32.INSTANCE.GetForegroundWindow()) : null;
+  }
+
+  public long getFocusedWindowProcessId() {
+    return isWindows ? getWindowProcessId(User32.INSTANCE.GetForegroundWindow()) : -1;
+  }
+
+  private int getWindowProcessId(HWND window) {
+    IntByReference processId = new IntByReference();
+    User32.INSTANCE.GetWindowThreadProcessId(window, processId);
+    return processId.getValue();
+  }
+
+  @Nullable
+  private HWND getWindow(String windowTitle, @Nullable Long processId) {
+    if (processId != null) {
+      return WindowUtils.getAllWindows(false).stream()
+          .filter(desktopWindow -> desktopWindow.getTitle().equals(windowTitle))
+          .filter(desktopWindow -> getWindowProcessId(desktopWindow.getHWND()) == processId)
+          .findFirst().map(DesktopWindow::getHWND).orElse(null);
     }
-
-    HWND window = User32.INSTANCE.GetForegroundWindow();
-
-    if (window == null) {
-      return null;
-    }
-
-    char[] textBuffer = new char[255];
-    User32.INSTANCE.GetWindowText(window, textBuffer, 255);
-    return new String(textBuffer).trim();
+    return User32.INSTANCE.FindWindow(null, windowTitle);
   }
 
 
   public boolean isWindowFocused(String windowTitle) {
-    return windowTitle.equals(getForegroundWindowTitle());
+    return isWindowFocused(windowTitle, null);
+  }
+
+  public boolean isWindowFocused(String windowTitle, @Nullable Long processId) {
+    boolean isWindowFocused = windowTitle.equals(getForegroundWindowTitle());
+    if (processId != null) {
+      return isWindowFocused && getFocusedWindowProcessId() == processId;
+    }
+    return isWindowFocused;
   }
 
   public void setUnixExecutableAndWritableBits(Path exePath) throws IOException {
