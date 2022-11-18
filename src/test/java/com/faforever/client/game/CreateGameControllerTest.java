@@ -42,11 +42,13 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -316,7 +318,7 @@ public class CreateGameControllerTest extends UITest {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().uid("junit-mod").mod(ModBeanBuilder.create().defaultValues().get()).get();
 
-    when(modManagerController.getSelectedModVersions()).thenReturn(List.of(modVersion));
+    when(modManagerController.getSelectedModVersions()).thenReturn(Set.of(modVersion));
 
     MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
@@ -345,7 +347,7 @@ public class CreateGameControllerTest extends UITest {
     String newModUid = "new-mod";
     newModVersion.setUid(newModUid);
 
-    List<ModVersionBean> selectedMods = singletonList(modVersion);
+    Set<ModVersionBean> selectedMods = singleton(modVersion);
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
 
     MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
