@@ -59,7 +59,7 @@ faf-client:
   user-agent: downlords-faf-client
 
   discord:
-    discord_prerelease_feedback_channel_url: https://discord.gg/fZc4BsE
+    discord_prerelease_feedback_channel_url: https://discord.gg/wFMVKt35Gy
     application_id: 464069837237518357
     small_image_key: faf_logo_small
     big_image_key: faf_logo_big
