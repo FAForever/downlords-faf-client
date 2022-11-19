@@ -65,6 +65,6 @@ public class ModManagerControllerTest extends UITest {
   public void testApplyCallsModService() throws IOException {
     instance.apply();
 
-    verify(modService).overrideActivatedMods(ArgumentMatchers.eq(Collections.singletonList(modUI)));
+    verify(modService).overrideActivatedMods(ArgumentMatchers.eq(Collections.singleton(modUI)));
   }
 }

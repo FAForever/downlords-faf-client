@@ -60,8 +60,9 @@ import java.nio.file.Path;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -224,23 +225,15 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public void enableSimMods(Set<String> simMods) throws IOException {
-    Map<String, Boolean> modStates = readModStates();
-
     Set<String> installedUiMods = getInstalledUiModsUids();
 
-    for (Map.Entry<String, Boolean> entry : modStates.entrySet()) {
-      String uid = entry.getKey();
+    Set<String> activeMods = readActiveMods().stream()
+        .filter(installedUiMods::contains)
+        .collect(Collectors.toSet());
 
-      if (!installedUiMods.contains(uid)) {
-        // Only disable it if it's a sim mod; because it has not been selected
-        entry.setValue(false);
-      }
-    }
-    for (String simModUid : simMods) {
-      modStates.put(simModUid, true);
-    }
+    activeMods.addAll(simMods);
 
-    writeModStates(modStates);
+    writeActiveMods(activeMods);
   }
 
   public boolean isModInstalled(String uid) {
@@ -300,21 +293,21 @@ public class ModService implements InitializingBean, DisposableBean {
     return fileSizeReader.getFileSize(modVersion.getDownloadUrl());
   }
 
-  public List<ModVersionBean> getActivatedSimAndUIMods() throws IOException {
-    Map<String, Boolean> modStates = readModStates();
-    return getInstalledModVersions().parallelStream()
-        .filter(mod -> modStates.containsKey(mod.getUid()) && modStates.get(mod.getUid()))
-        .collect(Collectors.toList());
+  public Collection<ModVersionBean> getActivatedSimAndUIMods() throws IOException {
+    Set<String> activeMods = readActiveMods();
+    return getInstalledModVersions().stream()
+        .filter(mod -> activeMods.contains(mod.getUid()))
+        .collect(Collectors.toSet());
   }
 
-  public void overrideActivatedMods(List<ModVersionBean> modVersions) {
-    Map<String, Boolean> modStates = modVersions.parallelStream().collect(Collectors.toMap(ModVersionBean::getUid, o -> true));
-    writeModStates(modStates);
+  public void overrideActivatedMods(Collection<ModVersionBean> modVersions) {
+    Set<String> modStates = modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
+    writeActiveMods(modStates);
   }
 
-  private Map<String, Boolean> readModStates() throws IOException {
+  private Set<String> readActiveMods() throws IOException {
     Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-    Map<String, Boolean> mods = new HashMap<>();
+    Set<String> activeMods = new HashSet<>();
 
     String preferencesContent = Files.readString(preferencesFile, US_ASCII);
     Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
@@ -322,16 +315,17 @@ public class ModService implements InitializingBean, DisposableBean {
       Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
       while (activeModMatcher.find()) {
         String modUid = activeModMatcher.group(1);
-        boolean enabled = Boolean.parseBoolean(activeModMatcher.group(2));
 
-        mods.put(modUid, enabled);
+        if (Boolean.parseBoolean(activeModMatcher.group(2))) {
+          activeMods.add(modUid);
+        }
       }
     }
 
-    return mods;
+    return activeMods;
   }
 
-  private void writeModStates(Map<String, Boolean> modStates) {
+  private void writeActiveMods(Set<String> activeMods) {
     try {
       Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
       String preferencesContent = Files.readString(preferencesFile, US_ASCII);
@@ -342,28 +336,12 @@ public class ModService implements InitializingBean, DisposableBean {
         currentActiveModsContent = matcher.group(0);
       }
 
-      StringBuilder newActiveModsContentBuilder = new StringBuilder("active_mods = {");
-
-      Iterator<Map.Entry<String, Boolean>> iterator = modStates.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Map.Entry<String, Boolean> entry = iterator.next();
-        if (!entry.getValue()) {
-          continue;
-        }
-
-        newActiveModsContentBuilder.append("\n    ['");
-        newActiveModsContentBuilder.append(entry.getKey());
-        newActiveModsContentBuilder.append("'] = true");
-        if (iterator.hasNext()) {
-          newActiveModsContentBuilder.append(",");
-        }
-      }
-      newActiveModsContentBuilder.append("\n}");
+      String newActiveModsContent = "active_mods = {\n%s\n}".formatted(activeMods.stream().map("    ['%s'] = true"::formatted).collect(Collectors.joining(",\n")));
 
       if (currentActiveModsContent != null) {
-        preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContentBuilder);
+        preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContent);
       } else {
-        preferencesContent += newActiveModsContentBuilder.toString();
+        preferencesContent += newActiveModsContent;
       }
 
       Files.writeString(preferencesFile, preferencesContent, US_ASCII);
@@ -406,7 +384,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @Async
-  public CompletableFuture<List<ModVersionBean>> updateAndActivateModVersions(final List<ModVersionBean> selectedModVersions) {
+  public CompletableFuture<Collection<ModVersionBean>> updateAndActivateModVersions(final Collection<ModVersionBean> selectedModVersions) {
     if (!preferencesService.getPreferences().getMapAndModAutoUpdate()) {
       return CompletableFuture.completedFuture(selectedModVersions);
     }

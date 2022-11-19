@@ -60,6 +60,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -447,7 +448,7 @@ public class ModServiceTest extends UITest {
     Files.createFile(gamePrefsPath);
 
 
-    List<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
     verify(taskService, times(0)).submitTask(any(InstallModTask.class));
 
@@ -461,7 +462,7 @@ public class ModServiceTest extends UITest {
     when(preferencesService.getPreferences()).thenReturn(preferences);
     preferences.setMapAndModAutoUpdate(false);
 
-    List<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
     verify(fafApiAccessor, times(0)).getMany(any());
 
@@ -489,7 +490,7 @@ public class ModServiceTest extends UITest {
     when(installModTask.getFuture())
         .thenReturn(CompletableFuture.completedFuture(null));
 
-    List<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
+    Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
     verify(taskService, times(2)).submitTask(any());
 

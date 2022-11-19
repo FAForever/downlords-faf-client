@@ -69,8 +69,8 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -430,7 +430,7 @@ public class CreateGameController implements Controller<Pane> {
 
   private void hostGameAfterMapAndModUpdate() {
     MapVersionBean selectedMap = mapListView.getSelectionModel().getSelectedItem();
-    List<ModVersionBean> selectedModVersions = modManagerController.getSelectedModVersions();
+    Collection<ModVersionBean> selectedModVersions = modManagerController.getSelectedModVersions();
 
     mapService.updateLatestVersionIfNecessary(selectedMap)
         .exceptionally(throwable -> {
@@ -459,7 +459,7 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   @NotNull
-  private Set<String> getUUIDsFromModVersions(List<ModVersionBean> modVersions) {
+  private Set<String> getUUIDsFromModVersions(Collection<ModVersionBean> modVersions) {
     return modVersions.stream()
         .map(ModVersionBean::getUid)
         .collect(Collectors.toSet());
