@@ -188,7 +188,7 @@ public class PlatformService {
   }
 
   public void stopFlashingWindow(String windowTitle) {
-    startFlashingWindow(windowTitle, null);
+    stopFlashingWindow(windowTitle, null);
   }
 
   public void stopFlashingWindow(String windowTitle, @Nullable Long processId) {
