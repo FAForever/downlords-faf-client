@@ -13,10 +13,11 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.concurrent.ExecutorService;
 
 import static java.lang.Thread.sleep;
@@ -27,6 +28,8 @@ import static java.lang.Thread.sleep;
  */
 
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class OnGameFullNotifier implements InitializingBean {
 
   private final PlatformService platformService;
@@ -36,54 +39,53 @@ public class OnGameFullNotifier implements InitializingBean {
   private final MapService mapService;
   private final EventBus eventBus;
   private final GameService gameService;
-  private final String faWindowTitle;
+  private final ClientProperties clientProperties;
 
-  @Inject
-  public OnGameFullNotifier(PlatformService platformService, ExecutorService executorService,
-                            NotificationService notificationService, I18n i18n,
-                            MapService mapService,
-                            EventBus eventBus,
-                            GameService gameService,
-                            ClientProperties clientProperties) {
-    this.platformService = platformService;
-    this.executorService = executorService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.mapService = mapService;
-    this.eventBus = eventBus;
-    this.gameService = gameService;
-    this.faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-  }
+  private String faWindowTitle;
+  private long processId;
 
   @Override
   public void afterPropertiesSet() {
     eventBus.register(this);
+    faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
   }
 
   @Subscribe
   public void onGameFull(GameFullEvent event) {
+    GameBean currentGame = gameService.getCurrentGame();
+    if (currentGame == null) {
+      throw new ProgrammingError("Got a GameFull notification but player is not in a game");
+    }
+
+    processId = gameService.getRunningProcessId();
+
+    if (platformService.getFocusedWindowProcessId() == processId) {
+      log.debug("Game lobby window is focused. No need notify the user");
+      return;
+    }
+
     executorService.execute(() -> {
-      platformService.startFlashingWindow(faWindowTitle);
-      while (gameService.isGameRunning() && !platformService.isWindowFocused(faWindowTitle)) {
+      platformService.startFlashingWindow(faWindowTitle, processId);
+      while (gameService.isGameRunning() && !platformService.isWindowFocused(faWindowTitle, processId)) {
         try {
           sleep(500);
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
       }
-      platformService.stopFlashingWindow(faWindowTitle);
+      platformService.stopFlashingWindow(faWindowTitle, processId);
     });
-
-    GameBean currentGame = gameService.getCurrentGame();
-    if (currentGame == null) {
-      throw new ProgrammingError("Got a GameFull notification but player is not in a game");
-    }
-    if (platformService.isWindowFocused(faWindowTitle)) {
-      return;
-    }
 
     notificationService.addNotification(new TransientNotification(i18n.get("game.full"), i18n.get("game.full.action"),
         mapService.loadPreview(currentGame.getMapFolderName(), PreviewSize.SMALL),
-        v -> platformService.focusWindow(faWindowTitle)));
+        v -> {
+          if (platformService.isWindowFocused(faWindowTitle)) {
+            // Switching to the game lobby window from replay window may not work correctly (no interaction) for reasons:
+            // 1) The game has full screen mode
+            // 2) A resolution in the game and in the screen is different
+            platformService.minimizeFocusedWindow();
+          }
+          platformService.focusWindow(faWindowTitle, processId);
+        }));
   }
 }

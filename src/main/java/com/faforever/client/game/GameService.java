@@ -878,6 +878,10 @@ public class GameService implements InitializingBean, DisposableBean {
     return completedFuture(GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN.matcher(gamePrefsContent).find());
   }
 
+  public long getRunningProcessId() {
+    return isRunning() ? process.pid() : -1;
+  }
+
   @Override
   public void destroy() throws Exception {
     JavaFxUtil.removeListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);

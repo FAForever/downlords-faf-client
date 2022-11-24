@@ -2,6 +2,7 @@ package com.faforever.client.fa;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.config.ClientProperties.ForgedAlliance;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fa.relay.event.GameFullEvent;
 import com.faforever.client.fx.PlatformService;
@@ -12,17 +13,17 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
+import javafx.event.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -44,47 +45,105 @@ public class OnGameFullNotifierTest extends ServiceTest {
   private MapService mapService;
   @Mock
   private PlatformService platformService;
-  @Spy
+  @Mock
   private ClientProperties clientProperties;
+
+  private ForgedAlliance forgedAlliance;
 
   @BeforeEach
   public void setUp() throws Exception {
+    forgedAlliance = new ForgedAlliance();
+    when(clientProperties.getForgedAlliance()).thenReturn(forgedAlliance);
+
     instance.afterPropertiesSet();
-
-    doAnswer(invocation -> {
-      ((Runnable) invocation.getArgument(0)).run();
-      return null;
-    }).when(executorService).execute(any(Runnable.class));
-
     verify(eventBus).register(instance);
   }
 
   @Test
-  public void testOnGameFull() throws Exception {
+  public void testNotifyUserWhenGameLobbyWindowIsNotFocused() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(gameService.getCurrentGame()).thenReturn(game);
-    when(platformService.isWindowFocused("Forged Alliance")).thenReturn(false);
-
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    doAnswer(invocation -> {
-      countDownLatch.countDown();
-      return null;
-    }).when(platformService).stopFlashingWindow("Forged Alliance");
+    when(gameService.getRunningProcessId()).thenReturn(1L);
+    when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
 
     instance.onGameFull(new GameFullEvent());
-
     verify(notificationService).addNotification(any(TransientNotification.class));
-    verify(executorService).execute(any(Runnable.class));
   }
 
   @Test
-  public void testAlreadyFocusedDoesntTriggerNotification() throws Exception {
+  public void testDoNotNotifyUserWhenGameLobbyWindowIsFocused() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(gameService.getCurrentGame()).thenReturn(game);
-    when(platformService.isWindowFocused("Forged Alliance")).thenReturn(true);
+    when(gameService.getRunningProcessId()).thenReturn(1L);
+    when(platformService.getFocusedWindowProcessId()).thenReturn(1L);
 
     instance.onGameFull(new GameFullEvent());
-
     verifyNoInteractions(notificationService);
+  }
+
+  @Test
+  public void testFocusToFaWindowFromNonFaWindow() {
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    when(gameService.getCurrentGame()).thenReturn(game);
+    when(gameService.getRunningProcessId()).thenReturn(1L);
+    when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
+
+    instance.onGameFull(new GameFullEvent());
+    ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
+    verify(notificationService).addNotification(argumentCaptor.capture());
+
+    argumentCaptor.getValue().getActionCallback().call(any(Event.class));
+    verify(platformService).focusWindow(forgedAlliance.getWindowTitle(), 1L);
+    verify(platformService, never()).minimizeFocusedWindow();
+  }
+
+  @Test
+  public void testFocusToFaWindowFromAnotherFaWindow() {
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    when(gameService.getCurrentGame()).thenReturn(game);
+    when(gameService.getRunningProcessId()).thenReturn(1L);
+    when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
+    when(platformService.isWindowFocused(forgedAlliance.getWindowTitle())).thenReturn(true);
+
+    instance.onGameFull(new GameFullEvent());
+    ArgumentCaptor<TransientNotification> argumentCaptor = ArgumentCaptor.forClass(TransientNotification.class);
+    verify(notificationService).addNotification(argumentCaptor.capture());
+
+    argumentCaptor.getValue().getActionCallback().call(any(Event.class));
+    verify(platformService).minimizeFocusedWindow();
+    verify(platformService).focusWindow(forgedAlliance.getWindowTitle(), 1L);
+  }
+
+  @Test
+  public void testStartFlashingFaWindow() {
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    when(gameService.getCurrentGame()).thenReturn(game);
+    when(gameService.getRunningProcessId()).thenReturn(1L);
+    when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
+
+    instance.onGameFull(new GameFullEvent());
+    ArgumentCaptor<Runnable> argumentCaptor = ArgumentCaptor.forClass(Runnable.class);
+    verify(executorService).execute(argumentCaptor.capture());
+
+    argumentCaptor.getValue().run();
+    verify(platformService).startFlashingWindow(forgedAlliance.getWindowTitle(), 1L);
+  }
+
+  @Test
+  public void testStopFlashingFaWindow() {
+    GameBean game = GameBeanBuilder.create().defaultValues().get();
+    when(gameService.getCurrentGame()).thenReturn(game);
+    when(gameService.getRunningProcessId()).thenReturn(1L);
+    when(platformService.getFocusedWindowProcessId()).thenReturn(2L);
+
+    instance.onGameFull(new GameFullEvent());
+    ArgumentCaptor<Runnable> argumentCaptor = ArgumentCaptor.forClass(Runnable.class);
+    verify(executorService).execute(argumentCaptor.capture());
+
+    when(gameService.isGameRunning()).thenReturn(true, true, true, true);
+    when(platformService.isWindowFocused(forgedAlliance.getWindowTitle(), 1L)).thenReturn(false, false, false, true); // delay imitation
+
+    argumentCaptor.getValue().run();
+    verify(platformService).stopFlashingWindow(forgedAlliance.getWindowTitle(), 1L);
   }
 }
