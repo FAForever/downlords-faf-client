@@ -54,6 +54,7 @@ import reactor.util.function.Tuple2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,7 +77,6 @@ import java.util.stream.Collectors;
 import static com.faforever.client.notification.Severity.WARN;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.util.Collections.singletonList;
@@ -309,7 +309,7 @@ public class ModService implements InitializingBean, DisposableBean {
     Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
     Set<String> activeMods = new HashSet<>();
 
-    String preferencesContent = Files.readString(preferencesFile, US_ASCII);
+    String preferencesContent = Files.readString(preferencesFile, StandardCharsets.UTF_8);
     Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
     if (matcher.find()) {
       Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
@@ -328,7 +328,7 @@ public class ModService implements InitializingBean, DisposableBean {
   private void writeActiveMods(Set<String> activeMods) {
     try {
       Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-      String preferencesContent = Files.readString(preferencesFile, US_ASCII);
+      String preferencesContent = Files.readString(preferencesFile, StandardCharsets.UTF_8);
 
       String currentActiveModsContent = null;
       Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
@@ -344,7 +344,7 @@ public class ModService implements InitializingBean, DisposableBean {
         preferencesContent += newActiveModsContent;
       }
 
-      Files.writeString(preferencesFile, preferencesContent, US_ASCII);
+      Files.writeString(preferencesFile, preferencesContent, StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new AssetLoadException("Could not update mod state", e, "mod.errorUpdatingMods");
     }
