@@ -8,6 +8,7 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
@@ -36,6 +37,8 @@ public class MapCardControllerTest extends UITest {
 
   @Mock
   private MapService mapService;
+  @Mock
+  private UiService uiService;
   @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock

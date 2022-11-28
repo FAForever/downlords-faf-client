@@ -55,7 +55,7 @@ public class AvatarServiceTest extends ServiceTest {
   public void testLoadAvatar() throws Exception {
     AvatarBean avatarBean = AvatarBeanBuilder.create().url(getClass().getResource("/theme/images/default_achievement.png").toURI().toURL()).get();
     instance.loadAvatar(avatarBean);
-    verify(assetService).loadAndCacheImage(avatarBean.getUrl(), Path.of("avatars"), null);
+    verify(assetService).loadAndCacheImage(avatarBean.getUrl(), Path.of("avatars"));
   }
 
   @Test

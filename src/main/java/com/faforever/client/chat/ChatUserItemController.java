@@ -4,6 +4,7 @@ import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
@@ -89,6 +90,7 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void initialize() {
     chatPrefs = preferencesService.getPreferences().getChat();
+    ImageViewHelper.setPlaceholderImage(mapImageView, uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE), true);
 
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, gameStatusImageView);
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());

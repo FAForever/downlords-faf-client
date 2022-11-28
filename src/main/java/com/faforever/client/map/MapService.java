@@ -329,7 +329,7 @@ public class MapService implements InitializingBean, DisposableBean {
       return loadPreview(getPreviewUrl(mapName, mapPreviewUrlFormat, previewSize), previewSize);
     } catch (MalformedURLException e) {
       log.warn("Could not create url from {}", mapName, e);
-      return uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE);
+      return uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE);
     }
   }
 
@@ -418,7 +418,7 @@ public class MapService implements InitializingBean, DisposableBean {
   @Cacheable(value = CacheNames.MAP_PREVIEW)
   public Image loadPreview(URL url, PreviewSize previewSize) {
     return assetService.loadAndCacheImage(url, Path.of("maps").resolve(previewSize.folderName),
-        () -> uiService.getThemeImage(UiService.UNKNOWN_MAP_IMAGE));
+        () -> uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE));
   }
 
 

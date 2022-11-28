@@ -82,7 +82,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 public class UiService implements InitializingBean, DisposableBean {
 
   public static final String GENERATED_MAP_IMAGE = "theme/images/generatedMapIcon.png";
-  public static final String UNKNOWN_MAP_IMAGE = "theme/images/unknown_map.png";
+  public static final String NO_IMAGE_AVAILABLE = "images/no_image_available.png";
   //TODO: Create Images for News Categories
   public static final String LADDER_LOADING_GIF = "theme/images/ladder_loading.gif";
   public static final String SERVER_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";

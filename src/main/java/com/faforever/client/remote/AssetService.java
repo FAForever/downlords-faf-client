@@ -33,6 +33,11 @@ public class AssetService {
   }
 
   @Nullable
+  public Image loadAndCacheImage(URL url, Path cacheSubFolder) {
+    return loadAndCacheImage(url, cacheSubFolder, null, 0, 0);
+  }
+
+  @Nullable
   public Image loadAndCacheImage(URL url, Path cacheSubFolder, @Nullable Supplier<Image> defaultSupplier) {
     return loadAndCacheImage(url, cacheSubFolder, defaultSupplier, 0, 0);
   }

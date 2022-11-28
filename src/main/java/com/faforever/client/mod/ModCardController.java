@@ -4,10 +4,12 @@ import com.faforever.client.domain.ModReviewsSummaryBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.InvalidationListener;
@@ -34,6 +36,7 @@ import java.util.function.Consumer;
 public class ModCardController implements Controller<Node> {
 
   private final ModService modService;
+  private final UiService uiService;
   private final NotificationService notificationService;
   private final TimeService timeService;
   private final I18n i18n;
@@ -70,6 +73,7 @@ public class ModCardController implements Controller<Node> {
   }
 
   public void initialize() {
+    ImageViewHelper.setPlaceholderImage(thumbnailImageView, uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE));
     installButton.managedProperty().bind(installButton.visibleProperty());
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installStatusChangeListener = change -> {

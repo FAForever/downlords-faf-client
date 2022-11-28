@@ -8,6 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
@@ -38,6 +39,8 @@ public class ModCardControllerTest extends UITest {
 
   @Mock
   public ModService modService;
+  @Mock
+  public UiService uiService;
   @Mock
   private TimeService timeService;
   @Mock

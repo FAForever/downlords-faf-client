@@ -19,8 +19,8 @@ import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
-import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.client.vault.search.SearchController.SortOrder;
@@ -101,6 +101,7 @@ public class ModService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final PlatformService platformService;
   private final AssetService assetService;
+  private final UiService uiService;
   private final FileSizeReader fileSizeReader;
   private final ModMapper modMapper;
   private final ModReader modReader = new ModReader();
@@ -283,9 +284,7 @@ public class ModService implements InitializingBean, DisposableBean {
 
   @Cacheable(value = CacheNames.MODS, sync = true)
   public Image loadThumbnail(ModVersionBean modVersion) {
-    //FIXME: reintroduce correct caching
-    URL url = modVersion.getThumbnailUrl();
-    return assetService.loadAndCacheImage(url, Path.of("mods"), () -> IdenticonUtil.createIdenticon(modVersion.getMod().getDisplayName()));
+    return assetService.loadAndCacheImage(modVersion.getThumbnailUrl(), Path.of("mods"), () -> uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE));
   }
 
   @Async

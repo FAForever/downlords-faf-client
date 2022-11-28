@@ -255,6 +255,6 @@ public class LeaderboardService {
 
   @Cacheable(value = CacheNames.DIVISIONS, sync = true)
   public Image loadDivisionImage(URL url) {
-    return assetService.loadAndCacheImage(url, Path.of("divisions"), null);
+    return assetService.loadAndCacheImage(url, Path.of("divisions"));
   }
 }

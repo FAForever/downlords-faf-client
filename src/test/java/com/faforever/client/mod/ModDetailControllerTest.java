@@ -14,6 +14,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewService;
@@ -51,6 +52,8 @@ public class ModDetailControllerTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private ModService modService;
+  @Mock
+  private UiService uiService;
   @Mock
   private I18n i18n;
   @Mock
