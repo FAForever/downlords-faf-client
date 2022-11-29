@@ -68,7 +68,7 @@ public class ImageViewHelper {
       }
     };
 
-    private void setPlaceholderImage(ImageView imageView, Image placeholderImage, boolean onlyOnError) {
+    public void setPlaceholderImage(ImageView imageView, Image placeholderImage, boolean onlyOnError) {
       if (!onlyOnError) {
         imageView.setImage(placeholderImage);
       }
