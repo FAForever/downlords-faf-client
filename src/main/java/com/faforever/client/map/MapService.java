@@ -276,7 +276,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @Subscribe
   public void onMapGenerated(MapGeneratedEvent event) {
-    tryAddInstalledMap(getPathForMap(event.getMapName()));
+    tryAddInstalledMap(getPathForMap(event.mapName()));
   }
 
 

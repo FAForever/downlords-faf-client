@@ -62,6 +62,7 @@ public class GamesTableController implements Controller<Node> {
   private final ImageViewHelper imageViewHelper;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
+
   public TableView<GameBean> gamesTable;
   public TableColumn<GameBean, Image> mapPreviewColumn;
   public TableColumn<GameBean, String> gameTitleColumn;
@@ -274,5 +275,9 @@ public class GamesTableController implements Controller<Node> {
   public void removeListeners() {
     JavaFxUtil.removeListener(tooltip.showingProperty(), tooltipShowingListener);
     JavaFxUtil.removeListener(gamesTable.getSelectionModel().selectedItemProperty(), selectedItemListener);
+  }
+
+  public void refreshTable() {
+    JavaFxUtil.runLater(() -> gamesTable.refresh());
   }
 }

@@ -8,6 +8,7 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.map.generator.GeneratedMapPreview;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
@@ -18,6 +19,7 @@ import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
@@ -232,6 +234,17 @@ public class CustomGamesController extends AbstractViewController<Node> {
     JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), gameChangeListener);
     populateContainer(gamesTilesContainerController.getRoot());
     gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
+  }
+
+  @Subscribe
+  public void refreshContent(GeneratedMapPreview event) {
+    if (gamesTilesContainerController != null) {
+      gamesTilesContainerController.recreateTile(event.mapName());
+    }
+
+    if (gamesTableController != null) {
+      gamesTableController.refreshTable();
+    }
   }
 
   private void disposeGamesContainer() {

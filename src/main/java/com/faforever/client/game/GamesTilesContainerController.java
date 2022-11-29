@@ -5,6 +5,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
+import com.faforever.commons.lobby.GameStatus;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
@@ -62,6 +63,7 @@ public class GamesTilesContainerController implements Controller<Node> {
       gameTooltipController.setGame(null);
     }
   };
+
   private void sortNodes() {
     ObservableList<Node> sortedChildren = tiledFlowPane.getChildren().sorted(appliedComparator);
     tiledFlowPane.getChildren().setAll(sortedChildren);
@@ -85,18 +87,7 @@ public class GamesTilesContainerController implements Controller<Node> {
 
     gameListChangeListener = change -> JavaFxUtil.runLater(() -> {
       while (change.next()) {
-        change.getRemoved().forEach(game -> {
-          Node card = gameIdToGameCard.remove(game.getId());
-          if (card != null) {
-            Tooltip.uninstall(card, tooltip);
-            boolean remove = tiledFlowPane.getChildren().remove(card);
-            if (!remove) {
-              log.warn("Tried to remove game tile that did not exist in UI.");
-            }
-          } else {
-            log.warn("Tried to remove game tile that did not exist.");
-          }
-        });
+        change.getRemoved().forEach(this::removeGameCard);
         change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
         sortNodes();
       }
@@ -125,9 +116,7 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   private void selectFirstGame() {
     ObservableList<Node> cards = tiledFlowPane.getChildren();
-    if (!cards.isEmpty()) {
-      selectedGame.set((GameBean) cards.get(0).getUserData());
-    }
+    selectedGame.set(!cards.isEmpty() ? (GameBean) cards.get(0).getUserData() : null);
   }
 
   private void addGameCard(GameBean game) {
@@ -139,7 +128,7 @@ public class GamesTilesContainerController implements Controller<Node> {
     root.setUserData(game);
     tiledFlowPane.getChildren().add(root);
     gameIdToGameCard.put(game.getId(), root);
-    
+
     root.setOnMouseEntered(event -> {
       gameTooltipController.setGame(game);
       if (tooltip.isShowing()) {
@@ -147,6 +136,32 @@ public class GamesTilesContainerController implements Controller<Node> {
       }
     });
     Tooltip.install(root, tooltip);
+  }
+
+  private void removeGameCard(GameBean game) {
+    Node card = gameIdToGameCard.remove(game.getId());
+    if (card != null) {
+      Tooltip.uninstall(card, tooltip);
+      boolean remove = tiledFlowPane.getChildren().remove(card);
+      if (game.equals(selectedGame.getValue()) && game.getStatus() != GameStatus.OPEN) {
+        selectFirstGame();
+      }
+      if (!remove) {
+        log.warn("Tried to remove game tile that did not exist in UI.");
+      }
+    } else {
+      log.warn("Tried to remove game tile that did not exist.");
+    }
+  }
+
+  public void recreateTile(String mapName) {
+    games.stream()
+        .filter(game -> game.getMapFolderName().equals(mapName))
+        .findFirst()
+        .ifPresentOrElse(game -> JavaFxUtil.runLater(() -> {
+          removeGameCard(game);
+          addGameCard(game);
+        }), () -> log.warn("No tile with {} map to recreate", mapName));
   }
 
   public Node getRoot() {
@@ -164,8 +179,10 @@ public class GamesTilesContainerController implements Controller<Node> {
     PLAYER_ASC(Comparator.comparingInt(o -> ((GameBean) o.getUserData()).getNumActivePlayers()), false, "tiles.comparator.playersAscending"),
     AVG_RATING_DES(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), true, "tiles.comparator.averageRatingDescending"),
     AVG_RATING_ASC(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), false, "tiles.comparator.averageRatingAscending"),
-    NAME_DES(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
-    NAME_ASC(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
+    NAME_DES(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle()
+        .toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
+    NAME_ASC(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle()
+        .toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
 
     @Getter
     private final Comparator<Node> comparator;
