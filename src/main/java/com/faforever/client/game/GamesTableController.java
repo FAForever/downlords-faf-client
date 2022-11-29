@@ -162,9 +162,7 @@ public class GamesTableController implements Controller<Node> {
   }
 
   private void selectFirstGame() {
-    if (!gamesTable.getItems().isEmpty()) {
-      gamesTable.getSelectionModel().selectFirst();
-    }
+    gamesTable.getSelectionModel().selectFirst();
   }
 
   private void applyLastSorting(TableView<GameBean> gamesTable) {
