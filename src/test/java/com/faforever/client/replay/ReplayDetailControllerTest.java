@@ -6,7 +6,6 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PlayerStatsMapBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.builders.ReplayReviewBeanBuilder;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.LeaderboardRatingJournalBean;
@@ -14,6 +13,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.game.TeamCardController;
 import com.faforever.client.i18n.I18n;
@@ -46,7 +46,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
@@ -98,21 +97,21 @@ public class ReplayDetailControllerTest extends UITest {
   @Mock
   private ReviewService reviewService;
   @Mock
+  private ImageViewHelper imageViewHelper;
+  @Mock
   private NotificationService notificationService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
-  private ReviewsController reviewsController;
+  private ReviewsController<ReplayReviewBean> reviewsController;
   @Mock
-  private ReviewController reviewController;
+  private ReviewController<ReplayReviewBean> reviewController;
   @Mock
   private StarsController starsController;
   @Mock
   private StarController starController;
   @Mock
   private TeamCardController teamCardController;
-  @Spy
-  private ClientProperties clientProperties = new ClientProperties();
   @Mock
   private ReportDialogController reportDialogController;
 

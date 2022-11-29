@@ -4,10 +4,10 @@ import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.collections.FXCollections;
@@ -38,7 +38,7 @@ public class ModCardControllerTest extends UITest {
   @Mock
   public ModService modService;
   @Mock
-  public UiService uiService;
+  public ImageViewHelper imageViewHelper;
   @Mock
   private NotificationService notificationService;
   @Mock

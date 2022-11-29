@@ -75,8 +75,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.faforever.client.theme.UiService.NO_IMAGE_AVAILABLE;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
@@ -202,7 +200,7 @@ public class ReplayDetailController implements Controller<Node> {
       mapThumbnailImageView.setImage(image);
       onMapLabel.setText(i18n.get("game.onMapFormat", mapVersion.getMap().getDisplayName()));
     } else {
-      mapThumbnailImageView.setImage(uiService.getThemeImage(NO_IMAGE_AVAILABLE));
+      mapThumbnailImageView.setImage(imageViewHelper.getDefaultPlaceholderImage());
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 

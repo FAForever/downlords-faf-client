@@ -3,8 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
@@ -16,18 +15,17 @@ import com.faforever.commons.lobby.GameStatus;
 import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,13 +44,14 @@ public class GamesTableControllerTest extends UITest {
   @Mock
   private MapService mapService;
   @Mock
+  private ImageViewHelper imageViewHelper;
+  @Mock
   private PreferencesService preferencesService;
   @Mock
   private PlayerService playerService;
   @Mock
   private GameTooltipController gameTooltipController;
-  @Mock
-  private Controller<ImageView> imageViewController;
+
   private Preferences preferences;
 
   @BeforeEach
@@ -60,94 +59,84 @@ public class GamesTableControllerTest extends UITest {
     preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
-    when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(imageViewController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
-    when(imageViewController.getRoot()).thenReturn(new ImageView());
     when(i18n.get(any())).then(invocation -> invocation.getArguments()[0]);
 
     loadFxml("theme/play/games_table.fxml", param -> instance);
 
-    JavaFxUtil.runLater(() -> getRoot().getChildren().addAll(instance.getRoot()));
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> getRoot().getChildren().addAll(instance.getRoot()));
   }
 
   @Test
-  public void test() throws Exception {
-    JavaFxUtil.runLater(() -> {
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
-      ));
-    });
-    WaitForAsyncUtils.waitForFxEvents();
+  public void testInitializeGameTable() {
+    runOnFxThreadAndWait(() -> instance.initializeGameTable(FXCollections.observableArrayList(
+        GameBeanBuilder.create().defaultValues().get(),
+        GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
+    )));
+    assertEquals(2, instance.gamesTable.getItems().size());
   }
 
   @Test
   public void testPrivateGameColumnIsHidden() {
-    preferences.setHidePrivateGames(true);
-    runOnFxThreadAndWait(() -> instance.initializeGameTable(FXCollections.observableArrayList(
-        GameBeanBuilder.create().defaultValues().get(),
-        GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
-    )));
-    assertFalse(instance.passwordProtectionColumn.isVisible());
-    preferences.setHidePrivateGames(false);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertTrue(instance.passwordProtectionColumn.isVisible());
-  }
-
-  @Test
-  public void testModdedGameColumnIsHidden() throws Exception {
-    preferences.setHideModdedGames(true);
-    JavaFxUtil.runLater(() -> {
+    runOnFxThreadAndWait(() -> {
+      preferences.setHidePrivateGames(true);
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
           GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
       ));
     });
-    WaitForAsyncUtils.waitForFxEvents();
-    assertFalse(instance.modsColumn.isVisible());
-    preferences.setHideModdedGames(false);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertTrue(instance.modsColumn.isVisible());
-  }
-
-  @Test
-  public void testPrivateGameColumnIsShownWithCoop() throws Exception {
-    preferences.setHidePrivateGames(false);
-    JavaFxUtil.runLater(() -> {
-      instance.initializeGameTable(FXCollections.observableArrayList(
-          GameBeanBuilder.create().defaultValues().get(),
-          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
-      ), string -> string, false);
-    });
-    WaitForAsyncUtils.waitForFxEvents();
+    assertFalse(instance.passwordProtectionColumn.isVisible());
+    runOnFxThreadAndWait(() -> preferences.setHidePrivateGames(false));
     assertTrue(instance.passwordProtectionColumn.isVisible());
   }
 
   @Test
-  public void testModdedGameColumnIsShownWithCoop() throws Exception {
-    preferences.setHideModdedGames(false);
-    JavaFxUtil.runLater(() -> {
+  public void testModdedGameColumnIsHidden() {
+    runOnFxThreadAndWait(() -> {
+      preferences.setHideModdedGames(true);
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+      ));
+    });
+    assertFalse(instance.modsColumn.isVisible());
+    runOnFxThreadAndWait(() -> preferences.setHideModdedGames(false));
+    assertTrue(instance.modsColumn.isVisible());
+  }
+
+  @Test
+  public void testPrivateGameColumnIsShownWithCoop() {
+    runOnFxThreadAndWait(() -> {
+      preferences.setHidePrivateGames(false);
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
           GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
       ), string -> string, false);
     });
-    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.passwordProtectionColumn.isVisible());
+  }
+
+  @Test
+  public void testModdedGameColumnIsShownWithCoop() {
+    runOnFxThreadAndWait(() -> {
+      preferences.setHideModdedGames(false);
+      instance.initializeGameTable(FXCollections.observableArrayList(
+          GameBeanBuilder.create().defaultValues().get(),
+          GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).password("ABC").get()
+      ), string -> string, false);
+    });
     assertTrue(instance.modsColumn.isVisible());
   }
 
   @Test
   public void testKeepsSorting() {
-    preferences.getGameTableSorting().put("hostColumn", SortType.DESCENDING);
-
-    JavaFxUtil.runLater(() -> {
+    runOnFxThreadAndWait(() -> {
+      preferences.getGameTableSorting().put("hostColumn", SortType.DESCENDING);
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
           GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
       ));
     });
-    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(instance.gamesTable.getSortOrder(), hasSize(1));
     assertThat(instance.gamesTable.getSortOrder().get(0).getId(), is("hostColumn"));
@@ -158,7 +147,7 @@ public class GamesTableControllerTest extends UITest {
   public void testSortingUpdatesPreferences() {
     assertThat(preferencesService.getPreferences().getGameTableSorting().entrySet(), hasSize(0));
 
-    JavaFxUtil.runLater(() -> {
+    runOnFxThreadAndWait(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
           GameBeanBuilder.create().defaultValues().get(),
           GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get()
@@ -167,7 +156,6 @@ public class GamesTableControllerTest extends UITest {
       column.setSortType(SortType.ASCENDING);
       instance.gamesTable.getSortOrder().add(column);
     });
-    WaitForAsyncUtils.waitForFxEvents();
 
     assertThat(preferencesService.getPreferences().getGameTableSorting().entrySet(), hasSize(1));
     assertThat(

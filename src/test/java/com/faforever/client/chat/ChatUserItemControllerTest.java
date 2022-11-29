@@ -7,6 +7,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
@@ -67,6 +68,8 @@ public class ChatUserItemControllerTest extends UITest {
   private ContextMenuBuilder contextMenuBuilder;
   @Mock
   private MapGeneratorService mapGeneratorService;
+  @Mock
+  private ImageViewHelper imageViewHelper;
   @Mock
   private MapService mapService;
 

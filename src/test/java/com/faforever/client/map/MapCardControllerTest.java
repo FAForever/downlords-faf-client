@@ -3,12 +3,12 @@ package com.faforever.client.map;
 import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.domain.MapVersionBean;
+import com.faforever.client.domain.MapVersionReviewBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
@@ -38,19 +38,17 @@ public class MapCardControllerTest extends UITest {
   @Mock
   private MapService mapService;
   @Mock
-  private UiService uiService;
-  @Mock
   private MapGeneratorService mapGeneratorService;
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ReportingService reportingService;
+  private ImageViewHelper imageViewHelper;
   @Mock
   private I18n i18n;
   @Mock
-  private ReviewsController reviewsController;
+  private ReviewsController<MapVersionReviewBean> reviewsController;
   @Mock
-  private ReviewController reviewController;
+  private ReviewController<MapVersionReviewBean> reviewController;
   @Mock
   private StarsController starsController;
   @Mock

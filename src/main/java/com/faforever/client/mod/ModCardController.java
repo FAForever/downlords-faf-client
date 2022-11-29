@@ -36,6 +36,7 @@ public class ModCardController implements Controller<Node> {
   private final ImageViewHelper imageViewHelper;
   private final NotificationService notificationService;
   private final I18n i18n;
+
   public ImageView thumbnailImageView;
   public Label nameLabel;
   public Label authorLabel;

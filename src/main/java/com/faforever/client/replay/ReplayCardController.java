@@ -16,7 +16,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rating.RatingService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarsController;
@@ -43,11 +42,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.faforever.client.theme.UiService.NO_IMAGE_AVAILABLE;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
+// TODO: Add tests
 public class ReplayCardController implements Controller<Node> {
 
   private final ReplayService replayService;
@@ -55,10 +53,10 @@ public class ReplayCardController implements Controller<Node> {
   private final MapService mapService;
   private final RatingService ratingService;
   private final NotificationService notificationService;
-  private final UiService uiService;
   private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final EventBus eventBus;
+
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
   public Label gameTitleLabel;
@@ -94,7 +92,7 @@ public class ReplayCardController implements Controller<Node> {
       mapThumbnailImageView.setImage(image);
       onMapLabel.setText(i18n.get("game.onMapFormat", mapVersion.getMap().getDisplayName()));
     } else {
-      mapThumbnailImageView.setImage(uiService.getThemeImage(NO_IMAGE_AVAILABLE));
+      mapThumbnailImageView.setImage(imageViewHelper.getDefaultPlaceholderImage());
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 

@@ -5,6 +5,7 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.game.GameService;
@@ -50,6 +51,8 @@ public class CoopControllerTest extends UITest {
   private GameService gameService;
   @Mock
   private UiService uiService;
+  @Mock
+  private ImageViewHelper imageViewHelper;
   @Mock
   private GamesTableController gamesTableController;
   @Mock
