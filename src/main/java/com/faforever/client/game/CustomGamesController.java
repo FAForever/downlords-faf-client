@@ -250,8 +250,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   private void disposeGamesContainer() {
-    setSelectedGame(null);
-
     if (gamesTilesContainerController != null) {
       JavaFxUtil.removeListener(gamesTilesContainerController.selectedGameProperty(), gameChangeListener);
       gamesTilesContainerController.removeListeners();
