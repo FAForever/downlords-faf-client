@@ -10,7 +10,6 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
 import com.faforever.client.vault.review.ReviewsController;
@@ -46,7 +45,7 @@ public class ModDetailController implements Controller<Node> {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TimeService timeService;
-  private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final ReviewService reviewService;
   private final PlayerService playerService;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -74,7 +73,7 @@ public class ModDetailController implements Controller<Node> {
   private ListChangeListener<ModVersionBean> installStatusChangeListener;
 
   public void initialize() {
-    ImageViewHelper.setPlaceholderImage(thumbnailImageView, uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE));
+    imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
 

@@ -96,6 +96,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final NotificationService notificationService;
   private final ReviewService reviewService;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final ImageViewHelper imageViewHelper;
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
   public Label titleLabel;
@@ -136,7 +137,7 @@ public class ReplayDetailController implements Controller<Node> {
   private ObservableMap<String, List<GamePlayerStatsBean>> teams;
 
   public void initialize() {
-    ImageViewHelper.setPlaceholderImage(mapThumbnailImageView, uiService.getThemeImage(NO_IMAGE_AVAILABLE));
+    imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
     contextMenuBuilder.addCopyLabelContextMenu(onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);

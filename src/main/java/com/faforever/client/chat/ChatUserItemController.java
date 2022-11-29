@@ -64,6 +64,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final MapService mapService;
   private final MapGeneratorService mapGeneratorService;
   private final EventBus eventBus;
@@ -90,7 +91,7 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void initialize() {
     chatPrefs = preferencesService.getPreferences().getChat();
-    ImageViewHelper.setPlaceholderImage(mapImageView, uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE), true);
+    imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
 
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, gameStatusImageView);
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());

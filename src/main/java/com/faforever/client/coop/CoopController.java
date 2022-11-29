@@ -81,6 +81,7 @@ public class CoopController extends AbstractViewController<Node> {
   private final ReplayService replayService;
   private final GameService gameService;
   private final CoopService coopService;
+  private final ImageViewHelper imageViewHelper;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final UiService uiService;
@@ -109,7 +110,7 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResultBean, String> replayColumn;
 
   public void initialize() {
-    ImageViewHelper.setPlaceholderImage(mapPreviewImageView, uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE), true);
+    imageViewHelper.setDefaultPlaceholderImage(mapPreviewImageView, true);
 
     missionComboBox.setCellFactory(param -> missionListCell());
     missionComboBox.setButtonCell(missionListCell());

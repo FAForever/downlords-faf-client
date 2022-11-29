@@ -1,18 +1,37 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.theme.UiService;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
+import static com.faforever.client.theme.UiService.NO_IMAGE_AVAILABLE;
+
+@Component
+@Lazy
+@RequiredArgsConstructor
 public class ImageViewHelper {
 
-  public static void setPlaceholderImage(ImageView imageView, Image placeholderImage) {
-    setPlaceholderImage(imageView, placeholderImage, false);
+  private final UiService uiService;
+
+  public void setDefaultPlaceholderImage(ImageView imageView) {
+    setDefaultPlaceholderImage(imageView, false);
   }
 
-  public static void setPlaceholderImage(ImageView imageView, Image placeholderImage, boolean onlyOnError) {
+  public void setDefaultPlaceholderImage(ImageView imageView, boolean onlyOnError) {
+    setPlaceholderImage(imageView, getDefaultPlaceholderImage(), onlyOnError);
+  }
+
+  public void setPlaceholderImage(ImageView imageView, Image placeholderImage, boolean onlyOnError) {
     new ImageListenerImpl().setPlaceholderImage(imageView, placeholderImage, onlyOnError);
+  }
+
+  public Image getDefaultPlaceholderImage() {
+    return uiService.getThemeImage(NO_IMAGE_AVAILABLE);
   }
 
   private static class ImageListenerImpl {
@@ -49,7 +68,7 @@ public class ImageViewHelper {
       }
     };
 
-    public void setPlaceholderImage(ImageView imageView, Image placeholderImage, boolean onlyOnError) {
+    private void setPlaceholderImage(ImageView imageView, Image placeholderImage, boolean onlyOnError) {
       if (!onlyOnError) {
         imageView.setImage(placeholderImage);
       }

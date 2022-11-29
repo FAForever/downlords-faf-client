@@ -56,6 +56,7 @@ public class ReplayCardController implements Controller<Node> {
   private final RatingService ratingService;
   private final NotificationService notificationService;
   private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final EventBus eventBus;
   public Label dateLabel;
@@ -79,7 +80,7 @@ public class ReplayCardController implements Controller<Node> {
   private Consumer<ReplayBean> onOpenDetailListener;
 
   public void initialize() {
-    ImageViewHelper.setPlaceholderImage(mapThumbnailImageView, uiService.getThemeImage(NO_IMAGE_AVAILABLE));
+    imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
     JavaFxUtil.bindManagedToVisible(deleteButton);
   }
 

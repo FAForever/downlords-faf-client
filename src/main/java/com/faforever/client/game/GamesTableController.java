@@ -4,6 +4,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.IconCell;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
@@ -58,6 +59,7 @@ public class GamesTableController implements Controller<Node> {
   private final JoinGameHelper joinGameHelper;
   private final I18n i18n;
   private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final PreferencesService preferencesService;
   private final PlayerService playerService;
   public TableView<GameBean> gamesTable;
@@ -112,7 +114,7 @@ public class GamesTableController implements Controller<Node> {
     passwordProtectionColumn.setCellValueFactory(param -> param.getValue().passwordProtectedProperty());
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
 
-    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
+    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
         () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
         param.getValue().mapFolderNameProperty()

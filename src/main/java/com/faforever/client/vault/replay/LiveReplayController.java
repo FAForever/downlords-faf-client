@@ -4,6 +4,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.DecimalCell;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
@@ -62,6 +63,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
 
   private final GameService gameService;
   private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final MapService mapService;
   private final TimeService timeService;
@@ -126,7 +128,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     SortedList<GameBean> sortedList = new SortedList<>(filteredGameList);
     sortedList.comparatorProperty().bind(tableView.comparatorProperty());
 
-    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(uiService));
+    mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
     mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
         () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
         param.getValue().mapFolderNameProperty())

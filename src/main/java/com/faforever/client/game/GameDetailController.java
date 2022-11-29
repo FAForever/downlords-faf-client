@@ -52,6 +52,7 @@ public class GameDetailController implements Controller<Pane> {
   private final ModService modService;
   private final TimeService timeService;
   private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final JoinGameHelper joinGameHelper;
   private final ContextMenuBuilder contextMenuBuilder;
 
@@ -80,7 +81,7 @@ public class GameDetailController implements Controller<Pane> {
   private InvalidationListener startTimeInvalidationListener;
 
   public void initialize() {
-    ImageViewHelper.setPlaceholderImage(mapImageView, uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE), true);
+    imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
         mapPreviewContainer, gameTypeLabel, playtimeLabel);
