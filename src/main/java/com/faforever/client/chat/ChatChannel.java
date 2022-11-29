@@ -8,6 +8,7 @@ import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,6 +73,7 @@ public class ChatChannel {
     return users.size();
   }
 
+  @Nullable
   public ChatChannelUser getUser(String username) {
     return users.get(username);
   }

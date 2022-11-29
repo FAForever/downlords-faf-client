@@ -104,10 +104,11 @@ public class PlatformService {
     }
   }
 
-
   /**
    * Show a Window, restore it to it's state before minimizing (normal/restored or maximized) and move it to foreground
    * will only work on windows systems
+   * Note: An application cannot force a window to the foreground while the user is working with another window.
+   * Instead, Windows flashes the taskbar button of the window to notify the user.
    */
   public void focusWindow(String windowTitle) {
     focusWindow(windowTitle, null);
@@ -118,6 +119,7 @@ public class PlatformService {
     if (!isWindows) {
       return;
     }
+    log.debug("Focus '{}' window", windowTitle);
     focusWindow(getWindow(windowTitle, processId));
   }
 
