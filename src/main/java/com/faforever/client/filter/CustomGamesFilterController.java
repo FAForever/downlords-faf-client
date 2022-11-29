@@ -11,6 +11,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import javafx.beans.InvalidationListener;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -47,7 +48,7 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
 
     mapFolderNameBlackListFilter = filterBuilder.mutableList(i18n.get("blacklist.mapFolderName"), i18n.get("blacklist.mapFolderName.promptText"),
         (folderNames, game) -> folderNames.isEmpty() || folderNames.stream()
-            .noneMatch(name -> game.getMapFolderName().contains(name)));
+            .noneMatch(name -> StringUtils.containsIgnoreCase(game.getMapFolderName(), name)));
   }
 
   @Override

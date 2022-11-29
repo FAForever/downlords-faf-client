@@ -98,5 +98,6 @@ public class CustomGamesFilterControllerTest extends UITest {
     assertFalse(filter.apply(List.of(".v011"), game));
     assertFalse(filter.apply(List.of("lenta", "test_map.v011"), game));
     assertTrue(filter.apply(List.of("lenta"), game));
+    assertFalse(filter.apply(List.of("TEST"), game));
   }
 }
