@@ -12,6 +12,7 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.GeneratedMapPreview;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.RatingUtil;
@@ -60,6 +61,7 @@ public class GameDetailController implements Controller<Pane> {
   private final JoinGameHelper joinGameHelper;
   private final ContextMenuBuilder contextMenuBuilder;
   private final MapGeneratorService mapGeneratorService;
+  private final NotificationService notificationService;
   private final EventBus eventBus;
 
   public Pane gameDetailRoot;
@@ -282,25 +284,22 @@ public class GameDetailController implements Controller<Pane> {
   public void onShowMapPreviewClicked() {
     String mapName = game.getMapFolderName();
     showMapPreviewButton.setText(i18n.get("game.mapGeneration.notification.title"));
-    setButtonsDisable(true);
+    showMapPreviewButton.setDisable(true);
     mapService.generateIfNotInstalled(mapName)
-        .thenRun(() -> {
-          eventBus.post(new GeneratedMapPreview(mapName));
-          JavaFxUtil.runLater(() -> {
-            showMapPreviewButton.setText(i18n.get("game.map.showMapPreview"));
-            setButtonsDisable(false);
-            if (mapName.equals(game.getMapFolderName())) {
-              mapImageView.setImage(mapService.loadPreview(mapName, PreviewSize.LARGE));
-              showMapPreviewButton.setVisible(false);
-            }
-          });
-        });
-  }
-
-  private void setButtonsDisable(boolean disable) {
-    showMapPreviewButton.setDisable(disable);
-    joinButton.setDisable(disable);
-    watchButton.setDisable(disable);
+        .thenRun(() -> eventBus.post(new GeneratedMapPreview(mapName)))
+        .exceptionally(throwable -> {
+          showMapPreviewButton.setVisible(true);
+          notificationService.addImmediateErrorNotification(throwable, "game.mapGeneration.failed.title");
+          return null;
+        })
+        .whenComplete((unused, throwable) -> JavaFxUtil.runLater(() -> {
+          showMapPreviewButton.setText(i18n.get("game.map.showMapPreview"));
+          showMapPreviewButton.setDisable(false);
+          if (mapName.equals(game.getMapFolderName()) && throwable == null) {
+            mapImageView.setImage(mapService.loadPreview(mapName, PreviewSize.LARGE));
+            showMapPreviewButton.setVisible(false);
+          }
+        }));
   }
 
   @VisibleForTesting
