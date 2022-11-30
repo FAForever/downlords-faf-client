@@ -5,12 +5,12 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.InvalidationListener;
@@ -42,7 +42,7 @@ public class MapCardController implements Controller<Node> {
   private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
   private final I18n i18n;
-  private final ReportingService reportingService;
+  private final ImageViewHelper imageViewHelper;
 
   public ImageView thumbnailImageView;
   public Label nameLabel;
@@ -63,6 +63,7 @@ public class MapCardController implements Controller<Node> {
   private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
 
   public void initialize() {
+    imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     installButton.managedProperty().bind(installButton.visibleProperty());
     uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
     installStatusChangeListener = change -> {

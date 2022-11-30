@@ -3,6 +3,7 @@ package com.faforever.client.replay;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.LiveGamesFilterController;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
@@ -10,7 +11,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.map.MapPreviewTableCellController;
 import com.faforever.client.vault.replay.LiveReplayController;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -30,7 +30,6 @@ import java.util.function.Predicate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +39,8 @@ public class LiveReplayControllerTest extends UITest {
   private GameService gameService;
   @Mock
   private UiService uiService;
+  @Mock
+  private ImageViewHelper imageViewHelper;
   @Mock
   private I18n i18n;
   @Mock
@@ -59,7 +60,6 @@ public class LiveReplayControllerTest extends UITest {
     when(uiService.loadFxml("theme/filter/filter.fxml", LiveGamesFilterController.class)).thenReturn(liveGamesFilterController);
     when(liveGamesFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(liveGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
-    when(uiService.loadFxml("theme/vault/map/map_preview_table_cell.fxml")).thenReturn(mock(MapPreviewTableCellController.class));
     when(i18n.get(any())).thenReturn("test");
 
     loadFxml("theme/vault/replay/live_replays.fxml", clazz -> instance);
@@ -67,6 +67,7 @@ public class LiveReplayControllerTest extends UITest {
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void testFilterOnlyLiveGames() {
     ArgumentCaptor<Predicate<GameBean>> argumentCaptor = ArgumentCaptor.forClass(Predicate.class);
     verify(liveGamesFilterController).setDefaultPredicate(argumentCaptor.capture());

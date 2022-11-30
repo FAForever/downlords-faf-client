@@ -11,6 +11,7 @@ import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
 import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -93,6 +94,7 @@ public class ReplayDetailController implements Controller<Node> {
   private final NotificationService notificationService;
   private final ReviewService reviewService;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final ImageViewHelper imageViewHelper;
   private final ArrayList<TeamCardController> teamCardControllers = new ArrayList<>();
   public Pane replayDetailRoot;
   public Label titleLabel;
@@ -133,6 +135,7 @@ public class ReplayDetailController implements Controller<Node> {
   private ObservableMap<String, List<GamePlayerStatsBean>> teams;
 
   public void initialize() {
+    imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
     JavaFxUtil.bindManagedToVisible(notRatedReasonLabel, showRatingChangeButton);
     contextMenuBuilder.addCopyLabelContextMenu(onMapLabel, titleLabel);
     JavaFxUtil.fixScrollSpeed(scrollPane);
@@ -197,6 +200,7 @@ public class ReplayDetailController implements Controller<Node> {
       mapThumbnailImageView.setImage(image);
       onMapLabel.setText(i18n.get("game.onMapFormat", mapVersion.getMap().getDisplayName()));
     } else {
+      mapThumbnailImageView.setImage(imageViewHelper.getDefaultPlaceholderImage());
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 

@@ -5,6 +5,7 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -49,6 +50,8 @@ public class GameDetailControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private ModService modService;
+  @Mock
+  private ImageViewHelper imageViewHelper;
   @Mock
   private UiService uiService;
   @Mock

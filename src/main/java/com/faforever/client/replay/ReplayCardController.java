@@ -5,6 +5,7 @@ import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.DeleteLocalReplayEvent;
@@ -44,6 +45,7 @@ import java.util.function.Consumer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
+// TODO: Add tests
 public class ReplayCardController implements Controller<Node> {
 
   private final ReplayService replayService;
@@ -51,8 +53,10 @@ public class ReplayCardController implements Controller<Node> {
   private final MapService mapService;
   private final RatingService ratingService;
   private final NotificationService notificationService;
+  private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final EventBus eventBus;
+
   public Label dateLabel;
   public ImageView mapThumbnailImageView;
   public Label gameTitleLabel;
@@ -74,6 +78,7 @@ public class ReplayCardController implements Controller<Node> {
   private Consumer<ReplayBean> onOpenDetailListener;
 
   public void initialize() {
+    imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
     JavaFxUtil.bindManagedToVisible(deleteButton);
   }
 
@@ -87,6 +92,7 @@ public class ReplayCardController implements Controller<Node> {
       mapThumbnailImageView.setImage(image);
       onMapLabel.setText(i18n.get("game.onMapFormat", mapVersion.getMap().getDisplayName()));
     } else {
+      mapThumbnailImageView.setImage(imageViewHelper.getDefaultPlaceholderImage());
       onMapLabel.setText(i18n.get("game.onUnknownMap"));
     }
 

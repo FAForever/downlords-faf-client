@@ -8,6 +8,7 @@ import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -51,6 +52,8 @@ public class ModDetailControllerTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private ModService modService;
+  @Mock
+  private ImageViewHelper imageViewHelper;
   @Mock
   private I18n i18n;
   @Mock

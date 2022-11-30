@@ -312,6 +312,6 @@ public class LeaderboardServiceTest extends ServiceTest {
   public void testLoadDivisionImage() {
     SubdivisionBean subdivisionBean = SubdivisionBeanBuilder.create().defaultValues().get();
     instance.loadDivisionImage(subdivisionBean.getImageUrl());
-    verify(assetService).loadAndCacheImage(subdivisionBean.getImageUrl(), Path.of("divisions"), null);
+    verify(assetService).loadAndCacheImage(subdivisionBean.getImageUrl(), Path.of("divisions"));
   }
 }

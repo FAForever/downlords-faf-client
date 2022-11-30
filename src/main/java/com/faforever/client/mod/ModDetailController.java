@@ -4,6 +4,7 @@ import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -44,6 +45,7 @@ public class ModDetailController implements Controller<Node> {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final TimeService timeService;
+  private final ImageViewHelper imageViewHelper;
   private final ReviewService reviewService;
   private final PlayerService playerService;
   private final ContextMenuBuilder contextMenuBuilder;
@@ -71,8 +73,10 @@ public class ModDetailController implements Controller<Node> {
   private ListChangeListener<ModVersionBean> installStatusChangeListener;
 
   public void initialize() {
+    imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
     JavaFxUtil.bindManagedToVisible(uninstallButton, installButton, progressBar, progressLabel, getRoot());
     JavaFxUtil.fixScrollSpeed(scrollPane);
+
     contextMenuBuilder.addCopyLabelContextMenu(nameLabel, authorLabel, idLabel, uploaderLabel, versionLabel);
     progressBar.visibleProperty().bind(uninstallButton.visibleProperty().not().and(installButton.visibleProperty().not()));
     progressLabel.visibleProperty().bind(progressBar.visibleProperty());

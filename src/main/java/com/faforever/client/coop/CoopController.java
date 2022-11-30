@@ -5,6 +5,7 @@ import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
@@ -80,6 +81,7 @@ public class CoopController extends AbstractViewController<Node> {
   private final ReplayService replayService;
   private final GameService gameService;
   private final CoopService coopService;
+  private final ImageViewHelper imageViewHelper;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final UiService uiService;
@@ -108,6 +110,8 @@ public class CoopController extends AbstractViewController<Node> {
   public TableColumn<CoopResultBean, String> replayColumn;
 
   public void initialize() {
+    imageViewHelper.setDefaultPlaceholderImage(mapPreviewImageView, true);
+
     missionComboBox.setCellFactory(param -> missionListCell());
     missionComboBox.setButtonCell(missionListCell());
     missionComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> setSelectedMission(newValue));

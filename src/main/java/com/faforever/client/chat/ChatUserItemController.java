@@ -4,6 +4,7 @@ import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
@@ -63,6 +64,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final PreferencesService preferencesService;
   private final I18n i18n;
   private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final MapService mapService;
   private final MapGeneratorService mapGeneratorService;
   private final EventBus eventBus;
@@ -89,6 +91,7 @@ public class ChatUserItemController implements Controller<Node> {
 
   public void initialize() {
     chatPrefs = preferencesService.getPreferences().getChat();
+    imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
 
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, gameStatusImageView);
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());

@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -51,6 +52,7 @@ public class GameDetailController implements Controller<Pane> {
   private final ModService modService;
   private final TimeService timeService;
   private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final JoinGameHelper joinGameHelper;
   private final ContextMenuBuilder contextMenuBuilder;
 
@@ -79,6 +81,7 @@ public class GameDetailController implements Controller<Pane> {
   private InvalidationListener startTimeInvalidationListener;
 
   public void initialize() {
+    imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
         mapPreviewContainer, gameTypeLabel, playtimeLabel);

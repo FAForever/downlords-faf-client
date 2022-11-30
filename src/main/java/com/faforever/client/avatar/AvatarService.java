@@ -35,7 +35,7 @@ public class AvatarService implements InitializingBean {
     if (avatar == null) {
       return null;
     }
-    return assetService.loadAndCacheImage(avatar.getUrl(), Path.of("avatars"), null);
+    return assetService.loadAndCacheImage(avatar.getUrl(), Path.of("avatars"));
   }
 
   public CompletableFuture<List<AvatarBean>> getAvailableAvatars() {

@@ -9,6 +9,7 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
@@ -117,6 +118,8 @@ public class ModServiceTest extends UITest {
   private PlatformService platformService;
   @Mock
   private FileSizeReader fileSizeReader;
+  @Mock
+  private ImageViewHelper imageViewHelper;
 
   private Path modsDirectory;
   @InjectMocks
