@@ -351,6 +351,8 @@ public class GameDetailControllerTest extends UITest {
       instance.setGame(game);
       instance.onShowMapPreviewClicked();
     });
+
+    verify(mapService).generateIfNotInstalled(game.getMapFolderName());
   }
 
   @ParameterizedTest
