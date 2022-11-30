@@ -165,6 +165,7 @@ public class GamesTilesContainerController implements Controller<Node> {
         .ifPresentOrElse(game -> JavaFxUtil.runLater(() -> {
           removeGameCard(game);
           addGameCard(game);
+          sortNodes();
         }), () -> log.warn("No tile with {} map to recreate", mapName));
   }
 

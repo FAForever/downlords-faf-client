@@ -286,19 +286,20 @@ public class GameDetailController implements Controller<Pane> {
     showMapPreviewButton.setText(i18n.get("game.mapGeneration.notification.title"));
     showMapPreviewButton.setDisable(true);
     mapService.generateIfNotInstalled(mapName)
-        .thenRun(() -> eventBus.post(new GeneratedMapPreview(mapName)))
+        .thenRun(() -> {
+          eventBus.post(new GeneratedMapPreview(mapName));
+          if (game != null && mapName.equals(game.getMapFolderName())) {
+            mapImageView.setImage(mapService.loadPreview(mapName, PreviewSize.LARGE));
+            showMapPreviewButton.setVisible(false);
+          }
+        })
         .exceptionally(throwable -> {
-          showMapPreviewButton.setVisible(true);
           notificationService.addImmediateErrorNotification(throwable, "game.mapGeneration.failed.title");
           return null;
         })
         .whenComplete((unused, throwable) -> JavaFxUtil.runLater(() -> {
-          showMapPreviewButton.setText(i18n.get("game.map.showMapPreview"));
           showMapPreviewButton.setDisable(false);
-          if (mapName.equals(game.getMapFolderName()) && throwable == null) {
-            mapImageView.setImage(mapService.loadPreview(mapName, PreviewSize.LARGE));
-            showMapPreviewButton.setVisible(false);
-          }
+          showMapPreviewButton.setText(i18n.get("game.map.showMapPreview"));
         }));
   }
 
