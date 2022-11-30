@@ -316,6 +316,7 @@ public class GameDetailControllerTest extends UITest {
     });
 
     verify(eventBus).post(any(GeneratedMapPreview.class));
+    verify(mapService).generateIfNotInstalled(game.getMapFolderName());
     assertEquals(instance.mapImageView.getImage(), imageMock);
     assertFalse(instance.showMapPreviewButton.isVisible());
   }
@@ -383,6 +384,7 @@ public class GameDetailControllerTest extends UITest {
 
     when(mapService.generateIfNotInstalled(game.getMapFolderName()))
         .thenAnswer(invocation -> {
+          assertEquals(image, instance.mapImageView.getImage());
           runOnFxThreadAndWait(() -> instance.setGame(anotherGame));
           return CompletableFuture.completedFuture(game.getMapFolderName());
         });
@@ -392,6 +394,7 @@ public class GameDetailControllerTest extends UITest {
       instance.onShowMapPreviewClicked();
     });
 
+    verify(mapService).generateIfNotInstalled(game.getMapFolderName());
     assertEquals(anotherImage, instance.mapImageView.getImage());
   }
 }
