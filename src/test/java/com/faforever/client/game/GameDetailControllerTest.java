@@ -10,6 +10,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
@@ -62,6 +63,8 @@ public class GameDetailControllerTest extends UITest {
   private TimeService timeService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
+  @Mock
+  private MapGeneratorService mapGeneratorService;
 
   @Mock
   private WatchButtonController watchButtonController;

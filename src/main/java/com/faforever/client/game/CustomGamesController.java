@@ -237,7 +237,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   @Subscribe
-  public void refreshContent(GeneratedMapPreview event) {
+  public void onGeneratedMapPreview(GeneratedMapPreview event) {
     if (gamesTilesContainerController != null) {
       gamesTilesContainerController.recreateTile(event.mapName());
     }
