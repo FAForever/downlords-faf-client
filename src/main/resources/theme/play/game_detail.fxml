@@ -37,8 +37,8 @@
                 <Pane maxHeight="256.0" maxWidth="256.0" onMouseClicked="#onMapPreviewImageClicked"
                       styleClass="clickable" StackPane.alignment="CENTER"/>
             </StackPane>
-            <Button fx:id="showMapPreviewButton" prefWidth="256.0" mnemonicParsing="false"
-                    onAction="#onShowMapPreviewClicked" text="%game.map.showMapPreview"/>
+            <Button fx:id="generateMapButton" prefWidth="256.0" mnemonicParsing="false"
+                    onAction="#onGenerateMapClicked" text="%game.create.generatedMap2"/>
         </children>
     </VBox>
     <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="game-title"

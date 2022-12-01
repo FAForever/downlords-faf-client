@@ -9,7 +9,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.map.generator.GeneratedMapPreview;
+import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
@@ -21,6 +21,7 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -77,7 +78,7 @@ public class GameDetailController implements Controller<Pane> {
   public Node joinButton;
   public WatchButtonController watchButtonController;
   public Node watchButton;
-  public Button showMapPreviewButton;
+  public Button generateMapButton;
 
   private GameBean game;
   private boolean playtimeVisible;
@@ -93,7 +94,7 @@ public class GameDetailController implements Controller<Pane> {
     imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
-        mapPreviewContainer, gameTypeLabel, playtimeLabel, showMapPreviewButton);
+        mapPreviewContainer, gameTypeLabel, playtimeLabel, generateMapButton);
     JavaFxUtil.bind(mapPreviewContainer.visibleProperty(), mapImageView.imageProperty().isNotNull());
     gameDetailRoot.parentProperty().addListener(observable -> {
       if (!(gameDetailRoot.getParent() instanceof Pane)) {
@@ -101,6 +102,8 @@ public class GameDetailController implements Controller<Pane> {
       }
       gameDetailRoot.maxWidthProperty().bind(((Pane) gameDetailRoot.getParent()).widthProperty());
     });
+
+    eventBus.register(this);
   }
 
   private void onGameStatusChanged() {
@@ -278,29 +281,39 @@ public class GameDetailController implements Controller<Pane> {
 
   private void showActionsForGeneratedMap() {
     String mapName = game.getMapFolderName();
-    showMapPreviewButton.setVisible(mapGeneratorService.isGeneratedMap(mapName) && !mapService.isInstalled(mapName));
+    generateMapButton.setVisible(mapGeneratorService.isGeneratedMap(mapName) && !mapService.isInstalled(mapName));
   }
 
-  public void onShowMapPreviewClicked() {
-    String mapName = game.getMapFolderName();
-    showMapPreviewButton.setText(i18n.get("game.mapGeneration.notification.title"));
-    showMapPreviewButton.setDisable(true);
-    mapService.generateIfNotInstalled(mapName)
-        .thenRun(() -> {
-          eventBus.post(new GeneratedMapPreview(mapName));
-          if (game != null && mapName.equals(game.getMapFolderName())) {
-            mapImageView.setImage(mapService.loadPreview(mapName, PreviewSize.LARGE));
-            showMapPreviewButton.setVisible(false);
-          }
-        })
+  public void onGenerateMapClicked() {
+    setGeneratingMapInProgress(true);
+    mapService.generateIfNotInstalled(game.getMapFolderName())
+        .thenAccept(this::reloadMapImage)
         .exceptionally(throwable -> {
           notificationService.addImmediateErrorNotification(throwable, "game.mapGeneration.failed.title");
           return null;
         })
-        .whenComplete((unused, throwable) -> JavaFxUtil.runLater(() -> {
-          showMapPreviewButton.setDisable(false);
-          showMapPreviewButton.setText(i18n.get("game.map.showMapPreview"));
-        }));
+        .whenComplete((unused, throwable) -> setGeneratingMapInProgress(false));
+  }
+
+  @Subscribe
+  public void onMapGeneratedEvent(MapGeneratedEvent event) {
+    reloadMapImage(event.mapName());
+  }
+
+  private void reloadMapImage(String mapName) {
+    if (game != null && mapName.equals(game.getMapFolderName())) {
+      JavaFxUtil.runLater(() -> {
+        mapImageView.setImage(mapService.loadPreview(mapName, PreviewSize.LARGE));
+        generateMapButton.setVisible(false);
+      });
+    }
+  }
+
+  private void setGeneratingMapInProgress(boolean inProgress) {
+    JavaFxUtil.runLater(() -> {
+      generateMapButton.setDisable(inProgress);
+      generateMapButton.setText(i18n.get(inProgress ? "game.mapGeneration.notification.title" : "game.create.generatedMap2"));
+    });
   }
 
   @VisibleForTesting

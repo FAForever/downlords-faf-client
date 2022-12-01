@@ -8,7 +8,7 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
-import com.faforever.client.map.generator.GeneratedMapPreview;
+import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
@@ -237,14 +237,18 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   @Subscribe
-  public void onGeneratedMapPreview(GeneratedMapPreview event) {
-    if (gamesTilesContainerController != null) {
-      gamesTilesContainerController.recreateTile(event.mapName());
-    }
-
-    if (gamesTableController != null) {
-      gamesTableController.refreshTable();
-    }
+  public void onMapGeneratedEvent(MapGeneratedEvent event) {
+    filteredItems.stream()
+        .filter(game -> game.getMapFolderName().equals(event.mapName()) && game.getStatus() == GameStatus.OPEN)
+        .findFirst()
+        .ifPresent(game -> {
+          if (gamesTilesContainerController != null) {
+            gamesTilesContainerController.recreateTile(event.mapName());
+          }
+          if (gamesTableController != null) {
+            gamesTableController.refreshTable();
+          }
+        });
   }
 
   private void disposeGamesContainer() {

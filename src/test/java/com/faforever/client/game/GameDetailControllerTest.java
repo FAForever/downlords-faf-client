@@ -10,7 +10,6 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.map.generator.GeneratedMapPreview;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
@@ -264,39 +263,39 @@ public class GameDetailControllerTest extends UITest {
   }
 
   @Test
-  public void testShowMapPreviewButtonIsVisible() {
+  public void testGenerateMapButtonIsVisible() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
-    assertTrue(instance.showMapPreviewButton.isVisible());
+    assertTrue(instance.generateMapButton.isVisible());
   }
 
   @Test
-  public void testShowMapPreviewButtonIsInvisible() {
+  public void testGenerateMapButtonIsInvisible() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(false);
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
-    assertFalse(instance.showMapPreviewButton.isVisible());
+    assertFalse(instance.generateMapButton.isVisible());
   }
 
   @Test
-  public void testShowMapPreviewButtonIsInvisibleWhenMapIsInstalled() {
+  public void testGenerateMapButtonIsInvisibleWhenMapIsInstalled() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
 
     runOnFxThreadAndWait(() -> instance.setGame(game));
 
-    assertFalse(instance.showMapPreviewButton.isVisible());
+    assertFalse(instance.generateMapButton.isVisible());
   }
 
   @Test
-  public void testOnShowMapPreviewClickedAndSucceed() {
+  public void testOnGenerateMapClickedAndSucceed() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     Image noImageMock = mock(Image.class);
     Image imageMock = mock(Image.class);
@@ -312,17 +311,16 @@ public class GameDetailControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
-      instance.onShowMapPreviewClicked();
+      instance.onGenerateMapClicked();
     });
 
-    verify(eventBus).post(any(GeneratedMapPreview.class));
     verify(mapService).generateIfNotInstalled(game.getMapFolderName());
     assertEquals(instance.mapImageView.getImage(), imageMock);
-    assertFalse(instance.showMapPreviewButton.isVisible());
+    assertFalse(instance.generateMapButton.isVisible());
   }
 
   @Test
-  public void testOnShowMapPreviewClickedAndFailed() {
+  public void testOnGenerateMapClickedAndFailed() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
@@ -330,27 +328,27 @@ public class GameDetailControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
-      instance.onShowMapPreviewClicked();
+      instance.onGenerateMapClicked();
     });
 
-    assertTrue(instance.showMapPreviewButton.isVisible());
+    assertTrue(instance.generateMapButton.isVisible());
     verify(notificationService).addImmediateErrorNotification(any(RuntimeException.class), any(String.class));
   }
 
   @Test
-  public void testOnShowMapPreviewClickedAndInProcess() {
+  public void testOnGenerateMapClickedAndInProcess() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(i18n.get("game.mapGeneration.notification.title" )).thenReturn("in process");
 
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
-      assertEquals("in process", instance.showMapPreviewButton.getText());
-      assertTrue(instance.showMapPreviewButton.isDisable());
+      assertEquals("in process", instance.generateMapButton.getText());
+      assertTrue(instance.generateMapButton.isDisable());
       return CompletableFuture.completedFuture(game.getMapFolderName());
     });
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
-      instance.onShowMapPreviewClicked();
+      instance.onGenerateMapClicked();
     });
 
     verify(mapService).generateIfNotInstalled(game.getMapFolderName());
@@ -358,23 +356,23 @@ public class GameDetailControllerTest extends UITest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  public void testOnShowMapPreviewClickedAndCompleted(boolean succeed) {
+  public void testOnGenerateMapClickedAndCompleted(boolean succeed) {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
-    when(i18n.get("game.map.showMapPreview")).thenReturn("text");
+    when(i18n.get("game.create.generatedMap2")).thenReturn("text");
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
         succeed ? CompletableFuture.completedFuture(game.getMapFolderName()) : CompletableFuture.failedFuture(new RuntimeException("failed")));
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
-      instance.onShowMapPreviewClicked();
+      instance.onGenerateMapClicked();
     });
 
-    assertFalse(instance.showMapPreviewButton.isDisable());
-    assertEquals("text", instance.showMapPreviewButton.getText());
+    assertFalse(instance.generateMapButton.isDisable());
+    assertEquals("text", instance.generateMapButton.getText());
   }
 
   @Test
-  public void testOnShowMapPreviewClickedAndDoNotSetImageIfGameIsAnother() {
+  public void testOnGenerateMapClickedAndDoNotSetImageIfGameIsAnother() {
     GameBean game = GameBeanBuilder.create().defaultValues().mapFolderName("neroxis").get();
     GameBean anotherGame = GameBeanBuilder.create().defaultValues().mapFolderName("non_neroxis").get();
     Image image = mock(Image.class);
@@ -391,7 +389,7 @@ public class GameDetailControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
-      instance.onShowMapPreviewClicked();
+      instance.onGenerateMapClicked();
     });
 
     verify(mapService).generateIfNotInstalled(game.getMapFolderName());
