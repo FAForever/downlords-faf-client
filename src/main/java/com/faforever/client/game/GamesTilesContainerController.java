@@ -184,10 +184,8 @@ public class GamesTilesContainerController implements Controller<Node> {
     PLAYER_ASC(Comparator.comparingInt(o -> ((GameBean) o.getUserData()).getNumActivePlayers()), false, "tiles.comparator.playersAscending"),
     AVG_RATING_DES(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), true, "tiles.comparator.averageRatingDescending"),
     AVG_RATING_ASC(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), false, "tiles.comparator.averageRatingAscending"),
-    NAME_DES(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle()
-        .toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
-    NAME_ASC(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle()
-        .toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
+    NAME_DES(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
+    NAME_ASC(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
 
     @Getter
     private final Comparator<Node> comparator;
