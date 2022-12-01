@@ -3,11 +3,13 @@ package com.faforever.client.chat.emoticons;
 import com.faforever.client.builders.EmoticonBuilder;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.test.UITest;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.core.io.ClassPathResource;
 
 import java.util.function.Consumer;
 
@@ -29,7 +31,11 @@ public class EmoticonControllerTest extends UITest {
 
   @Test
   public void testSetEmoticon() {
-    runOnFxThreadAndWait(() -> instance.setEmoticon(EmoticonBuilder.create().defaultValues().get(), onAction));
+    Emoticon emoticon = EmoticonBuilder.create()
+        .defaultValues()
+        .image(new Image(new ClassPathResource("/images/hydro.png").getPath()))
+        .get();
+    runOnFxThreadAndWait(() -> instance.setEmoticon(emoticon, onAction));
     assertNotNull(instance.emoticonImageView.getImage());
   }
 

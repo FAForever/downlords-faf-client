@@ -61,7 +61,7 @@ public class EmoticonServiceTest extends ServiceTest {
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{
         EmoticonGroupBuilder.create().defaultValues().get(),
         EmoticonGroupBuilder.create().defaultValues().emoticons(
-            EmoticonBuilder.create().shortcodes(":value3:", ":value3:").get()
+            EmoticonBuilder.create().defaultValues().shortcodes(":value3:", ":value3:").get()
         ).get()};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
@@ -73,8 +73,8 @@ public class EmoticonServiceTest extends ServiceTest {
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{
         EmoticonGroupBuilder.create().defaultValues().get(),
         EmoticonGroupBuilder.create().defaultValues().emoticons(
-            EmoticonBuilder.create().shortcodes(":value3:").get(),
-            EmoticonBuilder.create().shortcodes(":value3:").get())
+            EmoticonBuilder.create().defaultValues().shortcodes(":value3:").get(),
+            EmoticonBuilder.create().defaultValues().shortcodes(":value3:").get())
             .get()};
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
@@ -84,8 +84,8 @@ public class EmoticonServiceTest extends ServiceTest {
   @Test
   public void testThrowWhenShortcodesAreNotUniqueAcrossGroups() throws Exception {
     EmoticonsGroup[] emoticonsGroupsArray = new EmoticonsGroup[]{
-        EmoticonGroupBuilder.create().defaultValues().emoticons(EmoticonBuilder.create().shortcodes(":value3:").get()).get(),
-        EmoticonGroupBuilder.create().defaultValues().emoticons(EmoticonBuilder.create().shortcodes(":value3:").get()).get()
+        EmoticonGroupBuilder.create().defaultValues().emoticons(EmoticonBuilder.create().defaultValues().shortcodes(":value3:").get()).get(),
+        EmoticonGroupBuilder.create().defaultValues().emoticons(EmoticonBuilder.create().defaultValues().shortcodes(":value3:").get()).get()
     };
     when(objectMapper.readValue(any(InputStream.class), eq(EmoticonsGroup[].class))).thenReturn(emoticonsGroupsArray);
 
@@ -101,9 +101,7 @@ public class EmoticonServiceTest extends ServiceTest {
 
     instance.afterPropertiesSet();
     assertEquals(emoticon.getBase64SvgContent(), instance.getBase64SvgContentByShortcode(emoticon.getShortcodes().get(0)));
-    emoticon.getShortcodes().forEach(shortcode -> {
-      assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode));
-    });
+    emoticon.getShortcodes().forEach(shortcode -> assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains(shortcode)));
     assertTrue(instance.getEmoticonShortcodeDetectorPattern().pattern().contains("|"));
   }
 }

@@ -1,6 +1,7 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.chat.emoticons.Emoticon;
+import javafx.scene.image.Image;
 
 import java.util.Arrays;
 
@@ -25,6 +26,11 @@ public class EmoticonBuilder {
 
   public EmoticonBuilder base64SvgContent(String base64SvgContent) {
     emoticon.setBase64SvgContent(base64SvgContent);
+    return this;
+  }
+
+  public EmoticonBuilder image(Image image) {
+    emoticon.setImage(image);
     return this;
   }
 
