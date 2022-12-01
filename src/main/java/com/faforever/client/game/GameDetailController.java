@@ -287,7 +287,6 @@ public class GameDetailController implements Controller<Pane> {
   public void onGenerateMapClicked() {
     setGeneratingMapInProgress(true);
     mapService.generateIfNotInstalled(game.getMapFolderName())
-        .thenAccept(this::reloadMapImage)
         .exceptionally(throwable -> {
           notificationService.addImmediateErrorNotification(throwable, "game.mapGeneration.failed.title");
           return null;

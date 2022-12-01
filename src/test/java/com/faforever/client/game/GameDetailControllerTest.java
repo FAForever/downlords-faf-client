@@ -10,6 +10,7 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
@@ -302,19 +303,17 @@ public class GameDetailControllerTest extends UITest {
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(noImageMock, imageMock);
     when(mapGeneratorService.isGeneratedMap(game.getMapFolderName())).thenReturn(true);
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(false);
-
-    when(mapService.generateIfNotInstalled(game.getMapFolderName()))
-        .thenAnswer(invocation -> {
-          assertEquals(noImageMock, instance.mapImageView.getImage());
-          return CompletableFuture.completedFuture(game.getMapFolderName());
-        });
+    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(CompletableFuture.completedFuture(game.getMapFolderName()));
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
       instance.onGenerateMapClicked();
     });
-
     verify(mapService).generateIfNotInstalled(game.getMapFolderName());
+    assertEquals(noImageMock, instance.mapImageView.getImage());
+
+    runOnFxThreadAndWait(() -> instance.onMapGeneratedEvent(new MapGeneratedEvent(game.getMapFolderName())));
+
     assertEquals(instance.mapImageView.getImage(), imageMock);
     assertFalse(instance.generateMapButton.isVisible());
   }
