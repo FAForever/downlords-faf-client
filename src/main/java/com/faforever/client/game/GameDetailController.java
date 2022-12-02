@@ -9,7 +9,10 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.map.generator.MapGeneratedEvent;
+import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.notification.NotificationService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.RatingUtil;
@@ -17,12 +20,15 @@ import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -55,6 +61,9 @@ public class GameDetailController implements Controller<Pane> {
   private final ImageViewHelper imageViewHelper;
   private final JoinGameHelper joinGameHelper;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final MapGeneratorService mapGeneratorService;
+  private final NotificationService notificationService;
+  private final EventBus eventBus;
 
   public Pane gameDetailRoot;
   public Label gameTypeLabel;
@@ -69,6 +78,7 @@ public class GameDetailController implements Controller<Pane> {
   public Node joinButton;
   public WatchButtonController watchButtonController;
   public Node watchButton;
+  public Button generateMapButton;
 
   private GameBean game;
   private boolean playtimeVisible;
@@ -84,7 +94,7 @@ public class GameDetailController implements Controller<Pane> {
     imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
     JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
-        mapPreviewContainer, gameTypeLabel, playtimeLabel);
+        mapPreviewContainer, gameTypeLabel, playtimeLabel, generateMapButton);
     JavaFxUtil.bind(mapPreviewContainer.visibleProperty(), mapImageView.imageProperty().isNotNull());
     gameDetailRoot.parentProperty().addListener(observable -> {
       if (!(gameDetailRoot.getParent() instanceof Pane)) {
@@ -92,6 +102,8 @@ public class GameDetailController implements Controller<Pane> {
       }
       gameDetailRoot.maxWidthProperty().bind(((Pane) gameDetailRoot.getParent()).widthProperty());
     });
+
+    eventBus.register(this);
   }
 
   private void onGameStatusChanged() {
@@ -171,6 +183,7 @@ public class GameDetailController implements Controller<Pane> {
     }
 
     showGameDetail();
+    showActionsForGeneratedMap();
 
     WeakInvalidationListener weakTeamListener = new WeakInvalidationListener(teamsInvalidationListener);
     WeakInvalidationListener weakGameStatusListener = new WeakInvalidationListener(gameStatusInvalidationListener);
@@ -264,6 +277,42 @@ public class GameDetailController implements Controller<Pane> {
     if (game != null) {
       PopupUtil.showImagePopup(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE));
     }
+  }
+
+  private void showActionsForGeneratedMap() {
+    String mapName = game.getMapFolderName();
+    generateMapButton.setVisible(mapGeneratorService.isGeneratedMap(mapName) && !mapService.isInstalled(mapName));
+  }
+
+  public void onGenerateMapClicked() {
+    setGeneratingMapInProgress(true);
+    mapService.generateIfNotInstalled(game.getMapFolderName())
+        .exceptionally(throwable -> {
+          notificationService.addImmediateErrorNotification(throwable, "game.mapGeneration.failed.title");
+          return null;
+        })
+        .whenComplete((unused, throwable) -> setGeneratingMapInProgress(false));
+  }
+
+  @Subscribe
+  public void onMapGeneratedEvent(MapGeneratedEvent event) {
+    reloadMapImage(event.mapName());
+  }
+
+  private void reloadMapImage(String mapName) {
+    if (game != null && mapName.equals(game.getMapFolderName())) {
+      JavaFxUtil.runLater(() -> {
+        mapImageView.setImage(mapService.loadPreview(mapName, PreviewSize.LARGE));
+        generateMapButton.setVisible(false);
+      });
+    }
+  }
+
+  private void setGeneratingMapInProgress(boolean inProgress) {
+    JavaFxUtil.runLater(() -> {
+      generateMapButton.setDisable(inProgress);
+      generateMapButton.setText(i18n.get(inProgress ? "game.mapGeneration.notification.title" : "game.create.generatedMap2"));
+    });
   }
 
   @VisibleForTesting

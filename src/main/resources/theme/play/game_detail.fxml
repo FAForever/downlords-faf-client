@@ -11,9 +11,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
 <GridPane fx:id="gameDetailRoot" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="50.0"
-          styleClass="game-detail" vgap="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+          styleClass="game-detail" vgap="10.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.game.GameDetailController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0"/>
@@ -30,12 +29,18 @@
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
     </rowConstraints>
-    <StackPane fx:id="mapPreviewContainer" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
-        <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" preserveRatio="true"
-                   styleClass="map-preview"/>
-        <Pane maxHeight="256.0" maxWidth="256.0" onMouseClicked="#onMapPreviewImageClicked" styleClass="clickable"
-              StackPane.alignment="CENTER"/>
-    </StackPane>
+    <VBox alignment="CENTER" spacing="5.0" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER">
+        <children>
+            <StackPane fx:id="mapPreviewContainer">
+                <ImageView fx:id="mapImageView" fitHeight="256.0" fitWidth="256.0" preserveRatio="true"
+                           styleClass="map-preview"/>
+                <Pane maxHeight="256.0" maxWidth="256.0" onMouseClicked="#onMapPreviewImageClicked"
+                      styleClass="clickable" StackPane.alignment="CENTER"/>
+            </StackPane>
+            <Button fx:id="generateMapButton" prefWidth="256.0" mnemonicParsing="false"
+                    onAction="#onGenerateMapClicked" text="%game.create.generatedMap2"/>
+        </children>
+    </VBox>
     <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="game-title"
            text="&lt;A pretty long game title&gt;" wrapText="true" GridPane.columnSpan="2147483647"
            GridPane.hgrow="ALWAYS" GridPane.rowIndex="1"/>
@@ -61,13 +66,12 @@
     </Label>
     <VBox alignment="CENTER" GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
         <fx:include fx:id="watchButton" source="../vault/replay/watch_button.fxml"/>
-        <Button fx:id="joinButton" mnemonicParsing="false" onAction="#onJoinButtonClicked" text="%game.join"/>
+        <Button fx:id="joinButton" prefWidth="256.0" mnemonicParsing="false" onAction="#onJoinButtonClicked" text="%game.join"/>
     </VBox>
     <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnSpan="2147483647"
           GridPane.rowIndex="8"/>
     <Label fx:id="playtimeLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Playtime&gt;"
-           wrapText="true"
-           GridPane.rowIndex="6" visible="false">
+           visible="false" wrapText="true" GridPane.rowIndex="6">
         <graphic>
             <Region styleClass="icon,time-icon"/>
         </graphic>
