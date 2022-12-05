@@ -52,7 +52,7 @@ public class OAuthValuesReceiver {
     this.codeVerifier = codeVerifier;
     if (valuesFuture == null || valuesFuture.isDone()) {
       if (redirectUriCandidates == null || redirectUriCandidates.isEmpty()) {
-        throw new IllegalArgumentException("No redirect uris provided");
+        return CompletableFuture.failedFuture(new IllegalArgumentException("No redirect uris provided"));
       }
 
       redirectUriLatch = new CountDownLatch(1);
