@@ -383,16 +383,4 @@ public class PlayerService implements InitializingBean {
         .collectList()
         .toFuture();
   }
-
-  @Subscribe
-  public void onPlayerOffline(PlayerOfflineEvent event) {
-    PlayerBean player = event.getPlayer();
-    synchronized (playersById) {
-      playersById.remove(player.getId());
-    }
-
-    synchronized (playersByName) {
-      playersByName.remove(player.getUsername());
-    }
-  }
 }

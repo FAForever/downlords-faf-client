@@ -417,7 +417,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     synchronized (chatChannelUsersByChannelAndName) {
       chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
     }
-    // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
+
+    // TODO: The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
     if (defaultChannelName.equals(channelName)) {
       oldChatUser.getPlayer().ifPresent(player -> eventBus.post(new PlayerOfflineEvent(player)));
     }

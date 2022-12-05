@@ -361,17 +361,6 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testPlayerOffline() {
-    PlayerBean player = PlayerBeanBuilder.create().get();
-    playerMapper.update(playerInfo1, player);
-
-    instance.onPlayerOffline(new PlayerOfflineEvent(player));
-
-    assertFalse(instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).isPresent());
-    assertFalse(instance.getPlayerByIdIfOnline(playerInfo1.getId()).isPresent());
-  }
-
-  @Test
   public void testAddPlayerNote() {
     PlayerBean player = PlayerBeanBuilder.create().id(2).get();
     assertFalse(instance.getNotesByPlayerId().containsKey(2));
