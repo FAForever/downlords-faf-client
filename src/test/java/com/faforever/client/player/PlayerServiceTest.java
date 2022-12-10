@@ -60,6 +60,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -406,5 +407,6 @@ public class PlayerServiceTest extends ServiceTest {
     assertTrue(instance.getPlayerNames().isEmpty());
     assertFalse(instance.isOnline(playerInfo1.getId()));
     assertFalse(instance.isOnline(playerInfo2.getId()));
+    verify(eventBus, times(2)).post(any(PlayerOfflineEvent.class));
   }
 }
