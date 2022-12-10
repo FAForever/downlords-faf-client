@@ -393,4 +393,18 @@ public class PlayerServiceTest extends ServiceTest {
     instance.updateNote(player, "junit\n1\n\n2\n\n\n3\n4");
     assertEquals("junit\n1\n2\n3\n4", instance.getNotesByPlayerId().get(2));
   }
+
+  @Test
+  public void testRemovePlayerIfOnline() {
+    assertFalse(instance.getPlayerNames().isEmpty());
+    assertTrue(instance.isOnline(playerInfo1.getId()));
+    assertTrue(instance.isOnline(playerInfo2.getId()));
+
+    instance.removePlayerIfOnline(playerInfo1.getLogin());
+    instance.removePlayerIfOnline(playerInfo2.getLogin());
+
+    assertTrue(instance.getPlayerNames().isEmpty());
+    assertFalse(instance.isOnline(playerInfo1.getId()));
+    assertFalse(instance.isOnline(playerInfo2.getId()));
+  }
 }

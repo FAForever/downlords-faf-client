@@ -69,6 +69,7 @@ public class PlayerService implements InitializingBean {
   private final List<Integer> friendList = new ArrayList<>();
   private final Map<Integer, List<PlayerBean>> playersByGame = new HashMap<>();
   private ObservableMap<Integer, String> notesByPlayerId;
+  private final Object lock = new Object();
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
@@ -181,7 +182,7 @@ public class PlayerService implements InitializingBean {
     Assert.checkNullArgument(playerInfo, "playerInfo must not be null");
 
     PlayerBean player;
-    synchronized (playersById) {
+    synchronized (lock) {
       player = playersById.compute(playerInfo.getId(), (id, knownPlayer) -> {
         if (knownPlayer == null) {
           PlayerBean newPlayer = new PlayerBean();
@@ -382,5 +383,14 @@ public class PlayerService implements InitializingBean {
         .sort(Comparator.comparing(NameRecordBean::getChangeTime))
         .collectList()
         .toFuture();
+  }
+
+  public void removePlayerIfOnline(String username) {
+    synchronized (lock) {
+      getPlayerByNameIfOnline(username).ifPresentOrElse(player -> {
+        playersByName.remove(player.getUsername());
+        playersById.remove(player.getId());
+      }, () -> log.warn("No `{}` player to remove", username));
+    }
   }
 }
