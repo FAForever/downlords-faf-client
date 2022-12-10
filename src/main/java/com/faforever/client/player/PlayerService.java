@@ -387,10 +387,12 @@ public class PlayerService implements InitializingBean {
 
   public void removePlayerIfOnline(String username) {
     synchronized (lock) {
-      getPlayerByNameIfOnline(username).ifPresentOrElse(player -> {
+      getPlayerByNameIfOnline(username).ifPresent(player -> {
         playersByName.remove(player.getUsername());
         playersById.remove(player.getId());
-      }, () -> log.warn("No `{}` player to remove", username));
+
+        eventBus.post(new PlayerOfflineEvent(player));
+      });
     }
   }
 }
