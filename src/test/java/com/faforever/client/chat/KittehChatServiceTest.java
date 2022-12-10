@@ -8,7 +8,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.PlayerOfflineEvent;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
@@ -423,7 +422,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     quit(user1);
 
-    verify(eventBus).post(any(PlayerOfflineEvent.class));
+    verify(playerService).removePlayerIfOnline(user1.getNick());
     assertThat(chatChannel1.getUsers(), empty());
     assertThat(chatChannel2.getUsers(), empty());
   }
