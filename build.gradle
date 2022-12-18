@@ -309,7 +309,7 @@ dependencies {
   implementation("org.apache.commons:commons-compress:1.22")
   implementation("net.java.dev.jna:jna:5.12.1")
   implementation("net.java.dev.jna:jna-platform:5.12.1")
-  implementation("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
+  implementation("org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r")
   implementation("org.jetbrains:annotations:23.0.0")
   implementation("com.neovisionaries:nv-i18n:1.29")
   implementation("com.nativelibs4java:bridj:0.7.0")
