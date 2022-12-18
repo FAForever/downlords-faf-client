@@ -144,7 +144,7 @@ class OAuthEndpointValuesReceiverTest extends ServiceTest {
 
   @Test
   void receiveValuesNoPortsGiven() throws Exception {
-    assertThrows(IllegalArgumentException.class, () -> instance.receiveValues(List.of(), STATE, VERIFIER));
+    assertThrows(ExecutionException.class, () -> instance.receiveValues(List.of(), STATE, VERIFIER).get());
   }
 
   @Test
