@@ -357,7 +357,7 @@ public class LoginController implements Controller<Pane> {
 
     return oAuthValuesReceiver.receiveValues(redirectUriCandidates, state, verifier)
         .thenCompose(values -> {
-          platformService.focusWindow(clientProperties.getMainWindowTitle());
+          platformService.focusWindow(i18n.get("login.title"));
           String actualState = values.getState();
           if (!state.equals(actualState)) {
             handleInvalidSate(actualState, state);

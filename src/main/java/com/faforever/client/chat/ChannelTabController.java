@@ -212,10 +212,15 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
   private void updateChannelTopic() {
     String oldTopicContent = topicContent;
-    ChannelTopic topic = chatChannel.getTopic();
-    setChannelTopic(topic.getContent());
-    if (StringUtils.isNotBlank(topic.getAuthor())) {
-      onChatMessage(new ChatMessage(channelName, Instant.now(), topic.getAuthor(), i18n.get("chat.topicUpdated", oldTopicContent, topic.getContent())));
+    String newTopicContent = chatChannel.getTopic().getContent();
+    if (StringUtils.equals(oldTopicContent, newTopicContent)) {
+      return;
+    }
+
+    setChannelTopic(newTopicContent);
+    String username = chatChannel.getTopic().getAuthor();
+    if (StringUtils.isNotBlank(username) && chatChannel.getUser(username) != null) {
+      onChatMessage(new ChatMessage(channelName, Instant.now(), username, i18n.get("chat.topicUpdated", oldTopicContent, newTopicContent)));
     }
 
     if (topicPane.isDisable()) {

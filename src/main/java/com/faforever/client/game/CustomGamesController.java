@@ -152,8 +152,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
     JavaFxUtil.bind(gameDetailPane.visibleProperty(), toggleGameDetailPaneButton.selectedProperty());
     JavaFxUtil.bind(gameDetailPane.managedProperty(), gameDetailPane.visibleProperty());
 
-    setSelectedGame(null);
-
     toggleGameDetailPaneButton.selectedProperty().addListener(observable -> {
       preferences.setShowGameDetailsSidePane(toggleGameDetailPaneButton.isSelected());
       preferencesService.storeInBackground();
@@ -265,7 +263,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   @VisibleForTesting
   void setSelectedGame(GameBean game) {
-    gameDetailController.getRoot().setVisible(true);
     gameDetailController.setGame(game);
   }
 

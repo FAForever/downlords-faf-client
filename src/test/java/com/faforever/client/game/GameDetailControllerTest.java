@@ -190,7 +190,7 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testGetRoot() {
-    assertEquals(instance.gameDetailRoot, instance.getRoot());
+    assertEquals(instance.root, instance.getRoot());
   }
 
   @Test

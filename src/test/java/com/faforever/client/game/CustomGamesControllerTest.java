@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -91,7 +90,6 @@ public class CustomGamesControllerTest extends UITest {
       }
       return instance;
     });
-    verify(gameDetailController).setGame(null);
   }
 
   @Test
@@ -110,16 +108,14 @@ public class CustomGamesControllerTest extends UITest {
   }
 
   @Test
-  public void testTiles() {
-    instance.tilesButton.fire();
-    WaitForAsyncUtils.waitForFxEvents();
+  public void testDisplayTiles() {
+    runOnFxThreadAndWait(() -> instance.tilesButton.fire());
     verify(gamesTilesContainerController).createTiledFlowPane(games, instance.chooseSortingTypeChoiceBox);
   }
 
   @Test
   public void testHideSidePane() {
-    instance.toggleGameDetailPaneButton.fire();
-    WaitForAsyncUtils.waitForFxEvents();
+    runOnFxThreadAndWait(() -> instance.toggleGameDetailPaneButton.fire());
 
     assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
     verify(preferencesService, atLeast(2)).storeInBackground();

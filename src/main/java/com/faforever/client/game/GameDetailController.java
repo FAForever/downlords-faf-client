@@ -65,7 +65,7 @@ public class GameDetailController implements Controller<Pane> {
   private final NotificationService notificationService;
   private final EventBus eventBus;
 
-  public Pane gameDetailRoot;
+  public Pane root;
   public Label gameTypeLabel;
   public Label mapLabel;
   public Label numberOfPlayersLabel;
@@ -93,14 +93,14 @@ public class GameDetailController implements Controller<Pane> {
   public void initialize() {
     imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
     contextMenuBuilder.addCopyLabelContextMenu(gameTitleLabel, mapLabel, gameTypeLabel);
-    JavaFxUtil.bindManagedToVisible(joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
+    JavaFxUtil.bindManagedToVisible(root, joinButton, watchButton, gameTitleLabel, hostLabel, mapLabel, numberOfPlayersLabel,
         mapPreviewContainer, gameTypeLabel, playtimeLabel, generateMapButton);
     JavaFxUtil.bind(mapPreviewContainer.visibleProperty(), mapImageView.imageProperty().isNotNull());
-    gameDetailRoot.parentProperty().addListener(observable -> {
-      if (!(gameDetailRoot.getParent() instanceof Pane)) {
+    root.parentProperty().addListener(observable -> {
+      if (!(root.getParent() instanceof Pane)) {
         return;
       }
-      gameDetailRoot.maxWidthProperty().bind(((Pane) gameDetailRoot.getParent()).widthProperty());
+      root.maxWidthProperty().bind(((Pane) root.getParent()).widthProperty());
     });
 
     eventBus.register(this);
@@ -266,7 +266,7 @@ public class GameDetailController implements Controller<Pane> {
 
   @Override
   public Pane getRoot() {
-    return gameDetailRoot;
+    return root;
   }
 
   public void onJoinButtonClicked() {
