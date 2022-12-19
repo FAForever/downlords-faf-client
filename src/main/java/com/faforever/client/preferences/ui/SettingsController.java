@@ -128,6 +128,7 @@ public class SettingsController implements Controller<Node> {
   public Label vaultLocationWarningLabel;
   public CheckBox autoDownloadMapsToggle;
   public CheckBox useFAFDebuggerToggle;
+  public CheckBox allowIpv6Toggle;
   public CheckBox showIceAdapterDebugWindowToggle;
   public TextField maxMessagesTextField;
   public CheckBox imagePreviewToggle;
@@ -314,6 +315,7 @@ public class SettingsController implements Controller<Node> {
     gameLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.installationPathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.autoDownloadMapsProperty());
     useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
+    allowIpv6Toggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.allowIpv6Property());
     showIceAdapterDebugWindowToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
     vaultLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
     JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->

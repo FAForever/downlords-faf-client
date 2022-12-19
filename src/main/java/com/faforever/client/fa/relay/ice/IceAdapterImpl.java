@@ -11,6 +11,7 @@ import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.util.JavaUtil;
@@ -23,7 +24,6 @@ import com.faforever.commons.lobby.GpgGameOutboundMessage;
 import com.faforever.commons.lobby.HostGameGpgCommand;
 import com.faforever.commons.lobby.IceMsgGpgCommand;
 import com.faforever.commons.lobby.JoinGameGpgCommand;
-import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.nbarraille.jjsonrpc.JJsonPeer;
@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -196,28 +197,37 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
     String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
 
-    List<String> cmd = Lists.newArrayList(
+    List<String> cmd = new ArrayList<>(List.of(
         operatingSystem.getJavaExecutablePath()
             .toAbsolutePath()
-            .toString(),
+            .toString()));
+
+    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
+
+    if (!forgedAlliancePrefs.isAllowIpv6()) {
+      cmd.add("-Dorg.ice4j.ipv6.DISABLED=true");
+    }
+
+    cmd.addAll(List.of(
         "-cp", classpath,
         "com.faforever.iceadapter.IceAdapter",
         "--id", String.valueOf(currentPlayer.getId()),
         "--game-id", String.valueOf(gameId),
         "--login", currentPlayer.getUsername(),
         "--rpc-port", String.valueOf(adapterPort),
-        "--gpgnet-port", String.valueOf(gpgPort)
+        "--gpgnet-port", String.valueOf(gpgPort))
     );
 
-    if (preferencesService.getPreferences().getForgedAlliance().isForceRelay()) {
+    if (forgedAlliancePrefs.isForceRelay()) {
       cmd.add("--force-relay");
       log.info("Forcing ice adapter relay connection");
     }
 
-    if (preferencesService.getPreferences().getForgedAlliance().isShowIceAdapterDebugWindow()) {
+    if (forgedAlliancePrefs.isShowIceAdapterDebugWindow()) {
       cmd.add("--debug-window");
       cmd.add("--info-window");
     }
+
     return cmd;
   }
 
