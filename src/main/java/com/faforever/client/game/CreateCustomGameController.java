@@ -51,6 +51,13 @@ public class CreateCustomGameController extends AbstractCreateGameController {
     setLastGameTitleAndListen();
     setLastGamePasswordAndListen();
     setRatingsAndListen();
+    setGameVisibilityAndListen();
+  }
+
+  private void setGameVisibilityAndListen() {
+    LastGamePrefs lastGame = preferencesService.getPreferences().getLastGame();
+    JavaFxUtil.bindBidirectional(onlyForFriendsCheckBox.selectedProperty(), lastGame.lastGameOnlyFriendsProperty());
+    JavaFxUtil.addListener(onlyForFriendsCheckBox.selectedProperty(), observable -> preferencesService.storeInBackground());
   }
 
   private void setLastGamePasswordAndListen() {
@@ -84,7 +91,7 @@ public class CreateCustomGameController extends AbstractCreateGameController {
       preferencesService.storeInBackground();
     });
 
-    JavaFxUtil.addListener(minRankingTextField.textProperty(), (observable, oldValue, newValue) -> {
+    JavaFxUtil.addListener(maxRankingTextField.textProperty(), (observable, oldValue, newValue) -> {
       lastGame.setLastGameMaxRating(newValue.isEmpty() ? null : Integer.parseInt(newValue));
       preferencesService.storeInBackground();
     });

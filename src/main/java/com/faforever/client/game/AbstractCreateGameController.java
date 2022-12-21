@@ -97,28 +97,25 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
   public Button createGameButton;
 
   private Runnable onCloseControllerRequest;
-  private ObservableMap<String, Boolean> warningMap;
+  private final ObservableMap<String, Boolean> warningMap = FXCollections.observableMap(new HashMap<>() {
+    {
+      put("game.create.disconnected", false);
+      put("game.create.connecting", false);
+      put("game.create.titleMissing", false);
+      put("game.create.titleNotAscii", false);
+      put("game.create.passwordNotAscii", false);
+      put("game.create.featuredModMissing", false);
+    }
+  });
 
   @Override
   public void initialize() {
     setUpViews();
-    bindGameVisibility();
-    fillWarningMap();
 
     mapListContainer.getChildren().setAll(getMapListContainer());
     featuredModListContainer.getChildren().setAll(getFeaturedModListContainer());
 
     setUpListeners();
-  }
-
-  private void fillWarningMap() {
-    warningMap = FXCollections.observableMap(new HashMap<>());
-    warningMap.put("game.create.disconnected", false);
-    warningMap.put("game.create.connecting", false);
-    warningMap.put("game.create.titleMissing", false);
-    warningMap.put("game.create.titleNotAscii", false);
-    warningMap.put("game.create.passwordNotAscii", false);
-    warningMap.put("game.create.featuredModMissing", false);
   }
 
   private void setUpViews() {
@@ -162,7 +159,7 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
       setWarning("game.create.titleNotAscii", !isAscii);
     });
     JavaFxUtil.addAndTriggerListener(passwordTextField.textProperty(), (observable, oldValue, newValue) ->
-        setWarning("game.create.passwordNotAscii", !newValue.isEmpty() && !StandardCharsets.US_ASCII.newEncoder().canEncode(newValue)));
+        setWarning("game.create.passwordNotAscii", !Strings.nullToEmpty(newValue).isEmpty() && !StandardCharsets.US_ASCII.newEncoder().canEncode(newValue)));
   }
 
   private void onWarningsUpdated() {
@@ -188,13 +185,6 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
         }
       }
     });
-  }
-
-  private void bindGameVisibility() {
-    JavaFxUtil.bindBidirectional(onlyForFriendsCheckBox.selectedProperty(), preferencesService.getPreferences()
-        .getLastGame()
-        .lastGameOnlyFriendsProperty());
-    JavaFxUtil.addListener(onlyForFriendsCheckBox.selectedProperty(), observable -> preferencesService.storeInBackground());
   }
 
   protected void setWarning(String name, boolean warning) {
@@ -232,6 +222,7 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
 
   protected void setMapDetail(String mapFolderName, MapSize mapSize, String displayName, String description, Integer maxPlayers, String version) {
     JavaFxUtil.runLater(() -> {
+      mapPreviewPane.setUserData(mapFolderName);
       mapPreviewPane.setBackground(new Background(new BackgroundImage(mapService.loadPreview(mapFolderName, PreviewSize.LARGE), NO_REPEAT, NO_REPEAT, CENTER,
           new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
       mapSizeLabel.setText(mapSize != null ? i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()) : null);
