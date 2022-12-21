@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<VBox fx:id="root" spacing="5.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.faforever.client.game.CustomMapListController">
+    <children>
+        <HBox alignment="CENTER_RIGHT" spacing="4.0">
+            <children>
+                <ToggleButton fx:id="mapFilterToggleButton" mnemonicParsing="false" onAction="#onMapFilterButtonClicked">
+                    <graphic>
+                        <Region styleClass="icon,filter-icon"/>
+                    </graphic>
+                </ToggleButton>
+                <TextField fx:id="mapSearchTextField" promptText="%game.create.searchMap" HBox.hgrow="ALWAYS"/>
+            </children>
+        </HBox>
+        <ListView fx:id="mapListView" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS"/>
+        <Button contentDisplay="RIGHT" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                onAction="#onGenerateMapClicked" styleClass="game-generate-map" text="%game.generateMap"/>
+        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onRandomMapClicked"
+                text="%game.create.randomMap"/>
+    </children>
+</VBox>

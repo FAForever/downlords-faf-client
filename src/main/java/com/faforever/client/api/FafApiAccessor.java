@@ -7,6 +7,7 @@ import com.faforever.client.user.event.LoggedOutEvent;
 import com.faforever.commons.api.dto.ApiException;
 import com.faforever.commons.api.dto.Clan;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.CoopScenario;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GameReviewsSummary;
@@ -81,6 +82,7 @@ public class FafApiAccessor implements InitializingBean {
   @VisibleForTesting
   static final java.util.Map<Class<? extends ElideEntity>, List<String>> INCLUDES = java.util.Map.ofEntries(
       java.util.Map.entry(CoopResult.class, List.of("game.playerStats.player")),
+      java.util.Map.entry(CoopScenario.class, List.of("maps")),
       java.util.Map.entry(Clan.class, List.of("leader", "founder", "memberships", "memberships.player")),
       java.util.Map.entry(LeaderboardEntry.class, List.of("player", "leaderboard")),
       java.util.Map.entry(LeaderboardRatingJournal.class, List.of("gamePlayerStats")),

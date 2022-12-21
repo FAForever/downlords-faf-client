@@ -19,9 +19,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -517,25 +519,43 @@ public class UiService implements InitializingBean, DisposableBean {
     return showInDialog(parent, content, null);
   }
 
+  // TODO: Creating a dialog is not the responsibility of the service. Create DialogUtils class for it.
   public Dialog showInDialog(StackPane parent, Node content, String title) {
+    Dialog dialog = new Dialog();
+
     DialogLayout dialogLayout = new DialogLayout();
+    Button closeButton = createCloseDialogButton(dialog);
     if (title != null) {
-      dialogLayout.setHeading(new Label(title));
+      dialogLayout.setHeading(new Label(title), closeButton);
+    } else {
+      dialogLayout.setHeading( closeButton);
     }
     dialogLayout.setBody(content);
 
-    Dialog dialog = new Dialog();
     dialog.setContent(dialogLayout);
     dialog.setTransitionType(DialogTransition.TOP);
-
     parent.setOnKeyPressed(event -> {
       if (event.getCode() == KeyCode.ESCAPE) {
         dialog.close();
       }
     });
-
     dialog.show(parent);
     return dialog;
+  }
+
+  private Button createCloseDialogButton(Dialog dialog) {
+    Region closeIcon = new Region();
+    closeIcon.getStyleClass().addAll("icon", "close-icon");
+
+    Button closeButton = new Button();
+    closeButton.setCancelButton(true);
+    closeButton.getStyleClass().add("window-button");
+    closeButton.setGraphic(closeIcon);
+    closeButton.setOnAction(event -> dialog.close());
+
+    StackPane.setAlignment(closeButton, Pos.CENTER_RIGHT);
+
+    return closeButton;
   }
 
   public void makeScrollableDialog(Dialog dialog) {

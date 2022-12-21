@@ -15,7 +15,6 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.util.ConcurrentUtil;
@@ -71,13 +70,12 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final UidService uidService;
-  private final PreferencesService preferencesService;
 
   private final FafLobbyClient lobbyClient;
 
   private CompletableFuture<LoginSuccessResponse> loginFuture;
 
-  public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
+  public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, UidService uidService,
                            TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
     this.i18n = i18n;
@@ -85,7 +83,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     this.tokenService = tokenService;
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
-    this.preferencesService = preferencesService;
     this.uidService = uidService;
 
     lobbyClient = new FafLobbyClient(objectMapper);
@@ -306,14 +303,6 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void kickPlayerFromParty(PlayerBean kickedPlayer) {
     lobbyClient.kickPlayerFromParty(kickedPlayer.getId());
-  }
-
-  public void readyParty() {
-    lobbyClient.readyParty();
-  }
-
-  public void unreadyParty() {
-    lobbyClient.unreadyParty();
   }
 
   public void leaveParty() {

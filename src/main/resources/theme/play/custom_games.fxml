@@ -24,7 +24,7 @@
                                   <children>
                                       <FlowPane hgap="10.0" maxWidth="1.7976931348623157E308" vgap="10.0" HBox.hgrow="SOMETIMES">
                                           <children>
-                                              <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" styleClass="create-game-button" text="%games.create" />
+                                              <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false" onAction="#onCreateGameButtonClicked" text="%games.create" />
                                               <ToggleButton fx:id="filterButton" mnemonicParsing="false" onAction="#onFilterButtonClicked">
                                                   <VBox.margin>
                                                       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>

@@ -91,7 +91,7 @@ public class CoopControllerTest extends UITest {
     JavaFxUtil.runLater(() -> instance.initialize());
 
     WaitForAsyncUtils.waitForFxEvents();
-    instance.onPlayButtonClicked();
+    instance.onCreateGameButtonClicked();
 
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
     verify(gameService).hostGame(captor.capture());
@@ -102,7 +102,7 @@ public class CoopControllerTest extends UITest {
 
   @Test
   public void testGetRoot() throws Exception {
-    assertEquals(instance.coopRoot, instance.getRoot());
+    assertEquals(instance.root, instance.getRoot());
     assertNull(instance.getRoot().getParent());
   }
 

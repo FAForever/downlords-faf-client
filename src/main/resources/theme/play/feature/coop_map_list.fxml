@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
+<VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" spacing="5.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.CoopMapListController">
+    <children>
+        <ListView fx:id="scenarioListView" prefHeight="200.0" />
+        <ListView fx:id="missionListView" VBox.vgrow="ALWAYS" />
+    </children>
+</VBox>

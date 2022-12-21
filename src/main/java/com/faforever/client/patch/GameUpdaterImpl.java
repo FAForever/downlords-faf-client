@@ -129,7 +129,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   private void copyInitFile(Path initFile) throws IOException {
-    Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.INIT_FILE_NAME), StandardCopyOption.REPLACE_EXISTING);
+    Files.copy(initFile, initFile.resolveSibling(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME), StandardCopyOption.REPLACE_EXISTING);
   }
 
   private CompletableFuture<Void> downloadMissingSimMods(Set<String> simModUids) {

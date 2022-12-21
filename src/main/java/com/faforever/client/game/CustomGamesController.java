@@ -189,17 +189,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
       return;
     }
 
-    CreateGameController createGameController = uiService.loadFxml("theme/play/create_game.fxml");
-    createGameController.setGamesRoot(gamesRoot);
+    CreateCustomGameController createCustomGameController = uiService.loadFxml("theme/play/feature/create_game.fxml", CreateCustomGameController.class);
+    createCustomGameController.setOnStackPaneRequest(() -> gamesRoot);
+    createCustomGameController.selectMap(mapFolderName);
 
-    if (mapFolderName != null && !createGameController.selectMap(mapFolderName)) {
-      log.warn("Map with folder name '{}' could not be found in map list", mapFolderName);
-    }
-
-    Pane root = createGameController.getRoot();
+    Pane root = createCustomGameController.getRoot();
     Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("games.create"));
-    createGameController.setOnCloseButtonClickedListener(dialog::close);
-
+    createCustomGameController.setOnCloseControllerRequest(dialog::close);
     root.requestFocus();
   }
 

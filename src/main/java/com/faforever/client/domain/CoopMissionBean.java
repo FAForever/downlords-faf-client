@@ -27,6 +27,7 @@ public class CoopMissionBean {
   StringProperty thumbnailUrlSmall = new SimpleStringProperty();
   StringProperty thumbnailUrlLarge = new SimpleStringProperty();
   StringProperty mapFolderName = new SimpleStringProperty();
+  IntegerProperty order = new SimpleIntegerProperty();
 
   public String getDescription() {
     return description.get();
@@ -134,5 +135,17 @@ public class CoopMissionBean {
 
   public ObjectProperty<Integer> idProperty() {
     return id;
+  }
+
+  public Integer getOrder() {
+    return order.get();
+  }
+
+  public void setOrder(Integer order) {
+    this.order.set(order);
+  }
+
+  public IntegerProperty orderProperty() {
+    return order;
   }
 }

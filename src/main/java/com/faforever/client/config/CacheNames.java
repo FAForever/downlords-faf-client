@@ -30,6 +30,7 @@ public final class CacheNames {
   public static final String THEME_IMAGES = "themeImages";
   public static final String MOD_THUMBNAIL = "modThumbnail";
   public static final String COOP_MAPS = "coopMaps";
+  public static final String COOP_SCENARIOS = "coopScenarios";
   public static final String AVAILABLE_AVATARS = "availableAvatars";
   public static final String NEWS = "news";
   public static final String RATING_HISTORY = "ratingHistory";

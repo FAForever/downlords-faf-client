@@ -627,10 +627,6 @@
 
 /***************** Create game *****************/
 
-.game-title-input {
-  -fx-font-size: 2em;
-}
-
 .game-title-input:invalid {
   -fx-border-color: -bad;
 }
@@ -1479,7 +1475,8 @@
 /***************** General Styled Popup *****************/
 
 .filter-popup,
-.user-list-settings {
+.user-list-settings,
+.missions-popup {
   -fx-background-color: -fx-background;
   -fx-background: -fx-base;
   -fx-border-width: 0.0625em; /* 1 */

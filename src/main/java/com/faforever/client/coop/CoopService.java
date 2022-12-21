@@ -4,10 +4,12 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
+import com.faforever.client.domain.CoopScenarioBean;
 import com.faforever.client.mapstruct.CoopMapper;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.commons.api.dto.CoopMission;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.CoopScenario;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
@@ -33,6 +35,17 @@ public class CoopService {
   @Cacheable(value = CacheNames.COOP_MAPS, sync = true)
   public CompletableFuture<List<CoopMissionBean>> getMissions() {
     ElideNavigatorOnCollection<CoopMission> navigator = ElideNavigator.of(CoopMission.class).collection()
+        .pageSize(1000);
+    return fafApiAccessor.getMany(navigator)
+        .map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext()))
+        .collectList()
+        .toFuture();
+  }
+
+  @Cacheable(value = CacheNames.COOP_SCENARIOS, sync = true)
+  public CompletableFuture<List<CoopScenarioBean>> getScenarios() {
+    ElideNavigatorOnCollection<CoopScenario> navigator = ElideNavigator.of(CoopScenario.class)
+        .collection()
         .pageSize(1000);
     return fafApiAccessor.getMany(navigator)
         .map(dto -> coopMapper.map(dto, new CycleAvoidingMappingContext()))

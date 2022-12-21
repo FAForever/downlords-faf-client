@@ -87,7 +87,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), Set.of(), Map.of(), 0).join());
     assertEquals(UnsupportedOperationException.class, exception.getCause().getClass());
     assertFalse(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
   }
 
   @Test
@@ -97,7 +97,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), Set.of(), Map.of(), 0).join());
     assertEquals(UnsupportedOperationException.class, exception.getCause().getClass());
     assertFalse(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
   }
 
   @Test
@@ -109,7 +109,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), Set.of(), Map.of(), 0).join());
     assertEquals(ChecksumMismatchException.class, exception.getCause().getClass());
     assertFalse(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertFalse(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
   }
 
   @Test
@@ -131,7 +131,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, 0);
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, null);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 
@@ -154,7 +154,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, 0);
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 100);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 
@@ -177,7 +177,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, null);
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, null);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 
@@ -196,7 +196,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 
@@ -218,7 +218,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 
@@ -241,7 +241,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0);
     assertTrue(Files.exists(fafDataDirectory.resolve("fa_path.lua")));
-    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
+    assertTrue(Files.exists(binDirectory.resolve(ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME)));
     assertTrue(Files.exists(binDirectory.resolve(String.format("init_%s", technicalName))));
   }
 

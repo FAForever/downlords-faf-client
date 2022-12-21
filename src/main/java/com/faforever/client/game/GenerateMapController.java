@@ -44,6 +44,7 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -59,7 +60,6 @@ public class GenerateMapController implements Controller<Pane> {
   private final NotificationService notificationService;
   private final MapGeneratorService mapGeneratorService;
   private final I18n i18n;
-  public CreateGameController createGameController;
   public Pane generateMapRoot;
   public Button generateMapButton;
   public TextField previousMapName;
@@ -94,7 +94,8 @@ public class GenerateMapController implements Controller<Pane> {
   public CheckBox reclaimRandom;
   public HBox reclaimSliderBox;
   public HBox reclaimRandomBox;
-  private Runnable onCloseButtonClickedListener;
+  private Runnable onCloseControllerRequest;
+  private Consumer<String> onGeneratedMapHandler;
   private final ObservableList<Integer> validTeamSizes = FXCollections.observableList(IntStream.range(0, 17)
       .filter(value -> value != 1)
       .boxed().collect(Collectors.toList()));
@@ -289,14 +290,12 @@ public class GenerateMapController implements Controller<Pane> {
     return optionsBuilder.build();
   }
 
-  public void onCloseButtonClicked() {
-    if (onCloseButtonClickedListener != null) {
-      onCloseButtonClickedListener.run();
-    }
-  }
-
   public void onGenerateMapButtonClicked() {
     onGenerateMap();
+  }
+
+  public void setOnGeneratedMapHandler(Consumer<String> onGeneratedMapHandler) {
+    this.onGeneratedMapHandler = onGeneratedMapHandler;
   }
 
   public void onGenerateMap() {
@@ -313,21 +312,18 @@ public class GenerateMapController implements Controller<Pane> {
       generateFuture = mapGeneratorService.generateMap(getGeneratorOptions());
     }
 
-    generateFuture.thenAccept(mapName -> JavaFxUtil.runLater(() -> {
-          createGameController.initMapSelection();
-          createGameController.mapListView.getItems().stream()
-              .filter(mapBean -> mapBean.getFolderName().equalsIgnoreCase(mapName))
-              .findAny().ifPresent(mapBean -> {
-                createGameController.mapListView.getSelectionModel().select(mapBean);
-                createGameController.mapListView.scrollTo(mapBean);
-                createGameController.setSelectedMap(mapBean);
-              });
-        }))
+    generateFuture.thenAccept(mapName -> onGeneratedMapHandler.accept(mapName))
         .exceptionally(throwable -> {
           handleGenerationException(throwable);
           return null;
         });
-    onCloseButtonClicked();
+    closeController();
+  }
+
+  private void closeController() {
+    if (onCloseControllerRequest != null) {
+      onCloseControllerRequest.run();
+    }
   }
 
   private void handleGenerationException(Throwable e) {
@@ -351,10 +347,6 @@ public class GenerateMapController implements Controller<Pane> {
   void toggleCommandlineInput() {
     commandLineLabel.setVisible(!commandLineLabel.isVisible());
     commandLineArgsText.setVisible(!commandLineArgsText.isVisible());
-  }
-
-  protected void setCreateGameController(CreateGameController controller) {
-    createGameController = controller;
   }
 
   protected void setStyles(List<String> styles) {
@@ -382,7 +374,7 @@ public class GenerateMapController implements Controller<Pane> {
     return generateMapRoot;
   }
 
-  void setOnCloseButtonClickedListener(Runnable onCloseButtonClickedListener) {
-    this.onCloseButtonClickedListener = onCloseButtonClickedListener;
+  public void setOnCloseControllerRequest(Runnable onCloseControllerRequest) {
+    this.onCloseControllerRequest = onCloseControllerRequest;
   }
 }

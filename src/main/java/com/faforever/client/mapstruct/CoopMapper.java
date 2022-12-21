@@ -2,8 +2,10 @@ package com.faforever.client.mapstruct;
 
 import com.faforever.client.domain.CoopMissionBean;
 import com.faforever.client.domain.CoopResultBean;
+import com.faforever.client.domain.CoopScenarioBean;
 import com.faforever.commons.api.dto.CoopMission;
 import com.faforever.commons.api.dto.CoopResult;
+import com.faforever.commons.api.dto.CoopScenario;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -22,4 +24,6 @@ public interface CoopMapper {
 
     @Mapping(target="game", source="replay")
     CoopResult map(CoopResultBean bean, @Context CycleAvoidingMappingContext context);
+
+    CoopScenarioBean map(CoopScenario dto, @Context CycleAvoidingMappingContext context);
 }

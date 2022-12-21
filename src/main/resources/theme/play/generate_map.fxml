@@ -158,14 +158,8 @@
         <Label text="%game.generateMap.more"/>
     </HBox>
 
-
     <Button fx:id="generateMapButton" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false"
             onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map" text="%game.generateMap"
             GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="16">
-    </Button>
-
-    <!-- Cancel, Ok -->
-    <Button mnemonicParsing="false" onAction="#onCloseButtonClicked" text="%cancel" GridPane.columnIndex="0"
-            GridPane.halignment="LEFT" GridPane.rowIndex="16">
     </Button>
 </GridPane>

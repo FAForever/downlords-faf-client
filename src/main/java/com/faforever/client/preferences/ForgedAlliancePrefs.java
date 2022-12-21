@@ -18,7 +18,8 @@ import java.nio.file.Path;
 @FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class ForgedAlliancePrefs {
 
-  public static final String INIT_FILE_NAME = "init.lua";
+  public static final String DEFAULT_INIT_FILE_NAME = "init.lua";
+  public static final String COOP_INIT_FILE_NAME = "init_coop.lua";
   private static final String MAPS_SUB_FOLDER = "maps";
   private static final String MODS_SUB_FOLDER = "mods";
   private static final Path LOCAL_FA_DATA_PATH;

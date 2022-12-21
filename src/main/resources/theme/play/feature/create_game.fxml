@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<GridPane fx:id="root" hgap="10.0" vgap="5.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="128.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="285.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="256.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints valignment="BOTTOM" vgrow="SOMETIMES"/>
+    </rowConstraints>
+    <padding>
+        <Insets left="20.0" right="20.0"/>
+    </padding>
+    <Separator prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+
+    <Label text="%game.create.gameType">
+        <font>
+            <Font size="16.0"/>
+        </font>
+    </Label>
+    <StackPane fx:id="featuredModListContainer" GridPane.rowIndex="2"/>
+
+
+    <Label text="%game.create.mods" GridPane.columnIndex="1">
+        <font>
+            <Font size="16.0"/>
+        </font>
+    </Label>
+    <fx:include fx:id="modManager" source="../../mod_manager.fxml" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+    <Label text="%game.create.map" GridPane.columnIndex="2">
+        <font>
+            <Font size="16.0"/>
+        </font>
+    </Label>
+    <StackPane fx:id="mapListContainer" alignment="TOP_CENTER" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+
+    <VBox spacing="10.0" GridPane.columnIndex="3" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+        <StackPane onContextMenuRequested="#onMapNameLabelContextMenuRequest"
+                   onMouseClicked="#onMapPreviewImageClicked">
+            <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                  styleClass="map-preview"/>
+            <VBox alignment="BOTTOM_LEFT" styleClass="image-dimmer">
+                <Label fx:id="mapNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
+                       styleClass="card-title" text="&lt;Very long map title to see if wrapping works&gt;"
+                       wrapText="true"/>
+            </VBox>
+            <VBox styleClass="clickable"/>
+        </StackPane>
+        <HBox alignment="CENTER" spacing="10.0">
+            <Label fx:id="mapSizeLabel" text="&lt;Size&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <graphic>
+                    <Region styleClass="icon,map-size-icon"/>
+                </graphic>
+            </Label>
+            <Label fx:id="mapPlayersLabel" text="&lt;MaxPlayers&gt;" GridPane.rowIndex="1">
+                <graphic>
+                    <Region styleClass="icon,players-icon"/>
+                </graphic>
+            </Label>
+            <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
+        </HBox>
+        <Separator/>
+        <ScrollPane fitToWidth="true" prefViewportHeight="200" VBox.vgrow="SOMETIMES">
+            <Label fx:id="mapDescriptionLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
+                   text="&lt;Description&gt;" wrapText="true"/>
+        </ScrollPane>
+    </VBox>
+    <VBox spacing="7.5" GridPane.columnIndex="4" GridPane.rowIndex="2">
+        <padding>
+            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+        </padding>
+        <CheckBox fx:id="offlineModeCheckbox" text="Offline Mode"/>
+        <VBox fx:id="gameDataVBox" spacing="7.5">
+            <VBox.margin>
+                <Insets left="2.0" right="2.0"/>
+            </VBox.margin>
+            <Separator prefWidth="200.0"/>
+            <TextField fx:id="titleTextField" promptText="%game.create.title"
+                       styleClass="game-title-input"/>
+            <PasswordField fx:id="passwordTextField" promptText="%game.create.password"/>
+            <CheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false"
+                      text="%game.create.onlyFriends"/>
+            <Separator prefWidth="200.0"/>
+            <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY"/>
+            <HBox alignment="CENTER" spacing="10.0">
+                <TextField fx:id="minRankingTextField" alignment="CENTER_RIGHT"
+                           promptText="%games.create.minRating" HBox.hgrow="SOMETIMES"/>
+                <Label text="-"/>
+                <TextField fx:id="maxRankingTextField" promptText="%games.create.maxRating"
+                           HBox.hgrow="SOMETIMES"/>
+            </HBox>
+            <CheckBox fx:id="enforceRankingCheckBox" text="%games.create.enforceRating"/>
+            <Separator prefWidth="200.0"/>
+        </VBox>
+        <VBox fx:id="warningsContainer" spacing="5.0" />
+        <Button fx:id="createGameButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                onAction="#onCreateGameButtonClicked" text="%game.create.create"/>
+    </VBox>
+</GridPane>

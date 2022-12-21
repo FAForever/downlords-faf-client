@@ -41,6 +41,27 @@ public class ForgedAllianceService {
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
 
+  public Process startGameOfflineAndOpenSkirmish(String mapFolderName) throws IOException {
+    return startGameOfflineAndOpenSkirmish(mapFolderName, false);
+  }
+
+  public Process startGameOfflineAndOpenSkirmish(String mapFolderName, boolean coop) throws IOException {
+    PlayerBean currentPlayer = playerService.getCurrentPlayer();
+
+    List<String> launchCommand = defaultLaunchCommand()
+        .clan(currentPlayer.getClan())
+        .country(currentPlayer.getCountry())
+        .username(currentPlayer.getUsername())
+        .numberOfGames(currentPlayer.getNumberOfGames())
+        .noMovie(true)
+        .coop(coop)
+        .skirmishMapFolderName(mapFolderName)
+        .logFile(loggingService.getNewGameLogFile(0))
+        .build();
+
+    return launch(launchCommand);
+  }
+
   public Process startGameOffline(String map) throws IOException {
     List<String> launchCommand = defaultLaunchCommand()
         .map(map)

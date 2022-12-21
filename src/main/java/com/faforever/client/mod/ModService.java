@@ -411,6 +411,13 @@ public class ModService implements InitializingBean, DisposableBean {
     return completedFuture(newlySelectedMods);
   }
 
+  @NotNull
+  public Set<String> getUUIDsFromModVersions(Collection<ModVersionBean> modVersions) {
+    return modVersions.stream()
+        .map(ModVersionBean::getUid)
+        .collect(Collectors.toSet());
+  }
+
   private CompletableFuture<Optional<ModVersionBean>> getModVersionByUid(String uid) {
     ElideNavigatorOnCollection<ModVersion> navigator = ElideNavigator.of(ModVersion.class).collection()
         .setFilter(qBuilder().string("uid").eq(uid))
