@@ -12,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class LastGamePrefs {
+
   StringProperty lastGameType = new SimpleStringProperty(KnownFeaturedMod.DEFAULT.getTechnicalName());
   StringProperty lastGameTitle = new SimpleStringProperty();
   StringProperty lastMap = new SimpleStringProperty();
@@ -20,6 +21,7 @@ public class LastGamePrefs {
   ObjectProperty<Integer> lastGameMaxRating = new SimpleObjectProperty<>(null);
   BooleanProperty lastGameOnlyFriends = new SimpleBooleanProperty();
   BooleanProperty lastGameEnforceRating = new SimpleBooleanProperty(false);
+  BooleanProperty offlineMode = new SimpleBooleanProperty(false);
 
   public String getLastGameType() {
     return lastGameType.get();
@@ -115,5 +117,17 @@ public class LastGamePrefs {
 
   public BooleanProperty lastGameEnforceRatingProperty() {
     return lastGameEnforceRating;
+  }
+
+  public boolean isOfflineMode() {
+    return offlineMode.get();
+  }
+
+  public void setOfflineMode(boolean offlineMode) {
+    this.offlineMode.set(offlineMode);
+  }
+
+  public BooleanProperty offlineModeProperty() {
+    return offlineMode;
   }
 }

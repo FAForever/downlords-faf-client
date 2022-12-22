@@ -63,6 +63,9 @@ public class Preferences {
   LastGamePrefs lastGame = new LastGamePrefs();
   @Getter
   @JsonMerge
+  LastCoopGamePrefs lastCoopGame = new LastCoopGamePrefs();
+  @Getter
+  @JsonMerge
   MatchmakerPrefs matchmaker = new MatchmakerPrefs();
   @Getter
   @JsonMerge

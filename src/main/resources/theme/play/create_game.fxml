@@ -4,12 +4,10 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -18,156 +16,110 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<GridPane fx:id="createGameRoot" hgap="10.0" vgap="10.0"
-          xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-          fx:controller="com.faforever.client.game.CreateGameController">
+<?import javafx.scene.text.Font?>
+<GridPane fx:id="root" hgap="10.0" vgap="5.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1">
     <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="128.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="256.0"/>
-        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="128.0"/>
-        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="128.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="285.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="50.0" prefWidth="256.0"/>
     </columnConstraints>
     <rowConstraints>
         <RowConstraints vgrow="NEVER"/>
-        <RowConstraints minHeight="10.0" vgrow="NEVER"/>
         <RowConstraints vgrow="NEVER"/>
-        <RowConstraints valignment="TOP" vgrow="SOMETIMES"/>
         <RowConstraints vgrow="NEVER"/>
-        <RowConstraints vgrow="ALWAYS"/>
-        <RowConstraints vgrow="NEVER"/>
+        <RowConstraints valignment="BOTTOM" vgrow="SOMETIMES"/>
     </rowConstraints>
-    <children>
-        <!-- Title, Password, Rating -->
-        <TextField fx:id="titleTextField" promptText="%game.create.title" styleClass="game-title-input"
-                   GridPane.columnSpan="2147483647"/>
-        <PasswordField fx:id="passwordTextField" promptText="%game.create.password" GridPane.rowIndex="1"/>
-        <CheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false" text="%game.create.onlyFriends"
-                  GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-        <HBox alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnIndex="2"
-              GridPane.columnSpan="2147483647" GridPane.rowIndex="1">
-            <children>
-                <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY"/>
-                <TextField fx:id="minRankingTextField" minWidth="30.0" prefWidth="60.0"
-                           promptText="%games.create.minRating" HBox.hgrow="NEVER"/>
-                <TextField fx:id="maxRankingTextField" minWidth="30.0" prefWidth="60.0"
-                           promptText="%games.create.maxRating" HBox.hgrow="NEVER"/>
-                <CheckBox fx:id="enforceRankingCheckBox" text="%games.create.enforceRating" HBox.hgrow="NEVER"/>
-            </children>
-            <padding>
-                <Insets left="2.0" right="2.0" top="2.0"/>
-            </padding>
-        </HBox>
-        <Separator maxWidth="1.7976931348623157E308" GridPane.columnSpan="2147483647" GridPane.rowIndex="2">
-            <padding>
-                <Insets left="2.0" right="2.0" top="2.0"/>
-            </padding>
-        </Separator>
-
-        <!-- Game Type -->
-        <Label styleClass="h2" text="%game.create.gameType" GridPane.rowIndex="3"/>
-        <ListView fx:id="featuredModListView" prefHeight="100.0" GridPane.rowIndex="4" GridPane.rowSpan="2"/>
-
-        <!-- Mods -->
-        <Label styleClass="h2" text="%game.create.mods" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-        <fx:include fx:id="modManager" source="../mod_manager.fxml" GridPane.columnIndex="1" GridPane.rowIndex="4"
-                    GridPane.rowSpan="2"/>
-
-        <!-- Map List -->
-        <Label styleClass="h2" text="%game.create.map" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
-        <VBox GridPane.columnIndex="2" GridPane.rowIndex="4" >
-            <children>
-                <HBox alignment="CENTER_RIGHT" spacing="4.0">
-                    <children>
-                        <ToggleButton fx:id="mapFilterButton" mnemonicParsing="false"
-                                      onAction="#onMapFilterButtonClicked">
-                            <graphic>
-                                <Region styleClass="icon,filter-icon"/>
-                            </graphic>
-                        </ToggleButton>
-                        <TextField fx:id="mapSearchTextField" promptText="%game.create.searchMap" HBox.hgrow="ALWAYS">
-                            <HBox.margin>
-                                <Insets right="5.0"/>
-                            </HBox.margin>
-                        </TextField>
-                    </children>
-                </HBox>
-            </children>
-        </VBox>
-        <VBox spacing="10.0" GridPane.columnIndex="2" GridPane.rowIndex="5" GridPane.vgrow="ALWAYS">
-            <children>
-                <ListView fx:id="mapListView" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS"/>
-                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onRandomMapButtonClicked"
-                        text="%game.create.randomMap"/>
-            </children>
-        </VBox>
-
-        <!-- Map Preview, Random Map -->
-        <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnIndex="3"
-              GridPane.columnSpan="2" GridPane.rowIndex="3" GridPane.rowSpan="3" GridPane.vgrow="ALWAYS">
-            <StackPane onMouseClicked="#onMapPreviewImageClicked" onContextMenuRequested="#onMapNameLabelContextMenuRequest">
-                <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-                      styleClass="map-preview"/>
-                <VBox alignment="BOTTOM_LEFT" styleClass="image-dimmer">
-                    <children>
-                        <Label fx:id="mapNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
-                               styleClass="card-title" text="&lt;Very long map title to see if wrapping works&gt;"
-                               wrapText="true"/>
-                    </children>
-                </VBox>
-                <VBox styleClass="clickable"/>
-            </StackPane>
-            <HBox alignment="CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
-                <Label fx:id="mapSizeLabel" text="&lt;Size&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1">
-                    <graphic>
-                        <Region styleClass="icon,map-size-icon"/>
-                    </graphic>
-                </Label>
-                <Label fx:id="mapPlayersLabel" text="&lt;MaxPlayers&gt;" GridPane.rowIndex="1">
-                    <graphic>
-                        <Region styleClass="icon,players-icon"/>
-                    </graphic>
-                </Label>
-                <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
-            </HBox>
-            <Separator/>
-            <ScrollPane fitToWidth="true" maxHeight="1.7976931348623157E308" prefViewportHeight="200">
-                <Label fx:id="mapDescriptionLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
-                       maxWidth="1.7976931348623157E308" text="&lt;Description&gt;" wrapText="true"/>
-            </ScrollPane>
-
-            <Button fx:id="generateMapButton" contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                    mnemonicParsing="false" onAction="#onGenerateMapButtonClicked" styleClass="game-generate-map"
-                    text="%game.generateMap">
-                <graphic>
-                    <Label styleClass="button-mini-label" text="%game.create.generatedMapNew">
-                        <Insets left="250"/>
-                    </Label>
-                </graphic>
-            </Button>
-        </VBox>
-
-        <!-- Cancel, Ok -->
-        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onCloseButtonClicked"
-                text="%cancel" GridPane.columnIndex="0" GridPane.halignment="LEFT"
-                GridPane.rowIndex="6">
-            <GridPane.margin>
-                <Insets/>
-            </GridPane.margin>
-        </Button>
-        <Button fx:id="createGameButton" defaultButton="true" minWidth="-Infinity" mnemonicParsing="false"
-                onAction="#onCreateButtonClicked" text="%game.create.create"
-                GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
-            <GridPane.margin>
-                <Insets top="15"/>
-            </GridPane.margin>
-            <padding>
-                <Insets left="30.0" right="30.0"/>
-            </padding>
-        </Button>
-
-    </children>
     <padding>
         <Insets left="20.0" right="20.0"/>
     </padding>
+    <Separator prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
+
+    <Label text="%game.create.gameType">
+        <font>
+            <Font size="16.0"/>
+        </font>
+    </Label>
+    <StackPane fx:id="featuredModListContainer" GridPane.rowIndex="2"/>
+
+
+    <Label text="%game.create.mods" GridPane.columnIndex="1">
+        <font>
+            <Font size="16.0"/>
+        </font>
+    </Label>
+    <fx:include fx:id="modManager" source="../mod_manager.fxml" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+    <Label text="%game.create.map" GridPane.columnIndex="2">
+        <font>
+            <Font size="16.0"/>
+        </font>
+    </Label>
+    <StackPane fx:id="mapListContainer" alignment="TOP_CENTER" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+
+    <VBox spacing="10.0" GridPane.columnIndex="3" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+        <StackPane onContextMenuRequested="#onMapNameLabelContextMenuRequest"
+                   onMouseClicked="#onMapPreviewImageClicked">
+            <Pane fx:id="mapPreviewPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                  styleClass="map-preview"/>
+            <VBox alignment="BOTTOM_LEFT" styleClass="image-dimmer">
+                <Label fx:id="mapNameLabel" maxWidth="1.7976931348623157E308" minWidth="0.0"
+                       styleClass="card-title" text="&lt;Very long map title to see if wrapping works&gt;"
+                       wrapText="true"/>
+            </VBox>
+            <VBox styleClass="clickable"/>
+        </StackPane>
+        <HBox alignment="CENTER" spacing="10.0">
+            <Label fx:id="mapSizeLabel" text="&lt;Size&gt;" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <graphic>
+                    <Region styleClass="icon,map-size-icon"/>
+                </graphic>
+            </Label>
+            <Label fx:id="mapPlayersLabel" text="&lt;MaxPlayers&gt;" GridPane.rowIndex="1">
+                <graphic>
+                    <Region styleClass="icon,players-icon"/>
+                </graphic>
+            </Label>
+            <Label fx:id="versionLabel" text="&lt;Version&gt;"/>
+        </HBox>
+        <Separator/>
+        <ScrollPane fitToWidth="true" prefViewportHeight="200" VBox.vgrow="SOMETIMES">
+            <Label fx:id="mapDescriptionLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308"
+                   text="&lt;Description&gt;" wrapText="true"/>
+        </ScrollPane>
+    </VBox>
+    <VBox spacing="7.5" GridPane.columnIndex="4" GridPane.rowIndex="2">
+        <padding>
+            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+        </padding>
+        <CheckBox fx:id="offlineModeCheckbox" text="Offline Mode"/>
+        <VBox fx:id="gameDataVBox" spacing="7.5">
+            <VBox.margin>
+                <Insets left="2.0" right="2.0"/>
+            </VBox.margin>
+            <Separator prefWidth="200.0"/>
+            <TextField fx:id="titleTextField" promptText="%game.create.title"
+                       styleClass="game-title-input"/>
+            <PasswordField fx:id="passwordTextField" promptText="%game.create.password"/>
+            <CheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false"
+                      text="%game.create.onlyFriends"/>
+            <Separator prefWidth="200.0"/>
+            <VBox fx:id="ratingContainer" spacing="7.5">
+                <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY"/>
+                <HBox alignment="CENTER" spacing="10.0">
+                    <TextField fx:id="minRankingTextField" alignment="CENTER_RIGHT"
+                               promptText="%games.create.minRating" HBox.hgrow="SOMETIMES"/>
+                    <Label text="-"/>
+                    <TextField fx:id="maxRankingTextField" promptText="%games.create.maxRating"
+                               HBox.hgrow="SOMETIMES"/>
+                </HBox>
+                <CheckBox fx:id="enforceRankingCheckBox" text="%games.create.enforceRating"/>
+                <Separator prefWidth="200.0"/>
+            </VBox>
+        </VBox>
+        <VBox fx:id="warningsContainer" spacing="5.0"/>
+        <Button fx:id="createGameButton" defaultButton="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                onAction="#onCreateGameButtonClicked" text="%game.create.create"/>
+    </VBox>
 </GridPane>

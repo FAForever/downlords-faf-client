@@ -8,6 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.LastCoopGamePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -32,13 +33,56 @@ public class CreateCoopGameController extends AbstractCreateGameController {
   private CoopMapListController coopMapListController;
   private CoopFeaturedModListController coopFeaturedModListController;
 
+  private final LastCoopGamePrefs lastCoopGame;
+
   public CreateCoopGameController(ApplicationContext applicationContext, UiService uiService, MapService mapService, ModService modService, GameService gameService, NotificationService notificationService, ContextMenuBuilder contextMenuBuilder, PreferencesService preferencesService, UserService userService, I18n i18n) {
     super(applicationContext, uiService, mapService, modService, gameService, notificationService, contextMenuBuilder, preferencesService, userService, i18n);
+
+    lastCoopGame = preferencesService.getPreferences().getLastCoopGame();
+  }
+
+  @Override
+  public void initialize() {
+    super.initialize();
+
+    setLastTitleAndListen();
+    setLastPasswordAndListen();
+    setLastMapAndListen();
+    setOfflineModeAndListen();
+  }
+
+  private void setOfflineModeAndListen() {
+    JavaFxUtil.bindBidirectional(offlineModeCheckbox.selectedProperty(), lastCoopGame.offlineModeProperty());
+    JavaFxUtil.addListener(offlineModeCheckbox.selectedProperty(), observable -> preferencesService.storeInBackground());
+  }
+
+  private void setLastMapAndListen() {
+    coopMapListController.selectMission(lastCoopGame.getLastMapFolderName());
+    JavaFxUtil.addListener(coopMapListController.selectedMissionProperty(), (observable, oldValue, newValue) -> {
+      lastCoopGame.setLastMapFolderName(Strings.nullToEmpty(newValue.getMapFolderName()));
+      preferencesService.storeInBackground();
+    });
+  }
+
+  private void setLastPasswordAndListen() {
+    JavaFxUtil.bindBidirectional(passwordTextField.textProperty(), lastCoopGame.lastPasswordProperty());
+    JavaFxUtil.addListener(passwordTextField.textProperty(), observable -> preferencesService.storeInBackground());
+  }
+
+  private void setLastTitleAndListen() {
+    JavaFxUtil.bindBidirectional(titleTextField.textProperty(), lastCoopGame.lastTitleProperty());
+    JavaFxUtil.addListener(titleTextField.textProperty(), observable -> preferencesService.storeInBackground());
+  }
+
+  @Override
+  protected void setUpViews() {
+    super.setUpViews();
+    ratingContainer.setVisible(false);
   }
 
   @Override
   public Node getMapListContainer() {
-    coopMapListController = uiService.loadFxml("theme/play/feature/coop_map_list.fxml");
+    coopMapListController = uiService.loadFxml("theme/play/coop_map_list.fxml");
     JavaFxUtil.addAndTriggerListener(coopMapListController.selectedMissionProperty(), (observable, oldValue, newValue) -> {
       if (newValue == null) {
         clearMapDetail();
@@ -51,7 +95,7 @@ public class CreateCoopGameController extends AbstractCreateGameController {
 
   @Override
   public Node getFeaturedModListContainer() {
-    coopFeaturedModListController = uiService.loadFxml("theme/play/feature/featured_mod_list.fxml", CoopFeaturedModListController.class);
+    coopFeaturedModListController = uiService.loadFxml("theme/play/featured_mod_list.fxml", CoopFeaturedModListController.class);
     return coopFeaturedModListController.getRoot();
   }
 

@@ -140,7 +140,7 @@ public class CoopController extends AbstractViewController<Node> {
     FilteredList<GameBean> filteredItems = new FilteredList<>(games);
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
-    coopMapListController = uiService.loadFxml("theme/play/feature/coop_map_list.fxml");
+    coopMapListController = uiService.loadFxml("theme/play/coop_map_list.fxml");
     coopMapListController.setControllerAsPopup();
     coopMapListController.setAutoSelectFirstScenarioMission(false);
     coopMapListController.setOnSelectedMissionClicked(selectedMission -> {
@@ -236,7 +236,7 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   public void onCreateGameButtonClicked() {
-    CreateCoopGameController createCoopGameController = uiService.loadFxml("theme/play/feature/create_game.fxml", CreateCoopGameController.class);
+    CreateCoopGameController createCoopGameController = uiService.loadFxml("theme/play/create_game.fxml", CreateCoopGameController.class);
     Pane root = createCoopGameController.getRoot();
     Dialog dialog = uiService.showInDialog(this.root, root, i18n.get("games.create"));
     createCoopGameController.setOnCloseControllerRequest(dialog::close);

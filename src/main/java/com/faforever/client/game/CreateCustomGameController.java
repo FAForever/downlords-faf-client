@@ -40,28 +40,36 @@ public class CreateCustomGameController extends AbstractCreateGameController {
   private CustomMapListController customMapListController;
   private CustomFeaturedModListController customFeaturedModListController;
 
+  private final LastGamePrefs lastGame;
+
   public CreateCustomGameController(ApplicationContext applicationContext, UiService uiService, MapService mapService, ModService modService, GameService gameService, NotificationService notificationService, ContextMenuBuilder contextMenuBuilder, PreferencesService preferencesService, UserService userService, I18n i18n) {
     super(applicationContext, uiService, mapService, modService, gameService, notificationService, contextMenuBuilder, preferencesService, userService, i18n);
+
+    lastGame = preferencesService.getPreferences().getLastGame();
   }
 
   @Override
   public void initialize() {
     super.initialize();
 
-    setLastGameTitleAndListen();
-    setLastGamePasswordAndListen();
+    setLastTitleAndListen();
+    setLastPasswordAndListen();
     setRatingsAndListen();
     setGameVisibilityAndListen();
+    setOfflineModeAndListen();
+  }
+
+  private void setOfflineModeAndListen() {
+    JavaFxUtil.bindBidirectional(offlineModeCheckbox.selectedProperty(), lastGame.offlineModeProperty());
+    JavaFxUtil.addListener(offlineModeCheckbox.selectedProperty(), observable -> preferencesService.storeInBackground());
   }
 
   private void setGameVisibilityAndListen() {
-    LastGamePrefs lastGame = preferencesService.getPreferences().getLastGame();
     JavaFxUtil.bindBidirectional(onlyForFriendsCheckBox.selectedProperty(), lastGame.lastGameOnlyFriendsProperty());
     JavaFxUtil.addListener(onlyForFriendsCheckBox.selectedProperty(), observable -> preferencesService.storeInBackground());
   }
 
-  private void setLastGamePasswordAndListen() {
-    LastGamePrefs lastGame = preferencesService.getPreferences().getLastGame();
+  private void setLastPasswordAndListen() {
     passwordTextField.setText(lastGame.getLastGamePassword());
     JavaFxUtil.addListener(passwordTextField.textProperty(), (observable, oldValue, newValue) -> {
       lastGame.setLastGamePassword(newValue);
@@ -69,8 +77,7 @@ public class CreateCustomGameController extends AbstractCreateGameController {
     });
   }
 
-  private void setLastGameTitleAndListen() {
-    LastGamePrefs lastGame = preferencesService.getPreferences().getLastGame();
+  private void setLastTitleAndListen() {
     titleTextField.setText(Strings.nullToEmpty(lastGame.getLastGameTitle()));
     JavaFxUtil.addListener(titleTextField.textProperty(), (observable, oldValue, newValue) -> {
       lastGame.setLastGameTitle(newValue);
@@ -79,8 +86,6 @@ public class CreateCustomGameController extends AbstractCreateGameController {
   }
 
   private void setRatingsAndListen() {
-    LastGamePrefs lastGame = preferencesService.getPreferences().getLastGame();
-
     Integer lastGameMinRating = lastGame.getLastGameMinRating();
     Integer lastGameMaxRating = lastGame.getLastGameMaxRating();
     minRankingTextField.setText(lastGameMinRating != null ? i18n.number(lastGameMinRating) : "");
@@ -102,7 +107,7 @@ public class CreateCustomGameController extends AbstractCreateGameController {
 
   @Override
   public Node getMapListContainer() {
-    customMapListController = uiService.loadFxml("theme/play/feature/custom_map_list.fxml");
+    customMapListController = uiService.loadFxml("theme/play/custom_map_list.fxml");
     JavaFxUtil.addAndTriggerListener(customMapListController.selectedMapProperty(), (observable, oldValue, newValue) -> {
       if (newValue == null) {
         clearMapDetail();
@@ -118,7 +123,7 @@ public class CreateCustomGameController extends AbstractCreateGameController {
 
   @Override
   public Node getFeaturedModListContainer() {
-    customFeaturedModListController = uiService.loadFxml("theme/play/feature/featured_mod_list.fxml", CustomFeaturedModListController.class);
+    customFeaturedModListController = uiService.loadFxml("theme/play/featured_mod_list.fxml", CustomFeaturedModListController.class);
     JavaFxUtil.addAndTriggerListener(customFeaturedModListController.selectedFeaturedModProperty(), (observable, oldValue, newValue) ->
         setWarning("game.create.featuredModMissing", newValue == null));
     return customFeaturedModListController.getRoot();

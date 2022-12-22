@@ -84,6 +84,7 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
   public TextField maxRankingTextField;
   public CheckBox enforceRankingCheckBox;
   public ModManagerController modManagerController;
+  public VBox ratingContainer;
   public StackPane mapListContainer;
   public StackPane featuredModListContainer;
   public Pane mapPreviewPane;
@@ -118,10 +119,10 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
     setUpListeners();
   }
 
-  private void setUpViews() {
+  protected void setUpViews() {
     contextMenuBuilder.addCopyLabelContextMenu(mapDescriptionLabel);
     modManagerController.setCloseable(false);
-    JavaFxUtil.bindManagedToVisible(mapSizeLabel, mapPlayersLabel, versionLabel);
+    JavaFxUtil.bindManagedToVisible(ratingContainer, mapSizeLabel, mapPlayersLabel, versionLabel);
     JavaFxUtil.bind(mapSizeLabel.visibleProperty(), mapSizeLabel.textProperty().isNotEmpty());
     JavaFxUtil.bind(mapPlayersLabel.visibleProperty(), mapPlayersLabel.textProperty().isNotEmpty());
     JavaFxUtil.bind(versionLabel.visibleProperty(), versionLabel.textProperty().isNotEmpty());
@@ -133,8 +134,8 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
   }
 
   private void setUpListeners() {
-    JavaFxUtil.addListener(offlineModeCheckbox.selectedProperty(), observable -> onWarningsUpdated());
-    JavaFxUtil.addAndTriggerListener(warningMap, (InvalidationListener) observable -> onWarningsUpdated());
+    JavaFxUtil.addListener(offlineModeCheckbox.selectedProperty(), observable -> updateWarnings());
+    JavaFxUtil.addAndTriggerListener(warningMap, (InvalidationListener) observable -> updateWarnings());
     JavaFxUtil.addAndTriggerListener(userService.connectionStateProperty(), observable -> {
       switch (userService.getConnectionState()) {
         case DISCONNECTED -> {
@@ -154,7 +155,7 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
     JavaFxUtil.addAndTriggerListener(titleTextField.textProperty(), (observable, oldValue, newValue) -> {
       boolean isBlank = StringUtils.isBlank(newValue);
       boolean isAscii = StandardCharsets.US_ASCII.newEncoder().canEncode(newValue);
-      titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, !offlineModeCheckbox.isSelected() && (isBlank || !isAscii));
+      titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, isBlank || !isAscii);
       setWarning("game.create.titleMissing", isBlank);
       setWarning("game.create.titleNotAscii", !isAscii);
     });
@@ -162,7 +163,7 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
         setWarning("game.create.passwordNotAscii", !Strings.nullToEmpty(newValue).isEmpty() && !StandardCharsets.US_ASCII.newEncoder().canEncode(newValue)));
   }
 
-  private void onWarningsUpdated() {
+  private void updateWarnings() {
     JavaFxUtil.runLater(() -> {
       if (offlineModeCheckbox.isSelected()) {
         createGameButton.setDisable(false);

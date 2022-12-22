@@ -189,7 +189,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
       return;
     }
 
-    CreateCustomGameController createCustomGameController = uiService.loadFxml("theme/play/feature/create_game.fxml", CreateCustomGameController.class);
+    CreateCustomGameController createCustomGameController = uiService.loadFxml("theme/play/create_game.fxml", CreateCustomGameController.class);
     createCustomGameController.setOnStackPaneRequest(() -> gamesRoot);
     createCustomGameController.selectMap(mapFolderName);
 

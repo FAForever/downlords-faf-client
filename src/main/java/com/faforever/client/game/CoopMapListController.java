@@ -14,6 +14,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -50,9 +51,11 @@ public class CoopMapListController implements Controller<VBox> {
       scenarioListView.setItems(FXCollections.observableList(scenarios));
       JavaFxUtil.addListener(scenarioListView.getSelectionModel()
           .selectedItemProperty(), (observable, oldValue, newValue) -> {
-        missionListView.setItems(newValue.getMaps().sorted(Comparator.comparingInt(CoopMissionBean::getOrder)));
-        if (autoSelectFirstScenarioMission) {
-          missionListView.getSelectionModel().selectFirst();
+        if (newValue != null) {
+          missionListView.setItems(newValue.getMaps().sorted(Comparator.comparingInt(CoopMissionBean::getOrder)));
+          if (autoSelectFirstScenarioMission) {
+            missionListView.getSelectionModel().selectFirst();
+          }
         }
       });
       scenarioListView.getSelectionModel().selectFirst();
@@ -84,7 +87,10 @@ public class CoopMapListController implements Controller<VBox> {
   }
 
   public String getFormattedSelectedMissionName() {
-    return String.format("%s - %s", scenarioListView.getSelectionModel().getSelectedItem().getType().name(), getSelectedMission().getName());
+    return String.format("%s - %s", scenarioListView.getSelectionModel()
+        .getSelectedItem()
+        .getType()
+        .name(), getSelectedMission().getName());
   }
 
   public Region getFactionIcon(CoopScenarioBean scenario) {
@@ -126,5 +132,24 @@ public class CoopMapListController implements Controller<VBox> {
   @Override
   public VBox getRoot() {
     return root;
+  }
+
+  public void selectMission(String mapFolderName) {
+    if (StringUtils.isNotBlank(mapFolderName)) {
+      scenarioListView.getItems()
+          .stream()
+          .filter(scenario -> scenario.getMaps()
+              .stream().anyMatch(mission -> mission.getMapFolderName().equals(mapFolderName)))
+          .findFirst()
+          .ifPresent(scenario -> {
+            scenarioListView.getSelectionModel().select(scenario);
+            missionListView.getSelectionModel()
+                .select(scenario.getMaps()
+                    .stream()
+                    .filter(mission -> mission.getMapFolderName().equals(mapFolderName))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("No `%s` map folder name in `%s` scenario", mapFolderName, scenario.getName()))));
+          });
+    }
   }
 }
