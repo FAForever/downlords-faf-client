@@ -857,24 +857,6 @@ public class GameService implements InitializingBean, DisposableBean {
     spawnTerminationListener(process, false);
   }
 
-  public void startOfflineGameAndOpenSkirmish(String mapFolderName, boolean isCoop) throws IOException {
-    if (!preferencesService.isGamePathValid()) {
-      CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      gameDirectoryFuture.thenAccept(path -> {
-        try {
-          startGameOffline();
-        } catch (IOException e) {
-          throw new CompletionException(e);
-        }
-      });
-      return;
-    }
-
-    process = forgedAllianceService.startGameOfflineAndOpenSkirmish(mapFolderName, isCoop);
-    setGameRunning(true);
-    spawnTerminationListener(process, false);
-  }
-
   @Async
   public CompletableFuture<Void> patchGamePrefsForMultiInstances() throws IOException, ExecutionException, InterruptedException {
     if (isGamePrefsPatchedToAllowMultiInstances().get()) {

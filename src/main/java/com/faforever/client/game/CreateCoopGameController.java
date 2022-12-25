@@ -16,12 +16,12 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.base.Strings;
 import javafx.scene.Node;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
@@ -57,10 +57,12 @@ public class CreateCoopGameController extends AbstractCreateGameController {
   }
 
   private void setLastMapAndListen() {
-    coopMapListController.selectMission(lastCoopGame.getLastMapFolderName());
+    coopMapListController.selectMap(lastCoopGame.getLastMapFolderName());
     JavaFxUtil.addListener(coopMapListController.selectedMissionProperty(), (observable, oldValue, newValue) -> {
-      lastCoopGame.setLastMapFolderName(Strings.nullToEmpty(newValue.getMapFolderName()));
-      preferencesService.storeInBackground();
+      if (newValue != null) {
+        lastCoopGame.setLastMapFolderName(Strings.nullToEmpty(newValue.getMapFolderName()));
+        preferencesService.storeInBackground();
+      }
     });
   }
 
@@ -77,7 +79,7 @@ public class CreateCoopGameController extends AbstractCreateGameController {
   @Override
   protected void setUpViews() {
     super.setUpViews();
-    ratingContainer.setVisible(false);
+    rankingContainer.setVisible(false);
   }
 
   @Override
@@ -101,13 +103,7 @@ public class CreateCoopGameController extends AbstractCreateGameController {
 
   @Override
   protected void startOfflineGame() {
-    mapService.download(coopMapListController.getSelectedMission().getMapFolderName()).thenRun(() -> {
-      try {
-        gameService.startOfflineGameAndOpenSkirmish(coopMapListController.getSelectedMission().getMapFolderName(), true);
-      } catch (IOException e) {
-        notificationService.addImmediateErrorNotification(e, "game.create.failed");
-      }
-    });
+    throw new NotImplementedException();
   }
 
   @Override

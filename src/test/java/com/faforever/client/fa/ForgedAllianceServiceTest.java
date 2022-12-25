@@ -45,7 +45,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartGameOffline() throws Exception {
-    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOfflineAndOpenSkirmish("test"));
+    IOException throwable = assertThrows(IOException.class, () -> instance.startGameOffline("test"));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);

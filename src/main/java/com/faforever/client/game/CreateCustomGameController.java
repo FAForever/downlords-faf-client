@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -26,7 +27,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -131,11 +131,7 @@ public class CreateCustomGameController extends AbstractCreateGameController {
 
   @Override
   protected void startOfflineGame() {
-    try {
-      gameService.startOfflineGameAndOpenSkirmish(customMapListController.getSelectedMap().getFolderName(), false);
-    } catch (IOException e) {
-      notificationService.addImmediateErrorNotification(e, "game.create.failed");
-    }
+    throw new NotImplementedException();
   }
 
   @Override

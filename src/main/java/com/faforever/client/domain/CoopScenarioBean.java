@@ -13,6 +13,7 @@ import javafx.collections.ObservableList;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
+import java.util.Collections;
 import java.util.List;
 
 @Value
@@ -81,10 +82,7 @@ public class CoopScenarioBean {
   }
 
   public void setMaps(List<CoopMissionBean> maps) {
-    if (maps == null) {
-      maps = List.of();
-    }
-    this.maps.setAll(maps);
+    this.maps.setAll(maps != null ? maps : Collections.emptyList());
   }
 
   public void setType(CoopType type) {

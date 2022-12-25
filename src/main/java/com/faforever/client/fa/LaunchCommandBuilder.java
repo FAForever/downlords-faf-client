@@ -1,5 +1,6 @@
 package com.faforever.client.fa;
 
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
@@ -48,11 +49,8 @@ public class LaunchCommandBuilder {
   private Integer expectedPlayers;
   private Integer mapPosition;
   private Integer team;
-  private String map; // it is internal arg of game engine which starts the match immediately, bypassing a lobby
-  private String skirmishMapFolderName; // open skirmish with selected map
+  private String map;
   private Map<String, String> gameOptions;
-  private boolean noMovie;
-  private boolean coop;
 
   public static LaunchCommandBuilder create() {
     return new LaunchCommandBuilder();
@@ -202,21 +200,6 @@ public class LaunchCommandBuilder {
     return this;
   }
 
-  public LaunchCommandBuilder skirmishMapFolderName(String skirmishMapFolderName) {
-    this.skirmishMapFolderName = skirmishMapFolderName;
-    return this;
-  }
-
-  public LaunchCommandBuilder noMovie(boolean noMovie) {
-    this.noMovie = noMovie;
-    return this;
-  }
-
-  public LaunchCommandBuilder coop(boolean coop) {
-    this.coop = coop;
-    return this;
-  }
-
   public List<String> build() {
     checkNullIllegalState(executableDecorator, "executableDecorator has not been set");
     checkNullIllegalState(executable, "executable has not been set");
@@ -231,8 +214,7 @@ public class LaunchCommandBuilder {
 
     command.addAll(split(String.format(executableDecorator, "\"" + executable.toAbsolutePath() + "\"")));
     command.addAll(Arrays.asList(
-        // TODO: "/init", !coop ? ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME : ForgedAlliancePrefs.COOP_INIT_FILE_NAME,
-        "/init", !coop ? "init_dev.lua" : "init_coop_dev.lua",
+        "/init", ForgedAlliancePrefs.DEFAULT_INIT_FILE_NAME,
         "/nobugreport"
     ));
 
@@ -337,15 +319,6 @@ public class LaunchCommandBuilder {
 
     if (additionalArgs != null) {
       command.addAll(additionalArgs);
-    }
-
-    if (noMovie) {
-      command.add("/nomovie");
-    }
-
-    if (StringUtils.isNotBlank(skirmishMapFolderName)) {
-      command.add("/skirmish");
-      command.add(String.format("\"%s\"", skirmishMapFolderName));
     }
 
     return command;

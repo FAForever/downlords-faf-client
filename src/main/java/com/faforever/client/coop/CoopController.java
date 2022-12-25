@@ -24,7 +24,6 @@ import com.faforever.commons.lobby.GameType;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -52,7 +51,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -81,7 +79,7 @@ public class CoopController extends AbstractViewController<Node> {
   public Button createGameButton;
   public Region leaderboardInfoIcon;
   public ComboBox<Integer> numberOfPlayersComboBox;
-  public TableView<CoopResultBean> leaderboardTable;
+  public TableView<CoopResultBean> leaderboardTableView;
   public TableColumn<CoopResultBean, Integer> rankColumn;
   public TableColumn<CoopResultBean, Integer> playerCountColumn;
   public TableColumn<CoopResultBean, String> playerNamesColumn;
@@ -94,13 +92,32 @@ public class CoopController extends AbstractViewController<Node> {
   private Popup coopMapListPopup;
 
   public void initialize() {
+    setUpAndLoadLeaderboard();
+    displayCoopGames();
+  }
+
+  private void displayCoopGames() {
+      coopService.getMissions().thenAccept(coopMaps -> JavaFxUtil.runLater(() -> {
+        GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
+        gamesTableController.getMapPreviewColumn().setVisible(true);
+        gamesTableController.getRatingRangeColumn().setVisible(false);
+        gamesTableController.initializeGameTable(new FilteredList<>(gameService.getGames(), OPEN_COOP_GAMES_PREDICATE),
+            mapFolderName -> coopMissionFromFolderNamer(coopMaps, mapFolderName), false);
+        populateContainer(gamesTableController.getRoot());
+      })).exceptionally(throwable -> {
+        notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
+        return null;
+      });
+  }
+
+  private void setUpAndLoadLeaderboard() {
     numberOfPlayersComboBox.setButtonCell(numberOfPlayersCell());
     numberOfPlayersComboBox.setCellFactory(param -> numberOfPlayersCell());
     numberOfPlayersComboBox.getSelectionModel().select(0);
     JavaFxUtil.addListener(numberOfPlayersComboBox.getSelectionModel().selectedItemProperty(),
-        (observable, oldValue, newValue) -> loadLeaderboard(coopMapListController.selectedMissionProperty().get(), newValue));
+        (observable, oldValue, newValue) -> loadLeaderboard(coopMapListController.getSelectedMission(), newValue));
 
-    leaderboardTable.setPlaceholder(new ProgressIndicator());
+    leaderboardTableView.setPlaceholder(new ProgressIndicator());
 
     // TODO don't use API object but bean instead
     rankColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getRanking()));
@@ -110,7 +127,6 @@ public class CoopController extends AbstractViewController<Node> {
     playerCountColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
     playerNamesColumn.setCellValueFactory(param -> new SimpleStringProperty(commaDelimitedPlayerList(param.getValue())));
-
     playerNamesColumn.setCellFactory(param -> new StringCell<>(String::valueOf));
 
     secondaryObjectivesColumn.setCellValueFactory(param -> param.getValue().secondaryObjectivesProperty());
@@ -135,11 +151,6 @@ public class CoopController extends AbstractViewController<Node> {
     tooltip.setShowDuration(javafx.util.Duration.seconds(30));
     Tooltip.install(leaderboardInfoIcon, tooltip);
 
-    ObservableList<GameBean> games = gameService.getGames();
-
-    FilteredList<GameBean> filteredItems = new FilteredList<>(games);
-    filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
-
     coopMapListController = uiService.loadFxml("theme/play/coop_map_list.fxml");
     coopMapListController.setControllerAsPopup();
     coopMapListController.setAutoSelectFirstScenarioMission(false);
@@ -153,22 +164,6 @@ public class CoopController extends AbstractViewController<Node> {
         selectMissionButton.setText(coopMapListController.getFormattedSelectedMissionName());
         loadLeaderboard(newValue, numberOfPlayersComboBox.getSelectionModel().getSelectedItem());
       }
-    });
-
-    coopService.getMissions().thenAccept(coopMaps -> JavaFxUtil.runLater(() -> {
-      GamesTableController gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-      gamesTableController.getMapPreviewColumn().setVisible(true);
-      gamesTableController.getRatingRangeColumn().setVisible(false);
-
-      Function<String, String> coopMissionNameProvider = (mapFolderName -> coopMissionFromFolderNamer(coopMaps, mapFolderName));
-
-      gamesTableController.initializeGameTable(filteredItems, coopMissionNameProvider, false);
-
-      Node root = gamesTableController.getRoot();
-      populateContainer(root);
-    })).exceptionally(throwable -> {
-      notificationService.addPersistentErrorNotification(throwable, "coop.couldNotLoad", throwable.getLocalizedMessage());
-      return null;
     });
   }
 
@@ -192,25 +187,21 @@ public class CoopController extends AbstractViewController<Node> {
   }
 
   private ListCell<Integer> numberOfPlayersCell() {
-    return new StringListCell<>(numberOfPlayers -> {
-      if (numberOfPlayers == 0) {
-        return i18n.get("coop.leaderboard.allPlayers");
-      }
-      if (numberOfPlayers == 1) {
-        return i18n.get("coop.leaderboard.singlePlayer");
-      }
-      return i18n.get("coop.leaderboard.numberOfPlayersFormat", numberOfPlayers);
+    return new StringListCell<>(numberOfPlayers -> switch (numberOfPlayers) {
+      case 0 -> i18n.get("coop.leaderboard.allPlayers");
+      case 1 -> i18n.get("coop.leaderboard.singlePlayer");
+      default -> i18n.get("coop.leaderboard.numberOfPlayersFormat", numberOfPlayers);
     });
   }
 
   private void loadLeaderboard(CoopMissionBean mission, int playerCount) {
-    leaderboardTable.setItems(FXCollections.emptyObservableList());
+    leaderboardTableView.setItems(FXCollections.emptyObservableList());
     coopService.getLeaderboard(mission, playerCount)
         .thenApply(this::filterOnlyUniquePlayers)
         .thenAccept(coopLeaderboardEntries -> {
           AtomicInteger ranking = new AtomicInteger();
           coopLeaderboardEntries.forEach(coopResult -> coopResult.setRanking(ranking.incrementAndGet()));
-          JavaFxUtil.runLater(() -> leaderboardTable.setItems(observableList(coopLeaderboardEntries)));
+          JavaFxUtil.runLater(() -> leaderboardTableView.setItems(observableList(coopLeaderboardEntries)));
         })
         .exceptionally(throwable -> {
           log.warn("Could not load coop leaderboard", throwable);

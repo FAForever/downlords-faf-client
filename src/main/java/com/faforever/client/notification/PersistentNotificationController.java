@@ -1,9 +1,9 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
-import javafx.scene.control.Button;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -48,19 +48,16 @@ public class PersistentNotificationController implements Controller<Node> {
     styleClasses.removeAll(CSS_STYLE_INFO, CSS_STYLE_WARN, CSS_STYLE_ERROR);
 
     switch (severity) {
-      case INFO:
-        styleClasses.addAll(CSS_STYLE_INFO, "info-icon");
-        break;
-      case WARN:
+      case INFO -> styleClasses.addAll(CSS_STYLE_INFO, "info-icon");
+      case WARN -> {
         styleClasses.addAll(CSS_STYLE_INFO, "warn-icon");
         styleClasses.add(CSS_STYLE_WARN);
-        break;
-      case ERROR:
+      }
+      case ERROR -> {
         styleClasses.addAll(CSS_STYLE_INFO, "error-icon");
         styleClasses.add(CSS_STYLE_ERROR);
-        break;
-      default:
-        throw new IllegalStateException("Unhandled severity: " + severity);
+      }
+      default -> throw new IllegalStateException("Unhandled severity: " + severity);
     }
   }
 

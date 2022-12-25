@@ -133,7 +133,7 @@ public class CoopControllerTest extends UITest {
       instance.initialize();
       instance.numberOfPlayersComboBox.getSelectionModel().select(1);
     });
-    assertEquals(2, instance.leaderboardTable.getItems().size());
+    assertEquals(2, instance.leaderboardTableView.getItems().size());
   }
 
   @Test
@@ -163,7 +163,7 @@ public class CoopControllerTest extends UITest {
       instance.initialize();
       instance.numberOfPlayersComboBox.getSelectionModel().select(2);
     });
-    assertEquals(2, instance.leaderboardTable.getItems().size());
+    assertEquals(2, instance.leaderboardTableView.getItems().size());
   }
 
   @Test
@@ -207,6 +207,6 @@ public class CoopControllerTest extends UITest {
       instance.numberOfPlayersComboBox.getSelectionModel().select(1);
       instance.numberOfPlayersComboBox.getSelectionModel().select(0);
     });
-    assertEquals(3, instance.leaderboardTable.getItems().size());
+    assertEquals(3, instance.leaderboardTableView.getItems().size());
   }
 }

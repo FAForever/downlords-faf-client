@@ -105,7 +105,7 @@
             <CheckBox fx:id="onlyForFriendsCheckBox" mnemonicParsing="false"
                       text="%game.create.onlyFriends"/>
             <Separator prefWidth="200.0"/>
-            <VBox fx:id="ratingContainer" spacing="7.5">
+            <VBox fx:id="rankingContainer" spacing="7.5">
                 <Label alignment="CENTER_RIGHT" text="%game.create.rating" textAlignment="JUSTIFY"/>
                 <HBox alignment="CENTER" spacing="10.0">
                     <TextField fx:id="minRankingTextField" alignment="CENTER_RIGHT"
