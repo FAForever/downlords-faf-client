@@ -190,9 +190,6 @@ public abstract class AbstractCreateGameController implements Controller<GridPan
   public abstract Node getFeaturedModListContainer();
 
   public void onCreateGameButtonClicked() {
-    if (true) {
-      notificationService.addPersistentErrorNotification(new RuntimeException(), "coop.unknownMission");
-    }
     closeController();
     if (offlineModeCheckbox.isSelected()) {
       startOfflineGame();
