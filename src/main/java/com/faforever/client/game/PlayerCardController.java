@@ -116,7 +116,7 @@ public class PlayerCardController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView);
+    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
   }
 
   private void setFactionIcon(Faction faction) {
