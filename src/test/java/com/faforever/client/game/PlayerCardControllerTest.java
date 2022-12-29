@@ -27,7 +27,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
@@ -166,13 +165,6 @@ public class PlayerCardControllerTest extends UITest {
     });
 
     verify(contextMenuMock).show(eq(instance.getRoot().getScene().getWindow()), anyDouble(), anyDouble());
-  }
-
-  @Test
-  public void testContainsNoteTooltip() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().note("junit").get();
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
-    assertNotNull(instance.playerInfo.getTooltip());
   }
 
   @Test
