@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -12,7 +13,9 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import com.google.common.eventbus.EventBus;
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +28,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
@@ -174,31 +176,22 @@ public class PlayerCardControllerTest extends UITest {
   }
 
   @Test
-  public void testDoNotHaveNoteTooltip() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
-    assertNull(instance.playerInfo.getTooltip());
+  public void testOnRootMouseMovedAndExited() {
+    instance.setPlayer(PlayerBeanBuilder.create()
+        .defaultValues()
+            .note("Player 1")
+        .game(GameBeanBuilder.create()
+            .defaultValues()
+            .get())
+        .get(), 0, Faction.AEON);
+    runOnFxThreadAndWait(() -> instance.onRootMouseMoved());
+    assertTrue(containTooltip(instance.root));
+
+    runOnFxThreadAndWait(() -> instance.onRootMouseExited());
+    assertFalse(containTooltip(instance.root));
   }
 
-  @Test
-  public void testPlayerNoteWasUpdated() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().note("junit").get();
-
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
-    assertEquals("junit", instance.playerInfo.getTooltip().getText());
-
-    runOnFxThreadAndWait(() -> playerBean.setNote("updated"));
-    assertEquals("updated", instance.playerInfo.getTooltip().getText());
-  }
-
-  @Test
-  public void testPlayerNoteWasRemoved() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().note("junit").get();
-
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
-    assertEquals("junit", instance.playerInfo.getTooltip().getText());
-
-    runOnFxThreadAndWait(() -> playerBean.setNote(""));
-    assertNull(instance.playerInfo.getTooltip());
+  private boolean containTooltip(Node node) {
+    return node.getProperties().values().stream().anyMatch(o -> o.getClass().isAssignableFrom(Tooltip.class));
   }
 }

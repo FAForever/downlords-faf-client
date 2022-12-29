@@ -6,6 +6,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
 import com.faforever.client.fx.contextmenu.BroadcastMessageMenuItem;
@@ -19,6 +20,7 @@ import com.faforever.client.fx.contextmenu.KickLobbyMenuItem;
 import com.faforever.client.fx.contextmenu.OpenClanUrlMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
+import com.faforever.client.fx.contextmenu.RemovePlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageClanLeaderMenuItem;
 import com.faforever.client.fx.contextmenu.SendPrivateMessageMenuItem;
@@ -46,6 +48,7 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.PopupWindow;
 import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
@@ -82,9 +85,12 @@ public class ChatUserItemController implements Controller<Node> {
   public ImageView avatarImageView;
   public Label usernameLabel;
   public Label mapNameLabel;
+  public Label noteIcon;
+  public VBox userContainer;
 
   private Tooltip avatarTooltip;
   private Tooltip gameInfoTooltip;
+  private Tooltip noteTooltip;
   private GameTooltipController gameInfoController;
   private ChatChannelUser chatUser;
   private ChatPrefs chatPrefs;
@@ -93,7 +99,7 @@ public class ChatUserItemController implements Controller<Node> {
     chatPrefs = preferencesService.getPreferences().getChat();
     imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
 
-    JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, gameStatusImageView);
+    JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, gameStatusImageView, noteIcon);
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
     JavaFxUtil.bind(countryImageView.visibleProperty(), countryImageView.imageProperty().isNotNull());
     JavaFxUtil.bind(gameStatusImageView.visibleProperty(), gameStatusImageView.imageProperty().isNotNull());
@@ -139,6 +145,23 @@ public class ChatUserItemController implements Controller<Node> {
     Tooltip.install(mapImageView, gameInfoTooltip);
   }
 
+  public void onUserMouseMoved() {
+    if (chatUser == null || StringUtils.isBlank(chatUser.getPlayerNote()) || noteTooltip != null) {
+      return;
+    }
+    noteTooltip = new Tooltip(chatUser.getPlayerNote());
+    noteTooltip.setShowDelay(Duration.ZERO);
+    noteTooltip.setShowDuration(Duration.seconds(30));
+    Tooltip.install(userContainer, noteTooltip);
+  }
+
+  public void onUserMouseExited() {
+    if (noteTooltip != null) {
+      Tooltip.uninstall(userContainer, noteTooltip);
+      noteTooltip = null;
+    }
+  }
+
   private GameTooltipController prepareGameInfoController(GameBean game) {
     GameTooltipController controller = uiService.loadFxml("theme/play/game_tooltip.fxml");
     controller.setShowMods(false);
@@ -169,6 +192,9 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(RemoveFriendMenuItem.class, player)
         .addItem(AddFoeMenuItem.class, player)
         .addItem(RemoveFoeMenuItem.class, player)
+        .addSeparator()
+        .addItem(AddEditPlayerNoteMenuItem.class, player)
+        .addItem(RemovePlayerNoteMenuItem.class, player)
         .addSeparator()
         .addItem(ReportPlayerMenuItem.class, player)
         .addSeparator()
@@ -220,6 +246,7 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addListener(this.chatUser.playerProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addListener(this.chatUser.socialStatusProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addListener(this.chatUser.clanProperty(), weakChatUserPropertyListener);
+    JavaFxUtil.addListener(this.chatUser.playerNote(), weakChatUserPropertyListener);
     JavaFxUtil.addAndTriggerListener(this.chatUser.moderatorProperty(), weakChatUserPropertyListener);
 
     WeakInvalidationListener weakChatUserGameListener = new WeakInvalidationListener(chatUserGamePropertyInvalidationListener);
@@ -233,12 +260,14 @@ public class ChatUserItemController implements Controller<Node> {
     String styleString = chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse("");
     String avatarString = chatUser.getPlayer().map(PlayerBean::getAvatar).map(AvatarBean::getDescription).orElse("");
     String clanString = chatUser.getClanTag().map(s -> s + " ").orElse("");
+    String playerNote = chatUser.getPlayerNote();
     JavaFxUtil.runLater(() -> {
       usernameLabel.setText(clanString + chatUser.getUsername());
       usernameLabel.setStyle(styleString);
       avatarImageView.setImage(chatUser.getAvatar().orElse(null));
       countryImageView.setImage(chatUser.getCountryFlag().orElse(null));
       avatarTooltip.setText(avatarString);
+      noteIcon.setVisible(StringUtils.isNoneBlank(playerNote));
     });
   }
 

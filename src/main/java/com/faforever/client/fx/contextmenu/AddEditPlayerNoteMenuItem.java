@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class EditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
+public class AddEditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   private final UiService uiService;
   private final I18n i18n;

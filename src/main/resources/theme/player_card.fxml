@@ -7,10 +7,10 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
-
 <HBox fx:id="root" alignment="CENTER_LEFT"
       spacing="3.0" styleClass="player-card-content" xmlns="http://javafx.com/javafx/11.0.1"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardController">
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.game.PlayerCardController"
+      onMouseMoved="#onRootMouseMoved" onMouseExited="#onRootMouseExited">
     <StackPane maxWidth="32.0" prefWidth="24.0">
         <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true"
                    visible="false"/>
@@ -23,6 +23,11 @@
         <graphic>
             <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
                        preserveRatio="true"/>
+        </graphic>
+    </Label>
+    <Label fx:id="noteIcon" visible="false">
+        <graphic>
+            <Region styleClass="icon, icon16x16, note-icon"/>
         </graphic>
     </Label>
     <Label fx:id="foeIconText" minWidth="-Infinity">

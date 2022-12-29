@@ -207,6 +207,21 @@ public class ChatUserItemControllerTest extends UITest {
     assertFalse(containTooltip(instance.mapImageView));
   }
 
+  @Test
+  public void testOnUserMouseMovedAndExited() {
+    defaultUser.setPlayer(PlayerBeanBuilder.create()
+        .defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().get())
+        .note("Player 1")
+        .get());
+    instance.setChatUser(defaultUser);
+    runOnFxThreadAndWait(() -> instance.onUserMouseMoved());
+    assertTrue(containTooltip(instance.userContainer));
+
+    runOnFxThreadAndWait(() -> instance.onUserMouseExited());
+    assertFalse(containTooltip(instance.userContainer));
+  }
+
   private boolean containTooltip(Node node) {
     return node.getProperties().values().stream().anyMatch(o -> o.getClass().isAssignableFrom(Tooltip.class));
   }

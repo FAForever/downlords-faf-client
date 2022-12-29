@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class EditPlayerNoteMenuItemTest extends UITest {
+public class AddEditPlayerNoteMenuItemTest extends UITest {
 
   @Mock
   private UiService uiService;
@@ -31,7 +31,7 @@ public class EditPlayerNoteMenuItemTest extends UITest {
   private I18n i18n;
 
   @InjectMocks
-  private EditPlayerNoteMenuItem instance;
+  private AddEditPlayerNoteMenuItem instance;
 
   @Override
   protected Pane getRoot() {
