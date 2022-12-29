@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -128,23 +129,45 @@ public class IceAdapterImplTest extends ServiceTest {
     List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
 
     assertEquals(javaExecutablePath.toAbsolutePath().toString(), command.get(0));
-    assertEquals("-cp", command.get(1));
-    assertTrue(command.get(2).contains("faf-ice-adapter.jar"));
-    assertTrue(command.get(2).contains("javafx-"));
-    assertEquals("com.faforever.iceadapter.IceAdapter", command.get(3));
-    assertEquals("--id", command.get(4));
-    assertEquals(String.valueOf(currentPlayer.getId()), command.get(5));
-    assertEquals("--game-id", command.get(6));
-    assertEquals(String.valueOf(4711), command.get(7));
-    assertEquals("--login", command.get(8));
-    assertEquals(currentPlayer.getUsername(), command.get(9));
-    assertEquals("--rpc-port", command.get(10));
-    assertEquals(String.valueOf(0), command.get(11));
-    assertEquals("--gpgnet-port", command.get(12));
-    assertEquals(String.valueOf(0), command.get(13));
-    assertEquals("--force-relay", command.get(14));
-    assertEquals("--debug-window", command.get(15));
-    assertEquals("--info-window", command.get(16));
+    assertEquals("-Dorg.ice4j.ipv6.DISABLED=true", command.get(1));
+    assertEquals("-cp", command.get(2));
+    assertTrue(command.get(3).contains("faf-ice-adapter.jar"));
+    assertTrue(command.get(3).contains("javafx-"));
+    assertEquals("com.faforever.iceadapter.IceAdapter", command.get(4));
+    assertEquals("--id", command.get(5));
+    assertEquals(String.valueOf(currentPlayer.getId()), command.get(6));
+    assertEquals("--game-id", command.get(7));
+    assertEquals(String.valueOf(4711), command.get(8));
+    assertEquals("--login", command.get(9));
+    assertEquals(currentPlayer.getUsername(), command.get(10));
+    assertEquals("--rpc-port", command.get(11));
+    assertEquals(String.valueOf(0), command.get(12));
+    assertEquals("--gpgnet-port", command.get(13));
+    assertEquals(String.valueOf(0), command.get(14));
+    assertEquals("--force-relay", command.get(15));
+    assertEquals("--debug-window", command.get(16));
+    assertEquals("--info-window", command.get(17));
+  }
+
+  @Test
+  public void testAllowIpv6() throws Exception {
+    Path javaExecutablePath = Path.of("some", "path", "java");
+
+    when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
+    Preferences preferences = PreferencesBuilder.create().defaultValues()
+        .forgedAlliancePrefs()
+        .showIceAdapterDebugWindow(true)
+        .allowIpv6(true)
+        .forceRelay(true)
+        .then()
+        .get();
+    when(preferencesService.getPreferences()).thenReturn(preferences);
+    PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
+    when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+
+    List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
+
+    assertFalse(command.contains("-Dorg.ice4j.ipv6.DISABLED=true"));
   }
 
   @Test

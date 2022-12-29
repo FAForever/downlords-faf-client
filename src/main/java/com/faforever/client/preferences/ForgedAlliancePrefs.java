@@ -46,6 +46,7 @@ public class ForgedAlliancePrefs {
   BooleanProperty forceRelay = new SimpleBooleanProperty(false);
   BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
   BooleanProperty allowReplaysWhileInGame = new SimpleBooleanProperty(false);
+  BooleanProperty allowIpv6 = new SimpleBooleanProperty(false);
 
   /**
    * String format to use when building the launch command. Takes exact one parameter; the executable path. <p>
@@ -161,6 +162,18 @@ public class ForgedAlliancePrefs {
 
   public BooleanProperty allowReplaysWhileInGameProperty() {
     return allowReplaysWhileInGame;
+  }
+
+  public boolean isAllowIpv6() {
+    return allowIpv6.get();
+  }
+
+  public BooleanProperty allowIpv6Property() {
+    return allowIpv6;
+  }
+
+  public void setAllowIpv6(boolean allowIpv6) {
+    this.allowIpv6.set(allowIpv6);
   }
 
   public Path getModsDirectory() {

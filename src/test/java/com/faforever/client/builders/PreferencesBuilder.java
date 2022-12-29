@@ -304,6 +304,11 @@ public class PreferencesBuilder {
       return this;
     }
 
+    public ForgedAlliancePrefsBuilder allowIpv6(boolean allowIpv6) {
+      forgedAlliancePrefs.setAllowIpv6(allowIpv6);
+      return this;
+    }
+
     public ForgedAlliancePrefsBuilder autoDownloadMaps(boolean autoDownloadMaps) {
       forgedAlliancePrefs.setAutoDownloadMaps(autoDownloadMaps);
       return this;
