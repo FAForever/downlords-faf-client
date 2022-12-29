@@ -197,10 +197,10 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
     String classpath = getBinaryName(workDirectory) + JavaUtil.CLASSPATH_SEPARATOR + getJavaFXClassPathJars();
 
-    List<String> cmd = new ArrayList<>(List.of(
-        operatingSystem.getJavaExecutablePath()
-            .toAbsolutePath()
-            .toString()));
+    List<String> cmd = new ArrayList<>();
+    cmd.add(operatingSystem.getJavaExecutablePath()
+        .toAbsolutePath()
+        .toString());
 
     ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
 
@@ -208,15 +208,16 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       cmd.add("-Dorg.ice4j.ipv6.DISABLED=true");
     }
 
-    cmd.addAll(List.of(
+    List<String> standardIceOptions = List.of(
         "-cp", classpath,
         "com.faforever.iceadapter.IceAdapter",
         "--id", String.valueOf(currentPlayer.getId()),
         "--game-id", String.valueOf(gameId),
         "--login", currentPlayer.getUsername(),
         "--rpc-port", String.valueOf(adapterPort),
-        "--gpgnet-port", String.valueOf(gpgPort))
-    );
+        "--gpgnet-port", String.valueOf(gpgPort));
+
+    cmd.addAll(standardIceOptions);
 
     if (forgedAlliancePrefs.isForceRelay()) {
       cmd.add("--force-relay");
