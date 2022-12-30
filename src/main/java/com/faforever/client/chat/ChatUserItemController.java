@@ -40,6 +40,8 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -77,6 +79,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final InvalidationListener chatUserGamePropertyInvalidationListener = observable -> updateChatUserGame();
   private final InvalidationListener showMapNameListener = observable -> updateMapNameLabelVisible();
   private final InvalidationListener showMapPreviewListener = observable -> updateMapPreviewImageViewVisible();
+  private final ChangeListener<String> playerNoteListener = (observable, oldValue, newValue) -> updatePlayerNoteTooltip(newValue);
 
   public Pane root;
   public ImageView mapImageView;
@@ -121,6 +124,17 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void initializeTooltips() {
+    initializeAvatarTooltip();
+    initializePlayerNoteTooltip();
+  }
+
+  private void initializePlayerNoteTooltip() {
+    noteTooltip = new Tooltip();
+    noteTooltip.setShowDelay(Duration.ZERO);
+    noteTooltip.setShowDuration(Duration.seconds(30));
+  }
+
+  private void initializeAvatarTooltip() {
     avatarTooltip = new Tooltip();
     avatarTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
     Tooltip.install(avatarImageView, avatarTooltip);
@@ -143,23 +157,6 @@ public class ChatUserItemController implements Controller<Node> {
     gameInfoTooltip = prepareGameInfoTooltip(gameInfoController);
     gameInfoController.displayGame();
     Tooltip.install(mapImageView, gameInfoTooltip);
-  }
-
-  public void onUserMouseMoved() {
-    if (chatUser == null || StringUtils.isBlank(chatUser.getPlayerNote()) || noteTooltip != null) {
-      return;
-    }
-    noteTooltip = new Tooltip(chatUser.getPlayerNote());
-    noteTooltip.setShowDelay(Duration.ZERO);
-    noteTooltip.setShowDuration(Duration.seconds(30));
-    Tooltip.install(userContainer, noteTooltip);
-  }
-
-  public void onUserMouseExited() {
-    if (noteTooltip != null) {
-      Tooltip.uninstall(userContainer, noteTooltip);
-      noteTooltip = null;
-    }
   }
 
   private GameTooltipController prepareGameInfoController(GameBean game) {
@@ -246,8 +243,9 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addListener(this.chatUser.playerProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addListener(this.chatUser.socialStatusProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addListener(this.chatUser.clanProperty(), weakChatUserPropertyListener);
-    JavaFxUtil.addListener(this.chatUser.playerNote(), weakChatUserPropertyListener);
     JavaFxUtil.addAndTriggerListener(this.chatUser.moderatorProperty(), weakChatUserPropertyListener);
+
+    JavaFxUtil.addAndTriggerListener(this.chatUser.playerNote(), new WeakChangeListener<>(playerNoteListener));
 
     WeakInvalidationListener weakChatUserGameListener = new WeakInvalidationListener(chatUserGamePropertyInvalidationListener);
     JavaFxUtil.addListener(this.chatUser.lastActiveProperty(), weakChatUserGameListener);
@@ -256,18 +254,27 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addAndTriggerListener(this.chatUser.statusTooltipTextProperty(), weakChatUserGameListener);
   }
 
+  private void updatePlayerNoteTooltip(String note) {
+    boolean notBlank = StringUtils.isNotBlank(note);
+    noteIcon.setVisible(notBlank);
+    if (notBlank) {
+      noteTooltip.setText(note);
+      Tooltip.install(root, noteTooltip);
+    } else {
+      Tooltip.uninstall(root, noteTooltip);
+    }
+  }
+
   private void updateChatUserDisplay() {
     String styleString = chatUser.getColor().map(color -> String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color))).orElse("");
     String avatarString = chatUser.getPlayer().map(PlayerBean::getAvatar).map(AvatarBean::getDescription).orElse("");
     String clanString = chatUser.getClanTag().map(s -> s + " ").orElse("");
-    String playerNote = chatUser.getPlayerNote();
     JavaFxUtil.runLater(() -> {
       usernameLabel.setText(clanString + chatUser.getUsername());
       usernameLabel.setStyle(styleString);
       avatarImageView.setImage(chatUser.getAvatar().orElse(null));
       countryImageView.setImage(chatUser.getCountryFlag().orElse(null));
       avatarTooltip.setText(avatarString);
-      noteIcon.setVisible(StringUtils.isNoneBlank(playerNote));
     });
   }
 

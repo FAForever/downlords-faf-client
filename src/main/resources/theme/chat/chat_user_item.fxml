@@ -12,7 +12,7 @@
       fx:id="root" styleClass="chat-user-item" spacing="4.0" onMouseClicked="#onItemClicked"
       onContextMenuRequested="#onContextMenuRequested">
     <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
-    <VBox fx:id="userContainer" onMouseMoved="#onUserMouseMoved" onMouseExited="#onUserMouseExited" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+    <VBox fx:id="userContainer" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
         <HBox spacing="4.0" alignment="CENTER_LEFT">
             <Label fx:id="usernameLabel" HBox.hgrow="ALWAYS" styleClass="chat-user-item-username">
                 <graphic>

@@ -22,6 +22,8 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -64,6 +66,8 @@ public class PlayerCardController implements Controller<Node> {
   private PlayerBean player;
   private Tooltip noteTooltip;
 
+  private ChangeListener<String> noteListener;
+
   public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
     if (player == null) {
       return;
@@ -84,7 +88,26 @@ public class PlayerCardController implements Controller<Node> {
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
     JavaFxUtil.bind(friendIconText.visibleProperty(),
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
-    JavaFxUtil.bind(noteIcon.visibleProperty(), player.noteProperty().isNotEmpty());
+
+    setUpNoteTooltip();
+  }
+
+  private void setUpNoteTooltip() {
+    noteTooltip = new Tooltip(player.getNote());
+    noteTooltip.setShowDelay(Duration.ZERO);
+    noteTooltip.setShowDuration(Duration.seconds(30));
+
+    noteListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
+      boolean notBlank = StringUtils.isNotBlank(newValue);
+      noteIcon.setVisible(notBlank);
+      if (notBlank) {
+        noteTooltip.setText(newValue);
+        Tooltip.install(root, noteTooltip);
+      } else {
+        Tooltip.uninstall(root, noteTooltip);
+      }
+    });
+    JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakChangeListener<>(noteListener));
   }
 
   public Node getRoot() {
@@ -136,23 +159,6 @@ public class PlayerCardController implements Controller<Node> {
         factionImage.setVisible(true);
         factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
       }
-    }
-  }
-
-  public void onRootMouseMoved() {
-    if (player == null || StringUtils.isBlank(player.getNote()) || noteTooltip != null) {
-      return;
-    }
-    noteTooltip = new Tooltip(player.getNote());
-    noteTooltip.setShowDelay(Duration.ZERO);
-    noteTooltip.setShowDuration(Duration.seconds(30));
-    Tooltip.install(root, noteTooltip);
-  }
-
-  public void onRootMouseExited() {
-    if (noteTooltip != null) {
-      Tooltip.uninstall(root, noteTooltip);
-      noteTooltip = null;
     }
   }
 }
