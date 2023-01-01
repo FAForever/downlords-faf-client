@@ -168,7 +168,7 @@ public class PlayerCardControllerTest extends UITest {
   }
 
   @Test
-  public void testOnRootMouseMovedAndExited() {
+  public void testNotePlayerTooltip() {
     PlayerBean player = PlayerBeanBuilder.create()
         .defaultValues()
         .note("Player 1")
