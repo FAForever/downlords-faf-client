@@ -256,12 +256,14 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void updatePlayerNoteTooltip(String note) {
-    if (StringUtils.isNotBlank(note)) {
-      noteTooltip.setText(note);
-      Tooltip.install(userContainer, noteTooltip);
-    } else {
-      Tooltip.uninstall(userContainer, noteTooltip);
-    }
+    JavaFxUtil.runLater(() -> {
+      if (StringUtils.isNotBlank(note)) {
+        noteTooltip.setText(note);
+        Tooltip.install(userContainer, noteTooltip);
+      } else {
+        Tooltip.uninstall(userContainer, noteTooltip);
+      }
+    });
   }
 
   private void updateChatUserDisplay() {
