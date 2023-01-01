@@ -176,7 +176,7 @@ public class PlayerCardControllerTest extends UITest {
             .defaultValues()
             .get())
         .get();
-    instance.setPlayer(player, 0, Faction.AEON);
+    runOnFxThreadAndWait(() -> instance.setPlayer(player, 0, Faction.AEON));
     assertEquals("Player 1", TooltipHelper.getTooltipText(instance.root));
 
     runOnFxThreadAndWait(() -> player.setNote(""));

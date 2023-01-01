@@ -213,7 +213,7 @@ public class ChatUserItemControllerTest extends UITest {
         .game(GameBeanBuilder.create().defaultValues().get())
         .note("Player 1")
         .get());
-    instance.setChatUser(defaultUser);
+    runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertEquals("Player 1", TooltipHelper.getTooltipText(instance.userContainer));
 
     runOnFxThreadAndWait(() -> defaultUser.getPlayer().orElseThrow().setNote(""));
