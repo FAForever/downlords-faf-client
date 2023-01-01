@@ -66,7 +66,7 @@ public class PlayerCardController implements Controller<Node> {
   private PlayerBean player;
   private Tooltip noteTooltip;
 
-  private ChangeListener<String> noteListener;
+  private final ChangeListener<String> noteListener = (observable, oldValue, newValue) -> updateNoteTooltip(newValue);
 
   public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
     if (player == null) {
@@ -89,25 +89,26 @@ public class PlayerCardController implements Controller<Node> {
     JavaFxUtil.bind(friendIconText.visibleProperty(),
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
 
-    setUpNoteTooltip();
+    initializeNoteTooltip();
+    JavaFxUtil.bind(noteIcon.visibleProperty(), player.noteProperty().isNotEmpty());
+    JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakChangeListener<>(noteListener));
   }
 
-  private void setUpNoteTooltip() {
+  private void initializeNoteTooltip() {
     noteTooltip = new Tooltip(player.getNote());
     noteTooltip.setShowDelay(Duration.ZERO);
     noteTooltip.setShowDuration(Duration.seconds(30));
+  }
 
-    noteListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
-      boolean notBlank = StringUtils.isNotBlank(newValue);
-      noteIcon.setVisible(notBlank);
-      if (notBlank) {
-        noteTooltip.setText(newValue);
+  private void updateNoteTooltip(String note) {
+    JavaFxUtil.runLater(() -> {
+      if (StringUtils.isNotBlank(note)) {
+        noteTooltip.setText(note);
         Tooltip.install(root, noteTooltip);
       } else {
         Tooltip.uninstall(root, noteTooltip);
       }
     });
-    JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakChangeListener<>(noteListener));
   }
 
   public Node getRoot() {

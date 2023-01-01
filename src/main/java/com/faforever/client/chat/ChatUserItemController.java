@@ -245,6 +245,7 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addListener(this.chatUser.clanProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addAndTriggerListener(this.chatUser.moderatorProperty(), weakChatUserPropertyListener);
 
+    JavaFxUtil.bind(noteIcon.visibleProperty(), this.chatUser.playerNote().isNotEmpty());
     JavaFxUtil.addAndTriggerListener(this.chatUser.playerNote(), new WeakChangeListener<>(playerNoteListener));
 
     WeakInvalidationListener weakChatUserGameListener = new WeakInvalidationListener(chatUserGamePropertyInvalidationListener);
@@ -255,13 +256,11 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void updatePlayerNoteTooltip(String note) {
-    boolean notBlank = StringUtils.isNotBlank(note);
-    noteIcon.setVisible(notBlank);
-    if (notBlank) {
+    if (StringUtils.isNotBlank(note)) {
       noteTooltip.setText(note);
-      Tooltip.install(root, noteTooltip);
+      Tooltip.install(userContainer, noteTooltip);
     } else {
-      Tooltip.uninstall(root, noteTooltip);
+      Tooltip.uninstall(userContainer, noteTooltip);
     }
   }
 

@@ -26,7 +26,7 @@ public class RemovePlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isItemVisible() {
-    return object != null && !StringUtils.isBlank(object.getNote());
+    return object != null && !StringUtils.isBlank(object.getNote()) && playerService.getCurrentPlayer() != object;
   }
 
   @Override
