@@ -8,7 +8,6 @@ import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.net.ConnectionState;
-import com.faforever.client.player.PlayerOfflineEvent;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
@@ -282,10 +281,11 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Handler
   private void onChatUserQuit(UserQuitEvent event) {
-    User user = event.getUser();
+    String username = event.getUser().getNick();
     synchronized (channels) {
-      channels.values().forEach(channel -> onChatUserLeftChannel(channel.getName(), user.getNick()));
+      channels.values().forEach(channel -> onChatUserLeftChannel(channel.getName(), username));
     }
+    playerService.removePlayerIfOnline(username);
   }
 
   @Handler
@@ -416,10 +416,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     }
     synchronized (chatChannelUsersByChannelAndName) {
       chatChannelUsersByChannelAndName.remove(mapKey(username, channelName));
-    }
-    // The server doesn't yet tell us when a user goes offline, so we have to rely on the user leaving IRC.
-    if (defaultChannelName.equals(channelName)) {
-      oldChatUser.getPlayer().ifPresent(player -> eventBus.post(new PlayerOfflineEvent(player)));
     }
   }
 
