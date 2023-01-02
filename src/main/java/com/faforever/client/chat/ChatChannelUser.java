@@ -55,7 +55,6 @@ public class ChatChannelUser {
   private final ObjectProperty<Image> gameStatusImage = new SimpleObjectProperty<>();
   private final StringProperty statusTooltipText = new SimpleStringProperty();
   private final BooleanProperty displayed = new SimpleBooleanProperty(false);
-  private final StringProperty playerNote = new SimpleStringProperty();
   private ChangeListener<SocialStatus> socialStatusChangeListener;
   private ChangeListener<PlayerStatus> gameStatusChangeListener;
   private ChangeListener<String> clanTagChangeListener;
@@ -84,15 +83,12 @@ public class ChatChannelUser {
         socialStatus.unbind();
         gameStatus.unbind();
         clanTag.unbind();
-        playerNote.unbind();
         socialStatus.set(null);
         gameStatus.set(null);
         clanTag.set(null);
-        playerNote.set(null);
       }
       if (player != null) {
         player.getChatChannelUsers().add(this);
-        playerNote.bind(player.noteProperty());
         socialStatus.bind(player.socialStatusProperty());
         gameStatus.bind(player.statusProperty());
         clanTag.bind(Bindings.createStringBinding(() -> {
@@ -280,14 +276,6 @@ public class ChatChannelUser {
 
   public StringProperty statusTooltipTextProperty() {
     return statusTooltipText;
-  }
-
-  public String getPlayerNote() {
-    return playerNote.get();
-  }
-
-  public StringProperty playerNote() {
-    return playerNote;
   }
 
   public boolean isDisplayed() {
