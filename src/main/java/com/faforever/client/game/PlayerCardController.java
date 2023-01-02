@@ -90,7 +90,7 @@ public class PlayerCardController implements Controller<Node> {
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
 
     initializeNoteTooltip();
-    JavaFxUtil.bind(noteIcon.visibleProperty(), player.noteProperty().isNotEmpty());
+    JavaFxUtil.bind(noteIcon.visibleProperty(), noteTooltip.textProperty().isNotEmpty());
     JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakChangeListener<>(noteListener));
   }
 
@@ -106,6 +106,7 @@ public class PlayerCardController implements Controller<Node> {
         noteTooltip.setText(note);
         Tooltip.install(root, noteTooltip);
       } else {
+        noteTooltip.setText("");
         Tooltip.uninstall(root, noteTooltip);
       }
     });
