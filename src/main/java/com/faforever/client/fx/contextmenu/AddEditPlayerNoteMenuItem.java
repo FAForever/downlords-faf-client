@@ -3,6 +3,7 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerNoteController;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.util.Assert;
@@ -16,9 +17,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class EditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
+public class AddEditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   private final UiService uiService;
+  private final PlayerService playerService;
   private final I18n i18n;
 
   @Override
@@ -39,7 +41,7 @@ public class EditPlayerNoteMenuItem extends AbstractMenuItem<PlayerBean> {
 
   @Override
   protected boolean isItemVisible() {
-    return object != null;
+    return object != null && playerService.getCurrentPlayer() != object;
   }
 
   @Override

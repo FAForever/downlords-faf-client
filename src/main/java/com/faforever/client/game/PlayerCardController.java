@@ -4,11 +4,11 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
-import com.faforever.client.fx.contextmenu.EditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFoeMenuItem;
 import com.faforever.client.fx.contextmenu.RemoveFriendMenuItem;
 import com.faforever.client.fx.contextmenu.RemovePlayerNoteMenuItem;
@@ -21,9 +21,9 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -61,19 +61,12 @@ public class PlayerCardController implements Controller<Node> {
   public Label friendIconText;
   public Region factionIcon;
   public ImageView factionImage;
+  public Label noteIcon;
 
   private PlayerBean player;
-
   private Tooltip noteTooltip;
-  private final InvalidationListener notePropertyListener = observable -> {
-    boolean emptyNote = StringUtils.isBlank(player.getNote());
-    playerInfo.setUnderline(!emptyNote);
-    if (emptyNote) {
-      clearNoteTooltip();
-    } else {
-      updateNoteTooltip();
-    }
-  };
+
+  private final ChangeListener<String> noteListener = (observable, oldValue, newValue) -> updateNoteTooltip(newValue);
 
   public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
     if (player == null) {
@@ -95,7 +88,28 @@ public class PlayerCardController implements Controller<Node> {
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
     JavaFxUtil.bind(friendIconText.visibleProperty(),
         Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
-    JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakInvalidationListener(notePropertyListener));
+
+    initializeNoteTooltip();
+    JavaFxUtil.bind(noteIcon.visibleProperty(), noteTooltip.textProperty().isNotEmpty());
+    JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakChangeListener<>(noteListener));
+  }
+
+  private void initializeNoteTooltip() {
+    noteTooltip = new Tooltip(player.getNote());
+    noteTooltip.setShowDelay(Duration.ZERO);
+    noteTooltip.setShowDuration(Duration.seconds(30));
+  }
+
+  private void updateNoteTooltip(String note) {
+    JavaFxUtil.runLater(() -> {
+      if (StringUtils.isNotBlank(note)) {
+        noteTooltip.setText(note);
+        Tooltip.install(root, noteTooltip);
+      } else {
+        noteTooltip.setText("");
+        Tooltip.uninstall(root, noteTooltip);
+      }
+    });
   }
 
   public Node getRoot() {
@@ -114,7 +128,7 @@ public class PlayerCardController implements Controller<Node> {
           .addItem(AddFoeMenuItem.class, player)
           .addItem(RemoveFoeMenuItem.class, player)
           .addSeparator()
-          .addItem(EditPlayerNoteMenuItem.class, player)
+          .addItem(AddEditPlayerNoteMenuItem.class, player)
           .addItem(RemovePlayerNoteMenuItem.class, player)
           .addSeparator()
           .addItem(ReportPlayerMenuItem.class, player)
@@ -127,7 +141,7 @@ public class PlayerCardController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView);
+    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
   }
 
   private void setFactionIcon(Faction faction) {
@@ -148,21 +162,5 @@ public class PlayerCardController implements Controller<Node> {
         factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
       }
     }
-  }
-
-  private void clearNoteTooltip() {
-    playerInfo.setTooltip(null);
-    noteTooltip = null;
-  }
-
-  private void updateNoteTooltip() {
-    if (noteTooltip == null) {
-      noteTooltip = new Tooltip();
-      noteTooltip.setShowDuration(Duration.seconds(30));
-      noteTooltip.setShowDelay(Duration.ZERO);
-      noteTooltip.setHideDelay(Duration.ZERO);
-      playerInfo.setTooltip(noteTooltip);
-    }
-    noteTooltip.setText(player.getNote());
   }
 }

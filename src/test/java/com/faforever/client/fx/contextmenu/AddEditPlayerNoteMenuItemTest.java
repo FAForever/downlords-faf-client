@@ -4,6 +4,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerNoteController;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
@@ -23,15 +24,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class EditPlayerNoteMenuItemTest extends UITest {
+public class AddEditPlayerNoteMenuItemTest extends UITest {
 
   @Mock
   private UiService uiService;
   @Mock
+  private PlayerService playerService;
+  @Mock
   private I18n i18n;
 
   @InjectMocks
-  private EditPlayerNoteMenuItem instance;
+  private AddEditPlayerNoteMenuItem instance;
 
   @Override
   protected Pane getRoot() {
@@ -86,6 +89,15 @@ public class EditPlayerNoteMenuItemTest extends UITest {
   @Test
   public void testInvisibleItem() {
     instance.setObject(null);
+    assertFalse(instance.isVisible());
+  }
+
+  @Test
+  public void testInvisibleItemIfOwnPlayer() {
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    when(playerService.getCurrentPlayer()).thenReturn(player);
+
+    instance.setObject(player);
     assertFalse(instance.isVisible());
   }
 }

@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RemovePlayerNoteMenuItemTest extends UITest {
 
@@ -46,6 +47,15 @@ public class RemovePlayerNoteMenuItemTest extends UITest {
   @Test
   public void testInvisibleItemIfNoPlayer() {
     instance.setObject(null);
+    assertFalse(instance.isVisible());
+  }
+
+  @Test
+  public void testInvisibleItemIfOwnPlayer() {
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    when(playerService.getCurrentPlayer()).thenReturn(player);
+
+    instance.setObject(player);
     assertFalse(instance.isVisible());
   }
 }

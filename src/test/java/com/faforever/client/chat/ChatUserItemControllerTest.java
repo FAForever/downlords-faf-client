@@ -12,6 +12,7 @@ import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.game.GameTooltipController;
+import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.generator.MapGeneratorService;
@@ -21,9 +22,7 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
-import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
@@ -41,7 +40,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -185,7 +184,7 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testAvatarImageViewHasTooltip() {
-    assertTrue(containTooltip(instance.avatarImageView));
+    assertNotNull(TooltipHelper.getTooltip(instance.avatarImageView));
   }
 
   @Test
@@ -201,13 +200,23 @@ public class ChatUserItemControllerTest extends UITest {
     instance.setChatUser(defaultUser);
     runOnFxThreadAndWait(() -> instance.onMapImageViewMouseMoved());
     verify(controllerMock).displayGame();
-    assertTrue(containTooltip(instance.mapImageView));
+    assertNotNull(TooltipHelper.getTooltip(instance.mapImageView));
 
     runOnFxThreadAndWait(() -> instance.onMapImageViewMouseExited());
-    assertFalse(containTooltip(instance.mapImageView));
+    assertNull(TooltipHelper.getTooltip(instance.mapImageView));
   }
 
-  private boolean containTooltip(Node node) {
-    return node.getProperties().values().stream().anyMatch(o -> o.getClass().isAssignableFrom(Tooltip.class));
+  @Test
+  public void testPlayerNoteTooltip() {
+    defaultUser.setPlayer(PlayerBeanBuilder.create()
+        .defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().get())
+        .note("Player 1")
+        .get());
+    runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
+    assertEquals("Player 1", TooltipHelper.getTooltipText(instance.userContainer));
+
+    runOnFxThreadAndWait(() -> defaultUser.getPlayer().orElseThrow().setNote(""));
+    assertNull(TooltipHelper.getTooltip(instance.userContainer));
   }
 }

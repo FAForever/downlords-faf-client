@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <HBox alignment="CENTER_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/11.0.1"
@@ -11,13 +12,20 @@
       fx:id="root" styleClass="chat-user-item" spacing="4.0" onMouseClicked="#onItemClicked"
       onContextMenuRequested="#onContextMenuRequested">
     <ImageView fx:id="avatarImageView" fitHeight="20.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true"/>
-    <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-        <Label fx:id="usernameLabel" HBox.hgrow="ALWAYS" styleClass="chat-user-item-username">
-            <graphic>
-                <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
-                           preserveRatio="true"/>
-            </graphic>
-        </Label>
+    <VBox fx:id="userContainer" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+        <HBox spacing="4.0" alignment="CENTER_LEFT">
+            <Label fx:id="usernameLabel" HBox.hgrow="ALWAYS" styleClass="chat-user-item-username">
+                <graphic>
+                    <ImageView fx:id="countryImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
+                               preserveRatio="true"/>
+                </graphic>
+            </Label>
+            <Label fx:id="noteIcon" visible="false">
+                <graphic>
+                    <Region styleClass="icon, icon16x16, note-icon"/>
+                </graphic>
+            </Label>
+        </HBox>
         <Label fx:id="mapNameLabel" styleClass="chat-user-item-map-name" visible="false">
             <graphic>
                 <ImageView fx:id="gameStatusImageView" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
