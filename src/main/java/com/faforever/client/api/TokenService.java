@@ -11,7 +11,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
@@ -121,7 +121,7 @@ public class TokenService implements InitializingBean {
         .accept(MediaType.APPLICATION_JSON)
         .bodyValue(hydraPropertiesMap)
         .retrieve()
-        .onStatus(HttpStatus::isError, response -> response.bodyToMono(String.class).flatMap(body -> Mono.error(new TokenRetrievalException(body))))
+        .onStatus(HttpStatusCode::isError, response -> response.bodyToMono(String.class).flatMap(body -> Mono.error(new TokenRetrievalException(body))))
         .bodyToMono(OAuth2AccessToken.class)
         .doOnSubscribe(subscription -> log.trace("Retrieving OAuth token"))
         .switchIfEmpty(Mono.fromCallable(() -> {
