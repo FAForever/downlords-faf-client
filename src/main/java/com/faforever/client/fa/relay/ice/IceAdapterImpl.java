@@ -38,11 +38,11 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.SocketUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -114,11 +114,18 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Override
   public CompletableFuture<Integer> start(int gameId) {
-    CompletableFuture<Integer> iceAdapterClientFuture = CompletableFuture.supplyAsync(() -> {
+    return CompletableFuture.supplyAsync(() -> {
       Path workDirectory = Path.of(System.getProperty("nativeDir", "lib")).toAbsolutePath();
 
-      int adapterPort = SocketUtils.findAvailableTcpPort();
-      int gpgPort = SocketUtils.findAvailableTcpPort();
+      int adapterPort;
+      int gpgPort;
+      try (ServerSocket adapterTestSocket = new ServerSocket(0);
+           ServerSocket gpgTestSocket = new ServerSocket(0)) {
+        adapterPort = adapterTestSocket.getLocalPort();
+        gpgPort = gpgTestSocket.getSoTimeout();
+      } catch (IOException exception) {
+        throw new CompletionException("Unable to find open port for ICE and GPG", exception);
+      }
 
       List<String> cmd = buildCommand(workDirectory, adapterPort, gpgPort, gameId);
       try {
@@ -132,8 +139,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
       return gpgPort;
     });
-
-    return iceAdapterClientFuture;
   }
 
   private void startIceAdapterProcess(Path workDirectory, List<String> cmd) throws IOException {

@@ -421,12 +421,12 @@ public class FafApiAccessorTest extends ServiceTest {
 
   @Test
   public void testUnknownError() throws Exception {
-    prepareErrorResponse(600);
+    prepareErrorResponse(599);
 
     StepVerifier.create(instance.getManyWithPageCount(ElideNavigator.of(Game.class).collection()))
         .verifyError();
 
-    prepareErrorResponse(600);
+    prepareErrorResponse(599);
 
     StepVerifier.create(instance.getMany(ElideNavigator.of(Game.class).collection()))
         .verifyError();

@@ -46,6 +46,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -321,8 +322,8 @@ public class FafApiAccessor implements InitializingBean {
     }
     return requestSpec
         .retrieve()
-        .onStatus(HttpStatus::isError, response -> {
-          HttpStatus httpStatus = response.statusCode();
+        .onStatus(HttpStatusCode::isError, response -> {
+          HttpStatusCode httpStatus = response.statusCode();
           if (httpStatus.equals(HttpStatus.BAD_REQUEST) || httpStatus.equals(HttpStatus.UNPROCESSABLE_ENTITY)) {
             /* onStatus expects a mono which emits an exception so here we map it to an Exception, however
               this map is never executed since bodyToMono will throw its own ResourceParseException if there are
