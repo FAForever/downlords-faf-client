@@ -12,8 +12,6 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.vault.search.SearchController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.commons.api.dto.ApiException;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -131,8 +129,7 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
 
     initSearchController();
 
-    BooleanBinding inSearchableState = Bindings.createBooleanBinding(() -> state.get() != State.SEARCHING, state);
-    searchController.setSearchButtonDisabledCondition(inSearchableState);
+    searchController.setSearchButtonDisabledCondition(state.map(state1 -> state1 == State.SEARCHING));
 
     pagination.currentPageIndexProperty().addListener((observable, oldValue, newValue) -> {
       if (!oldValue.equals(newValue)) {

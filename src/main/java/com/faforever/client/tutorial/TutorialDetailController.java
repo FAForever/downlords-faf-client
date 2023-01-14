@@ -1,12 +1,13 @@
 package com.faforever.client.tutorial;
 
+import com.faforever.client.domain.MapBean;
+import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.TutorialBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
-import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -68,9 +69,12 @@ public class TutorialDetailController extends AbstractViewController<Node> {
     this.tutorial = tutorial;
     titleLabel.textProperty().bind(tutorial.titleProperty());
     if (tutorial.getMapVersion() != null) {
-      mapNameLabel.textProperty().bind(Bindings.createStringBinding(() -> i18n.get("tutorial.mapName", tutorial.getMapVersion().getMap().getDisplayName()),
-          tutorial.mapVersionProperty(),
-          tutorial.getMapVersion().getMap().displayNameProperty()));
+      mapNameLabel.textProperty()
+          .bind(tutorial.mapVersionProperty()
+              .flatMap(MapVersionBean::mapProperty)
+              .flatMap(MapBean::displayNameProperty)
+              .map(displayName -> i18n.get("tutorial.mapName", displayName)));
+
       mapImage.setImage(mapService.loadPreview(tutorial.getMapVersion(), PreviewSize.LARGE));
       mapContainer.setVisible(true);
     } else {

@@ -7,7 +7,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.SocialStatus;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -91,12 +90,7 @@ public class ChatChannelUser {
         player.getChatChannelUsers().add(this);
         socialStatus.bind(player.socialStatusProperty());
         gameStatus.bind(player.statusProperty());
-        clanTag.bind(Bindings.createStringBinding(() -> {
-          if (player.getClan() != null && !player.getClan().isBlank()) {
-            return String.format("[%s]", player.getClan());
-          }
-          return null;
-        }, player.clanProperty()));
+        clanTag.bind(player.clanProperty().map(clan -> clan.isBlank() ? null : String.format("[%s]", clan)));
       }
       this.player.set(player);
     }

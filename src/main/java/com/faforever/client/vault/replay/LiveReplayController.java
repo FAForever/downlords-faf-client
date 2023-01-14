@@ -129,10 +129,8 @@ public class LiveReplayController extends AbstractViewController<Node> {
     sortedList.comparatorProperty().bind(tableView.comparatorProperty());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
-    mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
-        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
-        param.getValue().mapFolderNameProperty())
-    );
+    mapPreviewColumn.setCellValueFactory(param -> param.getValue().mapFolderNameProperty()
+            .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL)));
 
     startTimeColumn.setCellValueFactory(param -> param.getValue().startTimeProperty());
     startTimeColumn.setCellFactory(param -> new StringCell<>(this.timeService::asShortTime));

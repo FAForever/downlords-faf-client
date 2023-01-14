@@ -5,7 +5,6 @@ import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.google.common.base.Strings;
-import javafx.beans.binding.Bindings;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -48,7 +47,7 @@ public class TutorialListItemController extends AbstractViewController<Node> {
     this.tutorial = tutorial;
     imageView.setImage(getImage(tutorial));
     titleLabel.textProperty().bind(tutorial.titleProperty());
-    ordinalLabel.textProperty().bind(Bindings.createStringBinding(() -> String.valueOf(tutorial.getOrdinal()), tutorial.ordinalProperty()));
+    ordinalLabel.textProperty().bind(tutorial.ordinalProperty().map(String::valueOf));
   }
 
   private Image getImage(TutorialBean tutorial) {

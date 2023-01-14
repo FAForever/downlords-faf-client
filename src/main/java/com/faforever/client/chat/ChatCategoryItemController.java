@@ -17,7 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -64,10 +63,11 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
   }
 
   private void bindProperties() {
-    JavaFxUtil.bind(categoryLabel.styleProperty(), Bindings.createStringBinding(() -> {
-      Color color = chatPrefs.getGroupToColor().getOrDefault(chatUserCategory, null);
-      return color != null ? String.format("-fx-text-fill: %s", JavaFxUtil.toRgbCode(color)) : "";
-    }, chatPrefs.groupToColorProperty()));
+    JavaFxUtil.bind(categoryLabel.styleProperty(), chatPrefs.groupToColorProperty()
+        .map(groupToColor -> groupToColor.get(chatUserCategory))
+        .map(JavaFxUtil::toRgbCode)
+        .map(color -> String.format("-fx-text-fill: %s", color))
+        .orElse(""));
   }
 
   public void onCategoryClicked(MouseEvent mouseEvent) {

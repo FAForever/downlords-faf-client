@@ -16,7 +16,6 @@ import com.github.rutledgepaulv.qbuilders.properties.virtual.ListableProperty;
 import com.github.rutledgepaulv.qbuilders.properties.virtual.NumberProperty;
 import com.github.rutledgepaulv.qbuilders.properties.virtual.Property;
 import com.google.common.collect.ImmutableMap;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;
@@ -81,15 +80,14 @@ public class SpecificationController implements Controller<Node> {
       .put(NIN, "query.notIn")
       .build();
 
-  private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS =
-      ImmutableMap.<Class<?>, Collection<ComparisonOperator>>builder()
-          .put(Number.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
-          .put(Temporal.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE))
-          .put(String.class, Arrays.asList(EQ, NE, IN, NIN, RE, EX))
-          .put(Boolean.class, Arrays.asList(EQ, NE))
-          .put(Enum.class, Arrays.asList(EQ, NE, IN, NIN))
-          .put(ComparableVersion.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
-          .build();
+  private static final Map<Class<?>, Collection<ComparisonOperator>> VALID_OPERATORS = ImmutableMap.<Class<?>, Collection<ComparisonOperator>>builder()
+      .put(Number.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
+      .put(Temporal.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE))
+      .put(String.class, Arrays.asList(EQ, NE, IN, NIN, RE, EX))
+      .put(Boolean.class, Arrays.asList(EQ, NE))
+      .put(Enum.class, Arrays.asList(EQ, NE, IN, NIN))
+      .put(ComparableVersion.class, Arrays.asList(EQ, NE, GT, GTE, LT, LTE, IN, NIN))
+      .build();
   public static final String ID_PROPERTY_NAME = "id";
 
   private final I18n i18n;
@@ -174,8 +172,8 @@ public class SpecificationController implements Controller<Node> {
       datePicker.setVisible(true);
       valueField.setVisible(false);
       valueField.valueProperty()
-          .bind(Bindings.createStringBinding(() -> datePicker.getValue().atStartOfDay(ZoneId.systemDefault())
-              .format(DateTimeFormatter.ISO_INSTANT), datePicker.valueProperty()));
+          .bind(datePicker.valueProperty()
+              .map(localDate -> localDate.atStartOfDay(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_INSTANT)));
     }
   }
 
@@ -225,9 +223,7 @@ public class SpecificationController implements Controller<Node> {
   }
 
   private Collection<Integer> splitInts(String value) {
-    return Arrays.stream(value.split(","))
-        .map(Integer::parseInt)
-        .collect(Collectors.toList());
+    return Arrays.stream(value.split(",")).map(Integer::parseInt).collect(Collectors.toList());
   }
 
   @SuppressWarnings("unchecked")
@@ -319,8 +315,7 @@ public class SpecificationController implements Controller<Node> {
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends EquitableProperty & ListableProperty> Condition getEquitableCondition(
-      ComparisonOperator comparisonOperator, String value, Class<?> fieldType, T prop) {
+  private <T extends EquitableProperty & ListableProperty> Condition getEquitableCondition(ComparisonOperator comparisonOperator, String value, Class<?> fieldType, T prop) {
 
     if (comparisonOperator == EQ) {
       return prop.eq(value);
@@ -382,8 +377,7 @@ public class SpecificationController implements Controller<Node> {
   private Condition getBooleanCondition(ComparisonOperator comparisonOperator, String value, Class<?> fieldType, BooleanProperty prop) {
     boolean booleanValue = Boolean.parseBoolean(value);
 
-    if (comparisonOperator == EQ && booleanValue
-        || comparisonOperator == NE && !booleanValue) {
+    if (comparisonOperator == EQ && booleanValue || comparisonOperator == NE && !booleanValue) {
       return prop.isTrue();
     }
 

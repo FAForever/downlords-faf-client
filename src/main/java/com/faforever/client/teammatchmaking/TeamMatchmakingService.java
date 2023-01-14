@@ -50,15 +50,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -105,7 +105,7 @@ public class TeamMatchmakingService implements InitializingBean {
   private final ObservableList<MatchmakerQueueBean> matchmakerQueues = FXCollections.observableArrayList();
   private final ObservableMap<Integer, MatchmakerQueueBean> queueIdToQueue = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
   private final ReadOnlyBooleanWrapper partyMembersNotReady = new ReadOnlyBooleanWrapper();
-  private final ObservableSet<PlayerBean> playersInGame = FXCollections.observableSet();
+  private final SetProperty<PlayerBean> playersInGame = new SimpleSetProperty<>(FXCollections.observableSet());
   private final List<ScheduledFuture<?>> leaveQueueTimeouts = new LinkedList<>();
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
@@ -126,7 +126,7 @@ public class TeamMatchmakingService implements InitializingBean {
     fafServerAccessor.addEventListener(GameLaunchResponse.class, this::onGameLaunchMessage);
     fafServerAccessor.addEventListener(MatchmakerInfo.class, this::onMatchmakerInfo);
 
-    partyMembersNotReady.bind(Bindings.createBooleanBinding(() -> !playersInGame.isEmpty(), playersInGame));
+    partyMembersNotReady.bind(playersInGame.emptyProperty().map(empty -> !empty));
 
     JavaFxUtil.attachListToMap(matchmakerQueues, queueIdToQueue);
 
@@ -371,7 +371,7 @@ public class TeamMatchmakingService implements InitializingBean {
     party.getMembers().forEach(partyMember -> partyMember.setGameStatusChangeListener(null));
     party.setMembers(List.of(newPartyMember));
     playersInGame.clear();
-    if (currentPlayer != null && !Objects.equals(currentPlayer.getStatus(), PlayerStatus.IDLE)) {
+    if (currentPlayer != null && currentPlayer.getStatus() != PlayerStatus.IDLE) {
       playersInGame.add(currentPlayer);
     }
   }

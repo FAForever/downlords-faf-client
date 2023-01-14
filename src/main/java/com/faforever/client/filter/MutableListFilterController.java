@@ -7,7 +7,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoFocusModelListView;
 import com.faforever.client.ui.list.NoSelectionModelListView;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -68,8 +67,8 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   }
 
   public void setText(String text) {
-    JavaFxUtil.bind(root.textProperty(), Bindings.createStringBinding(() -> i18n.get("filter.category", text,
-        String.join(", ", itemListProperty.getValue())), itemListProperty, itemListProperty.getValue()));
+    JavaFxUtil.bind(root.textProperty(), itemListProperty.map(items -> String.join(", ", items))
+        .map(strings -> i18n.get("filter.category", text, strings)));
   }
 
   public void setPromptText(String promptText) {

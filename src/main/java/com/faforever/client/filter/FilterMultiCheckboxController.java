@@ -5,13 +5,11 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.ui.list.NoFocusModelListView;
 import com.faforever.client.ui.list.NoSelectionModelListView;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
@@ -39,9 +37,8 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   public TextField searchTextField;
   public CheckListView<String> listView;
 
-  private final ObservableList<U> selectedItems = FXCollections.observableArrayList();
-  private final ListProperty<U> selectedItemListProperty = new SimpleListProperty<>(selectedItems);
-  private final ObservableList<String> selectedStringItems = FXCollections.observableArrayList();
+  private final ListProperty<U> selectedItemListProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ListProperty<String> selectedStringListProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
 
   private StringConverter<U> converter;
   private List<U> sourceList;
@@ -58,14 +55,14 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   @Override
   public boolean hasDefaultValue() {
-    return selectedItems.isEmpty();
+    return selectedItemListProperty.isEmpty();
   }
 
   @Override
   public void resetFilter() {
-    selectedStringItems.clear();
+    selectedStringListProperty.clear();
     searchTextField.setText("");
-    selectedItems.clear();
+    selectedItemListProperty.clear();
     listView.getCheckModel().clearChecks();
   }
 
@@ -98,16 +95,16 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   }
 
   private void addListeners() {
-    JavaFxUtil.addListener(searchTextField.textProperty(), observable ->
-        filteredList.setPredicate(item -> StringUtils.containsIgnoreCase(item, searchTextField.getText())));
+    JavaFxUtil.addListener(searchTextField.textProperty(), observable -> filteredList.setPredicate(item -> StringUtils.containsIgnoreCase(item, searchTextField.getText())));
     JavaFxUtil.addListener(filteredList.predicateProperty(), observable -> restoreSelectedItems());
     JavaFxUtil.addListener(listView.getCheckModel().getCheckedItems(), (ListChangeListener<String>) this::invalidate);
-    JavaFxUtil.bind(root.textProperty(), Bindings.createStringBinding(() -> i18n.get("filter.category", text,
-        String.join(", ", selectedStringItems)), selectedStringItems));
+    JavaFxUtil.bind(root.textProperty(), selectedStringListProperty.map(selectedStrings -> String.join(", ", selectedStrings))
+        .map(strings -> i18n.get("filter.category", text, strings)));
+
   }
 
   private void restoreSelectedItems() {
-    selectedStringItems.forEach(item -> listView.getCheckModel().check(item));
+    selectedStringListProperty.forEach(item -> listView.getCheckModel().check(item));
   }
 
   private void addSearchBar() {
@@ -120,15 +117,15 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
     if (change.next()) {
       if (change.wasAdded()) {
         String checkedItem = change.getAddedSubList().get(0);
-        if (!selectedStringItems.contains(checkedItem)) {
-          selectedStringItems.add(checkedItem);
-          selectedItems.add(sourceList.get(convertedSourceList.indexOf(checkedItem)));
+        if (!selectedStringListProperty.contains(checkedItem)) {
+          selectedStringListProperty.add(checkedItem);
+          selectedItemListProperty.add(sourceList.get(convertedSourceList.indexOf(checkedItem)));
         }
       } else if (change.wasRemoved()) {
         String uncheckedItem = change.getRemoved().get(0);
-        if (selectedStringItems.contains(uncheckedItem)) {
-          selectedStringItems.remove(uncheckedItem);
-          selectedItems.remove(sourceList.get(convertedSourceList.indexOf(uncheckedItem)));
+        if (selectedStringListProperty.contains(uncheckedItem)) {
+          selectedStringListProperty.remove(uncheckedItem);
+          selectedItemListProperty.remove(sourceList.get(convertedSourceList.indexOf(uncheckedItem)));
         }
       }
     }
@@ -148,6 +145,6 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
 
   @VisibleForTesting
   List<U> getSelectedItems() {
-    return selectedItems;
+    return selectedItemListProperty;
   }
 }

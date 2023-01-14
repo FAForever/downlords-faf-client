@@ -121,6 +121,8 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);
+
+    instance.afterPropertiesSet();
   }
 
   private void setPartyMembers() {
@@ -214,9 +216,22 @@ public class TeamMatchmakingServiceTest extends ServiceTest {
 
     instance.onPartyInfo(message);
 
-
     assertThat(instance.getParty().getMembers().size(), is(2));
     assertThat(instance.getParty().getOwner(), is(otherPlayer));
+  }
+
+  @Test
+  public void testPartyMembersReady() {
+    List<PartyInfo.PartyMember> testMembers = generatePartyMembers(List.of(1, 2));
+    PartyInfo message = new PartyInfo(2, testMembers);
+
+    instance.onPartyInfo(message);
+
+    assertThat(instance.partyMembersNotReady(), is(false));
+
+    instance.getParty().getMembers().get(0).getPlayer().setGame(GameBeanBuilder.create().defaultValues().get());
+
+    assertThat(instance.partyMembersNotReady(), is(true));
   }
 
   @Test

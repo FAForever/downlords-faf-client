@@ -1,6 +1,7 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.config.ClientProperties;
+import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -117,12 +118,12 @@ public class ModUploadController implements Controller<Node> {
     this.modVersionInfo = modVersion;
     JavaFxUtil.runLater(() -> {
       enterModInfoState();
-      modNameLabel.textProperty().bind(modVersion.getMod().displayNameProperty());
+      modNameLabel.textProperty().bind(modVersion.modProperty().flatMap(ModBean::displayNameProperty));
       descriptionLabel.textProperty().bind(modVersion.descriptionProperty());
       versionLabel.textProperty().bind(modVersion.versionProperty().asString());
       uidLabel.textProperty().bind(modVersion.uidProperty());
       thumbnailImageView.imageProperty().bind(
-          Bindings.createObjectBinding(() -> modService.loadThumbnail(modVersion), modVersion.idProperty(), modVersion.imagePathProperty())
+          Bindings.createObjectBinding(() -> modService.loadThumbnail(modVersion), modVersion.thumbnailUrlProperty())
       );
     });
   }

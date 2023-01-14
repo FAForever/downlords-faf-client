@@ -25,7 +25,6 @@ import com.faforever.client.update.Version;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -133,7 +132,8 @@ public class LoginController implements Controller<Pane> {
       }
     });
 
-    ReadOnlyObjectProperty<ServerEndpoints> selectedEndpointProperty = environmentComboBox.getSelectionModel().selectedItemProperty();
+    ReadOnlyObjectProperty<ServerEndpoints> selectedEndpointProperty = environmentComboBox.getSelectionModel()
+        .selectedItemProperty();
 
     selectedEndpointProperty.addListener(observable -> {
       ServerEndpoints serverEndpoints = environmentComboBox.getSelectionModel().getSelectedItem();
@@ -308,11 +308,10 @@ public class LoginController implements Controller<Pane> {
           DownloadUpdateTask downloadUpdateTask = clientUpdateService.downloadAndInstallInBackground(updateInfo);
 
           if (downloadUpdateTask != null) {
-            downloadUpdateButton.textProperty().bind(
-                Bindings.createStringBinding(() -> downloadUpdateTask.getProgress() == -1 ?
-                        i18n.get("login.button.downloadPreparing") :
-                        i18n.get("login.button.downloadProgress", downloadUpdateTask.getProgress()),
-                    downloadUpdateTask.progressProperty()));
+            downloadUpdateButton.textProperty()
+                .bind(downloadUpdateTask.progressProperty().map(progress -> progress.doubleValue() < 0 ?
+                    i18n.get("login.button.downloadPreparing") :
+                    i18n.get("login.button.downloadProgress", progress)));
           }
         });
   }

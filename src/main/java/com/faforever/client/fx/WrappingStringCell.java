@@ -1,6 +1,5 @@
 package com.faforever.client.fx;
 
-import javafx.beans.binding.Bindings;
 import javafx.scene.control.TableCell;
 import javafx.scene.text.Text;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,7 @@ public class WrappingStringCell<S, T> extends TableCell<S, T> {
       setGraphic(null);
     } else {
       Text text = new Text(function.apply(item));
-      text.wrappingWidthProperty().bind(Bindings.createDoubleBinding(() -> getWidth() * .95, widthProperty()));
+      text.wrappingWidthProperty().bind(widthProperty().multiply(.95));
       text.getStyleClass().addAll(cssClasses);
       text.setStyle("-fx-fill: -fx-text-color;");
       setGraphic(text);
