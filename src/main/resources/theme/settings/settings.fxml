@@ -562,7 +562,7 @@
                                                           mnemonicParsing="false" GridPane.columnIndex="1"
                                                           GridPane.halignment="CENTER" GridPane.rowIndex="1"
                                                           GridPane.valignment="CENTER"/>
-                                                <CheckBox fx:id="playFriendOnlineSoundCheckBox" disable="true"
+                                                <CheckBox fx:id="playFriendOnlineSoundCheckBox"
                                                           mnemonicParsing="false" GridPane.columnIndex="2"
                                                           GridPane.halignment="CENTER" GridPane.rowIndex="1"
                                                           GridPane.valignment="CENTER"/>
@@ -572,7 +572,7 @@
                                                 <Label styleClass="setting-title"
                                                        text="%settings.notifications.friendOffline"
                                                        GridPane.rowIndex="2"/>
-                                                <CheckBox fx:id="playFriendOfflineSoundCheckBox" disable="true"
+                                                <CheckBox fx:id="playFriendOfflineSoundCheckBox"
                                                           mnemonicParsing="false" GridPane.columnIndex="2"
                                                           GridPane.halignment="CENTER" GridPane.rowIndex="2"
                                                           GridPane.valignment="CENTER"/>

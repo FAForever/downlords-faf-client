@@ -273,10 +273,6 @@ public class SettingsController implements Controller<Node> {
    */
   private void temporarilyDisableUnsupportedSettings(Preferences preferences) {
     NotificationsPrefs notification = preferences.getNotification();
-    notification.setFriendOnlineSoundEnabled(false);
-    notification.setFriendOfflineSoundEnabled(false);
-    notification.setFriendOfflineSoundEnabled(false);
-    notification.setFriendPlaysGameSoundEnabled(false);
     notification.setFriendPlaysGameToastEnabled(false);
   }
 

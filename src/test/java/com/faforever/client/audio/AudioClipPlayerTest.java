@@ -14,7 +14,7 @@ public class AudioClipPlayerTest extends ServiceTest {
   @Test
   @Disabled("Causes javafx to throw media exception could not load player on github")
   public void testPlaySound() throws Exception {
-    AudioClip audioClip = new AudioClip(AudioClipPlayer.class.getResource("/theme/sounds/info.mp3").toURI().toURL().toString());
+    AudioClip audioClip = new AudioClip(AudioClipPlayer.class.getResource("/theme/sounds/infoNotificationSound.mp3").toURI().toURL().toString());
 
     // Not much to test here, since AudioClip is final. But let's at least call the method
     instance.playSound(audioClip);
