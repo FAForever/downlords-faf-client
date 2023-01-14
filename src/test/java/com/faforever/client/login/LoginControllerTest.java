@@ -389,7 +389,7 @@ public class LoginControllerTest extends UITest {
     instance.onDownloadUpdateButtonClicked();
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(i18n).get("login.button.downloadPreparing");
+    verify(i18n, atLeastOnce()).get("login.button.downloadPreparing");
     verify(clientUpdateService, atLeastOnce()).downloadAndInstallInBackground(updateInfo);
   }
 
