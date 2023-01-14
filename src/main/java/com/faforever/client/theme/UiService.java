@@ -100,7 +100,7 @@ public class UiService implements InitializingBean, DisposableBean {
   public static final String STYLE_CSS = "theme/style.css";
   public static final String WEBVIEW_CSS_FILE = "theme/style-webview.css";
   public static final String DEFAULT_ACHIEVEMENT_IMAGE = "theme/images/default_achievement.png";
-  public static final String MENTION_SOUND = "theme/sounds/mention.mp3";
+  public static final String MENTION_SOUND = "theme/sounds/userMentionSound.mp3";
   public static final String CSS_CLASS_ICON = "icon";
   public static final String LADDER_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
   public static final String CHAT_CONTAINER = "theme/chat/chat_container.html";

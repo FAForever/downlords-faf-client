@@ -164,27 +164,27 @@ public class AudioServiceTest extends ServiceTest {
   public void testPlayFriendOfflineSound() {
     instance.playFriendOfflineSound();
 
-    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
   public void testPlayFriendOnlineSound() {
     instance.playFriendOnlineSound();
 
-    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
   public void testPlayFriendPlaysGameSound() {
     instance.playFriendPlaysGameSound();
 
-    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 
   @Test
   public void testPlayFriendJoinsGamSound() {
     instance.playFriendJoinsGameSound();
 
-    verify(audioClipPlayer, never()).playSound(any(AudioClip.class));
+    verify(audioClipPlayer).playSound(any(AudioClip.class));
   }
 }

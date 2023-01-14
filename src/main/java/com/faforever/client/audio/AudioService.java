@@ -19,10 +19,16 @@ import java.util.TimerTask;
 @RequiredArgsConstructor
 public class AudioService implements InitializingBean {
 
-  private static final String ACHIEVEMENT_UNLOCKED_SOUND = "theme/sounds/achievement_unlocked.mp3";
-  private static final String INFO_SOUND = "theme/sounds/info.mp3";
-  private static final String MENTION_SOUND = "theme/sounds/mention.mp3";
-  private static final String PRIVATE_MESSAGE_SOUND = "theme/sounds/pm.mp3";
+  private static final String ACHIEVEMENT_UNLOCKED_SOUND = "theme/sounds/achievementUnlockedSound.mp3";
+  private static final String NOTIFICATION_INFO_SOUND = "theme/sounds/infoNotificationSound.mp3";
+  private static final String NOTIFICATION_WARN_SOUND = "theme/sounds/warnNotificationSound.mp3";
+  private static final String NOTIFICATION_ERROR_SOUND = "theme/sounds/errorNotificationSound.mp3";
+  private static final String MENTION_SOUND = "theme/sounds/userMentionSound.mp3";
+  private static final String PRIVATE_MESSAGE_SOUND = "theme/sounds/privateMessageSound.mp3";
+  private static final String FRIEND_ONLINE_SOUND = "theme/sounds/friendOnlineSound.mp3";
+  private static final String FRIEND_OFFLINE_SOUND = "theme/sounds/friendOfflineSound.mp3";
+  private static final String FRIEND_JOINS_GAME_SOUND = "theme/sounds/friendJoinsGameSound.mp3";
+  private static final String FRIEND_PLAYS_GAME_SOUND = "theme/sounds/friendPlaysGameSound.mp3";
   private static final long SILENCE_PERIOD_AFTER_SOUND = 30000;
 
   private final PreferencesService preferencesService;
@@ -58,16 +64,15 @@ public class AudioService implements InitializingBean {
 
   private void loadSounds() throws IOException {
     achievementUnlockedSound = loadSound(ACHIEVEMENT_UNLOCKED_SOUND);
-    infoNotificationSound = loadSound(INFO_SOUND);
-    errorNotificationSound = loadSound(INFO_SOUND);
-    warnNotificationSound = loadSound(INFO_SOUND);
+    infoNotificationSound = loadSound(NOTIFICATION_INFO_SOUND);
+    errorNotificationSound = loadSound(NOTIFICATION_ERROR_SOUND);
+    warnNotificationSound = loadSound(NOTIFICATION_WARN_SOUND);
     chatMentionSound = loadSound(MENTION_SOUND);
     privateMessageSound = loadSound(PRIVATE_MESSAGE_SOUND);
-    // TODO implement
-//    friendOnlineSound = loadSound(FRIEND_ONLINE_SOUND);
-//    friendOfflineSound = loadSound(FRIEND_OFFLINE_SOUND);
-//    friendJoinsGameSound = loadSound(FRIEND_JOINS_GAME_SOUND);
-//    friendPlaysGameSound = loadSound(FRIEND_PLAYS_GAME_SOUND);
+    friendOnlineSound = loadSound(FRIEND_ONLINE_SOUND);
+    friendOfflineSound = loadSound(FRIEND_OFFLINE_SOUND);
+    friendJoinsGameSound = loadSound(FRIEND_JOINS_GAME_SOUND);
+    friendPlaysGameSound = loadSound(FRIEND_PLAYS_GAME_SOUND);
   }
 
   private AudioClip loadSound(String sound) throws IOException {
@@ -124,8 +129,7 @@ public class AudioService implements InitializingBean {
     if (!notificationsPrefs.isFriendOnlineSoundEnabled()) {
       return;
     }
-    // FIXME implement
-//    playSound(friendOnlineSound);
+    playSound(friendOnlineSound);
   }
 
 
@@ -133,8 +137,7 @@ public class AudioService implements InitializingBean {
     if (!notificationsPrefs.isFriendOfflineSoundEnabled()) {
       return;
     }
-    // FIXME implement
-//    playSound(friendOfflineSound);
+    playSound(friendOfflineSound);
   }
 
 
@@ -142,8 +145,7 @@ public class AudioService implements InitializingBean {
     if (!notificationsPrefs.isFriendJoinsGameSoundEnabled()) {
       return;
     }
-    // FIXME implement
-//    playSound(friendJoinsGameSound);
+    playSound(friendJoinsGameSound);
   }
 
 
@@ -151,8 +153,7 @@ public class AudioService implements InitializingBean {
     if (!notificationsPrefs.isFriendPlaysGameSoundEnabled()) {
       return;
     }
-    // FIXME implement
-//    playSound(friendPlaysGameSound);
+    playSound(friendPlaysGameSound);
   }
 
   private void playSound(AudioClip audioClip) {
