@@ -20,8 +20,8 @@ import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import javafx.beans.InvalidationListener;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -427,8 +427,8 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.specificationController.setRootType(rootType);
   }
 
-  public void setSearchButtonDisabledCondition(BooleanBinding inSearchableState) {
-    searchButton.disableProperty().bind(inSearchableState.not());
+  public void setSearchButtonDisabledCondition(ObservableValue<Boolean> notInSearchableState) {
+    searchButton.disableProperty().bind(notInSearchableState);
   }
 
   public void setOnlyShowLastYearCheckBoxVisible(boolean visible) {

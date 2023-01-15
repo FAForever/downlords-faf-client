@@ -23,7 +23,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
@@ -349,7 +348,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     List<VBox> queueCards = queues.stream().map(queue -> {
       MatchmakingQueueItemController controller = uiService.loadFxml("theme/play/teammatchmaking/matchmaking_queue_card.fxml");
       controller.setQueue(queue);
-      controller.getRoot().prefWidthProperty().bind(Bindings.createDoubleBinding(() -> queuePane.getWidth() / queuesPerRow - queuePane.getHgap(), queuePane.widthProperty()));
+      controller.getRoot().prefWidthProperty().bind(queuePane.widthProperty().divide(queuesPerRow).subtract(queuePane.getHgap()));
       return controller.getRoot();
     }).collect(Collectors.toList());
     JavaFxUtil.runLater(() -> queuePane.getChildren().setAll(queueCards));

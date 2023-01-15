@@ -21,7 +21,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
@@ -84,10 +83,10 @@ public class PlayerCardController implements Controller<Node> {
         ? i18n.get("userInfo.tooltipFormat.withRating", player.getUsername(), rating)
         : i18n.get("userInfo.tooltipFormat.noRating", player.getUsername()));
     setFactionIcon(faction);
-    JavaFxUtil.bind(foeIconText.visibleProperty(),
-        Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FOE, player.socialStatusProperty()));
-    JavaFxUtil.bind(friendIconText.visibleProperty(),
-        Bindings.createBooleanBinding(() -> player.getSocialStatus() == SocialStatus.FRIEND, player.socialStatusProperty()));
+    JavaFxUtil.bind(foeIconText.visibleProperty(), player.socialStatusProperty()
+        .map(socialStatus -> socialStatus == SocialStatus.FOE));
+    JavaFxUtil.bind(friendIconText.visibleProperty(), player.socialStatusProperty()
+        .map(socialStatus -> socialStatus == SocialStatus.FRIEND));
 
     initializeNoteTooltip();
     JavaFxUtil.bind(noteIcon.visibleProperty(), noteTooltip.textProperty().isNotEmpty());

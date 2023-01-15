@@ -9,7 +9,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.list.NoSelectionModelListView;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -50,20 +49,19 @@ public class InvitePlayerController implements Controller<Pane> {
     );
     playerList.setAll(getPlayerNames());
 
-    filteredPlayerList.predicateProperty().bind(Bindings.createObjectBinding(() -> playerName -> {
+    filteredPlayerList.predicateProperty().bind(playerTextField.textProperty().map(text -> playerName -> {
       if (playerService.getCurrentPlayer().getUsername().equals(playerName)) {
         return false;
       }
 
-      if (playerTextField.getText().isBlank()) {
+      if (text.isBlank()) {
         return playerService.getPlayerByNameIfOnline(playerName)
             .map(player -> player.getSocialStatus() == SocialStatus.FRIEND)
             .orElse(false);
-          } else {
+      } else {
         return playerName.toLowerCase().contains(playerTextField.getText().toLowerCase());
-          }
-        }, playerTextField.textProperty()
-    ));
+      }
+    }));
 
     invitedPlayersListView.setSelectionModel(new NoSelectionModelListView<>());
     invitedPlayersListView.setCellFactory(param -> new IconButtonListCell<>(this::invitedPlayerListCellConfiguration, uiService));

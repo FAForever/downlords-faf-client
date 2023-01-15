@@ -49,7 +49,6 @@ import com.google.common.eventbus.EventBus;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
@@ -201,16 +200,20 @@ public class SettingsController implements Controller<Node> {
     Preferences preferences = preferencesService.getPreferences();
     temporarilyDisableUnsupportedSettings(preferences);
 
-    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat().maxMessagesProperty(), numberToStringConverter);
+    JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat()
+        .maxMessagesProperty(), numberToStringConverter);
     imagePreviewToggle.selectedProperty().bindBidirectional(preferences.getChat().previewImageUrlsProperty());
-    enableNotificationsToggle.selectedProperty().bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
+    enableNotificationsToggle.selectedProperty()
+        .bindBidirectional(preferences.getNotification().transientNotificationsEnabledProperty());
 
     hideFoeToggle.selectedProperty().bindBidirectional(preferences.getChat().hideFoeMessagesProperty());
 
     disallowJoinsCheckBox.selectedProperty().bindBidirectional(preferences.disallowJoinsViaDiscordProperty());
-    disableSteamStartCheckBox.selectedProperty().bindBidirectional(preferences.getGeneral().disableSteamStartProperty());
+    disableSteamStartCheckBox.selectedProperty()
+        .bindBidirectional(preferences.getGeneral().disableSteamStartProperty());
 
-    JavaFxUtil.addListener(preferences.getChat().chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
+    JavaFxUtil.addListener(preferences.getChat()
+        .chatColorModeProperty(), (observable, oldValue, newValue) -> setSelectedColorMode(newValue));
     setSelectedColorMode(preferences.getChat().getChatColorMode());
 
     colorModeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
@@ -287,7 +290,8 @@ public class SettingsController implements Controller<Node> {
 
   private void bindGeneralPreferences() {
     Preferences preferences = preferencesService.getPreferences();
-    backgroundImageLocation.textProperty().bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
+    backgroundImageLocation.textProperty()
+        .bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
 
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
@@ -299,21 +303,28 @@ public class SettingsController implements Controller<Node> {
     });
 
     logLevelComboBox.getSelectionModel().select(Level.toLevel(preferences.getDeveloper().getLogLevel()));
-    preferences.getDeveloper().logLevelProperty().bind(logLevelComboBox.getSelectionModel().selectedItemProperty().asString());
-    dataLocationTextField.textProperty().bindBidirectional(preferences.getData().baseDataDirectoryProperty(), PATH_STRING_CONVERTER);
+    preferences.getDeveloper()
+        .logLevelProperty()
+        .bind(logLevelComboBox.getSelectionModel().selectedItemProperty().asString());
+    dataLocationTextField.textProperty()
+        .bindBidirectional(preferences.getData().baseDataDirectoryProperty(), PATH_STRING_CONVERTER);
 
   }
 
   private void bindGamePreferences() {
     ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
     forceRelayToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.forceRelayProperty());
-    changeProcessPriorityToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.changeProcessPriorityProperty());
-    gameLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.installationPathProperty(), PATH_STRING_CONVERTER);
+    changeProcessPriorityToggle.selectedProperty()
+        .bindBidirectional(forgedAlliancePrefs.changeProcessPriorityProperty());
+    gameLocationTextField.textProperty()
+        .bindBidirectional(forgedAlliancePrefs.installationPathProperty(), PATH_STRING_CONVERTER);
     autoDownloadMapsToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.autoDownloadMapsProperty());
     useFAFDebuggerToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.runFAWithDebuggerProperty());
     allowIpv6Toggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.allowIpv6Property());
-    showIceAdapterDebugWindowToggle.selectedProperty().bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
-    vaultLocationTextField.textProperty().bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
+    showIceAdapterDebugWindowToggle.selectedProperty()
+        .bindBidirectional(forgedAlliancePrefs.showIceAdapterDebugWindow());
+    vaultLocationTextField.textProperty()
+        .bindBidirectional(forgedAlliancePrefs.vaultBaseDirectoryProperty(), PATH_STRING_CONVERTER);
     JavaFxUtil.addAndTriggerListener(vaultLocationTextField.textProperty(), (observable) ->
         vaultLocationWarningLabel.setVisible(preferencesService.isVaultBasePathInvalidForAscii()));
 
@@ -324,7 +335,8 @@ public class SettingsController implements Controller<Node> {
     }));
 
     executableDecoratorField.textProperty().bindBidirectional(forgedAlliancePrefs.executableDecoratorProperty());
-    executionDirectoryField.textProperty().bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
+    executionDirectoryField.textProperty()
+        .bindBidirectional(forgedAlliancePrefs.executionDirectoryProperty(), PATH_STRING_CONVERTER);
   }
 
   private void initPreferredCoturnListView() {
@@ -332,7 +344,9 @@ public class SettingsController implements Controller<Node> {
       preferredCoturnListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
       preferredCoturnListView.setItems(FXCollections.observableList(coturnServers));
       preferredCoturnListView.setCellFactory(param -> new StringListCell<>(CoturnServer::getRegion));
-      ObservableSet<CoturnHostPort> preferredCoturnServers = preferencesService.getPreferences().getForgedAlliance().getPreferredCoturnServers();
+      ObservableSet<CoturnHostPort> preferredCoturnServers = preferencesService.getPreferences()
+          .getForgedAlliance()
+          .getPreferredCoturnServers();
       Map<CoturnHostPort, CoturnServer> hostPortCoturnServerMap = coturnServers.stream()
           .collect(Collectors.toMap(iceServerMapper::mapToHostPort, server -> server));
 
@@ -341,7 +355,8 @@ public class SettingsController implements Controller<Node> {
           .map(hostPortCoturnServerMap::get)
           .forEach(coturnServer -> preferredCoturnListView.getSelectionModel().select(coturnServer));
 
-      JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel().getSelectedItems(), (InvalidationListener) observable -> {
+      JavaFxUtil.addAndTriggerListener(preferredCoturnListView.getSelectionModel()
+          .getSelectedItems(), (InvalidationListener) observable -> {
         List<CoturnServer> selectedCoturns = preferredCoturnListView.getSelectionModel().getSelectedItems();
         preferredCoturnServers.clear();
         selectedCoturns.stream().map(iceServerMapper::mapToHostPort).forEach(preferredCoturnServers::add);
@@ -363,18 +378,29 @@ public class SettingsController implements Controller<Node> {
 
   private void bindNotificationPreferences() {
     NotificationsPrefs notificationsPrefs = preferencesService.getPreferences().getNotification();
-    displayFriendOnlineToastCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendOnlineToastEnabledProperty());
-    displayFriendOfflineToastCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendOfflineToastEnabledProperty());
-    displayFriendJoinsGameToastCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendJoinsGameToastEnabledProperty());
-    displayFriendPlaysGameToastCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendPlaysGameToastEnabledProperty());
-    displayPmReceivedToastCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.privateMessageToastEnabledProperty());
-    playFriendOnlineSoundCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendOnlineSoundEnabledProperty());
-    playFriendOfflineSoundCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendOfflineSoundEnabledProperty());
-    playFriendJoinsGameSoundCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendJoinsGameSoundEnabledProperty());
-    playFriendPlaysGameSoundCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.friendPlaysGameSoundEnabledProperty());
-    playPmReceivedSoundCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.privateMessageSoundEnabledProperty());
+    displayFriendOnlineToastCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendOnlineToastEnabledProperty());
+    displayFriendOfflineToastCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendOfflineToastEnabledProperty());
+    displayFriendJoinsGameToastCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendJoinsGameToastEnabledProperty());
+    displayFriendPlaysGameToastCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendPlaysGameToastEnabledProperty());
+    displayPmReceivedToastCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.privateMessageToastEnabledProperty());
+    playFriendOnlineSoundCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendOnlineSoundEnabledProperty());
+    playFriendOfflineSoundCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendOfflineSoundEnabledProperty());
+    playFriendJoinsGameSoundCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendJoinsGameSoundEnabledProperty());
+    playFriendPlaysGameSoundCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.friendPlaysGameSoundEnabledProperty());
+    playPmReceivedSoundCheckBox.selectedProperty()
+        .bindBidirectional(notificationsPrefs.privateMessageSoundEnabledProperty());
     afterGameReviewCheckBox.selectedProperty().bindBidirectional(notificationsPrefs.afterGameReviewEnabledProperty());
-    notifyOnAtMentionOnlyToggle.selectedProperty().bindBidirectional(notificationsPrefs.notifyOnAtMentionOnlyEnabledProperty());
+    notifyOnAtMentionOnlyToggle.selectedProperty()
+        .bindBidirectional(notificationsPrefs.notifyOnAtMentionOnlyEnabledProperty());
     enableSoundsToggle.selectedProperty().bindBidirectional(notificationsPrefs.soundsEnabledProperty());
   }
 
@@ -388,11 +414,13 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void initGameDataCache() {
-    gameDataCacheCheckBox.selectedProperty().bindBidirectional(preferencesService.getPreferences().gameDataCacheActivatedProperty());
+    gameDataCacheCheckBox.selectedProperty()
+        .bindBidirectional(preferencesService.getPreferences().gameDataCacheActivatedProperty());
     //Binding for CacheLifeTimeInDays does not work because of some java fx bug
     gameDataCacheTimeSpinner.getValueFactory().setValue(preferencesService.getPreferences().getCacheLifeTimeInDays());
     gameDataCacheTimeSpinner.getValueFactory().valueProperty()
-        .addListener((observable, oldValue, newValue) -> preferencesService.getPreferences().setCacheLifeTimeInDays(newValue));
+        .addListener((observable, oldValue, newValue) -> preferencesService.getPreferences()
+            .setCacheLifeTimeInDays(newValue));
   }
 
   private void initNotifyMeOnAtMention() {
@@ -439,7 +467,8 @@ public class SettingsController implements Controller<Node> {
     unitDatabaseComboBox.setItems(FXCollections.observableArrayList(UnitDataBaseType.values()));
     unitDatabaseComboBox.setFocusTraversable(true);
 
-    ChangeListener<UnitDataBaseType> unitDataBaseTypeChangeListener = (observable, oldValue, newValue) -> unitDatabaseComboBox.getSelectionModel().select(newValue);
+    ChangeListener<UnitDataBaseType> unitDataBaseTypeChangeListener = (observable, oldValue, newValue) -> unitDatabaseComboBox.getSelectionModel()
+        .select(newValue);
     unitDataBaseTypeChangeListener.changed(null, null, preferences.getUnitDataBaseType());
     JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), unitDataBaseTypeChangeListener);
 
@@ -552,7 +581,8 @@ public class SettingsController implements Controller<Node> {
 
   private void configureToastScreen() {
     Preferences preferences = preferencesService.getPreferences();
-    JavaFxUtil.addAndTriggerListener(preferences.getNotification().toastPositionProperty(), observable -> setSelectedToastPosition());
+    JavaFxUtil.addAndTriggerListener(preferences.getNotification()
+        .toastPositionProperty(), observable -> setSelectedToastPosition());
     toastPositionToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == topLeftToastButton) {
         preferences.getNotification().setToastPosition(ToastPosition.TOP_LEFT);
@@ -570,8 +600,8 @@ public class SettingsController implements Controller<Node> {
 
     NotificationsPrefs notificationsPrefs = preferences.getNotification();
     toastScreenComboBox.getSelectionModel().select(notificationsPrefs.getToastScreen());
-    notificationsPrefs.toastScreenProperty().bind(Bindings.createIntegerBinding(()
-        -> Screen.getScreens().indexOf(toastScreenComboBox.getValue()), toastScreenComboBox.valueProperty()));
+    notificationsPrefs.toastScreenProperty()
+        .bind(toastScreenComboBox.valueProperty().map(value -> Screen.getScreens().indexOf(value)));
   }
 
   public Region getRoot() {
@@ -620,10 +650,11 @@ public class SettingsController implements Controller<Node> {
   public void onSelectBackgroundImage() {
     WindowPrefs windowPrefs = preferencesService.getPreferences().getMainWindow();
     platformService.askForFile(i18n.get("settings.appearance.chooseImage"), windowPrefs.getBackgroundImagePath(),
-        new ExtensionFilter(i18n.get("fileChooser.dialog.imageFiles"), "*.png", "*.jpg", "*.jpeg")).ifPresent(newImagePath -> {
-      windowPrefs.setBackgroundImagePath(newImagePath);
-      preferencesService.storeInBackground();
-    });
+            new ExtensionFilter(i18n.get("fileChooser.dialog.imageFiles"), "*.png", "*.jpg", "*.jpeg"))
+        .ifPresent(newImagePath -> {
+          windowPrefs.setBackgroundImagePath(newImagePath);
+          preferencesService.storeInBackground();
+        });
   }
 
   public void onUseNoBackgroundImage(ActionEvent actionEvent) {

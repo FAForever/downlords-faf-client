@@ -116,10 +116,8 @@ public class GamesTableController implements Controller<Node> {
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
-    mapPreviewColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
-        () -> mapService.loadPreview(param.getValue().getMapFolderName(), PreviewSize.SMALL),
-        param.getValue().mapFolderNameProperty()
-    ));
+    mapPreviewColumn.setCellValueFactory(param -> param.getValue().mapFolderNameProperty()
+        .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL)));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
@@ -128,7 +126,8 @@ public class GamesTableController implements Controller<Node> {
         param.getValue().teamsProperty())
     );
     playersColumn.setCellFactory(param -> playersCell());
-    ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue().getRatingMin(), param.getValue().getRatingMax())));
+    ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue()
+        .getRatingMin(), param.getValue().getRatingMax())));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new HostTableCell(playerService));
@@ -147,15 +146,20 @@ public class GamesTableController implements Controller<Node> {
 
     if (coopMissionNameProvider != null) {
       coopMissionName.setCellFactory(param -> new StringCell<>(name -> name));
-      coopMissionName.setCellValueFactory(param -> new SimpleObjectProperty<>(coopMissionNameProvider.apply(param.getValue().getMapFolderName())));
+      coopMissionName.setCellValueFactory(param -> new SimpleObjectProperty<>(coopMissionNameProvider.apply(param.getValue()
+          .getMapFolderName())));
     }
 
     JavaFxUtil.addListener(gamesTable.getSelectionModel().selectedItemProperty(), selectedItemListener);
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences && coopMissionNameProvider == null) {
-      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().hideModdedGamesProperty(), observable -> modsColumn.setVisible(!preferencesService.getPreferences().isHideModdedGames()));
-      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().hidePrivateGamesProperty(), observable -> passwordProtectionColumn.setVisible(!preferencesService.getPreferences().isHidePrivateGames()));
+      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences()
+          .hideModdedGamesProperty(), observable -> modsColumn.setVisible(!preferencesService.getPreferences()
+          .isHideModdedGames()));
+      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences()
+          .hidePrivateGamesProperty(), observable -> passwordProtectionColumn.setVisible(!preferencesService.getPreferences()
+          .isHidePrivateGames()));
     }
 
     selectFirstGame();
