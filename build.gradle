@@ -307,7 +307,7 @@ dependencies {
   implementation("com.github.FAForever.faf-java-commons:faf-commons-lobby:${commonsVersion}")
   implementation("com.google.guava:guava:31.1-jre")
   implementation("org.apache.commons:commons-compress:1.22")
-  implementation("net.java.dev.jna:jna:5.12.1")
+  implementation("net.java.dev.jna:jna:5.13.0")
   implementation("net.java.dev.jna:jna-platform:5.13.0")
   implementation("org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r")
   implementation("org.jetbrains:annotations:24.0.0")
