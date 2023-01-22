@@ -54,7 +54,8 @@ import reactor.util.function.Tuple2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
+import java.nio.charset.MalformedInputException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -307,45 +308,63 @@ public class ModService implements InitializingBean, DisposableBean {
   private Set<String> readActiveMods() throws IOException {
     Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
     Set<String> activeMods = new HashSet<>();
-
-    String preferencesContent = Files.readString(preferencesFile, StandardCharsets.UTF_8);
-    Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
-    if (matcher.find()) {
-      Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
-      while (activeModMatcher.find()) {
-        String modUid = activeModMatcher.group(1);
-
-        if (Boolean.parseBoolean(activeModMatcher.group(2))) {
-          activeMods.add(modUid);
+    List<Charset> preferredEncodings = new ArrayList<>(List.of());
+    Map<String, Charset> map = Charset.availableCharsets();
+    for (Map.Entry<String, Charset> entry : map.entrySet()) {
+      Charset charset = entry.getValue();
+      preferredEncodings.add(charset);
+    }
+    for (Charset charset : preferredEncodings) {
+      try {
+        String preferencesContent = Files.readString(preferencesFile, charset);
+        Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
+        if (matcher.find()) {
+          Matcher activeModMatcher = ACTIVE_MOD_PATTERN.matcher(matcher.group(0));
+          while (activeModMatcher.find()) {
+            String modUid = activeModMatcher.group(1);
+            if (Boolean.parseBoolean(activeModMatcher.group(2))) {
+              activeMods.add(modUid);
+            }
+          }
         }
+        break;
+      } catch (MalformedInputException e) {
+        throw new AssetLoadException("Could not read mod state", e, "mod.errorReadingMods");
       }
     }
-
     return activeMods;
   }
 
   private void writeActiveMods(Set<String> activeMods) {
-    try {
-      Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-      String preferencesContent = Files.readString(preferencesFile, StandardCharsets.UTF_8);
+    List<Charset> preferredEncodings = new ArrayList<>(List.of());
+    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    Map<String, Charset> map = Charset.availableCharsets();
+    for (Map.Entry<String, Charset> entry : map.entrySet()) {
+      Charset charset = entry.getValue();
+      preferredEncodings.add(charset);
+    }
+    for (Charset charset : preferredEncodings) {
+      try {
+        String preferencesContent = Files.readString(preferencesFile, charset);
+        String currentActiveModsContent = null;
+        Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
+        if (matcher.find()) {
+          currentActiveModsContent = matcher.group(0);
+        }
 
-      String currentActiveModsContent = null;
-      Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
-      if (matcher.find()) {
-        currentActiveModsContent = matcher.group(0);
+        String newActiveModsContent = "active_mods = {\n%s\n}".formatted(activeMods.stream().map("    ['%s'] = true"::formatted).collect(Collectors.joining(",\n")));
+
+        if (currentActiveModsContent != null) {
+          preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContent);
+        } else {
+          preferencesContent += newActiveModsContent;
+        }
+
+        Files.writeString(preferencesFile, preferencesContent, charset);
+        break;
+      } catch (IOException e) {
+        throw new AssetLoadException("Could not update mod state", e, "mod.errorUpdatingMods");
       }
-
-      String newActiveModsContent = "active_mods = {\n%s\n}".formatted(activeMods.stream().map("    ['%s'] = true"::formatted).collect(Collectors.joining(",\n")));
-
-      if (currentActiveModsContent != null) {
-        preferencesContent = preferencesContent.replace(currentActiveModsContent, newActiveModsContent);
-      } else {
-        preferencesContent += newActiveModsContent;
-      }
-
-      Files.writeString(preferencesFile, preferencesContent, StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new AssetLoadException("Could not update mod state", e, "mod.errorUpdatingMods");
     }
   }
 
