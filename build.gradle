@@ -7,7 +7,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:3.0.1"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:3.0.2"
   }
 }
 
@@ -307,8 +307,8 @@ dependencies {
   implementation("com.github.FAForever.faf-java-commons:faf-commons-lobby:${commonsVersion}")
   implementation("com.google.guava:guava:31.1-jre")
   implementation("org.apache.commons:commons-compress:1.22")
-  implementation("net.java.dev.jna:jna:5.12.1")
-  implementation("net.java.dev.jna:jna-platform:5.12.1")
+  implementation("net.java.dev.jna:jna:5.13.0")
+  implementation("net.java.dev.jna:jna-platform:5.13.0")
   implementation("org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r")
   implementation("org.jetbrains:annotations:24.0.0")
   implementation("com.neovisionaries:nv-i18n:1.29")
@@ -355,7 +355,7 @@ dependencies {
   testImplementation("org.testfx:testfx-core:4.0.16-alpha") {
     exclude module: 'guava'
   }
-  testImplementation("io.projectreactor.netty:reactor-netty:1.1.1")
+  testImplementation("io.projectreactor.netty:reactor-netty:1.1.2")
   testImplementation("org.testfx:testfx-junit5:4.0.16-alpha")
   testImplementation("com.natpryce.hamcrest:hamcrest-reflection:0.1-2")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
