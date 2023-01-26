@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +34,7 @@ public class LoggingServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(operatingSystem.getLoggingDirectory()).thenReturn(Path.of("."));
   }
 
   @Test

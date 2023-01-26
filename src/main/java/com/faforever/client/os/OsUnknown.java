@@ -7,10 +7,10 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 
 @Slf4j
-public class OsUnknown implements OperatingSystem {
+public final class OsUnknown implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
-    log.warn("Unknown operating system can't detect whether it's run as admin.");
+    log.warn("Unsupported operating system can't detect whether it's run as admin.");
     return false;
   }
 
@@ -47,5 +47,27 @@ public class OsUnknown implements OperatingSystem {
   @NotNull
   public String getGithubAssetFileEnding() {
     throw new NotImplementedException("Cannot derive github asset file ending in unsupported OS");
+  }
+
+  @Override
+  public @NotNull Path getDefaultDataDirectory() {
+    throw new NotImplementedException("Cannot derive data directory in unsupported OS");
+  }
+
+  @Override
+  public @NotNull Path getSteamFaDirectory() {
+    throw new NotImplementedException("Cannot derive steam fa in unsupported OS");
+
+  }
+
+  @Override
+  public @NotNull Path getLocalFaDataPath() {
+    throw new NotImplementedException("Cannot derive local fa directory in unsupported OS");
+
+  }
+
+  @Override
+  public @NotNull Path getDefaultVaultDirectory() {
+    throw new NotImplementedException("Cannot vault directory in unsupported OS");
   }
 }

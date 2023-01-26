@@ -16,10 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GeneratorCommandTest extends ServiceTest {
 
-  private static final String javaPath = Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
+  private static final Path JAVA_PATH = Path.of("java");
 
   private static GeneratorCommandBuilder defaultBuilder() {
     return GeneratorCommand.builder()
+        .javaExecutable(JAVA_PATH)
         .generatorExecutableFile(Path.of("mapGenerator_1.0.0.jar"))
         .version(new ComparableVersion("1.0.0"))
         .mapSize(512)
@@ -42,7 +43,7 @@ public class GeneratorCommandTest extends ServiceTest {
   @Test
   public void testDefaultSet() {
     assertNotNull(defaultBuilder().build().getCommand());
-    assertEquals(defaultBuilder().build().getCommand(), List.of(javaPath, "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
+    assertEquals(defaultBuilder().build().getCommand(), List.of(JAVA_PATH.toAbsolutePath().toString(), "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
         "--map-size", "512", "--spawn-count", "6", "--num-teams", "2"));
   }
 
@@ -64,11 +65,12 @@ public class GeneratorCommandTest extends ServiceTest {
   @Test
   public void testMapNameNoException() {
     List<String> command = GeneratorCommand.builder().mapName("neroxis_map_generator_1.0.0_0")
+        .javaExecutable(Path.of("java"))
         .generatorExecutableFile(Path.of("mapGenerator_1.0.0.jar"))
         .version(new ComparableVersion("1.0.0"))
         .build()
         .getCommand();
-    assertTrue(command.containsAll(List.of(javaPath, "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
+    assertTrue(command.containsAll(List.of(JAVA_PATH.toAbsolutePath().toString(), "-jar", Path.of("mapGenerator_1.0.0.jar").toAbsolutePath().toString(),
         "--map-name", "neroxis_map_generator_1.0.0_0")));
   }
 
@@ -224,7 +226,7 @@ public class GeneratorCommandTest extends ServiceTest {
         .mapName("neroxis_map_generator_0.1.5_0")
         .build()
         .getCommand();
-    assertEquals(command, List.of(javaPath, "-jar", Path.of("mapGenerator_0.1.5.jar").toAbsolutePath().toString(),
+    assertEquals(command, List.of(JAVA_PATH.toAbsolutePath().toString(), "-jar", Path.of("mapGenerator_0.1.5.jar").toAbsolutePath().toString(),
         ".", "0", "0.1.5", "neroxis_map_generator_0.1.5_0"));
   }
 

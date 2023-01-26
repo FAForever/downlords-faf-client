@@ -21,6 +21,15 @@ public interface OperatingSystem {
 
   @NotNull String getGithubAssetFileEnding();
 
+  @NotNull Path getDefaultDataDirectory();
+
+  Path getSteamFaDirectory();
+
+  @NotNull Path getLocalFaDataPath();
+
+  @NotNull Path getDefaultVaultDirectory();
+
+
   /**
    * The character to separate different paths in a list e.g. for list of classpath files (as String).
    * <p>

@@ -1,6 +1,8 @@
 package com.faforever.client.os;
 
 import com.faforever.client.preferences.PreferencesService;
+import com.sun.jna.platform.win32.Shell32Util;
+import com.sun.jna.platform.win32.ShlObj;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -10,7 +12,7 @@ import java.util.Scanner;
 
 import static com.faforever.client.preferences.PreferencesService.APP_DATA_SUB_FOLDER;
 
-public class OsWindows implements OperatingSystem {
+public final class OsWindows implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
     try {
@@ -74,5 +76,25 @@ public class OsWindows implements OperatingSystem {
   @Override
   public @NotNull String getGithubAssetFileEnding() {
     return ".exe";
+  }
+
+  @Override
+  public @NotNull Path getDefaultDataDirectory() {
+    return Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_COMMON_APPDATA), "FAForever");
+  }
+
+  @Override
+  public @NotNull Path getSteamFaDirectory() {
+    return Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
+  }
+
+  @Override
+  public @NotNull Path getLocalFaDataPath() {
+    return Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
+  }
+
+  @Override
+  public @NotNull Path getDefaultVaultDirectory() {
+    return Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
   }
 }

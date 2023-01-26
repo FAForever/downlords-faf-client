@@ -63,6 +63,7 @@ public class GameUpdaterImplTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create()
+        .defaultValues()
         .dataPrefs()
         .dataDirectory(tempDir.resolve("faf_temp_data"))
         .then()

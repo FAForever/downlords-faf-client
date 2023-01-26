@@ -1,6 +1,9 @@
 package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
+import com.faforever.client.os.OsWindows;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.update.ClientConfiguration.ReleaseInfo;
@@ -21,12 +24,14 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
   private final I18n i18n;
   private final PreferencesService preferencesService;
   private final FileSizeReader fileSizeReader;
+  private final OperatingSystem operatingSystem;
 
-  public CheckForUpdateTask(I18n i18n, PreferencesService preferencesService, FileSizeReader fileSizeReader) {
+  public CheckForUpdateTask(I18n i18n, PreferencesService preferencesService, FileSizeReader fileSizeReader, OperatingSystem operatingSystem) {
     super(Priority.LOW);
     this.i18n = i18n;
     this.preferencesService = preferencesService;
     this.fileSizeReader  = fileSizeReader;
+    this.operatingSystem = operatingSystem;
   }
 
   @VisibleForTesting
@@ -44,12 +49,10 @@ public class CheckForUpdateTask extends CompletableTask<UpdateInfo> {
       String version = latestRelease.getVersion();
 
       URL downloadUrl;
-      if (org.bridj.Platform.isWindows()) {
+      if (operatingSystem instanceof OsWindows) {
         downloadUrl = latestRelease.getWindowsUrl();
-      } else if (org.bridj.Platform.isLinux()) {
+      } else if (operatingSystem instanceof OsPosix) {
         downloadUrl = latestRelease.getLinuxUrl();
-      } else if (org.bridj.Platform.isMacOSX()) {
-        downloadUrl = latestRelease.getMacUrl();
       } else {
         return null;
       }

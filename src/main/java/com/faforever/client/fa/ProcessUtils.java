@@ -7,22 +7,14 @@ import com.sun.jna.platform.win32.WinDef.BOOL;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.bridj.Platform;
 
 import java.lang.reflect.Field;
 
-@UtilityClass
 @Slf4j
 public class ProcessUtils {
 
-  void setProcessPriority(Process process, WindowsPriority priority) {
-    if (!Platform.isWindows()) {
-      log.debug("Setting process priority is only supported on Windows");
-      return;
-    }
-
+  public static void setProcessPriority(Process process, WindowsPriority priority) {
     log.debug("Settings priority of process {} to {}", process.pid(), priority);
     try {
       DWORD dwPriorityClass = priority.dword();
@@ -36,7 +28,7 @@ public class ProcessUtils {
     }
   }
 
-  private HANDLE getProcessHandle(Process process) throws Exception {
+  private static HANDLE getProcessHandle(Process process) throws Exception {
     Field f = process.getClass().getDeclaredField("handle");
     f.setAccessible(true);
     long handle = f.getLong(process);
