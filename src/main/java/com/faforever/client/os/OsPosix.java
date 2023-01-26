@@ -1,5 +1,6 @@
 package com.faforever.client.os;
 
+import com.faforever.client.preferences.PreferencesService;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -21,7 +22,13 @@ public class OsPosix implements OperatingSystem {
   }
 
   @Override
-  public @NotNull Path getPreferencesDirectory() {
+  public @NotNull Path getLoggingDirectory() {
+    return Path.of(System.getProperty("user.home")).resolve(PreferencesService.USER_HOME_SUB_FOLDER).resolve("logs");
+  }
+
+  @Override
+  @NotNull
+  public Path getPreferencesDirectory() {
     return Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
   }
 

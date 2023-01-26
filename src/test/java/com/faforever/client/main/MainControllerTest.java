@@ -9,7 +9,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.logging.LoggingService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -17,6 +16,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.play.PlayController;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -94,6 +94,8 @@ public class MainControllerTest extends UITest {
   private PlayController playController;
   @Mock
   private Environment environment;
+  @Mock
+  private OperatingSystem operatingSystem;
   @InjectMocks
   private MainController instance;
   private Preferences preferences;
@@ -288,7 +290,7 @@ public class MainControllerTest extends UITest {
   @Test
   public void testOnRevealLogFolder() throws Exception {
     instance.onRevealLogFolder();
-    verify(platformService).reveal(LoggingService.FAF_LOG_DIRECTORY);
+    verify(platformService).reveal(operatingSystem.getLoggingDirectory());
   }
 
   @Test

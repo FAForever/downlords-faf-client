@@ -1,5 +1,6 @@
 package com.faforever.client.os;
 
+import com.faforever.client.preferences.PreferencesService;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -45,7 +46,14 @@ public class OsWindows implements OperatingSystem {
   }
 
   @Override
-  public @NotNull Path getPreferencesDirectory() {
+  @NotNull
+  public Path getLoggingDirectory() {
+    return Path.of(System.getenv("APPDATA")).resolve(PreferencesService.APP_DATA_SUB_FOLDER).resolve("logs");
+  }
+
+  @Override
+  @NotNull
+  public Path getPreferencesDirectory() {
     return Path.of(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER);
   }
 

@@ -20,22 +20,32 @@ public class OsUnknown implements OperatingSystem {
   }
 
   @Override
-  public @NotNull Path getPreferencesDirectory() {
+  @NotNull
+  public Path getLoggingDirectory() {
+    throw new NotImplementedException("Cannot derive logging directory in unsupported OS");
+  }
+
+  @Override
+  @NotNull
+  public Path getPreferencesDirectory() {
     throw new NotImplementedException("Cannot derive preferences directory in unsupported OS");
   }
 
   @Override
-  public @NotNull Path getUidExecutablePath() {
+  @NotNull
+  public Path getUidExecutablePath() {
     throw new NotImplementedException("Cannot derive uid binary in unsupported OS");
   }
 
   @Override
-  public @NotNull Path getJavaExecutablePath() {
+  @NotNull
+  public Path getJavaExecutablePath() {
     throw new NotImplementedException("Cannot derive java binary name in unsupported OS");
   }
 
   @Override
-  public @NotNull String getGithubAssetFileEnding() {
+  @NotNull
+  public String getGithubAssetFileEnding() {
     throw new NotImplementedException("Cannot derive github asset file ending in unsupported OS");
   }
 }
