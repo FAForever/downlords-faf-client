@@ -81,28 +81,23 @@ public class FafClientApplication extends Application {
 
     OperatingSystem operatingSystem = applicationContext.getBean(OperatingSystem.class);
 
-    try {
-      String preferencesDirectoryString = String.valueOf(operatingSystem.getPreferencesDirectory());
-      log.debug("Current preferences directory " + preferencesDirectoryString);
-      if (preferencesDirectoryString.matches(".*[а-яА-ЯёЁ].*")) {
-        I18n i18n = applicationContext.getBean(I18n.class);
-        String warningMessage = i18n.get("home.directory.warning.cyrillic");
-        String closeText = i18n.get("close");
-        ButtonType closeButton = new ButtonType(closeText, ButtonData.CANCEL_CLOSE);
-        CountDownLatch waitForUserInput = new CountDownLatch(1);
-
-        JavaFxUtil.runLater(() -> {
-          Alert alert = new Alert(AlertType.WARNING, warningMessage, closeButton);
-          Optional<ButtonType> buttonType = alert.showAndWait();
-          if (buttonType.filter(button -> button == closeButton).isPresent()) {
-            System.exit(EXIT_STATUS_CYRILLIC_CHARACTER_PREFERENCES_DIRECTORY);
-          }
-          waitForUserInput.countDown();
-        });
-        waitForUserInput.await();
-      }
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    String preferencesDirectoryString = String.valueOf(operatingSystem.getPreferencesDirectory());
+    log.debug("Current preferences directory " + preferencesDirectoryString);
+    if (preferencesDirectoryString.matches(".*[а-яА-ЯёЁ].*")) {
+      I18n i18n = applicationContext.getBean(I18n.class);
+      String warningMessage = i18n.get("home.directory.warning.cyrillic");
+      String closeText = i18n.get("close");
+      ButtonType closeButton = new ButtonType(closeText, ButtonData.CANCEL_CLOSE);
+      CountDownLatch waitForUserInput = new CountDownLatch(1);
+      JavaFxUtil.runLater(() -> {
+        Alert alert = new Alert(AlertType.WARNING, warningMessage, closeButton);
+        Optional<ButtonType> buttonType = alert.showAndWait();
+        if (buttonType.filter(button -> button == closeButton).isPresent()) {
+          System.exit(EXIT_STATUS_CYRILLIC_CHARACTER_PREFERENCES_DIRECTORY);
+        }
+        waitForUserInput.countDown();
+      });
+      waitForUserInput.await();
     }
 
     if (operatingSystem.runsAsAdmin()) {
