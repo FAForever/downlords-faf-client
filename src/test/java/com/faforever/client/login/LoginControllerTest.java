@@ -11,12 +11,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.status.Message;
-import com.faforever.client.status.Service;
-import com.faforever.client.status.StatPingService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
@@ -38,22 +34,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import org.testfx.assertions.api.Assertions;
 import org.testfx.util.WaitForAsyncUtils;
-import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -85,10 +76,6 @@ public class LoginControllerTest extends UITest {
   @Mock
   private UserService userService;
   @Mock
-  private StatPingService statPingService;
-  @Mock
-  private UiService uiService;
-  @Mock
   private PlatformService platformService;
   @Mock
   private I18n i18n;
@@ -112,11 +99,6 @@ public class LoginControllerTest extends UITest {
     preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(uiService.loadFxml("theme/login/announcement.fxml")).thenReturn(announcementController);
-    when(uiService.loadFxml("theme/login/offline_service.fxml")).thenReturn(offlineServiceController);
-    when(uiService.loadFxml("theme/login/offline_services.fxml")).thenReturn(offlineServicesController);
-    when(statPingService.getServices()).thenReturn(Flux.empty());
-    when(statPingService.getMessages()).thenReturn(Flux.empty());
 
     when(announcementController.getRoot()).thenReturn(new Pane());
     when(offlineServiceController.getRoot()).thenReturn(new Label());
@@ -409,115 +391,5 @@ public class LoginControllerTest extends UITest {
 
     verify(gameService).startGameOffline();
     verify(notificationService).addImmediateWarnNotification(eq("offline.noExe"));
-  }
-
-  @Test
-  void testInitializeWithActiveAnnouncement_displayed() {
-    when(statPingService.getMessages()).thenReturn(Flux.just(new Message(
-        1,
-        "JUnit",
-        "Description",
-        OffsetDateTime.now(),
-        OffsetDateTime.now().plusHours(1),
-        1,
-        OffsetDateTime.now(),
-        OffsetDateTime.now()
-    )));
-
-    assertThat(instance.messagesContainer.getChildren(), hasSize(0));
-
-    runOnFxThreadAndWait(() -> instance.initialize());
-
-    assertThat(instance.messagesContainer.getChildren(), hasSize(1));
-    verify(uiService).loadFxml("theme/login/announcement.fxml");
-  }
-
-  @Test
-  void testInitializeWithNoAnnouncement_notDisplayed() {
-    assertThat(instance.messagesContainer.getChildren(), hasSize(0));
-  }
-
-  @Test
-  void testInitializeWithFutureAnnouncement_displayed() {
-    when(statPingService.getMessages()).thenReturn(Flux.just(new Message(
-        1,
-        "JUnit",
-        "Description",
-        OffsetDateTime.now().plusDays(1),
-        OffsetDateTime.now().plusDays(2),
-        1,
-        OffsetDateTime.now(),
-        OffsetDateTime.now()
-    )));
-
-    assertThat(instance.messagesContainer.getChildren(), hasSize(0));
-
-    runOnFxThreadAndWait(() -> instance.initialize());
-
-    assertThat(instance.messagesContainer.getChildren(), hasSize(1));
-    verify(uiService).loadFxml("theme/login/announcement.fxml");
-  }
-
-  @Test
-  void testInitializeWithFutureAnnouncementAndServiceOffline_bothDisplayed() {
-    when(statPingService.getMessages()).thenReturn(Flux.just(new Message(
-        1,
-        "JUnit",
-        "Description",
-        OffsetDateTime.now().plusDays(1),
-        OffsetDateTime.now().plusDays(2),
-        1,
-        OffsetDateTime.now(),
-        OffsetDateTime.now()
-    )));
-    when(statPingService.getServices()).thenReturn(Flux.just(new Service(
-        1,
-        Collections.emptyList(),
-        OffsetDateTime.now().minusMinutes(1),
-        OffsetDateTime.now().minusHours(1),
-        Collections.emptyList(),
-        "Lobby",
-        false,
-        "lobby"
-    )));
-
-    assertThat(instance.messagesContainer.getChildren(), hasSize(0));
-
-    runOnFxThreadAndWait(() -> instance.initialize());
-
-    assertThat(instance.messagesContainer.getChildren(), hasSize(2));
-    verify(uiService).loadFxml("theme/login/announcement.fxml");
-    verify(uiService).loadFxml("theme/login/offline_services.fxml");
-  }
-
-  @Test
-  void testInitializeWithActiveAnnouncementAndServiceOffline_serviceNotDisplayed() {
-    when(statPingService.getMessages()).thenReturn(Flux.just(new Message(
-        1,
-        "JUnit",
-        "Description",
-        OffsetDateTime.now().minusMinutes(1),
-        OffsetDateTime.now().plusHours(1),
-        1,
-        OffsetDateTime.now(),
-        OffsetDateTime.now()
-    )));
-    when(statPingService.getServices()).thenReturn(Flux.just(new Service(
-        1,
-        Collections.emptyList(),
-        OffsetDateTime.now().minusMinutes(1),
-        OffsetDateTime.now().minusHours(1),
-        Collections.emptyList(),
-        "Lobby",
-        false,
-        "lobby"
-    )));
-
-    Assertions.assertThat(instance.messagesContainer).hasNoChildren();
-
-    runOnFxThreadAndWait(() -> instance.initialize());
-
-    Assertions.assertThat(instance.messagesContainer).hasExactlyNumChildren(1);
-    verify(uiService).loadFxml("theme/login/announcement.fxml");
   }
 }

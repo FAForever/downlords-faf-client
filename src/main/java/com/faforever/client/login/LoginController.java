@@ -13,9 +13,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.status.Message;
-import com.faforever.client.status.StatPingService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
 import com.faforever.client.update.ClientUpdateService;
 import com.faforever.client.update.DownloadUpdateTask;
@@ -46,7 +43,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -65,8 +61,6 @@ public class LoginController implements Controller<Pane> {
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final ClientUpdateService clientUpdateService;
-  private final StatPingService statPingService;
-  private final UiService uiService;
   private final PlatformService platformService;
   private final OAuthValuesReceiver oAuthValuesReceiver;
   public Pane messagesContainer;
@@ -95,10 +89,6 @@ public class LoginController implements Controller<Pane> {
   private CompletableFuture<Void> initializeFuture;
   private String state;
   private String verifier;
-
-  private static boolean shouldDisplayAnnouncement(Message message) {
-    return message.getEndOn().isAfter(OffsetDateTime.now());
-  }
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane,
