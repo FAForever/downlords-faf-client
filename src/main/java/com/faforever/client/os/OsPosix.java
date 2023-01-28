@@ -1,6 +1,7 @@
 package com.faforever.client.os;
 
 import com.faforever.client.preferences.PreferencesService;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -8,6 +9,7 @@ import java.util.Objects;
 
 import static com.faforever.client.preferences.PreferencesService.USER_HOME_SUB_FOLDER;
 
+@Slf4j
 public final class OsPosix implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
@@ -69,4 +71,10 @@ public final class OsPosix implements OperatingSystem {
   public @NotNull Path getDefaultVaultDirectory() {
     return Path.of(System.getProperty("user.home"), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
   }
+
+  @Override
+  public void increaseProcessPriority(Process process) {
+    log.debug("Increasing process priority is not implemented for Posix. Ignoring request.");
+  }
+
 }

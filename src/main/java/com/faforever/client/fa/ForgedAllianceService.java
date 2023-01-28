@@ -2,10 +2,8 @@ package com.faforever.client.fa;
 
 import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fa.Kernel32Ex.WindowsPriority;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.os.OsWindows;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -27,7 +25,7 @@ import java.util.Optional;
 import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 
 /**
- * Knows how to starts/stop Forged Alliance with proper parameters. Downloading maps, mods and updates as well as
+ * Knows how to start/stop Forged Alliance with proper parameters. Downloading maps, mods and updates as well as
  * notifying the server about whether the preferences is running or not is <strong>not</strong> this service's
  * responsibility.
  */
@@ -152,8 +150,9 @@ public class ForgedAllianceService {
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     Process process = processBuilder.start();
-    if (prefs.isChangeProcessPriority() && operatingSystem instanceof OsWindows) {
-      ProcessUtils.setWindowsProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
+    if (prefs.isChangeProcessPriority()) {
+      log.info("Increasing process priority");
+      operatingSystem.increaseProcessPriority(process);
     }
     return process;
   }

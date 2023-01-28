@@ -1,17 +1,27 @@
 package com.faforever.client.os;
 
+import com.faforever.client.os.Kernel32Ex.WindowsPriority;
 import com.faforever.client.preferences.PreferencesService;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.ShlObj;
+import com.sun.jna.platform.win32.WinDef.BOOL;
+import com.sun.jna.platform.win32.WinDef.DWORD;
+import com.sun.jna.platform.win32.WinNT;
+import com.sun.jna.platform.win32.WinNT.HANDLE;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Scanner;
 
 import static com.faforever.client.preferences.PreferencesService.APP_DATA_SUB_FOLDER;
 
+@Slf4j
 public final class OsWindows implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
@@ -96,5 +106,34 @@ public final class OsWindows implements OperatingSystem {
   @Override
   public @NotNull Path getDefaultVaultDirectory() {
     return Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
+  }
+
+  @Override
+  public void increaseProcessPriority(Process process) {
+    setProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
+  }
+
+  private void setProcessPriority(Process process, WindowsPriority priority) {
+    log.debug("Settings priority of process {} to {}", process.pid(), priority);
+    try {
+      DWORD dwPriorityClass = priority.dword();
+      BOOL success = Kernel32Ex.INSTANCE.SetPriorityClass(getProcessHandle(process), dwPriorityClass);
+      if (!success.booleanValue()) {
+        int lastError = Kernel32.INSTANCE.GetLastError();
+        log.warn("Could not set priority of process {} (error {})", process.pid(), lastError);
+      }
+    } catch (Exception e) {
+      log.warn("Could not set priority of process {}", process.pid(), e);
+    }
+  }
+
+  private static HANDLE getProcessHandle(Process process) throws Exception {
+    Field f = process.getClass().getDeclaredField("handle");
+    f.setAccessible(true);
+    long handle = f.getLong(process);
+
+    WinNT.HANDLE hProcess = new WinNT.HANDLE();
+    hProcess.setPointer(Pointer.createConstant(handle));
+    return hProcess;
   }
 }
