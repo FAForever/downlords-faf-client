@@ -14,7 +14,6 @@ import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.status.Message;
-import com.faforever.client.status.Service;
 import com.faforever.client.status.StatPingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.update.ClientConfiguration.ServerEndpoints;
@@ -26,7 +25,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -52,7 +50,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -189,79 +186,6 @@ public class LoginController implements Controller<Pane> {
     } else {
       initializeFuture = CompletableFuture.completedFuture(null);
     }
-
-    checkServiceStatus();
-  }
-
-  private void checkServiceStatus() {
-    checkGlobalAnnouncements().thenAccept(messages -> {
-      displayAnnouncements(messages);
-
-      // Only check for offline services if no announced maintenance is happening right now. Otherwise, the user
-      // might see redundant messages.
-      if (messages.stream().noneMatch(this::isHappeningNow)) {
-        checkOfflineServices().thenAccept(this::displayOfflineServices);
-      }
-    });
-  }
-
-  private boolean isHappeningNow(Message message) {
-    OffsetDateTime now = OffsetDateTime.now();
-    return message.getStartOn().isBefore(now) && message.getEndOn().isAfter(now);
-  }
-
-  private CompletableFuture<List<Message>> checkGlobalAnnouncements() {
-    return statPingService.getMessages()
-        .filter(LoginController::shouldDisplayAnnouncement)
-        .collectList().toFuture();
-  }
-
-  private CompletableFuture<List<Service>> checkOfflineServices() {
-    return statPingService.getServices()
-        .filter(service -> !service.isOnline())
-        .collectList().toFuture();
-  }
-
-  private void displayAnnouncements(List<Message> messages) {
-    if (messages.isEmpty()) {
-      return;
-    }
-    List<Node> controllers = messages.stream().map(message -> {
-      AnnouncementController controller = uiService.loadFxml("theme/login/announcement.fxml");
-      controller.setTitle(message.getTitle());
-      controller.setMessage(message.getDescription());
-      controller.setTime(message.getStartOn(), message.getEndOn());
-      return controller.getRoot();
-    }).collect(Collectors.toList());
-    JavaFxUtil.runLater(() -> {
-      messagesContainer.getChildren().addAll(controllers);
-      messagesContainer.setVisible(true);
-    });
-  }
-
-  private void displayOfflineServices(List<Service> services) {
-    if (services.isEmpty()) {
-      return;
-    }
-
-    OfflineServicesController controller = uiService.loadFxml("theme/login/offline_services.fxml");
-    services.forEach(service -> controller.addService(service.getName(), findOfflineReason(service), service.getLastSuccess()));
-    JavaFxUtil.runLater(() -> {
-      messagesContainer.getChildren().add(controller.getRoot());
-      messagesContainer.setVisible(true);
-    });
-  }
-
-  private String findOfflineReason(Service service) {
-    if (!service.getIncidents().isEmpty()) {
-      return service.getIncidents().get(0).getTitle();
-    }
-
-    return service.getMessages().stream()
-        .filter(this::isHappeningNow)
-        .findFirst()
-        .map(Message::getTitle)
-        .orElse(i18n.get("reasonUnknown"));
   }
 
   private void showClientOutdatedPane(String minimumVersion) {
