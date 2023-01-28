@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -118,7 +117,7 @@ public class NotificationService {
 
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
     addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get(messageKey, args), ERROR, throwable,
-        Arrays.asList(new CopyErrorAction(i18n, reportingService, throwable), new GetHelpAction(i18n, reportingService), new DismissAction(i18n))));
+        List.of(new DismissAction(i18n))));
   }
 
   public void addErrorNotification(NotifiableException throwable) {
