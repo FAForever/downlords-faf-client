@@ -89,15 +89,24 @@ public class PreferencesService implements InitializingBean {
   private final Timer storePreferencesTimer = new Timer("PrefTimer", true);
   @Getter
   private final Preferences preferences = new Preferences();
+  private final OperatingSystem operatingSystem;
 
   private ClientConfiguration clientConfiguration;
   private TimerTask storeInBackgroundTask;
 
   public PreferencesService(OperatingSystem operatingSystem, ClientProperties clientProperties) {
     this.clientProperties = clientProperties;
+    this.operatingSystem = operatingSystem;
     this.preferencesFilePath = operatingSystem.getPreferencesDirectory().resolve(PREFS_FILE_NAME);
-    ObjectMapper objectMapper = new ObjectMapper()
-        .setSerializationInclusion(Include.NON_EMPTY)
+
+    ObjectMapper objectMapper = buildObjectMapper();
+    preferencesUpdater = objectMapper.readerForUpdating(preferences);
+    preferencesWriter = objectMapper.writerFor(Preferences.class);
+    configurationReader = objectMapper.readerFor(ClientConfiguration.class);
+  }
+
+  private ObjectMapper buildObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(Include.NON_EMPTY)
         .enable(SerializationFeature.INDENT_OUTPUT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .addMixIn(Color.class, ColorMixin.class)
@@ -105,8 +114,7 @@ public class PreferencesService implements InitializingBean {
 
     TypeFactory typeFactory = objectMapper.getTypeFactory();
 
-    Module preferencesModule = new SimpleModule()
-        .addSerializer(Path.class, new PathSerializer())
+    Module preferencesModule = new SimpleModule().addSerializer(Path.class, new PathSerializer())
         .addDeserializer(Path.class, new PathDeserializer())
         .addValueInstantiator(SimpleMapProperty.class, new SimpleMapPropertyInstantiator(objectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleMapProperty.class)))
         .addValueInstantiator(SimpleListProperty.class, new SimpleListPropertyInstantiator(objectMapper.getDeserializationConfig(), typeFactory.constructType(SimpleListProperty.class)))
@@ -119,13 +127,13 @@ public class PreferencesService implements InitializingBean {
         .addAbstractTypeMapping(SetProperty.class, SimpleSetProperty.class);
 
     objectMapper.registerModule(preferencesModule);
-    preferencesUpdater = objectMapper.readerForUpdating(preferences);
-    preferencesWriter = objectMapper.writerFor(Preferences.class);
-    configurationReader = objectMapper.readerFor(ClientConfiguration.class);
+    return objectMapper;
   }
 
   @Override
   public void afterPropertiesSet() throws IOException, InterruptedException {
+    initializePreferences();
+
     if (Files.exists(preferencesFilePath)) {
       if (!deleteFileIfEmpty()) {
         readExistingFile(preferencesFilePath);
@@ -138,6 +146,14 @@ public class PreferencesService implements InitializingBean {
       Files.createDirectories(gamePrefs.getParent());
       Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
     }
+  }
+
+  private void initializePreferences() {
+    preferences.getData().setBaseDataDirectory(operatingSystem.getDefaultDataDirectory());
+    ForgedAlliancePrefs forgedAlliance = preferences.getForgedAlliance();
+    forgedAlliance.setVaultBaseDirectory(operatingSystem.getDefaultVaultDirectory());
+    forgedAlliance.setInstallationPath(operatingSystem.getSteamFaDirectory());
+    forgedAlliance.setPreferencesFile(operatingSystem.getLocalFaDataPath().resolve("Game.prefs"));
   }
 
   /**
@@ -285,10 +301,7 @@ public class PreferencesService implements InitializingBean {
   }
 
   public boolean isGamePathValid(Path binPath) {
-    return binPath != null
-        && (Files.isRegularFile(binPath.resolve(FORGED_ALLIANCE_EXE))
-        || Files.isRegularFile(binPath.resolve(SUPREME_COMMANDER_EXE))
-    );
+    return binPath != null && (Files.isRegularFile(binPath.resolve(FORGED_ALLIANCE_EXE)) || Files.isRegularFile(binPath.resolve(SUPREME_COMMANDER_EXE)));
   }
 
   public boolean isVaultBasePathInvalidForAscii() {

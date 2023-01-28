@@ -7,7 +7,6 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.logging.LoggingService;
 import com.faforever.client.main.MainController;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
@@ -65,7 +64,6 @@ public class FafClientApplication extends Application {
   private ConfigurableApplicationContext applicationContext;
 
   public static void applicationMain(String[] args) {
-    LoggingService.configureLogging();
     launch(args);
   }
 

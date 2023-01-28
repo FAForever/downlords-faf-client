@@ -53,7 +53,14 @@ public class PreferencesBuilder {
   }
 
   public PreferencesBuilder defaultValues() {
-    return this;
+    Path cwd = Path.of(".");
+    return dataPrefs()
+        .dataDirectory(cwd)
+        .then()
+        .forgedAlliancePrefs()
+        .vaultBaseDirectory(cwd)
+        .installationPath(cwd)
+        .then();
   }
 
   public PreferencesBuilder themeName(String themeName) {

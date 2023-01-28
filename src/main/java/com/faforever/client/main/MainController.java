@@ -15,7 +15,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GamePathHandler;
 import com.faforever.client.game.VaultPathHandler;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.logging.LoggingService;
 import com.faforever.client.login.LoginController;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
@@ -29,6 +28,7 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.ServerNotificationController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotificationsController;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
@@ -119,6 +119,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   private final EventBus eventBus;
   private final GamePathHandler gamePathHandler;
   private final PlatformService platformService;
+  private final OperatingSystem operatingSystem;
   private final Environment environment;
   private final VaultPathHandler vaultPathHandler;
 
@@ -558,8 +559,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   public void onRevealLogFolder() {
-    Path logPath = LoggingService.FAF_LOG_DIRECTORY;
-    this.platformService.reveal(logPath);
+    this.platformService.reveal(operatingSystem.getLoggingDirectory());
   }
 
   public void onRevealReplayFolder() {

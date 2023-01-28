@@ -1,6 +1,7 @@
 package com.faforever.client.logging;
 
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
@@ -10,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,12 +26,15 @@ public class LoggingServiceTest extends ServiceTest {
   @InjectMocks
   private LoggingService instance;
   @Mock
+  private OperatingSystem operatingSystem;
+  @Mock
   private PreferencesService preferencesService;
 
   @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
+    when(operatingSystem.getLoggingDirectory()).thenReturn(Path.of("."));
   }
 
   @Test
@@ -39,7 +44,7 @@ public class LoggingServiceTest extends ServiceTest {
 
   @Test
   public void testGetMostRecentLogFile() throws Exception {
-    Files.createDirectories(LoggingService.FAF_LOG_DIRECTORY);
+    Files.createDirectories(operatingSystem.getLoggingDirectory());
     Files.write(instance.getNewGameLogFile(0), new byte[]{});
     Files.write(instance.getNewGameLogFile(1), new byte[]{});
     Thread.sleep(10);

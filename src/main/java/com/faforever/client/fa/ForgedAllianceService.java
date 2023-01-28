@@ -4,6 +4,8 @@ import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.Kernel32Ex.WindowsPriority;
 import com.faforever.client.logging.LoggingService;
+import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsWindows;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -40,6 +42,7 @@ public class ForgedAllianceService {
   private final PlayerService playerService;
   private final PreferencesService preferencesService;
   private final LoggingService loggingService;
+  private final OperatingSystem operatingSystem;
 
   public Process startGameOffline(String map) throws IOException {
     List<String> launchCommand = defaultLaunchCommand()
@@ -149,8 +152,8 @@ public class ForgedAllianceService {
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     Process process = processBuilder.start();
-    if (prefs.isChangeProcessPriority()) {
-      ProcessUtils.setProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
+    if (prefs.isChangeProcessPriority() && operatingSystem instanceof OsWindows) {
+      ProcessUtils.setWindowsProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
     }
     return process;
   }

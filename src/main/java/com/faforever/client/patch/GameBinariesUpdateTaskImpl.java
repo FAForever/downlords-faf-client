@@ -5,6 +5,8 @@ import com.faforever.client.fa.ForgedAllianceService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameUpdateException;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsWindows;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
@@ -61,18 +63,20 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   private final I18n i18n;
   private final PreferencesService preferencesService;
   private final PlatformService platformService;
+  private final OperatingSystem operatingSystem;
 
   private final String fafExeUrl;
 
   private Integer version;
 
-  public GameBinariesUpdateTaskImpl(ForgedAllianceService forgedAllianceService, I18n i18n, PreferencesService preferencesService, PlatformService platformService, ClientProperties clientProperties) {
+  public GameBinariesUpdateTaskImpl(ForgedAllianceService forgedAllianceService, I18n i18n, PreferencesService preferencesService, PlatformService platformService, OperatingSystem operatingSystem, ClientProperties clientProperties) {
     super(Priority.HIGH);
 
     this.forgedAllianceService = forgedAllianceService;
     this.i18n = i18n;
     this.preferencesService = preferencesService;
     this.platformService = platformService;
+    this.operatingSystem = operatingSystem;
 
     this.fafExeUrl = clientProperties.getForgedAlliance().getExeUrl();
   }
@@ -137,7 +141,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
                 copy(source, destination, REPLACE_EXISTING);
               }
 
-              if (org.bridj.Platform.isWindows()) {
+              if (operatingSystem instanceof OsWindows) {
                 setAttribute(destination, "dos:readonly", false);
               }
             } catch (IOException e) {

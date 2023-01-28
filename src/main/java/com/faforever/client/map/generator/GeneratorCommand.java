@@ -13,6 +13,7 @@ import java.util.List;
 @Value
 public class GeneratorCommand {
 
+  Path javaExecutable;
   Path generatorExecutableFile;
   ComparableVersion version;
   String mapName;
@@ -33,7 +34,7 @@ public class GeneratorCommand {
   String commandLineArgs;
 
   public List<String> getCommand() {
-    String javaPath = Path.of(System.getProperty("java.home")).resolve("bin").resolve(org.bridj.Platform.isWindows() ? "java.exe" : "java").toAbsolutePath().toString();
+    String javaPath = javaExecutable.toAbsolutePath().toString();
     if (generatorExecutableFile == null) {
       throw new IllegalStateException("Map generator path not set");
     }

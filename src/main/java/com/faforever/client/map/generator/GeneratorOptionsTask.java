@@ -1,6 +1,7 @@
 package com.faforever.client.map.generator;
 
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.task.CompletableTask;
 import lombok.Setter;
@@ -27,6 +28,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
   private final I18n i18n;
+  private final OperatingSystem operatingSystem;
 
   private ComparableVersion version;
   private Path generatorExecutableFile;
@@ -34,10 +36,11 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
   private List<String> options;
 
   @Inject
-  public GeneratorOptionsTask(I18n i18n) {
+  public GeneratorOptionsTask(I18n i18n, OperatingSystem operatingSystem) {
     super(Priority.HIGH);
 
     this.i18n = i18n;
+    this.operatingSystem = operatingSystem;
   }
 
   @Override
@@ -51,6 +54,7 @@ public class GeneratorOptionsTask extends CompletableTask<List<String>> {
     GeneratorCommand generatorCommand = GeneratorCommand.builder()
         .version(version)
         .generatorExecutableFile(generatorExecutableFile)
+        .javaExecutable(operatingSystem.getJavaExecutablePath())
         .commandLineArgs(query)
         .build();
 

@@ -2,6 +2,7 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
@@ -32,6 +33,7 @@ public class GenerateMapTask extends CompletableTask<String> {
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final I18n i18n;
+  private final OperatingSystem operatingSystem;
   private final EventBus eventBus;
 
   private Path generatorExecutableFile;
@@ -41,12 +43,13 @@ public class GenerateMapTask extends CompletableTask<String> {
   private String mapName;
 
   @Inject
-  public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, EventBus eventBus) {
+  public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem, EventBus eventBus) {
     super(Priority.HIGH);
 
     this.preferencesService = preferencesService;
     this.notificationService = notificationService;
     this.i18n = i18n;
+    this.operatingSystem = operatingSystem;
     this.eventBus = eventBus;
   }
 
@@ -60,6 +63,7 @@ public class GenerateMapTask extends CompletableTask<String> {
         .version(version)
         .seed(seed)
         .generatorExecutableFile(generatorExecutableFile)
+        .javaExecutable(operatingSystem.getJavaExecutablePath())
         .mapName(mapName);
 
     if (generatorOptions != null) {

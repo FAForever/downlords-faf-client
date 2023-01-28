@@ -30,6 +30,7 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.notification.Severity;
+import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.NotificationsPrefs;
@@ -136,6 +137,7 @@ public class GameService implements InitializingBean, DisposableBean {
   private final PlatformService platformService;
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
+  private final OperatingSystem operatingSystem;
   @Getter
   private final ObservableList<GameBean> games;
   private final String faWindowTitle;
@@ -167,7 +169,7 @@ public class GameService implements InitializingBean, DisposableBean {
                      PlatformService platformService,
                      DiscordRichPresenceService discordRichPresenceService,
                      ReplayServer replayServer,
-                     GameMapper gameMapper) {
+                     OperatingSystem operatingSystem, GameMapper gameMapper) {
     this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
     this.coturnService = coturnService;
@@ -185,6 +187,7 @@ public class GameService implements InitializingBean, DisposableBean {
     this.platformService = platformService;
     this.discordRichPresenceService = discordRichPresenceService;
     this.replayServer = replayServer;
+    this.operatingSystem = operatingSystem;
     this.gameMapper = gameMapper;
 
     logMasker = new MaskPatternLayout();
@@ -683,7 +686,7 @@ public class GameService implements InitializingBean, DisposableBean {
               i18n.get("game.crash", exitCode, logFile.map(Path::toString).orElse("")),
               WARN,
               List.of(
-                  new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(LoggingService.FAF_LOG_DIRECTORY))),
+                  new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(operatingSystem.getLoggingDirectory()))),
                   new DismissAction(i18n))
           ));
         }

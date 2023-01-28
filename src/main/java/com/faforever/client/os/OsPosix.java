@@ -1,5 +1,6 @@
 package com.faforever.client.os;
 
+import com.faforever.client.preferences.PreferencesService;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -7,7 +8,7 @@ import java.util.Objects;
 
 import static com.faforever.client.preferences.PreferencesService.USER_HOME_SUB_FOLDER;
 
-public class OsPosix implements OperatingSystem {
+public final class OsPosix implements OperatingSystem {
   @Override
   public boolean runsAsAdmin() {
     String username = System.getProperty("user.name");
@@ -16,12 +17,17 @@ public class OsPosix implements OperatingSystem {
 
   @Override
   public boolean supportsUpdateInstall() {
-    // The automatic download and installation of update doesn't work on Linux as there is no unified installer
     return false;
   }
 
   @Override
-  public @NotNull Path getPreferencesDirectory() {
+  public @NotNull Path getLoggingDirectory() {
+    return Path.of(System.getProperty("user.home")).resolve(PreferencesService.USER_HOME_SUB_FOLDER).resolve("logs");
+  }
+
+  @Override
+  @NotNull
+  public Path getPreferencesDirectory() {
     return Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
   }
 
@@ -42,5 +48,25 @@ public class OsPosix implements OperatingSystem {
   @Override
   public @NotNull String getGithubAssetFileEnding() {
     return ".tar.gz";
+  }
+
+  @Override
+  public @NotNull Path getDefaultDataDirectory() {
+    return Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER);
+  }
+
+  @Override
+  public Path getSteamFaDirectory() {
+    return null;
+  }
+
+  @Override
+  public @NotNull Path getLocalFaDataPath() {
+    return Path.of(System.getProperty("user.home"), ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
+  }
+
+  @Override
+  public @NotNull Path getDefaultVaultDirectory() {
+    return Path.of(System.getProperty("user.home"), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
   }
 }

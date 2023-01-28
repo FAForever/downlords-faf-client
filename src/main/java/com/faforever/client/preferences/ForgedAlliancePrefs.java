@@ -1,7 +1,5 @@
 package com.faforever.client.preferences;
 
-import com.sun.jna.platform.win32.Shell32Util;
-import com.sun.jna.platform.win32.ShlObj;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -21,27 +19,10 @@ public class ForgedAlliancePrefs {
   public static final String INIT_FILE_NAME = "init.lua";
   private static final String MAPS_SUB_FOLDER = "maps";
   private static final String MODS_SUB_FOLDER = "mods";
-  private static final Path LOCAL_FA_DATA_PATH;
-  private static final Path DEFAULT_VAULT_DIRECTORY;
-  private static final Path STEAM_FA_PATH;
 
-  static {
-    if (org.bridj.Platform.isWindows()) {
-      DEFAULT_VAULT_DIRECTORY = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PERSONAL), "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
-      //If steam is every swapped to a 64x client, needs to be updated to proper directory or handling must be put in place.
-      STEAM_FA_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_PROGRAM_FILESX86), "Steam", "steamapps", "common", "Supreme Commander Forged Alliance");
-      LOCAL_FA_DATA_PATH = Path.of(Shell32Util.getFolderPath(ShlObj.CSIDL_LOCAL_APPDATA), "Gas Powered Games", "Supreme Commander Forged Alliance");
-    } else {
-      String userHome = System.getProperty("user.home");
-      DEFAULT_VAULT_DIRECTORY = Path.of(userHome, "My Games", "Gas Powered Games", "Supreme Commander Forged Alliance");
-      STEAM_FA_PATH = Path.of(".");
-      LOCAL_FA_DATA_PATH = Path.of(userHome, ".wine", "drive_c", "users", System.getProperty("user.name"), "Application Data", "Gas Powered Games", "Supreme Commander Forged Alliance");
-    }
-  }
-
-  ObjectProperty<Path> installationPath = new SimpleObjectProperty<>(STEAM_FA_PATH);
-  ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>(LOCAL_FA_DATA_PATH.resolve("Game.prefs"));
-  ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>(DEFAULT_VAULT_DIRECTORY);
+  ObjectProperty<Path> installationPath = new SimpleObjectProperty<>();
+  ObjectProperty<Path> preferencesFile = new SimpleObjectProperty<>();
+  ObjectProperty<Path> vaultBaseDirectory = new SimpleObjectProperty<>();
   BooleanProperty warnNonAsciiVaultPath = new SimpleBooleanProperty(true);
   BooleanProperty forceRelay = new SimpleBooleanProperty(false);
   BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
