@@ -70,4 +70,9 @@ public final class OsUnknown implements OperatingSystem {
   public @NotNull Path getDefaultVaultDirectory() {
     throw new NotImplementedException("Cannot vault directory in unsupported OS");
   }
+
+  @Override
+  public void increaseProcessPriority(Process process) {
+    throw new NotImplementedException("Cannot increase process priority in unsupported OS");
+  }
 }

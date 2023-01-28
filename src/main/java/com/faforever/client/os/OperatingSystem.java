@@ -29,6 +29,8 @@ public interface OperatingSystem {
 
   @NotNull Path getDefaultVaultDirectory();
 
+  void increaseProcessPriority(Process process);
+
 
   /**
    * The character to separate different paths in a list e.g. for list of classpath files (as String).

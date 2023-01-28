@@ -1,4 +1,4 @@
-package com.faforever.client.fa;
+package com.faforever.client.os;
 
 import com.sun.jna.Native;
 import com.sun.jna.platform.win32.Kernel32;
