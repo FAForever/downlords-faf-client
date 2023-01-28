@@ -153,7 +153,7 @@ public class ForgedAllianceService {
 
     Process process = processBuilder.start();
     if (prefs.isChangeProcessPriority() && operatingSystem instanceof OsWindows) {
-      ProcessUtils.setProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
+      ProcessUtils.setWindowsProcessPriority(process, WindowsPriority.HIGH_PRIORITY_CLASS);
     }
     return process;
   }

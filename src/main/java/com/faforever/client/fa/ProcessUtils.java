@@ -14,7 +14,7 @@ import java.lang.reflect.Field;
 @Slf4j
 public class ProcessUtils {
 
-  public static void setProcessPriority(Process process, WindowsPriority priority) {
+  public static void setWindowsProcessPriority(Process process, WindowsPriority priority) {
     log.debug("Settings priority of process {} to {}", process.pid(), priority);
     try {
       DWORD dwPriorityClass = priority.dword();
