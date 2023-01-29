@@ -21,6 +21,7 @@ import com.faforever.commons.api.dto.LeagueSeasonDivisionSubdivision;
 import com.faforever.commons.api.dto.LeagueSeasonScore;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
+import com.google.common.base.Strings;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -174,6 +175,9 @@ public class LeaderboardService {
 
   @Cacheable(value = CacheNames.LEAGUE_ENTRIES, sync = true)
   public CompletableFuture<Optional<LeagueEntryBean>> getActiveLeagueEntryForPlayer(PlayerBean player, String leaderboardName) {
+    if (Strings.isNullOrEmpty(leaderboardName)) {
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
     ElideNavigatorOnCollection<LeagueSeasonScore> navigator = ElideNavigator.of(LeagueSeasonScore.class).collection()
         .setFilter(qBuilder()
             .intNum("loginId").eq(player.getId())

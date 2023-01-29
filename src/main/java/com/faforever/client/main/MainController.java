@@ -473,7 +473,7 @@ public class MainController implements Controller<Node>, InitializingBean {
     });
     ImmediateNotification notification =
         new ImmediateNotification(i18n.get("startTab.title"), i18n.get("startTab.message"),
-            Severity.INFO, null, Collections.singletonList(saveAction), startTabChooseController.getRoot());
+            Severity.INFO, null, Collections.singletonList(saveAction), startTabChooseController.getRoot(), false);
     notificationService.addNotification(notification);
   }
 
@@ -594,9 +594,11 @@ public class MainController implements Controller<Node>, InitializingBean {
         .setNotification(notification)
         .setCloseListener(dialog::close);
 
+    dialog.setOverlayClose(notification.isOverlayClose());
     dialog.setContent(controller.getDialogLayout());
     dialog.setAnimation(AlertAnimation.TOP_ANIMATION);
     dialog.show();
+
   }
 
   private void displayServerNotification(ImmediateNotification notification) {

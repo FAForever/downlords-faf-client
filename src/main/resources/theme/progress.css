@@ -1,0 +1,42 @@
+.circleindicator-container {
+  circleindicator-color: -fx-accent;
+  -fx-padding: 5.0;
+  -fx-background-color: -fx-background;
+}
+
+.circleindicator-container > .circleindicator-label {
+  -fx-font-weight: bold;
+  -fx-font-size: 2.5em;
+  -fx-text-fill: circleindicator-color;
+  -fx-padding: 5.0;
+}
+
+.ringindicator {
+  -fx-ring-width: 22.0;
+  -fx-inner-radius: 60.0;
+}
+
+.ringindicator-inner-circle {
+  -fx-opacity: 0.55;
+  -fx-stroke: circleindicator-color;
+  -fx-stroke-width: 8.0px;
+  -fx-fill: -fx-background;
+}
+
+.ringindicator-filler {
+  -fx-stroke: circleindicator-color;
+  -fx-fill: -fx-background;
+  -fx-stroke-line-cap: butt;
+}
+
+.ringindicator-outer-circle-secondary {
+  -fx-opacity: 0.1;
+  -fx-stroke: circleindicator-color;
+  -fx-stroke-width: 2.0px;
+  -fx-fill: -fx-background;
+}
+
+.indeterminate {
+  -fx-opacity: 0.55;
+  -fx-stroke: linear-gradient(from 0.0% 0.0% to 70.0% 70.0%, circleindicator-color 70.0%, white 75.0%, white);
+}

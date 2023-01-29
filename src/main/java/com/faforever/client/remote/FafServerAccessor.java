@@ -212,7 +212,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     lobbyClient.requestMatchmakerInfo();
   }
 
-  public CompletableFuture<GameLaunchResponse> startSearchMatchmaker() {
+  public CompletableFuture<GameLaunchResponse> getGameLaunchMessageFuture() {
     return lobbyClient.getEvents()
         .filter(event -> event instanceof GameLaunchResponse)
         .next()
@@ -226,6 +226,10 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   public void removeFriend(int playerId) {
     lobbyClient.removeFriend(playerId);
+  }
+
+  public void sendIsReady(String requestId) {
+    lobbyClient.sendReady(requestId);
   }
 
   public void removeFoe(int playerId) {

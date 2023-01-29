@@ -9,6 +9,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
@@ -30,6 +31,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.DisposableBean;
@@ -390,10 +392,19 @@ public class UiService implements InitializingBean, DisposableBean {
           getThemeFile("theme/colors.css"),
           getThemeFile("theme/icons.css"),
           getSceneStyleSheet(),
-          getThemeFile("theme/style_extension.css")
+          getThemeFile("theme/style_extension.css"),
+          getThemeFile("theme/progress.css")
       };
     } catch (IOException e) {
       throw new AssetLoadException("Could not retrieve stylesheets", e, "theme.stylesheets.couldNotGet");
+    }
+  }
+
+
+  public void bringMainStageToFront() {
+    Stage stage = StageHolder.getStage();
+    if ((!stage.isFocused() || !stage.isShowing())) {
+      JavaFxUtil.runLater(stage::toFront);
     }
   }
 

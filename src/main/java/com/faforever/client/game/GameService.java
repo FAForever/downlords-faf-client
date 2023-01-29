@@ -42,6 +42,7 @@ import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
@@ -517,18 +518,34 @@ public class GameService implements InitializingBean, DisposableBean {
       return matchmakerFuture;
     }
 
+    matchmakerFuture =  listenForServerInitiatedGame(FAF.getTechnicalName());
+    return matchmakerFuture;
+  }
+
+  public CompletableFuture<Void> startListeningForTournamentGame(String featuredModTechnicalName) {
+    if (isRunning()) {
+      log.info("Game is running, ignoring tournament search request");
+      notificationService.addImmediateWarnNotification("game.gameRunning");
+      return completedFuture(null);
+    }
+
+    return listenForServerInitiatedGame(featuredModTechnicalName);
+  }
+
+  private CompletableFuture<Void> listenForServerInitiatedGame(String featuredModTechnicalName) {
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
       return gameDirectoryFuture.thenCompose(path -> startSearchMatchmaker());
     }
 
-    log.info("Matchmaking search has been started");
+    log.info("Started listening for game launch message");
 
-    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
+    final CompletableFuture<GameLaunchResponse> gameLaunchMessageFuture = fafServerAccessor.getGameLaunchMessageFuture();
+    final CompletableFuture<Void> matchFuture = modService.getFeaturedMod(featuredModTechnicalName)
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
-        .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
+        .thenCompose(aVoid -> gameLaunchMessageFuture)
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
-            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
+            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(),gameLaunchResponse.getLeaderboard()))
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
               parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey())
@@ -539,25 +556,25 @@ public class GameService implements InitializingBean, DisposableBean {
             })
             .thenCompose(this::startGame));
 
-    matchmakerFuture.whenComplete((aVoid, throwable) -> {
+    matchFuture.whenComplete((aVoid, throwable) -> {
       if (throwable != null) {
         throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
         if (throwable instanceof CancellationException) {
-          log.info("Matchmaking search has been cancelled");
+          log.info("Listening to server made game has been cancelled");
           if (isRunning()) {
             notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
             gameKilled = true;
             process.destroy();
           }
         } else {
-          log.warn("Matchmade game could not be started", throwable);
+          log.warn("Game could not be started", throwable);
         }
       } else {
         log.info("Matchmaker queue exited");
       }
     });
 
-    return matchmakerFuture;
+    return matchFuture;
   }
 
   /**

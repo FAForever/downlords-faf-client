@@ -28,10 +28,10 @@ public class GameDirectoryRequiredHandler implements InitializingBean {
 
   @Subscribe
   public void onChooseGameDirectory(GameDirectoryChooseEvent event) {
-    platformService.askForPath(i18n.get("missingGamePath.chooserTitle")).ifPresent(gameDirectory -> {
+    platformService.askForPath(i18n.get("missingGamePath.chooserTitle")).ifPresentOrElse(gameDirectory -> {
       log.info("User selected game directory: {}", gameDirectory);
       eventBus.post(new GameDirectoryChosenEvent(gameDirectory, event.getFuture()));
-    });
+    }, () -> event.getFuture().ifPresent(pathCompletableFuture -> pathCompletableFuture.completeExceptionally(new Exception(i18n.get("missingGamePath.noSelection")))));
   }
 
 }

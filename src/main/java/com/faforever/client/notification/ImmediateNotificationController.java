@@ -70,6 +70,7 @@ public class ImmediateNotificationController implements Controller<Node> {
     if (notification.getCustomUI() != null) {
       immediateNotificationRoot.getChildren().add(notification.getCustomUI());
     }
+    notification.setCloseAction(this::dismiss);
     return this;
   }
 
