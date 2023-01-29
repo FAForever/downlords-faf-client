@@ -21,6 +21,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
@@ -60,6 +61,7 @@ public class FafClientApplication extends Application {
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";
   public static final int EXIT_STATUS_RAN_AS_ADMIN = 3;
+  public static final int EXIT_STATUS_CYRILLIC_CHARACTER_PREFERENCES_DIRECTORY = 4;
 
   private ConfigurableApplicationContext applicationContext;
 
@@ -78,6 +80,26 @@ public class FafClientApplication extends Application {
         .run(getParameters().getRaw().toArray(new String[0]));
 
     OperatingSystem operatingSystem = applicationContext.getBean(OperatingSystem.class);
+
+    String preferencesDirectoryString = String.valueOf(operatingSystem.getPreferencesDirectory());
+    log.debug("Current preferences directory " + preferencesDirectoryString);
+    if (preferencesDirectoryString.matches(".*[а-яА-ЯёЁ].*")) {
+      I18n i18n = applicationContext.getBean(I18n.class);
+      String warningMessage = i18n.get("home.directory.warning.cyrillic");
+      String closeText = i18n.get("close");
+      ButtonType closeButton = new ButtonType(closeText, ButtonData.CANCEL_CLOSE);
+      CountDownLatch waitForUserInput = new CountDownLatch(1);
+      JavaFxUtil.runLater(() -> {
+        Alert alert = new Alert(AlertType.WARNING, warningMessage, closeButton);
+        Optional<ButtonType> buttonType = alert.showAndWait();
+        if (buttonType.filter(button -> button == closeButton).isPresent()) {
+          System.exit(EXIT_STATUS_CYRILLIC_CHARACTER_PREFERENCES_DIRECTORY);
+        }
+        waitForUserInput.countDown();
+      });
+      waitForUserInput.await();
+    }
+
     if (operatingSystem.runsAsAdmin()) {
       CountDownLatch waitForUserInput = new CountDownLatch(1);
       JavaFxUtil.runLater(() -> {
