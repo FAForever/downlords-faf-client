@@ -121,7 +121,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
       try (ServerSocket adapterTestSocket = new ServerSocket(0);
            ServerSocket gpgTestSocket = new ServerSocket(0)) {
         adapterPort = adapterTestSocket.getLocalPort();
-        gpgPort = gpgTestSocket.getSoTimeout();
+        gpgPort = gpgTestSocket.getLocalPort();
       } catch (IOException exception) {
         throw new CompletionException("Unable to find open port for ICE and GPG", exception);
       }
