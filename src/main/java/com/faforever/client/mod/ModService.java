@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.MalformedInputException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -314,7 +313,7 @@ public class ModService implements InitializingBean, DisposableBean {
         preferencesContent = Files.readString(preferencesFile, charset);
         log.debug("Successfully read preferences file with charset: " + charset.displayName());
         break;
-      } catch (MalformedInputException e) {
+      } catch (Exception e) {
         log.warn("Could not read preferences file with charset: " + charset.displayName());
       }
     }

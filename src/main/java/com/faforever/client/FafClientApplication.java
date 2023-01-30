@@ -92,9 +92,6 @@ public class FafClientApplication extends Application {
       JavaFxUtil.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING, warningMessage, closeButton);
         Optional<ButtonType> buttonType = alert.showAndWait();
-        if (buttonType.filter(button -> button == closeButton).isPresent()) {
-          System.exit(EXIT_STATUS_CYRILLIC_CHARACTER_PREFERENCES_DIRECTORY);
-        }
         waitForUserInput.countDown();
       });
       waitForUserInput.await();
