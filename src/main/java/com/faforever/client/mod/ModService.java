@@ -54,7 +54,12 @@ import reactor.util.function.Tuple2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -308,17 +313,29 @@ public class ModService implements InitializingBean, DisposableBean {
     Map<String, Charset> availableCharsets = Charset.availableCharsets();
     String preferencesContent = null;
     for (Charset charset : availableCharsets.values()) {
+      CharsetDecoder decoder = charset.newDecoder();
+      decoder.onMalformedInput(CodingErrorAction.REPORT);
+      decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+      log.info("Trying to read preferences file with charset: " + charset.displayName());
       try {
-        log.debug("Trying to read preferences file with charset: " + charset.displayName());
-        preferencesContent = Files.readString(preferencesFile, charset);
-        log.debug("Successfully read preferences file with charset: " + charset.displayName());
+        ByteBuffer buffer = ByteBuffer.wrap(Files.readAllBytes(preferencesFile));
+        CharBuffer charBuffer = decoder.decode(buffer);
+        preferencesContent = charBuffer.toString();
+        log.info("Successfully read preferences file with charset: " + charset.displayName());
         break;
+      } catch (CharacterCodingException e) {
+        log.info("Failed to read preferences file with charset: " + charset.displayName());
+        // Continue and try a different character set
+      } catch (IOException e) {
+        log.error("An IOException was thrown while trying to read the preferences file", e);
       } catch (Exception e) {
-        log.warn("Could not read preferences file with charset: " + charset.displayName());
+        // Handle all other exceptions
+        log.error("An unexpected error occurred while reading the preferences file", e);
+        throw new RuntimeException(e);
       }
     }
     if (preferencesContent == null) {
-      throw new AssetLoadException("Could not read preferences file", null,  "file.errorReadingPreferences");
+      throw new AssetLoadException("Could not read preferences file", null, "file.errorReadingPreferences");
     }
     return preferencesContent;
   }
