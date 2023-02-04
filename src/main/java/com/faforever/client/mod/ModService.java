@@ -327,7 +327,10 @@ public class ModService implements InitializingBean, DisposableBean {
         log.info("Failed to read preferences file with charset: " + charset.displayName());
         // Continue and try a different character set
       } catch (IOException e) {
-        // User has a malformed file
+        log.error("An IOException was thrown while trying to read the preferences file", e);
+      } catch (Exception e) {
+        // Handle all other exceptions
+        log.error("An unexpected error occurred while reading the preferences file", e);
         throw new RuntimeException(e);
       }
     }
