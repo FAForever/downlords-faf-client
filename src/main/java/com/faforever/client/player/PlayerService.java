@@ -67,7 +67,7 @@ public class PlayerService implements InitializingBean {
   private final ObservableMap<Integer, PlayerBean> playersById = FXCollections.observableMap(new ConcurrentHashMap<>());
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
-  private final Map<Integer, List<PlayerBean>> playersByGame = new HashMap<>();
+  private final Map<Integer, Set<PlayerBean>> playersByGame = new HashMap<>();
   private ObservableMap<Integer, String> notesByPlayerId;
   private final Object lock = new Object();
 
@@ -98,10 +98,10 @@ public class PlayerService implements InitializingBean {
 
   public void updatePlayersInGame(GameBean game) {
     int gameId = game.getId();
-    playersByGame.putIfAbsent(gameId, new ArrayList<>());
+    playersByGame.putIfAbsent(gameId, new HashSet<>());
     synchronized (playersByGame.get(gameId)) {
-      List<PlayerBean> currentPlayersInGame = playersByGame.get(gameId);
-      List<PlayerBean> playersInGameToRemove = new ArrayList<>(currentPlayersInGame);
+      Set<PlayerBean> currentPlayersInGame = playersByGame.get(gameId);
+      Set<PlayerBean> playersInGameToRemove = new HashSet<>(currentPlayersInGame);
 
       currentPlayersInGame.clear();
       currentPlayersInGame.addAll(game.getAllPlayersInGame());

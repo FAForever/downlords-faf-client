@@ -16,9 +16,9 @@ import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -55,7 +55,7 @@ public class GameTooltipControllerTest extends UITest {
     Map<String, String> simMods = new HashMap<>();
     when(game.getSimMods()).thenReturn(simMods);
     when(game.simModsProperty()).thenReturn(new SimpleObjectProperty<>(simMods));
-    Map<Integer, List<PlayerBean>> teams = new HashMap<>();
+    Map<Integer, Set<PlayerBean>> teams = new HashMap<>();
     when(game.getTeams()).thenReturn(teams);
     when(game.teamsProperty()).thenReturn(new SimpleObjectProperty<>(teams));
 
@@ -65,7 +65,7 @@ public class GameTooltipControllerTest extends UITest {
     assertFalse(instance.modsPane.isVisible());
     assertThat(instance.teamsPane.getPrefColumns(), is(0));
 
-    teams.put(1, List.of(PlayerBeanBuilder.create().defaultValues().get()));
+    teams.put(1, Set.of(PlayerBeanBuilder.create().defaultValues().get()));
     instance.setGame(game);
     instance.displayGame();
     WaitForAsyncUtils.waitForFxEvents();

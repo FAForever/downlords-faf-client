@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
@@ -74,7 +75,7 @@ public class GameTooltipController implements Controller<Node> {
   private void createTeams() {
     if (game != null) {
       List<Node> teamCardPanes = new ArrayList<>();
-      for (Map.Entry<Integer, List<PlayerBean>> entry : game.getTeams().entrySet()) {
+      for (Map.Entry<Integer, Set<PlayerBean>> entry : game.getTeams().entrySet()) {
         Integer team = entry.getKey();
         if (team != null) {
 

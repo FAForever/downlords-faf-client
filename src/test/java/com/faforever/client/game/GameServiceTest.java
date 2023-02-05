@@ -692,7 +692,7 @@ public class GameServiceTest extends ServiceTest {
   @Test
   public void testCurrentGameEndedBehaviour() {
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
-    GameBean game = GameBeanBuilder.create().defaultValues().id(123).status(PLAYING).teams(Map.of(1, List.of(junitPlayer))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().id(123).status(PLAYING).teams(Map.of(1, Set.of(junitPlayer))).get();
     junitPlayer.setGame(game);
 
     instance.currentGame.set(game);

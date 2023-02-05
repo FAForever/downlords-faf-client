@@ -49,7 +49,7 @@ public class UserLeaderboardInfoController implements Controller<Node> {
 
   public void setLeaderboardInfo(PlayerBean player, LeaderboardBean leaderboard) {
     String leaderboardName = i18n.getOrDefault(leaderboard.getTechnicalName(), leaderboard.getNameKey());
-    String gameNumber = i18n.get("leaderboard.gameNumber", player.getNumberOfGames(leaderboard.getTechnicalName()));
+    String gameNumber = i18n.get("leaderboard.gameNumber", player.getNumberOfGamesForLeaderboard(leaderboard.getTechnicalName()));
     String ratingNumber = i18n.get("leaderboard.rating", RatingUtil.getLeaderboardRating(player, leaderboard));
 
     JavaFxUtil.runLater(() -> {

@@ -74,8 +74,8 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<GameBean, Image> mapPreviewColumn;
   public TableColumn<GameBean, OffsetDateTime> startTimeColumn;
   public TableColumn<GameBean, String> gameTitleColumn;
-  public TableColumn<GameBean, Number> playersColumn;
-  public TableColumn<GameBean, Number> averageRatingColumn;
+  public TableColumn<GameBean, Integer> playersColumn;
+  public TableColumn<GameBean, Double> averageRatingColumn;
   public TableColumn<GameBean, String> modsColumn;
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, GameBean> watchColumn;
@@ -136,13 +136,11 @@ public class LiveReplayController extends AbstractViewController<Node> {
     startTimeColumn.setCellFactory(param -> new StringCell<>(this.timeService::asShortTime));
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
-    playersColumn.setCellValueFactory(param -> Bindings.createIntegerBinding(() -> param.getValue().getNumActivePlayers(), param.getValue()
-        .teamsProperty()));
-    playersColumn.setCellFactory(param -> new StringCell<>(number -> i18n.number(number.intValue())));
-    averageRatingColumn.setCellValueFactory(param -> Bindings.createDoubleBinding(() -> param.getValue().getAverageRating(), param.getValue()
-        .teamsProperty()));
+    playersColumn.setCellValueFactory(param -> param.getValue().numActivePlayersProperty());
+    playersColumn.setCellFactory(param -> new StringCell<>(i18n::number));
+    averageRatingColumn.setCellValueFactory(param -> param.getValue().averageRatingProperty());
     averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"),
-        number -> Math.round(number.doubleValue() / 100.0) * 100.0));
+        number -> Math.round(number / 100.0) * 100.0));
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new StringCell<>(String::toString));
     modsColumn.setCellValueFactory(this::modCell);

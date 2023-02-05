@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
@@ -103,7 +104,7 @@ public class LiveGamesFilterControllerTest extends UITest {
     PlayerBean enemy2 = PlayerBeanBuilder.create().defaultValues().id(4).username("enemy2").get();
 
     GameBean game = create().defaultValues()
-        .teams(Map.of(1, List.of(player1, player2), 2, List.of(enemy1, enemy2)))
+        .teams(Map.of(1, Set.of(player1, player2), 2, Set.of(enemy1, enemy2)))
         .get();
     BiFunction<String, GameBean, Boolean> filter = argumentCaptor.getValue();
     assertTrue(filter.apply("", game));
@@ -119,11 +120,12 @@ public class LiveGamesFilterControllerTest extends UITest {
 
     BiFunction<Boolean, GameBean, Boolean> filter = argumentCaptor.getValue();
 
-    PlayerBean playerBean = PlayerBeanBuilder.create().get();
-    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, List.of(playerBean))).get()));
-    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, List.of(playerBean, playerBean))).get()));
-    assertTrue(filter.apply(true, create().defaultValues().teams(Map.of(1, List.of(playerBean), 2, List.of(playerBean))).get()));
-    assertFalse(filter.apply(true, create().defaultValues().teams(Map.of(1, List.of(playerBean))).get()));
+    PlayerBean playerBean1 = PlayerBeanBuilder.create().id(1).get();
+    PlayerBean playerBean2 = PlayerBeanBuilder.create().id(1).get();
+    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, Set.of(playerBean1))).get()));
+    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, Set.of(playerBean1, playerBean2))).get()));
+    assertTrue(filter.apply(true, create().defaultValues().teams(Map.of(1, Set.of(playerBean1), 2, Set.of(playerBean1))).get()));
+    assertFalse(filter.apply(true, create().defaultValues().teams(Map.of(1, Set.of(playerBean1))).get()));
   }
 
   @Test

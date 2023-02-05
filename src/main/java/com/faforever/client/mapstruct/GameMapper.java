@@ -18,11 +18,11 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, config = MapperConfiguration.class)
 public abstract class GameMapper {
-  String OBSERVERS_TEAM = "-1";
 
   @Autowired
   private PlayerService playerService;
@@ -38,16 +38,16 @@ public abstract class GameMapper {
   @Mapping(target = "teams", source = "teamIds")
   public abstract GameBean update(GameInfo dto, @MappingTarget GameBean bean);
 
-  public Map<Integer, List<PlayerBean>> map(List<TeamIds> teamIds) {
+  public Map<Integer, Set<PlayerBean>> map(List<TeamIds> teamIds) {
     if (teamIds == null || teamIds.isEmpty()) {
       return Map.of();
     }
     return teamIds.stream()
-        .collect(Collectors.toMap(TeamIds::getTeamId, memberIds -> memberIds.getPlayerIds()
+        .collect(Collectors.toMap(TeamIds::getTeamId, teamIds1 -> teamIds1.getPlayerIds()
             .stream()
             .map(playerService::getPlayerByIdIfOnline)
             .flatMap(Optional::stream)
-            .toList()));
+            .collect(Collectors.toSet())));
   }
 
   public OffsetDateTime mapLaunchedAt(Double launchedAt) {
