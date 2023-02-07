@@ -183,8 +183,8 @@ public class ChatUserItemController implements Controller<Node> {
         .addItem(CopyUsernameMenuItem.class, chatUser.getUsername())
         .addItem(ChangeUsernameColorMenuItem.class, chatUser)
         .addSeparator()
-        .addItem(SendPrivateMessageClanLeaderMenuItem.class, chatUser.getClan().orElse(null))
-        .addItem(OpenClanUrlMenuItem.class, chatUser.getClan().orElse(null))
+        .addItem(SendPrivateMessageClanLeaderMenuItem.class, chatUser.getPlayer().orElse(null))
+        .addItem(OpenClanUrlMenuItem.class, chatUser.getPlayer().orElse(null))
         .addSeparator()
         .addItem(InvitePlayerMenuItem.class, player)
         .addItem(AddFriendMenuItem.class, player)
@@ -243,7 +243,6 @@ public class ChatUserItemController implements Controller<Node> {
     JavaFxUtil.addListener(this.chatUser.countryFlagProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addListener(this.chatUser.countryNameProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addListener(this.chatUser.socialStatusProperty(), weakChatUserPropertyListener);
-    JavaFxUtil.addListener(this.chatUser.clanProperty(), weakChatUserPropertyListener);
     JavaFxUtil.addAndTriggerListener(this.chatUser.moderatorProperty(), weakChatUserPropertyListener);
 
     WeakInvalidationListener weakChatUserGameListener = new WeakInvalidationListener(chatUserGamePropertyInvalidationListener);

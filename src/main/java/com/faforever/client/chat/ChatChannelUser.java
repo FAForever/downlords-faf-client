@@ -1,12 +1,8 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.domain.AvatarBean;
-import com.faforever.client.domain.ClanBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.SocialStatus;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -15,7 +11,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import lombok.EqualsAndHashCode;
@@ -23,7 +19,6 @@ import lombok.ToString;
 
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,23 +38,18 @@ public class ChatChannelUser {
   private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
   private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
   private final ObjectProperty<Instant> lastActive = new SimpleObjectProperty<>();
-  private final ObjectProperty<PlayerStatus> gameStatus = new SimpleObjectProperty<>();
-  private final ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>();
   private final ObjectProperty<Image> avatar = new SimpleObjectProperty<>();
-  private final ObjectProperty<ClanBean> clan = new SimpleObjectProperty<>();
-  private final StringProperty clanTag = new SimpleStringProperty();
   private final ObjectProperty<Image> countryFlag = new SimpleObjectProperty<>();
   private final StringProperty countryName = new SimpleStringProperty();
   private final ObjectProperty<Image> mapImage = new SimpleObjectProperty<>();
   private final ObjectProperty<Image> gameStatusImage = new SimpleObjectProperty<>();
   private final StringProperty statusTooltipText = new SimpleStringProperty();
   private final BooleanProperty displayed = new SimpleBooleanProperty(false);
-  private ChangeListener<SocialStatus> socialStatusChangeListener;
-  private ChangeListener<PlayerStatus> gameStatusChangeListener;
-  private ChangeListener<String> clanTagChangeListener;
-  private ChangeListener<AvatarBean> avatarChangeListener;
-  private ChangeListener<String> countryInvalidationListener;
-  private InvalidationListener displayedChangeListener;
+
+  private final ObservableValue<PlayerStatus> playerStatus = player.flatMap(PlayerBean::statusProperty);
+  private final ObservableValue<SocialStatus> socialStatus = player.flatMap(PlayerBean::socialStatusProperty);
+  private final ObservableValue<String> clanTag = player.flatMap(PlayerBean::clanProperty)
+      .map(clanTag -> clanTag.isBlank() ? null : String.format("[%s]", clanTag));
 
   public ChatChannelUser(String username, String channel) {
     this(username, channel, false);
@@ -76,24 +66,13 @@ public class ChatChannelUser {
   }
 
   public void setPlayer(PlayerBean player) {
-    if (!Objects.equals(player, this.player.get())) {
-      if (this.player.get() != null) {
-        this.player.get().getChatChannelUsers().remove(this);
-        socialStatus.unbind();
-        gameStatus.unbind();
-        clanTag.unbind();
-        socialStatus.set(null);
-        gameStatus.set(null);
-        clanTag.set(null);
-      }
-      if (player != null) {
-        player.getChatChannelUsers().add(this);
-        socialStatus.bind(player.socialStatusProperty());
-        gameStatus.bind(player.statusProperty());
-        clanTag.bind(player.clanProperty().map(clan -> clan.isBlank() ? null : String.format("[%s]", clan)));
-      }
-      this.player.set(player);
+    if (this.player.get() != null) {
+      this.player.get().getChatChannelUsers().remove(this);
     }
+    if (player != null) {
+      player.getChatChannelUsers().add(this);
+    }
+    this.player.set(player);
   }
 
   public ObjectProperty<PlayerBean> playerProperty() {
@@ -152,27 +131,19 @@ public class ChatChannelUser {
     return lastActive;
   }
 
-  public Optional<PlayerStatus> getGameStatus() {
-    return Optional.ofNullable(gameStatus.get());
+  public Optional<PlayerStatus> getPlayerStatus() {
+    return Optional.ofNullable(playerStatus.getValue());
   }
 
-  public void setGameStatus(PlayerStatus gameStatus) {
-    this.gameStatus.set(gameStatus);
-  }
-
-  public ObjectProperty<PlayerStatus> gameStatusProperty() {
-    return gameStatus;
+  public ObservableValue<PlayerStatus> playerStatusProperty() {
+    return playerStatus;
   }
 
   public Optional<SocialStatus> getSocialStatus() {
-    return Optional.ofNullable(socialStatus.get());
+    return Optional.ofNullable(socialStatus.getValue());
   }
 
-  public void setSocialStatus(SocialStatus socialStatus) {
-    this.socialStatus.set(socialStatus);
-  }
-
-  public ObjectProperty<SocialStatus> socialStatusProperty() {
+  public ObservableValue<SocialStatus> socialStatusProperty() {
     return socialStatus;
   }
 
@@ -188,27 +159,11 @@ public class ChatChannelUser {
     return avatar;
   }
 
-  public Optional<ClanBean> getClan() {
-    return Optional.ofNullable(clan.get());
-  }
-
-  public void setClan(ClanBean clan) {
-    this.clan.set(clan);
-  }
-
-  public ObjectProperty<ClanBean> clanProperty() {
-    return clan;
-  }
-
   public Optional<String> getClanTag() {
-    return Optional.ofNullable(clanTag.get());
+    return Optional.ofNullable(clanTag.getValue());
   }
 
-  public void setClanTag(String clanTag) {
-    this.clanTag.set(clanTag);
-  }
-
-  public StringProperty clanTagProperty() {
+  public ObservableValue<String> clanTagProperty() {
     return clanTag;
   }
 
@@ -280,137 +235,15 @@ public class ChatChannelUser {
     this.displayed.set(displayed);
   }
 
-  public InvalidationListener getDisplayedChangeListener() {
-    return displayedChangeListener;
-  }
-
-  public void setDisplayedInvalidationListener(InvalidationListener listener) {
-    if (player.get() != null) {
-      if (displayedChangeListener != null) {
-        JavaFxUtil.removeListener(displayed, displayedChangeListener);
-      }
-      displayedChangeListener = listener;
-      if (displayedChangeListener != null) {
-        JavaFxUtil.addAndTriggerListener(displayed, displayedChangeListener);
-      }
-    }
-  }
-
-  public ChangeListener<SocialStatus> getSocialStatusChangeListener() {
-    return socialStatusChangeListener;
-  }
-
-  public void setSocialStatusChangeListener(ChangeListener<SocialStatus> listener) {
-    if (socialStatusChangeListener != null) {
-      JavaFxUtil.removeListener(socialStatus, socialStatusChangeListener);
-    }
-    socialStatusChangeListener = listener;
-    if (socialStatusChangeListener != null) {
-      JavaFxUtil.addAndTriggerListener(socialStatus, socialStatusChangeListener);
-    }
-  }
-
-  public ChangeListener<PlayerStatus> getGameStatusChangeListener() {
-    return gameStatusChangeListener;
-  }
-
-  public void setGameStatusChangeListener(ChangeListener<PlayerStatus> listener) {
-    if (gameStatusChangeListener != null) {
-      JavaFxUtil.removeListener(gameStatus, gameStatusChangeListener);
-    }
-    gameStatusChangeListener = listener;
-    if (gameStatusChangeListener != null) {
-      JavaFxUtil.addAndTriggerListener(gameStatus, gameStatusChangeListener);
-    }
-  }
-
-  public ChangeListener<String> getClanTagChangeListener() {
-    return clanTagChangeListener;
-  }
-
-  public void setClanTagChangeListener(ChangeListener<String> listener) {
-    if (clanTagChangeListener != null) {
-      JavaFxUtil.removeListener(clanTag, clanTagChangeListener);
-    }
-    clanTagChangeListener = listener;
-    if (clanTagChangeListener != null) {
-      JavaFxUtil.addAndTriggerListener(clanTag, clanTagChangeListener);
-    }
-  }
-
-  public ChangeListener<String> getCountryInvalidationListener() {
-    return countryInvalidationListener;
-  }
-
-  public void setCountryChangeListener(ChangeListener<String> listener) {
-    if (player.get() != null) {
-      if (countryInvalidationListener != null) {
-        JavaFxUtil.removeListener(player.get().countryProperty(), countryInvalidationListener);
-      }
-      countryInvalidationListener = listener;
-      if (countryInvalidationListener != null) {
-        JavaFxUtil.addAndTriggerListener(player.get().countryProperty(), countryInvalidationListener);
-      }
-    }
-  }
-
-  public ChangeListener<AvatarBean> getAvatarChangeListener() {
-    return avatarChangeListener;
-  }
-
-  public void setAvatarChangeListener(ChangeListener<AvatarBean> listener) {
-    if (player.get() != null) {
-      if (avatarChangeListener != null) {
-        JavaFxUtil.removeListener(player.get().avatarProperty(), avatarChangeListener);
-      }
-      avatarChangeListener = listener;
-      if (avatarChangeListener != null) {
-        JavaFxUtil.addAndTriggerListener(player.get().avatarProperty(), avatarChangeListener);
-      }
-    }
-  }
-
-  public void removeListeners() {
-    if (avatarChangeListener != null) {
-      JavaFxUtil.removeListener(player.get().avatarProperty(), avatarChangeListener);
-      avatarChangeListener = null;
-    }
-    if (countryInvalidationListener != null) {
-      JavaFxUtil.removeListener(player.get().countryProperty(), countryInvalidationListener);
-      countryInvalidationListener = null;
-    }
-    if (clanTagChangeListener != null) {
-      JavaFxUtil.removeListener(clanTag, clanTagChangeListener);
-      clanTagChangeListener = null;
-    }
-    if (gameStatusChangeListener != null) {
-      JavaFxUtil.removeListener(gameStatus, gameStatusChangeListener);
-      gameStatusChangeListener = null;
-    }
-    if (socialStatusChangeListener != null) {
-      JavaFxUtil.removeListener(socialStatus, socialStatusChangeListener);
-      socialStatusChangeListener = null;
-    }
-    if (displayedChangeListener != null) {
-      JavaFxUtil.removeListener(displayed, displayedChangeListener);
-      displayedChangeListener = null;
-    }
-  }
-
-  Set<ChatUserCategory> getChatUserCategories() {
+  public Set<ChatUserCategory> getChatUserCategories() {
     Set<ChatUserCategory> userCategories = new HashSet<>();
 
-    if (socialStatus.get() == null) {
-      userCategories.add(ChatUserCategory.CHAT_ONLY);
-    } else {
-      ChatUserCategory category = switch (socialStatus.get()) {
-        case FRIEND -> ChatUserCategory.FRIEND;
-        case FOE -> ChatUserCategory.FOE;
-        case OTHER -> ChatUserCategory.OTHER;
-        case SELF -> ChatUserCategory.SELF;
-      };
-      userCategories.add(category);
-    }
+    getSocialStatus().ifPresentOrElse(socialStatus -> userCategories.add(switch (socialStatus) {
+      case FRIEND -> ChatUserCategory.FRIEND;
+      case FOE -> ChatUserCategory.FOE;
+      case OTHER -> ChatUserCategory.OTHER;
+      case SELF -> ChatUserCategory.SELF;
+    }), () -> userCategories.add(ChatUserCategory.CHAT_ONLY));
 
     if (moderator.get()) {
       userCategories.add(ChatUserCategory.MODERATOR);

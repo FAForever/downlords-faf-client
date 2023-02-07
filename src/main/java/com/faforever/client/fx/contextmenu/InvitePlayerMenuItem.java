@@ -27,7 +27,7 @@ public class InvitePlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return object != null && object.getSocialStatus() != SELF && object.getStatus() == PlayerStatus.IDLE;
   }
 

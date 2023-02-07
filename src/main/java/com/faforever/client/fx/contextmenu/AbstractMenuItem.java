@@ -18,7 +18,7 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
   }
 
   private void finalizeProperties() {
-    if (isItemVisible()) {
+    if (isDisplayed()) {
       setOnAction(event -> onClicked());
       setText(getItemText());
       setIcon();
@@ -48,7 +48,7 @@ public abstract class AbstractMenuItem<T> extends MenuItem {
 
   protected abstract String getItemText();
 
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return true; // by-default;
   }
 }

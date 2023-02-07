@@ -32,7 +32,7 @@ public class AddFoeMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     if (object == null) {
       return false;
     }

@@ -34,7 +34,7 @@ public class SendPrivateMessageMenuItem extends AbstractMenuItem<String> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return !StringUtils.isBlank(object)
         && !playerService.getCurrentPlayer().getUsername().equals(object)
         && chatService.userExistsInAnyChannel(object);

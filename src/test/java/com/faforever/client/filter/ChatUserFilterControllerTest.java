@@ -83,7 +83,7 @@ public class ChatUserFilterControllerTest extends UITest {
 
     ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
     ListItem user1 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
-        .clanTag("clan_lenta")
+        .player(PlayerBeanBuilder.create().clan("clan_lenta").get())
         .get(), ChatUserCategory.FRIEND);
     ListItem user2 = new ChatUserItem(ChatChannelUserBuilder.create("user2", "channel").get(), ChatUserCategory.FRIEND);
     BiFunction<String, ListItem, Boolean> filter = argumentCaptor.getValue();

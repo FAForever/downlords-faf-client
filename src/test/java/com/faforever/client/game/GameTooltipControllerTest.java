@@ -1,12 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,9 +34,6 @@ public class GameTooltipControllerTest extends UITest {
   private PlayerService playerService;
   
   @Mock
-  private GameBean game;
-  
-  @Mock
   private TeamCardController teamCardController;
   @InjectMocks
   private GameTooltipController instance;
@@ -53,11 +50,9 @@ public class GameTooltipControllerTest extends UITest {
   @Test
   public void testSetGame() {
     Map<String, String> simMods = new HashMap<>();
-    when(game.getSimMods()).thenReturn(simMods);
-    when(game.simModsProperty()).thenReturn(new SimpleObjectProperty<>(simMods));
     Map<Integer, Set<PlayerBean>> teams = new HashMap<>();
-    when(game.getTeams()).thenReturn(teams);
-    when(game.teamsProperty()).thenReturn(new SimpleObjectProperty<>(teams));
+
+    GameBean game = GameBeanBuilder.create().defaultValues().simMods(simMods).teams(teams).get();
 
     instance.setGame(game);
     instance.displayGame();

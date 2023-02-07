@@ -314,7 +314,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   private void onUserJoined(ChatChannelUser user) {
     playerService.getPlayerByNameIfOnline(user.getUsername())
-        .ifPresent(player -> chatUserService.associatePlayerToChatUser(user, player));
+        .ifPresent(user::setPlayer);
+    chatUserService.populateColor(user);
     List<ChatUserItem> chatUserItems = usernameToChatUserList.computeIfAbsent(user.getUsername(), name -> new ArrayList<>());
     if (chatUserItems.isEmpty()) {
       user.getChatUserCategories().forEach(category -> {

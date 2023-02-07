@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
+import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.filter.ChatUserFilterController;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 
+import static com.faforever.client.player.SocialStatus.FRIEND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -239,7 +241,9 @@ public class ChatUserListControllerTest extends UITest {
   @ValueSource(booleans = {false, true})
   public void testOnChangeUserCategory(boolean shouldInitializeList) throws Exception {
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
-    ChatChannelUser updatedUser = ChatChannelUserBuilder.create(user.getUsername(), CHANNEL_NAME).socialStatus(SocialStatus.FRIEND).get();
+    ChatChannelUser updatedUser = ChatChannelUserBuilder.create(user.getUsername(), CHANNEL_NAME)
+        .player(PlayerBeanBuilder.create().socialStatus(FRIEND).get())
+        .get();
     addUsersToChannel(user);
 
     prepareDataAndSetChatChannel(shouldInitializeList);
@@ -593,7 +597,7 @@ public class ChatUserListControllerTest extends UITest {
 
   private ChatChannelUser generateUser(SocialStatus socialStatus, boolean isModerator) {
     return ChatChannelUserBuilder.create(RandomStringUtils.randomAlphanumeric(15), CHANNEL_NAME)
-        .moderator(isModerator).socialStatus(socialStatus).get();
+        .moderator(isModerator).player(PlayerBeanBuilder.create().socialStatus(socialStatus).get()).get();
   }
 
   private void waitForAllEvents() throws Exception {

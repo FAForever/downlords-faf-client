@@ -13,7 +13,9 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.Value;
 
@@ -62,6 +64,8 @@ public class GameBean {
       .flatMap(Collection::stream)
       .collect(Collectors.toSet()))
       .orElse(Collections.emptySet());
+
+  @Getter(AccessLevel.NONE)
   ObservableValue<Set<PlayerBean>> nonObservingPlayersInGame = teams.map(team -> team.entrySet()
       .stream()
       .filter(entry -> !OBSERVERS_TEAM.equals(entry.getKey()))
@@ -69,6 +73,7 @@ public class GameBean {
       .flatMap(Collection::stream)
       .collect(Collectors.toSet()))
       .orElse(Collections.emptySet());
+
   ObservableValue<Double> averageRating = nonObservingPlayersInGame.map(players -> players.stream()
           .mapToInt(player -> RatingUtil.getLeaderboardRating(player, getLeaderboard()))
           .average()

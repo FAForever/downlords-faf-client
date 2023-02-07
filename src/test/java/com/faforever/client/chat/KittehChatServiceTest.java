@@ -347,7 +347,8 @@ public class KittehChatServiceTest extends ServiceTest {
     assertThat(chatChannel.getUser(user1.getNick()), sameInstance(defaultChatUser1));
     assertThat(chatChannel.getUser(user2.getNick()), sameInstance(defaultChatUser2));
 
-    verify(chatUserService).associatePlayerToChatUser(defaultChatUser1, player1);
+    assertEquals(player1, defaultChatUser1.getPlayer().orElse(null));
+    verify(chatUserService).bindChatUserPlayerProperties(defaultChatUser1);
     verify(chatUserService).populateColor(defaultChatUser2);
   }
 
@@ -361,7 +362,8 @@ public class KittehChatServiceTest extends ServiceTest {
 
     instance.onPlayerOnline(new PlayerOnlineEvent(player));
 
-    verify(chatUserService).associatePlayerToChatUser(defaultChatUser2, player);
+    assertEquals(player, defaultChatUser2.getPlayer().orElse(null));
+    verify(chatUserService).bindChatUserPlayerProperties(defaultChatUser2);
   }
 
   @Test

@@ -31,7 +31,7 @@ public class CopyLabelMenuItem extends AbstractMenuItem<Label> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return object != null && !StringUtils.isBlank(object.getText());
   }
 

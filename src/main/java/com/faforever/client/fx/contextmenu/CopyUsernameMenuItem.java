@@ -28,7 +28,7 @@ public class CopyUsernameMenuItem extends AbstractMenuItem<String> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return !StringUtils.isBlank(object);
   }
 

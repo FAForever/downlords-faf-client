@@ -27,7 +27,7 @@ public class NotifyMeMenuItem extends AbstractMenuItem<GameBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     boolean isValid = object != null && object.getStartTime() != null;
     if (!isValid) {
       return false;

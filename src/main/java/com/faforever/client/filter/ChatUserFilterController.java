@@ -88,7 +88,7 @@ public class ChatUserFilterController extends AbstractFilterController<ListItem>
             .toList(),
         playerStatusConverter, (selectedStatus, item) -> item.isCategory() || selectedStatus.isEmpty() ||
             item.getUser()
-                .map(ChatChannelUser::getGameStatus)
+                .map(ChatChannelUser::getPlayerStatus)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .stream()

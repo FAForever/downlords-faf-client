@@ -49,6 +49,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
@@ -209,34 +210,36 @@ public final class JavaFxUtil {
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
           if (newValue.intValue() >= 1) {
-            writeImage(image, path, format);
+            writeImageLater(image, path, format);
             image.progressProperty().removeListener(this);
           }
         }
       });
     } else {
-      writeImage(image, path, format);
+      writeImageLater(image, path, format);
     }
   }
 
-  private static void writeImage(Image image, Path path, String format) {
-    try {
-      if (image == null) {
-        return;
+  private static void writeImageLater(Image image, Path path, String format) {
+    CompletableFuture.runAsync(() -> {
+      try {
+        if (image == null) {
+          return;
+        }
+        if (path.getParent() != null) {
+          createDirectories(path.getParent());
+        }
+        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+        if (bufferedImage == null) {
+          log.warn("Could not read image from {} for {}", image.getUrl(), path);
+          return;
+        }
+        write(bufferedImage, format, path.toFile());
+        log.trace("Image written to {}", path);
+      } catch (IOException e) {
+        log.warn("Could not write image to {}", path, e);
       }
-      if (path.getParent() != null) {
-        createDirectories(path.getParent());
-      }
-      BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
-      if (bufferedImage == null) {
-        log.warn("Could not read image from {} for {}", image.getUrl(), path);
-        return;
-      }
-      write(bufferedImage, format, path.toFile());
-      log.trace("Image written to {}", path);
-    } catch (IOException e) {
-      log.warn("Could not write image to {}", path, e);
-    }
+    });
   }
 
   public static void setAnchors(Node node, double value) {

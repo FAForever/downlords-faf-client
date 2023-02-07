@@ -121,10 +121,10 @@ public class LiveGamesFilterControllerTest extends UITest {
     BiFunction<Boolean, GameBean, Boolean> filter = argumentCaptor.getValue();
 
     PlayerBean playerBean1 = PlayerBeanBuilder.create().id(1).get();
-    PlayerBean playerBean2 = PlayerBeanBuilder.create().id(1).get();
+    PlayerBean playerBean2 = PlayerBeanBuilder.create().id(2).get();
     assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, Set.of(playerBean1))).get()));
     assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, Set.of(playerBean1, playerBean2))).get()));
-    assertTrue(filter.apply(true, create().defaultValues().teams(Map.of(1, Set.of(playerBean1), 2, Set.of(playerBean1))).get()));
+    assertTrue(filter.apply(true, create().defaultValues().teams(Map.of(1, Set.of(playerBean1), 2, Set.of(playerBean2))).get()));
     assertFalse(filter.apply(true, create().defaultValues().teams(Map.of(1, Set.of(playerBean1))).get()));
   }
 
