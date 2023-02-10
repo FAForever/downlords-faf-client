@@ -52,13 +52,8 @@ public class ChatChannelUser {
       .map(clanTag -> clanTag.isBlank() ? null : String.format("[%s]", clanTag));
 
   public ChatChannelUser(String username, String channel) {
-    this(username, channel, false);
-  }
-
-  public ChatChannelUser(String username, String channel, boolean moderator) {
     this.username.set(username);
     this.channel.set(channel);
-    setModerator(moderator);
   }
 
   public Optional<PlayerBean> getPlayer() {
@@ -66,13 +61,9 @@ public class ChatChannelUser {
   }
 
   public void setPlayer(PlayerBean player) {
-    if (this.player.get() != null) {
-      this.player.get().getChatChannelUsers().remove(this);
-    }
-    if (player != null) {
-      player.getChatChannelUsers().add(this);
-    }
+    getPlayer().ifPresent(currentPlayer -> currentPlayer.getChatChannelUsers().remove(this));
     this.player.set(player);
+    getPlayer().ifPresent(currentPlayer -> currentPlayer.getChatChannelUsers().add(this));
   }
 
   public ObjectProperty<PlayerBean> playerProperty() {

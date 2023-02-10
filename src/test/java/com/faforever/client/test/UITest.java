@@ -56,7 +56,7 @@ public abstract class UITest extends ApplicationTest {
     this.stage = stage;
     StageHolder.setStage(stage);
 
-    scene = createScene(stage);
+    scene = createScene();
     stage.setScene(scene);
 
     if (showStage()) {
@@ -64,7 +64,7 @@ public abstract class UITest extends ApplicationTest {
     }
   }
 
-  protected Scene createScene(Stage stage) {
+  protected Scene createScene() {
     return new Scene(getRoot());
   }
 

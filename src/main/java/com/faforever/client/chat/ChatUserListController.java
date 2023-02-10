@@ -100,7 +100,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private final Map<ChatUserCategory, List<ChatUserItem>> categoriesToUsers = new HashMap<>();
   private final Map<ChatUserCategory, FilteredList<ChatUserItem>> categoriesToFilteredUsers = new HashMap<>();
   private final Map<String, List<ChatUserItem>> usernameToChatUserList = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-  private final ObservableList<ListItem> source = FXCollections.observableArrayList();
+  private final ObservableList<ChatListItem> source = FXCollections.observableArrayList();
 
   private MapProperty<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories;
   private ObservableList<ChatUserCategory> hiddenCategories;
@@ -111,8 +111,8 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   private Tab channelTab;
   private BooleanBinding chatTabSelectedProperty;
 
-  private VirtualFlow<ListItem, Cell<ListItem, Node>> listView;
-  private FilteredList<ListItem> items;
+  private VirtualFlow<ChatListItem, Cell<ChatListItem, Node>> listView;
+  private FilteredList<ChatListItem> items;
   private final ExecutorService usersEventQueueExecutor = Executors.newSingleThreadExecutor();
 
   private Future<?> listInitializationFuture;
@@ -257,9 +257,9 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
     if (!isListInQueue) {
       isListInQueue = true;
       usersEventQueueExecutor.execute(() -> {
-        items = new FilteredList<>(new SortedList<>(source, ListItem.getComparator()));
+        items = new FilteredList<>(new SortedList<>(source, ChatListItem.getComparator()));
         listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
-        VirtualizedScrollPane<VirtualFlow<ListItem, Cell<ListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
+        VirtualizedScrollPane<VirtualFlow<ChatListItem, Cell<ChatListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
         scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         JavaFxUtil.addListener(chatUserFilterController.predicateProperty(), (observable, oldValue, newValue) -> {
@@ -313,9 +313,6 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   }
 
   private void onUserJoined(ChatChannelUser user) {
-    playerService.getPlayerByNameIfOnline(user.getUsername())
-        .ifPresent(user::setPlayer);
-    chatUserService.populateColor(user);
     List<ChatUserItem> chatUserItems = usernameToChatUserList.computeIfAbsent(user.getUsername(), name -> new ArrayList<>());
     if (chatUserItems.isEmpty()) {
       user.getChatUserCategories().forEach(category -> {
@@ -365,7 +362,7 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   @Subscribe
   public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
     usersEventQueueExecutor.execute(() -> {
-      ChatChannelUser user = event.getChatUser();
+      ChatChannelUser user = event.chatUser();
       if (chatChannel.containsUser(user) && user.getChannel().equals(channelName)) {
         onUserLeft(user);
         onUserJoined(user);

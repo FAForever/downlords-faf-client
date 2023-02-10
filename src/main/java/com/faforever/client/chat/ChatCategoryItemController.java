@@ -63,7 +63,7 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
   }
 
   private void bindProperties() {
-    JavaFxUtil.bind(categoryLabel.styleProperty(), chatPrefs.groupToColorProperty()
+    categoryLabel.styleProperty().bind(chatPrefs.groupToColorProperty()
         .map(groupToColor -> groupToColor.get(chatUserCategory))
         .map(JavaFxUtil::toRgbCode)
         .map(color -> String.format("-fx-text-fill: %s", color))
@@ -91,11 +91,7 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
   }
 
   public void bindToUserList(ObservableList<ChatUserItem> userList) {
-    JavaFxUtil.bind(userCounterLabel.textProperty(), Bindings.size(userList).asString());
-  }
-
-  public void dispose() {
-    JavaFxUtil.unbind(userCounterLabel.textProperty());
+    userCounterLabel.textProperty().bind(Bindings.size(userList).asString());
   }
 
   private void updateArrowLabel() {

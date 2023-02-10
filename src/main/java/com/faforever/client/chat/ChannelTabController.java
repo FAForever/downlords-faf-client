@@ -256,7 +256,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
   @Subscribe
   public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
-    ChatChannelUser user = event.getChatUser();
+    ChatChannelUser user = event.chatUser();
     if (chatChannel.containsUser(user)) {
       updateUserMessageVisibility(user, user.getSocialStatus().map(status -> status == FOE).orElse(false));
       updateStyleClass(user);

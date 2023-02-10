@@ -1,7 +1,7 @@
 package com.faforever.client.filter;
 
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ListItem;
+import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.PlayerStatus;
@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ChatUserFilterController extends AbstractFilterController<ListItem> {
+public class ChatUserFilterController extends AbstractFilterController<ChatListItem> {
 
   public final static int MIN_RATING = -1000;
   public final static int MAX_RATING = 4000;
@@ -74,7 +74,7 @@ public class ChatUserFilterController extends AbstractFilterController<ListItem>
   }
 
   @Override
-  protected void build(FilterBuilder<ListItem> filterBuilder) {
+  protected void build(FilterBuilder<ChatListItem> filterBuilder) {
 
     filterBuilder.textField(i18n.get("chat.filter.clan"),
         (text, item) -> item.isCategory() || text.isEmpty() || item.getUser()

@@ -5,10 +5,10 @@ import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.LeaderboardBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
+import com.faforever.client.chat.ChatListItem;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.chat.ChatUserCategoryItem;
 import com.faforever.client.chat.ChatUserItem;
-import com.faforever.client.chat.ListItem;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -52,13 +52,13 @@ public class ChatUserFilterControllerTest extends UITest {
   private LeaderboardService leaderboardService;
 
   @Mock
-  private FilterTextFieldController<ListItem> clanFilter;
+  private FilterTextFieldController<ChatListItem> clanFilter;
   @Mock
-  private FilterMultiCheckboxController<PlayerStatus, ListItem> playerStatusFilter;
+  private FilterMultiCheckboxController<PlayerStatus, ChatListItem> playerStatusFilter;
   @Mock
-  private RangeSliderWithChoiceFilterController<LeaderboardBean, ListItem> playerRatingFilter;
+  private RangeSliderWithChoiceFilterController<LeaderboardBean, ChatListItem> playerRatingFilter;
   @Mock
-  private FilterMultiCheckboxController<Country, ListItem> countryFilter;
+  private FilterMultiCheckboxController<Country, ChatListItem> countryFilter;
 
   private final LeaderboardBean ladder = LeaderboardBeanBuilder.create().defaultValues().technicalName("ladder").get();
   private final LeaderboardBean global = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
@@ -78,15 +78,15 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testClanFilter() {
-    ArgumentCaptor<BiFunction<String, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<String, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(clanFilter).registerListener(argumentCaptor.capture());
 
-    ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
-    ListItem user1 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
+    ChatListItem user1 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
         .player(PlayerBeanBuilder.create().clan("clan_lenta").get())
         .get(), ChatUserCategory.FRIEND);
-    ListItem user2 = new ChatUserItem(ChatChannelUserBuilder.create("user2", "channel").get(), ChatUserCategory.FRIEND);
-    BiFunction<String, ListItem, Boolean> filter = argumentCaptor.getValue();
+    ChatListItem user2 = new ChatUserItem(ChatChannelUserBuilder.create("user2", "channel").get(), ChatUserCategory.FRIEND);
+    BiFunction<String, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
     assertTrue(filter.apply("", category));
     assertTrue(filter.apply("", user1));
@@ -103,20 +103,20 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testGameStatusFilter() {
-    ArgumentCaptor<BiFunction<List<PlayerStatus>, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<List<PlayerStatus>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(playerStatusFilter).registerListener(argumentCaptor.capture());
 
-    ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
-    ListItem idleUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel").player(
+    ChatListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
+    ChatListItem idleUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel").player(
         PlayerBeanBuilder.create().defaultValues().game(null).get()
     ).get(), ChatUserCategory.FRIEND);
-    ListItem busyUser = new ChatUserItem(ChatChannelUserBuilder.create("user2", "channel").player(
+    ChatListItem busyUser = new ChatUserItem(ChatChannelUserBuilder.create("user2", "channel").player(
         PlayerBeanBuilder.create()
             .defaultValues()
             .game(GameBeanBuilder.create().defaultValues().status(GameStatus.PLAYING).get())
             .get()
     ).get(), ChatUserCategory.FRIEND);
-    BiFunction<List<PlayerStatus>, ListItem, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<List<PlayerStatus>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
     List<PlayerStatus> emptyList = Collections.emptyList();
     assertTrue(filter.apply(emptyList, category));
@@ -136,11 +136,11 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testPlayerRatingFilter() {
-    ArgumentCaptor<BiFunction<ItemWithRange<LeaderboardBean, Integer>, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<ItemWithRange<LeaderboardBean, Integer>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(playerRatingFilter).registerListener(argumentCaptor.capture());
 
-    ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
-    ListItem user1 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
+    ChatListItem user1 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
         .player(PlayerBeanBuilder.create()
             .defaultValues()
             .leaderboardRatings(Map.of("ladder", LeaderboardRatingBeanBuilder.create()
@@ -150,7 +150,7 @@ public class ChatUserFilterControllerTest extends UITest {
                     .get(),
                 "global", LeaderboardRatingBeanBuilder.create().defaultValues().mean(1000).deviation(0).get()))
             .get()).get(), ChatUserCategory.FRIEND);
-    ListItem user2 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem user2 = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
         .player(PlayerBeanBuilder.create()
             .defaultValues()
             .leaderboardRatings(Map.of("ladder", LeaderboardRatingBeanBuilder.create()
@@ -160,7 +160,7 @@ public class ChatUserFilterControllerTest extends UITest {
                     .get(),
                 "global", LeaderboardRatingBeanBuilder.create().defaultValues().mean(1500).deviation(0).get()))
             .get()).get(), ChatUserCategory.FRIEND);
-    BiFunction<ItemWithRange<LeaderboardBean, Integer>, ListItem, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<ItemWithRange<LeaderboardBean, Integer>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
     ItemWithRange<LeaderboardBean, Integer> noChange = new ItemWithRange<>(ladder, AbstractRangeSliderFilterController.NO_CHANGE);
     assertTrue(filter.apply(noChange, category));
@@ -185,17 +185,17 @@ public class ChatUserFilterControllerTest extends UITest {
 
   @Test
   public void testCountryCodeFilter() {
-    ArgumentCaptor<BiFunction<List<Country>, ListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
+    ArgumentCaptor<BiFunction<List<Country>, ChatListItem, Boolean>> argumentCaptor = ArgumentCaptor.forClass(BiFunction.class);
     verify(countryFilter).registerListener(argumentCaptor.capture());
 
-    ListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
-    ListItem russiaUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem category = new ChatUserCategoryItem(ChatUserCategory.FRIEND, FXCollections.observableArrayList(), "channel");
+    ChatListItem russiaUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
         .player(PlayerBeanBuilder.create().defaultValues().country("ru").get())
         .get(), ChatUserCategory.FRIEND);
-    ListItem americanUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
+    ChatListItem americanUser = new ChatUserItem(ChatChannelUserBuilder.create("user1", "channel")
         .player(PlayerBeanBuilder.create().defaultValues().country("us").get())
         .get(), ChatUserCategory.FRIEND);
-    BiFunction<List<Country>, ListItem, Boolean> filter = argumentCaptor.getValue();
+    BiFunction<List<Country>, ChatListItem, Boolean> filter = argumentCaptor.getValue();
 
     List<Country> emptyList = Collections.emptyList();
     assertTrue(filter.apply(emptyList, category));

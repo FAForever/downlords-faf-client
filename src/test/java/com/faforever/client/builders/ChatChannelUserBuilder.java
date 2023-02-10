@@ -11,7 +11,7 @@ public final class ChatChannelUserBuilder {
   private final ChatChannelUser chatChannelUser;
 
   private ChatChannelUserBuilder(String username, String channel) {
-    chatChannelUser = new ChatChannelUser(username, channel, false);
+    chatChannelUser = new ChatChannelUser(username, channel);
   }
 
   public static ChatChannelUserBuilder create(String username, String channel) {

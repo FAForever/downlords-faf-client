@@ -137,7 +137,7 @@ public class PlayerService implements InitializingBean {
 
   private void addGameToPlayer(GameBean game, PlayerBean player) {
     if (player.getGame() != game) {
-      player.setGame(game);
+      JavaFxUtil.runLater(() -> player.setGame(game));
       if (player.getSocialStatus() == FRIEND
           && game.getStatus() == GameStatus.OPEN
           && game.getGameType() != GameType.MATCHMAKER) {
@@ -148,7 +148,7 @@ public class PlayerService implements InitializingBean {
 
   private void removeGameFromPlayer(GameBean game, PlayerBean player) {
     if (player.getGame() == game) {
-      player.setGame(null);
+      JavaFxUtil.runLater(() -> player.setGame(null));
     }
   }
 

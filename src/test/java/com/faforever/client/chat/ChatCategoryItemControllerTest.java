@@ -161,22 +161,6 @@ public class ChatCategoryItemControllerTest extends UITest {
   }
 
   @Test
-  public void testDispose() {
-    ObservableList<ChatUserItem> userList = FXCollections.observableArrayList(new ChatUserItem(ChatChannelUserBuilder.create("test", "test")
-        .defaultValues()
-        .get(), ChatUserCategory.FRIEND));
-    runOnFxThreadAndWait(() -> instance.bindToUserList(userList));
-    assertEquals("1", instance.userCounterLabel.getText());
-
-    runOnFxThreadAndWait(() -> {
-      instance.dispose();
-      userList.clear();
-    });
-    assertEquals("1", instance.userCounterLabel.getText());
-    assertFalse(instance.userCounterLabel.textProperty().isBound());
-  }
-
-  @Test
   public void testGetRoot() {
     assertNotNull(instance.getRoot());
   }
