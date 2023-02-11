@@ -16,6 +16,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -185,9 +186,9 @@ public final class JavaFxUtil {
   }
 
   /**
-   * Updates the specified list with any changes made to the specified map, but not vice versa.
+   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified map.
    */
-  public static <K, V> void attachListToMap(ObservableList<V> list, ObservableMap<K, V> map) {
+  public static <K, V> ObservableList<V> attachListToMap(ObservableList<V> list, ObservableMap<K, V> map) {
     addListener(map, (MapChangeListener<K, V>) change -> {
       synchronized (list) {
         if (change.wasRemoved()) {
@@ -198,6 +199,24 @@ public final class JavaFxUtil {
         }
       }
     });
+    return FXCollections.unmodifiableObservableList(list);
+  }
+
+  /**
+   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified map.
+   */
+  public static <K, V> ObservableSet<V> attachSetToMap(ObservableSet<V> set, ObservableMap<K, V> map) {
+    addListener(map, (MapChangeListener<K, V>) change -> {
+      synchronized (set) {
+        if (change.wasRemoved()) {
+          set.remove(change.getValueRemoved());
+        }
+        if (change.wasAdded()) {
+          set.add(change.getValueAdded());
+        }
+      }
+    });
+    return FXCollections.unmodifiableObservableSet(set);
   }
 
   public static void persistImage(Image image, Path path, String format) {

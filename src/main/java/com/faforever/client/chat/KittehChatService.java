@@ -27,7 +27,6 @@ import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.Hashing;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -251,8 +250,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
           .map(channel -> chatChannelUsersByChannelAndName.get(mapKey(player.getUsername(), channel.getName())))
           .filter(Objects::nonNull)
           .forEach(chatChannelUser -> {
-            chatChannelUser.setPlayer(player);
-            chatUserService.populateColor(chatChannelUser);
+            JavaFxUtil.runLater(() -> {
+              chatChannelUser.setPlayer(player);
+              chatUserService.populateColor(chatChannelUser);
+            });
             eventBus.post(new ChatUserCategoryChangeEvent(chatChannelUser));
           });
     }
@@ -611,16 +612,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   @Override
   public void incrementUnreadMessagesCount(int delta) {
     eventBus.post(UpdateApplicationBadgeEvent.ofDelta(delta));
-  }
-
-  @Override
-  public ReadOnlyIntegerProperty unreadMessagesCount() {
-    return unreadMessagesCount;
-  }
-
-  @Override
-  public String getDefaultChannelName() {
-    return defaultChannelName;
   }
 
   private void onModeratorSet(String channelName, String username) {

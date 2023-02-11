@@ -14,6 +14,7 @@ import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
@@ -166,12 +167,12 @@ public class ChatCategoryItemControllerTest extends UITest {
   }
 
   private void initializeOtherCategoryItem() {
-    runOnFxThreadAndWait(() -> instance.setChatUserCategory(ChatUserCategory.OTHER, CHANNEL_NAME));
+    runOnFxThreadAndWait(() -> instance.setChatUserCategory(ChatUserCategory.OTHER));
   }
 
   private void setHiddenCategoryToPrefs(ChatUserCategory category) {
-    ObservableList<ChatUserCategory> hiddenCategories = chatPrefs.getChannelNameToHiddenCategories()
-        .getOrDefault(CHANNEL_NAME, FXCollections.observableArrayList());
+    ObservableSet<ChatUserCategory> hiddenCategories = chatPrefs.getChannelNameToHiddenCategories()
+        .getOrDefault(CHANNEL_NAME, FXCollections.observableSet());
     if (hiddenCategories.isEmpty()) {
       hiddenCategories.add(category);
       chatPrefs.getChannelNameToHiddenCategories().put(CHANNEL_NAME, hiddenCategories);

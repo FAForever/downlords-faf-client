@@ -1,17 +1,18 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.theme.UiService;
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.fxmisc.flowless.Cell;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
-public class ChatUserCategoryItem extends ChatListItem {
+@EqualsAndHashCode
+public class ChatUserCategoryItem implements ChatListItem {
 
   private final ChatUserCategory category;
-  private final ObservableList<ChatUserItem> userList;
-  private final String channelName;
 
   @Override
   public Cell<ChatListItem, Node> createCell(UiService uiService) {
@@ -28,14 +29,18 @@ public class ChatUserCategoryItem extends ChatListItem {
     return true;
   }
 
+  @Override
+  public Optional<ChatChannelUser> getUser() {
+    return Optional.empty();
+  }
+
   private class ChatUserCatergoryItemCell implements Cell<ChatListItem, Node> {
 
     private final Node node;
 
     public ChatUserCatergoryItemCell(UiService uiService) {
       ChatCategoryItemController controller = uiService.loadFxml("theme/chat/chat_user_category.fxml");
-      controller.setChatUserCategory(category, channelName);
-      controller.bindToUserList(userList);
+      controller.setChatUserCategory(category);
       node = controller.getRoot();
     }
 

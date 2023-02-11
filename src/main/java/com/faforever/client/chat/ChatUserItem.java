@@ -2,6 +2,7 @@ package com.faforever.client.chat;
 
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.fxmisc.flowless.Cell;
@@ -9,7 +10,8 @@ import org.fxmisc.flowless.Cell;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class ChatUserItem extends ChatListItem {
+@EqualsAndHashCode
+public class ChatUserItem implements ChatListItem {
 
   private final ChatChannelUser user;
   private final ChatUserCategory category;
@@ -38,9 +40,10 @@ public class ChatUserItem extends ChatListItem {
 
     @Getter
     private final Node node;
+    private final ChatUserItemController controller;
 
     public ChatUserItemCell(UiService uiService) {
-      ChatUserItemController controller = uiService.loadFxml("theme/chat/chat_user_item.fxml");
+      controller = uiService.loadFxml("theme/chat/chat_user_item.fxml");
       controller.setChatUser(user);
       node = controller.getRoot();
     }

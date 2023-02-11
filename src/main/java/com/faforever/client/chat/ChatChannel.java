@@ -5,22 +5,23 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Value
 @RequiredArgsConstructor
 public class ChatChannel {
 
-  ObservableMap<String, ChatChannelUser> users = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
-  ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
   String name;
+
+  ObservableMap<String, ChatChannelUser> usernameToChatUser = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+  ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(FXCollections.observableArrayList(), usernameToChatUser);
+  ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
 
   public ChannelTopic getTopic() {
     return topic.get();
@@ -35,7 +36,7 @@ public class ChatChannel {
   }
 
   public ChatChannelUser removeUser(String username) {
-    return users.remove(username);
+    return usernameToChatUser.remove(username);
   }
 
   public void addUsers(List<ChatChannelUser> users) {
@@ -43,39 +44,38 @@ public class ChatChannel {
   }
 
   public void addUser(ChatChannelUser user) {
-    users.put(user.getUsername(), user);
+    usernameToChatUser.put(user.getUsername(), user);
   }
 
   public void clearUsers() {
-    users.clear();
+    usernameToChatUser.clear();
   }
 
   public boolean containsUser(ChatChannelUser user) {
-    return users.containsValue(user);
+    return usernameToChatUser.containsValue(user);
   }
 
   public void addUsersListeners(MapChangeListener<String, ChatChannelUser> listener) {
-    JavaFxUtil.addListener(users, listener);
+    JavaFxUtil.addListener(usernameToChatUser, listener);
   }
 
   public void removeUserListener(MapChangeListener<String, ChatChannelUser> listener) {
-    users.removeListener(listener);
+    usernameToChatUser.removeListener(listener);
   }
 
   /**
    * Returns an unmodifiable copy of the current users.
    */
-  public List<ChatChannelUser> getUsers() {
-    return Collections.unmodifiableList(new ArrayList<>(users.values()));
+  public ObservableList<ChatChannelUser> getUsers() {
+    return users;
   }
 
   public int getUserCount() {
     return users.size();
   }
 
-  @Nullable
-  public ChatChannelUser getUser(String username) {
-    return users.get(username);
+  public Optional<ChatChannelUser> getUser(String username) {
+    return Optional.ofNullable(usernameToChatUser.get(username));
   }
 
   public String getName() {

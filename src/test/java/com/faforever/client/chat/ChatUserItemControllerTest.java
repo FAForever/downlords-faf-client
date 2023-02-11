@@ -34,7 +34,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -131,12 +130,16 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testCheckShowMapNameListener() {
-    runOnFxThreadAndWait(() -> instance.mapNameLabel.setText("map name"));
-    boolean visible = chatPrefs.isShowMapName();
-    assertEquals(instance.mapNameLabel.isVisible(), visible);
+    PlayerBean player = PlayerBeanBuilder.create()
+        .defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().get())
+        .get();
+    defaultUser.setPlayer(player);
+    runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
+    assertEquals(instance.mapNameLabel.isVisible(), chatPrefs.isShowMapName());
 
-    runOnFxThreadAndWait(() -> chatPrefs.setShowMapName(!visible));
-    assertEquals(instance.mapNameLabel.isVisible(), !visible);
+    chatPrefs.setShowMapName(!chatPrefs.isShowMapName());
+    assertEquals(instance.mapNameLabel.isVisible(), chatPrefs.isShowMapName());
   }
 
   @Test
@@ -169,7 +172,7 @@ public class ChatUserItemControllerTest extends UITest {
     defaultUser.setGameStatusImage(mock(Image.class));
     defaultUser.setPlayer(player);
 
-    when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion), Optional.empty());
+    when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map name");
     when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap().getDisplayName(), "map name", "Neroxis Generated Map");
 
@@ -177,9 +180,6 @@ public class ChatUserItemControllerTest extends UITest {
     assertNotNull(instance.gameStatusImageView.getImage());
     assertNotNull(instance.mapImageView.getImage());
     assertEquals(mapVersion.getMap().getDisplayName(), instance.mapNameLabel.getText());
-
-    runOnFxThreadAndWait(() -> defaultUser.setLastActive(Instant.now()));
-    assertEquals("map name", instance.mapNameLabel.getText());
   }
 
   @Test

@@ -118,8 +118,6 @@ public class GameService implements InitializingBean, DisposableBean {
   @VisibleForTesting
   final SimpleObjectProperty<GameBean> currentGame;
 
-  private final ObservableMap<Integer, GameBean> gameIdToGame;
-
   private final FafServerAccessor fafServerAccessor;
   private final ForgedAllianceService forgedAllianceService;
   private final CoturnService coturnService;
@@ -138,11 +136,16 @@ public class GameService implements InitializingBean, DisposableBean {
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
   private final OperatingSystem operatingSystem;
-  @Getter
-  private final ObservableList<GameBean> games;
   private final String faWindowTitle;
   private final MaskPatternLayout logMasker;
   private final GameMapper gameMapper;
+
+  private final ObservableMap<Integer, GameBean> gameIdToGame = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+  @Getter
+  private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
+      game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(),
+          game.mapFolderNameProperty(), game.simModsProperty()}
+  )), gameIdToGame);
 
   private Process process;
   private CompletableFuture<Void> matchmakerFuture;
@@ -192,13 +195,8 @@ public class GameService implements InitializingBean, DisposableBean {
 
     logMasker = new MaskPatternLayout();
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-    gameIdToGame = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
     gameRunning = new SimpleBooleanProperty();
     currentGame = new SimpleObjectProperty<>();
-    games = FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
-        game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(),
-            game.mapFolderNameProperty(), game.simModsProperty()}
-    ));
     inOthersParty = false;
   }
 
@@ -216,8 +214,6 @@ public class GameService implements InitializingBean, DisposableBean {
       ChangeListener<GameStatus> statusChangeListener = generateGameStatusListener(newValue);
       JavaFxUtil.addAndTriggerListener(newValue.statusProperty(), statusChangeListener);
     });
-
-    JavaFxUtil.attachListToMap(games, gameIdToGame);
 
     eventBus.register(this);
 

@@ -61,6 +61,7 @@ import java.net.InetAddress;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -585,14 +586,13 @@ public class KittehChatServiceTest extends ServiceTest {
     join(defaultChannel, user1);
     join(otherChannel, user2);
 
-    List<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
+    Set<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
     assertThat(usersInDefaultChannel, contains(defaultChatUser1));
-    assertThat(usersInDefaultChannel.get(0), sameInstance(defaultChatUser1));
 
-    List<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
+    Set<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
 
-    assertThat(usersInOtherChannel.get(0).getChannel(), is(otherChannel.getName()));
-    assertThat(usersInOtherChannel.get(0).getUsername(), is(defaultChatUser2.getUsername()));
+    assertEquals(1, usersInOtherChannel.size());
+    assertTrue(usersInOtherChannel.contains(new ChatChannelUser(defaultChatUser2.getUsername(), otherChannel.getName())));
   }
 
   @Test
@@ -603,7 +603,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
 
-    List<ChatChannelUser> users = chatChannel.getUsers();
+    Set<ChatChannelUser> users = chatChannel.getUsers();
     assertThat(users, hasSize(2));
     assertThat(users, containsInAnyOrder(defaultChatUser1, defaultChatUser2));
   }

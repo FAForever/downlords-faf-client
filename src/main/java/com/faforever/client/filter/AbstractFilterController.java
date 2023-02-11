@@ -42,7 +42,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   private boolean resetInProgress = false;
 
   private final BooleanProperty filterStateProperty = new SimpleBooleanProperty(false);
-  private final ObjectProperty<Predicate<T>> predicateProperty = new SimpleObjectProperty<>(defaultPredicate);
+  private final ObjectProperty<Predicate<T>> predicate = new SimpleObjectProperty<>(defaultPredicate);
 
   public AbstractFilterController(UiService uiService, I18n i18n) {
     this.i18n = i18n;
@@ -66,7 +66,11 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   }
 
   public ObjectProperty<Predicate<T>> predicateProperty() {
-    return predicateProperty;
+    return predicate;
+  }
+
+  public Predicate<T> getPredicate() {
+    return predicate.get();
   }
 
   public boolean getFilterState() {
@@ -75,7 +79,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
 
   public void setDefaultPredicate(Predicate<T> defaultPredicate) {
     this.defaultPredicate = defaultPredicate;
-    predicateProperty.setValue(defaultPredicate);
+    predicate.setValue(defaultPredicate);
   }
 
   private void setFilterContent() {
@@ -95,7 +99,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
               .map(AbstractFilterNodeController::getPredicate), externalFilters.values().stream())
           .reduce(Predicate::and)
           .orElseThrow();
-      predicateProperty.setValue(defaultPredicate.and(finalPredicate));
+      predicate.setValue(defaultPredicate.and(finalPredicate));
       updateFilterState();
     }
   }

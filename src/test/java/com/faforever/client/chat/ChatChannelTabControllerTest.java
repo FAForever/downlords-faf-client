@@ -22,7 +22,6 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.binding.BooleanBinding;
 import javafx.scene.control.Labeled;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -50,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -110,7 +108,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
-    preferences = PreferencesBuilder.create().defaultValues().chatPrefs().then().get();
+    preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
@@ -120,7 +118,8 @@ public class ChatChannelTabControllerTest extends UITest {
     when(timeService.asShortTime(any())).thenReturn("now");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
     when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(mock(ChatChannelUser.class));
-    when(chatUserListController.getAutoCompletionHelper()).thenReturn(mock(AutoCompletionHelper.class));
+
+    instance.afterPropertiesSet();
 
     loadFxml("theme/chat/channel_tab.fxml", clazz -> {
       if (clazz == ChatUserListController.class) {
@@ -128,7 +127,6 @@ public class ChatChannelTabControllerTest extends UITest {
       }
       return instance;
     });
-    instance.afterPropertiesSet();
   }
 
   @Test
@@ -191,11 +189,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testChangeTopicButtonForModerators() {
-    doAnswer(invocation -> {
-      invocation.getArgument(0, Runnable.class).run();
-      return invocation;
-    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
-
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
@@ -205,11 +198,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testNoChangeTopicButtonForNonModerators() {
-    doAnswer(invocation -> {
-      invocation.getArgument(0, Runnable.class).run();
-      return invocation;
-    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
-
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
         .defaultValues()
         .moderator(false)
@@ -222,11 +210,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testCheckModeratorListener() {
-    doAnswer(invocation -> {
-      invocation.getArgument(0, Runnable.class).run();
-      return invocation;
-    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
-
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
@@ -351,7 +334,6 @@ public class ChatChannelTabControllerTest extends UITest {
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.getRoot().getOnCloseRequest().handle(null));
     verify(chatService).leaveChannel(CHANNEL_NAME);
-    verify(chatUserListController).onTabClosed();
   }
 
   @Test
@@ -611,6 +593,6 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   private void initializeDefaultChatChannel() {
-    runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel, mock(BooleanBinding.class)));
+    runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
   }
 }

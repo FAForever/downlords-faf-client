@@ -42,8 +42,15 @@ public class MatchmakingChatController extends AbstractChatTabController {
   public TextFlow topicText;
   public Hyperlink discordLink;
 
+  private final MapChangeListener<String, ChatChannelUser> usersChangeListener = change -> {
+    if (change.wasAdded()) {
+      onPlayerConnected(change.getValueAdded().getUsername());
+    } else if (change.wasRemoved()) {
+      onPlayerDisconnected(change.getValueRemoved().getUsername());
+    }
+  };
+
   private ChatChannel channel;
-  private MapChangeListener<String, ChatChannelUser> usersChangeListener;
 
   // TODO cut dependencies
   public MatchmakingChatController(UserService userService,
@@ -87,13 +94,6 @@ public class MatchmakingChatController extends AbstractChatTabController {
         });
     topicText.getChildren().add(discordLink);
 
-    usersChangeListener = change -> {
-      if (change.wasAdded()) {
-        onPlayerConnected(change.getValueAdded().getUsername());
-      } else if (change.wasRemoved()) {
-        onPlayerDisconnected(change.getValueRemoved().getUsername());
-      }
-    };
     chatService.addUsersListener(partyName, usersChangeListener);
   }
 

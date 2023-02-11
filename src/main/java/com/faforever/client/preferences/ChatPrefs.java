@@ -20,11 +20,13 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.scene.paint.Color;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
@@ -63,7 +65,7 @@ public class ChatPrefs {
   IntegerProperty idleThreshold = new SimpleIntegerProperty(10);
   BooleanProperty showMapName = new SimpleBooleanProperty(false);
   BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
-  MapProperty<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  MapProperty<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = new SimpleMapProperty<>(FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()));
 
   public ChatPrefs() {
     Locale localeLanguage = new Locale(Locale.getDefault().getLanguage());
@@ -262,11 +264,12 @@ public class ChatPrefs {
     this.showMapName.set(showMapName);
   }
 
-  public MapProperty<String, ObservableList<ChatUserCategory>> getChannelNameToHiddenCategories() {
+  public ObservableMap<String, ObservableSet<ChatUserCategory>> getChannelNameToHiddenCategories() {
     return channelNameToHiddenCategories;
   }
 
-  public void setChannelNameToHiddenCategories(ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories) {
-    this.channelNameToHiddenCategories.set(channelNameToHiddenCategories);
+  public void setChannelNameToHiddenCategories(Map<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories) {
+    this.channelNameToHiddenCategories.clear();
+    this.channelNameToHiddenCategories.putAll(channelNameToHiddenCategories);
   }
 }
