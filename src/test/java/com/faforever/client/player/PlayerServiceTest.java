@@ -14,7 +14,7 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
-import com.faforever.client.test.ServiceTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.lobby.Player.Avatar;
@@ -64,7 +64,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PlayerServiceTest extends ServiceTest {
+public class PlayerServiceTest extends UITest {
 
   @Mock
   private FafApiAccessor fafApiAccessor;
@@ -304,14 +304,14 @@ public class PlayerServiceTest extends ServiceTest {
     Map<Integer, Set<PlayerBean>> teams = new HashMap<>(Map.of(1, Set.of(player1), 2, Set.of(player2)));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
 
-    instance.updatePlayersInGame(game);
+    runOnFxThreadAndWait(() -> instance.updatePlayersInGame(game));
 
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
 
     teams.remove(1);
 
-    instance.updatePlayersInGame(game);
+    runOnFxThreadAndWait(() -> instance.updatePlayersInGame(game));
 
     assertThat(player1.getGame(), is(nullValue()));
     assertThat(player2.getGame(), is(game));

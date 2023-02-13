@@ -17,10 +17,8 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
-import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.IdenticonUtil;
@@ -36,7 +34,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
-import javafx.concurrent.Worker;
+import javafx.concurrent.Worker.State;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Bounds;
@@ -46,10 +44,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.skin.TabPaneSkin;
-import javafx.scene.image.Image;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -57,13 +51,13 @@ import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.stage.Stage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import netscape.javascript.JSObject;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.core.io.ClassPathResource;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -90,10 +84,11 @@ import static javafx.scene.AccessibleAttribute.ITEM_AT_INDEX;
 
 /**
  * A chat tab displays messages in a {@link WebView}. The WebView is used since text on a JavaFX canvas isn't
- * selectable, but text within a WebView is. This comes with some ugly implications; some of the logic has to be
+ * selectable, but text within a WebView is. This comes with some ugly implications; some logic has to be
  * performed in interaction with JavaScript, like when the user clicks a link.
  */
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AbstractChatTabController implements Controller<Tab> {
 
   static final String CSS_CLASS_CHAT_ONLY = "chat_only";
@@ -112,7 +107,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private static final Pattern CHANNEL_USER_PATTERN = Pattern.compile("(^|\\s)#[a-zA-Z]\\S+", CASE_INSENSITIVE);
 
-  private final String emoticonImgTemplate = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
+  private static final String EMOTICON_IMG_TEMPLATE = "<img src=\"data:image/svg+xml;base64,%s\" width=\"24\" height=\"24\" />";
 
   private static final String ACTION_PREFIX = "/me ";
   private static final String JOIN_PREFIX = "/join ";
@@ -122,6 +117,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private static final String ACTION_CSS_CLASS = "action";
   private static final String MESSAGE_CSS_CLASS = "message";
+
   protected final UserService userService;
   protected final ChatService chatService;
   protected final PreferencesService preferencesService;
@@ -130,24 +126,51 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final TimeService timeService;
   protected final I18n i18n;
   protected final NotificationService notificationService;
-  protected final ReportingService reportingService;
   protected final UiService uiService;
   protected final EventBus eventBus;
   protected final WebViewConfigurer webViewConfigurer;
-  protected final ChatUserService chatUserService;
   protected final EmoticonService emoticonService;
-  private final ImageUploadService imageUploadService;
-  private final CountryFlagService countryFlagService;
+  protected final CountryFlagService countryFlagService;
 
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
    */
-  private final List<ChatMessage> waitingMessages;
-  private final IntegerProperty unreadMessagesCount;
-  private final ChangeListener<Boolean> resetUnreadMessagesListener;
-  private final ChangeListener<Number> zoomChangeListener;
-  private final ChangeListener<Boolean> tabPaneFocusedListener;
-  private final ChangeListener<Boolean> stageFocusedListener;
+  private final List<ChatMessage> waitingMessages = new ArrayList<>();
+  private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
+
+  @SuppressWarnings("FieldCanBeLocal")
+  private final ChangeListener<Number> unreadMessageCountListener = (observable, oldValue, newValue) -> incrementUnreadMessageCount(newValue.intValue() - oldValue.intValue());
+  private final ChangeListener<Number> zoomChangeListener = (observable, oldValue, newValue) -> updateZoomPreferences(newValue);;
+  private final ChangeListener<Boolean> tabPaneFocusedListener = (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
+    if (newTabPaneFocus) {
+      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+    }
+  };
+  @SuppressWarnings("FieldCanBeLocal")
+  private final ChangeListener<Boolean> selectedChangeListener = (observable, oldValue, newValue) -> {
+    if (newValue) {
+      // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
+      // So let's schedule the focus to be executed afterwards
+      JavaFxUtil.runLater(messageTextField()::requestFocus);
+    }
+  };
+  private final ChangeListener<Boolean> stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
+    if (getRoot() != null
+        && getRoot().getTabPane() != null
+        && getRoot().getTabPane().isVisible()) {
+      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+    }
+  };
+  @SuppressWarnings("FieldCanBeLocal")
+  private final ChangeListener<TabPane> tabPaneChangeListener = (tabPane, oldTabPane, newTabPane) -> addTabListeners(newTabPane);
+  private final ChangeListener<State> webViewStatChangeListener = (observable, oldValue, newValue) -> sendWaitingMessagesIfLoaded(newValue);
+
+  private final ChangeListener<Boolean> resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
+    if (hasFocus()) {
+      setUnread(false);
+    }
+  };
+
   private int lastEntryId;
   private boolean isChatReady;
 
@@ -159,62 +182,22 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private String receiver;
   private ChatMessage lastMessage;
-  WebEngine engine;
+  private WebEngine engine;
+
   @VisibleForTesting
   Pattern mentionPattern;
 
-  @Inject
-  // TODO cut dependencies
-  public AbstractChatTabController(WebViewConfigurer webViewConfigurer,
-                                   UserService userService, ChatService chatService,
-                                   PreferencesService preferencesService,
-                                   PlayerService playerService, AudioService audioService,
-                                   TimeService timeService, I18n i18n,
-                                   ImageUploadService imageUploadService,
-                                   NotificationService notificationService, ReportingService reportingService, UiService uiService,
-                                   EventBus eventBus, CountryFlagService countryFlagService, ChatUserService chatUserService,
-                                   EmoticonService emoticonService) {
+  private void updateZoomPreferences(Number newValue) {
+    preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
+    preferencesService.storeInBackground();
+  }
 
-    this.webViewConfigurer = webViewConfigurer;
-    this.uiService = uiService;
-    this.chatService = chatService;
-    this.userService = userService;
-    this.preferencesService = preferencesService;
-    this.playerService = playerService;
-    this.audioService = audioService;
-    this.timeService = timeService;
-    this.i18n = i18n;
-    this.imageUploadService = imageUploadService;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
-    this.eventBus = eventBus;
-    this.countryFlagService = countryFlagService;
-    this.chatUserService = chatUserService;
-    this.emoticonService = emoticonService;
-
-    waitingMessages = new ArrayList<>();
-    unreadMessagesCount = new SimpleIntegerProperty();
-    resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
-      if (hasFocus()) {
-        setUnread(false);
-      }
-    };
-    zoomChangeListener = (observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
-      preferencesService.storeInBackground();
-    };
-    stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
-      if (getRoot() != null
-          && getRoot().getTabPane() != null
-          && getRoot().getTabPane().isVisible()) {
-        JavaFxUtil.runLater(() -> messageTextField().requestFocus());
-      }
-    };
-    tabPaneFocusedListener = (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
-      if (newTabPaneFocus) {
-        JavaFxUtil.runLater(() -> messageTextField().requestFocus());
-      }
-    };
+  private void addTabListeners(TabPane newTabPane) {
+    if (newTabPane == null) {
+      return;
+    }
+    JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(stageFocusedListener));
+    JavaFxUtil.addListener(newTabPane.focusedProperty(), new WeakChangeListener<>(tabPaneFocusedListener));
   }
 
   /**
@@ -259,9 +242,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   public abstract Tab getRoot();
 
-  protected void incrementUnreadMessagesCount(int delta) {
+  protected void incrementUnreadMessagesCount() {
     synchronized (unreadMessagesCount) {
-      unreadMessagesCount.set(unreadMessagesCount.get() + delta);
+      unreadMessagesCount.set(unreadMessagesCount.get() + 1);
     }
   }
 
@@ -279,18 +262,22 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     initChatView();
 
     addFocusListeners();
-    addImagePasteListener();
 
-    unreadMessagesCount.addListener((observable, oldValue, newValue) -> chatService.incrementUnreadMessagesCount(newValue.intValue() - oldValue.intValue()));
-    JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
-    JavaFxUtil.addListener(getRoot().selectedProperty(), new WeakChangeListener<>(resetUnreadMessagesListener));
+    unreadMessagesCount.addListener(new WeakChangeListener<>(unreadMessageCountListener));
+    StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
+    getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
 
     getRoot().setOnClosed(this::onClosed);
-    eventBus.register(this);
+  }
+
+  private void incrementUnreadMessageCount(int delta) {
+    chatService.incrementUnreadMessagesCount(delta);
   }
 
   protected void onClosed(Event event) {
-    // Subclasses may override but need to call super
+    getRoot().setOnClosed(null);
+    getRoot().setOnCloseRequest(null);
+    messageTextField().setOnKeyReleased(null);
   }
 
   /**
@@ -298,60 +285,11 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * another tab to the "chat" tab or re-focusing the window.
    */
   private void addFocusListeners() {
-    JavaFxUtil.addListener(getRoot().selectedProperty(), (observable, oldValue, newValue) -> {
-      if (newValue) {
-        // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
-        // So let's schedule the focus to be executed afterwards
-        JavaFxUtil.runLater(messageTextField()::requestFocus);
-      }
-    });
-
-    JavaFxUtil.addListener(getRoot().tabPaneProperty(), (tabPane, oldTabPane, newTabPane) -> {
-      if (newTabPane == null) {
-        return;
-      }
-      JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(stageFocusedListener));
-      JavaFxUtil.addListener(newTabPane.focusedProperty(), new WeakChangeListener<>(tabPaneFocusedListener));
-    });
-  }
-
-  private void addImagePasteListener() {
-    TextInputControl messageTextField = messageTextField();
-    messageTextField.setOnKeyReleased(event -> {
-      if (isPaste(event)
-          && Clipboard.getSystemClipboard().hasImage()) {
-        pasteImage();
-      }
-    });
+    getRoot().selectedProperty().addListener(new WeakChangeListener<>(selectedChangeListener));
+    getRoot().tabPaneProperty().addListener(new WeakChangeListener<>(tabPaneChangeListener));
   }
 
   protected abstract TextInputControl messageTextField();
-
-  private boolean isPaste(KeyEvent event) {
-    return (event.getCode() == KeyCode.V && event.isShortcutDown())
-        || (event.getCode() == KeyCode.INSERT && event.isShiftDown());
-  }
-
-  private void pasteImage() {
-    TextInputControl messageTextField = messageTextField();
-    int currentCaretPosition = messageTextField.getCaretPosition();
-
-    messageTextField.setDisable(true);
-
-    Clipboard clipboard = Clipboard.getSystemClipboard();
-    Image image = clipboard.getImage();
-
-    imageUploadService.uploadImageInBackground(image).thenAccept(url ->
-        JavaFxUtil.runLater(() -> {
-          messageTextField.insertText(currentCaretPosition, url);
-          messageTextField.setDisable(false);
-          messageTextField.requestFocus();
-          messageTextField.positionCaret(messageTextField.getLength());
-        })).exceptionally(throwable -> {
-      messageTextField.setDisable(false);
-      return null;
-    });
-  }
 
   private void initChatView() {
     WebView messagesWebView = getMessagesWebView();
@@ -392,17 +330,20 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void configureLoadListener() {
-    JavaFxUtil.addListener(engine.getLoadWorker().stateProperty(), (observable, oldValue, newValue) -> {
-      if (newValue != Worker.State.SUCCEEDED) {
-        return;
-      }
-      synchronized (waitingMessages) {
-        waitingMessages.forEach(AbstractChatTabController.this::addMessage);
-        waitingMessages.clear();
-        isChatReady = true;
-        onWebViewLoaded();
-      }
-    });
+    engine.getLoadWorker().stateProperty().addListener(new WeakChangeListener<>(webViewStatChangeListener));
+  }
+
+  private void sendWaitingMessagesIfLoaded(State newValue) {
+    if (newValue != State.SUCCEEDED) {
+      return;
+    }
+
+    synchronized (waitingMessages) {
+      waitingMessages.forEach(AbstractChatTabController.this::addMessage);
+      waitingMessages.clear();
+      isChatReady = true;
+      onWebViewLoaded();
+    }
   }
 
   protected abstract WebView getMessagesWebView();
@@ -647,7 +588,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   @VisibleForTesting
   protected String transformEmoticonShortcodesToImages(String text) {
     return emoticonService.getEmoticonShortcodeDetectorPattern().matcher(text).replaceAll((matchResult) ->
-        String.format(emoticonImgTemplate, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
+        String.format(EMOTICON_IMG_TEMPLATE, emoticonService.getBase64SvgContentByShortcode(matchResult.group())));
   }
 
   @VisibleForTesting

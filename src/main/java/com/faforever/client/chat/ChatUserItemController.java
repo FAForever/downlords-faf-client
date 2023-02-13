@@ -1,5 +1,6 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
@@ -29,7 +30,9 @@ import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
 import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
@@ -41,7 +44,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
@@ -70,6 +72,8 @@ public class ChatUserItemController implements Controller<Node> {
   private final UiService uiService;
   private final MapService mapService;
   private final MapGeneratorService mapGeneratorService;
+  private final CountryFlagService countryFlagService;
+  private final AvatarService avatarService;
   private final EventBus eventBus;
   private final ContextMenuBuilder contextMenuBuilder;
 
@@ -211,57 +215,64 @@ public class ChatUserItemController implements Controller<Node> {
   private void bindProperties() {
     ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, gameStatusImageView, noteIcon);
-    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
-    countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
-    gameStatusImageView.visibleProperty().bind(gameStatusImageView.imageProperty().isNotNull());
+    JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, noteIcon);
     noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
-    mapNameLabel.visibleProperty().bind(mapNameLabel.textProperty().isNotEmpty().and(chatPrefs.showMapNameProperty()));
+    mapNameLabel.visibleProperty().bind(chatPrefs.showMapNameProperty().and(mapNameLabel.textProperty().isNotEmpty()));
     mapImageView.visibleProperty().bind(chatPrefs.showMapPreviewProperty());
-    mapNameLabel.textProperty()
-        .bind(chatUser.flatMap(ChatChannelUser::playerProperty)
-            .flatMap(PlayerBean::gameProperty)
-            .flatMap(GameBean::mapFolderNameProperty)
-            .map(this::getMapName)
-            .map(mapName -> i18n.get("game.onMapFormat", mapName)));
+
+    ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
+
+    ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);
+
+    mapNameLabel.textProperty().bind(gameProperty.flatMap(GameBean::mapFolderNameProperty).map(mapFolderName -> {
+      if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
+        return "Neroxis Generated Map";
+      } else {
+        return mapService.getMapLocallyFromName(mapFolderName)
+            .map(mapVersion -> mapVersion.getMap().getDisplayName())
+            .orElseGet(() -> mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName));
+      }
+    }).map(mapName -> i18n.get("game.onMapFormat", mapName)));
+
     mapImageView.imageProperty()
-        .bind(chatUser.flatMap(ChatChannelUser::mapImageProperty)
-            .flatMap(this::getImageWithErrorProperty));
-    gameStatusImageView.imageProperty().bind(chatUser.flatMap(ChatChannelUser::gameStatusImageProperty));
-    noteTooltip.textProperty()
-        .bind(chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::noteProperty));
-    avatarTooltip.textProperty()
-        .bind(chatUser.flatMap(ChatChannelUser::playerProperty)
-            .flatMap(PlayerBean::avatarProperty)
-            .flatMap(AvatarBean::descriptionProperty));
-    avatarImageView.imageProperty().bind(chatUser.flatMap(ChatChannelUser::avatarProperty));
-    countryImageView.imageProperty().bind(chatUser.flatMap(ChatChannelUser::countryFlagProperty));
+        .bind(gameProperty.flatMap(GameBean::mapFolderNameProperty)
+            .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL))
+            .flatMap(image -> image.errorProperty()
+                .map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image)));
+
+    gameStatusImageView.imageProperty()
+        .bind(playerProperty.flatMap(PlayerBean::statusProperty)
+            .map(status -> switch (status) {
+              case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
+              case LOBBYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
+              case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
+              default -> null;
+            }));
+    noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerBean::noteProperty));
+
+    ObservableValue<AvatarBean> avatarProperty = playerProperty.flatMap(PlayerBean::avatarProperty);
+    avatarTooltip.textProperty().bind(avatarProperty.flatMap(AvatarBean::descriptionProperty));
+    avatarImageView.imageProperty().bind(avatarProperty.map(avatarService::loadAvatar));
+
+    countryImageView.imageProperty()
+        .bind(playerProperty.flatMap(PlayerBean::countryProperty)
+            .map(countryFlagService::loadCountryFlag)
+            .map(possibleFlag -> possibleFlag.orElse(null)));
+
     usernameLabel.styleProperty()
         .bind(chatUser.flatMap(ChatChannelUser::colorProperty)
             .map(JavaFxUtil::toRgbCode)
             .map(rgb -> String.format("-fx-text-fill: %s", rgb)));
-    ObservableValue<String> clanTagProperty = chatUser.flatMap(ChatChannelUser::clanTagProperty);
+
+    ObservableValue<String> clanTagProperty = chatUser.flatMap(ChatChannelUser::playerProperty)
+        .flatMap(PlayerBean::clanProperty)
+        .map(clanTag -> clanTag.isBlank() ? null : String.format("[%s]", clanTag));
     ObservableValue<String> usernameProperty = chatUser.flatMap(ChatChannelUser::usernameProperty);
-    usernameLabel.textProperty()
-        .bind(Bindings.createStringBinding(() -> {
-          String clanTag = clanTagProperty.getValue();
-          String username = usernameProperty.getValue();
-          return StringUtils.isEmpty(clanTag) ? username : clanTag + " " + username;
-        }, clanTagProperty, usernameProperty));
+    usernameLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+      String clanTag = clanTagProperty.getValue();
+      String username = usernameProperty.getValue();
+      return StringUtils.isEmpty(clanTag) ? username : clanTag + " " + username;
+    }, clanTagProperty, usernameProperty));
   }
 
-  private ObservableValue<Image> getImageWithErrorProperty(Image image) {
-    return image.errorProperty()
-        .map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image);
-  }
-
-  private String getMapName(String mapFolderName) {
-    if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
-      return "Neroxis Generated Map";
-    } else {
-      return mapService.getMapLocallyFromName(mapFolderName)
-          .map(mapVersion -> mapVersion.getMap().getDisplayName())
-          .orElseGet(() -> mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName));
-    }
-  }
 }

@@ -58,7 +58,7 @@ public class LiveReplayControllerTest extends UITest {
 
     when(gameService.getGames()).thenReturn(FXCollections.observableArrayList());
     when(uiService.loadFxml("theme/filter/filter.fxml", LiveGamesFilterController.class)).thenReturn(liveGamesFilterController);
-    when(liveGamesFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(liveGamesFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(liveGamesFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(i18n.get(any())).thenReturn("test");
 

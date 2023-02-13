@@ -5,8 +5,7 @@ import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
-import com.faforever.client.chat.event.ChatUserColorChangeEvent;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -93,8 +92,6 @@ public class ChatChannelTabControllerTest extends UITest {
   private CountryFlagService countryFlagService;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private ChatUserService chatUserService;
   @Mock
   private EmoticonService emoticonService;
   @Mock
@@ -480,11 +477,7 @@ public class ChatChannelTabControllerTest extends UITest {
     String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
     String after = "<span class=\"text user-junit message\" style=\"color: rgb(0, 255, 255);\">Hello world!</span>";
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
-    ChatChannelUser updatedChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
-        .defaultValues()
-        .color(Color.AQUA)
-        .get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().player(PlayerBeanBuilder.create().defaultValues().get()).get();
     defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
@@ -495,7 +488,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserColorChange(new ChatUserColorChangeEvent(updatedChatUser)));
+    runOnFxThreadAndWait(() -> chatUser.setColor(Color.AQUA));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));
@@ -507,14 +500,12 @@ public class ChatChannelTabControllerTest extends UITest {
     String after = "<span class=\"text user-junit message\" style=\"display: none;\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
+    PlayerBean player = PlayerBeanBuilder.create().socialStatus(OTHER).get();
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
         .defaultValues()
-        .player(PlayerBeanBuilder.create().socialStatus(OTHER).get())
+        .player(player)
         .get();
-    ChatChannelUser updatedChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
-        .defaultValues()
-        .player(PlayerBeanBuilder.create().socialStatus(FOE).get())
-        .get();
+
     defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
@@ -525,7 +516,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatUser)));
+    runOnFxThreadAndWait(() -> player.setSocialStatus(FOE));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));
@@ -537,10 +528,9 @@ public class ChatChannelTabControllerTest extends UITest {
     String after = "<span class=\"text user-junit message chat_only\" style=\"\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
-    ChatChannelUser updatedChatOnlyChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
-        .defaultValues()
-        .get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues()
+        .player(PlayerBeanBuilder.create().defaultValues().get()).get();
+
     defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
@@ -551,7 +541,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatOnlyChatUser)));
+    runOnFxThreadAndWait(() -> chatUser.setPlayer(null));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));
@@ -560,17 +550,13 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testOnModeratorUserStyleClassUpdate() throws Exception {
     String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message chat_only moderator\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message moderator\" style=\"\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
         .defaultValues()
         .player(PlayerBeanBuilder.create().socialStatus(OTHER).get())
         .moderator(false)
-        .get();
-    ChatChannelUser updatedChatOnlyChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
-        .defaultValues()
-        .moderator(true)
         .get();
     defaultChatChannel.addUser(chatUser);
 
@@ -582,7 +568,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatOnlyChatUser)));
+    runOnFxThreadAndWait(() -> chatUser.setModerator(true));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));

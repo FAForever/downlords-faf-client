@@ -127,10 +127,11 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public void setLeaderboardRatings(Map<String, LeaderboardRatingBean> leaderboardRatings) {
-    this.leaderboardRatings.clear();
-    if (leaderboardRatings != null) {
-      this.leaderboardRatings.putAll(leaderboardRatings);
-    }
+    this.leaderboardRatings.setValue(leaderboardRatings == null ? FXCollections.observableHashMap() : FXCollections.observableMap(leaderboardRatings));
+  }
+
+  public MapProperty<String, LeaderboardRatingBean> leaderboardRatingsProperty() {
+    return leaderboardRatings;
   }
 
   public PlayerStatus getStatus() {
@@ -189,7 +190,8 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   private ObservableValue<PlayerStatus> statusPropertyFromGame(GameBean game) {
     return game.statusProperty().flatMap(status -> switch (status) {
-      case OPEN -> game.hostProperty().map(host -> host.equalsIgnoreCase(getUsername()) ? PlayerStatus.HOSTING : PlayerStatus.LOBBYING);
+      case OPEN -> game.hostProperty()
+          .map(host -> host.equalsIgnoreCase(getUsername()) ? PlayerStatus.HOSTING : PlayerStatus.LOBBYING);
       case PLAYING -> PLAYING_STATUS_PROPERTY;
       default -> IDLE_STATUS_PROPERTY;
     });

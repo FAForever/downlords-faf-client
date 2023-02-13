@@ -63,7 +63,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final EventBus eventBus;
   private final I18n i18n;
 
-  @SuppressWarnings("WeakerAccess")
   public GameDetailController gameDetailController;
 
   public ToggleButton tableButton;
@@ -166,7 +165,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     customGamesFilterController.setDefaultPredicate(openGamesPredicate);
     customGamesFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(customGamesFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(customGamesFilterController.filterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
     JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(customGamesFilterController.getFilterState()));
   }
 

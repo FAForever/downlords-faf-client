@@ -125,7 +125,7 @@ public class CreateGameControllerTest extends UITest {
     when(modService.updateAndActivateModVersions(any()))
         .thenAnswer(invocation -> completedFuture(invocation.getArgument(0)));
     when(uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class)).thenReturn(mapFilterController);
-    when(mapFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(mapFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(mapFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(mapFilterController.getRoot()).thenReturn(new SplitPane());
 

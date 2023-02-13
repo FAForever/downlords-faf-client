@@ -3,7 +3,6 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatUserCategory;
-import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.PreferencesService;
@@ -66,11 +65,11 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
       if (chatUser.isModerator()) {
         userCategory = ChatUserCategory.MODERATOR;
       } else {
-        userCategory = chatUser.getSocialStatus().map(status -> switch (status) {
-          case FRIEND -> ChatUserCategory.FRIEND;
-          case FOE -> ChatUserCategory.FOE;
-          default -> ChatUserCategory.OTHER;
-        }).orElse(ChatUserCategory.OTHER);
+        userCategory = chatUser.getCategories()
+            .stream()
+            .filter(category -> category != ChatUserCategory.MODERATOR)
+            .findFirst()
+            .orElse(ChatUserCategory.OTHER);
       }
       Color newColor = colorPicker.getValue();
       if (newColor == null) {
@@ -80,7 +79,6 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
         chatPrefs.getUserToColor().put(getLowerUsername(chatUser), newColor);
         chatUser.setColor(newColor);
       }
-      eventBus.post(new ChatUserColorChangeEvent(chatUser));
     };
     WeakInvalidationListener weakChatColorModePropertyListener = new WeakInvalidationListener(chatColorModePropertyListener);
     JavaFxUtil.addListener(colorPicker.valueProperty(), weakChatColorModePropertyListener);

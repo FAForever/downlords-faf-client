@@ -1,6 +1,7 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.JavaFxUtil;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -20,7 +21,7 @@ public class ChatChannel {
   String name;
 
   ObservableMap<String, ChatChannelUser> usernameToChatUser = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
-  ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(FXCollections.observableArrayList(), usernameToChatUser);
+  ObservableList<ChatChannelUser> users = JavaFxUtil.attachListToMap(FXCollections.observableArrayList(item -> new Observable[]{item.categoriesProperty(), item.colorProperty(), item.moderatorProperty()}), usernameToChatUser);
   ObjectProperty<ChannelTopic> topic = new SimpleObjectProperty<>(new ChannelTopic("", ""));
 
   public ChannelTopic getTopic() {

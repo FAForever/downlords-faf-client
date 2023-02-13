@@ -29,19 +29,14 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
-import javafx.scene.image.Image;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import org.bridj.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -54,7 +49,6 @@ import static com.faforever.client.chat.AbstractChatTabController.CSS_CLASS_CHAT
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
-import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyString;
@@ -101,8 +95,6 @@ public class AbstractChatTabControllerTest extends UITest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
-  private ChatUserService chatUserService;
-  @Mock
   private EmoticonService emoticonService;
 
   private AbstractChatTabController instance;
@@ -123,9 +115,9 @@ public class AbstractChatTabControllerTest extends UITest {
     when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
     when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
-    instance = new AbstractChatTabController(webViewConfigurer, userService, chatService, preferencesService,
-        playerService, audioService, timeService, i18n, imageUploadService, notificationService, reportingService,
-        uiService, eventBus, countryFlagService, chatUserService, emoticonService) {
+    instance = new AbstractChatTabController(userService, chatService, preferencesService, playerService,
+        audioService, timeService, i18n, notificationService, uiService, eventBus,
+        webViewConfigurer, emoticonService, countryFlagService) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -250,53 +242,6 @@ public class AbstractChatTabControllerTest extends UITest {
   @Test
   public void testHasFocus() {
     assertThat(instance.hasFocus(), is(true));
-  }
-
-  @Test
-  public void testPasteImageCtrlV() {
-    KeyCode modifier;
-    if (Platform.isMacOSX()) {
-      modifier = KeyCode.META;
-    } else {
-      modifier = KeyCode.CONTROL;
-    }
-
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/default_achievement.png"));
-
-    String url = "http://www.example.com/fake.png";
-    when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));
-
-    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
-      ClipboardContent clipboardContent = new ClipboardContent();
-      clipboardContent.putImage(image);
-      Clipboard.getSystemClipboard().setContent(clipboardContent);
-
-      instance.messageTextField().getOnKeyReleased().handle(
-          keyEvent(KeyCode.V, singletonList(modifier))
-      );
-    });
-
-    assertThat(instance.messageTextField().getText(), is(url));
-  }
-
-  @Test
-  public void testPasteImageShiftInsert() {
-    Image image = new Image(getClass().getResourceAsStream("/theme/images/default_achievement.png"));
-
-    String url = "http://www.example.com/fake.png";
-    when(imageUploadService.uploadImageInBackground(any())).thenReturn(completedFuture(url));
-
-    WaitForAsyncUtils.waitForAsyncFx(TIMEOUT, () -> {
-      ClipboardContent clipboardContent = new ClipboardContent();
-      clipboardContent.putImage(image);
-      Clipboard.getSystemClipboard().setContent(clipboardContent);
-
-      instance.messageTextField().getOnKeyReleased().handle(
-          keyEvent(KeyCode.INSERT, singletonList(KeyCode.SHIFT))
-      );
-    });
-
-    assertThat(instance.messageTextField().getText(), is(url));
   }
 
   @Test

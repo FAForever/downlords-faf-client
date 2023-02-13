@@ -106,7 +106,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     liveGamesFilterController.setDefaultPredicate(onlineGamesPredicate);
     liveGamesFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(liveGamesFilterController.filterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
     JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(liveGamesFilterController.getFilterState()));
   }
 

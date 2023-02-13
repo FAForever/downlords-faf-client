@@ -1,6 +1,5 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -9,15 +8,13 @@ import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleSetProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.collections.transformation.FilteredList;
@@ -39,17 +36,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.fxmisc.flowless.Cell;
 import org.fxmisc.flowless.VirtualFlow;
+import org.fxmisc.flowless.VirtualFlow.Gravity;
 import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -57,15 +58,15 @@ import java.util.stream.Collectors;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatUserListController implements Controller<VBox>, InitializingBean {
+public class ChatUserListController implements Controller<VBox> {
 
-  private static final Comparator<ChatListItem> CHAT_LIST_ITEM_COMPARATOR = Comparator.comparing(ChatListItem::getCategory)
-      .thenComparing(item -> item.getUser().map(user -> user.getUsername().toLowerCase(Locale.ROOT)).orElse(""));
+  private static final Comparator<ChatListItem> CHAT_LIST_ITEM_COMPARATOR = Comparator.comparing(ChatListItem::category)
+      .thenComparing(ChatListItem::user, Comparator.nullsFirst(Comparator.comparing(ChatChannelUser::getUsername)));
 
   private final PreferencesService preferencesService;
   private final UiService uiService;
   private final I18n i18n;
-  private final EventBus eventBus;
+  private final ObjectFactory<ChatListItemCell> chatListItemCellFactory;
 
   public VBox root;
   public HBox userListTools;
@@ -73,114 +74,125 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
   public TextField searchUsernameTextField;
   public Button listCustomizationButton;
   public VBox userListContainer;
+  private VirtualFlow<ChatListItem, Cell<ChatListItem, Node>> chatItemListView;
 
   private Popup filterPopup;
 
   private final ObservableList<ChatListItem> unfilteredSource = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
   private final FilteredList<ChatListItem> items = new FilteredList<>(new SortedList<>(unfilteredSource, CHAT_LIST_ITEM_COMPARATOR));
-  private final SetProperty<ChatUserCategory> hiddenCategories = new SimpleSetProperty<>();
+  private final SetProperty<ChatUserCategory> hiddenCategories = new SimpleSetProperty<>(FXCollections.emptyObservableSet());
+  private final Map<ChatChannelUser, Set<ChatListItem>> userChatListItemMap = new HashMap<>();
+  private final ObservableValue<Predicate<ChatListItem>> hiddenCategoryPredicate = hiddenCategories.map(categories -> categories.stream()
+      .map(category -> (Predicate<ChatListItem>) item -> item.user() == null || item.category() != category)
+      .reduce(Predicate::and)
+      .orElse(item -> true));
 
-  private String channelName;
-  private ObservableList<ChatChannelUser> chatUsers;
+  private final ListChangeListener<ChatChannelUser> channelUserListListener = this::onUserChange;
 
-  private final ListChangeListener<ChatChannelUser> channelUserListListener = change -> {
-    while (change.next()) {
-      if (change.wasAdded()) {
-        change.getAddedSubList().forEach(this::onUserJoined);
-      } else if (change.wasRemoved()) {
-        change.getRemoved().forEach(this::onUserLeft);
-      }
-    }
-  };
   private ChatUserFilterController chatUserFilterController;
-  @SuppressWarnings("FieldCanBeLocal")
-  private InvalidationListener predicateListener;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    eventBus.register(this);
-  }
+  private ChatChannel chatChannel;
 
   @Override
   public void initialize() {
     initializeFilter();
     initializeList();
-
-    predicateListener = observable -> {
-      Predicate<ChatListItem> filterControllerPredicate = chatUserFilterController.getPredicate();
-      Predicate<ChatListItem> categoryPredicate = hiddenCategories.stream()
-          .map(category -> (Predicate<ChatListItem>) item -> item.getUser()
-              .isPresent() && item.getCategory() != category)
-          .reduce(Predicate::and)
-          .orElse(item -> true);
-      JavaFxUtil.runLater(() -> items.setPredicate(filterControllerPredicate.and(categoryPredicate)));
-    };
-    WeakInvalidationListener weakInvalidationListener = new WeakInvalidationListener(predicateListener);
-    JavaFxUtil.addListener(chatUserFilterController.predicateProperty(), weakInvalidationListener);
-    JavaFxUtil.addAndTriggerListener(hiddenCategories, weakInvalidationListener);
   }
 
-  public void setChatChannel(String channelName, ObservableList<ChatChannelUser> chatUsers) {
-    this.chatUsers = chatUsers;
-    this.channelName = channelName;
-    this.hiddenCategories.bindContent(preferencesService.getPreferences()
+  public void dispose() {
+    chatItemListView.dispose();
+  }
+
+  public void setChatChannel(ChatChannel chatChannel) {
+    unfilteredSource.clear();
+
+    this.chatChannel = chatChannel;
+    hiddenCategories.bind(preferencesService.getPreferences()
         .getChat()
         .getChannelNameToHiddenCategories()
-        .computeIfAbsent(this.channelName, p_name -> FXCollections.observableSet()));
+        .map(nameToHidden -> nameToHidden.getOrDefault(this.chatChannel.getName(), FXCollections.observableSet())));
 
+    ObservableList<ChatChannelUser> users = this.chatChannel.getUsers();
     searchUsernameTextField.promptTextProperty()
-        .bind(Bindings.size(this.chatUsers).map(size -> i18n.get("chat.userCount", size)));
+        .bind(Bindings.size(users).map(size -> i18n.get("chat.userCount", size)));
 
-    List.copyOf(this.chatUsers).forEach(this::onUserJoined);
-    JavaFxUtil.addListener(this.chatUsers, new WeakListChangeListener<>(channelUserListListener));
+    Arrays.stream(ChatUserCategory.values())
+        .forEach(category -> {
+          FilteredList<ChatListItem> categoryFilteredList = new FilteredList<>(unfilteredSource);
+          categoryFilteredList.predicateProperty()
+              .bind(chatUserFilterController.predicateProperty()
+                  .map(filterPredicate -> filterPredicate.and(item -> item.user() != null && item.category() == category)));
+          JavaFxUtil.runLater(() -> unfilteredSource.add(new ChatListItem(null, category, chatChannel.getName(), Bindings.size(categoryFilteredList).asObject())));
+        });
+
+    JavaFxUtil.addListener(users, new WeakListChangeListener<>(channelUserListListener));
+    List.copyOf(users).forEach(this::onUserJoined);
+    chatItemListView.showAsFirst(0);
+  }
+
+  private ChatListItemCell createCellWithItem(ChatListItem item) {
+    ChatListItemCell cell = chatListItemCellFactory.getObject();
+    cell.updateItem(item);
+    return cell;
   }
 
   private void initializeList() {
-    VirtualFlow<ChatListItem, Cell<ChatListItem, Node>> listView = VirtualFlow.createVertical(items, item -> item.createCell(uiService));
-    VirtualizedScrollPane<VirtualFlow<ChatListItem, Cell<ChatListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(listView);
+    chatItemListView = VirtualFlow.createVertical(items, this::createCellWithItem, Gravity.FRONT);
+    VirtualizedScrollPane<VirtualFlow<ChatListItem, Cell<ChatListItem, Node>>> scrollPane = new VirtualizedScrollPane<>(chatItemListView);
+
     scrollPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
     VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
     userListContainer.getChildren().add(scrollPane);
     userListTools.setDisable(false);
 
-    Arrays.stream(ChatUserCategory.values())
-        .forEach(category -> JavaFxUtil.runLater(() -> unfilteredSource.add(new ChatUserCategoryItem(category))));
+    items.predicateProperty()
+        .bind(chatUserFilterController.predicateProperty()
+            .flatMap(filterPredicate -> hiddenCategoryPredicate.map(filterPredicate::and)));
   }
 
   private void onUserJoined(ChatChannelUser user) {
-    user.getChatUserCategories()
+    user.getCategories()
         .stream()
-        .map(category -> new ChatUserItem(user, category))
-        .forEach(item -> JavaFxUtil.runLater(() -> unfilteredSource.add(item)));
+        .map(category -> new ChatListItem(user, category, null, null))
+        .forEach(item -> {
+          userChatListItemMap.computeIfAbsent(user, newUser -> new HashSet<>()).add(item);
+          JavaFxUtil.runLater(() -> unfilteredSource.add(item));
+        });
   }
 
   private void onUserLeft(ChatChannelUser user) {
-    user.getChatUserCategories()
-        .stream()
-        .map(category -> new ChatUserItem(user, category))
-        .forEach(item -> JavaFxUtil.runLater(() -> unfilteredSource.remove(item)));
+    Set<ChatListItem> userItems = userChatListItemMap.remove(user);
+    if (userItems != null) {
+      userItems.forEach(item -> JavaFxUtil.runLater(() -> unfilteredSource.remove(item)));
+    }
   }
 
-  @Subscribe
-  public void onChatUserCategoryChange(ChatUserCategoryChangeEvent event) {
-    ChatChannelUser user = event.chatUser();
-    if (chatUsers.contains(user) && user.getChannel().equals(channelName)) {
-      onUserLeft(user);
-      onUserJoined(user);
+  private void onUserChange(Change<? extends ChatChannelUser> change) {
+    while (change.next()) {
+      if (change.wasAdded()) {
+        List.copyOf(change.getAddedSubList()).forEach(this::onUserJoined);
+      } else if (change.wasRemoved()) {
+        change.getRemoved().forEach(this::onUserLeft);
+      } else if (change.wasUpdated()) {
+        List<ChatChannelUser> changedUsers = List.copyOf(change.getList().subList(change.getFrom(), change.getTo()));
+        changedUsers.forEach(this::onUserLeft);
+        changedUsers.forEach(this::onUserJoined);
+      }
     }
   }
 
   private void initializeFilter() {
     chatUserFilterController = uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class);
-    chatUserFilterController.bindExternalFilter(searchUsernameTextField.textProperty(), (text, item) -> item.isCategory() || text.isEmpty() || item.getUser()
-        .stream()
-        .anyMatch(user -> StringUtils.containsIgnoreCase(user.getUsername(), text)));
+    chatUserFilterController.bindExternalFilter(searchUsernameTextField.textProperty(),
+        (text, item) -> text.isEmpty()
+            || item.user() == null
+            || StringUtils.containsIgnoreCase(item.user().getUsername(), text));
     chatUserFilterController.completeSetting();
 
     filterPopup = PopupUtil.createPopup(PopupWindow.AnchorLocation.CONTENT_TOP_RIGHT, chatUserFilterController.getRoot());
 
-    filterButton.selectedProperty().bindBidirectional(chatUserFilterController.getFilterStateProperty());
+    JavaFxUtil.addAndTriggerListener(chatUserFilterController.filterStateProperty(), (observable, oldValue, newValue) -> filterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(filterButton.selectedProperty(), observable -> filterButton.setSelected(chatUserFilterController.getFilterState()));
   }
 
   public void onListCustomizationButtonClicked() {
@@ -206,19 +218,37 @@ public class ChatUserListController implements Controller<VBox>, InitializingBea
 
   @VisibleForTesting
   List<ChatChannelUser> getUserListByCategory(ChatUserCategory category) {
-    return List.copyOf(unfilteredSource).stream()
-        .filter(item -> item.getCategory() == category)
-        .map(ChatListItem::getUser)
-        .flatMap(Optional::stream)
+    return unfilteredSource.stream()
+        .filter(item -> item.category() == category)
+        .map(ChatListItem::user)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  @VisibleForTesting
+  List<ChatChannelUser> getFilteredUserListByCategory(ChatUserCategory category) {
+    return items.stream()
+        .filter(item -> item.category() == category)
+        .map(ChatListItem::user)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  @VisibleForTesting
+  List<ChatChannelUser> getFilteredUserList() {
+    return items
+        .stream()
+        .map(ChatListItem::user)
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 
   @VisibleForTesting
   List<ChatChannelUser> getUserList() {
-    return List.copyOf(unfilteredSource)
+    return unfilteredSource
         .stream()
-        .map(ChatListItem::getUser)
-        .flatMap(Optional::stream)
+        .map(ChatListItem::user)
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 }

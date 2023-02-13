@@ -264,7 +264,7 @@ public class ChatPrefs {
     this.showMapName.set(showMapName);
   }
 
-  public ObservableMap<String, ObservableSet<ChatUserCategory>> getChannelNameToHiddenCategories() {
+  public MapProperty<String, ObservableSet<ChatUserCategory>> getChannelNameToHiddenCategories() {
     return channelNameToHiddenCategories;
   }
 

@@ -3,9 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
-import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.filter.ChatUserFilterController;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.SocialStatus;
@@ -19,6 +17,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleSetProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
@@ -81,7 +80,7 @@ public class ChatUserListControllerTest extends UITest {
 
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class)).thenReturn(chatUserFilterController);
-    when(chatUserFilterController.getFilterStateProperty()).thenReturn(new SimpleBooleanProperty());
+    when(chatUserFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(chatUserFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(chatUserFilterController.getPredicate()).thenReturn(item -> true);
     when(chatUserFilterController.getRoot()).thenReturn(new SplitPane());
@@ -91,7 +90,7 @@ public class ChatUserListControllerTest extends UITest {
   @Test
   public void testOnOneUserJoinedForHiddenCategory() throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER);
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
@@ -103,7 +102,7 @@ public class ChatUserListControllerTest extends UITest {
   @Test
   public void testOnManyUsersJoinedForHiddenCategory() throws Exception {
     setHiddenCategoriesToChatPrefs(ChatUserCategory.OTHER);
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
@@ -119,7 +118,7 @@ public class ChatUserListControllerTest extends UITest {
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     assertContainUsersInSource(user);
@@ -137,7 +136,7 @@ public class ChatUserListControllerTest extends UITest {
     List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     assertContainUsersInSource(userList);
@@ -150,7 +149,7 @@ public class ChatUserListControllerTest extends UITest {
 
   @Test
   public void testOnOneUserJoinedForVisibleCategory() throws Exception {
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
@@ -161,7 +160,7 @@ public class ChatUserListControllerTest extends UITest {
 
   @Test
   public void testOnManyUsersJoinedForVisibleCategory() throws Exception {
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     assertNoUsersInCategory(ChatUserCategory.OTHER);
@@ -175,7 +174,7 @@ public class ChatUserListControllerTest extends UITest {
     ChatChannelUser user = generateUser(SocialStatus.OTHER);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, user);
     assertContainUsersInSource(user);
@@ -191,7 +190,7 @@ public class ChatUserListControllerTest extends UITest {
     List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, userList);
     assertContainUsersInSource(userList);
@@ -210,13 +209,13 @@ public class ChatUserListControllerTest extends UITest {
         .get();
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, user);
     assertNotContainUsersInCategory(ChatUserCategory.FRIEND, updatedUser);
     assertContainUsersInSource(user);
 
-    instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedUser));
+    runOnFxThreadAndWait(() -> user.getPlayer().ifPresent(playerBean -> playerBean.setSocialStatus(FRIEND)));
 
     assertNotContainUsersInCategory(ChatUserCategory.OTHER, user);
     assertContainUsersInCategory(ChatUserCategory.FRIEND, updatedUser);
@@ -228,7 +227,7 @@ public class ChatUserListControllerTest extends UITest {
     ChatChannelUser user = generateUser(SocialStatus.FRIEND, true);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.FRIEND, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
@@ -239,7 +238,7 @@ public class ChatUserListControllerTest extends UITest {
     ChatChannelUser user = generateUser(SocialStatus.FOE, true);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.FOE, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
@@ -250,7 +249,7 @@ public class ChatUserListControllerTest extends UITest {
     ChatChannelUser user = generateUser(null, true);
     addUsersToChannel(user);
 
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.CHAT_ONLY, user);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, user);
@@ -266,7 +265,7 @@ public class ChatUserListControllerTest extends UITest {
     ChatChannelUser chatOnlyUser = generateUser(null);
 
     addUsersToChannel(selfUser, moderatorUser, friendUser, otherUser, foeUser, chatOnlyUser);
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.SELF, selfUser);
     assertContainUsersInCategory(ChatUserCategory.MODERATOR, moderatorUser);
@@ -283,7 +282,7 @@ public class ChatUserListControllerTest extends UITest {
   public void testHideCategory() throws Exception {
     List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, userList);
     assertContainUsersInSource(userList);
@@ -300,7 +299,7 @@ public class ChatUserListControllerTest extends UITest {
     List<ChatChannelUser> userList2 = generateUsers(SocialStatus.FRIEND, 500);
     addUsersToChannel(userList1);
     addUsersToChannel(userList2);
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertContainUsersInCategory(ChatUserCategory.OTHER, userList1);
     assertContainUsersInCategory(ChatUserCategory.FRIEND, userList2);
@@ -322,7 +321,7 @@ public class ChatUserListControllerTest extends UITest {
 
     List<ChatChannelUser> userList = generateUsers(SocialStatus.OTHER, 1000);
     addUsersToChannel(userList);
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     assertContainUsersInSource(userList);
@@ -341,7 +340,7 @@ public class ChatUserListControllerTest extends UITest {
     List<ChatChannelUser> userList2 = generateUsers(SocialStatus.FRIEND, 1000);
     addUsersToChannel(userList1);
     addUsersToChannel(userList2);
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertNoUsersInCategory(ChatUserCategory.OTHER);
     assertNoUsersInCategory(ChatUserCategory.FRIEND);
@@ -374,7 +373,6 @@ public class ChatUserListControllerTest extends UITest {
 
   @Test
   public void testOnFilterButtonClicked() {
-    when(chatUserFilterController.getRoot()).thenReturn(new SplitPane());
     runOnFxThreadAndWait(() -> {
       getRoot().getChildren().add(instance.getRoot());
       instance.onFilterButtonClicked();
@@ -390,7 +388,7 @@ public class ChatUserListControllerTest extends UITest {
   @Test
   public void testInitializeListView() throws Exception {
     addUsersToChannel(generateUsers(SocialStatus.OTHER, 1000));
-    prepareDataAndSetChatChannel();
+    runOnFxThreadAndWait(() -> instance.setChatChannel(chatChannel));
 
     assertTrue(instance.userListContainer.getChildren().stream()
         .anyMatch(view -> view.getClass().isAssignableFrom(VirtualizedScrollPane.class)));
@@ -402,11 +400,6 @@ public class ChatUserListControllerTest extends UITest {
     assertEquals(instance.root, instance.getRoot());
   }
 
-  private void prepareDataAndSetChatChannel() throws Exception {
-    instance.afterPropertiesSet();
-    instance.setChatChannel(chatChannel.getName(), chatChannel.getUsers());
-  }
-
   private void setHiddenCategoriesToChatPrefs(ChatUserCategory... hiddenCategories) {
     chatPrefs.getChannelNameToHiddenCategories().put(CHANNEL_NAME, FXCollections.observableSet(hiddenCategories));
   }
@@ -414,15 +407,15 @@ public class ChatUserListControllerTest extends UITest {
   private void hideCategory(ChatUserCategory category) throws Exception {
     ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = chatPrefs.getChannelNameToHiddenCategories();
     if (channelNameToHiddenCategories.containsKey(CHANNEL_NAME)) {
-      JavaFxUtil.runLater(() -> channelNameToHiddenCategories.get(CHANNEL_NAME).add(category));
+      runOnFxThreadAndWait(() -> channelNameToHiddenCategories.get(CHANNEL_NAME).add(category));
     } else {
-      JavaFxUtil.runLater(() -> chatPrefs.getChannelNameToHiddenCategories()
-          .put(CHANNEL_NAME, FXCollections.observableSet(category)));
+      runOnFxThreadAndWait(() -> chatPrefs.getChannelNameToHiddenCategories()
+          .put(CHANNEL_NAME, new SimpleSetProperty<>(FXCollections.observableSet(category))));
     }
   }
 
   private void showCategory(ChatUserCategory category) {
-    JavaFxUtil.runLater(() -> chatPrefs.getChannelNameToHiddenCategories().get(CHANNEL_NAME).remove(category));
+    runOnFxThreadAndWait(() -> chatPrefs.getChannelNameToHiddenCategories().get(CHANNEL_NAME).remove(category));
   }
 
   private void addUsersToChannel(ChatChannelUser... users) {
@@ -430,7 +423,7 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   private void addUsersToChannel(Collection<ChatChannelUser> users) {
-    new Thread(() -> users.forEach(user -> chatChannel.addUser(user))).start();
+    runOnFxThreadAndWait(() -> users.forEach(user -> chatChannel.addUser(user)));
   }
 
   private void removeUsersFromChannel(ChatChannelUser... users) {
@@ -438,7 +431,7 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   private void removeUsersFromChannel(Collection<ChatChannelUser> users) {
-    new Thread(() -> users.forEach(user -> chatChannel.removeUser(user.getUsername()))).start();
+    runOnFxThreadAndWait(() -> users.forEach(user -> chatChannel.removeUser(user.getUsername())));
   }
 
   private void assertNotContainUsersInSource(ChatChannelUser... users) throws Exception {
@@ -459,7 +452,7 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   private void assertNoUsersInCategory(ChatUserCategory category) throws Exception {
-    assertTrue(instance.getUserListByCategory(category).isEmpty());
+    assertTrue(instance.getFilteredUserListByCategory(category).isEmpty());
   }
 
   private void assertNotContainUsersInCategory(ChatUserCategory category, ChatChannelUser... users) throws Exception {
@@ -467,10 +460,8 @@ public class ChatUserListControllerTest extends UITest {
   }
 
   private void assertNotContainUsersInCategory(ChatUserCategory category, Collection<ChatChannelUser> users) throws Exception {
-    List<ChatChannelUser> userList = instance.getUserListByCategory(category);
-    for (ChatChannelUser user : users) {
-      assertFalse(userList.contains(user));
-    }
+    List<ChatChannelUser> userList = instance.getFilteredUserListByCategory(category);
+    assertTrue(users.stream().noneMatch(userList::contains));
   }
 
   private void assertContainUsersInCategory(ChatUserCategory category, ChatChannelUser... users) throws Exception {

@@ -55,8 +55,6 @@ import static org.mockito.Mockito.when;
 public class PrivateChatTabControllerTest extends UITest {
 
   @Mock
-  private ChatService chatService;
-  @Mock
   private UserService userService;
   @Mock
   private PlayerService playerService;
@@ -86,8 +84,6 @@ public class PrivateChatTabControllerTest extends UITest {
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
-  @Mock
-  private ChatUserService chatUserService;
   @Mock
   private PreferencesService preferencesService;
   @Mock

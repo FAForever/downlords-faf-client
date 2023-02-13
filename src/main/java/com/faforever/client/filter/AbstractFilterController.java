@@ -41,7 +41,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   private Predicate<T> defaultPredicate = t -> true;
   private boolean resetInProgress = false;
 
-  private final BooleanProperty filterStateProperty = new SimpleBooleanProperty(false);
+  private final BooleanProperty filterState = new SimpleBooleanProperty(false);
   private final ObjectProperty<Predicate<T>> predicate = new SimpleObjectProperty<>(defaultPredicate);
 
   public AbstractFilterController(UiService uiService, I18n i18n) {
@@ -61,10 +61,6 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
     // To be overridden by subclass
   };
 
-  public BooleanProperty getFilterStateProperty() {
-    return filterStateProperty;
-  }
-
   public ObjectProperty<Predicate<T>> predicateProperty() {
     return predicate;
   }
@@ -73,8 +69,12 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
     return predicate.get();
   }
 
+  public BooleanProperty filterStateProperty() {
+    return filterState;
+  }
+
   public boolean getFilterState() {
-    return filterStateProperty.get();
+    return filterState.get();
   }
 
   public void setDefaultPredicate(Predicate<T> defaultPredicate) {
@@ -106,7 +106,7 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
 
   private void updateFilterState() {
     boolean hasDefaultValues = filters.stream().allMatch(AbstractFilterNodeController::hasDefaultValue);
-    filterStateProperty.setValue(!hasDefaultValues);
+    filterState.setValue(!hasDefaultValues);
     resetAllButton.setDisable(hasDefaultValues);
   }
 

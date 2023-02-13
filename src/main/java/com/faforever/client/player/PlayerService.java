@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.avatar.event.AvatarChangedEvent;
 import com.faforever.client.chat.event.ChatMessageEvent;
-import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
@@ -243,16 +242,12 @@ public class PlayerService implements InitializingBean {
     player.setSocialStatus(FRIEND);
     friendList.add(player.getId());
     foeList.remove(player.getId());
-
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafServerAccessor.addFriend(player.getId());
   }
 
   public void removeFriend(PlayerBean player) {
     player.setSocialStatus(OTHER);
     friendList.remove(player.getId());
-
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafServerAccessor.removeFriend(player.getId());
   }
 
@@ -260,16 +255,12 @@ public class PlayerService implements InitializingBean {
     player.setSocialStatus(FOE);
     foeList.add(player.getId());
     friendList.remove(player.getId());
-
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafServerAccessor.addFoe(player.getId());
   }
 
   public void removeFoe(PlayerBean player) {
     player.setSocialStatus(OTHER);
     foeList.remove(player.getId());
-
-    player.getChatChannelUsers().forEach(chatUser -> eventBus.post(new ChatUserCategoryChangeEvent(chatUser)));
     fafServerAccessor.removeFoe(player.getId());
   }
 

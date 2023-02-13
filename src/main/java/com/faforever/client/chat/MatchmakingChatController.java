@@ -11,14 +11,13 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
-import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.MapChangeListener;
+import javafx.collections.WeakMapChangeListener;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -58,19 +57,15 @@ public class MatchmakingChatController extends AbstractChatTabController {
                                    PlayerService playerService,
                                    TimeService timeService,
                                    I18n i18n,
-                                   ImageUploadService imageUploadService,
                                    NotificationService notificationService,
-                                   ReportingService reportingService,
                                    UiService uiService,
                                    EventBus eventBus,
                                    AudioService audioService,
                                    ChatService chatService,
                                    WebViewConfigurer webViewConfigurer,
                                    CountryFlagService countryFlagService,
-                                   ChatUserService chatUserService, EmoticonService emoticonService) {
-    super(webViewConfigurer, userService, chatService, preferencesService, playerService, audioService,
-        timeService, i18n, imageUploadService, notificationService, reportingService, uiService,
-        eventBus, countryFlagService, chatUserService, emoticonService);
+                                   EmoticonService emoticonService) {
+    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService);
   }
 
   @Override
@@ -94,7 +89,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
         });
     topicText.getChildren().add(discordLink);
 
-    chatService.addUsersListener(partyName, usersChangeListener);
+    chatService.addUsersListener(partyName, new WeakMapChangeListener<>(usersChangeListener));
   }
 
   public void closeChannel() {
