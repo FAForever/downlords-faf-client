@@ -8,9 +8,9 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.PlayerMapper;
-import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.UserService;
@@ -19,8 +19,7 @@ import com.faforever.commons.api.dto.NameRecord;
 import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
-import com.faforever.commons.lobby.GameStatus;
-import com.faforever.commons.lobby.GameType;
+import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -29,26 +28,25 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -62,11 +60,10 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 @RequiredArgsConstructor
 public class PlayerService implements InitializingBean {
 
-  private final ObservableMap<String, PlayerBean> playersByName = FXCollections.observableMap(new ConcurrentHashMap<>());
-  private final ObservableMap<Integer, PlayerBean> playersById = FXCollections.observableMap(new ConcurrentHashMap<>());
+  private final ObservableMap<String, PlayerBean> playersByName = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+  private final ObservableMap<Integer, PlayerBean> playersById = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
-  private final Map<Integer, Set<PlayerBean>> playersByGame = new HashMap<>();
   private ObservableMap<Integer, String> notesByPlayerId;
   private final Object lock = new Object();
 
@@ -77,45 +74,66 @@ public class PlayerService implements InitializingBean {
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
   private final PreferencesService preferencesService;
+  private final PlatformService platformService;
+
+  private final MapChangeListener<Integer, PlayerBean> playerByIdChangeListener = change -> {
+    if (change.wasAdded()) {
+      PlayerBean player = change.getValueAdded();
+      playersByName.put(player.getUsername(), player);
+    } else if (change.wasRemoved()) {
+      PlayerBean player = change.getValueRemoved();
+      playersByName.remove(player.getUsername());
+    }
+  };
 
   @Override
   public void afterPropertiesSet() {
+    playersById.addListener(playerByIdChangeListener);
+
     eventBus.register(this);
-    fafServerAccessor.addEventListener(com.faforever.commons.lobby.PlayerInfo.class, this::onPlayersInfo);
-    fafServerAccessor.addEventListener(SocialInfo.class, this::onSocialMessage);
+
+    fafServerAccessor.getEvents(PlayerInfo.class)
+        .flatMap(playerInfo -> Flux.fromIterable(playerInfo.getPlayers()))
+        .publishOn(platformService.getFxThreadScheduler())
+        .map(this::createOrUpdatePlayerForPlayerInfo)
+        .publishOn(Schedulers.single())
+        .doOnNext(player -> {
+          if (player.getIdleSince() == null) {
+            eventBus.post(new PlayerOnlineEvent(player));
+          }
+        })
+        .publishOn(platformService.getFxThreadScheduler())
+        .doOnError(throwable -> log.error("Error processing player", throwable))
+        .retry()
+        .subscribe(player -> player.setIdleSince(Instant.now()));
+
+    fafServerAccessor.getEvents(SocialInfo.class).flatMap(socialInfo -> {
+          Flux<PlayerBean> friendFlux = Mono.just(socialInfo.getFriends()).doOnNext(ids -> {
+            friendList.clear();
+            friendList.addAll(ids);
+          }).flatMapMany(Flux::fromIterable).mapNotNull(playersById::get);
+
+          Flux<PlayerBean> foeFlux = Mono.just(socialInfo.getFoes()).doOnNext(ids -> {
+            foeList.clear();
+            foeList.addAll(ids);
+          }).flatMapMany(Flux::fromIterable).mapNotNull(playersById::get);
+
+          return Flux.merge(friendFlux, foeFlux);
+        }).doOnError(throwable -> log.error("Error processing social info", throwable))
+        .retry()
+        .publishOn(platformService.getFxThreadScheduler())
+        .subscribe(this::setPlayerSocialStatus);
+
     notesByPlayerId = preferencesService.getPreferences().getUser().getNotesByPlayerId();
     JavaFxUtil.addListener(notesByPlayerId, (MapChangeListener<Integer, String>) change -> {
       PlayerBean player = playersById.get(change.getKey());
       if (change.wasAdded()) {
         player.setNote(change.getValueAdded());
       } else if (change.wasRemoved()) {
-        player.setNote("");
+        player.setNote(null);
       }
       preferencesService.storeInBackground();
     });
-  }
-
-  public void updatePlayersInGame(GameBean game) {
-    int gameId = game.getId();
-    playersByGame.putIfAbsent(gameId, new HashSet<>());
-    synchronized (playersByGame.get(gameId)) {
-      Set<PlayerBean> currentPlayersInGame = playersByGame.get(gameId);
-      Set<PlayerBean> playersInGameToRemove = new HashSet<>(currentPlayersInGame);
-
-      currentPlayersInGame.clear();
-      currentPlayersInGame.addAll(game.getAllPlayersInGame());
-
-      playersInGameToRemove.removeAll(currentPlayersInGame);
-      playersInGameToRemove.forEach(player -> removeGameFromPlayer(game, player));
-      currentPlayersInGame.forEach(player -> addGameToPlayer(game, player));
-
-      if (game.getStatus() == GameStatus.CLOSED) {
-        boolean removed = playersByGame.remove(gameId, currentPlayersInGame);
-        if (!removed) {
-          log.warn("Could not remove players list for game due to list mismatch: '{}'", gameId);
-        }
-      }
-    }
   }
 
   @Subscribe
@@ -130,33 +148,15 @@ public class PlayerService implements InitializingBean {
     getPlayerByNameIfOnline(event.getMessage().getUsername()).ifPresent(this::resetIdleTime);
   }
 
-  private void resetIdleTime(PlayerBean playerForUsername) {
-    Optional.ofNullable(playerForUsername).ifPresent(player -> player.setIdleSince(Instant.now()));
-  }
-
-  private void addGameToPlayer(GameBean game, PlayerBean player) {
-    if (player.getGame() != game) {
-      JavaFxUtil.runLater(() -> player.setGame(game));
-      if (player.getSocialStatus() == FRIEND
-          && game.getStatus() == GameStatus.OPEN
-          && game.getGameType() != GameType.MATCHMAKER) {
-        eventBus.post(new FriendJoinedGameEvent(player, game));
-      }
-    }
-  }
-
-  private void removeGameFromPlayer(GameBean game, PlayerBean player) {
-    if (player.getGame() == game) {
-      JavaFxUtil.runLater(() -> player.setGame(null));
-    }
+  private void resetIdleTime(PlayerBean player) {
+    player.setIdleSince(Instant.now());
   }
 
   public boolean areFriendsInGame(GameBean game) {
     if (game == null) {
       return false;
     }
-    return game.getAllPlayersInGame().stream()
-        .anyMatch(player -> friendList.contains(player.getId()));
+    return game.getAllPlayersInGame().stream().anyMatch(player -> friendList.contains(player.getId()));
   }
 
   public Optional<Image> getCurrentAvatarByPlayerName(String name) {
@@ -166,7 +166,7 @@ public class PlayerService implements InitializingBean {
   public boolean isCurrentPlayerInGame(GameBean game) {
     // TODO the following can be removed as soon as the server tells us which game a player is in.
     PlayerBean player = getCurrentPlayer();
-    return game.getAllPlayersInGame().stream().anyMatch(player::equals);
+    return game.getAllPlayersInGame().contains(player);
   }
 
   public boolean isOnline(Integer playerId) {
@@ -177,30 +177,19 @@ public class PlayerService implements InitializingBean {
    * Gets a player for the given username. A new player is created and registered if it does not yet exist.
    */
   @VisibleForTesting
-  void createOrUpdatePlayerForPlayerInfo(@NotNull com.faforever.commons.lobby.Player playerInfo) {
-    Assert.checkNullArgument(playerInfo, "playerInfo must not be null");
-
-    PlayerBean player;
-    synchronized (lock) {
-      player = playersById.compute(playerInfo.getId(), (id, knownPlayer) -> {
-        if (knownPlayer == null) {
-          PlayerBean newPlayer = new PlayerBean();
-          newPlayer.setUsername(playerInfo.getLogin());
-          JavaFxUtil.addAndTriggerListener(newPlayer.usernameProperty(), observable -> playersByName.put(newPlayer.getUsername(), newPlayer));
-          setPlayerSocialStatus(id, newPlayer);
-          newPlayer.setNote(notesByPlayerId.getOrDefault(id, ""));
-          return playerMapper.update(playerInfo, newPlayer);
-        } else {
-          return playerMapper.update(playerInfo, knownPlayer);
-        }
-      });
-    }
-
-    if (player.getIdleSince() == null) {
-      eventBus.post(new PlayerOnlineEvent(player));
-    }
-
-    resetIdleTime(player);
+  PlayerBean createOrUpdatePlayerForPlayerInfo(@NonNull com.faforever.commons.lobby.Player playerInfo) {
+    return playersById.compute(playerInfo.getId(), (id, knownPlayer) -> {
+      if (knownPlayer == null) {
+        PlayerBean newPlayer = new PlayerBean();
+        newPlayer.setId(id);
+        newPlayer.setUsername(playerInfo.getLogin());
+        setPlayerSocialStatus(newPlayer);
+        newPlayer.setNote(notesByPlayerId.get(id));
+        return playerMapper.update(playerInfo, newPlayer);
+      } else {
+        return playerMapper.update(playerInfo, knownPlayer);
+      }
+    });
   }
 
   public void updateNote(PlayerBean player, String text) {
@@ -220,17 +209,16 @@ public class PlayerService implements InitializingBean {
     return notesByPlayerId;
   }
 
-  private void setPlayerSocialStatus(Integer id, PlayerBean player) {
+  private void setPlayerSocialStatus(PlayerBean player) {
+    Integer id = player.getId();
     if (userService.getUserId().equals(id)) {
       player.setSocialStatus(SELF);
+    } else if (friendList.contains(id)) {
+      player.setSocialStatus(FRIEND);
+    } else if (foeList.contains(id)) {
+      player.setSocialStatus(FOE);
     } else {
-      if (friendList.contains(id)) {
-        player.setSocialStatus(FRIEND);
-      } else if (foeList.contains(id)) {
-        player.setSocialStatus(FOE);
-      } else {
-        player.setSocialStatus(OTHER);
-      }
+      player.setSocialStatus(OTHER);
     }
   }
 
@@ -280,39 +268,6 @@ public class PlayerService implements InitializingBean {
     return Optional.ofNullable(playersByName.get(playerName));
   }
 
-  private void onPlayersInfo(com.faforever.commons.lobby.PlayerInfo playerInfoMessage) {
-    playerInfoMessage.getPlayers().forEach(this::onPlayerInfo);
-  }
-
-  private void onSocialMessage(SocialInfo socialMessage) {
-    onFoeList(socialMessage.getFoes());
-    onFriendList(socialMessage.getFriends());
-  }
-
-  private void onFoeList(List<Integer> foes) {
-    updateSocialList(foeList, foes, FOE);
-  }
-
-  private void onFriendList(List<Integer> friends) {
-    updateSocialList(friendList, friends, FRIEND);
-  }
-
-  private void updateSocialList(List<Integer> socialList, List<Integer> newValues, SocialStatus socialStatus) {
-    socialList.clear();
-    socialList.addAll(newValues);
-
-    for (Integer userId : socialList) {
-      PlayerBean player = playersById.get(userId);
-      if (player != null) {
-        player.setSocialStatus(socialStatus);
-      }
-    }
-  }
-
-  private void onPlayerInfo(com.faforever.commons.lobby.Player dto) {
-    createOrUpdatePlayerForPlayerInfo(dto);
-  }
-
   public CompletableFuture<List<PlayerBean>> getPlayersByIds(Collection<Integer> playerIds) {
     Set<Integer> onlineIds = new HashSet<>();
 
@@ -326,9 +281,12 @@ public class PlayerService implements InitializingBean {
       return CompletableFuture.completedFuture(players);
     }
 
-    Set<Integer> offlineIds = playerIds.stream().filter(playerId -> !onlineIds.contains(playerId)).collect(Collectors.toSet());
+    Set<Integer> offlineIds = playerIds.stream()
+        .filter(playerId -> !onlineIds.contains(playerId))
+        .collect(Collectors.toSet());
 
-    ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class).collection()
+    ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class)
+        .collection()
         .setFilter(qBuilder().intNum("id").in(offlineIds));
     return fafApiAccessor.getMany(navigator)
         .map(dto -> playerMapper.map(dto, new CycleAvoidingMappingContext()))
@@ -350,7 +308,8 @@ public class PlayerService implements InitializingBean {
       return CompletableFuture.completedFuture(onlinePlayer);
     }
 
-    ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class).collection()
+    ElideNavigatorOnCollection<Player> navigator = ElideNavigator.of(Player.class)
+        .collection()
         .setFilter(qBuilder().string("login").eq(playerName));
     return fafApiAccessor.getMany(navigator)
         .next()
@@ -361,12 +320,14 @@ public class PlayerService implements InitializingBean {
           } else if (foeList.contains(player.getId())) {
             player.setSocialStatus(FOE);
           }
-        }).toFuture()
+        })
+        .toFuture()
         .thenApply(Optional::ofNullable);
   }
 
   public CompletableFuture<List<NameRecordBean>> getPlayerNames(PlayerBean player) {
-    ElideNavigatorOnCollection<NameRecord> navigator = ElideNavigator.of(NameRecord.class).collection()
+    ElideNavigatorOnCollection<NameRecord> navigator = ElideNavigator.of(NameRecord.class)
+        .collection()
         .setFilter(qBuilder().intNum("player.id").eq(player.getId()));
 
     return fafApiAccessor.getMany(navigator)

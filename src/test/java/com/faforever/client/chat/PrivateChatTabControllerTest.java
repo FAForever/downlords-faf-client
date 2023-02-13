@@ -90,6 +90,8 @@ public class PrivateChatTabControllerTest extends UITest {
   private EmoticonService emoticonService;
   @Mock
   private AvatarService avatarService;
+  @Mock
+  private ChatService chatService;
 
   @InjectMocks
   private PrivateChatTabController instance;

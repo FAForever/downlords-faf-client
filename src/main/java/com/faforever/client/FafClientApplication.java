@@ -1,10 +1,8 @@
 package com.faforever.client;
 
 import ch.micheljung.fxwindow.FxStage;
-import com.faforever.client.config.ClientProperties;
 import com.faforever.client.exception.GlobalExceptionHandler;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.MainController;
@@ -28,12 +26,11 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.Banner.Mode;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -44,24 +41,21 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
-@Configuration
-@ComponentScan
-@EnableConfigurationProperties({ClientProperties.class})
 @Slf4j
+@SpringBootApplication(exclude = {
+    JmxAutoConfiguration.class,
+    SecurityAutoConfiguration.class,
+})
 public class FafClientApplication extends Application {
-  public static final String PROFILE_PROD = "prod";
-  public static final String PROFILE_TEST = "test";
   /**
    * Does always reload root tabs in the MainController. This is useful if you do hot swap and you want to see your
    * changes.
    */
   public static final String PROFILE_RELOAD = "reload";
-  public static final String PROFILE_LOCAL = "local";
   public static final String PROFILE_WINDOWS = "windows";
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";
   public static final int EXIT_STATUS_RAN_AS_ADMIN = 3;
-  public static final int EXIT_STATUS_CYRILLIC_CHARACTER_PREFERENCES_DIRECTORY = 4;
 
   private ConfigurableApplicationContext applicationContext;
 
@@ -91,7 +85,7 @@ public class FafClientApplication extends Application {
       CountDownLatch waitForUserInput = new CountDownLatch(1);
       JavaFxUtil.runLater(() -> {
         Alert alert = new Alert(AlertType.WARNING, warningMessage, closeButton);
-        Optional<ButtonType> buttonType = alert.showAndWait();
+        alert.showAndWait();
         waitForUserInput.countDown();
       });
       waitForUserInput.await();
@@ -128,11 +122,6 @@ public class FafClientApplication extends Application {
     if (!applicationContext.getBeansOfType(WindowsTaskbarProgressUpdater.class).isEmpty()) {
       applicationContext.getBean(WindowsTaskbarProgressUpdater.class).initTaskBar();
     }
-  }
-
-  @Bean
-  public PlatformService platformService() {
-    return new PlatformService(getHostServices());
   }
 
   private void showMainWindow(FxStage fxStage) {

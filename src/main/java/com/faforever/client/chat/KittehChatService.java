@@ -240,12 +240,10 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
           .stream()
           .map(channel -> chatChannelUsersByChannelAndName.get(mapKey(player.getUsername(), channel.getName())))
           .filter(Objects::nonNull)
-          .forEach(chatChannelUser -> {
-            JavaFxUtil.runLater(() -> {
-              chatChannelUser.setPlayer(player);
-              populateColor(chatChannelUser);
-            });
-          });
+          .forEach(chatChannelUser -> JavaFxUtil.runLater(() -> {
+            chatChannelUser.setPlayer(player);
+            populateColor(chatChannelUser);
+          }));
     }
   }
 

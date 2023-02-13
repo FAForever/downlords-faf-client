@@ -7,6 +7,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.PlatformService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
@@ -19,7 +20,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
-import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -32,13 +32,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
@@ -57,7 +57,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -78,6 +77,8 @@ public class PlayerServiceTest extends UITest {
   private EventBus eventBus;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private PlatformService platformService;
 
   @InjectMocks
   private PlayerService instance;
@@ -89,6 +90,8 @@ public class PlayerServiceTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
+    when(platformService.getFxThreadScheduler()).thenReturn(Schedulers.immediate());
+    when(fafServerAccessor.getEvents(any())).thenReturn(Flux.empty());
     when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
@@ -111,13 +114,6 @@ public class PlayerServiceTest extends UITest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testPostConstruct() {
-    verify(fafServerAccessor).addEventListener(eq(com.faforever.commons.lobby.PlayerInfo.class), any(Consumer.class));
-    verify(fafServerAccessor).addEventListener(eq(SocialInfo.class), any(Consumer.class));
-  }
-
-  @Test
   public void testGetPlayerForUsernameUsernameDoesNotExist() {
     Optional<PlayerBean> player = instance.getPlayerByNameIfOnline("junit");
     assertFalse(player.isPresent());
@@ -128,11 +124,6 @@ public class PlayerServiceTest extends UITest {
     PlayerBean player = instance.getPlayerByNameIfOnline("junit2").orElseThrow();
 
     assertEquals("junit2", player.getUsername());
-  }
-
-  @Test
-  public void testRegisterAndGetPlayerForUsernameNull() {
-    assertThrows(IllegalArgumentException.class, () -> instance.createOrUpdatePlayerForPlayerInfo(null));
   }
 
   @Test
@@ -304,14 +295,10 @@ public class PlayerServiceTest extends UITest {
     Map<Integer, Set<PlayerBean>> teams = new HashMap<>(Map.of(1, Set.of(player1), 2, Set.of(player2)));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
 
-    runOnFxThreadAndWait(() -> instance.updatePlayersInGame(game));
-
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
 
     teams.remove(1);
-
-    runOnFxThreadAndWait(() -> instance.updatePlayersInGame(game));
 
     assertThat(player1.getGame(), is(nullValue()));
     assertThat(player2.getGame(), is(game));

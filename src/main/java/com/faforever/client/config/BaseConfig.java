@@ -4,6 +4,7 @@ import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -14,6 +15,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
  */
 @Slf4j
 @Configuration
+@EnableConfigurationProperties({ClientProperties.class})
 public class BaseConfig {
 
   @Bean

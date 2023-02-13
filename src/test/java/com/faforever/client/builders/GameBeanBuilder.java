@@ -126,7 +126,7 @@ public class GameBeanBuilder {
   }
 
   public GameBeanBuilder teams(Map<Integer, Set<PlayerBean>> teams) {
-    gameBean.setTeams(teams);
+    gameBean.setTeams(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
     return this;
   }
 

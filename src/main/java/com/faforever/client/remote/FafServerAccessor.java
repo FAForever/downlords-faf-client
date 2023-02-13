@@ -44,6 +44,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -71,21 +72,18 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final UidService uidService;
-  private final PreferencesService preferencesService;
 
   private final FafLobbyClient lobbyClient;
 
   private CompletableFuture<LoginSuccessResponse> loginFuture;
 
-  public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService,
-                           TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
+  public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService, TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.taskScheduler = taskScheduler;
     this.tokenService = tokenService;
     this.eventBus = eventBus;
     this.clientProperties = clientProperties;
-    this.preferencesService = preferencesService;
     this.uidService = uidService;
 
     lobbyClient = new FafLobbyClient(objectMapper);
@@ -94,18 +92,22 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   @Override
   public void afterPropertiesSet() throws Exception {
     eventBus.register(this);
-    addEventListener(IrcPasswordInfo.class, this::onIrcPassword);
-    addEventListener(NoticeInfo.class, this::onNotice);
+    getEvents(IrcPasswordInfo.class)
+        .doOnError(throwable -> log.error("Error processing irc password", throwable))
+        .retry()
+        .subscribe(this::onIrcPassword);
+    getEvents(NoticeInfo.class)
+        .doOnError( throwable -> log.error("Error processing notice", throwable))
+        .retry()
+        .subscribe(this::onNotice);
 
     setPingIntervalSeconds(25);
 
-    lobbyClient.getConnectionStatus().doOnNext(connectionStatus -> {
-      switch (connectionStatus) {
-        case DISCONNECTED -> connectionState.set(ConnectionState.DISCONNECTED);
-        case CONNECTING -> connectionState.set(ConnectionState.CONNECTING);
-        case CONNECTED -> connectionState.set(ConnectionState.CONNECTED);
-      }
-    }).subscribe();
+    lobbyClient.getConnectionStatus().retry().map(connectionStatus -> switch (connectionStatus) {
+      case DISCONNECTED -> ConnectionState.DISCONNECTED;
+      case CONNECTING -> ConnectionState.CONNECTING;
+      case CONNECTED -> ConnectionState.CONNECTED;
+    }).subscribe(connectionState::set, throwable -> log.error("Error processing connection status", throwable));
   }
 
   private void onInternalLoginFailed(Throwable throwable) {
@@ -116,14 +118,22 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     notificationService.addImmediateErrorNotification(throwable, "login.failed");
   }
 
+  public <T extends ServerMessage> Flux<T> getEvents(Class<T> type) {
+    return lobbyClient.getEvents().filter(message -> type.isAssignableFrom(message.getClass())).cast(type);
+  }
+
+  /**
+   * @deprecated should use {@link FafServerAccessor#getEvents(Class)} instead
+   */
+  @Deprecated
   public <T extends ServerMessage> void addEventListener(Class<T> type, Consumer<T> listener) {
-    lobbyClient.getEvents().filter(serverMessage -> type.isAssignableFrom(serverMessage.getClass()))
+    lobbyClient.getEvents()
+        .filter(serverMessage -> type.isAssignableFrom(serverMessage.getClass()))
         .cast(type)
-        .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message))
-            .onErrorResume(throwable -> {
-              log.error("Could not process listener for `{}`", message, throwable);
-              return Mono.empty();
-            }))
+        .flatMap(message -> Mono.fromRunnable(() -> listener.accept(message)).onErrorResume(throwable -> {
+          log.error("Could not process listener for `{}`", message, throwable);
+          return Mono.empty();
+        }))
         .subscribe();
   }
 
@@ -139,42 +149,26 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
     if (loginFuture == null || (loginFuture.isDone() && connectionState.get() != ConnectionState.CONNECTED)) {
       lobbyClient.setAutoReconnect(false);
       Server server = clientProperties.getServer();
-      Config config = new Config(
-          tokenService.getRefreshedTokenValue(),
-          Version.getCurrentVersion(),
-          clientProperties.getUserAgent(),
-          clientProperties.getServer().getHost(),
-          clientProperties.getServer().getPort() + 1,
-          sessionId -> {
-            try {
-              return uidService.generate(String.valueOf(sessionId));
-            } catch (IOException e) {
-              throw new UIDException("Cannot generate UID", e, "uid.generate.error");
-            }
-          },
-          1024 * 1024,
-          false,
-          server.getRetryAttempts(),
-          server.getRetryDelaySeconds()
-      );
+      Config config = new Config(tokenService.getRefreshedTokenValue(), Version.getCurrentVersion(), clientProperties.getUserAgent(), clientProperties.getServer()
+          .getHost(), clientProperties.getServer().getPort() + 1, sessionId -> {
+        try {
+          return uidService.generate(String.valueOf(sessionId));
+        } catch (IOException e) {
+          throw new UIDException("Cannot generate UID", e, "uid.generate.error");
+        }
+      }, 1024 * 1024, false, server.getRetryAttempts(), server.getRetryDelaySeconds());
 
       loginFuture = lobbyClient.connectAndLogin(config)
-          .doOnNext(loginMessage -> lobbyClient.setAutoReconnect(true)).toFuture();
+          .doOnNext(loginMessage -> lobbyClient.setAutoReconnect(true))
+          .toFuture();
     }
     return loginFuture;
   }
 
   public CompletableFuture<GameLaunchResponse> requestHostGame(NewGameInfo newGameInfo) {
-    return lobbyClient.requestHostGame(
-            newGameInfo.getTitle(),
-            newGameInfo.getMap(),
-            newGameInfo.getFeaturedMod().getTechnicalName(),
-            GameVisibility.valueOf(newGameInfo.getGameVisibility().name()),
-            newGameInfo.getPassword(),
-            newGameInfo.getRatingMin(),
-            newGameInfo.getRatingMax(),
-            newGameInfo.getEnforceRatingRange()
-        )
+    return lobbyClient.requestHostGame(newGameInfo.getTitle(), newGameInfo.getMap(), newGameInfo.getFeaturedMod()
+            .getTechnicalName(), GameVisibility.valueOf(newGameInfo.getGameVisibility()
+            .name()), newGameInfo.getPassword(), newGameInfo.getRatingMin(), newGameInfo.getRatingMax(), newGameInfo.getEnforceRatingRange())
         .toFuture();
   }
 
@@ -196,7 +190,8 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         .doOnSuccess(ignored -> connectAndLogIn().exceptionally(throwable -> {
           onInternalLoginFailed(throwable);
           return null;
-        })).subscribe();
+        }))
+        .subscribe();
     disconnect();
   }
 
@@ -255,13 +250,15 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
   private void onNotice(NoticeInfo noticeMessage) {
     if (Objects.equals(noticeMessage.getStyle(), "kill")) {
       log.info("Game close requested by server");
-      notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
+      notificationService.addNotification(new ImmediateNotification(i18n.get("game.kicked.title"), i18n.get("game.kicked.message", clientProperties.getLinks()
+          .get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
       eventBus.post(new CloseGameEvent());
     }
 
     if (Objects.equals(noticeMessage.getStyle(), "kick")) {
       log.info("Kicked from lobby, client closing after delay");
-      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks().get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
+      notificationService.addNotification(new ImmediateNotification(i18n.get("server.kicked.title"), i18n.get("server.kicked.message", clientProperties.getLinks()
+          .get("linksRules")), Severity.WARN, Collections.singletonList(new DismissAction(i18n))));
       taskScheduler.scheduleWithFixedDelay(Platform::exit, Duration.ofSeconds(10));
     }
 
@@ -280,8 +277,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
         default -> Severity.INFO;
       };
     }
-    notificationService.addServerNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity,
-        Collections.singletonList(new DismissAction(i18n))));
+    notificationService.addServerNotification(new ImmediateNotification(i18n.get("messageFromServer"), noticeMessage.getText(), severity, Collections.singletonList(new DismissAction(i18n))));
   }
 
   private void onIrcPassword(IrcPasswordInfo ircPasswordInfo) {

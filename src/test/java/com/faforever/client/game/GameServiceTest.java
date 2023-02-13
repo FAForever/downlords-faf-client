@@ -56,6 +56,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.util.ReflectionUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -151,7 +153,7 @@ public class GameServiceTest extends ServiceTest {
   private CoturnService coturnService;
 
   @Captor
-  private ArgumentCaptor<Consumer<GameInfo>> GameInfoListenerCaptor;
+  private ArgumentCaptor<Consumer<GameInfo>> gameInfoListenerCaptor;
   @Captor
   private ArgumentCaptor<Set<String>> simModsCaptor;
 
@@ -168,6 +170,8 @@ public class GameServiceTest extends ServiceTest {
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues().get();
 
+    when(platformService.getFxThreadScheduler()).thenReturn(Schedulers.immediate());
+    when(fafServerAccessor.getEvents(any())).thenReturn(Flux.empty());
     when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
@@ -186,8 +190,6 @@ public class GameServiceTest extends ServiceTest {
     }).when(executorService).execute(any());
 
     instance.afterPropertiesSet();
-
-    verify(fafServerAccessor).addEventListener(eq(GameInfo.class), GameInfoListenerCaptor.capture());
   }
 
   private void mockStartGameProcess(GameParameters gameParameters) throws IOException {
@@ -206,12 +208,6 @@ public class GameServiceTest extends ServiceTest {
         .thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(new CompletableFuture<>());
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void postConstruct() {
-    verify(fafServerAccessor).addEventListener(eq(GameInfo.class), any(Consumer.class));
   }
 
   @Test
@@ -390,7 +386,7 @@ public class GameServiceTest extends ServiceTest {
         ).get();
 
 
-    GameInfoListenerCaptor.getValue().accept(multiGameInfo);
+    gameInfoListenerCaptor.getValue().accept(multiGameInfo);
 
 
     assertThat(instance.getGames(), hasSize(2));
@@ -401,10 +397,10 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo GameInfo1 = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo1);
+    gameInfoListenerCaptor.getValue().accept(GameInfo1);
 
     GameInfo GameInfo2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo2);
+    gameInfoListenerCaptor.getValue().accept(GameInfo2);
 
 
     assertThat(instance.getGames(), containsInAnyOrder(
@@ -433,7 +429,7 @@ public class GameServiceTest extends ServiceTest {
         .passwordProtected(true)
         .title("Game 1")
         .get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo1);
+    gameInfoListenerCaptor.getValue().accept(GameInfo1);
 
 
     assertThat(instance.currentGame.get().getPassword(), is("banana"));
@@ -449,7 +445,7 @@ public class GameServiceTest extends ServiceTest {
     GameInfo GameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(OPEN)
         .addTeamMember("1", "PlayerName").get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfoListenerCaptor.getValue().accept(GameInfo);
 
 
     assertThat(instance.getCurrentGame(), notNullValue());
@@ -465,7 +461,7 @@ public class GameServiceTest extends ServiceTest {
     GameInfo GameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(PLAYING)
         .addTeamMember("1", "PlayerName").get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfoListenerCaptor.getValue().accept(GameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -477,7 +473,7 @@ public class GameServiceTest extends ServiceTest {
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(false);
 
     GameInfo GameInfo = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfoListenerCaptor.getValue().accept(GameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -487,7 +483,7 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo GameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfoListenerCaptor.getValue().accept(GameInfo);
 
 
     CountDownLatch changeLatch = new CountDownLatch(1);
@@ -497,7 +493,7 @@ public class GameServiceTest extends ServiceTest {
     });
 
     GameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1 modified").state(PLAYING).get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfoListenerCaptor.getValue().accept(GameInfo);
 
     changeLatch.await();
     assertEquals(GameInfo.getTitle(), game.getTitle());
@@ -508,10 +504,10 @@ public class GameServiceTest extends ServiceTest {
     assertThat(instance.getGames(), empty());
 
     GameInfo GameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfoListenerCaptor.getValue().accept(GameInfo);
 
     GameInfo = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
-    GameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfoListenerCaptor.getValue().accept(GameInfo);
 
     assertThat(instance.getGames(), empty());
   }

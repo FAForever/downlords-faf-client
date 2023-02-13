@@ -7,12 +7,16 @@ import com.faforever.commons.lobby.GameType;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyMapProperty;
+import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -57,8 +61,8 @@ public class GameBean {
   /**
    * Maps a sim mod's UID to its name.
    */
-  ObjectProperty<Map<String, String>> simMods = new SimpleObjectProperty<>(Map.of());
-  ObjectProperty<Map<Integer, Set<PlayerBean>>> teams = new SimpleObjectProperty<>(Map.of());
+  ReadOnlyMapWrapper<String, String> simMods = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
+  ReadOnlyMapWrapper<Integer, Set<PlayerBean>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
   ObservableValue<Set<PlayerBean>> allPlayersInGame = teams.map(team -> team.values()
       .stream()
       .flatMap(Collection::stream)
@@ -80,6 +84,17 @@ public class GameBean {
           .orElse(0.0))
       .orElse(0.0);
   ObservableValue<Integer> numActivePlayers = nonObservingPlayersInGame.map(Collection::size).orElse(0);
+
+  ChangeListener<Set<PlayerBean>> playerChangeListener = (observable, oldValue, newValue) -> {
+    Set<PlayerBean> playersToRemove = oldValue.stream().filter(player -> !newValue.contains(player)).collect(Collectors.toSet());
+    Set<PlayerBean> playersToAdd = newValue.stream().filter(player -> !oldValue.contains(player)).collect(Collectors.toSet());
+    playersToRemove.stream().filter(player -> equals(player.getGame())).forEach(player -> player.setGame(null));
+    playersToAdd.forEach(player -> player.setGame(this));
+  };
+
+  public GameBean() {
+    allPlayersInGame.addListener(playerChangeListener);
+  }
 
   public String getHost() {
     return host.get();
@@ -241,11 +256,11 @@ public class GameBean {
   }
 
   public void setSimMods(Map<String, String> simMods) {
-    this.simMods.set(simMods);
+    this.simMods.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(simMods)));
   }
 
-  public ObservableValue<Map<String, String>> simModsProperty() {
-    return simMods.map(Collections::unmodifiableMap).orElse(Collections.emptyMap());
+  public ReadOnlyMapProperty<String, String> simModsProperty() {
+    return simMods.getReadOnlyProperty();
   }
 
   /**
@@ -256,11 +271,11 @@ public class GameBean {
   }
 
   public void setTeams(Map<Integer, Set<PlayerBean>> teams) {
-    this.teams.set(teams);
+    this.teams.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
   }
 
-  public ObservableValue<Map<Integer, Set<PlayerBean>>> teamsProperty() {
-    return teams.map(Collections::unmodifiableMap).orElse(Collections.emptyMap());
+  public ReadOnlyMapProperty<Integer, Set<PlayerBean>> teamsProperty() {
+    return teams.getReadOnlyProperty();
   }
 
   public Boolean isPasswordProtected() {
