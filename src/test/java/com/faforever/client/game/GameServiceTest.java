@@ -19,6 +19,7 @@ import com.faforever.client.fa.GameParameters;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
@@ -151,6 +152,8 @@ public class GameServiceTest extends ServiceTest {
   private Process process;
   @Mock
   private CoturnService coturnService;
+  @Mock
+  private JavaFxService javaFxService;
 
   @Captor
   private ArgumentCaptor<Consumer<GameInfo>> gameInfoListenerCaptor;
@@ -170,7 +173,7 @@ public class GameServiceTest extends ServiceTest {
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues().get();
 
-    when(platformService.getFxThreadScheduler()).thenReturn(Schedulers.immediate());
+    when(javaFxService.getFxThreadScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(any())).thenReturn(Flux.empty());
     when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
     when(preferencesService.getPreferences()).thenReturn(preferences);

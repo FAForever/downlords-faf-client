@@ -7,8 +7,8 @@ import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.PlatformService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.preferences.PreferencesService;
@@ -74,7 +74,7 @@ public class PlayerService implements InitializingBean {
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
   private final PreferencesService preferencesService;
-  private final PlatformService platformService;
+  private final JavaFxService javaFxService;
 
   private final MapChangeListener<Integer, PlayerBean> playerByIdChangeListener = change -> {
     if (change.wasAdded()) {
@@ -94,7 +94,7 @@ public class PlayerService implements InitializingBean {
 
     fafServerAccessor.getEvents(PlayerInfo.class)
         .flatMap(playerInfo -> Flux.fromIterable(playerInfo.getPlayers()))
-        .publishOn(platformService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxThreadScheduler())
         .map(this::createOrUpdatePlayerForPlayerInfo)
         .publishOn(Schedulers.single())
         .doOnNext(player -> {
@@ -102,7 +102,7 @@ public class PlayerService implements InitializingBean {
             eventBus.post(new PlayerOnlineEvent(player));
           }
         })
-        .publishOn(platformService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxThreadScheduler())
         .doOnError(throwable -> log.error("Error processing player", throwable))
         .retry()
         .subscribe(player -> player.setIdleSince(Instant.now()));
@@ -121,7 +121,7 @@ public class PlayerService implements InitializingBean {
           return Flux.merge(friendFlux, foeFlux);
         }).doOnError(throwable -> log.error("Error processing social info", throwable))
         .retry()
-        .publishOn(platformService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxThreadScheduler())
         .subscribe(this::setPlayerSocialStatus);
 
     notesByPlayerId = preferencesService.getPreferences().getUser().getNotesByPlayerId();

@@ -19,9 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,19 +35,15 @@ import java.util.regex.Pattern;
 import static org.bridj.Platform.show;
 
 @Slf4j
+@Lazy
 @Component
 @RequiredArgsConstructor
 public class PlatformService {
 
   // Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
   public static final Pattern URL_REGEX_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
-  private static final Scheduler FX_THREAD_SCHEDULER = Schedulers.fromExecutor(JavaFxUtil::runLater);
 
   private final OperatingSystem operatingSystem;
-
-  public Scheduler getFxThreadScheduler() {
-    return FX_THREAD_SCHEDULER;
-  }
 
   /**
    * Opens the specified URI in a new browser window or tab. Note: The code is copied from

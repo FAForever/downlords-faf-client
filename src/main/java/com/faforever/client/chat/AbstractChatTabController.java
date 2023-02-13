@@ -30,6 +30,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharStreams;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
@@ -138,36 +139,11 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
-  @SuppressWarnings("FieldCanBeLocal")
-  private final ChangeListener<Number> unreadMessageCountListener = (observable, oldValue, newValue) -> incrementUnreadMessageCount(newValue.intValue() - oldValue.intValue());
-  private final ChangeListener<Number> zoomChangeListener = (observable, oldValue, newValue) -> updateZoomPreferences(newValue);;
+  private final InvalidationListener stageFocusedListener = observable -> focusTextFieldIfStageFocused();
+  private final InvalidationListener resetUnreadMessagesListener = observable -> clearUnreadIfFocused();
   private final ChangeListener<Boolean> tabPaneFocusedListener = (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
     if (newTabPaneFocus) {
       JavaFxUtil.runLater(() -> messageTextField().requestFocus());
-    }
-  };
-  @SuppressWarnings("FieldCanBeLocal")
-  private final ChangeListener<Boolean> selectedChangeListener = (observable, oldValue, newValue) -> {
-    if (newValue) {
-      // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
-      // So let's schedule the focus to be executed afterwards
-      JavaFxUtil.runLater(messageTextField()::requestFocus);
-    }
-  };
-  private final ChangeListener<Boolean> stageFocusedListener = (window, windowFocusOld, windowFocusNew) -> {
-    if (getRoot() != null
-        && getRoot().getTabPane() != null
-        && getRoot().getTabPane().isVisible()) {
-      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
-    }
-  };
-  @SuppressWarnings("FieldCanBeLocal")
-  private final ChangeListener<TabPane> tabPaneChangeListener = (tabPane, oldTabPane, newTabPane) -> addTabListeners(newTabPane);
-  private final ChangeListener<State> webViewStatChangeListener = (observable, oldValue, newValue) -> sendWaitingMessagesIfLoaded(newValue);
-
-  private final ChangeListener<Boolean> resetUnreadMessagesListener = (observable, oldValue, newValue) -> {
-    if (hasFocus()) {
-      setUnread(false);
     }
   };
 
@@ -187,6 +163,21 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   @VisibleForTesting
   Pattern mentionPattern;
 
+  private void focusTextFieldIfStageFocused() {
+    Tab root = getRoot();
+    if (root != null
+        && root.getTabPane() != null
+        && root.getTabPane().isVisible()) {
+      JavaFxUtil.runLater(() -> messageTextField().requestFocus());
+    }
+  }
+
+  private void clearUnreadIfFocused() {
+    if (hasFocus()) {
+      setUnread(false);
+    }
+  }
+
   private void updateZoomPreferences(Number newValue) {
     preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
     preferencesService.storeInBackground();
@@ -196,8 +187,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     if (newTabPane == null) {
       return;
     }
-    JavaFxUtil.addListener(StageHolder.getStage().focusedProperty(), new WeakChangeListener<>(stageFocusedListener));
-    JavaFxUtil.addListener(newTabPane.focusedProperty(), new WeakChangeListener<>(tabPaneFocusedListener));
+    StageHolder.getStage().focusedProperty().addListener(new WeakInvalidationListener(stageFocusedListener));
+    newTabPane.focusedProperty().addListener(new WeakChangeListener<>(tabPaneFocusedListener));
   }
 
   /**
@@ -263,9 +254,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     addFocusListeners();
 
-    unreadMessagesCount.addListener(new WeakChangeListener<>(unreadMessageCountListener));
-    StageHolder.getStage().focusedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
-    getRoot().selectedProperty().addListener(new WeakChangeListener<>(resetUnreadMessagesListener));
+    unreadMessagesCount.addListener((observable, oldValue, newValue) -> incrementUnreadMessageCount(newValue.intValue() - oldValue.intValue()));
+    StageHolder.getStage().focusedProperty().addListener(new WeakInvalidationListener(resetUnreadMessagesListener));
+    getRoot().selectedProperty().addListener(new WeakInvalidationListener(resetUnreadMessagesListener));
 
     getRoot().setOnClosed(this::onClosed);
   }
@@ -285,8 +276,14 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    * another tab to the "chat" tab or re-focusing the window.
    */
   private void addFocusListeners() {
-    getRoot().selectedProperty().addListener(new WeakChangeListener<>(selectedChangeListener));
-    getRoot().tabPaneProperty().addListener(new WeakChangeListener<>(tabPaneChangeListener));
+    getRoot().selectedProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue) {
+        // Since a tab is marked as "selected" before it's rendered, the text field can't be selected yet.
+        // So let's schedule the focus to be executed afterwards
+        JavaFxUtil.runLater(messageTextField()::requestFocus);
+      }
+    });
+    getRoot().tabPaneProperty().addListener((tabPane, oldTabPane, newTabPane) -> addTabListeners(newTabPane));
   }
 
   protected abstract TextInputControl messageTextField();
@@ -295,7 +292,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     WebView messagesWebView = getMessagesWebView();
     webViewConfigurer.configureWebView(messagesWebView);
 
-    messagesWebView.zoomProperty().addListener(new WeakChangeListener<>(zoomChangeListener));
+    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> updateZoomPreferences(newValue));
 
     configureBrowser(messagesWebView);
     loadChatContainer();
@@ -330,7 +327,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   private void configureLoadListener() {
-    engine.getLoadWorker().stateProperty().addListener(new WeakChangeListener<>(webViewStatChangeListener));
+    engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> sendWaitingMessagesIfLoaded(newValue));
   }
 
   private void sendWaitingMessagesIfLoaded(State newValue) {

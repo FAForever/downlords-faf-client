@@ -19,9 +19,8 @@ import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.WeakListChangeListener;
 import javafx.event.Event;
 import javafx.scene.Node;
@@ -91,36 +90,36 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
   /* Listeners */
   private final InvalidationListener topicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
-  private final ChangeListener<Boolean> moderatorListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> changeTopicTextButton.setVisible(newValue));
+  @SuppressWarnings("FieldCanBeLocal")
+  private final InvalidationListener hideFoeMessagesListener = observable -> hideFoeMessages();
+  private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers()
+      .forEach(this::updateUserMessageColor);
+  private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
-  private final ChangeListener<String> searchChatMessageListener = (observable, oldValue, newValue) -> {
+  private AutoCompletionHelper autoCompletionHelper;
+
+  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, NotificationService notificationService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, EmoticonService emoticonService, PlatformService platformService) {
+    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService);
+    this.platformService = platformService;
+  }
+
+  private void highlightText(String newValue) {
     if (StringUtils.isBlank(newValue)) {
       callJsMethod("removeHighlight");
     } else {
       callJsMethod("highlightText", newValue);
     }
-  };
+  }
 
-  @SuppressWarnings("FieldCanBeLocal")
-  private final InvalidationListener hideFoeMessagesListener = observable -> {
+  private void hideFoeMessages() {
     boolean visible = chatPrefs.getHideFoeMessages();
     chatChannel.getUsers()
         .stream()
         .filter(user -> user.getCategories().stream().anyMatch(status -> status == ChatUserCategory.FOE))
         .forEach(user -> updateUserMessageVisibility(user, visible));
-  };
+  }
 
-  private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers()
-      .forEach(this::updateUserMessageColor);
-
-  @SuppressWarnings("FieldCanBeLocal")
-  private final InvalidationListener userListVisibilityListener = observable -> {
-    boolean selected = userListVisibilityToggleButton.isSelected();
-    splitPane.setDividerPositions(selected ? 0.8 : 1);
-    preferencesService.storeInBackground();
-  };
-
-  private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = change -> {
+  private void updateChangedUsersStyles(Change<? extends ChatChannelUser> change) {
     while (change.next()) {
       if (change.wasUpdated()) {
         List<ChatChannelUser> changedUsers = List.copyOf(change.getList().subList(change.getFrom(), change.getTo()));
@@ -133,13 +132,12 @@ public class ChannelTabController extends AbstractChatTabController implements I
         });
       }
     }
-  };
+  }
 
-  private AutoCompletionHelper autoCompletionHelper;
-
-  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, NotificationService notificationService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, EmoticonService emoticonService, PlatformService platformService) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService);
-    this.platformService = platformService;
+  private void updateDividerPosition() {
+    boolean selected = userListVisibilityToggleButton.isSelected();
+    splitPane.setDividerPositions(selected ? 0.8 : 1);
+    preferencesService.storeInBackground();
   }
 
   @Override
@@ -167,7 +165,8 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
     JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakInvalidationListener(hideFoeMessagesListener));
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModeListener));
-    JavaFxUtil.addListener(userListVisibilityToggleButton.selectedProperty(), new WeakInvalidationListener(userListVisibilityListener));
+
+    userListVisibilityToggleButton.selectedProperty().addListener(new WeakInvalidationListener(observable -> updateDividerPosition()));
 
     autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());
@@ -189,7 +188,12 @@ public class ChannelTabController extends AbstractChatTabController implements I
         .or(topicTextField.visibleProperty()));
 
     chatChannel.getUser(userService.getUsername())
-        .ifPresentOrElse(ownUser -> JavaFxUtil.addAndTriggerListener(ownUser.moderatorProperty(), new WeakChangeListener<>(moderatorListener)), () -> log.warn("Cannot get own chat user of `{}` channel", chatChannel.getName()));
+        .ifPresentOrElse(ownUser -> changeTopicTextButton.visibleProperty().bind(ownUser.moderatorProperty()),
+            () -> {
+              log.warn("Cannot get own chat user of `{}` channel", chatChannel.getName());
+              changeTopicTextButton.visibleProperty().unbind();
+              changeTopicTextButton.setVisible(false);
+            });
     chatUserListController.setChatChannel(chatChannel);
     chatChannel.getUsers().addListener(new WeakListChangeListener<>(channelUserListChangeListener));
 
@@ -210,7 +214,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
   }
 
   private void initializeListeners() {
-    JavaFxUtil.addListener(chatMessageSearchTextField.textProperty(), new WeakChangeListener<>(searchChatMessageListener));
+    JavaFxUtil.addListener(chatMessageSearchTextField.textProperty(), (observable, oldValue, newValue) -> highlightText(newValue));
     JavaFxUtil.addListener(chatChannel.topicProperty(), new WeakInvalidationListener(topicListener));
   }
 

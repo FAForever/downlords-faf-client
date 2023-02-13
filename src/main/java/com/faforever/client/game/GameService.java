@@ -12,6 +12,7 @@ import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameCleanupException;
@@ -64,7 +65,6 @@ import javafx.collections.ObservableMap;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -107,7 +107,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 @Lazy
 @Service
 @Slf4j
-public class GameService implements InitializingBean, DisposableBean {
+public class GameService implements InitializingBean {
 
   private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
   private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = """
@@ -137,6 +137,7 @@ public class GameService implements InitializingBean, DisposableBean {
   private final OperatingSystem operatingSystem;
   private final String faWindowTitle;
   private final GameMapper gameMapper;
+  private final JavaFxService javaFxService;
 
   @VisibleForTesting
   final BooleanProperty gameRunning = new SimpleBooleanProperty();
@@ -155,9 +156,8 @@ public class GameService implements InitializingBean, DisposableBean {
   private boolean rehostRequested;
   private int localReplayPort;
   private boolean inOthersParty;
-  private InvalidationListener connectionStateInvalidationListener;
 
-  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor, ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService, PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater, LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper) {
+  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor, ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService, PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater, LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper, JavaFxService javaFxService) {
     this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
     this.coturnService = coturnService;
@@ -177,6 +177,7 @@ public class GameService implements InitializingBean, DisposableBean {
     this.replayServer = replayServer;
     this.operatingSystem = operatingSystem;
     this.gameMapper = gameMapper;
+    this.javaFxService = javaFxService;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
   }
@@ -206,13 +207,13 @@ public class GameService implements InitializingBean, DisposableBean {
 
     Flux<GameBean> gameUpdateFlux = fafServerAccessor.getEvents(GameInfo.class)
         .flatMap(gameInfo -> gameInfo.getGames() == null ? Flux.just(gameInfo) : Flux.fromIterable(gameInfo.getGames()))
-        .publishOn(platformService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxThreadScheduler())
         .map(gameInfo -> gameIdToGame.compute(gameInfo.getUid(), (id, knownGame) -> gameMapper.update(gameInfo, knownGame == null ? new GameBean() : knownGame)))
         .publishOn(Schedulers.single())
         .doOnNext(this::notifyIfFriendJoinedGame);
 
     gameUpdateFlux.filter(game -> game.getStatus() == GameStatus.CLOSED)
-        .publishOn(platformService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxThreadScheduler())
         .doOnError(throwable -> log.error("Error processing game", throwable))
         .retry()
         .subscribe(game -> gameIdToGame.remove(game.getId()));
@@ -836,10 +837,5 @@ public class GameService implements InitializingBean, DisposableBean {
 
   public long getRunningProcessId() {
     return isRunning() ? process.pid() : -1;
-  }
-
-  @Override
-  public void destroy() throws Exception {
-    JavaFxUtil.removeListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
   }
 }

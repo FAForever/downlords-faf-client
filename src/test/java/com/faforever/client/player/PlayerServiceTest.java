@@ -7,7 +7,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
@@ -78,7 +78,7 @@ public class PlayerServiceTest extends UITest {
   @Mock
   private PreferencesService preferencesService;
   @Mock
-  private PlatformService platformService;
+  private JavaFxService javaFxService;
 
   @InjectMocks
   private PlayerService instance;
@@ -90,7 +90,7 @@ public class PlayerServiceTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
-    when(platformService.getFxThreadScheduler()).thenReturn(Schedulers.immediate());
+    when(javaFxService.getFxThreadScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(any())).thenReturn(Flux.empty());
     when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");

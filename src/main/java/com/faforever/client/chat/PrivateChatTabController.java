@@ -20,6 +20,7 @@ import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.MapChangeListener;
+import javafx.collections.MapChangeListener.Change;
 import javafx.collections.WeakMapChangeListener;
 import javafx.event.Event;
 import javafx.scene.control.ScrollPane;
@@ -52,14 +53,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
 
-  private final MapChangeListener<String, ChatChannelUser> chatUsersByNameListener = change -> {
-    if (change.wasRemoved()) {
-      onPlayerDisconnected(change.getKey());
-    }
-    if (change.wasAdded()) {
-      onPlayerConnected(change.getKey());
-    }
-  };
+  private final MapChangeListener<String, ChatChannelUser> chatUsersByNameListener = this::handlerPlayerChange;
 
   private boolean userOffline;
 
@@ -149,6 +143,15 @@ public class PrivateChatTabController extends AbstractChatTabController {
       setUnread(true);
       incrementUnreadMessagesCount();
       eventBus.post(new UnreadPrivateMessageEvent(chatMessage));
+    }
+  }
+
+  private void handlerPlayerChange(Change<? extends String, ? extends ChatChannelUser> change) {
+    if (change.wasRemoved()) {
+      onPlayerDisconnected(change.getKey());
+    }
+    if (change.wasAdded()) {
+      onPlayerConnected(change.getKey());
     }
   }
 
