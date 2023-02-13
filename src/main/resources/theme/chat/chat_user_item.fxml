@@ -33,6 +33,6 @@
             </graphic>
         </Label>
     </VBox>
-    <ImageView fx:id="mapImageView"
+    <ImageView fx:id="mapImageView" onMouseEntered="#onMapImageViewMouseEntered" onMouseExited="#onMapImageViewMouseExited"
                fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true" visible="false"/>
 </HBox>

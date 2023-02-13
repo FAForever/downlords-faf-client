@@ -28,6 +28,7 @@ import com.faforever.client.fx.contextmenu.ShowPlayerInfoMenuItem;
 import com.faforever.client.fx.contextmenu.ViewReplaysMenuItem;
 import com.faforever.client.fx.contextmenu.WatchGameMenuItem;
 import com.faforever.client.game.GameTooltipController;
+import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -90,6 +91,8 @@ public class ChatUserItemController implements Controller<Node> {
   public VBox userContainer;
 
   private Tooltip avatarTooltip;
+  private Tooltip statusTooltip;
+  private Tooltip countryTooltip;
   private Tooltip gameInfoTooltip;
   private Tooltip noteTooltip;
   private GameTooltipController gameInfoController;
@@ -102,6 +105,8 @@ public class ChatUserItemController implements Controller<Node> {
   private void initializeTooltips() {
     initializeAvatarTooltip();
     initializePlayerNoteTooltip();
+    initializeCountryTooltip();
+    initializeStatusTooltip();
   }
 
   private void initializePlayerNoteTooltip() {
@@ -123,6 +128,18 @@ public class ChatUserItemController implements Controller<Node> {
     Tooltip.install(avatarImageView, avatarTooltip);
   }
 
+  private void initializeCountryTooltip() {
+    countryTooltip = new Tooltip();
+    countryTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+    Tooltip.install(countryImageView, countryTooltip);
+  }
+
+  private void initializeStatusTooltip() {
+    statusTooltip = new Tooltip();
+    statusTooltip.setAnchorLocation(PopupWindow.AnchorLocation.CONTENT_TOP_LEFT);
+    Tooltip.install(gameStatusImageView, statusTooltip);
+  }
+
   public void onMapImageViewMouseExited() {
     if (gameInfoTooltip == null || gameInfoController == null) {
       return;
@@ -132,7 +149,7 @@ public class ChatUserItemController implements Controller<Node> {
     gameInfoController = null;
   }
 
-  public void onMapImageViewMouseMoved() {
+  public void onMapImageViewMouseEntered() {
     PlayerBean player = Optional.ofNullable(chatUser.get()).flatMap(ChatChannelUser::getPlayer).orElse(null);
     if (player == null || gameInfoTooltip != null || gameInfoController != null) {
       return;
@@ -240,22 +257,29 @@ public class ChatUserItemController implements Controller<Node> {
             .flatMap(image -> image.errorProperty()
                 .map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image)));
 
+    ObservableValue<PlayerStatus> statusProperty = playerProperty.flatMap(PlayerBean::statusProperty);
     gameStatusImageView.imageProperty()
-        .bind(playerProperty.flatMap(PlayerBean::statusProperty)
+        .bind(statusProperty
             .map(status -> switch (status) {
               case HOSTING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING);
               case LOBBYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_LOBBYING);
               case PLAYING -> uiService.getThemeImage(UiService.CHAT_LIST_STATUS_PLAYING);
               default -> null;
             }));
+
+    statusTooltip.textProperty().bind(statusProperty.map(PlayerStatus::getI18nKey).map(i18n::get));
+
     noteTooltip.textProperty().bind(playerProperty.flatMap(PlayerBean::noteProperty));
 
     ObservableValue<AvatarBean> avatarProperty = playerProperty.flatMap(PlayerBean::avatarProperty);
     avatarTooltip.textProperty().bind(avatarProperty.flatMap(AvatarBean::descriptionProperty));
     avatarImageView.imageProperty().bind(avatarProperty.map(avatarService::loadAvatar));
 
+    ObservableValue<String> countryProperty = playerProperty.flatMap(PlayerBean::countryProperty);
+    countryTooltip.textProperty().bind(countryProperty.map(i18n::getCountryNameLocalized));
+
     countryImageView.imageProperty()
-        .bind(playerProperty.flatMap(PlayerBean::countryProperty)
+        .bind(countryProperty
             .map(countryFlagService::loadCountryFlag)
             .map(possibleFlag -> possibleFlag.orElse(null)));
 

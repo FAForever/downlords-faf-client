@@ -212,7 +212,7 @@ public class ChatUserItemControllerTest extends UITest {
     when(controllerMock.getRoot()).thenReturn(new VBox());
 
     instance.setChatUser(defaultUser);
-    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseMoved());
+    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseEntered());
     verify(controllerMock).displayGame();
     assertNotNull(TooltipHelper.getTooltip(instance.mapImageView));
 
