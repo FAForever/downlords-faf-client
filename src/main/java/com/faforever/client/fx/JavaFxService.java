@@ -9,9 +9,13 @@ import reactor.core.scheduler.Schedulers;
 @Component
 public class JavaFxService {
 
-  private static final Scheduler FX_THREAD_SCHEDULER = Schedulers.fromExecutor(JavaFxUtil::runLater);
+  private static final Scheduler FX_APPLICATION_SCHEDULER = Schedulers.fromExecutor(JavaFxUtil::runLater);
 
-  public Scheduler getFxThreadScheduler() {
-    return FX_THREAD_SCHEDULER;
+  public Scheduler getFxApplicationScheduler() {
+    return FX_APPLICATION_SCHEDULER;
+  }
+
+  public Scheduler getSingleScheduler() {
+    return Schedulers.single();
   }
 }

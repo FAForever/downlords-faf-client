@@ -70,7 +70,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
 import java.net.URI;
@@ -207,19 +206,23 @@ public class GameService implements InitializingBean {
 
     Flux<GameBean> gameUpdateFlux = fafServerAccessor.getEvents(GameInfo.class)
         .flatMap(gameInfo -> gameInfo.getGames() == null ? Flux.just(gameInfo) : Flux.fromIterable(gameInfo.getGames()))
-        .publishOn(javaFxService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxApplicationScheduler())
         .map(gameInfo -> gameIdToGame.compute(gameInfo.getUid(), (id, knownGame) -> gameMapper.update(gameInfo, knownGame == null ? new GameBean() : knownGame)))
-        .publishOn(Schedulers.single())
-        .doOnNext(this::notifyIfFriendJoinedGame);
+        .publishOn(javaFxService.getSingleScheduler())
+        .doOnNext(this::notifyIfFriendJoinedGame)
+        .doOnError(throwable -> log.error("Error processing game", throwable))
+        .retry()
+        .share();
 
     gameUpdateFlux.filter(game -> game.getStatus() == GameStatus.CLOSED)
-        .publishOn(javaFxService.getFxThreadScheduler())
-        .doOnError(throwable -> log.error("Error processing game", throwable))
+        .publishOn(javaFxService.getFxApplicationScheduler())
+        .doOnError(throwable -> log.error("Error closing game", throwable))
         .retry()
         .subscribe(game -> gameIdToGame.remove(game.getId()));
 
     gameUpdateFlux.filter(playerService::isCurrentPlayerInGame)
-        .doOnError(throwable -> log.error("Error processing game", throwable))
+        .doOnError(throwable -> log.error("Error setting current game", throwable))
+        .retry()
         .subscribe(game -> {
           if (GameStatus.OPEN == game.getStatus()) {
             currentGame.set(enhanceWithLastPasswordIfPasswordProtected(game));

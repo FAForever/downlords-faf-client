@@ -48,6 +48,7 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -57,8 +58,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.util.ReflectionUtils;
-import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
+import reactor.test.publisher.TestPublisher;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -71,7 +72,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
@@ -97,6 +97,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -108,7 +109,6 @@ public class GameServiceTest extends ServiceTest {
   private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
   private static final Integer GPG_PORT = 1234;
   private static final int LOCAL_REPLAY_PORT = 15111;
-  private static final String GLOBAL_RATING_TYPE = "global";
   private static final String LADDER_1v1_RATING_TYPE = "ladder_1v1";
 
   @InjectMocks
@@ -156,8 +156,6 @@ public class GameServiceTest extends ServiceTest {
   private JavaFxService javaFxService;
 
   @Captor
-  private ArgumentCaptor<Consumer<GameInfo>> gameInfoListenerCaptor;
-  @Captor
   private ArgumentCaptor<Set<String>> simModsCaptor;
 
   private PlayerBean junitPlayer;
@@ -167,14 +165,17 @@ public class GameServiceTest extends ServiceTest {
   @Spy
   private ClientProperties clientProperties = new ClientProperties();
 
+  private final TestPublisher<GameInfo> testPublisher = TestPublisher.create();
+
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(gameMapper);
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
     preferences = PreferencesBuilder.create().defaultValues().get();
 
-    when(javaFxService.getFxThreadScheduler()).thenReturn(Schedulers.immediate());
-    when(fafServerAccessor.getEvents(any())).thenReturn(Flux.empty());
+    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testPublisher.flux());
     when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
@@ -193,6 +194,8 @@ public class GameServiceTest extends ServiceTest {
     }).when(executorService).execute(any());
 
     instance.afterPropertiesSet();
+
+    testPublisher.assertSubscribers(1);
   }
 
   private void mockStartGameProcess(GameParameters gameParameters) throws IOException {
@@ -214,6 +217,15 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testRetryFlux() {
+    doThrow(new RuntimeException()).when(gameMapper).update(any(), any());
+
+    testPublisher.next(GameInfoMessageBuilder.create(1).defaultValues().get());
+
+    testPublisher.assertSubscribers(1);
+  }
+
+  @Test
   public void testJoinGameMapIsAvailable() throws Exception {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
 
@@ -229,7 +241,9 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
 
@@ -254,7 +268,9 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
     when(process.isAlive()).thenReturn(false);
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
@@ -283,7 +299,9 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled(anyString())).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(anyInt(), isNull())).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(modService.getFeaturedMod(anyString())).thenReturn(completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
     when(process.isAlive()).thenReturn(false);
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();
@@ -315,7 +333,9 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled("map")).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
 
     instance.joinGame(game, null).toCompletableFuture().get();
     verify(modService).enableSimMods(simModsCaptor.capture());
@@ -379,17 +399,30 @@ public class GameServiceTest extends ServiceTest {
   }
 
   @Test
+  public void testPlayerLeftOpenGame() {
+    PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().id(1).get();
+    PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().id(2).get();
+    Map<Integer, Set<PlayerBean>> teams = Map.of(1, Set.of(player1), 2, Set.of(player2));
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
+
+    assertThat(player1.getGame(), is(game));
+    assertThat(player2.getGame(), is(game));
+
+    game.setTeams(Map.of(2, Set.of(player2)));
+
+    assertThat(player1.getGame(), is(CoreMatchers.nullValue()));
+    assertThat(player2.getGame(), is(game));
+  }
+
+  @Test
   public void testOnGames() {
     assertThat(instance.getGames(), empty());
 
     GameInfo multiGameInfo = GameInfoMessageBuilder.create(1)
-        .games(
-            List.of(GameInfoMessageBuilder.create(1).defaultValues().get(),
-                GameInfoMessageBuilder.create(2).defaultValues().get())
+        .games(List.of(GameInfoMessageBuilder.create(1).defaultValues().get(),
+                       GameInfoMessageBuilder.create(2).defaultValues().get())
         ).get();
-
-
-    gameInfoListenerCaptor.getValue().accept(multiGameInfo);
+    testPublisher.next(multiGameInfo);
 
 
     assertThat(instance.getGames(), hasSize(2));
@@ -399,11 +432,11 @@ public class GameServiceTest extends ServiceTest {
   public void testOnGameInfoAdd() {
     assertThat(instance.getGames(), empty());
 
-    GameInfo GameInfo1 = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo1);
+    GameInfo gameInfo1 = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
+    testPublisher.next(gameInfo1);
 
-    GameInfo GameInfo2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo2);
+    GameInfo gameInfo2 = GameInfoMessageBuilder.create(2).defaultValues().title("Game 2").get();
+    testPublisher.next(gameInfo2);
 
 
     assertThat(instance.getGames(), containsInAnyOrder(
@@ -425,15 +458,14 @@ public class GameServiceTest extends ServiceTest {
 
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
 
-    GameInfo GameInfo1 = GameInfoMessageBuilder.create(1)
+    GameInfo gameInfo = GameInfoMessageBuilder.create(1)
         .defaultValues()
         .host("me")
         .addTeamMember("1", "me")
         .passwordProtected(true)
         .title("Game 1")
         .get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo1);
-
+    testPublisher.next(gameInfo);
 
     assertThat(instance.currentGame.get().getPassword(), is("banana"));
 
@@ -445,10 +477,10 @@ public class GameServiceTest extends ServiceTest {
 
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
 
-    GameInfo GameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
+    GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(OPEN)
         .addTeamMember("1", "PlayerName").get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo);
+    testPublisher.next(gameInfo);
 
 
     assertThat(instance.getCurrentGame(), notNullValue());
@@ -461,10 +493,10 @@ public class GameServiceTest extends ServiceTest {
 
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
 
-    GameInfo GameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
+    GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues()
         .state(PLAYING)
         .addTeamMember("1", "PlayerName").get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo);
+    testPublisher.next(gameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -475,8 +507,8 @@ public class GameServiceTest extends ServiceTest {
 
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(false);
 
-    GameInfo GameInfo = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo);
+    GameInfo gameInfo = GameInfoMessageBuilder.create(1234).defaultValues().addTeamMember("1", "Other").get();
+    testPublisher.next(gameInfo);
 
     assertThat(instance.getCurrentGame(), nullValue());
   }
@@ -485,32 +517,27 @@ public class GameServiceTest extends ServiceTest {
   public void testOnGameInfoModify() throws InterruptedException {
     assertThat(instance.getGames(), empty());
 
-    GameInfo GameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo);
+    GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").state(PLAYING).get();
+    testPublisher.next(gameInfo);
 
+    GameBean game = instance.getByUid(1);
 
-    CountDownLatch changeLatch = new CountDownLatch(1);
-    GameBean game = instance.getGames().iterator().next();
-    game.titleProperty().addListener((observable, oldValue, newValue) -> {
-      changeLatch.countDown();
-    });
+    gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1 modified").state(PLAYING).get();
+    testPublisher.next(gameInfo);
 
-    GameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1 modified").state(PLAYING).get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo);
-
-    changeLatch.await();
-    assertEquals(GameInfo.getTitle(), game.getTitle());
+    assertEquals(gameInfo.getTitle(), game.getTitle());
   }
 
   @Test
   public void testOnGameInfoRemove() {
     assertThat(instance.getGames(), empty());
 
-    GameInfo GameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo);
+    GameInfo gameInfo = GameInfoMessageBuilder.create(1).defaultValues().title("Game 1").get();
+    testPublisher.next(gameInfo);
+    assertThat(instance.getGames(), hasSize(1));
 
-    GameInfo = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
-    gameInfoListenerCaptor.getValue().accept(GameInfo);
+    gameInfo = GameInfoMessageBuilder.create(1).title("Game 1").defaultValues().state(CLOSED).get();
+    testPublisher.next(gameInfo);
 
     assertThat(instance.getGames(), empty());
   }
@@ -536,7 +563,7 @@ public class GameServiceTest extends ServiceTest {
     mockStartGameProcess(gameParameters);
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    when(gameUpdater.update(featuredMod, Set.of(),null, null)).thenReturn(completedFuture(null));
+    when(gameUpdater.update(featuredMod, Set.of(), null, null)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
@@ -573,7 +600,7 @@ public class GameServiceTest extends ServiceTest {
     LeagueEntryBean leagueEntry = LeagueEntryBeanBuilder.create().defaultValues().get();
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.of(leagueEntry)));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    when(gameUpdater.update(featuredMod, Set.of(),null, null)).thenReturn(completedFuture(null));
+    when(gameUpdater.update(featuredMod, Set.of(), null, null)).thenReturn(completedFuture(null));
     when(mapService.isInstalled(map)).thenReturn(false);
     when(mapService.download(map)).thenReturn(completedFuture(null));
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(completedFuture(featuredMod));
@@ -652,7 +679,7 @@ public class GameServiceTest extends ServiceTest {
     verify(eventBus).register(instance);
 
     assertThat(ReflectionUtils.findMethod(
-        instance.getClass(), "onRehostRequest", RehostRequestEvent.class),
+            instance.getClass(), "onRehostRequest", RehostRequestEvent.class),
         hasAnnotation(Subscribe.class));
   }
 
@@ -665,10 +692,16 @@ public class GameServiceTest extends ServiceTest {
     gameParameters.setRehost(true);
 
     mockStartGameProcess(gameParameters);
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(fafServerAccessor.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create().defaultValues().get()));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(fafServerAccessor.requestHostGame(any())).thenReturn(completedFuture(GameLaunchMessageBuilder.create()
+        .defaultValues()
+        .get()));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
     when(mapService.download(game.getMapFolderName())).thenReturn(completedFuture(null));
 
     instance.onRehostRequest(new RehostRequestEvent());
@@ -691,7 +724,12 @@ public class GameServiceTest extends ServiceTest {
   @Test
   public void testCurrentGameEndedBehaviour() {
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
-    GameBean game = GameBeanBuilder.create().defaultValues().id(123).status(PLAYING).teams(Map.of(1, Set.of(junitPlayer))).get();
+    GameBean game = GameBeanBuilder.create()
+        .defaultValues()
+        .id(123)
+        .status(PLAYING)
+        .teams(Map.of(1, Set.of(junitPlayer)))
+        .get();
     junitPlayer.setGame(game);
 
     instance.currentGame.set(game);
@@ -768,7 +806,13 @@ public class GameServiceTest extends ServiceTest {
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create()
+        .defaultValues()
+        .team(1)
+        .expectedPlayers(4)
+        .mapPosition(3)
+        .gameOptions(gameOptions)
+        .get();
     GameParameters gameParameters = gameMapper.map(gameLaunchMessage);
     gameParameters.setDivision("unlisted");
     mockStartGameProcess(gameParameters);
@@ -791,7 +835,13 @@ public class GameServiceTest extends ServiceTest {
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create()
+        .defaultValues()
+        .team(1)
+        .expectedPlayers(4)
+        .mapPosition(3)
+        .gameOptions(gameOptions)
+        .get();
     GameParameters gameParameters = gameMapper.map(gameLaunchMessage);
     gameParameters.setDivision("unlisted");
     mockStartGameProcess(gameParameters);
@@ -816,7 +866,13 @@ public class GameServiceTest extends ServiceTest {
     Map<String, String> gameOptions = new LinkedHashMap<>();
     gameOptions.put("Share", "ShareUntilDeath");
     gameOptions.put("UnitCap", "500");
-    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().team(1).expectedPlayers(4).mapPosition(3).gameOptions(gameOptions).get();
+    GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create()
+        .defaultValues()
+        .team(1)
+        .expectedPlayers(4)
+        .mapPosition(3)
+        .gameOptions(gameOptions)
+        .get();
     mockStartGameProcess(gameMapper.map(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
@@ -859,7 +915,10 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void runWithReplayInParty() {
-    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBeanBuilder.create().defaultValues().id(100).get()));
+    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBeanBuilder.create()
+        .defaultValues()
+        .id(100)
+        .get()));
     instance.runWithReplay(null, null, null, null, null, null, null);
 
     verify(notificationService).addImmediateWarnNotification("replay.inParty");
@@ -867,7 +926,10 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void runWithLiveReplayInParty() {
-    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBeanBuilder.create().defaultValues().id(100).get()));
+    instance.onPartyOwnerChangedEvent(new PartyOwnerChangedEvent(PlayerBeanBuilder.create()
+        .defaultValues()
+        .id(100)
+        .get()));
     instance.runWithLiveReplay(null, null, null, null);
 
     verify(notificationService).addImmediateWarnNotification("replay.inParty");
@@ -892,7 +954,9 @@ public class GameServiceTest extends ServiceTest {
     when(mapService.isInstalled("map")).thenReturn(true);
     when(fafServerAccessor.requestJoinGame(game.getId(), null)).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().get()));
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(completedFuture(FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .get()));
     when(replayServer.start(anyInt(), any(Supplier.class))).thenReturn(completedFuture(new Throwable()));
 
     CompletableFuture<Void> future = instance.joinGame(game, null).toCompletableFuture();

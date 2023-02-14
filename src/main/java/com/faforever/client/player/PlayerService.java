@@ -36,7 +36,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -94,20 +93,21 @@ public class PlayerService implements InitializingBean {
 
     fafServerAccessor.getEvents(PlayerInfo.class)
         .flatMap(playerInfo -> Flux.fromIterable(playerInfo.getPlayers()))
-        .publishOn(javaFxService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxApplicationScheduler())
         .map(this::createOrUpdatePlayerForPlayerInfo)
-        .publishOn(Schedulers.single())
+        .publishOn(javaFxService.getSingleScheduler())
         .doOnNext(player -> {
           if (player.getIdleSince() == null) {
             eventBus.post(new PlayerOnlineEvent(player));
           }
         })
-        .publishOn(javaFxService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxApplicationScheduler())
         .doOnError(throwable -> log.error("Error processing player", throwable))
         .retry()
         .subscribe(player -> player.setIdleSince(Instant.now()));
 
-    fafServerAccessor.getEvents(SocialInfo.class).flatMap(socialInfo -> {
+    fafServerAccessor.getEvents(SocialInfo.class)
+        .flatMap(socialInfo -> {
           Flux<PlayerBean> friendFlux = Mono.just(socialInfo.getFriends()).doOnNext(ids -> {
             friendList.clear();
             friendList.addAll(ids);
@@ -119,9 +119,10 @@ public class PlayerService implements InitializingBean {
           }).flatMapMany(Flux::fromIterable).mapNotNull(playersById::get);
 
           return Flux.merge(friendFlux, foeFlux);
-        }).doOnError(throwable -> log.error("Error processing social info", throwable))
+        })
+        .doOnError(throwable -> log.error("Error processing social info", throwable))
         .retry()
-        .publishOn(javaFxService.getFxThreadScheduler())
+        .publishOn(javaFxService.getFxApplicationScheduler())
         .subscribe(this::setPlayerSocialStatus);
 
     notesByPlayerId = preferencesService.getPreferences().getUser().getNotesByPlayerId();
