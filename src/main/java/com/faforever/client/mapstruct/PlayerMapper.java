@@ -4,6 +4,7 @@ import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.commons.api.dto.NameRecord;
 import com.faforever.commons.api.dto.Player;
+import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -12,7 +13,9 @@ import org.mapstruct.MappingTarget;
 import java.util.List;
 import java.util.Set;
 
-@Mapper(uses = {LeaderboardMapper.class, AvatarMapper.class, UrlMapper.class}, config = MapperConfiguration.class)
+@Mapper(uses = {LeaderboardMapper.class, AvatarMapper.class, UrlMapper.class},
+    collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE,
+    config = MapperConfiguration.class)
 public interface PlayerMapper {
      @Mapping(target = "username", source = "login")
      PlayerBean map(Player dto, @Context CycleAvoidingMappingContext context);

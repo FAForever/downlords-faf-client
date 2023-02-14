@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -149,7 +150,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
-    player.getLeaderboardRatings().put("test", LeaderboardRatingBeanBuilder.create().defaultValues().get());
+    player.setLeaderboardRatings(Map.of("test", LeaderboardRatingBeanBuilder.create().defaultValues().get()));
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(leaderboardService).getLeaderboards();
