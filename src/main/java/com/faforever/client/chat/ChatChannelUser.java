@@ -11,6 +11,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.paint.Color;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.Value;
 
 import java.util.Optional;
 import java.util.Set;
@@ -21,16 +22,17 @@ import java.util.Set;
  */
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Value
 public class ChatChannelUser {
 
   @EqualsAndHashCode.Include
-  private final ReadOnlyStringWrapper username = new ReadOnlyStringWrapper();
+  ReadOnlyStringWrapper username = new ReadOnlyStringWrapper();
   @EqualsAndHashCode.Include
-  private final ReadOnlyStringWrapper channel = new ReadOnlyStringWrapper();
-  private final BooleanProperty moderator = new SimpleBooleanProperty();
-  private final ObjectProperty<Color> color = new SimpleObjectProperty<>();
-  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
-  private final ObservableValue<Set<ChatUserCategory>> categories = player.flatMap(PlayerBean::socialStatusProperty)
+  ReadOnlyStringWrapper channel = new ReadOnlyStringWrapper();
+  BooleanProperty moderator = new SimpleBooleanProperty();
+  ObjectProperty<Color> color = new SimpleObjectProperty<>();
+  ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  ObservableValue<Set<ChatUserCategory>> categories = player.flatMap(PlayerBean::socialStatusProperty)
       .map(socialStatus -> switch (socialStatus) {
         case FRIEND -> ChatUserCategory.FRIEND;
         case FOE -> ChatUserCategory.FOE;
@@ -50,9 +52,7 @@ public class ChatChannelUser {
   }
 
   public void setPlayer(PlayerBean player) {
-    getPlayer().ifPresent(currentPlayer -> currentPlayer.getChatChannelUsers().remove(this));
     this.player.set(player);
-    getPlayer().ifPresent(currentPlayer -> currentPlayer.getChatChannelUsers().add(this));
   }
 
   public ObjectProperty<PlayerBean> playerProperty() {

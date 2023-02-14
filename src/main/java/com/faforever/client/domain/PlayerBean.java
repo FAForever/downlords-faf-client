@@ -1,6 +1,5 @@
 package com.faforever.client.domain;
 
-import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.SocialStatus;
 import javafx.beans.property.MapProperty;
@@ -12,7 +11,6 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -45,7 +43,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   MapProperty<String, LeaderboardRatingBean> leaderboardRatings = new SimpleMapProperty<>(FXCollections.observableHashMap());
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   ObservableValue<PlayerStatus> status = game.flatMap(this::statusPropertyFromGame).orElse(PlayerStatus.IDLE);
-  ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
   ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
   StringProperty note = new SimpleStringProperty();
   ObservableValue<Integer> numGames = leaderboardRatings.map(ratings -> ratings.values()
@@ -164,10 +161,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   public ObjectProperty<Instant> idleSinceProperty() {
     return idleSince;
-  }
-
-  public ObservableSet<ChatChannelUser> getChatChannelUsers() {
-    return chatChannelUsers;
   }
 
   public StringProperty noteProperty() {
