@@ -15,7 +15,6 @@ import com.faforever.client.notification.DismissAction;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.update.Version;
 import com.faforever.client.user.event.LogOutRequestEvent;
 import com.faforever.client.util.ConcurrentUtil;
@@ -77,7 +76,7 @@ public class FafServerAccessor implements InitializingBean, DisposableBean {
 
   private CompletableFuture<LoginSuccessResponse> loginFuture;
 
-  public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, PreferencesService preferencesService, UidService uidService, TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
+  public FafServerAccessor(NotificationService notificationService, I18n i18n, TaskScheduler taskScheduler, ClientProperties clientProperties, UidService uidService, TokenService tokenService, EventBus eventBus, ObjectMapper objectMapper) {
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.taskScheduler = taskScheduler;
