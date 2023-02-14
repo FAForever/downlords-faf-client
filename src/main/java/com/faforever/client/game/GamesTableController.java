@@ -69,7 +69,7 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<GameBean, PlayerFill> playersColumn;
   public TableColumn<GameBean, Number> averageRatingColumn;
   public TableColumn<GameBean, RatingRange> ratingRangeColumn;
-  public TableColumn<GameBean, Map<String, String>> modsColumn;
+  public TableColumn<GameBean, ObservableMap<String, String>> modsColumn;
   public TableColumn<GameBean, String> hostColumn;
   public TableColumn<GameBean, Boolean> passwordProtectionColumn;
   public TableColumn<GameBean, String> coopMissionName;

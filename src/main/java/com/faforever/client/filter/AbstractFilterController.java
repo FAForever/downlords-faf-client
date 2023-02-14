@@ -41,8 +41,8 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
   private Predicate<T> defaultPredicate = t -> true;
   private boolean resetInProgress = false;
 
-  private final BooleanProperty filterStateProperty = new SimpleBooleanProperty(false);
-  private final ObjectProperty<Predicate<T>> predicateProperty = new SimpleObjectProperty<>(defaultPredicate);
+  private final BooleanProperty filterState = new SimpleBooleanProperty(false);
+  private final ObjectProperty<Predicate<T>> predicate = new SimpleObjectProperty<>(defaultPredicate);
 
   public AbstractFilterController(UiService uiService, I18n i18n) {
     this.i18n = i18n;
@@ -61,21 +61,25 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
     // To be overridden by subclass
   };
 
-  public BooleanProperty getFilterStateProperty() {
-    return filterStateProperty;
+  public ObjectProperty<Predicate<T>> predicateProperty() {
+    return predicate;
   }
 
-  public ObjectProperty<Predicate<T>> predicateProperty() {
-    return predicateProperty;
+  public Predicate<T> getPredicate() {
+    return predicate.get();
+  }
+
+  public BooleanProperty filterStateProperty() {
+    return filterState;
   }
 
   public boolean getFilterState() {
-    return filterStateProperty.get();
+    return filterState.get();
   }
 
   public void setDefaultPredicate(Predicate<T> defaultPredicate) {
     this.defaultPredicate = defaultPredicate;
-    predicateProperty.setValue(defaultPredicate);
+    predicate.setValue(defaultPredicate);
   }
 
   private void setFilterContent() {
@@ -95,14 +99,14 @@ public abstract class AbstractFilterController<T> implements Controller<SplitPan
               .map(AbstractFilterNodeController::getPredicate), externalFilters.values().stream())
           .reduce(Predicate::and)
           .orElseThrow();
-      predicateProperty.setValue(defaultPredicate.and(finalPredicate));
+      predicate.setValue(defaultPredicate.and(finalPredicate));
       updateFilterState();
     }
   }
 
   private void updateFilterState() {
     boolean hasDefaultValues = filters.stream().allMatch(AbstractFilterNodeController::hasDefaultValue);
-    filterStateProperty.setValue(!hasDefaultValues);
+    filterState.setValue(!hasDefaultValues);
     resetAllButton.setDisable(hasDefaultValues);
   }
 

@@ -7,6 +7,7 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
@@ -19,6 +20,7 @@ import com.faforever.client.user.UserService;
 import com.faforever.commons.api.elide.ElideEntity;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
+import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.SimpleObjectProperty;
@@ -32,19 +34,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
+import reactor.test.publisher.TestPublisher;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static com.faforever.client.player.SocialStatus.FOE;
 import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -57,7 +59,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -78,6 +79,8 @@ public class PlayerServiceTest extends ServiceTest {
   private EventBus eventBus;
   @Mock
   private PreferencesService preferencesService;
+  @Mock
+  private JavaFxService javaFxService;
 
   @InjectMocks
   private PlayerService instance;
@@ -86,9 +89,16 @@ public class PlayerServiceTest extends ServiceTest {
   private com.faforever.commons.lobby.Player playerInfo1;
   private com.faforever.commons.lobby.Player playerInfo2;
 
+  private TestPublisher<PlayerInfo> playerInfoTestPublisher = TestPublisher.create();
+  private TestPublisher<SocialInfo> socialInfoTestPublisher = TestPublisher.create();
+
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(playerMapper);
+    when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
+    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
+    when(fafServerAccessor.getEvents(SocialInfo.class)).thenReturn(socialInfoTestPublisher.flux());
     when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
     when(userService.getUsername()).thenReturn("junit");
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
@@ -108,13 +118,26 @@ public class PlayerServiceTest extends ServiceTest {
     instance.afterPropertiesSet();
     instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
     instance.createOrUpdatePlayerForPlayerInfo(playerInfo2);
+
+    socialInfoTestPublisher.assertSubscribers(1);
+    playerInfoTestPublisher.assertSubscribers(1);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void testPostConstruct() {
-    verify(fafServerAccessor).addEventListener(eq(com.faforever.commons.lobby.PlayerInfo.class), any(Consumer.class));
-    verify(fafServerAccessor).addEventListener(eq(SocialInfo.class), any(Consumer.class));
+  public void testPlayerComesOnline() {
+    playerInfoTestPublisher.next(new PlayerInfo(List.of(new com.faforever.commons.lobby.Player(4, "junit3", null, null, "", new HashMap<>(), new HashMap<>()))));
+
+    assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
+    assertNotNull(instance.getPlayerByIdIfOnline(4).map(PlayerBean::getIdleSince).orElse(null));
+    verify(eventBus).post(any(PlayerOnlineEvent.class));
+  }
+
+  @Test
+  public void testSocialInfo() {
+    socialInfoTestPublisher.next(new SocialInfo(List.of(), List.of(), List.of(2), List.of(3), 0));
+
+    assertEquals(FRIEND, instance.getPlayerByIdIfOnline(2).map(PlayerBean::getSocialStatus).orElse(null));
+    assertEquals(FOE, instance.getPlayerByIdIfOnline(3).map(PlayerBean::getSocialStatus).orElse(null));
   }
 
   @Test
@@ -131,15 +154,10 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testRegisterAndGetPlayerForUsernameNull() {
-    assertThrows(IllegalArgumentException.class, () -> instance.createOrUpdatePlayerForPlayerInfo(null));
-  }
-
-  @Test
   public void testPlayerUpdatedFromPlayerInfo() {
     PlayerBean player = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
 
-    assertEquals((int) playerInfo1.getRatings().values().stream().mapToInt(LeaderboardStats::getNumberOfGames).sum(), player.getNumberOfGames());
+    assertEquals(playerInfo1.getRatings().values().stream().mapToInt(LeaderboardStats::getNumberOfGames).sum(), player.getNumberOfGames());
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
@@ -298,28 +316,8 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testPlayerLeftOpenGame() {
-    PlayerBean player1 = playerMapper.update(playerInfo1, new PlayerBean());
-    PlayerBean player2 = playerMapper.update(playerInfo2, new PlayerBean());
-    Map<Integer, List<PlayerBean>> teams = new HashMap<>(Map.of(1, List.of(player1), 2, List.of(player2)));
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
-
-    instance.updatePlayersInGame(game);
-
-    assertThat(player1.getGame(), is(game));
-    assertThat(player2.getGame(), is(game));
-
-    teams.remove(1);
-
-    instance.updatePlayersInGame(game);
-
-    assertThat(player1.getGame(), is(nullValue()));
-    assertThat(player2.getGame(), is(game));
-  }
-
-  @Test
   public void testThereIsFriendInGame() {
-    ObservableMap<Integer, List<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, List.of(playerMapper.update(playerInfo1, new PlayerBean()), playerMapper.update(playerInfo2, new PlayerBean()))));
+    ObservableMap<Integer, Set<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, Set.of(playerMapper.update(playerInfo1, new PlayerBean()), playerMapper.update(playerInfo2, new PlayerBean()))));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
@@ -331,7 +329,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testNoFriendInGame() {
-    ObservableMap<Integer, List<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, List.of(playerMapper.update(playerInfo1, new PlayerBean()))));
+    ObservableMap<Integer, Set<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, Set.of(playerMapper.update(playerInfo1, new PlayerBean()))));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
     player2.setId(100);
@@ -343,14 +341,14 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentPlayerInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(PlayerBeanBuilder.create().defaultValues().id(1).get()))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(PlayerBeanBuilder.create().defaultValues().id(1).get()))).get();
 
     assertTrue(instance.isCurrentPlayerInGame(game));
   }
 
   @Test
   public void testCurrentPlayerNotInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(PlayerBeanBuilder.create().defaultValues().id(2).get()))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(PlayerBeanBuilder.create().defaultValues().id(2).get()))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
   }

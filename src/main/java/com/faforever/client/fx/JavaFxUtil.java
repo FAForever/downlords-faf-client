@@ -16,6 +16,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -49,6 +50,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
@@ -184,9 +186,9 @@ public final class JavaFxUtil {
   }
 
   /**
-   * Updates the specified list with any changes made to the specified map, but not vice versa.
+   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified map.
    */
-  public static <K, V> void attachListToMap(ObservableList<V> list, ObservableMap<K, V> map) {
+  public static <K, V> ObservableList<V> attachListToMap(ObservableList<V> list, ObservableMap<K, V> map) {
     addListener(map, (MapChangeListener<K, V>) change -> {
       synchronized (list) {
         if (change.wasRemoved()) {
@@ -197,6 +199,24 @@ public final class JavaFxUtil {
         }
       }
     });
+    return FXCollections.unmodifiableObservableList(list);
+  }
+
+  /**
+   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified map.
+   */
+  public static <K, V> ObservableSet<V> attachSetToMap(ObservableSet<V> set, ObservableMap<K, V> map) {
+    addListener(map, (MapChangeListener<K, V>) change -> {
+      synchronized (set) {
+        if (change.wasRemoved()) {
+          set.remove(change.getValueRemoved());
+        }
+        if (change.wasAdded()) {
+          set.add(change.getValueAdded());
+        }
+      }
+    });
+    return FXCollections.unmodifiableObservableSet(set);
   }
 
   public static void persistImage(Image image, Path path, String format) {
@@ -209,34 +229,36 @@ public final class JavaFxUtil {
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
           if (newValue.intValue() >= 1) {
-            writeImage(image, path, format);
+            writeImageLater(image, path, format);
             image.progressProperty().removeListener(this);
           }
         }
       });
     } else {
-      writeImage(image, path, format);
+      writeImageLater(image, path, format);
     }
   }
 
-  private static void writeImage(Image image, Path path, String format) {
-    try {
-      if (image == null) {
-        return;
+  private static void writeImageLater(Image image, Path path, String format) {
+    CompletableFuture.runAsync(() -> {
+      try {
+        if (image == null) {
+          return;
+        }
+        if (path.getParent() != null) {
+          createDirectories(path.getParent());
+        }
+        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+        if (bufferedImage == null) {
+          log.warn("Could not read image from {} for {}", image.getUrl(), path);
+          return;
+        }
+        write(bufferedImage, format, path.toFile());
+        log.trace("Image written to {}", path);
+      } catch (IOException e) {
+        log.warn("Could not write image to {}", path, e);
       }
-      if (path.getParent() != null) {
-        createDirectories(path.getParent());
-      }
-      BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
-      if (bufferedImage == null) {
-        log.warn("Could not read image from {} for {}", image.getUrl(), path);
-        return;
-      }
-      write(bufferedImage, format, path.toFile());
-      log.trace("Image written to {}", path);
-    } catch (IOException e) {
-      log.warn("Could not write image to {}", path, e);
-    }
+    });
   }
 
   public static void setAnchors(Node node, double value) {

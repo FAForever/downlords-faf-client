@@ -34,8 +34,8 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -161,7 +161,7 @@ public class GameDetailControllerTest extends UITest {
     assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
     when(i18n.get("game.detail.players.format", 2, 16)).thenReturn("2/16");
     runOnFxThreadAndWait(() -> {
-      game.setTeams(Map.of(1, List.of(PlayerBeanBuilder.create().get()), 2, List.of(PlayerBeanBuilder.create().get())));
+      game.setTeams(Map.of(1, Set.of(PlayerBeanBuilder.create().id(1).get()), 2, Set.of(PlayerBeanBuilder.create().id(2).get())));
       game.setMaxPlayers(16);
     });
     assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
@@ -184,7 +184,7 @@ public class GameDetailControllerTest extends UITest {
   public void testTeamListener() {
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
     runOnFxThreadAndWait(() -> game.getTeams()
-        .putAll(Map.of(1, List.of(PlayerBeanBuilder.create().get()), 2, List.of(PlayerBeanBuilder.create().get()))));
+        .putAll(Map.of(1, Set.of(PlayerBeanBuilder.create().id(1).get()), 2, Set.of(PlayerBeanBuilder.create().id(0).get()))));
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
   }
 

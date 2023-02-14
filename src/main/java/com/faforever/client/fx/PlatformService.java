@@ -1,8 +1,10 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.os.OperatingSystem;
+import com.faforever.client.os.OsPosix;
+import com.faforever.client.os.OsWindows;
 import com.faforever.client.ui.StageHolder;
 import com.google.common.collect.Sets;
-import com.sun.jna.Platform;
 import com.sun.jna.platform.DesktopWindow;
 import com.sun.jna.platform.WindowUtils;
 import com.sun.jna.platform.win32.User32;
@@ -10,13 +12,15 @@ import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.platform.win32.WinUser.WINDOWPLACEMENT;
 import com.sun.jna.ptr.IntByReference;
-import javafx.application.HostServices;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,18 +35,15 @@ import java.util.regex.Pattern;
 import static org.bridj.Platform.show;
 
 @Slf4j
+@Lazy
+@Component
+@RequiredArgsConstructor
 public class PlatformService {
 
   // Taken from https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
   public static final Pattern URL_REGEX_PATTERN = Pattern.compile("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
-  private final HostServices hostServices;
 
-  private final boolean isWindows;
-
-  public PlatformService(HostServices hostServices) {
-    this.hostServices = hostServices;
-    isWindows = Platform.isWindows();
-  }
+  private final OperatingSystem operatingSystem;
 
   /**
    * Opens the specified URI in a new browser window or tab. Note: The code is copied from
@@ -89,9 +90,9 @@ public class PlatformService {
    */
   public void reveal(Path path) {
     try {
-      if (isWindows) {
+      if (operatingSystem instanceof OsWindows) {
         show(path.toFile());
-      } else if (Platform.isLinux()) {
+      } else if (operatingSystem instanceof OsPosix) {
         //Might not work on all linux distros but let's give it a try
         if (Files.isRegularFile(path)) {
           path = path.getParent();
@@ -116,7 +117,7 @@ public class PlatformService {
 
 
   public void focusWindow(String windowTitle, @Nullable Long processId) {
-    if (!isWindows) {
+    if (!(operatingSystem instanceof OsWindows)) {
       return;
     }
     log.debug("Focus '{}' window", windowTitle);
@@ -154,21 +155,17 @@ public class PlatformService {
   }
 
   public void minimizeFocusedWindow() {
-    if (isWindows) {
+    if (operatingSystem instanceof OsWindows) {
       User32.INSTANCE.ShowWindow(getFocusedWindow(), User32.SW_MINIMIZE);
     }
   }
 
   private HWND getFocusedWindow() {
-    return isWindows ? User32.INSTANCE.GetForegroundWindow() : null;
-  }
-
-  public void startFlashingWindow(String windowTitle) {
-    startFlashingWindow(windowTitle, null);
+    return operatingSystem instanceof OsWindows ? User32.INSTANCE.GetForegroundWindow() : null;
   }
 
   public void startFlashingWindow(String windowTitle, @Nullable Long processId) {
-    if (!isWindows) {
+    if (!(operatingSystem instanceof OsWindows)) {
       return;
     }
 
@@ -189,12 +186,8 @@ public class PlatformService {
     User32.INSTANCE.FlashWindowEx(flashwinfo);
   }
 
-  public void stopFlashingWindow(String windowTitle) {
-    stopFlashingWindow(windowTitle, null);
-  }
-
   public void stopFlashingWindow(String windowTitle, @Nullable Long processId) {
-    if (!isWindows) {
+    if (!(operatingSystem instanceof OsWindows)) {
       return;
     }
 
@@ -215,11 +208,11 @@ public class PlatformService {
 
   @Nullable
   private String getForegroundWindowTitle() {
-    return isWindows ? WindowUtils.getWindowTitle(User32.INSTANCE.GetForegroundWindow()) : null;
+    return operatingSystem instanceof OsWindows ? WindowUtils.getWindowTitle(User32.INSTANCE.GetForegroundWindow()) : null;
   }
 
   public long getFocusedWindowProcessId() {
-    return isWindows ? getWindowProcessId(User32.INSTANCE.GetForegroundWindow()) : -1;
+    return operatingSystem instanceof OsWindows ? getWindowProcessId(User32.INSTANCE.GetForegroundWindow()) : -1;
   }
 
   private int getWindowProcessId(HWND window) {

@@ -57,6 +57,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
     gameParameters.setUid(1);
     gameParameters.setLocalGpgPort(0);
     gameParameters.setLocalReplayPort(0);
+    gameParameters.setLeaderboard("test");
     IOException throwable = assertThrows(IOException.class, () -> instance.startGameOnline(gameParameters));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 

@@ -1,5 +1,6 @@
 package com.faforever.client.filter;
 
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.theme.UiService;
 import javafx.beans.value.ObservableValue;
 import javafx.util.StringConverter;
@@ -64,10 +65,10 @@ public class FilterBuilder<T> {
     controller.setText(text);
     controller.setMinMaxValue(minValue, maxValue);
     controller.setConverter(converter);
-    future.thenAccept(items -> {
+    future.thenAccept(items -> JavaFxUtil.runLater(() -> {
       controller.setItems(items);
       controller.registerListener(filter);
-    });
+    }));
     onFilterBuilt.accept(controller);
     return controller;
   }

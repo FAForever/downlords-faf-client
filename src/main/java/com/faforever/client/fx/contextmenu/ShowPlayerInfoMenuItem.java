@@ -33,7 +33,7 @@ public class ShowPlayerInfoMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return object != null;
   }
 

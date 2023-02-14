@@ -333,7 +333,7 @@
 }
 
 .chat-user-list-category {
-  -fx-padding: 0.625em 0 0.5em 4.375em; /* 10 0 8 70 */
+  -fx-padding: 0.625em 0 0.5em 0.5em; /* 10 0 8 8 */
 }
 
 .chat-user-list-category > .label {

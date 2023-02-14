@@ -10,13 +10,15 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
-import com.faforever.client.util.Assert;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.AchievementState;
 import com.faforever.commons.lobby.GameStatus;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -24,10 +26,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -40,24 +43,31 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   private final LeaderboardService leaderboardService;
 
   public ImageView userImageView;
-  public Label usernameLabel;
+  public Label username;
   public ImageView countryImageView;
-  public Label countryLabel;
+  public Label country;
   public Label ratingsLabels;
   public Label ratingsValues;
-  public Label gamesPlayedLabel;
+  public Label gamesPlayed;
   public GameDetailController gameDetailController;
   public Pane gameDetailWrapper;
-  public Label unlockedAchievementsLabel;
+  public Label unlockedAchievements;
   public Node privateUserInfoRoot;
-  public Label gamesPlayedLabelLabel;
-  public Label unlockedAchievementsLabelLabel;
+  public Label gamesPlayedLabel;
+  public Label unlockedAchievementsLabel;
   public Separator separator;
 
-  private ChatChannelUser chatUser;
-  private InvalidationListener gameInvalidationListener;
-  private InvalidationListener chatUserPropertiesInvalidationListener;
-  private InvalidationListener ratingInvalidationListener;
+  private final ObjectProperty<ChatChannelUser> chatUser = new SimpleObjectProperty<>();
+
+  private final ChangeListener<PlayerBean> playerChangeListener = (observable, oldValue, newValue) -> {
+    if (newValue != null && !Objects.equals(oldValue, newValue)) {
+      loadReceiverRatingInformation(newValue);
+      populateUnlockedAchievementsLabel(newValue);
+    }
+  };
+
+  private final ChangeListener<GameBean> gameChangeListener = ((observable, oldValue, newValue) -> onPlayerGameChanged(newValue));
+
 
   @Override
   public Node getRoot() {
@@ -65,65 +75,41 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   }
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(gameDetailWrapper, countryLabel, gamesPlayedLabel, unlockedAchievementsLabel,
-        ratingsLabels, ratingsValues, gamesPlayedLabelLabel, unlockedAchievementsLabelLabel, separator);
+    JavaFxUtil.bindManagedToVisible(gameDetailWrapper, country, gamesPlayed, unlockedAchievements,
+        ratingsLabels, ratingsValues, gamesPlayedLabel, unlockedAchievementsLabel, separator);
     JavaFxUtil.bind(separator.visibleProperty(), gameDetailWrapper.visibleProperty());
     gameDetailController.setPlaytimeVisible(true);
+    gameDetailWrapper.setVisible(false);
+
+    bindProperties();
+    initializeListeners();
   }
 
-  private void initializePlayerListeners() {
-    ratingInvalidationListener = observable -> chatUser.getPlayer().ifPresent(this::loadReceiverRatingInformation);
-    gameInvalidationListener = observable -> chatUser.getPlayer().ifPresent(chatPlayer -> onPlayerGameChanged(chatPlayer.getGame()));
+  private void initializeListeners() {
+    chatUser.flatMap(ChatChannelUser::playerProperty).addListener(new WeakChangeListener<>(playerChangeListener));
+    chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty).addListener(new WeakChangeListener<>(gameChangeListener));
   }
 
-  private void initializeChatUserListeners() {
-    chatUserPropertiesInvalidationListener = observable -> JavaFxUtil.runLater(() -> {
-      usernameLabel.setText(this.chatUser.getUsername());
-      countryImageView.setImage(this.chatUser.getCountryFlag().orElse(null));
-      countryLabel.setText(this.chatUser.getCountryName().orElse(""));
-    });
+  private void bindProperties() {
+    ObservableValue<Boolean> playerExistsProperty = chatUser.flatMap(user -> user.playerProperty().isNotNull());
+    userImageView.visibleProperty().bind(playerExistsProperty);
+    country.visibleProperty().bind(playerExistsProperty);
+    ratingsLabels.visibleProperty().bind(playerExistsProperty);
+    ratingsValues.visibleProperty().bind(playerExistsProperty);
+    gamesPlayed.visibleProperty().bind(playerExistsProperty);
+    gamesPlayedLabel.visibleProperty().bind(playerExistsProperty);
+    unlockedAchievements.visibleProperty().bind(playerExistsProperty);
+    unlockedAchievementsLabel.visibleProperty().bind(playerExistsProperty);
+
+    username.textProperty().bind(chatUser.flatMap(ChatChannelUser::usernameProperty));
+    country.textProperty().bind(chatUser.flatMap(ChatChannelUser::playerProperty)
+        .flatMap(PlayerBean::countryProperty)
+        .map(i18n::getCountryNameLocalized));
+    userImageView.imageProperty().bind(chatUser.flatMap(ChatChannelUser::playerProperty).map(PlayerBean::getId).map(IdenticonUtil::createIdenticon));
   }
 
-  public void setChatUser(@NotNull ChatChannelUser chatUser) {
-    Assert.checkNotNullIllegalState(this.chatUser, "Chat user is already set");
-    initializeChatUserListeners();
-    this.chatUser = chatUser;
-    this.chatUser.setDisplayed(true);
-    JavaFxUtil.addAndTriggerListener(this.chatUser.playerProperty(), (observable) -> displayPlayerInfo());
-    JavaFxUtil.addAndTriggerListener(this.chatUser.usernameProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
-    JavaFxUtil.addListener(this.chatUser.countryFlagProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
-    JavaFxUtil.addListener(this.chatUser.countryNameProperty(), new WeakInvalidationListener(chatUserPropertiesInvalidationListener));
-  }
-
-  private void displayChatUserInfo() {
-    onPlayerGameChanged(null);
-    setPlayerInfoVisible(false);
-  }
-
-  private void setPlayerInfoVisible(boolean visible) {
-    userImageView.setVisible(visible);
-    countryLabel.setVisible(visible);
-    ratingsLabels.setVisible(visible);
-    ratingsValues.setVisible(visible);
-    gamesPlayedLabel.setVisible(visible);
-    gamesPlayedLabelLabel.setVisible(visible);
-    unlockedAchievementsLabel.setVisible(visible);
-    unlockedAchievementsLabelLabel.setVisible(visible);
-  }
-
-  private void displayPlayerInfo() {
-    initializePlayerListeners();
-    chatUser.getPlayer().ifPresentOrElse(player -> {
-      setPlayerInfoVisible(true);
-
-      userImageView.setImage(IdenticonUtil.createIdenticon(player.getId()));
-      userImageView.setVisible(true);
-
-      JavaFxUtil.addAndTriggerListener(player.getLeaderboardRatings(), new WeakInvalidationListener(ratingInvalidationListener));
-      JavaFxUtil.addAndTriggerListener(player.gameProperty(), new WeakInvalidationListener(gameInvalidationListener));
-
-      populateUnlockedAchievementsLabel(player);
-    }, this::displayChatUserInfo);
+  public void setChatUser(ChatChannelUser chatUser) {
+    this.chatUser.set(chatUser);
   }
 
   private void populateUnlockedAchievementsLabel(PlayerBean player) {
@@ -132,12 +118,12 @@ public class PrivatePlayerInfoController implements Controller<Node> {
           int totalAchievements = achievementDefinitions.size();
           return achievementService.getPlayerAchievements(player.getId())
               .thenAccept(playerAchievements -> {
-                long unlockedAchievements = playerAchievements.stream()
+                long numUnlockedAchievements = playerAchievements.stream()
                     .filter(playerAchievement -> playerAchievement.getState() == AchievementState.UNLOCKED)
                     .count();
 
-                JavaFxUtil.runLater(() -> unlockedAchievementsLabel.setText(
-                    i18n.get("chat.privateMessage.achievements.unlockedFormat", unlockedAchievements, totalAchievements))
+                JavaFxUtil.runLater(() -> unlockedAchievements.setText(
+                    i18n.get("chat.privateMessage.achievements.unlockedFormat", numUnlockedAchievements, totalAchievements))
                 );
               })
               .exceptionally(throwable -> {
@@ -167,7 +153,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
       JavaFxUtil.runLater(() -> {
         ratingsLabels.setText(ratingNames.toString());
         ratingsValues.setText(ratingNumbers.toString());
-        gamesPlayedLabel.setText(i18n.number(player.getNumberOfGames()));
+        gamesPlayed.setText(i18n.number(player.getNumberOfGames()));
       });
     });
   }

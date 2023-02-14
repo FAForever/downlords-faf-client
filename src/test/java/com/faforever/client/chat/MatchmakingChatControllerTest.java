@@ -68,8 +68,6 @@ public class MatchmakingChatControllerTest extends UITest {
   @Mock
   private CountryFlagService countryFlagService;
   @Mock
-  private ChatUserService chatUserService;
-  @Mock
   private EmoticonService emoticonService;
 
   @InjectMocks

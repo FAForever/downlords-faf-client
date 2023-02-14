@@ -239,18 +239,6 @@ public class Preferences {
     this.hideModdedGames.set(hideModdedGames);
   }
 
-  public enum UnitDataBaseType {
-    SPOOKY("unitDatabase.spooky"),
-    RACKOVER("unitDatabase.rackover");
-
-    @Getter
-    private final String i18nKey;
-
-    UnitDataBaseType(String i18nKey) {
-      this.i18nKey = i18nKey;
-    }
-  }
-
   public int getCacheLifeTimeInDays() {
     return cacheLifeTimeInDays.get();
   }
@@ -297,5 +285,17 @@ public class Preferences {
 
   public BooleanProperty mapAndModAutoUpdateProperty() {
     return mapAndModAutoUpdate;
+  }
+
+  public enum UnitDataBaseType {
+    SPOOKY("unitDatabase.spooky"),
+    RACKOVER("unitDatabase.rackover");
+
+    @Getter
+    private final String i18nKey;
+
+    UnitDataBaseType(String i18nKey) {
+      this.i18nKey = i18nKey;
+    }
   }
 }

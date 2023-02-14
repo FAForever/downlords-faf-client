@@ -1,26 +1,22 @@
 package com.faforever.client.domain;
 
-import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.commons.lobby.GameStatus;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyMapProperty;
+import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,18 +31,25 @@ import static com.faforever.client.player.SocialStatus.OTHER;
 @Slf4j
 public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
+  private static final SimpleObjectProperty<PlayerStatus> PLAYING_STATUS_PROPERTY = new SimpleObjectProperty<>(PlayerStatus.PLAYING);
+  private static final SimpleObjectProperty<PlayerStatus> IDLE_STATUS_PROPERTY = new SimpleObjectProperty<>(PlayerStatus.IDLE);
+
   @ToString.Include
   StringProperty username = new SimpleStringProperty();
   StringProperty clan = new SimpleStringProperty();
   StringProperty country = new SimpleStringProperty();
   ObjectProperty<AvatarBean> avatar = new SimpleObjectProperty<>();
   ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
-  ObservableMap<String, LeaderboardRatingBean> leaderboardRatings = FXCollections.observableHashMap();
+  ReadOnlyMapWrapper<String, LeaderboardRatingBean> leaderboardRatings = new ReadOnlyMapWrapper<>(FXCollections.unmodifiableObservableMap(FXCollections.observableHashMap()));
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
-  ReadOnlyObjectWrapper<PlayerStatus> status = new ReadOnlyObjectWrapper<>(PlayerStatus.IDLE);
-  ObservableSet<ChatChannelUser> chatChannelUsers = FXCollections.observableSet();
+  ObservableValue<PlayerStatus> status = game.flatMap(this::statusPropertyFromGame).orElse(PlayerStatus.IDLE);
   ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
   StringProperty note = new SimpleStringProperty();
+  ObservableValue<Integer> numGames = leaderboardRatings.map(ratings -> ratings.values()
+      .stream()
+      .mapToInt(LeaderboardRatingBean::getNumberOfGames)
+      .sum()).orElse(0);
+
 
   public SocialStatus getSocialStatus() {
     return socialStatus.get();
@@ -61,7 +64,11 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public int getNumberOfGames() {
-    return new ArrayList<>(leaderboardRatings.values()).stream().mapToInt(LeaderboardRatingBean::getNumberOfGames).sum();
+    return numGames.getValue();
+  }
+
+  public ObservableValue<Integer> numberOfGamesProperty() {
+    return numGames;
   }
 
   public String getUsername() {
@@ -113,22 +120,23 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public ObservableMap<String, LeaderboardRatingBean> getLeaderboardRatings() {
-    return leaderboardRatings;
+    return leaderboardRatings.get();
   }
 
   public void setLeaderboardRatings(Map<String, LeaderboardRatingBean> leaderboardRatings) {
-    this.leaderboardRatings.clear();
-    if (leaderboardRatings != null) {
-      this.leaderboardRatings.putAll(leaderboardRatings);
-    }
+    this.leaderboardRatings.setValue(leaderboardRatings == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(leaderboardRatings)));
+  }
+
+  public ReadOnlyMapProperty<String, LeaderboardRatingBean> leaderboardRatingsProperty() {
+    return leaderboardRatings.getReadOnlyProperty();
   }
 
   public PlayerStatus getStatus() {
-    return status.get();
+    return status.getValue();
   }
 
-  public ReadOnlyObjectProperty<PlayerStatus> statusProperty() {
-    return status.getReadOnlyProperty();
+  public ObservableValue<PlayerStatus> statusProperty() {
+    return status;
   }
 
   public GameBean getGame() {
@@ -137,27 +145,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
 
   public void setGame(GameBean game) {
     this.game.set(game);
-    status.unbind();
-    if (game != null) {
-      status.bind(Bindings.createObjectBinding(() -> getPlayerStatusFromGameStatus(game), game.statusProperty()));
-    } else {
-      status.set(PlayerStatus.IDLE);
-    }
-  }
-
-  private PlayerStatus getPlayerStatusFromGameStatus(GameBean game) {
-    GameStatus gameStatus = game.getStatus();
-    if (gameStatus == GameStatus.OPEN) {
-      if (game.getHost().equalsIgnoreCase(username.get())) {
-        return PlayerStatus.HOSTING;
-      } else {
-        return PlayerStatus.LOBBYING;
-      }
-    } else if (gameStatus == GameStatus.PLAYING) {
-      return PlayerStatus.PLAYING;
-    } else {
-      return PlayerStatus.IDLE;
-    }
   }
 
   public ObjectProperty<GameBean> gameProperty() {
@@ -176,10 +163,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
     return idleSince;
   }
 
-  public ObservableSet<ChatChannelUser> getChatChannelUsers() {
-    return chatChannelUsers;
-  }
-
   public StringProperty noteProperty() {
     return note;
   }
@@ -192,9 +175,18 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
     return note.get();
   }
 
-  public int getNumberOfGames(final String leaderboardName) {
+  public int getNumberOfGamesForLeaderboard(final String leaderboardName) {
     return Optional.ofNullable(leaderboardRatings.get(leaderboardName))
         .map(LeaderboardRatingBean::getNumberOfGames)
         .orElse(0);
+  }
+
+  private ObservableValue<PlayerStatus> statusPropertyFromGame(GameBean game) {
+    return game.statusProperty().flatMap(status -> switch (status) {
+      case OPEN -> game.hostProperty()
+          .map(host -> host.equalsIgnoreCase(getUsername()) ? PlayerStatus.HOSTING : PlayerStatus.LOBBYING);
+      case PLAYING -> PLAYING_STATUS_PROPERTY;
+      default -> IDLE_STATUS_PROPERTY;
+    });
   }
 }

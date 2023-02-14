@@ -4,7 +4,6 @@ import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatColorMode;
-import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
@@ -23,8 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
@@ -77,7 +74,6 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
     assertEquals(Color.WHITE, preferences.getChat().getUserToColor().get(USERNAME));
     assertEquals(Color.WHITE, chatChannelUser.getColor().orElseThrow());
     assertTrue(instance.removeCustomColorButton.isVisible());
-    verify(eventBus).post(any(ChatUserColorChangeEvent.class));
   }
 
   @Test
@@ -94,7 +90,6 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
     assertNull(preferences.getChat().getUserToColor().get(USERNAME));
     assertTrue(chatChannelUser.getColor().isEmpty());
     assertFalse(instance.removeCustomColorButton.isVisible());
-    verify(eventBus).post(any(ChatUserColorChangeEvent.class));
   }
 
   @Test

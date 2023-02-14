@@ -8,16 +8,13 @@ import com.faforever.client.builders.LeaderboardRatingBeanBuilder;
 import com.faforever.client.builders.LeaderboardRatingMapBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatUserService;
 import com.faforever.client.domain.LeaderboardBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.GameDetailController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.UITest;
-import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.replay.WatchButtonController;
-import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -25,6 +22,7 @@ import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,12 +47,6 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   @Mock
   private LeaderboardService leaderboardService;
   @Mock
-  private EventBus eventBus;
-  @Mock
-  private ChatUserService chatUserService;
-  @Mock
-  private TimeService timeService;
-  @Mock
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
@@ -70,7 +62,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
   public void setUp() throws Exception {
     leaderboard = LeaderboardBeanBuilder.create().defaultValues().technicalName("global").get();
     player = PlayerBeanBuilder.create().defaultValues().game(null).get();
-    chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).defaultValues().displayed(false).player(player).get();
+    chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).defaultValues().player(player).get();
 
     when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(List.of()));
@@ -98,22 +90,20 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(chatChannelUser.isDisplayed());
     assertTrue(instance.userImageView.isVisible());
-    assertTrue(instance.countryLabel.isVisible());
+    assertTrue(instance.country.isVisible());
     assertTrue(instance.ratingsLabels.isVisible());
     assertTrue(instance.ratingsValues.isVisible());
+    assertTrue(instance.gamesPlayed.isVisible());
     assertTrue(instance.gamesPlayedLabel.isVisible());
-    assertTrue(instance.gamesPlayedLabelLabel.isVisible());
+    assertTrue(instance.unlockedAchievements.isVisible());
     assertTrue(instance.unlockedAchievementsLabel.isVisible());
-    assertTrue(instance.unlockedAchievementsLabelLabel.isVisible());
     assertNotNull(instance.userImageView.getImage());
     assertFalse(instance.gameDetailWrapper.isVisible());
     assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
     assertTrue(instance.ratingsValues.getText().contains("123"));
-    assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
-    assertEquals("123", instance.gamesPlayedLabel.getText());
-    verify(gameDetailController).setGame(player.getGame());
+    assertEquals("0/0", instance.unlockedAchievements.getText());
+    assertEquals("123", instance.gamesPlayed.getText());
     verify(achievementService).getPlayerAchievements(player.getId());
   }
 
@@ -133,12 +123,11 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController).setGame(player.getGame());
 
     player.setGame(GameBeanBuilder.create().defaultValues().get());
 
     assertTrue(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController, times(1)).setGame(player.getGame());
+    verify(gameDetailController).setGame(player.getGame());
   }
 
   @Test
@@ -153,7 +142,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     player.setGame(null);
 
     assertFalse(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController, times(2)).setGame(player.getGame());
+    verify(gameDetailController, times(1)).setGame(player.getGame());
   }
 
   @Test
@@ -161,10 +150,10 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     instance.setChatUser(chatChannelUser);
     WaitForAsyncUtils.waitForFxEvents();
 
-    player.getLeaderboardRatings().put("test", LeaderboardRatingBeanBuilder.create().defaultValues().get());
+    player.setLeaderboardRatings(Map.of("test", LeaderboardRatingBeanBuilder.create().defaultValues().get()));
     WaitForAsyncUtils.waitForFxEvents();
 
-    verify(leaderboardService, times(2)).getLeaderboards();
+    verify(leaderboardService).getLeaderboards();
   }
 
   @Test
@@ -174,14 +163,13 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.userImageView.isVisible());
-    assertFalse(instance.countryLabel.isVisible());
+    assertFalse(instance.country.isVisible());
     assertFalse(instance.ratingsLabels.isVisible());
     assertFalse(instance.ratingsValues.isVisible());
+    assertFalse(instance.gamesPlayed.isVisible());
     assertFalse(instance.gamesPlayedLabel.isVisible());
-    assertFalse(instance.gamesPlayedLabelLabel.isVisible());
+    assertFalse(instance.unlockedAchievements.isVisible());
     assertFalse(instance.unlockedAchievementsLabel.isVisible());
-    assertFalse(instance.unlockedAchievementsLabelLabel.isVisible());
-    verify(gameDetailController).setGame(null);
   }
 
   @Test
@@ -191,35 +179,32 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertFalse(instance.userImageView.isVisible());
-    assertFalse(instance.countryLabel.isVisible());
+    assertFalse(instance.country.isVisible());
     assertFalse(instance.ratingsLabels.isVisible());
     assertFalse(instance.ratingsValues.isVisible());
+    assertFalse(instance.gamesPlayed.isVisible());
     assertFalse(instance.gamesPlayedLabel.isVisible());
-    assertFalse(instance.gamesPlayedLabelLabel.isVisible());
+    assertFalse(instance.unlockedAchievements.isVisible());
     assertFalse(instance.unlockedAchievementsLabel.isVisible());
-    assertFalse(instance.unlockedAchievementsLabelLabel.isVisible());
-    verify(gameDetailController).setGame(null);
 
     player.setLeaderboardRatings(LeaderboardRatingMapBuilder.create().put(leaderboard.getTechnicalName(), LeaderboardRatingBeanBuilder.create().defaultValues().get()).get());
     chatChannelUser.setPlayer(player);
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertTrue(chatChannelUser.isDisplayed());
     assertTrue(instance.userImageView.isVisible());
-    assertTrue(instance.countryLabel.isVisible());
+    assertTrue(instance.country.isVisible());
     assertTrue(instance.ratingsLabels.isVisible());
     assertTrue(instance.ratingsValues.isVisible());
+    assertTrue(instance.gamesPlayed.isVisible());
     assertTrue(instance.gamesPlayedLabel.isVisible());
-    assertTrue(instance.gamesPlayedLabelLabel.isVisible());
+    assertTrue(instance.unlockedAchievements.isVisible());
     assertTrue(instance.unlockedAchievementsLabel.isVisible());
-    assertTrue(instance.unlockedAchievementsLabelLabel.isVisible());
     assertNotNull(instance.userImageView.getImage());
     assertFalse(instance.gameDetailWrapper.isVisible());
     assertTrue(instance.ratingsLabels.getText().contains(leaderboard.getTechnicalName()));
     assertTrue(instance.ratingsValues.getText().contains("123"));
-    assertEquals("0/0", instance.unlockedAchievementsLabel.getText());
-    assertEquals("123", instance.gamesPlayedLabel.getText());
-    verify(gameDetailController, times(2)).setGame(player.getGame());
+    assertEquals("0/0", instance.unlockedAchievements.getText());
+    assertEquals("123", instance.gamesPlayed.getText());
     verify(achievementService).getPlayerAchievements(player.getId());
   }
 

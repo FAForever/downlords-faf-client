@@ -240,7 +240,7 @@ public class CreateGameController implements Controller<Pane> {
             .contains(text.toLowerCase()) || mapVersion.getFolderName().toLowerCase().contains(text.toLowerCase()));
     mapFilterController.completeSetting();
 
-    JavaFxUtil.addAndTriggerListener(mapFilterController.getFilterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));
+    JavaFxUtil.addAndTriggerListener(mapFilterController.filterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));
     JavaFxUtil.addAndTriggerListener(mapFilterButton.selectedProperty(), observable -> mapFilterButton.setSelected(mapFilterController.getFilterState()));
     JavaFxUtil.addListener(mapFilterController.predicateProperty(), (observable, oldValue, newValue) -> filteredMaps.setPredicate(newValue));
   }

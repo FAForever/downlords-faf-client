@@ -8,6 +8,7 @@ import com.faforever.client.player.SocialStatus;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -21,7 +22,7 @@ public class PlayerBeanBuilder {
   public PlayerBeanBuilder defaultValues(){
     username("junit");
     id(1);
-    leaderboardRatings(Map.of());
+    leaderboardRatings(new HashMap<>());
     socialStatus(SocialStatus.OTHER);
     clan("tst");
     country("US");

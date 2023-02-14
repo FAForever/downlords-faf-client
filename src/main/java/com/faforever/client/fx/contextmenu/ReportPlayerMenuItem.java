@@ -35,7 +35,7 @@ public class ReportPlayerMenuItem extends AbstractMenuItem<PlayerBean> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return object != null && object.getSocialStatus() != SELF;
   }
 

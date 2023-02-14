@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatMessageEvent;
-import com.faforever.client.chat.event.ChatUserColorChangeEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -14,13 +13,14 @@ import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
-import com.faforever.client.test.ServiceTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +86,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KittehChatServiceTest extends ServiceTest {
+public class KittehChatServiceTest extends UITest {
 
   private static final String CHAT_USER_NAME = "junit";
   private static final String CHAT_PASSWORD = "123";
@@ -118,8 +118,6 @@ public class KittehChatServiceTest extends ServiceTest {
   private Channel otherChannel;
   @Mock
   private UserService userService;
-  @Mock
-  private ChatUserService chatUserService;
   @Mock
   private PreferencesService preferencesService;
   @Mock
@@ -344,11 +342,10 @@ public class KittehChatServiceTest extends ServiceTest {
     join(defaultChannel, user2);
 
     assertThat(chatChannel.getUsers(), hasSize(2));
-    assertThat(chatChannel.getUser(user1.getNick()), sameInstance(defaultChatUser1));
-    assertThat(chatChannel.getUser(user2.getNick()), sameInstance(defaultChatUser2));
+    assertThat(chatChannel.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
+    assertThat(chatChannel.getUser(user2.getNick()).orElse(null), sameInstance(defaultChatUser2));
 
-    verify(chatUserService).associatePlayerToChatUser(defaultChatUser1, player1);
-    verify(chatUserService).populateColor(defaultChatUser2);
+    assertEquals(player1, defaultChatUser1.getPlayer().orElse(null));
   }
 
   @Test
@@ -359,9 +356,9 @@ public class KittehChatServiceTest extends ServiceTest {
 
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user2.getNick()).get();
 
-    instance.onPlayerOnline(new PlayerOnlineEvent(player));
+    runOnFxThreadAndWait(() -> instance.onPlayerOnline(new PlayerOnlineEvent(player)));
 
-    verify(chatUserService).associatePlayerToChatUser(defaultChatUser2, player);
+    assertEquals(player, defaultChatUser2.getPlayer().orElse(null));
   }
 
   @Test
@@ -378,8 +375,8 @@ public class KittehChatServiceTest extends ServiceTest {
         defaultChannel));
 
     assertThat(chatChannel.getUsers(), hasSize(2));
-    assertThat(chatChannel.getUser(user1.getNick()), sameInstance(defaultChatUser1));
-    assertThat(chatChannel.getUser(user2.getNick()), sameInstance(defaultChatUser2));
+    assertThat(chatChannel.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
+    assertThat(chatChannel.getUser(user2.getNick()).orElse(null), sameInstance(defaultChatUser2));
   }
 
   @Test
@@ -393,8 +390,8 @@ public class KittehChatServiceTest extends ServiceTest {
     join(defaultChannel, user2);
 
     assertThat(chatChannel.getUsers(), hasSize(2));
-    assertThat(chatChannel.getUser(user1.getNick()), sameInstance(defaultChatUser1));
-    assertThat(chatChannel.getUser(user2.getNick()), sameInstance(defaultChatUser2));
+    assertThat(chatChannel.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
+    assertThat(chatChannel.getUser(user2.getNick()).orElse(null), sameInstance(defaultChatUser2));
 
     part(defaultChannel, user1);
 
@@ -416,9 +413,9 @@ public class KittehChatServiceTest extends ServiceTest {
     join(otherChannel, user1);
 
     assertThat(chatChannel1.getUsers(), contains(defaultChatUser1));
-    assertThat(chatChannel1.getUser(user1.getNick()), sameInstance(defaultChatUser1));
+    assertThat(chatChannel1.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
     assertThat(chatChannel2.getUsers(), contains(otherChatUser1));
-    assertThat(chatChannel2.getUser(user1.getNick()), sameInstance(otherChatUser1));
+    assertThat(chatChannel2.getUser(user1.getNick()).orElse(null), sameInstance(otherChatUser1));
 
     quit(user1);
 
@@ -583,14 +580,13 @@ public class KittehChatServiceTest extends ServiceTest {
     join(defaultChannel, user1);
     join(otherChannel, user2);
 
-    List<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
+    ObservableList<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
     assertThat(usersInDefaultChannel, contains(defaultChatUser1));
-    assertThat(usersInDefaultChannel.get(0), sameInstance(defaultChatUser1));
 
-    List<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
+    ObservableList<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
 
-    assertThat(usersInOtherChannel.get(0).getChannel(), is(otherChannel.getName()));
-    assertThat(usersInOtherChannel.get(0).getUsername(), is(defaultChatUser2.getUsername()));
+    assertEquals(1, usersInOtherChannel.size());
+    assertTrue(usersInOtherChannel.contains(new ChatChannelUser(defaultChatUser2.getUsername(), otherChannel.getName())));
   }
 
   @Test
@@ -601,7 +597,7 @@ public class KittehChatServiceTest extends ServiceTest {
 
     ChatChannel chatChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME);
 
-    List<ChatChannelUser> users = chatChannel.getUsers();
+    ObservableList<ChatChannelUser> users = chatChannel.getUsers();
     assertThat(users, hasSize(2));
     assertThat(users, containsInAnyOrder(defaultChatUser1, defaultChatUser2));
   }
@@ -625,15 +621,6 @@ public class KittehChatServiceTest extends ServiceTest {
     IrcPasswordInfo event = new IrcPasswordInfo("abc");
     instance.onIrcPassword(event);
     instance.leaveChannel(DEFAULT_CHANNEL_NAME);
-  }
-
-  @Test
-  public void testGroupColorChange() {
-    preferences.getChat().getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
-
-
-
-    verify(eventBus, times(3)).post(any(ChatUserColorChangeEvent.class));
   }
 
   @Test

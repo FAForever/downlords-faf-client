@@ -12,6 +12,7 @@ import com.faforever.client.fa.relay.event.CloseGameEvent;
 import com.faforever.client.fa.relay.event.RehostRequestEvent;
 import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fa.relay.ice.IceAdapter;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.error.GameCleanupException;
@@ -33,6 +34,8 @@ import com.faforever.client.notification.Severity;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.player.SocialStatus;
+import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.NotificationsPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
@@ -43,6 +46,7 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameStatus;
+import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -61,11 +65,11 @@ import javafx.collections.ObservableMap;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.net.URI;
@@ -102,7 +106,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 @Lazy
 @Service
 @Slf4j
-public class GameService implements InitializingBean, DisposableBean {
+public class GameService implements InitializingBean {
 
   private static final Pattern GAME_PREFS_ALLOW_MULTI_LAUNCH_PATTERN = Pattern.compile("debug\\s*=(\\s)*[{][^}]*enable_debug_facilities\\s*=\\s*true");
   private static final String GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING = """
@@ -111,14 +115,6 @@ public class GameService implements InitializingBean, DisposableBean {
           enable_debug_facilities = true
       }""".trim();
 
-  @VisibleForTesting
-  final BooleanProperty gameRunning;
-
-  /** TODO: Explain why access needs to be synchronized. */
-  @VisibleForTesting
-  final SimpleObjectProperty<GameBean> currentGame;
-
-  private final ObservableMap<Integer, GameBean> gameIdToGame;
 
   private final FafServerAccessor fafServerAccessor;
   private final ForgedAllianceService forgedAllianceService;
@@ -138,11 +134,20 @@ public class GameService implements InitializingBean, DisposableBean {
   private final DiscordRichPresenceService discordRichPresenceService;
   private final ReplayServer replayServer;
   private final OperatingSystem operatingSystem;
-  @Getter
-  private final ObservableList<GameBean> games;
   private final String faWindowTitle;
-  private final MaskPatternLayout logMasker;
   private final GameMapper gameMapper;
+  private final JavaFxService javaFxService;
+
+  @VisibleForTesting
+  final BooleanProperty gameRunning = new SimpleBooleanProperty();
+  ;
+  /** TODO: Explain why access needs to be synchronized. */
+  @VisibleForTesting
+  final SimpleObjectProperty<GameBean> currentGame = new SimpleObjectProperty<>();
+  private final MaskPatternLayout logMasker = new MaskPatternLayout();
+  private final ObservableMap<Integer, GameBean> gameIdToGame = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+  @Getter
+  private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(), game.mapFolderNameProperty(), game.simModsProperty()})), gameIdToGame);
 
   private Process process;
   private CompletableFuture<Void> matchmakerFuture;
@@ -150,26 +155,8 @@ public class GameService implements InitializingBean, DisposableBean {
   private boolean rehostRequested;
   private int localReplayPort;
   private boolean inOthersParty;
-  private InvalidationListener connectionStateInvalidationListener;
 
-  public GameService(ClientProperties clientProperties,
-                     FafServerAccessor fafServerAccessor,
-                     ForgedAllianceService forgedAllianceService,
-                     CoturnService coturnService, MapService mapService,
-                     PreferencesService preferencesService,
-                     LoggingService loggingService,
-                     GameUpdater gameUpdater,
-                     LeaderboardService leaderboardService,
-                     NotificationService notificationService,
-                     I18n i18n,
-                     PlayerService playerService,
-                     EventBus eventBus,
-                     IceAdapter iceAdapter,
-                     ModService modService,
-                     PlatformService platformService,
-                     DiscordRichPresenceService discordRichPresenceService,
-                     ReplayServer replayServer,
-                     OperatingSystem operatingSystem, GameMapper gameMapper) {
+  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor, ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService, PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater, LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper, JavaFxService javaFxService) {
     this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
     this.coturnService = coturnService;
@@ -189,17 +176,9 @@ public class GameService implements InitializingBean, DisposableBean {
     this.replayServer = replayServer;
     this.operatingSystem = operatingSystem;
     this.gameMapper = gameMapper;
+    this.javaFxService = javaFxService;
 
-    logMasker = new MaskPatternLayout();
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
-    gameIdToGame = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
-    gameRunning = new SimpleBooleanProperty();
-    currentGame = new SimpleObjectProperty<>();
-    games = FXCollections.synchronizedObservableList(FXCollections.observableArrayList(
-        game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(),
-            game.mapFolderNameProperty(), game.simModsProperty()}
-    ));
-    inOthersParty = false;
   }
 
   @Override
@@ -217,25 +196,58 @@ public class GameService implements InitializingBean, DisposableBean {
       JavaFxUtil.addAndTriggerListener(newValue.statusProperty(), statusChangeListener);
     });
 
-    JavaFxUtil.attachListToMap(games, gameIdToGame);
-
-    eventBus.register(this);
-
-    fafServerAccessor.addEventListener(GameInfo.class, this::onGameInfo);
-    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
-        onLoggedIn();
+    currentGame.flatMap(GameBean::statusProperty).addListener((observable, oldValue, newValue) -> {
+      if (oldValue == GameStatus.OPEN && newValue == GameStatus.PLAYING && !platformService.isWindowFocused(faWindowTitle)) {
+        platformService.focusWindow(faWindowTitle);
       }
     });
 
-    connectionStateInvalidationListener = (observable) -> {
-      if (fafServerAccessor.getConnectionState() == ConnectionState.DISCONNECTED) {
-        synchronized (gameIdToGame) {
-          gameIdToGame.clear();
-        }
+    eventBus.register(this);
+
+    Flux<GameBean> gameUpdateFlux = fafServerAccessor.getEvents(GameInfo.class)
+        .flatMap(gameInfo -> gameInfo.getGames() == null ? Flux.just(gameInfo) : Flux.fromIterable(gameInfo.getGames()))
+        .publishOn(javaFxService.getFxApplicationScheduler())
+        .map(gameInfo -> gameIdToGame.compute(gameInfo.getUid(), (id, knownGame) -> gameMapper.update(gameInfo, knownGame == null ? new GameBean() : knownGame)))
+        .publishOn(javaFxService.getSingleScheduler())
+        .doOnNext(this::notifyIfFriendJoinedGame)
+        .doOnError(throwable -> log.error("Error processing game", throwable))
+        .retry()
+        .share();
+
+    gameUpdateFlux.filter(game -> game.getStatus() == GameStatus.CLOSED)
+        .publishOn(javaFxService.getFxApplicationScheduler())
+        .doOnError(throwable -> log.error("Error closing game", throwable))
+        .retry()
+        .subscribe(game -> gameIdToGame.remove(game.getId()));
+
+    gameUpdateFlux.filter(playerService::isCurrentPlayerInGame)
+        .doOnError(throwable -> log.error("Error setting current game", throwable))
+        .retry()
+        .subscribe(game -> {
+          if (GameStatus.OPEN == game.getStatus()) {
+            currentGame.set(enhanceWithLastPasswordIfPasswordProtected(game));
+          } else if (GameStatus.CLOSED == game.getStatus()) {
+            currentGame.set(null);
+          }
+        });
+
+
+    fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
+      if (newValue == ConnectionState.DISCONNECTED) {
+        gameIdToGame.clear();
+      } else if (newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
+        onLoggedIn();
       }
-    };
-    JavaFxUtil.addListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
+    });
+  }
+
+  private void notifyIfFriendJoinedGame(GameBean game) {
+    if (game.getStatus() == GameStatus.OPEN && game.getGameType() != GameType.MATCHMAKER) {
+      game.getAllPlayersInGame()
+          .stream()
+          .filter(player -> player.getSocialStatus() == SocialStatus.FRIEND)
+          .forEach(player -> eventBus.post(new FriendJoinedGameEvent(player, game)));
+    }
   }
 
   private InvalidationListener generateNumberOfPlayersChangeListener(GameBean game) {
@@ -295,8 +307,7 @@ public class GameService implements InitializingBean, DisposableBean {
       return completedFuture(null);
     }
 
-    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), newGameInfo.getSimMods())
-        .thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
+    return updateGameIfNecessary(newGameInfo.getFeaturedMod(), newGameInfo.getSimMods()).thenCompose(aVoid -> downloadMapIfNecessary(newGameInfo.getMap()))
         .thenCompose(aVoid -> fafServerAccessor.requestHostGame(newGameInfo))
         .thenCompose(gameLaunchResponse -> startGame(gameMapper.map(gameLaunchResponse)));
   }
@@ -527,8 +538,7 @@ public class GameService implements InitializingBean, DisposableBean {
     matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
-        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName())
-            .thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
+        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
               parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey())
@@ -652,9 +662,7 @@ public class GameService implements InitializingBean, DisposableBean {
       return;
     }
 
-    notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()),
-        Severity.INFO,
-        singletonList(new Action(i18n.get("game.rate"), actionEvent -> eventBus.post(new ShowReplayEvent(game.getId()))))));
+    notificationService.addNotification(new PersistentNotification(i18n.get("game.ended", game.getTitle()), Severity.INFO, singletonList(new Action(i18n.get("game.rate"), actionEvent -> eventBus.post(new ShowReplayEvent(game.getId()))))));
   }
 
   @VisibleForTesting
@@ -682,13 +690,8 @@ public class GameService implements InitializingBean, DisposableBean {
         if (exitCode == -1073741515) {
           notificationService.addImmediateWarnNotification("game.crash.notInitialized");
         } else {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"),
-              i18n.get("game.crash", exitCode, logFile.map(Path::toString).orElse("")),
-              WARN,
-              List.of(
-                  new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(operatingSystem.getLoggingDirectory()))),
-                  new DismissAction(i18n))
-          ));
+          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get("game.crash", exitCode, logFile.map(Path::toString)
+              .orElse("")), WARN, List.of(new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(operatingSystem.getLoggingDirectory()))), new DismissAction(i18n))));
         }
       }
 
@@ -716,14 +719,8 @@ public class GameService implements InitializingBean, DisposableBean {
       GameBean game = currentGame.get();
 
       modService.getFeaturedMod(game.getFeaturedMod())
-          .thenCompose(featuredModBean -> hostGame(new NewGameInfo(
-              game.getTitle(),
-              game.getPassword(),
-              featuredModBean,
-              game.getMapFolderName(),
-              new HashSet<>(game.getSimMods().values()),
-              GameVisibility.PUBLIC,
-              game.getRatingMin(), game.getRatingMax(), game.getEnforceRating())));
+          .thenCompose(featuredModBean -> hostGame(new NewGameInfo(game.getTitle(), game.getPassword(), featuredModBean, game.getMapFolderName(), new HashSet<>(game.getSimMods()
+              .values()), GameVisibility.PUBLIC, game.getRatingMin(), game.getRatingMax(), game.getEnforceRating())));
     }
   }
 
@@ -742,46 +739,6 @@ public class GameService implements InitializingBean, DisposableBean {
     if (isGameRunning()) {
       fafServerAccessor.restoreGameSession(currentGame.get().getId());
     }
-  }
-
-  private void onGameInfo(GameInfo gameInfoMessage) {
-    if (gameInfoMessage.getGames() != null) {
-      gameInfoMessage.getGames().forEach(this::onGameInfo);
-      return;
-    }
-
-    Integer gameId = gameInfoMessage.getUid();
-    GameBean game = gameIdToGame.compute(gameId, (id, knownGame) -> gameMapper.update(gameInfoMessage, knownGame == null ? new GameBean() : knownGame));
-
-    playerService.updatePlayersInGame(game);
-
-    if (game.getStatus() == GameStatus.CLOSED) {
-      boolean removed = gameIdToGame.remove(game.getId(), game);
-      if (!removed) {
-        log.debug("Could not remove game, unexpected game mapping: '{}'", gameId);
-      }
-    }
-
-    synchronized (currentGame) {
-      if (playerService.isCurrentPlayerInGame(game)) {
-        if (GameStatus.OPEN == game.getStatus()) {
-          currentGame.set(enhanceWithLastPasswordIfPasswordProtected(game));
-        } else if (GameStatus.CLOSED == game.getStatus()) {
-          currentGame.set(null);
-        }
-      } else if (Objects.equals(currentGame.get(), game)) {
-        currentGame.set(null);
-      }
-    }
-
-    JavaFxUtil.addListener(game.statusProperty(), (observable, oldValue, newValue) -> {
-      if (oldValue == GameStatus.OPEN
-          && newValue == GameStatus.PLAYING
-          && playerService.isCurrentPlayerInGame(game)
-          && !platformService.isWindowFocused(faWindowTitle)) {
-        platformService.focusWindow(faWindowTitle);
-      }
-    });
   }
 
   private GameBean enhanceWithLastPasswordIfPasswordProtected(GameBean game) {
@@ -883,10 +840,5 @@ public class GameService implements InitializingBean, DisposableBean {
 
   public long getRunningProcessId() {
     return isRunning() ? process.pid() : -1;
-  }
-
-  @Override
-  public void destroy() throws Exception {
-    JavaFxUtil.removeListener(fafServerAccessor.connectionStateProperty(), connectionStateInvalidationListener);
   }
 }

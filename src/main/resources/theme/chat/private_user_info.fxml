@@ -8,7 +8,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-
 <GridPane fx:id="privateUserInfoRoot" hgap="10.0" minWidth="160.0" vgap="5.0" xmlns="http://javafx.com/javafx/17"
           xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.faforever.client.player.PrivatePlayerInfoController">
     <columnConstraints>
@@ -25,7 +24,7 @@
         <RowConstraints vgrow="SOMETIMES"/>
     </rowConstraints>
     <children>
-        <Label fx:id="usernameLabel" alignment="CENTER" contentDisplay="TOP" graphicTextGap="20.0"
+        <Label fx:id="username" alignment="CENTER" contentDisplay="TOP" graphicTextGap="20.0"
                maxWidth="1.7976931348623157E308" minWidth="-Infinity" styleClass="h1" text="username"
                GridPane.columnSpan="2147483647">
             <graphic>
@@ -33,7 +32,7 @@
                            preserveRatio="true"/>
             </graphic>
         </Label>
-        <Label fx:id="countryLabel" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" minWidth="0.0"
+        <Label fx:id="country" graphicTextGap="10.0" maxWidth="1.7976931348623157E308" minWidth="0.0"
                styleClass="private-chat-user-info-data" text="&lt;country&gt;" wrapText="true"
                GridPane.columnSpan="2147483647" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
             <graphic>
@@ -45,9 +44,9 @@
                GridPane.vgrow="ALWAYS"/>
         <Label fx:id="ratingsValues" text="&lt;rating values&gt;" textAlignment="RIGHT" wrapText="true"
                GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS"/>
-        <Label fx:id="gamesPlayedLabelLabel" minWidth="0.0" text="%chat.privateMessage.gamesPlayed" wrapText="true"
+        <Label fx:id="gamesPlayedLabel" minWidth="0.0" text="%chat.privateMessage.gamesPlayed" wrapText="true"
                GridPane.rowIndex="3"/>
-        <Label fx:id="gamesPlayedLabel" minWidth="0.0" text="&lt;games played&gt;" textAlignment="RIGHT" wrapText="true"
+        <Label fx:id="gamesPlayed" minWidth="0.0" text="&lt;games played&gt;" textAlignment="RIGHT" wrapText="true"
                GridPane.columnIndex="1" GridPane.rowIndex="3"/>
         <VBox fx:id="gameDetailWrapper" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
               GridPane.columnSpan="2147483647" GridPane.rowIndex="7">
@@ -56,9 +55,9 @@
             </children>
         </VBox>
         <Separator fx:id="separator" prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="5"/>
-        <Label fx:id="unlockedAchievementsLabel" text="%notAvailable" textAlignment="RIGHT" GridPane.columnIndex="1"
+        <Label fx:id="unlockedAchievements" text="%notAvailable" textAlignment="RIGHT" GridPane.columnIndex="1"
                GridPane.rowIndex="4"/>
-        <Label fx:id="unlockedAchievementsLabelLabel" text="%chat.privateMessage.achievements.unlocked"
+        <Label fx:id="unlockedAchievementsLabel" text="%chat.privateMessage.achievements.unlocked"
                GridPane.rowIndex="4"/>
     </children>
     <padding>

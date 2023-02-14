@@ -52,7 +52,6 @@ import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableSet;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -370,7 +369,7 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferencesService.getPreferences().getChat().getAutoJoinChannels());
     autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
-    JavaFxUtil.addListener(autoChannelListView.getItems(), (ListChangeListener<String>) c -> {
+    JavaFxUtil.addListener(autoChannelListView.getItems(), (InvalidationListener) observable -> {
       preferencesService.storeInBackground();
       autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty());
     });

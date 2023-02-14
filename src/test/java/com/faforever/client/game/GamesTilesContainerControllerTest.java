@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -114,10 +114,10 @@ public class GamesTilesContainerControllerTest extends UITest {
     GameBean game1 = GameBeanBuilder.create().defaultValues().get();
     GameBean game2 = GameBeanBuilder.create().defaultValues().title("xyz").get();
 
-    game1.setTeams(Map.of(1, List.of(PlayerBeanBuilder.create().get(), PlayerBeanBuilder.create().get())));
+    game1.setTeams(Map.of(1, Set.of(PlayerBeanBuilder.create().id(1).get(), PlayerBeanBuilder.create().id(2).get())));
     game1.setId(234);
     game2.setId(123);
-    game2.setTeams(Map.of(1, List.of(PlayerBeanBuilder.create().get())));
+    game2.setTeams(Map.of(1, Set.of(PlayerBeanBuilder.create().id(3).get())));
 
 
     observableList.addAll(game1, game2);

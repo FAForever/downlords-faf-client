@@ -46,6 +46,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -238,7 +239,7 @@ public class GameDetailController implements Controller<Pane> {
   private void createTeams() {
     List<Node> teamCardPanes = new ArrayList<>();
     if (game != null) {
-      for (Map.Entry<Integer, List<PlayerBean>> entry : game.getTeams().entrySet()) {
+      for (Map.Entry<Integer, Set<PlayerBean>> entry : game.getTeams().entrySet()) {
         Integer team = entry.getKey();
 
         if (team != null) {

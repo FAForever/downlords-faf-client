@@ -435,11 +435,8 @@ public class UiService implements InitializingBean, DisposableBean {
    * context, so its scope (which should always be "prototype") depends on the bean definition.
    */
   public <T extends Controller<?>> T loadFxml(String relativePath) {
-    FXMLLoader loader = new FXMLLoader();
-    loader.setControllerFactory(applicationContext::getBean);
-    loader.setResources(resources);
     try {
-      loader.setLocation(getThemeFileUrl(relativePath));
+      FXMLLoader loader = new FXMLLoader(getThemeFileUrl(relativePath), resources, null, applicationContext::getBean);
       loader.load();
       return loader.getController();
     } catch (IOException e) {
@@ -448,12 +445,9 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   public <T extends Controller<?>> T loadFxml(String relativePath, Class<?> controllerClass) {
-    FXMLLoader loader = new FXMLLoader();
-    loader.setControllerFactory(applicationContext::getBean);
-    loader.setController(applicationContext.getBean(controllerClass));
-    loader.setResources(resources);
     try {
-      loader.setLocation(getThemeFileUrl(relativePath));
+      FXMLLoader loader = new FXMLLoader(getThemeFileUrl(relativePath), resources, null, applicationContext::getBean);
+      loader.setController(applicationContext.getBean(controllerClass));
       loader.load();
       return loader.getController();
     } catch (IOException e) {

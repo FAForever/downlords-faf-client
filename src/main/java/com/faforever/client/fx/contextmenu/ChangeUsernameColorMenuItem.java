@@ -37,7 +37,7 @@ public class ChangeUsernameColorMenuItem extends AbstractMenuItem<ChatChannelUse
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return object != null && !preferencesService.getPreferences().getChat().getChatColorMode().equals(RANDOM);
   }
 

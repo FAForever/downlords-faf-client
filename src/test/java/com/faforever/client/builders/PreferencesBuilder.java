@@ -31,6 +31,7 @@ import com.faforever.commons.lobby.Faction;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.paint.Color;
 
@@ -273,7 +274,7 @@ public class PreferencesBuilder {
       return this;
     }
 
-    public ChatPrefsBuilder channelNameToHiddenCategories(ObservableMap<String, ObservableList<ChatUserCategory>> channelNameToHiddenCategories) {
+    public ChatPrefsBuilder channelNameToHiddenCategories(ObservableMap<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories) {
       chatPrefs.setChannelNameToHiddenCategories(channelNameToHiddenCategories);
       return this;
     }

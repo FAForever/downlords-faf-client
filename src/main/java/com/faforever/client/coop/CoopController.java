@@ -29,7 +29,6 @@ import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Strings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -159,9 +158,7 @@ public class CoopController extends AbstractViewController<Node> {
     descriptionWebView.getEngine().loadContent("<html></html>");
     webViewConfigurer.configureWebView(descriptionWebView);
 
-    ObservableList<GameBean> games = gameService.getGames();
-
-    FilteredList<GameBean> filteredItems = new FilteredList<>(games);
+    FilteredList<GameBean> filteredItems = new FilteredList<>(gameService.getGames());
     filteredItems.setPredicate(OPEN_COOP_GAMES_PREDICATE);
 
     coopService.getMissions().thenAccept(coopMaps -> {

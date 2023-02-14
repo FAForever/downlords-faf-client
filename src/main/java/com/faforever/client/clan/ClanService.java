@@ -28,6 +28,10 @@ public class ClanService {
 
   @Cacheable(value = CacheNames.CLAN, sync = true)
   public CompletableFuture<Optional<ClanBean>> getClanByTag(String tag) {
+    if (tag == null) {
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
     ElideNavigatorOnCollection<Clan> navigator = ElideNavigator.of(Clan.class).collection()
         .setFilter(qBuilder().string("tag").eq(tag))
         .pageSize(1);

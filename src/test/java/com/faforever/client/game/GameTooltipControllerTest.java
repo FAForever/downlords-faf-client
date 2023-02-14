@@ -1,12 +1,12 @@
 package com.faforever.client.game;
 
+import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,9 +16,9 @@ import org.mockito.Mockito;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -32,9 +32,6 @@ public class GameTooltipControllerTest extends UITest {
   private UiService uiService;
   @Mock
   private PlayerService playerService;
-  
-  @Mock
-  private GameBean game;
   
   @Mock
   private TeamCardController teamCardController;
@@ -53,11 +50,9 @@ public class GameTooltipControllerTest extends UITest {
   @Test
   public void testSetGame() {
     Map<String, String> simMods = new HashMap<>();
-    when(game.getSimMods()).thenReturn(simMods);
-    when(game.simModsProperty()).thenReturn(new SimpleObjectProperty<>(simMods));
-    Map<Integer, List<PlayerBean>> teams = new HashMap<>();
-    when(game.getTeams()).thenReturn(teams);
-    when(game.teamsProperty()).thenReturn(new SimpleObjectProperty<>(teams));
+    Map<Integer, Set<PlayerBean>> teams = new HashMap<>();
+
+    GameBean game = GameBeanBuilder.create().defaultValues().simMods(simMods).teams(teams).get();
 
     instance.setGame(game);
     instance.displayGame();
@@ -65,7 +60,7 @@ public class GameTooltipControllerTest extends UITest {
     assertFalse(instance.modsPane.isVisible());
     assertThat(instance.teamsPane.getPrefColumns(), is(0));
 
-    teams.put(1, List.of(PlayerBeanBuilder.create().defaultValues().get()));
+    teams.put(1, Set.of(PlayerBeanBuilder.create().defaultValues().get()));
     instance.setGame(game);
     instance.displayGame();
     WaitForAsyncUtils.waitForFxEvents();

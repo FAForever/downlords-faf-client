@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.net.ConnectionState;
-import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.MapChangeListener;
 
@@ -59,8 +58,4 @@ public interface ChatService {
    * @param delta a positive or negative number
    */
   void incrementUnreadMessagesCount(int delta);
-
-  ReadOnlyIntegerProperty unreadMessagesCount();
-
-  String getDefaultChannelName();
 }

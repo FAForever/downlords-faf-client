@@ -1,10 +1,12 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.ImageViewHelper;
@@ -15,7 +17,9 @@ import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
+import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
@@ -34,7 +38,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -71,6 +74,10 @@ public class ChatUserItemControllerTest extends UITest {
   private ImageViewHelper imageViewHelper;
   @Mock
   private MapService mapService;
+  @Mock
+  private AvatarService avatarService;
+  @Mock
+  private CountryFlagService countryFlagService;
 
   private ChatChannelUser defaultUser;
   private ChatPrefs chatPrefs;
@@ -131,12 +138,20 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testCheckShowMapNameListener() {
-    runOnFxThreadAndWait(() -> instance.mapNameLabel.setText("map name"));
-    boolean visible = chatPrefs.isShowMapName();
-    assertEquals(instance.mapNameLabel.isVisible(), visible);
+    PlayerBean player = PlayerBeanBuilder.create()
+        .defaultValues()
+        .game(GameBeanBuilder.create().defaultValues().get())
+        .get();
+    defaultUser.setPlayer(player);
 
-    runOnFxThreadAndWait(() -> chatPrefs.setShowMapName(!visible));
-    assertEquals(instance.mapNameLabel.isVisible(), !visible);
+    when(i18n.get(anyString(), anyString())).thenReturn("name");
+    when(mapGeneratorService.isGeneratedMap(anyString())).thenReturn(true);
+
+    instance.setChatUser(defaultUser);
+    assertEquals(instance.mapNameLabel.isVisible(), chatPrefs.isShowMapName());
+
+    chatPrefs.setShowMapName(!chatPrefs.isShowMapName());
+    assertEquals(instance.mapNameLabel.isVisible(), chatPrefs.isShowMapName());
   }
 
   @Test
@@ -159,17 +174,19 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testCheckChatUserGameListener() {
+    GameBean game = GameBeanBuilder.create().defaultValues().host("junit").get();
     PlayerBean player = PlayerBeanBuilder.create()
         .defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().get())
+        .username("junit")
+        .game(game)
         .get();
     String mapFolderName = player.getGame().getMapFolderName();
     MapVersionBean mapVersion = MapVersionBeanBuilder.create().defaultValues().get();
-    defaultUser.setMapImage(mock(Image.class));
-    defaultUser.setGameStatusImage(mock(Image.class));
     defaultUser.setPlayer(player);
 
-    when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion), Optional.empty());
+    when(uiService.getThemeImage(UiService.CHAT_LIST_STATUS_HOSTING)).thenReturn(mock(Image.class));
+    when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(mock(Image.class));
+    when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map name");
     when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap().getDisplayName(), "map name", "Neroxis Generated Map");
 
@@ -177,9 +194,6 @@ public class ChatUserItemControllerTest extends UITest {
     assertNotNull(instance.gameStatusImageView.getImage());
     assertNotNull(instance.mapImageView.getImage());
     assertEquals(mapVersion.getMap().getDisplayName(), instance.mapNameLabel.getText());
-
-    runOnFxThreadAndWait(() -> defaultUser.setLastActive(Instant.now()));
-    assertEquals("map name", instance.mapNameLabel.getText());
   }
 
   @Test
@@ -198,7 +212,7 @@ public class ChatUserItemControllerTest extends UITest {
     when(controllerMock.getRoot()).thenReturn(new VBox());
 
     instance.setChatUser(defaultUser);
-    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseMoved());
+    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseEntered());
     verify(controllerMock).displayGame();
     assertNotNull(TooltipHelper.getTooltip(instance.mapImageView));
 

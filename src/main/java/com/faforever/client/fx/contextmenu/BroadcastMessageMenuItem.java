@@ -37,7 +37,7 @@ public class BroadcastMessageMenuItem extends AbstractMenuItem<Object> {
   }
 
   @Override
-  protected boolean isItemVisible() {
+  protected boolean isDisplayed() {
     return moderatorService.getPermissions().contains(GroupPermission.ROLE_WRITE_MESSAGE);
   }
 

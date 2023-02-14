@@ -17,12 +17,14 @@ import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.skin.TabPaneSkin;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class PlayController extends AbstractViewController<Node> {
   private static final PseudoClass UNREAD_PSEUDO_STATE = PseudoClass.getPseudoClass("unread");
 
@@ -38,10 +40,6 @@ public class PlayController extends AbstractViewController<Node> {
   private boolean isHandlingEvent;
   private AbstractViewController<?> lastTabController;
   private Tab lastTab;
-
-  public PlayController(EventBus eventBus) {
-    this.eventBus = eventBus;
-  }
 
   @Override
   public void initialize() {

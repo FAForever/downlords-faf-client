@@ -5,8 +5,7 @@ import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.chat.event.ChatUserCategoryChangeEvent;
-import com.faforever.client.chat.event.ChatUserColorChangeEvent;
+import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
@@ -22,7 +21,6 @@ import com.faforever.client.uploader.ImageUploadService;
 import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.binding.BooleanBinding;
 import javafx.scene.control.Labeled;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -50,8 +48,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,8 +92,6 @@ public class ChatChannelTabControllerTest extends UITest {
   @Mock
   private PlatformService platformService;
   @Mock
-  private ChatUserService chatUserService;
-  @Mock
   private EmoticonService emoticonService;
   @Mock
   private TaskScheduler taskScheduler;
@@ -110,7 +104,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
-    preferences = PreferencesBuilder.create().defaultValues().chatPrefs().then().get();
+    preferences = PreferencesBuilder.create().defaultValues().get();
     when(preferencesService.getPreferences()).thenReturn(preferences);
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
@@ -119,8 +113,9 @@ public class ChatChannelTabControllerTest extends UITest {
     when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
     when(timeService.asShortTime(any())).thenReturn("now");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
-    when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(mock(ChatChannelUser.class));
-    when(chatUserListController.getAutoCompletionHelper()).thenReturn(mock(AutoCompletionHelper.class));
+    when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
+
+    instance.afterPropertiesSet();
 
     loadFxml("theme/chat/channel_tab.fxml", clazz -> {
       if (clazz == ChatUserListController.class) {
@@ -128,7 +123,6 @@ public class ChatChannelTabControllerTest extends UITest {
       }
       return instance;
     });
-    instance.afterPropertiesSet();
   }
 
   @Test
@@ -163,7 +157,7 @@ public class ChatChannelTabControllerTest extends UITest {
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
 
-    defaultChatChannel.setTopic(new ChannelTopic("",""));
+    defaultChatChannel.setTopic(new ChannelTopic("", ""));
     initializeDefaultChatChannel();
     assertFalse(instance.topicPane.isVisible());
   }
@@ -191,11 +185,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testChangeTopicButtonForModerators() {
-    doAnswer(invocation -> {
-      invocation.getArgument(0, Runnable.class).run();
-      return invocation;
-    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
-
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
@@ -205,12 +194,10 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testNoChangeTopicButtonForNonModerators() {
-    doAnswer(invocation -> {
-      invocation.getArgument(0, Runnable.class).run();
-      return invocation;
-    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
-
-    ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(false).get();
+    ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
+        .defaultValues()
+        .moderator(false)
+        .get();
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
     initializeDefaultChatChannel();
@@ -219,11 +206,6 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testCheckModeratorListener() {
-    doAnswer(invocation -> {
-      invocation.getArgument(0, Runnable.class).run();
-      return invocation;
-    }).when(instance.chatUserListController).setOnListInitialized(any(Runnable.class));
-
     ChatChannelUser user = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
     defaultChatChannel.addUser(user);
     when(userService.getUsername()).thenReturn(USER_NAME);
@@ -235,7 +217,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testOnTopicTextFieldEntered() {
-    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME,"topic1: https://faforever.com"));
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME, "topic1: https://faforever.com"));
     initializeDefaultChatChannel();
 
     runOnFxThreadAndWait(() -> {
@@ -248,7 +230,7 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void testOnChangeTopicTextButtonClicked() {
-    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME,"topic1: https://faforever.com"));
+    defaultChatChannel.setTopic(new ChannelTopic(USER_NAME, "topic1: https://faforever.com"));
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.onChangeTopicTextButtonClicked());
     assertEquals("topic1: https://faforever.com", instance.topicTextField.getText());
@@ -282,7 +264,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(instance.topicCharactersLimitLabel.getText().contains(Integer.toString(length)));
 
     runOnFxThreadAndWait(() -> instance.topicTextField.appendText("123"));
-    assertTrue(instance.topicCharactersLimitLabel.getText().contains(Integer.toString(length + + 3)));
+    assertTrue(instance.topicCharactersLimitLabel.getText().contains(Integer.toString(length + +3)));
   }
 
   @Test
@@ -293,7 +275,7 @@ public class ChatChannelTabControllerTest extends UITest {
     sendMessage(USER_NAME, "Hello, world!");
 
     runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.F, false, true,false, false)));
+        null, null, KeyCode.F, false, true, false, false)));
     assertTrue(instance.chatMessageSearchContainer.isVisible());
 
     runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText("world"));
@@ -303,7 +285,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertFalse(instance.getHtmlBodyContent().contains(highlighted));
 
     runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.F, false, true,false, false)));
+        null, null, KeyCode.F, false, true, false, false)));
     assertFalse(instance.chatMessageSearchContainer.isVisible());
   }
 
@@ -315,14 +297,14 @@ public class ChatChannelTabControllerTest extends UITest {
     sendMessage(USER_NAME, "Hello, world!");
 
     runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.F, false, true,false, false)));
+        null, null, KeyCode.F, false, true, false, false)));
     assertTrue(instance.chatMessageSearchContainer.isVisible());
 
     runOnFxThreadAndWait(() -> instance.chatMessageSearchTextField.setText("world"));
     assertTrue(instance.getHtmlBodyContent().contains(highlighted));
 
     runOnFxThreadAndWait(() -> instance.onChatChannelKeyReleased(new KeyEvent(null, null, KeyEvent.KEY_PRESSED,
-        null, null, KeyCode.ESCAPE, false, false,false, false)));
+        null, null, KeyCode.ESCAPE, false, false, false, false)));
     assertFalse(instance.chatMessageSearchContainer.isVisible());
     assertFalse(instance.getHtmlBodyContent().contains(highlighted));
   }
@@ -348,12 +330,14 @@ public class ChatChannelTabControllerTest extends UITest {
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> instance.getRoot().getOnCloseRequest().handle(null));
     verify(chatService).leaveChannel(CHANNEL_NAME);
-    verify(chatUserListController).onTabClosed();
   }
 
   @Test
   public void testGetMessageCssClassModerator() {
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
+        .defaultValues()
+        .moderator(true)
+        .get();
 
     when(chatService.getOrCreateChatUser(USER_NAME, defaultChatChannel.getName())).thenReturn(chatUser);
 
@@ -398,7 +382,11 @@ public class ChatChannelTabControllerTest extends UITest {
   public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
     this.getRoot().setVisible(false);
     preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
-    when(playerService.getPlayerByNameIfOnline(USER_NAME)).thenReturn(Optional.ofNullable(PlayerBeanBuilder.create().defaultValues().username("junit").socialStatus(FOE).get()));
+    when(playerService.getPlayerByNameIfOnline(USER_NAME)).thenReturn(Optional.ofNullable(PlayerBeanBuilder.create()
+        .defaultValues()
+        .username("junit")
+        .socialStatus(FOE)
+        .get()));
     instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
   }
@@ -446,7 +434,11 @@ public class ChatChannelTabControllerTest extends UITest {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
     when(playerService.getPlayerByNameIfOnline(USER_NAME))
-        .thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().username(USER_NAME).socialStatus(FOE).get()));
+        .thenReturn(Optional.of(PlayerBeanBuilder.create()
+            .defaultValues()
+            .username(USER_NAME)
+            .socialStatus(FOE)
+            .get()));
     when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
@@ -462,7 +454,11 @@ public class ChatChannelTabControllerTest extends UITest {
   public void getInlineStyleRandomFoeShow() {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
     when(playerService.getPlayerByNameIfOnline(USER_NAME))
-        .thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().username(USER_NAME).socialStatus(FOE).get()));
+        .thenReturn(Optional.of(PlayerBeanBuilder.create()
+            .defaultValues()
+            .username(USER_NAME)
+            .socialStatus(FOE)
+            .get()));
 
     when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
@@ -480,8 +476,7 @@ public class ChatChannelTabControllerTest extends UITest {
     String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
     String after = "<span class=\"text user-junit message\" style=\"color: rgb(0, 255, 255);\">Hello world!</span>";
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
-    ChatChannelUser updatedChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().color(Color.AQUA).get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().player(PlayerBeanBuilder.create().defaultValues().get()).get();
     defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
@@ -492,7 +487,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserColorChange(new ChatUserColorChangeEvent(updatedChatUser)));
+    runOnFxThreadAndWait(() -> chatUser.setColor(Color.AQUA));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));
@@ -501,11 +496,15 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testOnUserMessageVisibility() throws Exception {
     String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message chat_only\" style=\"display: none;\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message\" style=\"display: none;\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(OTHER).get();
-    ChatChannelUser updatedChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(FOE).get();
+    PlayerBean player = PlayerBeanBuilder.create().socialStatus(OTHER).get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
+        .defaultValues()
+        .player(player)
+        .get();
+
     defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
@@ -516,7 +515,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatUser)));
+    runOnFxThreadAndWait(() -> player.setSocialStatus(FOE));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));
@@ -528,8 +527,9 @@ public class ChatChannelTabControllerTest extends UITest {
     String after = "<span class=\"text user-junit message chat_only\" style=\"\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
-    ChatChannelUser updatedChatOnlyChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(null).get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues()
+        .player(PlayerBeanBuilder.create().defaultValues().get()).get();
+
     defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
@@ -540,7 +540,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatOnlyChatUser)));
+    runOnFxThreadAndWait(() -> chatUser.setPlayer(null));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));
@@ -549,11 +549,14 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testOnModeratorUserStyleClassUpdate() throws Exception {
     String before = "<span class=\"text user-junit message\" style=\"\">Hello world!</span>";
-    String after = "<span class=\"text user-junit message chat_only moderator\" style=\"\">Hello world!</span>";
+    String after = "<span class=\"text user-junit message moderator\" style=\"\">Hello world!</span>";
     String otherBefore = "<span class=\"text user-other message\" style=\"\">Hello man!</span>";
 
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().socialStatus(OTHER).moderator(false).get();
-    ChatChannelUser updatedChatOnlyChatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().moderator(true).socialStatus(OTHER).get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME)
+        .defaultValues()
+        .player(PlayerBeanBuilder.create().socialStatus(OTHER).get())
+        .moderator(false)
+        .get();
     defaultChatChannel.addUser(chatUser);
 
     initializeDefaultChatChannel();
@@ -564,7 +567,7 @@ public class ChatChannelTabControllerTest extends UITest {
     assertTrue(content.contains(before));
     assertTrue(content.contains(otherBefore));
 
-    runOnFxThreadAndWait(() -> instance.onChatUserCategoryChange(new ChatUserCategoryChangeEvent(updatedChatOnlyChatUser)));
+    runOnFxThreadAndWait(() -> chatUser.setModerator(true));
     content = instance.getHtmlBodyContent();
     assertTrue(content.contains(after));
     assertTrue(content.contains(otherBefore));
@@ -575,6 +578,6 @@ public class ChatChannelTabControllerTest extends UITest {
   }
 
   private void initializeDefaultChatChannel() {
-    runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel, mock(BooleanBinding.class)));
+    runOnFxThreadAndWait(() -> instance.setChatChannel(defaultChatChannel));
   }
 }

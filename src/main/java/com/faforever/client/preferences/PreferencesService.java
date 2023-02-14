@@ -38,6 +38,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.paint.Color;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
@@ -70,7 +71,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 @Slf4j
 @Lazy
 @Service
-public class PreferencesService implements InitializingBean {
+public class PreferencesService implements InitializingBean, DisposableBean {
 
   public static final String SUPREME_COMMANDER_EXE = "SupremeCommander.exe";
   public static final String FORGED_ALLIANCE_EXE = "ForgedAlliance.exe";
@@ -146,6 +147,14 @@ public class PreferencesService implements InitializingBean {
       Files.createDirectories(gamePrefs.getParent());
       Files.copy(getClass().getResourceAsStream("/game.prefs"), gamePrefs);
     }
+  }
+
+  @Override
+  public void destroy() throws Exception {
+    if (storeInBackgroundTask != null) {
+      storeInBackgroundTask.cancel();
+    }
+    store();
   }
 
   private void initializePreferences() {
