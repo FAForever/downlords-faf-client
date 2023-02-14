@@ -256,7 +256,7 @@ public class GameBean {
   }
 
   public void setSimMods(Map<String, String> simMods) {
-    this.simMods.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(simMods)));
+    this.simMods.set(simMods == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(simMods)));
   }
 
   public ReadOnlyMapProperty<String, String> simModsProperty() {
@@ -271,7 +271,7 @@ public class GameBean {
   }
 
   public void setTeams(Map<Integer, Set<PlayerBean>> teams) {
-    this.teams.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
+    this.teams.set(teams == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
   }
 
   public ReadOnlyMapProperty<Integer, Set<PlayerBean>> teamsProperty() {

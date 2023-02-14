@@ -2,9 +2,9 @@ package com.faforever.client.domain;
 
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.player.SocialStatus;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.ReadOnlyMapProperty;
+import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -40,7 +40,7 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   StringProperty country = new SimpleStringProperty();
   ObjectProperty<AvatarBean> avatar = new SimpleObjectProperty<>();
   ObjectProperty<SocialStatus> socialStatus = new SimpleObjectProperty<>(OTHER);
-  MapProperty<String, LeaderboardRatingBean> leaderboardRatings = new SimpleMapProperty<>(FXCollections.observableHashMap());
+  ReadOnlyMapWrapper<String, LeaderboardRatingBean> leaderboardRatings = new ReadOnlyMapWrapper<>(FXCollections.unmodifiableObservableMap(FXCollections.observableHashMap()));
   ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   ObservableValue<PlayerStatus> status = game.flatMap(this::statusPropertyFromGame).orElse(PlayerStatus.IDLE);
   ObjectProperty<Instant> idleSince = new SimpleObjectProperty<>();
@@ -120,15 +120,15 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
   }
 
   public ObservableMap<String, LeaderboardRatingBean> getLeaderboardRatings() {
-    return leaderboardRatings;
+    return leaderboardRatings.get();
   }
 
   public void setLeaderboardRatings(Map<String, LeaderboardRatingBean> leaderboardRatings) {
-    this.leaderboardRatings.setValue(leaderboardRatings == null ? FXCollections.observableHashMap() : FXCollections.observableMap(leaderboardRatings));
+    this.leaderboardRatings.setValue(leaderboardRatings == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(leaderboardRatings)));
   }
 
-  public MapProperty<String, LeaderboardRatingBean> leaderboardRatingsProperty() {
-    return leaderboardRatings;
+  public ReadOnlyMapProperty<String, LeaderboardRatingBean> leaderboardRatingsProperty() {
+    return leaderboardRatings.getReadOnlyProperty();
   }
 
   public PlayerStatus getStatus() {
