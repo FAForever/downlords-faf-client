@@ -166,7 +166,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
     JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakInvalidationListener(hideFoeMessagesListener));
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModeListener));
 
-    userListVisibilityToggleButton.selectedProperty().addListener(new WeakInvalidationListener(observable -> updateDividerPosition()));
+    userListVisibilityToggleButton.selectedProperty().addListener(observable -> updateDividerPosition());
 
     autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());
