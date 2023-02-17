@@ -1,16 +1,15 @@
 package com.faforever.client.os;
 
-import com.faforever.client.preferences.PreferencesService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 import java.util.Objects;
 
-import static com.faforever.client.preferences.PreferencesService.USER_HOME_SUB_FOLDER;
-
 @Slf4j
 public final class OsPosix implements OperatingSystem {
+  private static final String USER_HOME_SUB_FOLDER = ".faforever";
+
   @Override
   public boolean runsAsAdmin() {
     String username = System.getProperty("user.name");
@@ -24,7 +23,7 @@ public final class OsPosix implements OperatingSystem {
 
   @Override
   public @NotNull Path getLoggingDirectory() {
-    return Path.of(System.getProperty("user.home")).resolve(PreferencesService.USER_HOME_SUB_FOLDER).resolve("logs");
+    return Path.of(System.getProperty("user.home")).resolve(USER_HOME_SUB_FOLDER).resolve("logs");
   }
 
   @Override

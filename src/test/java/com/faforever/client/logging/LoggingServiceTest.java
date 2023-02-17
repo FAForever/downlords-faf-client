@@ -59,7 +59,6 @@ public class LoggingServiceTest extends ServiceTest {
   @Test
   public void testSetLoggingLevel() throws Exception {
     instance.setLoggingLevel();
-    verify(preferencesService).storeInBackground();
     verify(preferencesService).getPreferences();
   }
 }

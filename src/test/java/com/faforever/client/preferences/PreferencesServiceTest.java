@@ -55,7 +55,7 @@ public class PreferencesServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     when(operatingSystem.getPreferencesDirectory()).thenReturn(Path.of("."));
-    instance = new PreferencesService(operatingSystem, clientProperties);
+    instance = new PreferencesService(clientProperties, preferences);
 
     objectMapper = new ObjectMapper()
         .setSerializationInclusion(Include.NON_EMPTY)

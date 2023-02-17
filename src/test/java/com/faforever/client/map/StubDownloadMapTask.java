@@ -14,7 +14,7 @@ public class StubDownloadMapTask extends DownloadMapTask {
   public MapVersionBean mapToDownload;
 
   public StubDownloadMapTask(PreferencesService preferencesService, I18n i18n, Path customMapsDirectory) {
-    super(preferencesService, i18n);
+    super(i18n, forgedAlliancePrefs);
     this.customMapsDirectory = customMapsDirectory;
   }
 

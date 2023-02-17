@@ -5,8 +5,8 @@ import com.faforever.client.config.ClientProperties.UnitDatabase;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.main.event.NavigateEvent;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
-import com.faforever.client.preferences.PreferencesService;
 import com.google.common.base.Strings;
 import javafx.scene.Node;
 import javafx.scene.web.WebView;
@@ -20,14 +20,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UnitsController extends AbstractViewController<Node> {
   private final ClientProperties clientProperties;
-  private final PreferencesService preferencesService;
+  private final Preferences preferences;
+
   public WebView unitsRoot;
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
     if (Strings.isNullOrEmpty(unitsRoot.getEngine().getLocation())) {
-      loadUnitDataBase(preferencesService.getPreferences().getUnitDataBaseType());
-      JavaFxUtil.addListener(preferencesService.getPreferences().unitDataBaseTypeProperty(), (observable, oldValue, newValue) -> loadUnitDataBase(newValue));
+      loadUnitDataBase(preferences.getUnitDataBaseType());
+      JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), (observable, oldValue, newValue) -> loadUnitDataBase(newValue));
     }
   }
 

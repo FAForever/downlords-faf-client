@@ -363,7 +363,7 @@ public class LoginControllerTest extends UITest {
   @Test
   public void testOnDownloadUpdateButtonClicked() {
     UpdateInfo updateInfo = new UpdateInfo(null, null, null, 5, null, false);
-    DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, preferencesService);
+    DownloadUpdateTask downloadUpdateTask = new DownloadUpdateTask(i18n, dataPrefs);
     when(clientUpdateService.downloadAndInstallInBackground(updateInfo)).thenReturn(downloadUpdateTask);
 
     ReflectionTestUtils.setField(instance, "updateInfoFuture", CompletableFuture.completedFuture(updateInfo));

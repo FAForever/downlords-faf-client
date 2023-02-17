@@ -3,7 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,7 +38,7 @@ import java.util.Map;
 public class GamesTilesContainerController implements Controller<Node> {
 
   private final UiService uiService;
-  private final PreferencesService preferencesService;
+  private final Preferences preferences;
 
   public FlowPane tiledFlowPane;
   public ScrollPane tiledScrollPane;
@@ -79,8 +79,7 @@ public class GamesTilesContainerController implements Controller<Node> {
       if (newValue == null) {
         return;
       }
-      preferencesService.getPreferences().setGameTileSortingOrder(newValue);
-      preferencesService.storeInBackground();
+      preferences.setGameTileSortingOrder(newValue);
       appliedComparator = newValue.getComparator();
       sortNodes();
     };
@@ -111,7 +110,7 @@ public class GamesTilesContainerController implements Controller<Node> {
   private void initializeChoiceBox() {
     sortingTypeChoiceBox.setVisible(true);
     JavaFxUtil.addListener(sortingTypeChoiceBox.getSelectionModel().selectedItemProperty(), sortingListener);
-    sortingTypeChoiceBox.getSelectionModel().select(preferencesService.getPreferences().getGameTileSortingOrder());
+    sortingTypeChoiceBox.getSelectionModel().select(preferences.getGameTileSortingOrder());
   }
 
   private void selectFirstGame() {

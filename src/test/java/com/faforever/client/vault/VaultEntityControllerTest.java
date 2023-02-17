@@ -105,7 +105,7 @@ public class VaultEntityControllerTest extends UITest {
     when(vaultEntityShowRoomController.getPane()).thenReturn(showRoomPane);
 
     items = createMockElements(50);
-    instance = new VaultEntityController<>(uiService, notificationService, i18n, preferencesService, reportingService) {
+    instance = new VaultEntityController<>(uiService, notificationService, i18n, reportingService, vaultPrefs) {
       @Override
       protected void initSearchController() {
         //Do Nothing

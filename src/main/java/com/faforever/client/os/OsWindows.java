@@ -1,7 +1,6 @@
 package com.faforever.client.os;
 
 import com.faforever.client.os.Kernel32Ex.WindowsPriority;
-import com.faforever.client.preferences.PreferencesService;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.Shell32Util;
@@ -19,10 +18,10 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.Scanner;
 
-import static com.faforever.client.preferences.PreferencesService.APP_DATA_SUB_FOLDER;
-
 @Slf4j
 public final class OsWindows implements OperatingSystem {
+  private static final String APP_DATA_SUB_FOLDER = "Forged Alliance Forever";
+
   @Override
   public boolean runsAsAdmin() {
     try {
@@ -60,7 +59,7 @@ public final class OsWindows implements OperatingSystem {
   @Override
   @NotNull
   public Path getLoggingDirectory() {
-    return Path.of(System.getenv("APPDATA")).resolve(PreferencesService.APP_DATA_SUB_FOLDER).resolve("logs");
+    return Path.of(System.getenv("APPDATA")).resolve(APP_DATA_SUB_FOLDER).resolve("logs");
   }
 
   @Override

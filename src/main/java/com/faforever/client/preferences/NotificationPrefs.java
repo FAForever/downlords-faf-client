@@ -10,7 +10,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
-public class NotificationsPrefs {
+public class NotificationPrefs {
 
   BooleanProperty soundsEnabled = new SimpleBooleanProperty(true);
   BooleanProperty mentionSoundEnabled = new SimpleBooleanProperty(true);

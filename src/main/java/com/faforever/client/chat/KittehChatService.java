@@ -10,7 +10,6 @@ import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.ui.tray.event.UpdateApplicationBadgeEvent;
 import com.faforever.client.user.UserService;
@@ -96,12 +95,13 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   public static final int MAX_GAMES_FOR_NEWBIE_CHANNEL = 50;
   private static final String NEWBIE_CHANNEL_NAME = "#newbie";
   private static final Set<Character> MODERATOR_PREFIXES = Set.of('~', '&', '@', '%');
-  private final PreferencesService preferencesService;
   private final UserService userService;
   private final FafServerAccessor fafServerAccessor;
   private final EventBus eventBus;
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
+  private final ChatPrefs chatPrefs;
+
   /**
    * Maps channels by name.
    */
@@ -132,12 +132,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       }
     });
 
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-    JavaFxUtil.addListener(chatPrefs.userToColorProperty(), (InvalidationListener) change -> preferencesService.storeInBackground());
-    JavaFxUtil.addListener(chatPrefs.groupToColorProperty(), (InvalidationListener) change -> {
-      preferencesService.storeInBackground();
-      updateUserColors(chatPrefs.getChatColorMode());
-    });
+    JavaFxUtil.addListener(chatPrefs.groupToColorProperty(), (InvalidationListener) change -> updateUserColors(chatPrefs.getChatColorMode()));
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), (observable, oldValue, newValue) -> updateUserColors(newValue));
   }
 
@@ -145,7 +140,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     if (chatColorMode == null) {
       chatColorMode = DEFAULT;
     }
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
+
     synchronized (chatChannelUsersByChannelAndName) {
       if (chatColorMode == ChatColorMode.RANDOM) {
         chatChannelUsersByChannelAndName.values()
@@ -344,7 +339,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     if (sender.getPlayer()
         .map(PlayerBean::getSocialStatus)
         .filter(status -> status == SocialStatus.FOE)
-        .isPresent() && preferencesService.getPreferences().getChat().getHideFoeMessages()) {
+        .isPresent() && chatPrefs.getHideFoeMessages()) {
       ircLog.debug("Suppressing chat message from foe '{}'", user.getNick());
       return;
     }
@@ -380,7 +375,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void joinSavedAutoChannels() {
-    ObservableList<String> savedAutoChannels = preferencesService.getPreferences().getChat().getAutoJoinChannels();
+    ObservableList<String> savedAutoChannels = chatPrefs.getAutoJoinChannels();
     if (savedAutoChannels == null) {
       return;
     }
@@ -444,7 +439,6 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   private void populateColor(ChatChannelUser chatChannelUser) {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     Optional<PlayerBean> optionalPlayer = chatChannelUser.getPlayer();
     String lowercaseUsername = chatChannelUser.getUsername().toLowerCase(US);
 

@@ -4,7 +4,6 @@ import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Assert;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -24,20 +23,14 @@ import static com.faforever.client.chat.ChatColorMode.RANDOM;
 @RequiredArgsConstructor
 public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCustomMenuItemController<ChatUserCategory> {
 
-  private final PreferencesService preferencesService;
+  private final ChatPrefs chatPrefs;
 
   public ColorPicker colorPicker;
   public Button removeCustomColorButton;
 
-  private ChatPrefs chatPrefs;
-  private final InvalidationListener chatColorModePropertyListener = (observable) -> JavaFxUtil.runLater(() -> {
-    ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
-    removeCustomColorButton.setVisible(!chatColorMode.equals(RANDOM) && colorPicker.getValue() != null);
-    getRoot().setVisible(!chatColorMode.equals(RANDOM));
-  });
+  private final InvalidationListener chatColorModePropertyListener = (observable) -> JavaFxUtil.runLater(this::updateCustomColorVisibility);
 
   public void initialize() {
-    chatPrefs = preferencesService.getPreferences().getChat();
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
     JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
     WeakInvalidationListener weakChatColorModePropertyListener = new WeakInvalidationListener(chatColorModePropertyListener);
@@ -56,5 +49,11 @@ public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCus
         chatPrefs.getGroupToColor().put(object, newValue);
       }
     });
+  }
+
+  private void updateCustomColorVisibility() {
+    ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
+    removeCustomColorButton.setVisible(!chatColorMode.equals(RANDOM) && colorPicker.getValue() != null);
+    getRoot().setVisible(!chatColorMode.equals(RANDOM));
   }
 }

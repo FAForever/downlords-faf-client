@@ -8,8 +8,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.preferences.NotificationsPrefs;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -28,8 +27,7 @@ public class FriendOnlineNotifier implements InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
   private final AudioService audioService;
-  private final PlayerService playerService;
-  private final PreferencesService preferencesService;
+  private final NotificationPrefs notificationPrefs;
 
   @Override
   public void afterPropertiesSet() {
@@ -38,18 +36,17 @@ public class FriendOnlineNotifier implements InitializingBean {
 
   @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
-    NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     PlayerBean player = event.getPlayer();
 
     if (player.getSocialStatus() != SocialStatus.FRIEND) {
       return;
     }
 
-    if (notification.isFriendOnlineSoundEnabled()) {
+    if (notificationPrefs.isFriendOnlineSoundEnabled()) {
       audioService.playFriendOnlineSound();
     }
 
-    if (notification.isFriendOnlineToastEnabled()) {
+    if (notificationPrefs.isFriendOnlineToastEnabled()) {
       notificationService.addNotification(
           new TransientNotification(
               i18n.get("friend.nowOnlineNotification.title", player.getUsername()),

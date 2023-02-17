@@ -9,7 +9,8 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenModVaultEvent;
 import com.faforever.client.mod.event.ModUploadedEvent;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -37,17 +38,21 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   private final ModService modService;
   private final EventBus eventBus;
   private final PlatformService platformService;
+  private final VaultPrefs vaultPrefs;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private ModDetailController modDetailController;
   private Integer recommendedShowRoomPageCount;
 
-  public ModVaultController(ModService modService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
-                               UiService uiService, NotificationService notificationService, ReportingService reportingService,
-                            PlatformService platformService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
+  public ModVaultController(ModService modService, I18n i18n, EventBus eventBus,
+                            UiService uiService, NotificationService notificationService, ReportingService reportingService,
+                            PlatformService platformService, VaultPrefs vaultPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
     this.eventBus = eventBus;
     this.modService = modService;
     this.platformService = platformService;
+    this.vaultPrefs = vaultPrefs;
+    this.forgedAlliancePrefs = forgedAlliancePrefs;
   }
 
   @Override
@@ -106,7 +111,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   }
 
   public void onUploadButtonClicked() {
-    platformService.askForPath(i18n.get("modVault.upload.chooseDirectory"), preferencesService.getPreferences().getForgedAlliance().getModsDirectory())
+    platformService.askForPath(i18n.get("modVault.upload.chooseDirectory"), forgedAlliancePrefs.getModsDirectory())
         .ifPresent(this::openUploadWindow);
   }
 
@@ -127,10 +132,10 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
   protected void initSearchController() {
     searchController.setRootType(com.faforever.commons.api.dto.Mod.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MOD_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVault().mapSortConfigProperty());
+    searchController.setSortConfig(vaultPrefs.mapSortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(false);
     searchController.setVaultRoot(vaultRoot);
-    searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedModQueries());
+    searchController.setSavedQueries(vaultPrefs.getSavedModQueries());
 
     searchController.addTextFilter("displayName", i18n.get("mod.displayName"), false);
     searchController.addTextFilter("author", i18n.get("mod.author"), false);

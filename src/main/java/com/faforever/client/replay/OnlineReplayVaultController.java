@@ -11,7 +11,7 @@ import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.main.event.ShowUserReplaysEvent;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
@@ -50,8 +50,8 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   private int playerId;
   private ReplayDetailController replayDetailController;
 
-  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService, ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
+  public OnlineReplayVaultController(ModService modService, LeaderboardService leaderboardService, ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, ReportingService reportingService, VaultPrefs vaultPrefs) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
     this.leaderboardService = leaderboardService;
     this.replayService = replayService;
     this.modService = modService;
@@ -115,10 +115,10 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
   protected void initSearchController() {
     searchController.setRootType(Game.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVault().onlineReplaySortConfigProperty());
+    searchController.setSortConfig(vaultPrefs.onlineReplaySortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(true);
     searchController.setVaultRoot(vaultRoot);
-    searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedReplayQueries());
+    searchController.setSavedQueries(vaultPrefs.getSavedReplayQueries());
 
     searchController.addTextFilter("playerStats.player.login", i18n.get("game.player.username"), true);
     searchController.addTextFilter("mapVersion.map.displayName", i18n.get("game.map.displayName"), false);

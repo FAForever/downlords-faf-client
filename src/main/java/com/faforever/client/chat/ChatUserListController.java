@@ -4,7 +4,7 @@ import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,9 +63,9 @@ public class ChatUserListController implements Controller<VBox> {
   private static final Comparator<ChatListItem> CHAT_LIST_ITEM_COMPARATOR = Comparator.comparing(ChatListItem::category)
       .thenComparing(ChatListItem::user, Comparator.nullsFirst(Comparator.comparing(ChatChannelUser::getUsername)));
 
-  private final PreferencesService preferencesService;
   private final UiService uiService;
   private final I18n i18n;
+  private final ChatPrefs chatPrefs;
   private final ObjectFactory<ChatListItemCell> chatListItemCellFactory;
 
   public VBox root;
@@ -106,8 +106,7 @@ public class ChatUserListController implements Controller<VBox> {
     unfilteredSource.clear();
 
     this.chatChannel = chatChannel;
-    hiddenCategories.bind(preferencesService.getPreferences()
-        .getChat()
+    hiddenCategories.bind(chatPrefs
         .getChannelNameToHiddenCategories()
         .map(nameToHidden -> nameToHidden.getOrDefault(this.chatChannel.getName(), FXCollections.observableSet())));
 

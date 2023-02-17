@@ -11,7 +11,7 @@ import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.util.JavaUtil;
 import com.faforever.commons.api.dto.CoturnServer;
@@ -69,8 +69,8 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final PlayerService playerService;
   private final EventBus eventBus;
   private final FafServerAccessor fafServerAccessor;
-  private final PreferencesService preferencesService;
   private final IceServerMapper iceServerMapper;
+  private final Preferences preferences;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
@@ -148,7 +148,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         .put("LOG_DIR", operatingSystem.getLoggingDirectory().resolve("iceAdapterLogs").toAbsolutePath().toString());
 
     log.info("Starting ICE adapter with command: {}", cmd);
-    boolean advancedIceLogEnabled = preferencesService.getPreferences().isAdvancedIceLogEnabled();
+    boolean advancedIceLogEnabled = preferences.isAdvancedIceLogEnabled();
     if (advancedIceLogEnabled) {
       advancedLogger.info("\n\n");
     }
@@ -207,7 +207,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         .toAbsolutePath()
         .toString());
 
-    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
+    ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
 
     if (!forgedAlliancePrefs.isAllowIpv6()) {
       cmd.add("-Dorg.ice4j.ipv6.DISABLED=true");

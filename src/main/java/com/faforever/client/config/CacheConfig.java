@@ -1,7 +1,7 @@
 package com.faforever.client.config;
 
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.interceptor.CacheErrorHandler;
@@ -61,7 +61,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 @Configuration
 @EnableCaching
-public class CacheConfig extends CachingConfigurerSupport {
+public class CacheConfig implements CachingConfigurer {
 
   @Bean
   @Override

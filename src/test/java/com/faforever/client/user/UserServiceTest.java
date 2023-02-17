@@ -320,7 +320,6 @@ public class UserServiceTest extends ServiceTest {
 
     LoginPrefs loginPrefs = preferences.getLogin();
     assertNull(loginPrefs.getRefreshToken());
-    verify(preferencesService).storeInBackground();
     verify(fafServerAccessor).disconnect();
     assertNull(instance.getOwnUser());
     verify(eventBus).post(any(LoggedOutEvent.class));

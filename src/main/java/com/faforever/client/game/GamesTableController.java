@@ -11,7 +11,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
@@ -60,8 +60,8 @@ public class GamesTableController implements Controller<Node> {
   private final I18n i18n;
   private final UiService uiService;
   private final ImageViewHelper imageViewHelper;
-  private final PreferencesService preferencesService;
   private final PlayerService playerService;
+  private final Preferences preferences;
 
   public TableView<GameBean> gamesTable;
   public TableColumn<GameBean, Image> mapPreviewColumn;
@@ -116,15 +116,14 @@ public class GamesTableController implements Controller<Node> {
     passwordProtectionColumn.setCellFactory(param -> passwordIndicatorColumn());
 
     mapPreviewColumn.setCellFactory(param -> new MapPreviewTableCell(imageViewHelper));
-    mapPreviewColumn.setCellValueFactory(param -> param.getValue().mapFolderNameProperty()
+    mapPreviewColumn.setCellValueFactory(param -> param.getValue()
+        .mapFolderNameProperty()
         .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL)));
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
-    playersColumn.setCellValueFactory(param -> Bindings.createObjectBinding(
-        () -> new PlayerFill(param.getValue().getNumActivePlayers(), param.getValue().getMaxPlayers()),
-        param.getValue().teamsProperty())
-    );
+    playersColumn.setCellValueFactory(param -> Bindings.createObjectBinding(() -> new PlayerFill(param.getValue()
+        .getNumActivePlayers(), param.getValue().getMaxPlayers()), param.getValue().teamsProperty()));
     playersColumn.setCellFactory(param -> playersCell());
     ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue()
         .getRatingMin(), param.getValue().getRatingMax())));
@@ -138,10 +137,7 @@ public class GamesTableController implements Controller<Node> {
     if (averageRatingColumn != null) {
       averageRatingColumn.setCellValueFactory(param -> Bindings.createDoubleBinding(() -> param.getValue()
           .getAverageRating(), param.getValue().teamsProperty()));
-      averageRatingColumn.setCellFactory(param -> new DecimalCell<>(
-          new DecimalFormat("0"),
-          number -> Math.round(number.doubleValue() / 100.0) * 100.0)
-      );
+      averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"), number -> Math.round(number.doubleValue() / 100.0) * 100.0));
     }
 
     if (coopMissionNameProvider != null) {
@@ -154,12 +150,8 @@ public class GamesTableController implements Controller<Node> {
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences && coopMissionNameProvider == null) {
-      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences()
-          .hideModdedGamesProperty(), observable -> modsColumn.setVisible(!preferencesService.getPreferences()
-          .isHideModdedGames()));
-      JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences()
-          .hidePrivateGamesProperty(), observable -> passwordProtectionColumn.setVisible(!preferencesService.getPreferences()
-          .isHidePrivateGames()));
+      JavaFxUtil.addAndTriggerListener(preferences.hideModdedGamesProperty(), observable -> modsColumn.setVisible(!preferences.isHideModdedGames()));
+      JavaFxUtil.addAndTriggerListener(preferences.hidePrivateGamesProperty(), observable -> passwordProtectionColumn.setVisible(!preferences.isHidePrivateGames()));
     }
 
     selectFirstGame();
@@ -170,7 +162,7 @@ public class GamesTableController implements Controller<Node> {
   }
 
   private void applyLastSorting(TableView<GameBean> gamesTable) {
-    final Map<String, SortType> lookup = new HashMap<>(preferencesService.getPreferences().getGameTableSorting());
+    final Map<String, SortType> lookup = new HashMap<>(preferences.getGameTableSorting());
     final ObservableList<TableColumn<GameBean, ?>> sortOrder = gamesTable.getSortOrder();
     sortOrder.clear();
     gamesTable.getColumns().forEach(gameTableColumn -> {
@@ -182,20 +174,15 @@ public class GamesTableController implements Controller<Node> {
   }
 
   private void onColumnSorted(@NotNull SortEvent<TableView<GameBean>> event) {
-    ObservableMap<String, SortType> gameListSorting = preferencesService.getPreferences().getGameTableSorting();
+    ObservableMap<String, SortType> gameListSorting = preferences.getGameTableSorting();
 
     gameListSorting.clear();
-    event.getSource().getSortOrder()
-        .forEach(column -> gameListSorting.put(column.getId(), column.getSortType()));
-
-    preferencesService.storeInBackground();
+    event.getSource().getSortOrder().forEach(column -> gameListSorting.put(column.getId(), column.getSortType()));
   }
 
   @NotNull
   private String convertSimModsToContent(Map<String, String> simMods) {
-    List<String> modNames = simMods.values().stream()
-        .limit(2)
-        .collect(Collectors.toList());
+    List<String> modNames = simMods.values().stream().limit(2).collect(Collectors.toList());
 
     if (simMods.size() > 2) {
       return i18n.get("game.mods.twoAndMore", modNames.get(0), simMods.size() - 1);
@@ -214,8 +201,7 @@ public class GamesTableController implements Controller<Node> {
           pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, false);
         } else {
           setTooltip(tooltip);
-          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game)
-              && game.getGameType() != GameType.COOP); // do not highlight coop games
+          pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, playerService.areFriendsInGame(game) && game.getGameType() != GameType.COOP); // do not highlight coop games
         }
       }
     };
@@ -239,13 +225,11 @@ public class GamesTableController implements Controller<Node> {
   }
 
   private TableCell<GameBean, Boolean> passwordIndicatorColumn() {
-    return new IconCell<>(
-        isPasswordProtected -> isPasswordProtected ? "lock-icon" : "");
+    return new IconCell<>(isPasswordProtected -> isPasswordProtected ? "lock-icon" : "");
   }
 
   private TableCell<GameBean, PlayerFill> playersCell() {
-    return new StringCell<>(playerFill -> i18n.get("game.players.format",
-        playerFill.getPlayers(), playerFill.getMaxPlayers()));
+    return new StringCell<>(playerFill -> i18n.get("game.players.format", playerFill.getPlayers(), playerFill.getMaxPlayers()));
   }
 
   private TableCell<GameBean, RatingRange> ratingTableCell() {

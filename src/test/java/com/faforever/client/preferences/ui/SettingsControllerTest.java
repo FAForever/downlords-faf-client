@@ -66,7 +66,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -240,7 +239,6 @@ public class SettingsControllerTest extends UITest {
 
     assertEquals(1, preferredCoturnServers.size());
     assertTrue(preferredCoturnServers.contains(new CoturnHostPort("Test", null)));
-    verify(preferenceService, times(4)).storeInBackground();
 
     runOnFxThreadAndWait(() -> instance.initialize());
 

@@ -362,7 +362,6 @@ public class PlayerServiceTest extends ServiceTest {
     assertFalse(instance.getNotesByPlayerId().containsKey(2));
     instance.updateNote(player, "junit");
     assertTrue(instance.getNotesByPlayerId().containsKey(2));
-    verify(preferencesService).storeInBackground();
   }
 
   @Test
@@ -371,7 +370,6 @@ public class PlayerServiceTest extends ServiceTest {
     assertTrue(instance.getNotesByPlayerId().containsKey(3));
     instance.updateNote(player, "updated");
     assertEquals("updated", instance.getNotesByPlayerId().get(3));
-    verify(preferencesService).storeInBackground();
   }
 
   @Test
@@ -380,7 +378,6 @@ public class PlayerServiceTest extends ServiceTest {
     assertTrue(instance.getNotesByPlayerId().containsKey(3));
     instance.removeNote(player);
     assertFalse(instance.getNotesByPlayerId().containsKey(3));
-    verify(preferencesService).storeInBackground();
   }
 
   @Test

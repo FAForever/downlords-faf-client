@@ -6,7 +6,7 @@ import ch.qos.logback.classic.util.ContextInitializer;
 import ch.qos.logback.core.joran.spi.JoranException;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DeveloperPrefs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class LoggingService implements InitializingBean {
   private static final int NUMBER_GAME_LOGS_STORED = 10;
 
   private final OperatingSystem operatingSystem;
-  private final PreferencesService preferencesService;
+  private final DeveloperPrefs developerPrefs;
 
   @Override
   public void afterPropertiesSet() throws IOException, InterruptedException, JoranException {
@@ -63,7 +63,7 @@ public class LoggingService implements InitializingBean {
     ContextInitializer ci = new ContextInitializer(loggerContext);
     ci.configureByResource(LoggingService.class.getResource("/logback-spring.xml"));
 
-    JavaFxUtil.addAndTriggerListener(preferencesService.getPreferences().getDeveloper().logLevelProperty(), (observable) -> setLoggingLevel());
+    JavaFxUtil.addAndTriggerListener(developerPrefs.logLevelProperty(), (observable) -> setLoggingLevel());
   }
 
   public Path getNewGameLogFile(int gameUID) {
@@ -96,8 +96,7 @@ public class LoggingService implements InitializingBean {
   }
 
   public void setLoggingLevel() {
-    preferencesService.storeInBackground();
-    Level targetLogLevel = Level.toLevel(preferencesService.getPreferences().getDeveloper().getLogLevel());
+    Level targetLogLevel = Level.toLevel(developerPrefs.getLogLevel());
     final LoggerContext loggerContext = ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(MethodHandles.lookup().lookupClass())).getLoggerContext();
     loggerContext.getLoggerList()
         .stream()

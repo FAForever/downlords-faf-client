@@ -10,14 +10,15 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
-import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JoinGameHelper {
 
   private final I18n i18n;
@@ -35,20 +37,9 @@ public class JoinGameHelper {
   private final GameService gameService;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
-  private final ReportingService reportingService;
   private final UiService uiService;
   private final EventBus eventBus;
-
-  public JoinGameHelper(I18n i18n, PlayerService playerService, GameService gameService, PreferencesService preferencesService, NotificationService notificationService, ReportingService reportingService, UiService uiService, EventBus eventBus) {
-    this.i18n = i18n;
-    this.playerService = playerService;
-    this.gameService = gameService;
-    this.preferencesService = preferencesService;
-    this.notificationService = notificationService;
-    this.reportingService = reportingService;
-    this.uiService = uiService;
-    this.eventBus = eventBus;
-  }
+  private final Preferences preferences;
 
   public void join(GameBean game) {
     this.join(game, null, false);
@@ -108,7 +99,7 @@ public class JoinGameHelper {
   @Subscribe
   public void onDiscordGameJoinEvent(DiscordJoinEvent discordJoinEvent) {
     Integer gameId = discordJoinEvent.getGameId();
-    boolean disallowJoinsViaDiscord = preferencesService.getPreferences().isDisallowJoinsViaDiscord();
+    boolean disallowJoinsViaDiscord = preferences.isDisallowJoinsViaDiscord();
     if (disallowJoinsViaDiscord) {
       log.info("Join was requested via Discord but was rejected due to it being disabled in settings");
       return;

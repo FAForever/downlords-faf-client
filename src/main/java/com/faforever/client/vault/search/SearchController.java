@@ -163,14 +163,10 @@ public class SearchController implements Controller<Pane> {
 
     sortPropertyComboBox.getSelectionModel().select(savedSortProperty);
 
-    sortPropertyComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-      sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), sortOrderChoiceBox.getValue()));
-      preferencesService.storeInBackground();
-    });
-    sortOrderChoiceBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-      sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), newValue));
-      preferencesService.storeInBackground();
-    });
+    sortPropertyComboBox.valueProperty().addListener((observable, oldValue, newValue) ->
+        sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), sortOrderChoiceBox.getValue())));
+    sortOrderChoiceBox.valueProperty().addListener((observable, oldValue, newValue) ->
+        sortConfigObjectProperty.set(new SortConfig(getCurrentEntityKey(), newValue)));
   }
 
   private void addInvalidationListener(LogicalNodeController logicalNodeController) {
@@ -249,10 +245,7 @@ public class SearchController implements Controller<Pane> {
     saveQueryController.setQueries(savedQueries);
     saveQueryController.setQuery(queryTextField.getText());
     Dialog dialog = uiService.showInDialog(vaultRoot, saveQueryController.getRoot(), i18n.get("vault.saveQuery"));
-    saveQueryController.setOnCloseButtonClickedListener(() -> {
-      dialog.close();
-      preferencesService.storeInBackground();
-    });
+    saveQueryController.setOnCloseButtonClickedListener(dialog::close);
   }
 
   public void onSearchTypeButtonClicked() {

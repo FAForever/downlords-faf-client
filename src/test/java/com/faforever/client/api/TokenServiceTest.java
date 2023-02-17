@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class TokenServiceTest extends ServiceTest {
 
@@ -61,9 +60,7 @@ public class TokenServiceTest extends ServiceTest {
     oauth.setRedirectUri(URI.create("http://localhost"));
     preferences = PreferencesBuilder.create().defaultValues().loginPrefs().refreshToken("abc").then().get();
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    instance = new TokenService(clientProperties, preferencesService, eventBus, WebClient.builder());
+    instance = new TokenService(clientProperties, preferencesService, eventBus, WebClient.builder(), preferences.getLoginPrefs());
     instance.afterPropertiesSet();
 
     verify(eventBus).register(instance);

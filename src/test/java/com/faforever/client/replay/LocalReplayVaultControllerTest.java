@@ -5,8 +5,8 @@ import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
@@ -60,9 +60,7 @@ public class LocalReplayVaultControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     instance = new LocalReplayVaultController(replayService, uiService, notificationService, i18n, eventBus,
-        preferencesService, reportingService);
-
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
+        reportingService, new VaultPrefs());
 
     doAnswer(invocation -> {
       replayDetailController = mock(ReplayDetailController.class);

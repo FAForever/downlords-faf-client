@@ -2,7 +2,7 @@ package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.util.Assert;
@@ -20,10 +20,10 @@ import static com.faforever.client.chat.ChatColorMode.RANDOM;
 @RequiredArgsConstructor
 public class ChangeUsernameColorMenuItem extends AbstractMenuItem<ChatChannelUser> {
 
-  private final PreferencesService preferencesService;
   private final UiService uiService;
   private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final ChatPrefs chatPrefs;
 
   @Override
   protected void onClicked() {
@@ -38,7 +38,7 @@ public class ChangeUsernameColorMenuItem extends AbstractMenuItem<ChatChannelUse
 
   @Override
   protected boolean isDisplayed() {
-    return object != null && !preferencesService.getPreferences().getChat().getChatColorMode().equals(RANDOM);
+    return object != null && !chatPrefs.getChatColorMode().equals(RANDOM);
   }
 
   @Override

@@ -29,7 +29,9 @@ import com.faforever.client.notification.ServerNotificationController;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.theme.UiService;
@@ -111,7 +113,6 @@ public class MainController implements Controller<Node>, InitializingBean {
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
 
   private final Cache<NavigationItem, AbstractViewController<?>> viewCache = CacheBuilder.newBuilder().build();
-  private final PreferencesService preferencesService;
   private final ClientProperties clientProperties;
   private final I18n i18n;
   private final NotificationService notificationService;
@@ -122,6 +123,10 @@ public class MainController implements Controller<Node>, InitializingBean {
   private final OperatingSystem operatingSystem;
   private final Environment environment;
   private final VaultPathHandler vaultPathHandler;
+  private final NotificationPrefs notificationPrefs;
+  private final WindowPrefs windowPrefs;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final DataPrefs dataPrefs;
 
   public Pane mainHeaderPane;
   public Pane contentPane;
@@ -163,7 +168,7 @@ public class MainController implements Controller<Node>, InitializingBean {
    */
   private static void hideSplashScreen() {
     try {
-      final Class splashScreenClass = Class.forName("com.install4j.api.launcher.SplashScreen");
+      final Class<?> splashScreenClass = Class.forName("com.install4j.api.launcher.SplashScreen");
       final Method hideMethod = splashScreenClass.getDeclaredMethod("hide");
       hideMethod.invoke(null);
     } catch (ClassNotFoundException e) {
@@ -289,7 +294,7 @@ public class MainController implements Controller<Node>, InitializingBean {
   private Rectangle2D getTransientNotificationAreaBounds() {
     ObservableList<Screen> screens = Screen.getScreens();
 
-    int toastScreenIndex = preferencesService.getPreferences().getNotification().getToastScreen();
+    int toastScreenIndex = notificationPrefs.getToastScreen();
     Screen screen;
     if (toastScreenIndex < screens.size()) {
       screen = screens.get(Math.max(0, toastScreenIndex));
@@ -323,11 +328,10 @@ public class MainController implements Controller<Node>, InitializingBean {
     eventBus.post(UpdateApplicationBadgeEvent.ofNewValue(0));
 
     Stage stage = StageHolder.getStage();
-    setBackgroundImage(preferencesService.getPreferences().getMainWindow().getBackgroundImagePath());
+    setBackgroundImage(windowPrefs.getBackgroundImagePath());
 
-    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
-    int width = mainWindowPrefs.getWidth();
-    int height = mainWindowPrefs.getHeight();
+    int width = windowPrefs.getWidth();
+    int height = windowPrefs.getHeight();
 
     stage.setMinWidth(10);
     stage.setMinHeight(10);
@@ -339,9 +343,9 @@ public class MainController implements Controller<Node>, InitializingBean {
     enterLoggedOutState();
 
     JavaFxUtil.assertApplicationThread();
-    stage.setMaximized(mainWindowPrefs.getMaximized());
+    stage.setMaximized(windowPrefs.getMaximized());
     if (!stage.isMaximized()) {
-      setWindowPosition(stage, mainWindowPrefs);
+      setWindowPosition(stage, windowPrefs);
     }
     registerWindowListeners();
   }
@@ -372,40 +376,34 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   private void registerWindowListeners() {
     Stage stage = fxStage.getStage();
-    final WindowPrefs mainWindowPrefs = preferencesService.getPreferences().getMainWindow();
     JavaFxUtil.addListener(stage.heightProperty(), (observable, oldValue, newValue) -> {
       if (!stage.isMaximized()) {
-        mainWindowPrefs.setHeight(newValue.intValue());
-        preferencesService.storeInBackground();
+        windowPrefs.setHeight(newValue.intValue());
       }
     });
     JavaFxUtil.addListener(stage.widthProperty(), (observable, oldValue, newValue) -> {
       if (!stage.isMaximized()) {
-        mainWindowPrefs.setWidth(newValue.intValue());
-        preferencesService.storeInBackground();
+        windowPrefs.setWidth(newValue.intValue());
       }
     });
     JavaFxUtil.addListener(stage.xProperty(), observable -> {
       if (!stage.isMaximized()) {
-        mainWindowPrefs.setX(stage.getX());
-        preferencesService.storeInBackground();
+        windowPrefs.setX(stage.getX());
       }
     });
     JavaFxUtil.addListener(stage.yProperty(), observable -> {
       if (!stage.isMaximized()) {
-        mainWindowPrefs.setY(stage.getY());
-        preferencesService.storeInBackground();
+        windowPrefs.setY(stage.getY());
       }
     });
     JavaFxUtil.addListener(stage.maximizedProperty(), observable -> {
-      mainWindowPrefs.setMaximized(stage.isMaximized());
-      preferencesService.storeInBackground();
+      windowPrefs.setMaximized(stage.isMaximized());
       if (!stage.isMaximized()) {
-        setWindowPosition(stage, mainWindowPrefs);
+        setWindowPosition(stage, windowPrefs);
       }
     });
-    JavaFxUtil.addListener(mainWindowPrefs.backgroundImagePathProperty(), observable ->
-        setBackgroundImage(mainWindowPrefs.getBackgroundImagePath()));
+    JavaFxUtil.addListener(windowPrefs.backgroundImagePathProperty(), observable ->
+        setBackgroundImage(windowPrefs.getBackgroundImagePath()));
   }
 
   private void setBackgroundImage(Path filepath) {
@@ -446,18 +444,16 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   @VisibleForTesting
   void openStartTab() {
-    final WindowPrefs mainWindow = preferencesService.getPreferences().getMainWindow();
-    NavigationItem navigationItem = mainWindow.getNavigationItem();
+    NavigationItem navigationItem = windowPrefs.getNavigationItem();
     if (navigationItem == null) {
       navigationItem = NavigationItem.NEWS;
-      askUserForPreferenceOverStartTab(mainWindow);
+      askUserForPreferenceOverStartTab(windowPrefs);
     }
     eventBus.post(new NavigateEvent(navigationItem));
   }
 
   private void askUserForPreferenceOverStartTab(WindowPrefs mainWindow) {
     mainWindow.setNavigationItem(NavigationItem.NEWS);
-    preferencesService.storeInBackground();
     List<Action> actions = Collections.singletonList(new Action(i18n.get("startTab.configure"), event ->
         makePopUpAskingForPreferenceInStartTab(mainWindow)));
     notificationService.addNotification(new PersistentNotification(i18n.get("startTab.wantToConfigure"), Severity.INFO, actions));
@@ -468,7 +464,6 @@ public class MainController implements Controller<Node>, InitializingBean {
     Action saveAction = new Action(i18n.get("startTab.save"), event -> {
       NavigationItem newSelection = startTabChooseController.getSelected();
       mainWindow.setNavigationItem(newSelection);
-      preferencesService.storeInBackground();
       eventBus.post(new NavigateEvent(newSelection));
     });
     ImmediateNotification notification =
@@ -497,7 +492,6 @@ public class MainController implements Controller<Node>, InitializingBean {
       public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
         if (!newValue) {
           stage.showingProperty().removeListener(this);
-          preferencesService.storeInBackground();
         }
       }
     });
@@ -549,12 +543,12 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   public void onRevealMapFolder() {
-    Path mapPath = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
+    Path mapPath = forgedAlliancePrefs.getMapsDirectory();
     this.platformService.reveal(mapPath);
   }
 
   public void onRevealModFolder() {
-    Path modPath = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
+    Path modPath = forgedAlliancePrefs.getModsDirectory();
     this.platformService.reveal(modPath);
   }
 
@@ -563,18 +557,15 @@ public class MainController implements Controller<Node>, InitializingBean {
   }
 
   public void onRevealReplayFolder() {
-    Path replayPath = preferencesService.getPreferences().getData().getReplaysDirectory();
-    this.platformService.reveal(replayPath);
+    this.platformService.reveal(dataPrefs.getReplaysDirectory());
   }
 
   public void onRevealGamePrefsFolder() {
-    Path gamePrefsPath = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
-    this.platformService.reveal(gamePrefsPath);
+    this.platformService.reveal(forgedAlliancePrefs.getPreferencesFile());
   }
 
   public void onRevealDataFolder() {
-    Path dataPath = preferencesService.getPreferences().getData().getBaseDataDirectory();
-    this.platformService.reveal(dataPath);
+    this.platformService.reveal(dataPrefs.getBaseDataDirectory());
   }
 
   public void onChat(ActionEvent actionEvent) {
@@ -632,7 +623,7 @@ public class MainController implements Controller<Node>, InitializingBean {
 
     @Override
     public void invalidated(Observable observable) {
-      boolean enabled = preferencesService.getPreferences().getNotification().isTransientNotificationsEnabled();
+      boolean enabled = notificationPrefs.isTransientNotificationsEnabled();
       if (transientNotificationsController.getRoot().getChildren().isEmpty() || !enabled) {
         transientNotificationsPopup.hide();
         return;
@@ -641,7 +632,7 @@ public class MainController implements Controller<Node>, InitializingBean {
       Rectangle2D visualBounds = getTransientNotificationAreaBounds();
       double anchorX = visualBounds.getMaxX() - 1;
       double anchorY = visualBounds.getMaxY() - 1;
-      AnchorLocation location = switch (preferencesService.getPreferences().getNotification().toastPositionProperty().get()) {
+      AnchorLocation location = switch (notificationPrefs.getToastPosition()) {
         case BOTTOM_RIGHT -> AnchorLocation.CONTENT_BOTTOM_RIGHT;
         case TOP_RIGHT -> {
           anchorY = visualBounds.getMinY();

@@ -63,7 +63,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -143,7 +142,6 @@ public class CreateGameControllerTest extends UITest {
     assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
     instance.onlyForFriendsCheckBox.setSelected(false);
     assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
-    verify(preferencesService, times(3)).storeInBackground();
   }
 
   @Test
@@ -479,7 +477,6 @@ public class CreateGameControllerTest extends UITest {
   public void testPasswordIsSaved() {
     instance.passwordTextField.setText("1234");
     assertEquals(preferences.getLastGame().getLastGamePassword(), "1234");
-    verify(preferencesService, times(2)).storeInBackground();
   }
 
   @Test

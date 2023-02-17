@@ -8,7 +8,8 @@ import com.faforever.client.exception.FxmlLoadException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.dialog.Dialog.DialogTransition;
 import com.faforever.client.ui.dialog.DialogLayout;
@@ -30,6 +31,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.DisposableBean;
@@ -79,12 +81,11 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 @Lazy
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UiService implements InitializingBean, DisposableBean {
 
   public static final String GENERATED_MAP_IMAGE = "theme/images/generatedMapIcon.png";
   public static final String NO_IMAGE_AVAILABLE = "images/no_image_available.png";
-  //TODO: Create Images for News Categories
-  public static final String LADDER_LOADING_GIF = "theme/images/ladder_loading.gif";
   public static final String SERVER_UPDATE_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   public static final String LADDER_NEWS_IMAGE = "theme/images/news_fallback.jpg";
   public static final String TOURNAMENT_NEWS_IMAGE = "theme/images/news_fallback.jpg";
@@ -102,7 +103,6 @@ public class UiService implements InitializingBean, DisposableBean {
   public static final String DEFAULT_ACHIEVEMENT_IMAGE = "theme/images/default_achievement.png";
   public static final String MENTION_SOUND = "theme/sounds/userMentionSound.mp3";
   public static final String CSS_CLASS_ICON = "icon";
-  public static final String LADDER_1V1_IMAGE = "theme/images/ranked1v1_notification.png";
   public static final String CHAT_CONTAINER = "theme/chat/chat_container.html";
   public static final String CHAT_SECTION_EXTENDED = "theme/chat/extended/chat_section.html";
   public static final String CHAT_SECTION_COMPACT = "theme/chat/compact/chat_section.html";
@@ -124,40 +124,28 @@ public class UiService implements InitializingBean, DisposableBean {
    */
   private static final int THEME_VERSION = 1;
   private static final String METADATA_FILE_NAME = "theme.properties";
-  private final Set<Scene> scenes;
-  private final Set<WeakReference<WebView>> webViews;
 
-  private final PreferencesService preferencesService;
   private final ExecutorService executorService;
   private final CacheManager cacheManager;
   private final MessageSource messageSource;
   private final ApplicationContext applicationContext;
   private final I18n i18n;
+  private final DataPrefs dataPrefs;
+  private final Preferences preferences;
+
+  private final Set<Scene> scenes = Collections.synchronizedSet(new HashSet<>());
+  private final Set<WeakReference<WebView>> webViews = new HashSet<>();
+  private final ObservableMap<String, Theme> themesByFolderName = FXCollections.observableHashMap();
+  private final Map<Theme, String> folderNamesByTheme = new HashMap<>();
+  private final Map<Path, WatchKey> watchKeys = new HashMap<>();
+  private final ObjectProperty<Theme> currentTheme = new SimpleObjectProperty<>(DEFAULT_THEME);
 
   private WatchService watchService;
-  private final ObservableMap<String, Theme> themesByFolderName;
-  private final Map<Theme, String> folderNamesByTheme;
-  private final Map<Path, WatchKey> watchKeys;
-  private final ObjectProperty<Theme> currentTheme;
   private Path currentTempStyleSheet;
   private MessageSourceResourceBundle resources;
 
-  public UiService(PreferencesService preferencesService, ExecutorService executorService,
-                   CacheManager cacheManager, MessageSource messageSource, ApplicationContext applicationContext,
-                   I18n i18n) {
-    this.i18n = i18n;
-    this.preferencesService = preferencesService;
-    this.executorService = executorService;
-    this.cacheManager = cacheManager;
-    this.messageSource = messageSource;
-    this.applicationContext = applicationContext;
-
-    scenes = Collections.synchronizedSet(new HashSet<>());
-    webViews = new HashSet<>();
-    watchKeys = new HashMap<>();
-    currentTheme = new SimpleObjectProperty<>(DEFAULT_THEME);
-    folderNamesByTheme = new HashMap<>();
-    themesByFolderName = FXCollections.observableHashMap();
+  @Override
+  public void afterPropertiesSet() throws IOException {
     themesByFolderName.addListener((MapChangeListener<String, Theme>) change -> {
       if (change.wasRemoved()) {
         folderNamesByTheme.remove(change.getValueRemoved());
@@ -166,17 +154,14 @@ public class UiService implements InitializingBean, DisposableBean {
         folderNamesByTheme.put(change.getValueAdded(), change.getKey());
       }
     });
-  }
 
-  @Override
-  public void afterPropertiesSet() throws IOException {
     resources = new MessageSourceResourceBundle(messageSource, i18n.getUserSpecificLocale());
-    Path themesDirectory = preferencesService.getPreferences().getData().getThemesDirectory();
+    Path themesDirectory = dataPrefs.getThemesDirectory();
     startWatchService(themesDirectory);
     deleteStylesheetsCacheDirectory();
     loadThemes();
 
-    String storedTheme = preferencesService.getPreferences().getThemeName();
+    String storedTheme = preferences.getThemeName();
     if (themesByFolderName.containsKey(storedTheme)) {
       setTheme(themesByFolderName.get(storedTheme));
     } else {
@@ -188,7 +173,7 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private void deleteStylesheetsCacheDirectory() {
-    Path cacheStylesheetsDirectory = preferencesService.getPreferences().getData().getCacheStylesheetsDirectory();
+    Path cacheStylesheetsDirectory = dataPrefs.getCacheStylesheetsDirectory();
     if (Files.exists(cacheStylesheetsDirectory)) {
       try {
         FileSystemUtils.deleteRecursively(cacheStylesheetsDirectory);
@@ -340,12 +325,11 @@ public class UiService implements InitializingBean, DisposableBean {
     stopWatchingOldThemes();
 
     if (theme == DEFAULT_THEME) {
-      preferencesService.getPreferences().setThemeName(DEFAULT_THEME_NAME);
+      preferences.setThemeName(DEFAULT_THEME_NAME);
     } else {
       watchTheme(theme);
-      preferencesService.getPreferences().setThemeName(getThemeDirectory(theme).getFileName().toString());
+      preferences.setThemeName(getThemeDirectory(theme).getFileName().toString());
     }
-    preferencesService.storeInBackground();
     currentTheme.set(theme);
     cacheManager.getCache(CacheNames.THEME_IMAGES).clear();
     reloadStylesheet();
@@ -409,12 +393,12 @@ public class UiService implements InitializingBean, DisposableBean {
     themesByFolderName.clear();
     themesByFolderName.put(DEFAULT_THEME_NAME, DEFAULT_THEME);
     try {
-      Files.createDirectories(preferencesService.getPreferences().getData().getThemesDirectory());
-      try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(preferencesService.getPreferences().getData().getThemesDirectory())) {
+      Files.createDirectories(dataPrefs.getThemesDirectory());
+      try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dataPrefs.getThemesDirectory())) {
         directoryStream.forEach(this::addThemeDirectory);
       }
     } catch (IOException e) {
-      throw new AssetLoadException("Could not load themes from " + preferencesService.getPreferences().getData().getThemesDirectory(), e, "theme.couldNotLoad", e.getLocalizedMessage());
+      throw new AssetLoadException("Could not load themes from " + dataPrefs.getThemesDirectory(), e, "theme.couldNotLoad", e.getLocalizedMessage());
     }
   }
 
@@ -457,7 +441,7 @@ public class UiService implements InitializingBean, DisposableBean {
   }
 
   private Path getThemeDirectory(Theme theme) {
-    return preferencesService.getPreferences().getData().getThemesDirectory().resolve(folderNamesByTheme.get(theme));
+    return dataPrefs.getThemesDirectory().resolve(folderNamesByTheme.get(theme));
   }
 
   private String getWebViewStyleSheet() {
@@ -472,7 +456,7 @@ public class UiService implements InitializingBean, DisposableBean {
   private void loadWebViewsStyleSheet(String styleSheetUrl) {
     try {
       // Always copy to a new file since WebView locks the loaded one
-      Path stylesheetsCacheDirectory = preferencesService.getPreferences().getData().getCacheStylesheetsDirectory();
+      Path stylesheetsCacheDirectory = dataPrefs.getCacheStylesheetsDirectory();
 
       Files.createDirectories(stylesheetsCacheDirectory);
 

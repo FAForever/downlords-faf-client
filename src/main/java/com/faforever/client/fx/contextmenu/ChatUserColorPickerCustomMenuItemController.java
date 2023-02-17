@@ -5,9 +5,7 @@ import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.util.Assert;
-import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.control.Button;
@@ -32,16 +30,12 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
   public ColorPicker colorPicker;
   public Button removeCustomColorButton;
 
-  private final PreferencesService preferencesService;
-  private final EventBus eventBus;
+  private final ChatPrefs chatPrefs;
 
-  private ChatPrefs chatPrefs;
-  private InvalidationListener colorPickerValuePropertyListener;
   private InvalidationListener chatColorModePropertyListener;
 
   @Override
   public void initialize() {
-    chatPrefs = preferencesService.getPreferences().getChat();
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
     JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
   }
@@ -59,31 +53,31 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
       removeCustomColorButton.setVisible(!chatColorMode.equals(RANDOM) && colorPicker.getValue() != null);
       getRoot().setVisible(isItemVisible());
     });
-    colorPickerValuePropertyListener = (observable) -> {
-      ChatChannelUser chatUser = object;
-      ChatUserCategory userCategory;
-      if (chatUser.isModerator()) {
-        userCategory = ChatUserCategory.MODERATOR;
-      } else {
-        userCategory = chatUser.getCategories()
-            .stream()
-            .filter(category -> category != ChatUserCategory.MODERATOR)
-            .findFirst()
-            .orElse(ChatUserCategory.OTHER);
-      }
-      Color newColor = colorPicker.getValue();
-      if (newColor == null) {
-        chatPrefs.getUserToColor().remove(getLowerUsername(chatUser));
-        chatUser.setColor(chatPrefs.getGroupToColor().getOrDefault(userCategory, null));
-      } else {
-        chatPrefs.getUserToColor().put(getLowerUsername(chatUser), newColor);
-        chatUser.setColor(newColor);
-      }
-    };
-    WeakInvalidationListener weakChatColorModePropertyListener = new WeakInvalidationListener(chatColorModePropertyListener);
-    JavaFxUtil.addListener(colorPicker.valueProperty(), weakChatColorModePropertyListener);
-    JavaFxUtil.addAndTriggerListener(chatPrefs.chatColorModeProperty(), weakChatColorModePropertyListener);
-    JavaFxUtil.addListener(colorPicker.valueProperty(), new WeakInvalidationListener(colorPickerValuePropertyListener));
+
+    JavaFxUtil.addListener(colorPicker.valueProperty(), chatColorModePropertyListener);
+    JavaFxUtil.addAndTriggerListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModePropertyListener));
+    JavaFxUtil.addListener(colorPicker.valueProperty(), (observable) -> updateUserColor());
+  }
+
+  private void updateUserColor() {
+    ChatUserCategory userCategory;
+    if (object.isModerator()) {
+      userCategory = ChatUserCategory.MODERATOR;
+    } else {
+      userCategory = object.getCategories()
+          .stream()
+          .filter(category -> category != ChatUserCategory.MODERATOR)
+          .findFirst()
+          .orElse(ChatUserCategory.OTHER);
+    }
+    Color newColor = colorPicker.getValue();
+    if (newColor == null) {
+      chatPrefs.getUserToColor().remove(getLowerUsername(object));
+      object.setColor(chatPrefs.getGroupToColor().getOrDefault(userCategory, null));
+    } else {
+      chatPrefs.getUserToColor().put(getLowerUsername(object), newColor);
+      object.setColor(newColor);
+    }
   }
 
   @Override

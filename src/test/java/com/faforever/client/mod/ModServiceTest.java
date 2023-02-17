@@ -501,7 +501,7 @@ public class ModServiceTest extends UITest {
   }
 
   private InstallModTask stubInstallModTask() {
-    return new InstallModTask(preferencesService, i18n) {
+    return new InstallModTask(i18n, dataPrefs, forgedAlliancePrefs) {
       @Override
       protected Void call() {
         return null;

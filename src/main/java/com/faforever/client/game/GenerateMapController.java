@@ -10,7 +10,6 @@ import com.faforever.client.map.generator.OutdatedVersionException;
 import com.faforever.client.map.generator.UnsupportedVersionException;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -55,10 +54,12 @@ public class GenerateMapController implements Controller<Pane> {
 
   public static final double MIN_MAP_SIZE_STEP = 1.25;
   public static final double KM_TO_PIXEL_FACTOR = 51.2;
-  private final PreferencesService preferencesService;
+
   private final NotificationService notificationService;
   private final MapGeneratorService mapGeneratorService;
   private final I18n i18n;
+  private final GeneratorPrefs generatorPrefs;
+
   public CreateGameController createGameController;
   public Pane generateMapRoot;
   public Button generateMapButton;
@@ -112,18 +113,17 @@ public class GenerateMapController implements Controller<Pane> {
     initNumTeamsSpinner();
     initSpawnCountSpinner();
     initMapSizeSpinner();
-    GeneratorPrefs genPrefs = preferencesService.getPreferences().getGenerator();
-    initOptionSlider(genPrefs.waterDensityProperty(), genPrefs.waterRandomProperty(),
+    initOptionSlider(generatorPrefs.waterDensityProperty(), generatorPrefs.waterRandomProperty(),
         waterSlider, waterSliderBox, waterRandom, waterRandomBox);
-    initOptionSlider(genPrefs.plateauDensityProperty(), genPrefs.plateauRandomProperty(),
+    initOptionSlider(generatorPrefs.plateauDensityProperty(), generatorPrefs.plateauRandomProperty(),
         plateauSlider, plateauSliderBox, plateauRandom, plateauRandomBox);
-    initOptionSlider(genPrefs.mountainDensityProperty(), genPrefs.mountainRandomProperty(),
+    initOptionSlider(generatorPrefs.mountainDensityProperty(), generatorPrefs.mountainRandomProperty(),
         mountainSlider, mountainSliderBox, mountainRandom, mountainRandomBox);
-    initOptionSlider(genPrefs.rampDensityProperty(), genPrefs.rampRandomProperty(),
+    initOptionSlider(generatorPrefs.rampDensityProperty(), generatorPrefs.rampRandomProperty(),
         rampSlider, rampSliderBox, rampRandom, rampRandomBox);
-    initOptionSlider(genPrefs.mexDensityProperty(), genPrefs.mexRandomProperty(),
+    initOptionSlider(generatorPrefs.mexDensityProperty(), generatorPrefs.mexRandomProperty(),
         mexSlider, mexSliderBox, mexRandom, mexRandomBox);
-    initOptionSlider(genPrefs.reclaimDensityProperty(), genPrefs.reclaimRandomProperty(),
+    initOptionSlider(generatorPrefs.reclaimDensityProperty(), generatorPrefs.reclaimRandomProperty(),
         reclaimSlider, reclaimSliderBox, reclaimRandom, reclaimRandomBox);
   }
 
@@ -160,7 +160,6 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   private void initCommandlineArgs() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     String commandLineArgs = generatorPrefs.getCommandLineArgs();
     commandLineArgsText.setText(commandLineArgs);
     generatorPrefs.commandLineArgsProperty().bind(commandLineArgsText.textProperty());
@@ -172,7 +171,6 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   private void initGenerationTypeComboBox() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     GenerationType generationType = generatorPrefs.getGenerationType();
     generationTypeComboBox.setItems(FXCollections.observableArrayList(GenerationType.values()));
     generationTypeComboBox.setConverter(getGenerationTypeConverter());
@@ -183,7 +181,6 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   private void initNumTeamsSpinner() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     int numTeamsProperty = generatorPrefs.getNumTeams();
     numTeamsSpinner.setValueFactory(new ListSpinnerValueFactory<>(selectableTeamSizes));
     numTeamsSpinner.valueProperty().addListener((observable) -> {
@@ -213,7 +210,6 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   private void initSpawnCountSpinner() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     int spawnCountProperty = generatorPrefs.getSpawnCount();
     selectableSpawnCounts.setPredicate((value) -> {
       Integer numTeams = numTeamsSpinner.getValue();
@@ -228,7 +224,6 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   private void initMapSizeSpinner() {
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     double mapSize = generatorPrefs.getMapSizeInKm();
     mapSizeSpinner.setValueFactory(new DoubleSpinnerValueFactory(5, 20, mapSize, MIN_MAP_SIZE_STEP));
     mapSizeSpinner.getValueFactory().setConverter(getMapSizeConverter());
@@ -300,7 +295,6 @@ public class GenerateMapController implements Controller<Pane> {
   }
 
   public void onGenerateMap() {
-    preferencesService.storeInBackground();
     CompletableFuture<String> generateFuture;
     if (!previousMapName.getText().isEmpty()) {
       if (!mapGeneratorService.isGeneratedMap(previousMapName.getText())) {
@@ -360,7 +354,6 @@ public class GenerateMapController implements Controller<Pane> {
   protected void setStyles(List<String> styles) {
     styles.add(0, MapGeneratorService.GENERATOR_RANDOM_STYLE);
     mapStyleComboBox.setItems(FXCollections.observableList(styles));
-    GeneratorPrefs generatorPrefs = preferencesService.getPreferences().getGenerator();
     String mapStyle = generatorPrefs.getMapStyle();
     if (mapStyleComboBox.getItems().contains(mapStyle)) {
       mapStyleComboBox.getSelectionModel().select(mapStyle);

@@ -89,16 +89,6 @@ public class ChatPrefs {
     this.timeFormat.set(time);
   }
 
-  @Deprecated
-  public DateInfo getDateFormat() {
-    return dateFormat.get();
-  }
-
-  @Deprecated
-  public void setDateFormat(DateInfo date) {
-    this.dateFormat.set(date);
-  }
-
   public ChatFormat getChatFormat() {
     return this.chatFormat.get();
   }

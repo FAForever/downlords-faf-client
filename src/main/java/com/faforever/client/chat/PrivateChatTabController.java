@@ -13,6 +13,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -72,10 +73,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
                                   WebViewConfigurer webViewConfigurer,
                                   CountryFlagService countryFlagService,
                                   EmoticonService emoticonService,
-                                  AvatarService avatarService) {
+                                  AvatarService avatarService,
+                                  ChatPrefs chatPrefs,
+                                  NotificationPrefs notificationPrefs) {
     super(userService, chatService, preferencesService, playerService, audioService, timeService,
         i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService,
-        countryFlagService);
+        countryFlagService, chatPrefs, notificationPrefs);
     this.avatarService = avatarService;
   }
 
@@ -129,7 +132,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
     Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
     if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
       return;

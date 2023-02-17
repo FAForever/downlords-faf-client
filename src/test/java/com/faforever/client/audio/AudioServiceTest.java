@@ -1,7 +1,7 @@
 package com.faforever.client.audio;
 
 import com.faforever.client.builders.PreferencesBuilder;
-import com.faforever.client.preferences.NotificationsPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
@@ -72,8 +72,8 @@ public class AudioServiceTest extends ServiceTest {
 
   @Test
   public void testNoSoundsWhenOff() {
-    NotificationsPrefs notificationsPrefs = preferences.getNotification();
-    notificationsPrefs.setSoundsEnabled(false);
+    NotificationPrefs notificationPrefs = preferences.getNotification();
+    notificationPrefs.setSoundsEnabled(false);
     instance.playChatMentionSound();
     instance.playPrivateMessageSound();
     instance.playInfoNotificationSound();
@@ -90,16 +90,16 @@ public class AudioServiceTest extends ServiceTest {
 
   @Test
   public void testNoSoundsWhenIndividuallyOff() {
-    NotificationsPrefs notificationsPrefs = preferences.getNotification();
-    notificationsPrefs.setFriendJoinsGameSoundEnabled(false);
-    notificationsPrefs.setErrorSoundEnabled(false);
-    notificationsPrefs.setInfoSoundEnabled(false);
-    notificationsPrefs.setWarnSoundEnabled(false);
-    notificationsPrefs.setMentionSoundEnabled(false);
-    notificationsPrefs.setFriendOfflineSoundEnabled(false);
-    notificationsPrefs.setFriendOnlineSoundEnabled(false);
-    notificationsPrefs.setFriendPlaysGameSoundEnabled(false);
-    notificationsPrefs.setPrivateMessageSoundEnabled(false);
+    NotificationPrefs notificationPrefs = preferences.getNotification();
+    notificationPrefs.setFriendJoinsGameSoundEnabled(false);
+    notificationPrefs.setErrorSoundEnabled(false);
+    notificationPrefs.setInfoSoundEnabled(false);
+    notificationPrefs.setWarnSoundEnabled(false);
+    notificationPrefs.setMentionSoundEnabled(false);
+    notificationPrefs.setFriendOfflineSoundEnabled(false);
+    notificationPrefs.setFriendOnlineSoundEnabled(false);
+    notificationPrefs.setFriendPlaysGameSoundEnabled(false);
+    notificationPrefs.setPrivateMessageSoundEnabled(false);
     instance.playChatMentionSound();
     instance.playPrivateMessageSound();
     instance.playInfoNotificationSound();

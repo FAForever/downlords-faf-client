@@ -11,9 +11,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class UserListCustomizationControllerTest extends UITest {
 
@@ -44,8 +43,6 @@ public class UserListCustomizationControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> instance.showMapPreviewCheckBox.fire());
     assertEquals(chatPrefs.showMapPreviewProperty().get(), !showMapPreviewCheckBoxSelected);
-
-    verify(preferencesService, times(2)).storeInBackground();
   }
 
   @Test

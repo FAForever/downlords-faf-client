@@ -3,7 +3,7 @@ package com.faforever.client.discord;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.commons.lobby.GameStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -33,19 +33,20 @@ public class DiscordRichPresenceService implements DisposableBean {
 
   private final ClientProperties clientProperties;
   private final PlayerService playerService;
-  private final PreferencesService preferencesService;
-  private final Timer timer;
   private final ObjectMapper objectMapper;
+  private final Preferences preferences;
+
+  private final Timer timer = new Timer("Discord RPC", true);
+
 
 
   public DiscordRichPresenceService(PlayerService playerService, DiscordEventHandler discordEventHandler,
-                                    ClientProperties clientProperties, PreferencesService preferencesService,
+                                    ClientProperties clientProperties, Preferences preferences,
                                     ObjectMapper objectMapper) {
     this.playerService = playerService;
     this.clientProperties = clientProperties;
-    this.preferencesService = preferencesService;
     this.objectMapper = objectMapper;
-    this.timer = new Timer("Discord RPC", true);
+    this.preferences = preferences;
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
@@ -84,7 +85,7 @@ public class DiscordRichPresenceService implements DisposableBean {
       discordRichPresence.setBigImage(clientProperties.getDiscord().getBigImageKey(), "");
       String joinSecret = null;
       String spectateSecret = null;
-      if (game.getStatus() == GameStatus.OPEN && !preferencesService.getPreferences().isDisallowJoinsViaDiscord()) {
+      if (game.getStatus() == GameStatus.OPEN && !preferences.isDisallowJoinsViaDiscord()) {
         joinSecret = objectMapper.writeValueAsString(new DiscordJoinSecret(game.getId()));
       }
 

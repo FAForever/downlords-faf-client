@@ -3,7 +3,7 @@ package com.faforever.client.fa.relay.ice;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.preferences.CoturnHostPort;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.commons.api.dto.CoturnServer;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
@@ -22,8 +22,8 @@ import java.util.concurrent.CompletableFuture;
 public class CoturnService {
 
   private final FafApiAccessor fafApiAccessor;
-  private final PreferencesService preferencesService;
   private final IceServerMapper iceServerMapper;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   public CompletableFuture<List<CoturnServer>> getActiveCoturns() {
     ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
@@ -36,7 +36,7 @@ public class CoturnService {
     ElideNavigatorOnCollection<CoturnServer> navigator = ElideNavigator.of(CoturnServer.class).collection();
     Flux<CoturnServer> coturnServerFlux = fafApiAccessor.getMany(navigator);
 
-    Collection<CoturnHostPort> preferredCoturnHosts = preferencesService.getPreferences().getForgedAlliance().getPreferredCoturnServers();
+    Collection<CoturnHostPort> preferredCoturnHosts = forgedAlliancePrefs.getPreferredCoturnServers();
 
     return coturnServerFlux.filter(coturnServer -> preferredCoturnHosts.contains(iceServerMapper.mapToHostPort(coturnServer)))
         .switchIfEmpty(coturnServerFlux)

@@ -70,7 +70,7 @@ public class ModUploadControllerTest extends UITest {
       return null;
     }).when(executorService).execute(any());
 
-    modUploadTask = new ModUploadTask(preferencesService, fafApiAccessor, i18n) {
+    modUploadTask = new ModUploadTask(fafApiAccessor, i18n, dataPrefs) {
       @Override
       protected Void call() {
         return null;

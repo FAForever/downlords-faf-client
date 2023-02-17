@@ -272,13 +272,6 @@ public class KittehChatServiceTest extends UITest {
   }
 
   @Test
-  public void testUserToColorChangeSaved() {
-    preferences.getChat().getUserToColor().put(user1.getNick(), Color.ALICEBLUE);
-
-    verify(preferencesService).storeInBackground();
-  }
-
-  @Test
   public void testGroupToColorChangeFriend() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user1.getNick()).socialStatus(SocialStatus.FRIEND).get();
     defaultChatUser1.setPlayer(player);
@@ -290,7 +283,6 @@ public class KittehChatServiceTest extends UITest {
 
     preferences.getChat().getGroupToColor().put(ChatUserCategory.FRIEND, Color.ALICEBLUE);
 
-    verify(preferencesService).storeInBackground();
     assertEquals(Color.ALICEBLUE, defaultChatUser1.getColor().get());
     assertTrue(defaultChatUser2.getColor().isEmpty());
   }
@@ -307,7 +299,6 @@ public class KittehChatServiceTest extends UITest {
 
     preferences.getChat().getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
 
-    verify(preferencesService).storeInBackground();
     assertEquals(Color.ALICEBLUE, defaultChatUser1.getColor().get());
     assertTrue(defaultChatUser2.getColor().isEmpty());
   }
@@ -320,8 +311,6 @@ public class KittehChatServiceTest extends UITest {
     join(defaultChannel, user2);
 
     preferences.getChat().getGroupToColor().put(ChatUserCategory.OTHER, Color.ALICEBLUE);
-
-    verify(preferencesService).storeInBackground();
   }
 
   @Test

@@ -186,7 +186,6 @@ public class TeamMatchmakingControllerTest extends UITest {
 
     assertThat(preferences.getMatchmaker().getFactions(), containsInAnyOrder(Faction.UEF, Faction.AEON));
     verify(teamMatchmakingService, times(2)).sendFactionSelection(eq(List.of(Faction.UEF, Faction.AEON)));
-    verify(preferencesService).storeInBackground();
   }
 
   @Test
@@ -198,7 +197,6 @@ public class TeamMatchmakingControllerTest extends UITest {
 
     instance.onFactionButtonClicked();
 
-    verify(preferencesService, never()).storeInBackground();
     assertThat(instance.uefButton.isSelected(), is(true));
     assertThat(instance.aeonButton.isSelected(), is(true));
     assertThat(instance.cybranButton.isSelected(), is(true));

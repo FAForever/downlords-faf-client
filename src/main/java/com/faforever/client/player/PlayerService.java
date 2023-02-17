@@ -11,7 +11,7 @@ import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.PlayerMapper;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.api.dto.NameRecord;
@@ -72,8 +72,8 @@ public class PlayerService implements InitializingBean {
   private final AvatarService avatarService;
   private final EventBus eventBus;
   private final PlayerMapper playerMapper;
-  private final PreferencesService preferencesService;
   private final JavaFxService javaFxService;
+  private final UserPrefs userPrefs;
 
   private final MapChangeListener<Integer, PlayerBean> playerByIdChangeListener = change -> {
     if (change.wasAdded()) {
@@ -127,7 +127,7 @@ public class PlayerService implements InitializingBean {
         .publishOn(javaFxService.getFxApplicationScheduler())
         .subscribe(this::setPlayerSocialStatus);
 
-    notesByPlayerId = preferencesService.getPreferences().getUser().getNotesByPlayerId();
+    notesByPlayerId = userPrefs.getNotesByPlayerId();
     JavaFxUtil.addListener(notesByPlayerId, (MapChangeListener<Integer, String>) change -> {
       PlayerBean player = playersById.get(change.getKey());
       if (change.wasAdded()) {
@@ -135,7 +135,6 @@ public class PlayerService implements InitializingBean {
       } else if (change.wasRemoved()) {
         player.setNote(null);
       }
-      preferencesService.storeInBackground();
     });
 
     currentPlayer.bind(userService.ownPlayerProperty().map(this::createOrUpdatePlayerForPlayerInfo));

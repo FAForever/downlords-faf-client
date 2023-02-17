@@ -51,6 +51,7 @@ public class UserService implements InitializingBean {
   private final EventBus eventBus;
   private final TokenService tokenService;
   private final NotificationService notificationService;
+  private final LoginPrefs loginPrefs;
 
   private CompletableFuture<Void> loginFuture;
 
@@ -130,9 +131,7 @@ public class UserService implements InitializingBean {
 
   private void logOut() {
     log.info("Logging out");
-    LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     loginPrefs.setRefreshToken(null);
-    preferencesService.storeInBackground();
     fafServerAccessor.disconnect();
     ownUser.set(null);
     ownPlayer.set(null);

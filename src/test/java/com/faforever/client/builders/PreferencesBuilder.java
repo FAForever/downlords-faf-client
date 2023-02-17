@@ -18,7 +18,7 @@ import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.NewsPrefs;
-import com.faforever.client.preferences.NotificationsPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
 import com.faforever.client.preferences.TimeInfo;
@@ -504,110 +504,110 @@ public class PreferencesBuilder {
   }
 
   public class NotificationsPrefsBuilder extends SubPreferencesBuilder {
-    private final NotificationsPrefs notificationsPrefs = preferences.getNotification();
+    private final NotificationPrefs notificationPrefs = preferences.getNotification();
 
     public NotificationsPrefsBuilder soundsEnabled(boolean soundsEnabled) {
-      notificationsPrefs.setSoundsEnabled(soundsEnabled);
+      notificationPrefs.setSoundsEnabled(soundsEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder transientNotificationsEnabled(boolean transientNotificationsEnabled) {
-      notificationsPrefs.setTransientNotificationsEnabled(transientNotificationsEnabled);
+      notificationPrefs.setTransientNotificationsEnabled(transientNotificationsEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder mentionSoundEnabled(boolean mentionSoundEnabled) {
-      notificationsPrefs.setMentionSoundEnabled(mentionSoundEnabled);
+      notificationPrefs.setMentionSoundEnabled(mentionSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder infoSoundEnabled(boolean infoSoundEnabled) {
-      notificationsPrefs.setInfoSoundEnabled(infoSoundEnabled);
+      notificationPrefs.setInfoSoundEnabled(infoSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder warnSoundEnabled(boolean warnSoundEnabled) {
-      notificationsPrefs.setWarnSoundEnabled(warnSoundEnabled);
+      notificationPrefs.setWarnSoundEnabled(warnSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder errorSoundEnabled(boolean errorSoundEnabled) {
-      notificationsPrefs.setErrorSoundEnabled(errorSoundEnabled);
+      notificationPrefs.setErrorSoundEnabled(errorSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendOnlineToastEnabled(boolean friendOnlineToastEnabled) {
-      notificationsPrefs.setFriendOnlineToastEnabled(friendOnlineToastEnabled);
+      notificationPrefs.setFriendOnlineToastEnabled(friendOnlineToastEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendOfflineToastEnabled(boolean friendOfflineToastEnabled) {
-      notificationsPrefs.setFriendOfflineToastEnabled(friendOfflineToastEnabled);
+      notificationPrefs.setFriendOfflineToastEnabled(friendOfflineToastEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendOnlineSoundEnabled(boolean friendOnlineSoundEnabled) {
-      notificationsPrefs.setFriendOnlineSoundEnabled(friendOnlineSoundEnabled);
+      notificationPrefs.setFriendOnlineSoundEnabled(friendOnlineSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendOfflineSoundEnabled(boolean friendOfflineSoundEnabled) {
-      notificationsPrefs.setFriendOfflineSoundEnabled(friendOfflineSoundEnabled);
+      notificationPrefs.setFriendOfflineSoundEnabled(friendOfflineSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendJoinsGameSoundEnabled(boolean friendJoinsGameSoundEnabled) {
-      notificationsPrefs.setFriendJoinsGameSoundEnabled(friendJoinsGameSoundEnabled);
+      notificationPrefs.setFriendJoinsGameSoundEnabled(friendJoinsGameSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendPlaysGameSoundEnabled(boolean friendPlaysGameSoundEnabled) {
-      notificationsPrefs.setFriendPlaysGameSoundEnabled(friendPlaysGameSoundEnabled);
+      notificationPrefs.setFriendPlaysGameSoundEnabled(friendPlaysGameSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendPlaysGameToastEnabled(boolean friendPlaysGameToastEnabled) {
-      notificationsPrefs.setFriendPlaysGameToastEnabled(friendPlaysGameToastEnabled);
+      notificationPrefs.setFriendPlaysGameToastEnabled(friendPlaysGameToastEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder privateMessageSoundEnabled(boolean privateMessageSoundEnabled) {
-      notificationsPrefs.setPrivateMessageSoundEnabled(privateMessageSoundEnabled);
+      notificationPrefs.setPrivateMessageSoundEnabled(privateMessageSoundEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder privateMessageToastEnabled(boolean privateMessageToastEnabled) {
-      notificationsPrefs.setPrivateMessageToastEnabled(privateMessageToastEnabled);
+      notificationPrefs.setPrivateMessageToastEnabled(privateMessageToastEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder friendJoinsGameToastEnabled(boolean friendJoinsGameToastEnabled) {
-      notificationsPrefs.setFriendJoinsGameToastEnabled(friendJoinsGameToastEnabled);
+      notificationPrefs.setFriendJoinsGameToastEnabled(friendJoinsGameToastEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder notifyOnAtMentionOnlyEnabled(boolean notifyOnAtMentionOnlyEnabled) {
-      notificationsPrefs.setNotifyOnAtMentionOnlyEnabled(notifyOnAtMentionOnlyEnabled);
+      notificationPrefs.setNotifyOnAtMentionOnlyEnabled(notifyOnAtMentionOnlyEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder afterGameReviewEnabled(boolean afterGameReviewEnabled) {
-      notificationsPrefs.setAfterGameReviewEnabled(afterGameReviewEnabled);
+      notificationPrefs.setAfterGameReviewEnabled(afterGameReviewEnabled);
       return this;
     }
 
     public NotificationsPrefsBuilder toastPosition(ToastPosition toastPosition) {
-      notificationsPrefs.setToastPosition(toastPosition);
+      notificationPrefs.setToastPosition(toastPosition);
       return this;
     }
 
     public NotificationsPrefsBuilder toastScreen(int toastScreen) {
-      notificationsPrefs.setToastScreen(toastScreen);
+      notificationPrefs.setToastScreen(toastScreen);
       return this;
     }
 
     public NotificationsPrefsBuilder toastDisplayTime(int toastDisplayTime) {
-      notificationsPrefs.setToastDisplayTime(toastDisplayTime);
+      notificationPrefs.setToastDisplayTime(toastDisplayTime);
       return this;
     }
   }
@@ -647,7 +647,7 @@ public class PreferencesBuilder {
   }
 
   public class WindowPrefsBuilder extends SubPreferencesBuilder {
-    private final WindowPrefs windowPrefs = preferences.getMainWindow();
+    private final WindowPrefs windowPrefs = preferences.getWindow();
 
     public WindowPrefsBuilder width(int width) {
       windowPrefs.setWidth(width);

@@ -101,7 +101,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
     when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
 
-    instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties, WebClient.builder());
+    instance = new MapGeneratorService(applicationContext, taskService, clientProperties, forgedAlliancePrefs, dataPrefs, WebClient.builder());
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));

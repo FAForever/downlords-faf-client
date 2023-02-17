@@ -1,7 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.builders.PreferencesBuilder;
-import com.faforever.client.preferences.NotificationsPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ToastPosition;
@@ -31,7 +31,7 @@ public class TransientNotificationsControllerTest extends UITest {
   private PreferencesService preferencesService;
   @Mock
   private UiService uiService;
-  private NotificationsPrefs notificationPrefs;
+  private NotificationPrefs notificationPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {

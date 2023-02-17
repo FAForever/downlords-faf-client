@@ -2,7 +2,7 @@ package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.notification.Action.ActionCallback;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.NotificationPrefs;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -31,7 +31,8 @@ import static javafx.util.Duration.millis;
 @RequiredArgsConstructor
 public class TransientNotificationController implements Controller<Node> {
 
-  private final PreferencesService preferencesService;
+  private final NotificationPrefs notificationPrefs;
+
   public Pane transientNotificationRoot;
   public Label messageLabel;
   public Label titleLabel;
@@ -61,7 +62,7 @@ public class TransientNotificationController implements Controller<Node> {
     transientNotificationRoot.heightProperty().addListener(animationListener);
 
     // Divided by two because it's used in a cycle
-    toastDisplayTime = preferencesService.getPreferences().getNotification().getToastDisplayTime() / 2;
+    toastDisplayTime = notificationPrefs.getToastDisplayTime() / 2;
 
     transientNotificationRoot.setOnMouseEntered(event -> timeline.pause());
     transientNotificationRoot.setOnMouseExited(event -> timeline.playFrom(Duration.millis(300 + toastDisplayTime)));

@@ -11,7 +11,8 @@ import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.map.event.MapUploadedEvent;
 import com.faforever.client.map.management.MapsManagementController;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -43,18 +44,22 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   private final MapService mapService;
   private final PlatformService platformService;
   private final EventBus eventBus;
+  private final VaultPrefs vaultPrefs;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private MapDetailController mapDetailController;
   private Integer recommendedShowRoomPageCount;
   private MatchmakerQueueBean matchmakerQueue;
 
-  public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus, PreferencesService preferencesService,
+  public MapVaultController(MapService mapService, I18n i18n, EventBus eventBus,
                             UiService uiService, NotificationService notificationService, ReportingService reportingService,
-                            PlatformService platformService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
+                            PlatformService platformService, VaultPrefs vaultPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
     this.mapService = mapService;
     this.eventBus = eventBus;
     this.platformService = platformService;
+    this.vaultPrefs = vaultPrefs;
+    this.forgedAlliancePrefs = forgedAlliancePrefs;
   }
 
   @Override
@@ -70,10 +75,10 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   protected void initSearchController() {
     searchController.setRootType(com.faforever.commons.api.dto.Map.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.MAP_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVault().mapSortConfigProperty());
+    searchController.setSortConfig(vaultPrefs.mapSortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(false);
     searchController.setVaultRoot(vaultRoot);
-    searchController.setSavedQueries(preferencesService.getPreferences().getVault().getSavedMapQueries());
+    searchController.setSavedQueries(vaultPrefs.getSavedMapQueries());
 
     searchController.addTextFilter("displayName", i18n.get("map.name"), false);
     searchController.addTextFilter("author.login", i18n.get("map.author"), false);
@@ -139,7 +144,7 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
   }
 
   public void onUploadButtonClicked() {
-    platformService.askForPath(i18n.get("mapVault.upload.chooseDirectory"), preferencesService.getPreferences().getForgedAlliance().getMapsDirectory())
+    platformService.askForPath(i18n.get("mapVault.upload.chooseDirectory"), forgedAlliancePrefs.getMapsDirectory())
         .ifPresent(this::openUploadWindow);
   }
 

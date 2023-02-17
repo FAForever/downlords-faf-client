@@ -6,6 +6,7 @@ import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.io.DownloadService;
 import com.faforever.client.io.FeaturedModFileCacheService;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.commons.api.dto.FeaturedModFile;
@@ -31,28 +32,27 @@ import java.util.Objects;
 @Slf4j
 public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResult> {
   private final ModService modService;
-  private final PreferencesService preferencesService;
   private final DownloadService downloadService;
   private final I18n i18n;
   private final FeaturedModFileCacheService featuredModFileCacheService;
+  private final DataPrefs dataPrefs;
 
   private FeaturedModBean featuredMod;
   private Integer version;
 
   public SimpleHttpFeaturedModUpdaterTask(
       ModService modService,
-      PreferencesService preferencesService,
       DownloadService downloadService,
       I18n i18n,
-      FeaturedModFileCacheService featuredModFileCacheService
-  ) {
+      FeaturedModFileCacheService featuredModFileCacheService,
+      DataPrefs dataPrefs) {
     super(Priority.HIGH);
 
     this.modService = modService;
-    this.preferencesService = preferencesService;
     this.downloadService = downloadService;
     this.i18n = i18n;
     this.featuredModFileCacheService = featuredModFileCacheService;
+    this.dataPrefs = dataPrefs;
   }
 
   @Override
@@ -62,7 +62,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     updateTitle(i18n.get("updater.taskTitle"));
     updateMessage(i18n.get("updater.readingFileList"));
 
-    Path fafDataDirectory = preferencesService.getPreferences().getData().getBaseDataDirectory();
+    Path fafDataDirectory = dataPrefs.getBaseDataDirectory();
 
     List<FeaturedModFile> featuredModFiles = modService.getFeaturedModFiles(featuredMod, version).join();
 

@@ -1,10 +1,12 @@
 package com.faforever.client.i18n;
 
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.LocalizationPrefs;
 import com.google.common.base.Strings;
 import javafx.beans.property.ReadOnlySetWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -23,23 +24,21 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class I18n implements InitializingBean {
   private static final Pattern MESSAGES_FILE_PATTERN = Pattern.compile("(.*[/\\\\]messages)(?:_([a-z]{2}))(?:_([a-z]{2}))?\\.properties", Pattern.CASE_INSENSITIVE);
+
   private final ReloadableResourceBundleMessageSource messageSource;
-  private final PreferencesService preferencesService;
-  private final ObservableSet<Locale> availableLanguages;
+  private final LocalizationPrefs localizationPrefs;
+  private final DataPrefs dataPrefs;
+
+  private final ObservableSet<Locale> availableLanguages = FXCollections.observableSet();
 
   private Locale userSpecificLocale;
 
-  public I18n(ReloadableResourceBundleMessageSource messageSource, PreferencesService preferencesService) {
-    this.messageSource = messageSource;
-    this.preferencesService = preferencesService;
-    availableLanguages = FXCollections.observableSet(new HashSet<>());
-  }
-
   @Override
   public void afterPropertiesSet() throws IOException {
-    Locale locale = preferencesService.getPreferences().getLocalization().getLanguage();
+    Locale locale = localizationPrefs.getLanguage();
     if (locale != null) {
       userSpecificLocale = new Locale(locale.getLanguage(), locale.getCountry());
       Locale.setDefault(userSpecificLocale);
@@ -69,7 +68,7 @@ public class I18n implements InitializingBean {
         new Locale("pl")
     ));
 
-    Path languagesDirectory = preferencesService.getPreferences().getData().getLanguagesDirectory();
+    Path languagesDirectory = dataPrefs.getLanguagesDirectory();
     if (Files.notExists(languagesDirectory)) {
       return;
     }

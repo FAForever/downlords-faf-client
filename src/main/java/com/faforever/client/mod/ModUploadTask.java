@@ -2,7 +2,7 @@ package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Validator;
@@ -29,17 +29,16 @@ import static java.nio.file.Files.newOutputStream;
 @Slf4j
 public class ModUploadTask extends CompletableTask<Void> {
 
-  private final PreferencesService preferencesService;
   private final FafApiAccessor fafApiAccessor;
   private final I18n i18n;
+  private final DataPrefs dataPrefs;
 
   private Path modPath;
 
   @Inject
-  public ModUploadTask(PreferencesService preferencesService, FafApiAccessor fafApiAccessor, I18n i18n) {
+  public ModUploadTask(FafApiAccessor fafApiAccessor, I18n i18n, DataPrefs dataPrefs) {
     super(Priority.HIGH);
-
-    this.preferencesService = preferencesService;
+    this.dataPrefs = dataPrefs;
     this.fafApiAccessor = fafApiAccessor;
     this.i18n = i18n;
   }
@@ -49,7 +48,7 @@ public class ModUploadTask extends CompletableTask<Void> {
     Validator.notNull(modPath, "modPath must not be null");
 
     ResourceLocks.acquireUploadLock();
-    Path cacheDirectory = preferencesService.getPreferences().getData().getCacheDirectory();
+    Path cacheDirectory = dataPrefs.getCacheDirectory();
     Files.createDirectories(cacheDirectory);
     Path tmpFile = createTempFile(cacheDirectory, "mod", ".zip");
 

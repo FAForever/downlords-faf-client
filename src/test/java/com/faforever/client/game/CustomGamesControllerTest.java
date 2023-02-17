@@ -24,7 +24,6 @@ import org.mockito.Mock;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,7 +117,6 @@ public class CustomGamesControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.toggleGameDetailPaneButton.fire());
 
     assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
-    verify(preferencesService, atLeast(2)).storeInBackground();
 
     assertFalse(instance.gameDetailPane.isManaged());
     assertFalse(instance.gameDetailPane.isVisible());

@@ -49,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -322,7 +321,6 @@ public class ChatChannelTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.userListVisibilityToggleButton.fire());
     assertTrue(instance.chatUserList.isVisible());
     assertTrue(preferences.getChat().isPlayerListShown());
-    verify(preferencesService, times(2)).storeInBackground();
   }
 
   @Test

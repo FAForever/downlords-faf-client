@@ -1,6 +1,7 @@
 package com.faforever.client.io;
 
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.UpdaterUtil;
 import com.faforever.commons.api.dto.FeaturedModFile;
@@ -28,7 +29,8 @@ import static com.google.common.io.Files.hash;
 @Slf4j
 @RequiredArgsConstructor
 public class FeaturedModFileCacheService implements InitializingBean {
-  private final PreferencesService preferencesService;
+  private final DataPrefs dataPrefs;
+  private final Preferences preferences;
 
   public boolean isCached(FeaturedModFile featuredModFile) throws IOException {
     return Files.exists(getCachedFilePath(featuredModFile));
@@ -39,7 +41,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
   }
 
   private Path getCachedFilePath(String hash, String group) {
-    return preferencesService.getPreferences().getData().getFeaturedModCacheDirectory()
+    return dataPrefs.getFeaturedModCacheDirectory()
         .resolve(group)
         .resolve(hash);
   }
@@ -57,12 +59,12 @@ public class FeaturedModFileCacheService implements InitializingBean {
     ResourceLocks.acquireDiskLock();
 
     try {
-      if (Files.exists(targetPath) && preferencesService.getPreferences().isGameDataCacheActivated()) {
+      if (Files.exists(targetPath) && preferences.isGameDataCacheActivated()) {
         //We want to keep the old file for now in case it is needed again for example for old replays
         moveFeaturedModFileToCache(targetPath);
       }
       Files.copy(getCachedFilePath(featuredModFile), targetPath, StandardCopyOption.REPLACE_EXISTING);
-      UpdaterUtil.extractMoviesAndSoundsIfPresent(targetPath, preferencesService.getPreferences().getData().getBaseDataDirectory());
+      UpdaterUtil.extractMoviesAndSoundsIfPresent(targetPath, dataPrefs.getBaseDataDirectory());
     } finally {
       ResourceLocks.freeDiskLock();
     }
@@ -77,7 +79,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
    */
   @Override
   public void afterPropertiesSet() {
-    Path cacheDirectory = preferencesService.getPreferences().getData().getFeaturedModCacheDirectory();
+    Path cacheDirectory = dataPrefs.getFeaturedModCacheDirectory();
     if (!Files.isDirectory(cacheDirectory)) {
       try {
         Files.createDirectories(cacheDirectory);
@@ -91,7 +93,7 @@ public class FeaturedModFileCacheService implements InitializingBean {
   }
 
   private void cleanUnusedFilesFromCache() {
-    try (Stream<Path> pathElements = Files.walk(preferencesService.getPreferences().getData().getFeaturedModCacheDirectory())) {
+    try (Stream<Path> pathElements = Files.walk(dataPrefs.getFeaturedModCacheDirectory())) {
       pathElements
           .filter(Files::isRegularFile)
           .forEach(this::deleteCachedFileIfNeeded);
@@ -109,8 +111,8 @@ public class FeaturedModFileCacheService implements InitializingBean {
 
       FileTime lastAccessTime = Files.readAttributes(filePath, BasicFileAttributes.class).lastAccessTime();
       OffsetDateTime comparableLastAccessTime = OffsetDateTime.ofInstant(lastAccessTime.toInstant(), ZoneId.systemDefault());
-      final boolean olderThanCacheTime = comparableLastAccessTime.plusDays(preferencesService.getPreferences().getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now());
-      final boolean gameDataCacheActivated = preferencesService.getPreferences().isGameDataCacheActivated();
+      final boolean olderThanCacheTime = comparableLastAccessTime.plusDays(preferences.getCacheLifeTimeInDays()).isBefore(OffsetDateTime.now());
+      final boolean gameDataCacheActivated = preferences.isGameDataCacheActivated();
       if (olderThanCacheTime || !gameDataCacheActivated) {
         log.trace("Deleting cached file `{}`", filePath);
         Files.deleteIfExists(filePath);

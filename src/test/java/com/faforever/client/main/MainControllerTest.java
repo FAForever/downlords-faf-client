@@ -227,14 +227,14 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testOpenStartTabWithItemSet() throws Exception {
-    preferences.getMainWindow().setNavigationItem(NavigationItem.PLAY);
+    preferences.getWindow().setNavigationItem(NavigationItem.PLAY);
     instance.openStartTab();
     verify(eventBus, times(1)).post(eq(new NavigateEvent(NavigationItem.PLAY)));
   }
 
   @Test
   public void testOpenStartTabWithItemNotSet() throws Exception {
-    preferences.getMainWindow().setNavigationItem(null);
+    preferences.getWindow().setNavigationItem(null);
     instance.openStartTab();
     verify(eventBus, times(1)).post(eq(new NavigateEvent(NavigationItem.NEWS)));
     verify(notificationService, times(1)).addNotification(any(PersistentNotification.class));
@@ -252,8 +252,8 @@ public class MainControllerTest extends UITest {
   @Test
   public void testWindowOutsideScreensGetsCentered() throws Exception {
     Rectangle2D visualBounds = Screen.getPrimary().getBounds();
-    preferences.getMainWindow().setY(visualBounds.getMaxY() + 1);
-    preferences.getMainWindow().setX(visualBounds.getMaxX() + 1);
+    preferences.getWindow().setY(visualBounds.getMaxY() + 1);
+    preferences.getWindow().setX(visualBounds.getMaxX() + 1);
 
     WaitForAsyncUtils.asyncFx(() -> instance.display());
     WaitForAsyncUtils.waitForFxEvents();

@@ -16,7 +16,6 @@ import com.faforever.client.task.TaskService;
 import javafx.scene.control.CheckBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +25,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class VaultPathHandler implements InitializingBean {
+public class VaultPathHandler {
 
   private final PlatformService platformService;
   private final TaskService taskService;
@@ -34,13 +33,7 @@ public class VaultPathHandler implements InitializingBean {
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final I18n i18n;
-
-  private ForgedAlliancePrefs forgedAlliancePrefs;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
-  }
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   public void verifyVaultPathAndShowWarning() {
     if (preferencesService.isVaultBasePathInvalidForAscii()) {
@@ -55,7 +48,6 @@ public class VaultPathHandler implements InitializingBean {
     CheckBox ignoreCheckbox = new CheckBox(i18n.get("vaultBasePath.nonAscii.warning.ignore"));
     JavaFxUtil.addListener(ignoreCheckbox.selectedProperty(), (observable, oldValue, newValue) -> {
       forgedAlliancePrefs.setWarnNonAsciiVaultPath(!newValue);
-      preferencesService.storeInBackground();
     });
 
     notificationService.addImmediateWarnNotification(
@@ -69,15 +61,10 @@ public class VaultPathHandler implements InitializingBean {
   public void onVaultPathUpdated(Path newPath) {
     log.info("User changed vault directory to: `{}`", newPath);
 
-    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
-
     MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
     moveDirectoryTask.setOldDirectory(forgedAlliancePrefs.getVaultBaseDirectory());
     moveDirectoryTask.setNewDirectory(newPath);
-    moveDirectoryTask.setAfterCopyAction(() -> {
-      forgedAlliancePrefs.setVaultBaseDirectory(newPath);
-      preferencesService.storeInBackground();
-    });
+    moveDirectoryTask.setAfterCopyAction(() -> forgedAlliancePrefs.setVaultBaseDirectory(newPath));
     notificationService.addNotification(new ImmediateNotification(i18n.get("settings.vault.change"), i18n.get("settings.vault.change.message"), Severity.INFO,
         List.of(
             new Action(i18n.get("no"), event -> {
