@@ -14,7 +14,6 @@ import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.UserService;
-import com.faforever.client.util.Assert;
 import com.faforever.commons.api.dto.NameRecord;
 import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
@@ -24,6 +23,7 @@ import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -63,7 +63,7 @@ public class PlayerService implements InitializingBean {
   private final ObservableMap<Integer, PlayerBean> playersById = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
-  private ObservableMap<Integer, String> notesByPlayerId;
+  private final ReadOnlyObjectWrapper<PlayerBean> currentPlayer = new ReadOnlyObjectWrapper<>();
   private final Object lock = new Object();
 
   private final FafServerAccessor fafServerAccessor;
@@ -84,6 +84,8 @@ public class PlayerService implements InitializingBean {
       playersByName.remove(player.getUsername());
     }
   };
+
+  private ObservableMap<Integer, String> notesByPlayerId;
 
   @Override
   public void afterPropertiesSet() {
@@ -135,6 +137,8 @@ public class PlayerService implements InitializingBean {
       }
       preferencesService.storeInBackground();
     });
+
+    currentPlayer.bind(userService.ownPlayerProperty().map(this::createOrUpdatePlayerForPlayerInfo));
   }
 
   @Subscribe
@@ -166,8 +170,7 @@ public class PlayerService implements InitializingBean {
 
   public boolean isCurrentPlayerInGame(GameBean game) {
     // TODO the following can be removed as soon as the server tells us which game a player is in.
-    PlayerBean player = getCurrentPlayer();
-    return game.getAllPlayersInGame().contains(player);
+    return game.getAllPlayersInGame().contains(getCurrentPlayer());
   }
 
   public boolean isOnline(Integer playerId) {
@@ -184,8 +187,8 @@ public class PlayerService implements InitializingBean {
         PlayerBean newPlayer = new PlayerBean();
         newPlayer.setId(id);
         newPlayer.setUsername(playerInfo.getLogin());
-        setPlayerSocialStatus(newPlayer);
         newPlayer.setNote(notesByPlayerId.get(id));
+        setPlayerSocialStatus(newPlayer);
         return playerMapper.update(playerInfo, newPlayer);
       } else {
         return playerMapper.update(playerInfo, knownPlayer);
@@ -254,11 +257,7 @@ public class PlayerService implements InitializingBean {
   }
 
   public PlayerBean getCurrentPlayer() {
-    Assert.checkNullIllegalState(userService.getOwnPlayer(), "Own player not set");
-    if (!playersByName.containsKey(userService.getUsername())) {
-      createOrUpdatePlayerForPlayerInfo(userService.getOwnPlayer());
-    }
-    return playersByName.get(userService.getUsername());
+    return currentPlayer.get();
   }
 
   public Optional<PlayerBean> getPlayerByIdIfOnline(int playerId) {

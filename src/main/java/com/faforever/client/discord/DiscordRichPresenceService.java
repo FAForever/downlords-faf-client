@@ -64,18 +64,19 @@ public class DiscordRichPresenceService implements DisposableBean {
   }
 
   public void updatePlayedGameTo(GameBean game) {
-    log.debug("Updating discord rich presence game info with {}", game);
     String applicationId = clientProperties.getDiscord().getApplicationId();
     if (applicationId == null) {
       return;
     }
     try {
 
-      if (game == null || game.getStatus() == GameStatus.CLOSED || game.getTeams() == null) {
+      if (game == null || game.getStatus() == GameStatus.CLOSED || game.getTeams() == null || !playerService.isCurrentPlayerInGame(game)) {
         DiscordRPC.discordClearPresence();
+        log.debug("Cleared discord rich presence");
         return;
       }
 
+      log.debug("Updating discord rich presence game info with {}", game);
       DiscordRichPresence.Builder discordRichPresence = new DiscordRichPresence.Builder(getDiscordState(game));
       discordRichPresence.setDetails(MessageFormat.format("{0} | {1}", game.getFeaturedMod(), game.getTitle()));
       discordRichPresence.setParty(String.valueOf(game.getId()), game.getNumActivePlayers(), game.getMaxPlayers());
