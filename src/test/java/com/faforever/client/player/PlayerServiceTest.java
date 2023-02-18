@@ -18,11 +18,13 @@ import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.user.UserService;
 import com.faforever.commons.api.elide.ElideEntity;
+import com.faforever.commons.lobby.Player;
 import com.faforever.commons.lobby.Player.Avatar;
 import com.faforever.commons.lobby.Player.LeaderboardStats;
 import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
@@ -55,7 +57,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -86,11 +87,12 @@ public class PlayerServiceTest extends ServiceTest {
   private PlayerService instance;
   @Spy
   private PlayerMapper playerMapper = Mappers.getMapper(PlayerMapper.class);
+  private com.faforever.commons.lobby.Player currentPlayer;
   private com.faforever.commons.lobby.Player playerInfo1;
   private com.faforever.commons.lobby.Player playerInfo2;
 
-  private TestPublisher<PlayerInfo> playerInfoTestPublisher = TestPublisher.create();
-  private TestPublisher<SocialInfo> socialInfoTestPublisher = TestPublisher.create();
+  private final TestPublisher<PlayerInfo> playerInfoTestPublisher = TestPublisher.create();
+  private final TestPublisher<SocialInfo> socialInfoTestPublisher = TestPublisher.create();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -99,10 +101,12 @@ public class PlayerServiceTest extends ServiceTest {
     when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(PlayerInfo.class)).thenReturn(playerInfoTestPublisher.flux());
     when(fafServerAccessor.getEvents(SocialInfo.class)).thenReturn(socialInfoTestPublisher.flux());
-    when(userService.getOwnPlayer()).thenReturn(new com.faforever.commons.lobby.Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>()));
-    when(userService.getUsername()).thenReturn("junit");
+    currentPlayer = new Player(1, "junit", null, null, "", new HashMap<>(), new HashMap<>());
     playerInfo1 = new com.faforever.commons.lobby.Player(2, "junit2", null, new Avatar("https://test.com/test.png", "junit"), "", new HashMap<>(), new HashMap<>());
     playerInfo2 = new com.faforever.commons.lobby.Player(3, "junit3", null, null, "", new HashMap<>(), new HashMap<>());
+
+    when(userService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
+    when(userService.getUsername()).thenReturn("junit");
 
     Map<Integer, String> notes = new HashMap<>();
     notes.put(3, "junit3");
@@ -142,7 +146,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testGetPlayerForUsernameUsernameDoesNotExist() {
-    Optional<PlayerBean> player = instance.getPlayerByNameIfOnline("junit");
+    Optional<PlayerBean> player = instance.getPlayerByNameIfOnline("test");
     assertFalse(player.isPresent());
   }
 
@@ -171,15 +175,15 @@ public class PlayerServiceTest extends ServiceTest {
   @Test
   public void testGetPlayerNamesPopulated() {
     Set<String> playerNames = instance.getPlayerNames();
-    assertThat(playerNames, hasSize(2));
+    assertThat(playerNames, hasSize(3));
   }
 
   @Test
   public void testGetPlayerNamesSomeInstances() {
     Set<String> playerNames = instance.getPlayerNames();
 
-    assertThat(playerNames, hasSize(2));
-    assertThat(playerNames, containsInAnyOrder(playerInfo1.getLogin(), playerInfo2.getLogin()));
+    assertThat(playerNames, hasSize(3));
+    assertThat(playerNames, containsInAnyOrder(currentPlayer.getLogin(), playerInfo1.getLogin(), playerInfo2.getLogin()));
   }
 
   @Test
@@ -269,20 +273,13 @@ public class PlayerServiceTest extends ServiceTest {
   }
 
   @Test
-  public void testGetCurrentPlayerNull() {
-    when(userService.getOwnPlayer()).thenReturn(null);
-
-    assertThrows(IllegalStateException.class, () -> instance.getCurrentPlayer());
-  }
-
-  @Test
   public void testGetPlayerByName() {
     PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(playerMapper.map(playerBean, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    Optional<PlayerBean> result = instance.getPlayerByName("junit").join();
+    Optional<PlayerBean> result = instance.getPlayerByName("test").join();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("junit"))));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("login").eq("test"))));
     assertThat(result.orElse(null), is(playerBean));
   }
 
@@ -300,7 +297,7 @@ public class PlayerServiceTest extends ServiceTest {
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
     instance.getPlayersByIds(List.of(1, 2, 3, 4)).join();
 
-    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(1, 4)))));
+    verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().intNum("id").in(List.of(4)))));
   }
 
   @Test
@@ -402,7 +399,8 @@ public class PlayerServiceTest extends ServiceTest {
     instance.removePlayerIfOnline(playerInfo1.getLogin());
     instance.removePlayerIfOnline(playerInfo2.getLogin());
 
-    assertTrue(instance.getPlayerNames().isEmpty());
+    assertFalse(instance.getPlayerNames().contains(playerInfo1.getLogin()));
+    assertFalse(instance.getPlayerNames().contains(playerInfo2.getLogin()));
     assertFalse(instance.isOnline(playerInfo1.getId()));
     assertFalse(instance.isOnline(playerInfo2.getId()));
     verify(eventBus, times(2)).post(any(PlayerOfflineEvent.class));
