@@ -182,10 +182,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
   }
 
-  private void updateZoomPreferences(Number newValue) {
-    chatPrefs.setZoom(newValue.doubleValue());
-  }
-
   private void addTabListeners(TabPane newTabPane) {
     if (newTabPane == null) {
       return;
@@ -295,7 +291,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     WebView messagesWebView = getMessagesWebView();
     webViewConfigurer.configureWebView(messagesWebView);
 
-    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> updateZoomPreferences(newValue));
+    messagesWebView.zoomProperty().bindBidirectional(chatPrefs.zoomProperty());
 
     configureBrowser(messagesWebView);
     loadChatContainer();
@@ -318,15 +314,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private void configureBrowser(WebView messagesWebView) {
     engine = messagesWebView.getEngine();
 
-    configureZoomLevel();
     configureLoadListener();
-  }
-
-  private void configureZoomLevel() {
-    Double zoom = chatPrefs.getZoom();
-    if (zoom != null) {
-      getMessagesWebView().setZoom(zoom);
-    }
   }
 
   private void configureLoadListener() {

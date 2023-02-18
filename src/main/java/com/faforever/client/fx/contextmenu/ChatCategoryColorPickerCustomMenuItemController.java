@@ -32,6 +32,7 @@ public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCus
 
   public void initialize() {
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
+    removeCustomColorButton.visibleProperty().bind(chatPrefs.chatColorModeProperty().flatMap(chatColorMode -> colorPicker.valueProperty().isNotNull().map(isNotNull -> isNotNull && RANDOM != chatColorMode)));
     JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
     WeakInvalidationListener weakChatColorModePropertyListener = new WeakInvalidationListener(chatColorModePropertyListener);
     JavaFxUtil.addListener(colorPicker.valueProperty(), weakChatColorModePropertyListener);

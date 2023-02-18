@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.VBox;
@@ -23,8 +22,8 @@ public class UserListCustomizationController implements Controller<VBox> {
 
   @Override
   public void initialize() {
-    JavaFxUtil.bindBidirectional(showMapNameCheckBox.selectedProperty(), chatPrefs.showMapNameProperty());
-    JavaFxUtil.bindBidirectional(showMapPreviewCheckBox.selectedProperty(), chatPrefs.showMapPreviewProperty());
+    showMapNameCheckBox.selectedProperty().bindBidirectional(chatPrefs.showMapNameProperty());
+    showMapPreviewCheckBox.selectedProperty().bindBidirectional(chatPrefs.showMapPreviewProperty());
   }
 
   @Override

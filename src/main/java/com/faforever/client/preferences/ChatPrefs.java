@@ -46,23 +46,16 @@ public class ChatPrefs {
       .build();
 
   DoubleProperty zoom = new SimpleDoubleProperty(1);
-  BooleanProperty learnedAutoComplete = new SimpleBooleanProperty(false);
   BooleanProperty previewImageUrls = new SimpleBooleanProperty(true);
   IntegerProperty maxMessages = new SimpleIntegerProperty(500);
   ObjectProperty<ChatColorMode> chatColorMode = new SimpleObjectProperty<>(DEFAULT);
-  IntegerProperty channelTabScrollPaneWidth = new SimpleIntegerProperty(250);
   MapProperty<String, Color> userToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
   MapProperty<ChatUserCategory, Color> groupToColor = new SimpleMapProperty<>(FXCollections.observableHashMap());
   BooleanProperty hideFoeMessages = new SimpleBooleanProperty(true);
   BooleanProperty playerListShown = new SimpleBooleanProperty(true);
   ObjectProperty<TimeInfo> timeFormat = new SimpleObjectProperty<>(TimeInfo.AUTO);
-  ObjectProperty<DateInfo> dateFormat = new SimpleObjectProperty<>(DateInfo.AUTO);
   ObjectProperty<ChatFormat> chatFormat = new SimpleObjectProperty<>(ChatFormat.COMPACT);
   ListProperty<String> autoJoinChannels = new SimpleListProperty<>(FXCollections.observableArrayList());
-  /**
-   * Time in minutes a player has to be inactive to be considered idle.
-   */
-  IntegerProperty idleThreshold = new SimpleIntegerProperty(10);
   BooleanProperty showMapName = new SimpleBooleanProperty(false);
   BooleanProperty showMapPreview = new SimpleBooleanProperty(false);
   MapProperty<String, ObservableSet<ChatUserCategory>> channelNameToHiddenCategories = new SimpleMapProperty<>(FXCollections.synchronizedObservableMap(FXCollections.observableHashMap()));
@@ -141,8 +134,8 @@ public class ChatPrefs {
     return previewImageUrls;
   }
 
-  public Double getZoom() {
-    return zoom.getValue();
+  public double getZoom() {
+    return zoom.get();
   }
 
   public void setZoom(double zoom) {
@@ -151,18 +144,6 @@ public class ChatPrefs {
 
   public DoubleProperty zoomProperty() {
     return zoom;
-  }
-
-  public boolean getLearnedAutoComplete() {
-    return learnedAutoComplete.get();
-  }
-
-  public void setLearnedAutoComplete(boolean learnedAutoComplete) {
-    this.learnedAutoComplete.set(learnedAutoComplete);
-  }
-
-  public BooleanProperty learnedAutoCompleteProperty() {
-    return learnedAutoComplete;
   }
 
   public int getMaxMessages() {
@@ -177,19 +158,6 @@ public class ChatPrefs {
     return maxMessages;
   }
 
-  public int getChannelTabScrollPaneWidth() {
-    return channelTabScrollPaneWidth.get();
-  }
-
-  public void setChannelTabScrollPaneWidth(int channelTabScrollPaneWidth) {
-    this.channelTabScrollPaneWidth.set(channelTabScrollPaneWidth);
-  }
-
-  public IntegerProperty channelTabScrollPaneWidthProperty() {
-    return channelTabScrollPaneWidth;
-  }
-
-
   public boolean getHideFoeMessages() {
     return hideFoeMessages.get();
   }
@@ -200,18 +168,6 @@ public class ChatPrefs {
 
   public BooleanProperty hideFoeMessagesProperty() {
     return hideFoeMessages;
-  }
-
-  public int getIdleThreshold() {
-    return idleThreshold.get();
-  }
-
-  public void setIdleThreshold(int idleThreshold) {
-    this.idleThreshold.set(idleThreshold);
-  }
-
-  public IntegerProperty idleThresholdProperty() {
-    return idleThreshold;
   }
 
   public ObservableList<String> getAutoJoinChannels() {
