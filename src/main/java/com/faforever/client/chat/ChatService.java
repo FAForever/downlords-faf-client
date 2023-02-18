@@ -20,13 +20,9 @@ public interface ChatService {
 
   ChatChannel getOrCreateChannel(String channelName);
 
-  ChatChannelUser getOrCreateChatUser(String username, String channel);
-
-  ChatChannelUser getOrCreateChatUser(String username, String channel, boolean isModerator);
+  ChatChannelUser createChatUserIfNecessary(String username, String channel);
 
   void addUsersListener(String channelName, MapChangeListener<String, ChatChannelUser> listener);
-
-  void addChatUsersByNameListener(MapChangeListener<String, ChatChannelUser> listener);
 
   void addChannelsListener(MapChangeListener<String, ChatChannel> listener);
 

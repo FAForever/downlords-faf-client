@@ -56,9 +56,6 @@ public class ChatCategoryItemControllerTest extends UITest {
     Preferences preferences = PreferencesBuilder.create().defaultValues().chatPrefs().then().get();
     chatPrefs = preferences.getChat();
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    instance.afterPropertiesSet();
     loadFxml("theme/chat/chat_user_category.fxml", clazz -> instance);
   }
 

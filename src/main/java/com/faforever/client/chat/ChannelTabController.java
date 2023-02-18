@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -20,6 +19,8 @@ import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.WeakListChangeListener;
@@ -48,7 +49,6 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
@@ -90,14 +90,20 @@ public class ChannelTabController extends AbstractChatTabController {
   /* Listeners */
   private final InvalidationListener topicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
   @SuppressWarnings("FieldCanBeLocal")
-  private final InvalidationListener hideFoeMessagesListener = observable -> hideFoeMessages();
+  private final ChangeListener<Boolean> hideFoeMessagesListener = (observable, oldValue, newValue) -> hideFoeMessages(newValue);
   private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers()
       .forEach(this::updateUserMessageColor);
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
   private AutoCompletionHelper autoCompletionHelper;
 
-  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, NotificationService notificationService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, EmoticonService emoticonService, PlatformService platformService, ChatPrefs chatPrefs, NotificationPrefs notificationPrefs) {
+  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService,
+                              PreferencesService preferencesService, PlayerService playerService,
+                              AudioService audioService, TimeService timeService, I18n i18n,
+                              NotificationService notificationService, UiService uiService, EventBus eventBus,
+                              CountryFlagService countryFlagService, EmoticonService emoticonService,
+                              PlatformService platformService, ChatPrefs chatPrefs,
+                              NotificationPrefs notificationPrefs) {
     super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs);
     this.platformService = platformService;
   }
@@ -120,7 +126,7 @@ public class ChannelTabController extends AbstractChatTabController {
             .length()
             .map(length -> String.format("%d / %d", length.intValue(), TOPIC_CHARACTERS_LIMIT)));
 
-    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakInvalidationListener(hideFoeMessagesListener));
+    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakChangeListener<>(hideFoeMessagesListener));
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModeListener));
 
     userListVisibilityToggleButton.selectedProperty().addListener(observable -> updateDividerPosition());
@@ -178,12 +184,11 @@ public class ChannelTabController extends AbstractChatTabController {
     }
   }
 
-  private void hideFoeMessages() {
-    boolean visible = chatPrefs.getHideFoeMessages();
+  private void hideFoeMessages(boolean shouldHide) {
     chatChannel.getUsers()
         .stream()
         .filter(user -> user.getCategories().stream().anyMatch(status -> status == ChatUserCategory.FOE))
-        .forEach(user -> updateUserMessageVisibility(user, visible));
+        .forEach(user -> updateUserMessageVisibility(user, shouldHide));
   }
 
   private void updateChangedUsersStyles(Change<? extends ChatChannelUser> change) {
@@ -284,8 +289,8 @@ public class ChannelTabController extends AbstractChatTabController {
     JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageColor", user.getUsername(), color));
   }
 
-  private void updateUserMessageVisibility(ChatChannelUser user, boolean visible) {
-    String displayPropertyValue = visible ? "none" : "";
+  private void updateUserMessageVisibility(ChatChannelUser user, boolean shouldHide) {
+    String displayPropertyValue = shouldHide ? "none" : "";
     JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageDisplay", user.getUsername(), displayPropertyValue));
   }
 
@@ -311,7 +316,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getMessageCssClass(String login) {
-    return chatService.getOrCreateChatUser(login, chatChannel.getName())
+    return chatService.createChatUserIfNecessary(login, chatChannel.getName())
         .isModerator() ? MODERATOR_STYLE_CLASS : super.getMessageCssClass(login);
   }
 
@@ -336,12 +341,11 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getInlineStyle(String username) {
-    ChatChannelUser user = chatService.getOrCreateChatUser(username, chatChannel.getName());
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(username);
+    ChatChannelUser user = chatService.createChatUserIfNecessary(username, chatChannel.getName());
 
-    if (chatPrefs.getHideFoeMessages() && playerOptional.map(PlayerBean::getSocialStatus)
+    if (chatPrefs.isHideFoeMessages() && user.getCategories()
         .stream()
-        .anyMatch(status -> status == FOE)) {
+        .anyMatch(category -> category == ChatUserCategory.FOE)) {
       return "display: none;";
     } else {
       return user.getColor().map(color -> String.format("color: %s;", JavaFxUtil.toRgbCode(color))).orElse("");

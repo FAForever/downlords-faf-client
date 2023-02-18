@@ -1,8 +1,9 @@
 package com.faforever.client.audio;
 
-import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.theme.UiService;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.media.AudioClip;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
@@ -10,8 +11,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 @Lazy
 @Service
@@ -28,13 +27,13 @@ public class AudioService implements InitializingBean {
   private static final String FRIEND_OFFLINE_SOUND = "theme/sounds/friendOfflineSound.mp3";
   private static final String FRIEND_JOINS_GAME_SOUND = "theme/sounds/friendJoinsGameSound.mp3";
   private static final String FRIEND_PLAYS_GAME_SOUND = "theme/sounds/friendPlaysGameSound.mp3";
-  private static final long SILENCE_PERIOD_AFTER_SOUND = 30000;
+  private static final long MILLISECONDS_SILENT_AFTER_SOUND = 30000;
 
   private final AudioClipPlayer audioClipPlayer;
   private final UiService uiService;
   private final NotificationPrefs notificationPrefs;
 
-  private final Timer timer = new Timer(true);
+  private final BooleanProperty playSounds = new SimpleBooleanProperty();
 
   private AudioClip chatMentionSound;
   private AudioClip achievementUnlockedSound;
@@ -47,14 +46,11 @@ public class AudioService implements InitializingBean {
   private AudioClip friendJoinsGameSound;
   private AudioClip friendPlaysGameSound;
 
-  private boolean playSounds;
+  private long lastPlayedSoundTime;
 
   @Override
   public void afterPropertiesSet() throws IOException {
-    JavaFxUtil.addListener(notificationPrefs.soundsEnabledProperty(), (observable, oldValue, newValue) ->
-        playSounds = newValue
-    );
-    playSounds = notificationPrefs.isSoundsEnabled();
+    playSounds.bind(notificationPrefs.soundsEnabledProperty());
 
     loadSounds();
   }
@@ -154,16 +150,15 @@ public class AudioService implements InitializingBean {
   }
 
   private void playSound(AudioClip audioClip) {
-    if (!playSounds) {
+    if (!playSounds.get()) {
       return;
     }
-    playSounds = false;
+
+    long currentTimeMillis = System.currentTimeMillis();
+    if (currentTimeMillis - lastPlayedSoundTime < MILLISECONDS_SILENT_AFTER_SOUND) {
+      return;
+    }
+    lastPlayedSoundTime = currentTimeMillis;
     audioClipPlayer.playSound(audioClip);
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        playSounds = notificationPrefs.isSoundsEnabled();
-      }
-    }, SILENCE_PERIOD_AFTER_SOUND);
   }
 }

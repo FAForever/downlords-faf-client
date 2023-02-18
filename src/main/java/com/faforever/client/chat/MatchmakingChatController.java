@@ -54,20 +54,12 @@ public class MatchmakingChatController extends AbstractChatTabController {
   private ChatChannel channel;
 
   // TODO cut dependencies
-  public MatchmakingChatController(UserService userService,
-                                   PreferencesService preferencesService,
-                                   PlayerService playerService,
-                                   TimeService timeService,
-                                   I18n i18n,
-                                   NotificationService notificationService,
-                                   UiService uiService,
-                                   EventBus eventBus,
-                                   AudioService audioService,
-                                   ChatService chatService,
-                                   WebViewConfigurer webViewConfigurer,
-                                   CountryFlagService countryFlagService,
-                                   EmoticonService emoticonService,
-                                   ChatPrefs chatPrefs,
+  public MatchmakingChatController(UserService userService, PreferencesService preferencesService,
+                                   PlayerService playerService, TimeService timeService, I18n i18n,
+                                   NotificationService notificationService, UiService uiService, EventBus eventBus,
+                                   AudioService audioService, ChatService chatService,
+                                   WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
+                                   EmoticonService emoticonService, ChatPrefs chatPrefs,
                                    NotificationPrefs notificationPrefs) {
     super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs);
   }
@@ -85,12 +77,11 @@ public class MatchmakingChatController extends AbstractChatTabController {
     matchmakingChatTabRoot.setText(partyName);
     String topic = i18n.get("teammatchmaking.chat.topic");
     topicText.getChildren().clear();
-    Arrays.stream(topic.split("\\s"))
-        .forEach(word -> {
-          Label label = new Label(word + " ");
-          label.setStyle("-fx-font-weight: bold; -fx-font-size: 1.1em;");
-            topicText.getChildren().add(label);
-        });
+    Arrays.stream(topic.split("\\s")).forEach(word -> {
+      Label label = new Label(word + " ");
+      label.setStyle("-fx-font-weight: bold; -fx-font-size: 1.1em;");
+      topicText.getChildren().add(label);
+    });
     topicText.getChildren().add(discordLink);
 
     chatService.addUsersListener(partyName, new WeakMapChangeListener<>(usersChangeListener));

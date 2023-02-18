@@ -122,7 +122,7 @@ public class ChatPrefs {
     return groupToColor;
   }
 
-  public boolean getPreviewImageUrls() {
+  public boolean isPreviewImageUrls() {
     return previewImageUrls.get();
   }
 
@@ -158,7 +158,7 @@ public class ChatPrefs {
     return maxMessages;
   }
 
-  public boolean getHideFoeMessages() {
+  public boolean isHideFoeMessages() {
     return hideFoeMessages.get();
   }
 

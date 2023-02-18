@@ -209,11 +209,6 @@ public class PreferencesBuilder {
       return this;
     }
 
-    public ChatPrefsBuilder learnedAutoComplete(boolean learnedAutoComplete) {
-      chatPrefs.setLearnedAutoComplete(learnedAutoComplete);
-      return this;
-    }
-
     public ChatPrefsBuilder previewImageUrls(boolean previewImageUrls) {
       chatPrefs.setPreviewImageUrls(previewImageUrls);
       return this;
@@ -226,11 +221,6 @@ public class PreferencesBuilder {
 
     public ChatPrefsBuilder chatColorMode(ChatColorMode chatColorMode) {
       chatPrefs.setChatColorMode(chatColorMode);
-      return this;
-    }
-
-    public ChatPrefsBuilder channelTabScrollPaneWidth(int channelTabScrollPaneWidth) {
-      chatPrefs.setChannelTabScrollPaneWidth(channelTabScrollPaneWidth);
       return this;
     }
 
@@ -266,11 +256,6 @@ public class PreferencesBuilder {
 
     public ChatPrefsBuilder autoJoinChannels(ObservableList<String> autoJoinChannels) {
       chatPrefs.getAutoJoinChannels().setAll(autoJoinChannels);
-      return this;
-    }
-
-    public ChatPrefsBuilder idleThreshold(int idleThreshold) {
-      chatPrefs.setIdleThreshold(idleThreshold);
       return this;
     }
 

@@ -112,7 +112,7 @@ public class ChatChannelTabControllerTest extends UITest {
     when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
     when(timeService.asShortTime(any())).thenReturn("now");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
-    when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
+    when(chatService.createChatUserIfNecessary(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
 
     instance.afterPropertiesSet();
 
@@ -337,7 +337,7 @@ public class ChatChannelTabControllerTest extends UITest {
         .moderator(true)
         .get();
 
-    when(chatService.getOrCreateChatUser(USER_NAME, defaultChatChannel.getName())).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, defaultChatChannel.getName())).thenReturn(chatUser);
 
     initializeDefaultChatChannel();
 
@@ -393,7 +393,7 @@ public class ChatChannelTabControllerTest extends UITest {
   public void getInlineStyleChangeToRandom() {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
@@ -415,7 +415,7 @@ public class ChatChannelTabControllerTest extends UITest {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
     chatUser.setColor(color);
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
@@ -437,7 +437,7 @@ public class ChatChannelTabControllerTest extends UITest {
             .username(USER_NAME)
             .socialStatus(FOE)
             .get()));
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
@@ -458,7 +458,7 @@ public class ChatChannelTabControllerTest extends UITest {
             .socialStatus(FOE)
             .get()));
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
       preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);

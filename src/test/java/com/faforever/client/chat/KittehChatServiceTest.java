@@ -198,9 +198,9 @@ public class KittehChatServiceTest extends UITest {
     when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(player1));
     when(playerService.getPlayerByNameIfOnline(user2.getNick())).thenReturn(Optional.empty());
 
-    defaultChatUser1 = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
-    otherChatUser1 = instance.getOrCreateChatUser(user1.getNick(), OTHER_CHANNEL_NAME, false);
-    defaultChatUser2 = instance.getOrCreateChatUser(user2.getNick(), DEFAULT_CHANNEL_NAME, false);
+    defaultChatUser1 = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    otherChatUser1 = instance.createChatUserIfNecessary(user1.getNick(), OTHER_CHANNEL_NAME);
+    defaultChatUser2 = instance.createChatUserIfNecessary(user2.getNick(), DEFAULT_CHANNEL_NAME);
 
     instance.afterPropertiesSet();
 
@@ -492,7 +492,7 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testChatMessageEventNotTriggeredByPrivateMessageFromFoe() {
-    ChatChannelUser foeUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick(), false);
+    ChatChannelUser foeUser = instance.createChatUserIfNecessary(user1.getNick(), user1.getNick());
     foeUser.setPlayer(PlayerBeanBuilder.create().defaultValues().username(defaultChatUser1.getUsername()).socialStatus(SocialStatus.FOE).get());
 
     String message = "private message";
@@ -656,8 +656,8 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(defaultChatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(defaultChatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser addedUser = instance.createChatUserIfNecessary(defaultChatUser1.getUsername(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser returnedUser = instance.createChatUserIfNecessary(defaultChatUser1.getUsername(), DEFAULT_CHANNEL_NAME);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -665,8 +665,8 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser addedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser returnedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);

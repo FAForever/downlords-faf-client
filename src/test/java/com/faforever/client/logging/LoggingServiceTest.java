@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LoggingServiceTest extends ServiceTest {
@@ -54,11 +53,5 @@ public class LoggingServiceTest extends ServiceTest {
     Files.delete(instance.getNewGameLogFile(0));
     Files.delete(instance.getNewGameLogFile(1));
     Files.delete(instance.getNewGameLogFile(2));
-  }
-
-  @Test
-  public void testSetLoggingLevel() throws Exception {
-    instance.setLoggingLevel();
-    verify(preferencesService).getPreferences();
   }
 }

@@ -52,6 +52,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -127,6 +128,8 @@ public class MainController implements Controller<Node>, InitializingBean {
   private final WindowPrefs windowPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
+  private final ChangeListener<Path> backgroundImageListener = (observable, oldValue, newValue) ->
+      setBackgroundImage(newValue);
 
   public Pane mainHeaderPane;
   public Pane contentPane;
@@ -200,7 +203,9 @@ public class MainController implements Controller<Node>, InitializingBean {
     transientNotificationsPopup = PopupUtil.createPopup(transientNotificationsController.getRoot());
     transientNotificationsPopup.getScene().getRoot().getStyleClass().add("transient-notification");
 
-    transientNotificationsController.getRoot().getChildren().addListener(new ToastDisplayer(transientNotificationsController));
+    transientNotificationsController.getRoot()
+        .getChildren()
+        .addListener(new ToastDisplayer(transientNotificationsController));
 
     updateNotificationsButton(notificationService.getPersistentNotifications());
     notificationService.addPersistentNotificationListener(change -> JavaFxUtil.runLater(() -> updateNotificationsButton(change.getSet())));
@@ -402,8 +407,7 @@ public class MainController implements Controller<Node>, InitializingBean {
         setWindowPosition(stage, windowPrefs);
       }
     });
-    JavaFxUtil.addListener(windowPrefs.backgroundImagePathProperty(), observable ->
-        setBackgroundImage(windowPrefs.getBackgroundImagePath()));
+    JavaFxUtil.addListener(windowPrefs.backgroundImagePathProperty(), new WeakChangeListener<>(backgroundImageListener));
   }
 
   private void setBackgroundImage(Path filepath) {
@@ -474,7 +478,8 @@ public class MainController implements Controller<Node>, InitializingBean {
 
   public void onNotificationsButtonClicked() {
     Bounds screenBounds = notificationButton.localToScreen(notificationButton.getBoundsInLocal());
-    persistentNotificationsPopup.show(notificationButton.getScene().getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
+    persistentNotificationsPopup.show(notificationButton.getScene()
+        .getWindow(), screenBounds.getMaxX(), screenBounds.getMaxY());
   }
 
   public void onSettingsSelected() {

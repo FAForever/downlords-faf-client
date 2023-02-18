@@ -1,13 +1,10 @@
 package com.faforever.client.fx.contextmenu;
 
 import com.faforever.client.chat.ChatChannelUser;
-import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.util.Assert;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
@@ -32,11 +29,13 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
 
   private final ChatPrefs chatPrefs;
 
-  private InvalidationListener chatColorModePropertyListener;
-
   @Override
   public void initialize() {
     removeCustomColorButton.setOnAction(event -> colorPicker.setValue(null));
+    removeCustomColorButton.visibleProperty()
+        .bind(chatPrefs.chatColorModeProperty()
+            .map(chatColorMode -> chatColorMode != RANDOM)
+            .flatMap(notRandom -> colorPicker.valueProperty().isNotNull().map(notNull -> notRandom && notNull)));
     JavaFxUtil.bindManagedToVisible(removeCustomColorButton);
   }
 
@@ -48,14 +47,6 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
   }
 
   private void initializeListeners() {
-    chatColorModePropertyListener = (observable) -> JavaFxUtil.runLater(() -> {
-      ChatColorMode chatColorMode = chatPrefs.getChatColorMode();
-      removeCustomColorButton.setVisible(!chatColorMode.equals(RANDOM) && colorPicker.getValue() != null);
-      getRoot().setVisible(isItemVisible());
-    });
-
-    JavaFxUtil.addListener(colorPicker.valueProperty(), chatColorModePropertyListener);
-    JavaFxUtil.addAndTriggerListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModePropertyListener));
     JavaFxUtil.addListener(colorPicker.valueProperty(), (observable) -> updateUserColor());
   }
 
@@ -86,7 +77,7 @@ public class ChatUserColorPickerCustomMenuItemController extends AbstractCustomM
   }
 
   private String getLowerUsername(ChatChannelUser chatUser) {
-    return chatUser.getUsername().toLowerCase(Locale.ROOT);
+    return chatUser.getUsername().toLowerCase(Locale.US);
   }
 }
 
