@@ -1,13 +1,10 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,11 +27,6 @@ public class GamePathHandlerTest extends ServiceTest {
 
   @InjectMocks
   private GamePathHandler instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-  }
 
   @Test
   public void testNotificationOnEmptyString() throws Exception {

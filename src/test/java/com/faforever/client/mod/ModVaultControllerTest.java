@@ -1,13 +1,11 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
@@ -71,13 +69,10 @@ public class ModVaultControllerTest extends UITest {
   @Spy
   private VaultPrefs vaultPrefs;
 
-  private Preferences preferences;
   private ModDetailController modDetailController;
 
   @BeforeEach
   public void setUp() throws Exception {
-    preferences = PreferencesBuilder.create().defaultValues().get();
-
     when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
@@ -107,7 +102,7 @@ public class ModVaultControllerTest extends UITest {
 
   @Test
   public void testSetSupplier() {
-    SortConfig sortOrder = preferences.getVault().getMapSortConfig();
+    SortConfig sortOrder = vaultPrefs.getMapSortConfig();
     SearchConfig standardSearchConfig = new SearchConfig(sortOrder, "query");
     instance.searchType = SearchType.SEARCH;
     instance.setSupplier(standardSearchConfig);

@@ -4,7 +4,6 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
@@ -18,7 +17,6 @@ import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -106,8 +104,6 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().notificationsPrefs().privateMessageToastEnabled(true).then().get();
-
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 

@@ -1,9 +1,6 @@
 package com.faforever.client.io;
 
-import com.faforever.client.builders.PreferencesBuilder;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.test.ServiceTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.springframework.core.io.ClassPathResource;
@@ -23,11 +20,6 @@ public class DownloadServiceTest extends ServiceTest {
 
   @InjectMocks
   private DownloadService instance;
-
-  @BeforeEach
-  public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-  }
 
   @Test
   public void testDownloadFile() throws Exception {

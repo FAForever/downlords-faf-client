@@ -6,7 +6,6 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
@@ -17,7 +16,6 @@ import com.faforever.client.io.UidService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.AvatarListInfo;
@@ -148,17 +146,6 @@ public class ServerAccessorTest extends ServiceTest {
         .registerModule(new JavaTimeModule())
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
-
-    Preferences preferences = PreferencesBuilder.create()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .loginPrefs()
-        .refreshToken("junit")
-        .then()
-        .get();
-
-    
 
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
 

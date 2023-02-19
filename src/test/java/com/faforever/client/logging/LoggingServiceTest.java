@@ -1,8 +1,6 @@
 package com.faforever.client.logging;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +27,6 @@ public class LoggingServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
     when(operatingSystem.getLoggingDirectory()).thenReturn(Path.of("."));
   }
 
