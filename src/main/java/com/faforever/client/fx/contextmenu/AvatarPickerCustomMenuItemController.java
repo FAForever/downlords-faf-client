@@ -4,9 +4,9 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.i18n.I18n;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -32,12 +32,12 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   public ComboBox<AvatarBean> avatarComboBox;
 
   private AvatarBean noAvatar;
-  private InvalidationListener selectedItemPropertyListener;
+  private SimpleInvalidationListener selectedItemPropertyListener;
 
   @Override
   public void afterSetObject() {
     if (object != null && object.getSocialStatus() == SELF) {
-      selectedItemPropertyListener = observable -> {
+      selectedItemPropertyListener = () -> {
         AvatarBean selectedAvatar = avatarComboBox.getSelectionModel().getSelectedItem();
         object.setAvatar(selectedAvatar);
         avatarService.changeAvatar(Objects.requireNonNullElse(selectedAvatar, noAvatar));

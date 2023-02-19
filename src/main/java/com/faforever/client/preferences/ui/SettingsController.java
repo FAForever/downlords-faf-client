@@ -9,6 +9,8 @@ import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.VaultPathHandler;
@@ -179,8 +181,8 @@ public class SettingsController implements Controller<Node> {
   public ListView<CoturnServer> preferredCoturnListView;
 
   private ChangeListener<Theme> selectedThemeChangeListener;
-  private ChangeListener<Theme> currentThemeChangeListener;
-  private InvalidationListener availableLanguagesListener;
+  private SimpleChangeListener<Theme> currentThemeChangeListener;
+  private SimpleInvalidationListener availableLanguagesListener;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
@@ -194,7 +196,7 @@ public class SettingsController implements Controller<Node> {
     NumberFormat integerNumberFormat = NumberFormat.getIntegerInstance();
     integerNumberFormat.setGroupingUsed(false);
     NumberStringConverter numberToStringConverter = new NumberStringConverter(integerNumberFormat);
-    
+
     temporarilyDisableUnsupportedSettings(preferences);
 
     JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat()
@@ -222,7 +224,7 @@ public class SettingsController implements Controller<Node> {
       }
     });
 
-    currentThemeChangeListener = (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue);
+    currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel().select(newValue);
     selectedThemeChangeListener = (observable, oldValue, newValue) -> {
       uiService.setTheme(newValue);
       if (oldValue != null && uiService.doesThemeNeedRestart(newValue)) {
@@ -231,7 +233,7 @@ public class SettingsController implements Controller<Node> {
         // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
       }
     };
-    availableLanguagesListener = observable -> {
+    availableLanguagesListener = () -> {
       LocalizationPrefs localization = preferences.getLocalization();
       Locale currentLocale = localization.getLanguage();
       List<Node> nodes = i18n.getAvailableLanguages().stream()

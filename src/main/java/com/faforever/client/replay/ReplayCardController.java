@@ -7,6 +7,7 @@ import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.map.MapService;
@@ -20,7 +21,6 @@ import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarsController;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -74,7 +74,7 @@ public class ReplayCardController implements Controller<Node> {
   public Button deleteButton;
   public StarsController starsController;
   private ReplayBean replay;
-  private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private final SimpleInvalidationListener reviewsChangedListener = this::populateReviews;
   private Consumer<ReplayBean> onOpenDetailListener;
 
   public void initialize() {

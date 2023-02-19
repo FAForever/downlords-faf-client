@@ -2,6 +2,7 @@ package com.faforever.client.vault.search;
 
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.query.BinaryFilterController;
@@ -19,7 +20,6 @@ import com.faforever.client.ui.dialog.Dialog;
 import com.github.rutledgepaulv.qbuilders.builders.QBuilder;
 import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableMap;
@@ -46,7 +46,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -74,7 +73,7 @@ public class SearchController implements Controller<Pane> {
   public HBox sortBox;
   public FlowPane filterPane;
   public CheckBox onlyShowLastYearCheckBox;
-  private InvalidationListener queryInvalidationListener;
+  private SimpleInvalidationListener queryInvalidationListener;
   /**
    * Called with the query string when the user hits "search".
    */
@@ -111,7 +110,7 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.logicalOperatorField.setVisible(false);
     initialLogicalNodeController.removeCriteriaButton.setVisible(false);
 
-    queryInvalidationListener = observable -> queryTextField.setText(buildQuery());
+    queryInvalidationListener = () -> queryTextField.setText(buildQuery());
     onlyShowLastYearCheckBox.selectedProperty().addListener(queryInvalidationListener);
     addInvalidationListener(initialLogicalNodeController);
     initSorting();
@@ -151,7 +150,7 @@ public class SearchController implements Controller<Pane> {
   public void setSortConfig(ObjectProperty<SortConfig> sortConfigObjectProperty) {
     List<Property> sortableProperties = searchableProperties.values().stream()
         .filter(Property::isSortable)
-        .collect(Collectors.toList());
+        .toList();
     sortPropertyComboBox.getItems().addAll(sortableProperties);
     sortOrderChoiceBox.getSelectionModel().select(sortConfigObjectProperty.get().getSortOrder());
 

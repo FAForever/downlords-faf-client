@@ -7,13 +7,13 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.vault.review.StarsController;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -60,7 +60,7 @@ public class MapCardController implements Controller<Node> {
   private MapVersionBean mapVersion;
   private Consumer<MapVersionBean> onOpenDetailListener;
   private ListChangeListener<MapVersionBean> installStatusChangeListener;
-  private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private final SimpleInvalidationListener reviewsChangedListener = this::populateReviews;
 
   public void initialize() {
     imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);

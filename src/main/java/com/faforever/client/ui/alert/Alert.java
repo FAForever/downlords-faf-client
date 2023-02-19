@@ -1,11 +1,11 @@
 package com.faforever.client.ui.alert;
 
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.ui.alert.animation.AlertAnimation;
 import com.faforever.client.ui.effects.DepthManager;
 import com.sun.javafx.event.EventHandlerManager;
 import javafx.animation.Animation;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -49,10 +49,10 @@ public class Alert<R> extends Dialog<R> {
       (AlertAnimation.CENTER_ANIMATION);
   private final BooleanProperty hideOnEscape = new SimpleBooleanProperty(this, "hideOnEscape", true);
 
-  private InvalidationListener widthListener;
-  private InvalidationListener heightListener;
-  private InvalidationListener xListener;
-  private InvalidationListener yListener;
+  private SimpleInvalidationListener widthListener;
+  private SimpleInvalidationListener heightListener;
+  private SimpleInvalidationListener xListener;
+  private SimpleInvalidationListener yListener;
   private boolean animateClosing = true;
   private Animation transition = null;
 
@@ -150,10 +150,10 @@ public class Alert<R> extends Dialog<R> {
         }
       });
       // bind dialog position to window position
-      widthListener = observable -> updateWidth();
-      heightListener = observable -> updateHeight();
-      xListener = observable -> updateX();
-      yListener = observable -> updateY();
+      widthListener = this::updateWidth;
+      heightListener = this::updateHeight;
+      xListener = this::updateX;
+      yListener = this::updateY;
     }
 
     // handle animation / owner window layout changes

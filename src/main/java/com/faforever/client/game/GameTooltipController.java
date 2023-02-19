@@ -5,10 +5,10 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -36,8 +36,8 @@ public class GameTooltipController implements Controller<Node> {
   public TilePane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
-  private InvalidationListener teamInvalidationListener;
-  private InvalidationListener simModsInvalidationListener;
+  private SimpleInvalidationListener teamInvalidationListener;
+  private SimpleInvalidationListener simModsInvalidationListener;
   private int maxPrefColumns;
   private GameBean game;
   private boolean showMods;
@@ -68,8 +68,8 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   private void resetListeners() {
-    teamInvalidationListener = observable -> createTeams();
-    simModsInvalidationListener = observable -> createModsList();
+    teamInvalidationListener = this::createTeams;
+    simModsInvalidationListener = this::createModsList;
   }
 
   private void createTeams() {

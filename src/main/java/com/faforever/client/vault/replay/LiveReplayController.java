@@ -7,6 +7,7 @@ import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.NodeTableCell;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.MapPreviewTableCell;
@@ -21,7 +22,6 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.base.Joiner;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleObjectProperty;
@@ -118,7 +118,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredGameList);
     IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), onlineGamesPredicate));
     JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
-    InvalidationListener gameListSizeListener = observable -> JavaFxUtil.runLater(() -> {
+    SimpleInvalidationListener gameListSizeListener = () -> JavaFxUtil.runLater(() -> {
       int gameListSize = gameListSizeBinding.get();
       filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
     });

@@ -2,9 +2,9 @@ package com.faforever.client.ui.taskbar;
 
 import com.faforever.client.FafClientApplication;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.task.TaskService;
 import javafx.beans.Observable;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
 import javafx.scene.control.ProgressIndicator;
@@ -32,7 +32,7 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
 
   private final TaskService taskService;
   private final Executor executorService;
-  private final ChangeListener<Number> progressUpdateListener;
+  private final SimpleChangeListener<Number> progressUpdateListener;
 
   private ITaskbarList3 taskBarList;
   private Pointer<Integer> taskBarPointer;
@@ -40,7 +40,7 @@ public class WindowsTaskbarProgressUpdater implements InitializingBean {
   public WindowsTaskbarProgressUpdater(TaskService taskService, ExecutorService executorService) {
     this.taskService = taskService;
     this.executorService = executorService;
-    progressUpdateListener = (observable1, oldValue, newValue) -> updateTaskbarProgress(newValue.doubleValue());
+    progressUpdateListener = newValue -> updateTaskbarProgress(newValue.doubleValue());
   }
 
   @Override

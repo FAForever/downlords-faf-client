@@ -6,6 +6,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyUsernameMenuItem;
 import com.faforever.client.fx.contextmenu.ReportPlayerMenuItem;
@@ -21,7 +22,6 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.Assert;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -74,9 +74,9 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private PlayerBean player;
-  private InvalidationListener playerStatusInvalidationListener;
-  private InvalidationListener playerPropertiesInvalidationListener;
-  private InvalidationListener partyOwnerInvalidationListener;
+  private SimpleInvalidationListener playerStatusInvalidationListener;
+  private SimpleInvalidationListener playerPropertiesInvalidationListener;
+  private SimpleInvalidationListener partyOwnerInvalidationListener;
 
   @Override
   public void initialize() {
@@ -104,9 +104,9 @@ public class PartyMemberItemController implements Controller<Node> {
   }
 
   private void initializeListeners() {
-    playerStatusInvalidationListener = observable -> setMemberGameStatus();
-    playerPropertiesInvalidationListener = observable -> setPlayerProperties();
-    partyOwnerInvalidationListener = observable -> setPartyOwnerProperties();
+    playerStatusInvalidationListener = this::setMemberGameStatus;
+    playerPropertiesInvalidationListener = this::setPlayerProperties;
+    partyOwnerInvalidationListener = this::setPartyOwnerProperties;
   }
 
   private void setMemberGameStatus() {

@@ -3,15 +3,15 @@ package com.faforever.client.game;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -54,9 +54,9 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   private final ObjectProperty<GameBean> selectedGame = new SimpleObjectProperty<>();
 
-  private ChangeListener<? super TilesSortingOrder> sortingListener;
+  private SimpleChangeListener<? super TilesSortingOrder> sortingListener;
   private ListChangeListener<GameBean> gameListChangeListener;
-  private final InvalidationListener tooltipShowingListener = observable -> {
+  private final SimpleInvalidationListener tooltipShowingListener = () -> {
     if (tooltip.isShowing()) {
       gameTooltipController.displayGame();
     } else {
@@ -75,7 +75,7 @@ public class GamesTilesContainerController implements Controller<Node> {
     JavaFxUtil.addListener(tooltip.showingProperty(), tooltipShowingListener);
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
 
-    sortingListener = (observable, oldValue, newValue) -> {
+    sortingListener = newValue -> {
       if (newValue == null) {
         return;
       }

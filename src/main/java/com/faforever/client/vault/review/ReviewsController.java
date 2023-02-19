@@ -5,13 +5,13 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -66,7 +66,7 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
   private Pane ownReviewRoot;
   private Consumer<T> onDeleteReviewListener;
   private ObservableList<T> reviews;
-  private final InvalidationListener onReviewsChangedListener;
+  private final SimpleInvalidationListener onReviewsChangedListener;
   private T ownReview;
   private List<List<T>> reviewPages;
   private int currentReviewPage;
@@ -75,7 +75,7 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
     this.i18n = i18n;
     this.uiService = uiService;
     this.playerService = playerService;
-    onReviewsChangedListener = observable -> JavaFxUtil.runLater(this::onReviewsChanged);
+    onReviewsChangedListener = () -> JavaFxUtil.runLater(this::onReviewsChanged);
   }
 
   public void initialize() {

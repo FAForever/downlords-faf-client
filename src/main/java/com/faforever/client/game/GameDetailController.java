@@ -5,6 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -25,7 +26,6 @@ import com.google.common.eventbus.Subscribe;
 import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -85,11 +85,11 @@ public class GameDetailController implements Controller<Pane> {
   private boolean playtimeVisible;
   private Timeline playTimeTimeline;
 
-  private InvalidationListener teamsInvalidationListener;
-  private InvalidationListener gameStatusInvalidationListener;
-  private InvalidationListener gamePropertiesInvalidationListener;
-  private InvalidationListener featuredModInvalidationListener;
-  private InvalidationListener startTimeInvalidationListener;
+  private SimpleInvalidationListener teamsInvalidationListener;
+  private SimpleInvalidationListener gameStatusInvalidationListener;
+  private SimpleInvalidationListener gamePropertiesInvalidationListener;
+  private SimpleInvalidationListener featuredModInvalidationListener;
+  private SimpleInvalidationListener startTimeInvalidationListener;
 
   public void initialize() {
     imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
@@ -202,14 +202,14 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void resetListeners() {
-    featuredModInvalidationListener = observable -> onFeaturedModChanged();
-    gameStatusInvalidationListener = observable -> onGameStatusChanged();
-    teamsInvalidationListener = observable -> {
+    featuredModInvalidationListener = this::onFeaturedModChanged;
+    gameStatusInvalidationListener = this::onGameStatusChanged;
+    teamsInvalidationListener = () -> {
       createTeams();
       onNumPlayersChanged();
     };
-    gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
-    startTimeInvalidationListener = observable -> onStartTimeChanged();
+    gamePropertiesInvalidationListener = this::onGamePropertyChanged;
+    startTimeInvalidationListener = this::onStartTimeChanged;
   }
 
   private void onStartTimeChanged() {

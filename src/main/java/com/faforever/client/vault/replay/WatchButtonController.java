@@ -3,6 +3,7 @@ package com.faforever.client.vault.replay;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.CancelActionNotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.CancelActionRunReplayImmediatelyMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -15,7 +16,6 @@ import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
@@ -49,7 +49,7 @@ public class WatchButtonController implements Controller<Node> {
   private Timeline delayTimeline;
   private ContextMenu contextMenu;
 
-  private final InvalidationListener trackingLiveReplayPropertyListener = observable -> updateWatchButtonState();
+  private final SimpleInvalidationListener trackingLiveReplayPropertyListener = this::updateWatchButtonState;
 
 
   public void initialize() {

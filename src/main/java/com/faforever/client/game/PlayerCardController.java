@@ -4,6 +4,7 @@ import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
 import com.faforever.client.fx.contextmenu.AddFriendMenuItem;
@@ -21,7 +22,6 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -65,7 +65,7 @@ public class PlayerCardController implements Controller<Node> {
   private PlayerBean player;
   private Tooltip noteTooltip;
 
-  private final ChangeListener<String> noteListener = (observable, oldValue, newValue) -> updateNoteTooltip(newValue);
+  private final SimpleChangeListener<String> noteListener = this::updateNoteTooltip;
 
   public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
     if (player == null) {
