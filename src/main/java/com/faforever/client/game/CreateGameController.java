@@ -10,6 +10,7 @@ import com.faforever.client.filter.MapFilterController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.DualStringListCell;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.CopyLabelMenuItem;
@@ -31,7 +32,6 @@ import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
@@ -100,7 +100,7 @@ public class CreateGameController implements Controller<Pane> {
   private final ContextMenuBuilder contextMenuBuilder;
   private final LastGamePrefs lastGamePrefs;
 
-  private final InvalidationListener createButtonStateListener = observable -> setCreateGameButtonState();;
+  private final SimpleInvalidationListener createButtonStateListener = this::setCreateGameButtonState;
 
   public Label mapSizeLabel;
   public Label mapPlayersLabel;

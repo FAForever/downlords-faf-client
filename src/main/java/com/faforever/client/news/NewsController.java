@@ -4,11 +4,11 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Website;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.main.event.NavigateEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
@@ -27,17 +27,16 @@ public class NewsController extends AbstractViewController<Node> {
   public Pane newsRoot;
   public WebView newsWebView;
   public Control loadingIndicator;
-  private final ChangeListener<Boolean> loadingIndicatorListener;
+  private final SimpleChangeListener<Boolean> loadingIndicatorListener = newValue
+      -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
+      .filter(node -> node != loadingIndicator)
+      .forEach(node -> node.setVisible(!newValue));;
 
   public NewsController(EventBus eventBus, WebViewConfigurer webViewConfigurer, ClientProperties clientProperties) {
     this.eventBus = eventBus;
     this.webViewConfigurer = webViewConfigurer;
     this.clientProperties = clientProperties;
 
-    loadingIndicatorListener = (observable, oldValue, newValue)
-        -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
-        .filter(node -> node != loadingIndicator)
-        .forEach(node -> node.setVisible(!newValue));
     eventBus.register(this);
   }
 

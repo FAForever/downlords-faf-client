@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
@@ -10,7 +11,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.util.Assert;
 import com.google.common.base.Joiner;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -60,8 +60,8 @@ public class GameTileController implements Controller<Node> {
   private Consumer<GameBean> onSelectedListener;
   private GameBean game;
 
-  private InvalidationListener teamsInvalidationListener;
-  private InvalidationListener gamePropertiesInvalidationListener;
+  private final SimpleInvalidationListener teamsInvalidationListener = this::onNumPlayersChanged;
+  private final SimpleInvalidationListener gamePropertiesInvalidationListener = this::onGamePropertyChanged;
 
   public void setOnSelectedListener(Consumer<GameBean> onSelectedListener) {
     this.onSelectedListener = onSelectedListener;
@@ -72,9 +72,6 @@ public class GameTileController implements Controller<Node> {
     JavaFxUtil.bind(modsLabel.visibleProperty(), modsLabel.textProperty().isNotEmpty());
     JavaFxUtil.bind(defaultHostIcon.visibleProperty(), avatarImageView.imageProperty().isNull());
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
-
-    teamsInvalidationListener = observable -> onNumPlayersChanged();
-    gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
   }
 
   public Node getRoot() {

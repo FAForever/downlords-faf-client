@@ -4,6 +4,8 @@ import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.MatchmakerQueueBean.MatchingStatus;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.ShowMapPoolEvent;
 import com.faforever.client.player.PlayerService;
@@ -11,9 +13,7 @@ import com.faforever.client.user.UserService;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
@@ -58,45 +58,35 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   @VisibleForTesting
   MatchmakerQueueBean queue;
-  private InvalidationListener queueButtonStateInvalidationListener;
-  private InvalidationListener queueStateInvalidationListener;
-  private InvalidationListener queuePopulationInvalidationListener;
-  private InvalidationListener queueGamesInvalidationListener;
-  private ChangeListener<MatchingStatus> queueMatchStatusChangeListener;
+  private final SimpleInvalidationListener queueButtonStateInvalidationListener = this::setQueueButtonState;
+  private final SimpleInvalidationListener queueStateInvalidationListener = () -> JavaFxUtil.runLater(() -> {
+    refreshingLabel.setVisible(false);
+    joinLeaveQueueButton.setSelected(queue.isJoined());
+  });
+  private final SimpleInvalidationListener queuePopulationInvalidationListener = this::setPlayersInQueueText;
+
+  private final SimpleInvalidationListener queueGamesInvalidationListener = this::setActiveGamesText;
+
+  private final SimpleChangeListener<MatchingStatus> queueMatchStatusChangeListener = newValue -> {
+    disableMatchStatus();
+    if (newValue == null) {
+      return;
+    }
+    switch (newValue) {
+      case MATCH_FOUND -> matchFoundLabel.setVisible(true);
+      case GAME_LAUNCHING -> matchStartingLabel.setVisible(true);
+      case MATCH_CANCELLED -> matchCancelledLabel.setVisible(true);
+      default -> log.warn("Unexpected matching status: " + newValue);
+    }
+  };
 
   @Override
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
 
-    initializeListeners();
-
     eventBus.register(this);
     joinLeaveQueueButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
     mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
-  }
-
-  private void initializeListeners() {
-    queueButtonStateInvalidationListener = observable -> setQueueButtonState();
-    queueStateInvalidationListener = observable -> JavaFxUtil.runLater(() -> {
-      refreshingLabel.setVisible(false);
-      joinLeaveQueueButton.setSelected(queue.isJoined());
-    });
-    queuePopulationInvalidationListener = observable -> JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
-        .toUpperCase()));
-    queueGamesInvalidationListener = observable -> JavaFxUtil.runLater(() -> activeGamesLabel.setText(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())
-        .toUpperCase()));
-    queueMatchStatusChangeListener = (observable, oldValue, newValue) -> {
-      disableMatchStatus();
-      if (newValue == null) {
-        return;
-      }
-      switch (newValue) {
-        case MATCH_FOUND -> matchFoundLabel.setVisible(true);
-        case GAME_LAUNCHING -> matchStartingLabel.setVisible(true);
-        case MATCH_CANCELLED -> matchCancelledLabel.setVisible(true);
-        default -> log.warn("Unexpected matching status: " + newValue);
-      }
-    };
   }
 
   @Override
@@ -120,6 +110,16 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(userService.ownPlayerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addAndTriggerListener(queue.joinedProperty(), new WeakInvalidationListener(queueStateInvalidationListener));
+  }
+
+  private void setPlayersInQueueText() {
+    JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
+        .toUpperCase()));
+  }
+
+  private void setActiveGamesText() {
+    JavaFxUtil.runLater(() -> activeGamesLabel.setText(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())
+        .toUpperCase()));
   }
 
   private void setQueueButtonState() {

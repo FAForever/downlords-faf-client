@@ -10,13 +10,14 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -24,7 +25,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -72,7 +72,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final LeaderboardService leaderboardService;
-  private final PreferencesService preferencesService;
   private final PlayerService playerService;
   private final I18n i18n;
   private final UiService uiService;
@@ -112,9 +111,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private Map<Faction, ToggleButton> factionsToButtons;
   @VisibleForTesting
   protected MatchmakingChatController matchmakingChatController;
-  private InvalidationListener matchmakingQueuesLabelInvalidationListener;
-  private InvalidationListener playerPropertiesInvalidationListener;
-  private ChangeListener<PlayerBean> partyOwnerChangeListener;
+  private final SimpleInvalidationListener matchmakingQueuesLabelInvalidationListener = this::setQueueHeadingLabel;
+  private final SimpleInvalidationListener playerPropertiesInvalidationListener = this::refreshPlayerProperties;
+  private final SimpleChangeListener<PlayerBean> partyOwnerChangeListener  = newValue -> JavaFxUtil.runLater(() -> {
+    leavePartyButton.setDisable(newValue == player);
+    invitePlayerButton.setDisable(newValue != player);
+    setCrownVisibility();
+  });
 
   @Override
   public void initialize() {
@@ -128,7 +131,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     player = playerService.getCurrentPlayer();
     initializeDynamicChatPosition();
     initializeUppercaseText();
-    initializeListeners();
+    addListeners();
 
     ObservableList<Faction> factions = matchmakerPrefs.getFactions();
     selectFactions(factions);
@@ -197,31 +200,19 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     }));
   }
 
-  private void initializeListeners() {
-    matchmakingQueuesLabelInvalidationListener = observable -> setQueueHeadingLabel();
-
-    playerPropertiesInvalidationListener = observable -> {
-      Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
-      Image avatarImage = avatarService.loadAvatar(player.getAvatar());
-      String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
-      setLeagueInfo();
-      JavaFxUtil.runLater(() -> {
-        countryImageView.setImage(countryFlag);
-        avatarImageView.setImage(avatarImage);
-        clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));
-        clanLabel.setText(clanTag);
-        gameCountLabel.setText(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase());
-        usernameLabel.setText(player.getUsername());
-      });
-    };
-
-    partyOwnerChangeListener = (observable, oldValue, newValue) -> JavaFxUtil.runLater(() -> {
-      leavePartyButton.setDisable(newValue == player);
-      invitePlayerButton.setDisable(newValue != player);
-      setCrownVisibility();
+  private void refreshPlayerProperties() {
+    Image countryFlag = countryFlagService.loadCountryFlag(player.getCountry()).orElse(null);
+    Image avatarImage = avatarService.loadAvatar(player.getAvatar());
+    String clanTag = Strings.isNullOrEmpty(player.getClan()) ? "" : String.format("[%s]", player.getClan());
+    setLeagueInfo();
+    JavaFxUtil.runLater(() -> {
+      countryImageView.setImage(countryFlag);
+      avatarImageView.setImage(avatarImage);
+      clanLabel.setVisible(!Strings.isNullOrEmpty(player.getClan()));
+      clanLabel.setText(clanTag);
+      gameCountLabel.setText(i18n.get("teammatchmaking.gameCount", player.getNumberOfGames()).toUpperCase());
+      usernameLabel.setText(player.getUsername());
     });
-
-    addListeners();
   }
 
   private void addListeners() {

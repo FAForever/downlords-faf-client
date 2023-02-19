@@ -4,6 +4,8 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
@@ -20,10 +22,8 @@ import com.faforever.commons.lobby.GameType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -85,7 +85,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private GamesTilesContainerController gamesTilesContainerController;
 
   private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
-  private final ChangeListener<GameBean> gameChangeListener = (observable, oldValue, newValue) -> setSelectedGame(newValue);
+  private final SimpleChangeListener<GameBean> gameChangeListener = this::setSelectedGame;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox);
@@ -119,7 +119,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredItems);
     IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), openGamesPredicate));
     JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
-    InvalidationListener gameListSizeListener = observable -> JavaFxUtil.runLater(() -> {
+    SimpleInvalidationListener gameListSizeListener = () -> JavaFxUtil.runLater(() -> {
       int gameListSize = gameListSizeBinding.get();
       filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
     });

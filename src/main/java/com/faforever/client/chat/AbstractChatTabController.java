@@ -8,6 +8,8 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
@@ -35,7 +37,6 @@ import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker.State;
 import javafx.css.PseudoClass;
@@ -143,9 +144,9 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
 
-  private final InvalidationListener stageFocusedListener = observable -> focusTextFieldIfStageFocused();
-  private final InvalidationListener resetUnreadMessagesListener = observable -> clearUnreadIfFocused();
-  private final ChangeListener<Boolean> tabPaneFocusedListener = (focusedTabPane, oldTabPaneFocus, newTabPaneFocus) -> {
+  private final SimpleInvalidationListener stageFocusedListener = this::focusTextFieldIfStageFocused;
+  private final SimpleInvalidationListener resetUnreadMessagesListener = this::clearUnreadIfFocused;
+  private final SimpleChangeListener<Boolean> tabPaneFocusedListener = newTabPaneFocus -> {
     if (newTabPaneFocus) {
       JavaFxUtil.runLater(() -> messageTextField().requestFocus());
     }

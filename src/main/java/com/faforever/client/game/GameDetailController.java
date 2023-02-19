@@ -5,6 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -25,7 +26,6 @@ import com.google.common.eventbus.Subscribe;
 import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -85,11 +85,14 @@ public class GameDetailController implements Controller<Pane> {
   private boolean playtimeVisible;
   private Timeline playTimeTimeline;
 
-  private InvalidationListener teamsInvalidationListener;
-  private InvalidationListener gameStatusInvalidationListener;
-  private InvalidationListener gamePropertiesInvalidationListener;
-  private InvalidationListener featuredModInvalidationListener;
-  private InvalidationListener startTimeInvalidationListener;
+  private final SimpleInvalidationListener teamsInvalidationListener = () -> {
+    createTeams();
+    onNumPlayersChanged();
+  };
+  private final SimpleInvalidationListener gameStatusInvalidationListener = this::onGameStatusChanged;
+  private final SimpleInvalidationListener gamePropertiesInvalidationListener = this::onGamePropertyChanged;
+  private final SimpleInvalidationListener featuredModInvalidationListener = this::onFeaturedModChanged;
+  private final SimpleInvalidationListener startTimeInvalidationListener = this::onStartTimeChanged;
 
   public void initialize() {
     imageViewHelper.setDefaultPlaceholderImage(mapImageView, true);
@@ -175,8 +178,6 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   public void setGame(GameBean game) {
-    resetListeners();
-
     this.game = game;
     if (game == null || game.getStatus() == GameStatus.CLOSED) {
       hideGameDetail();
@@ -199,17 +200,6 @@ public class GameDetailController implements Controller<Pane> {
     JavaFxUtil.addListener(game.mapFolderNameProperty(), weakGamePropertiesListener);
     JavaFxUtil.addListener(game.hostProperty(), weakGamePropertiesListener);
     JavaFxUtil.addAndTriggerListener(game.startTimeProperty(), weakStartTimeListener);
-  }
-
-  public void resetListeners() {
-    featuredModInvalidationListener = observable -> onFeaturedModChanged();
-    gameStatusInvalidationListener = observable -> onGameStatusChanged();
-    teamsInvalidationListener = observable -> {
-      createTeams();
-      onNumPlayersChanged();
-    };
-    gamePropertiesInvalidationListener = observable -> onGamePropertyChanged();
-    startTimeInvalidationListener = observable -> onStartTimeChanged();
   }
 
   private void onStartTimeChanged() {

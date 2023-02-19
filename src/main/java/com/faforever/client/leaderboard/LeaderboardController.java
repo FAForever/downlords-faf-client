@@ -5,13 +5,13 @@ import com.faforever.client.domain.LeagueSeasonBean;
 import com.faforever.client.domain.SubdivisionBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -87,7 +87,7 @@ public class LeaderboardController implements Controller<Tab> {
   public Label seasonDateLabel;
   private LeagueSeasonBean season;
   private LeagueEntryBean entryToSelect;
-  private final InvalidationListener playerRatingListener = observable -> updateDisplayedPlayerStats();;
+  private final SimpleInvalidationListener playerRatingListener = this::updateDisplayedPlayerStats;;
 
   @VisibleForTesting
   protected AutoCompletionBinding<String> usernamesAutoCompletion;

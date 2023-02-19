@@ -8,6 +8,7 @@ import com.faforever.client.domain.PartyBean.PartyMember;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.PlayerStatus;
 import com.faforever.client.i18n.I18n;
@@ -110,7 +111,7 @@ public class TeamMatchmakingService implements InitializingBean {
 
   private volatile boolean matchFoundAndWaitingForGameLaunch = false;
   private final BooleanProperty currentlyInQueue = new SimpleBooleanProperty();
-  private final InvalidationListener queueJoinInvalidationListener = observable -> currentlyInQueue.set(matchmakerQueues.stream()
+  private final SimpleInvalidationListener queueJoinInvalidationListener = () -> currentlyInQueue.set(matchmakerQueues.stream()
       .anyMatch(MatchmakerQueueBean::isJoined));
 
   private CompletableFuture<Void> matchmakingGameFuture;

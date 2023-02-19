@@ -6,6 +6,7 @@ import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -15,7 +16,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -76,14 +76,14 @@ public class GamesTableController implements Controller<Node> {
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
-  private final InvalidationListener tooltipShowingListener = observable -> {
+  private final SimpleInvalidationListener tooltipShowingListener = () -> {
     if (tooltip.isShowing()) {
       gameTooltipController.displayGame();
     } else {
       gameTooltipController.setGame(null);
     }
   };
-  private final InvalidationListener selectedItemListener = observable -> JavaFxUtil.runLater(() -> selectedGame.setValue(gamesTable.getSelectionModel()
+  private final SimpleInvalidationListener selectedItemListener = () -> JavaFxUtil.runLater(() -> selectedGame.setValue(gamesTable.getSelectionModel()
       .getSelectedItem()));
 
   public ObjectProperty<GameBean> selectedGameProperty() {

@@ -6,10 +6,10 @@ import com.faforever.client.domain.ModVersionReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.vault.review.StarsController;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -49,7 +49,7 @@ public class ModCardController implements Controller<Node> {
   private Consumer<ModVersionBean> onOpenDetailListener;
   private ListChangeListener<ModVersionBean> installStatusChangeListener;
   public StarsController starsController;
-  private final InvalidationListener reviewsChangedListener = observable -> populateReviews();
+  private final SimpleInvalidationListener reviewsChangedListener = this::populateReviews;
 
   private void populateReviews() {
     ModReviewsSummaryBean modReviewsSummary = modVersion.getMod().getModReviewsSummary();

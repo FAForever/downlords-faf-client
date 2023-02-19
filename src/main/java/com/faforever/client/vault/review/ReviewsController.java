@@ -5,13 +5,13 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReviewBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -19,6 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ReviewsController<T extends ReviewBean> implements Controller<Pane> {
   private static final int REVIEWS_PER_PAGE = 4;
   private final I18n i18n;
@@ -66,17 +68,10 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
   private Pane ownReviewRoot;
   private Consumer<T> onDeleteReviewListener;
   private ObservableList<T> reviews;
-  private final InvalidationListener onReviewsChangedListener;
+  private final SimpleInvalidationListener onReviewsChangedListener = () -> JavaFxUtil.runLater(this::onReviewsChanged);
   private T ownReview;
   private List<List<T>> reviewPages;
   private int currentReviewPage;
-
-  public ReviewsController(I18n i18n, UiService uiService, PlayerService playerService) {
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.playerService = playerService;
-    onReviewsChangedListener = observable -> JavaFxUtil.runLater(this::onReviewsChanged);
-  }
 
   public void initialize() {
     ownReviewRoot = ownReviewPaneController.getRoot();

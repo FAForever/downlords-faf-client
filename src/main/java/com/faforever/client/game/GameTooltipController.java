@@ -5,10 +5,10 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -36,8 +36,8 @@ public class GameTooltipController implements Controller<Node> {
   public TilePane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
-  private InvalidationListener teamInvalidationListener;
-  private InvalidationListener simModsInvalidationListener;
+  private final SimpleInvalidationListener teamInvalidationListener = this::createTeams;
+  private final SimpleInvalidationListener simModsInvalidationListener = this ::createModsList;
   private int maxPrefColumns;
   private GameBean game;
   private boolean showMods;
@@ -55,7 +55,6 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   public void displayGame() {
-    resetListeners();
     if (game == null) {
       return;
     }
@@ -65,11 +64,6 @@ public class GameTooltipController implements Controller<Node> {
       WeakInvalidationListener weakModInvalidationListener = new WeakInvalidationListener(simModsInvalidationListener);
       JavaFxUtil.addAndTriggerListener(game.simModsProperty(), weakModInvalidationListener);
     }
-  }
-
-  private void resetListeners() {
-    teamInvalidationListener = observable -> createTeams();
-    simModsInvalidationListener = observable -> createModsList();
   }
 
   private void createTeams() {

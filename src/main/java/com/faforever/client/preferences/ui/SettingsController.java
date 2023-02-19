@@ -9,6 +9,8 @@ import com.faforever.client.fa.relay.ice.CoturnService;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.game.GameService;
 import com.faforever.client.game.VaultPathHandler;
@@ -178,9 +180,9 @@ public class SettingsController implements Controller<Node> {
   public CheckBox mapAndModAutoUpdateCheckBox;
   public ListView<CoturnServer> preferredCoturnListView;
 
-  private ChangeListener<Theme> selectedThemeChangeListener;
-  private ChangeListener<Theme> currentThemeChangeListener;
-  private InvalidationListener availableLanguagesListener;
+  private final SimpleChangeListener<Theme> selectedThemeChangeListener = this::onThemeChanged;
+  private final SimpleChangeListener<Theme> currentThemeChangeListener = newValue -> themeComboBox.getSelectionModel().select(newValue);;
+  private SimpleInvalidationListener availableLanguagesListener = this::setAvailableLanguages;;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(vaultLocationWarningLabel);
@@ -194,7 +196,7 @@ public class SettingsController implements Controller<Node> {
     NumberFormat integerNumberFormat = NumberFormat.getIntegerInstance();
     integerNumberFormat.setGroupingUsed(false);
     NumberStringConverter numberToStringConverter = new NumberStringConverter(integerNumberFormat);
-    
+
     temporarilyDisableUnsupportedSettings(preferences);
 
     JavaFxUtil.bindBidirectional(maxMessagesTextField.textProperty(), preferences.getChat()
@@ -222,30 +224,6 @@ public class SettingsController implements Controller<Node> {
       }
     });
 
-    currentThemeChangeListener = (observable, oldValue, newValue) -> themeComboBox.getSelectionModel().select(newValue);
-    selectedThemeChangeListener = (observable, oldValue, newValue) -> {
-      uiService.setTheme(newValue);
-      if (oldValue != null && uiService.doesThemeNeedRestart(newValue)) {
-        notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
-            Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
-        // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
-      }
-    };
-    availableLanguagesListener = observable -> {
-      LocalizationPrefs localization = preferences.getLocalization();
-      Locale currentLocale = localization.getLanguage();
-      List<Node> nodes = i18n.getAvailableLanguages().stream()
-          .map(locale -> {
-            LanguageItemController controller = uiService.loadFxml("theme/settings/language_item.fxml");
-            controller.setLocale(locale);
-            controller.setOnSelectedListener(this::onLanguageSelected);
-            controller.setSelected(locale.equals(currentLocale));
-            return controller.getRoot();
-          })
-          .collect(Collectors.toList());
-      languagesContainer.getChildren().setAll(nodes);
-    };
-
     configureTimeSetting();
     configureDateSetting();
     configureChatSetting();
@@ -266,6 +244,30 @@ public class SettingsController implements Controller<Node> {
     bindNotificationPreferences();
     bindGamePreferences();
     bindGeneralPreferences();
+  }
+
+  private void onThemeChanged(Theme newValue) {
+    uiService.setTheme(newValue);
+    if (uiService.doesThemeNeedRestart(newValue)) {
+      notificationService.addNotification(new PersistentNotification(i18n.get("theme.needsRestart.message", newValue.getDisplayName()), Severity.WARN,
+          Collections.singletonList(new Action(i18n.get("theme.needsRestart.quit"), event -> Platform.exit()))));
+      // FIXME reload application (stage & application context) https://github.com/FAForever/downlords-faf-client/issues/1794
+    }
+  }
+
+  private void setAvailableLanguages() {
+    LocalizationPrefs localization = preferences.getLocalization();
+    Locale currentLocale = localization.getLanguage();
+    List<Node> nodes = i18n.getAvailableLanguages().stream()
+        .map(locale -> {
+          LanguageItemController controller = uiService.loadFxml("theme/settings/language_item.fxml");
+          controller.setLocale(locale);
+          controller.setOnSelectedListener(this::onLanguageSelected);
+          controller.setSelected(locale.equals(currentLocale));
+          return controller.getRoot();
+        })
+        .collect(Collectors.toList());
+    languagesContainer.getChildren().setAll(nodes);
   }
 
   /**
@@ -365,9 +367,7 @@ public class SettingsController implements Controller<Node> {
     autoChannelListView.setFocusTraversable(false);
     autoChannelListView.setItems(preferences.getChat().getAutoJoinChannels());
     autoChannelListView.setCellFactory(param -> uiService.<RemovableListCellController<String>>loadFxml("theme/settings/removable_cell.fxml"));
-    JavaFxUtil.addListener(autoChannelListView.getItems(), (InvalidationListener) observable -> {
-      autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty());
-    });
+    JavaFxUtil.addListener(autoChannelListView.getItems(), (InvalidationListener) observable -> autoChannelListView.setVisible(!autoChannelListView.getItems().isEmpty()));
   }
 
   private void bindNotificationPreferences() {
@@ -465,9 +465,7 @@ public class SettingsController implements Controller<Node> {
     unitDataBaseTypeChangeListener.changed(null, null, preferences.getUnitDataBaseType());
     JavaFxUtil.addListener(preferences.unitDataBaseTypeProperty(), unitDataBaseTypeChangeListener);
 
-    unitDatabaseComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      preferences.setUnitDataBaseType(newValue);
-    });
+    unitDatabaseComboBox.getSelectionModel().selectedItemProperty().addListener((SimpleChangeListener<UnitDataBaseType>) preferences::setUnitDataBaseType);
   }
 
   private void configureTimeSetting() {

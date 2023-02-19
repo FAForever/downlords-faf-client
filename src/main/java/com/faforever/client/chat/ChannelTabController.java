@@ -4,6 +4,8 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
+import com.faforever.client.fx.SimpleChangeListener;
+import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.WebViewConfigurer;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
@@ -17,7 +19,6 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.Assert;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -88,10 +89,10 @@ public class ChannelTabController extends AbstractChatTabController {
   private String topicContent = "";
 
   /* Listeners */
-  private final InvalidationListener topicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
+  private final SimpleInvalidationListener topicListener = this::updateChannelTopic;
   @SuppressWarnings("FieldCanBeLocal")
-  private final ChangeListener<Boolean> hideFoeMessagesListener = (observable, oldValue, newValue) -> hideFoeMessages(newValue);
-  private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers()
+  private final SimpleChangeListener<Boolean> hideFoeMessagesListener = this::hideFoeMessages;
+  private final SimpleInvalidationListener chatColorModeListener = () -> chatChannel.getUsers()
       .forEach(this::updateUserMessageColor);
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
@@ -254,9 +255,11 @@ public class ChannelTabController extends AbstractChatTabController {
         .getAuthor(), i18n.get("chat.topicUpdated", oldTopicContent, newTopicContent)));
 
     if (topicPane.isDisable()) {
-      topicTextField.setVisible(false);
-      changeTopicTextButton.setVisible(true);
-      topicPane.setDisable(false);
+      JavaFxUtil.runLater(() -> {
+        topicTextField.setVisible(false);
+        changeTopicTextButton.setVisible(true);
+        topicPane.setDisable(false);
+      });
     }
   }
 
