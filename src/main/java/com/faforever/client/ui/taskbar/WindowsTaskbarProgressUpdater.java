@@ -8,6 +8,7 @@ import javafx.beans.Observable;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker;
 import javafx.scene.control.ProgressIndicator;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bridj.Pointer;
 import org.bridj.PointerIO;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Updates the progress in the Windows 7+ task bar, if available.
@@ -28,20 +28,15 @@ import java.util.concurrent.ExecutorService;
 @Slf4j
 @Component
 @Profile(FafClientApplication.PROFILE_WINDOWS)
+@RequiredArgsConstructor
 public class WindowsTaskbarProgressUpdater implements InitializingBean {
 
   private final TaskService taskService;
   private final Executor executorService;
-  private final SimpleChangeListener<Number> progressUpdateListener;
+  private final SimpleChangeListener<Number> progressUpdateListener = newValue -> updateTaskbarProgress(newValue.doubleValue());
 
   private ITaskbarList3 taskBarList;
   private Pointer<Integer> taskBarPointer;
-
-  public WindowsTaskbarProgressUpdater(TaskService taskService, ExecutorService executorService) {
-    this.taskService = taskService;
-    this.executorService = executorService;
-    progressUpdateListener = newValue -> updateTaskbarProgress(newValue.doubleValue());
-  }
 
   @Override
   public void afterPropertiesSet() {

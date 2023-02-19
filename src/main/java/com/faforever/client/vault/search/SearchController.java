@@ -73,7 +73,7 @@ public class SearchController implements Controller<Pane> {
   public HBox sortBox;
   public FlowPane filterPane;
   public CheckBox onlyShowLastYearCheckBox;
-  private SimpleInvalidationListener queryInvalidationListener;
+  private final SimpleInvalidationListener queryInvalidationListener = () -> queryTextField.setText(buildQuery());;
   /**
    * Called with the query string when the user hits "search".
    */
@@ -110,7 +110,6 @@ public class SearchController implements Controller<Pane> {
     initialLogicalNodeController.logicalOperatorField.setVisible(false);
     initialLogicalNodeController.removeCriteriaButton.setVisible(false);
 
-    queryInvalidationListener = () -> queryTextField.setText(buildQuery());
     onlyShowLastYearCheckBox.selectedProperty().addListener(queryInvalidationListener);
     addInvalidationListener(initialLogicalNodeController);
     initSorting();

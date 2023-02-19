@@ -58,45 +58,35 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
 
   @VisibleForTesting
   MatchmakerQueueBean queue;
-  private SimpleInvalidationListener queueButtonStateInvalidationListener;
-  private SimpleInvalidationListener queueStateInvalidationListener;
-  private SimpleInvalidationListener queuePopulationInvalidationListener;
-  private SimpleInvalidationListener queueGamesInvalidationListener;
-  private SimpleChangeListener<MatchingStatus> queueMatchStatusChangeListener;
+  private final SimpleInvalidationListener queueButtonStateInvalidationListener = this::setQueueButtonState;
+  private final SimpleInvalidationListener queueStateInvalidationListener = () -> JavaFxUtil.runLater(() -> {
+    refreshingLabel.setVisible(false);
+    joinLeaveQueueButton.setSelected(queue.isJoined());
+  });
+  private final SimpleInvalidationListener queuePopulationInvalidationListener = () -> JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
+      .toUpperCase()));
+  private final SimpleInvalidationListener queueGamesInvalidationListener = () -> JavaFxUtil.runLater(() -> activeGamesLabel.setText(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())
+      .toUpperCase()));
+  private final SimpleChangeListener<MatchingStatus> queueMatchStatusChangeListener = newValue -> {
+    disableMatchStatus();
+    if (newValue == null) {
+      return;
+    }
+    switch (newValue) {
+      case MATCH_FOUND -> matchFoundLabel.setVisible(true);
+      case GAME_LAUNCHING -> matchStartingLabel.setVisible(true);
+      case MATCH_CANCELLED -> matchCancelledLabel.setVisible(true);
+      default -> log.warn("Unexpected matching status: " + newValue);
+    }
+  };
 
   @Override
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(matchFoundLabel, matchStartingLabel, matchCancelledLabel);
 
-    initializeListeners();
-
     eventBus.register(this);
     joinLeaveQueueButton.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
     mapPoolButton.setText(i18n.get("teammatchmaking.mapPool").toUpperCase());
-  }
-
-  private void initializeListeners() {
-    queueButtonStateInvalidationListener = this::setQueueButtonState;
-    queueStateInvalidationListener = () -> JavaFxUtil.runLater(() -> {
-      refreshingLabel.setVisible(false);
-      joinLeaveQueueButton.setSelected(queue.isJoined());
-    });
-    queuePopulationInvalidationListener = () -> JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
-        .toUpperCase()));
-    queueGamesInvalidationListener = () -> JavaFxUtil.runLater(() -> activeGamesLabel.setText(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())
-        .toUpperCase()));
-    queueMatchStatusChangeListener = newValue -> {
-      disableMatchStatus();
-      if (newValue == null) {
-        return;
-      }
-      switch (newValue) {
-        case MATCH_FOUND -> matchFoundLabel.setVisible(true);
-        case GAME_LAUNCHING -> matchStartingLabel.setVisible(true);
-        case MATCH_CANCELLED -> matchCancelledLabel.setVisible(true);
-        default -> log.warn("Unexpected matching status: " + newValue);
-      }
-    };
   }
 
   @Override

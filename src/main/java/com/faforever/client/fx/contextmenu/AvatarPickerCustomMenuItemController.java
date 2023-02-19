@@ -29,20 +29,15 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
   private final AvatarService avatarService;
   private final I18n i18n;
 
+  private final SimpleInvalidationListener selectedItemPropertyListener = this::setAvatar;
+
   public ComboBox<AvatarBean> avatarComboBox;
 
   private AvatarBean noAvatar;
-  private SimpleInvalidationListener selectedItemPropertyListener;
 
   @Override
   public void afterSetObject() {
     if (object != null && object.getSocialStatus() == SELF) {
-      selectedItemPropertyListener = () -> {
-        AvatarBean selectedAvatar = avatarComboBox.getSelectionModel().getSelectedItem();
-        object.setAvatar(selectedAvatar);
-        avatarService.changeAvatar(Objects.requireNonNullElse(selectedAvatar, noAvatar));
-      };
-
       avatarComboBox.setCellFactory(param -> avatarCell());
       avatarComboBox.setButtonCell(avatarCell());
 
@@ -83,5 +78,11 @@ public class AvatarPickerCustomMenuItemController extends AbstractCustomMenuItem
         getRoot().setVisible(isItemVisible());
       });
     });
+  }
+
+  private void setAvatar() {
+    AvatarBean selectedAvatar = avatarComboBox.getSelectionModel().getSelectedItem();
+    object.setAvatar(selectedAvatar);
+    avatarService.changeAvatar(Objects.requireNonNullElse(selectedAvatar, noAvatar));
   }
 }

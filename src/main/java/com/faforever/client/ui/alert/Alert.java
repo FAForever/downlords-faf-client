@@ -49,16 +49,13 @@ public class Alert<R> extends Dialog<R> {
       (AlertAnimation.CENTER_ANIMATION);
   private final BooleanProperty hideOnEscape = new SimpleBooleanProperty(this, "hideOnEscape", true);
 
-  private SimpleInvalidationListener widthListener;
-  private SimpleInvalidationListener heightListener;
-  private SimpleInvalidationListener xListener;
-  private SimpleInvalidationListener yListener;
+  private final SimpleInvalidationListener widthListener = this::updateWidth;
+  private final SimpleInvalidationListener heightListener = this::updateHeight;
+  private final SimpleInvalidationListener xListener = this::updateX;
+  private final SimpleInvalidationListener yListener = this::updateY;
+
   private boolean animateClosing = true;
   private Animation transition = null;
-
-  public Alert() {
-    this(null);
-  }
 
   public Alert(Window window) {
     contentContainer = new StackPane();
@@ -149,11 +146,6 @@ public class Alert<R> extends Dialog<R> {
           hide();
         }
       });
-      // bind dialog position to window position
-      widthListener = this::updateWidth;
-      heightListener = this::updateHeight;
-      xListener = this::updateX;
-      yListener = this::updateY;
     }
 
     // handle animation / owner window layout changes

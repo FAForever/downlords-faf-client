@@ -74,14 +74,13 @@ public class PartyMemberItemController implements Controller<Node> {
   public ImageView playerStatusImageView;
 
   private PlayerBean player;
-  private SimpleInvalidationListener playerStatusInvalidationListener;
-  private SimpleInvalidationListener playerPropertiesInvalidationListener;
-  private SimpleInvalidationListener partyOwnerInvalidationListener;
+  private final SimpleInvalidationListener playerStatusInvalidationListener = this::setMemberGameStatus;
+  private final SimpleInvalidationListener playerPropertiesInvalidationListener = this::setPlayerProperties;
+  private final SimpleInvalidationListener partyOwnerInvalidationListener = this::setPartyOwnerProperties;
 
   @Override
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(clanLabel, avatarImageView, playerStatusImageView, leagueImageView, kickPlayerButton);
-    initializeListeners();
   }
 
   @Override
@@ -101,12 +100,6 @@ public class PartyMemberItemController implements Controller<Node> {
 
     addListeners();
     selectFactionsBasedOnParty();
-  }
-
-  private void initializeListeners() {
-    playerStatusInvalidationListener = this::setMemberGameStatus;
-    playerPropertiesInvalidationListener = this::setPlayerProperties;
-    partyOwnerInvalidationListener = this::setPartyOwnerProperties;
   }
 
   private void setMemberGameStatus() {

@@ -9,10 +9,10 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -52,17 +52,12 @@ public class GamesTilesContainerController implements Controller<Node> {
   private ObservableList<GameBean> games;
   private ComboBox<TilesSortingOrder> sortingTypeChoiceBox;
 
-  private final ObjectProperty<GameBean> selectedGame = new SimpleObjectProperty<>();
+  private final ReadOnlyObjectWrapper<GameBean> selectedGame = new ReadOnlyObjectWrapper<>();
 
-  private SimpleChangeListener<? super TilesSortingOrder> sortingListener;
-  private ListChangeListener<GameBean> gameListChangeListener;
-  private final SimpleInvalidationListener tooltipShowingListener = () -> {
-    if (tooltip.isShowing()) {
-      gameTooltipController.displayGame();
-    } else {
-      gameTooltipController.setGame(null);
-    }
-  };
+  private final SimpleChangeListener<? super TilesSortingOrder> sortingListener  = this::onSortingChanged;
+
+  private final ListChangeListener<GameBean> gameListChangeListener = this::onGameListChange;;
+  private final SimpleInvalidationListener tooltipShowingListener = this::onTooltipChanged;
 
   private void sortNodes() {
     ObservableList<Node> sortedChildren = tiledFlowPane.getChildren().sorted(appliedComparator);
@@ -74,27 +69,42 @@ public class GamesTilesContainerController implements Controller<Node> {
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
     JavaFxUtil.addListener(tooltip.showingProperty(), tooltipShowingListener);
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
+  }
 
-    sortingListener = newValue -> {
-      if (newValue == null) {
-        return;
-      }
-      preferences.setGameTileSortingOrder(newValue);
-      appliedComparator = newValue.getComparator();
-      sortNodes();
-    };
-
-    gameListChangeListener = change -> JavaFxUtil.runLater(() -> {
+  private void onGameListChange(Change<? extends GameBean> change) {
+    JavaFxUtil.runLater(() -> {
       while (change.next()) {
-        change.getRemoved().forEach(this::removeGameCard);
-        change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
-        sortNodes();
+        if (change.wasRemoved()) {
+          change.getRemoved().forEach(this::removeGameCard);
+        }
+
+        if (change.wasAdded()) {
+          change.getAddedSubList().forEach(GamesTilesContainerController.this::addGameCard);
+        }
       }
+      sortNodes();
     });
   }
 
-  ReadOnlyObjectProperty<GameBean> selectedGameProperty() {
-    return this.selectedGame;
+  private void onTooltipChanged() {
+    if (tooltip.isShowing()) {
+      gameTooltipController.displayGame();
+    } else {
+      gameTooltipController.setGame(null);
+    }
+  }
+
+  private void onSortingChanged(TilesSortingOrder newValue) {
+    if (newValue == null) {
+      return;
+    }
+    preferences.setGameTileSortingOrder(newValue);
+    appliedComparator = newValue.getComparator();
+    sortNodes();
+  }
+
+  public ReadOnlyObjectProperty<GameBean> selectedGameProperty() {
+    return selectedGame.getReadOnlyProperty();
   }
 
   public void createTiledFlowPane(ObservableList<GameBean> games, ComboBox<TilesSortingOrder> sortingTypeChoiceBox) {

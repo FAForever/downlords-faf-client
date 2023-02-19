@@ -19,6 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import lombok.RequiredArgsConstructor;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class ReviewsController<T extends ReviewBean> implements Controller<Pane> {
   private static final int REVIEWS_PER_PAGE = 4;
   private final I18n i18n;
@@ -66,17 +68,10 @@ public class ReviewsController<T extends ReviewBean> implements Controller<Pane>
   private Pane ownReviewRoot;
   private Consumer<T> onDeleteReviewListener;
   private ObservableList<T> reviews;
-  private final SimpleInvalidationListener onReviewsChangedListener;
+  private final SimpleInvalidationListener onReviewsChangedListener = () -> JavaFxUtil.runLater(this::onReviewsChanged);
   private T ownReview;
   private List<List<T>> reviewPages;
   private int currentReviewPage;
-
-  public ReviewsController(I18n i18n, UiService uiService, PlayerService playerService) {
-    this.i18n = i18n;
-    this.uiService = uiService;
-    this.playerService = playerService;
-    onReviewsChangedListener = () -> JavaFxUtil.runLater(this::onReviewsChanged);
-  }
 
   public void initialize() {
     ownReviewRoot = ownReviewPaneController.getRoot();

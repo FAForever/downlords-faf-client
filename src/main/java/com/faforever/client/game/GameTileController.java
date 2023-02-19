@@ -60,8 +60,8 @@ public class GameTileController implements Controller<Node> {
   private Consumer<GameBean> onSelectedListener;
   private GameBean game;
 
-  private SimpleInvalidationListener teamsInvalidationListener;
-  private SimpleInvalidationListener gamePropertiesInvalidationListener;
+  private final SimpleInvalidationListener teamsInvalidationListener = this::onNumPlayersChanged;
+  private final SimpleInvalidationListener gamePropertiesInvalidationListener = this::onGamePropertyChanged;
 
   public void setOnSelectedListener(Consumer<GameBean> onSelectedListener) {
     this.onSelectedListener = onSelectedListener;
@@ -72,9 +72,6 @@ public class GameTileController implements Controller<Node> {
     JavaFxUtil.bind(modsLabel.visibleProperty(), modsLabel.textProperty().isNotEmpty());
     JavaFxUtil.bind(defaultHostIcon.visibleProperty(), avatarImageView.imageProperty().isNull());
     JavaFxUtil.bind(avatarImageView.visibleProperty(), avatarImageView.imageProperty().isNotNull());
-
-    teamsInvalidationListener = this::onNumPlayersChanged;
-    gamePropertiesInvalidationListener = this::onGamePropertyChanged;
   }
 
   public Node getRoot() {

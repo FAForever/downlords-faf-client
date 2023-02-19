@@ -27,17 +27,16 @@ public class NewsController extends AbstractViewController<Node> {
   public Pane newsRoot;
   public WebView newsWebView;
   public Control loadingIndicator;
-  private final SimpleChangeListener<Boolean> loadingIndicatorListener;
+  private final SimpleChangeListener<Boolean> loadingIndicatorListener = newValue
+      -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
+      .filter(node -> node != loadingIndicator)
+      .forEach(node -> node.setVisible(!newValue));;
 
   public NewsController(EventBus eventBus, WebViewConfigurer webViewConfigurer, ClientProperties clientProperties) {
     this.eventBus = eventBus;
     this.webViewConfigurer = webViewConfigurer;
     this.clientProperties = clientProperties;
 
-    loadingIndicatorListener = newValue
-        -> loadingIndicator.getParent().getChildrenUnmodifiable().stream()
-        .filter(node -> node != loadingIndicator)
-        .forEach(node -> node.setVisible(!newValue));
     eventBus.register(this);
   }
 

@@ -18,7 +18,6 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
 import com.google.common.base.Strings;
@@ -73,7 +72,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final CountryFlagService countryFlagService;
   private final AvatarService avatarService;
   private final LeaderboardService leaderboardService;
-  private final PreferencesService preferencesService;
   private final PlayerService playerService;
   private final I18n i18n;
   private final UiService uiService;
@@ -113,9 +111,13 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private Map<Faction, ToggleButton> factionsToButtons;
   @VisibleForTesting
   protected MatchmakingChatController matchmakingChatController;
-  private SimpleInvalidationListener matchmakingQueuesLabelInvalidationListener;
-  private SimpleInvalidationListener playerPropertiesInvalidationListener;
-  private SimpleChangeListener<PlayerBean> partyOwnerChangeListener;
+  private final SimpleInvalidationListener matchmakingQueuesLabelInvalidationListener = this::setQueueHeadingLabel;
+  private final SimpleInvalidationListener playerPropertiesInvalidationListener = this::refreshPlayerProperties;
+  private final SimpleChangeListener<PlayerBean> partyOwnerChangeListener  = newValue -> JavaFxUtil.runLater(() -> {
+    leavePartyButton.setDisable(newValue == player);
+    invitePlayerButton.setDisable(newValue != player);
+    setCrownVisibility();
+  });
 
   @Override
   public void initialize() {
@@ -129,7 +131,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     player = playerService.getCurrentPlayer();
     initializeDynamicChatPosition();
     initializeUppercaseText();
-    initializeListeners();
+    addListeners();
 
     ObservableList<Faction> factions = matchmakerPrefs.getFactions();
     selectFactions(factions);
@@ -196,20 +198,6 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         leagueImageView.setVisible(true);
       }
     }));
-  }
-
-  private void initializeListeners() {
-    matchmakingQueuesLabelInvalidationListener = this::setQueueHeadingLabel;
-
-    playerPropertiesInvalidationListener = this::refreshPlayerProperties;
-
-    partyOwnerChangeListener = newValue -> JavaFxUtil.runLater(() -> {
-      leavePartyButton.setDisable(newValue == player);
-      invitePlayerButton.setDisable(newValue != player);
-      setCrownVisibility();
-    });
-
-    addListeners();
   }
 
   private void refreshPlayerProperties() {

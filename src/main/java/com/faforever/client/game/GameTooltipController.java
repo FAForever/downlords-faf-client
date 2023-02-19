@@ -36,8 +36,8 @@ public class GameTooltipController implements Controller<Node> {
   public TilePane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
-  private SimpleInvalidationListener teamInvalidationListener;
-  private SimpleInvalidationListener simModsInvalidationListener;
+  private final SimpleInvalidationListener teamInvalidationListener = this::createTeams;
+  private final SimpleInvalidationListener simModsInvalidationListener = this ::createModsList;
   private int maxPrefColumns;
   private GameBean game;
   private boolean showMods;
@@ -55,7 +55,6 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   public void displayGame() {
-    resetListeners();
     if (game == null) {
       return;
     }
@@ -65,11 +64,6 @@ public class GameTooltipController implements Controller<Node> {
       WeakInvalidationListener weakModInvalidationListener = new WeakInvalidationListener(simModsInvalidationListener);
       JavaFxUtil.addAndTriggerListener(game.simModsProperty(), weakModInvalidationListener);
     }
-  }
-
-  private void resetListeners() {
-    teamInvalidationListener = this::createTeams;
-    simModsInvalidationListener = this::createModsList;
   }
 
   private void createTeams() {
