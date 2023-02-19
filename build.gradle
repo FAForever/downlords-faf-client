@@ -321,7 +321,7 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.github.rutledgepaulv:q-builders:1.6")
   implementation("com.github.nsp:JSkills:8b333ec63d")
-  implementation("com.github.jasminb:jsonapi-converter:0.11")
+  implementation("com.github.jasminb:jsonapi-converter:0.12")
   implementation("javax.annotation:javax.annotation-api:1.3.2")
   implementation("com.github.ben-manes.caffeine:caffeine")
   implementation("org.apache.httpcomponents:httpclient")
