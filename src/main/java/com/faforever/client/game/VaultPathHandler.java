@@ -45,7 +45,7 @@ public class VaultPathHandler {
   }
 
   private void showWarning() {
-    CheckBox ignoreCheckbox = new CheckBox(i18n.get("vaultBasePath.nonAscii.warning.ignore"));
+    CheckBox ignoreCheckbox = new CheckBox(i18n.get("ignoreWarning"));
     JavaFxUtil.addListener(ignoreCheckbox.selectedProperty(), (observable, oldValue, newValue) -> {
       forgedAlliancePrefs.setWarnNonAsciiVaultPath(!newValue);
     });
