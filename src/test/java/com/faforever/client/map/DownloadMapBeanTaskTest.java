@@ -1,8 +1,7 @@
 package com.faforever.client.map;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -18,7 +18,6 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 public class DownloadMapBeanTaskTest extends UITest {
 
@@ -32,19 +31,15 @@ public class DownloadMapBeanTaskTest extends UITest {
   private PreferencesService preferencesService;
   @Mock
   private I18n i18n;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Path mapsDirectory;
 
   @BeforeEach
   public void setUp() throws Exception {
+    forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
     mapsDirectory = Files.createDirectory(tempDirectory.resolve("maps"));
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .forgedAlliancePrefs()
-        .vaultBaseDirectory(tempDirectory)
-        .then()
-        .get();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 
   @Test

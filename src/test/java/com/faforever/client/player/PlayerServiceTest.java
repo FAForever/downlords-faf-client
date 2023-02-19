@@ -4,15 +4,14 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
@@ -82,11 +81,13 @@ public class PlayerServiceTest extends ServiceTest {
   private PreferencesService preferencesService;
   @Mock
   private JavaFxService javaFxService;
+  @Spy
+  private PlayerMapper playerMapper = Mappers.getMapper(PlayerMapper.class);
+  @Spy
+  private UserPrefs userPrefs;
 
   @InjectMocks
   private PlayerService instance;
-  @Spy
-  private PlayerMapper playerMapper = Mappers.getMapper(PlayerMapper.class);
   private com.faforever.commons.lobby.Player currentPlayer;
   private com.faforever.commons.lobby.Player playerInfo1;
   private com.faforever.commons.lobby.Player playerInfo2;
@@ -108,14 +109,8 @@ public class PlayerServiceTest extends ServiceTest {
     when(userService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
     when(userService.getUsername()).thenReturn("junit");
 
-    Map<Integer, String> notes = new HashMap<>();
-    notes.put(3, "junit3");
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .userPrefs()
-        .setNotesByPlayerId(FXCollections.observableMap(notes))
-        .then()
-        .get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    userPrefs.getNotesByPlayerId().put(3, "junit3");
+    
 
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 

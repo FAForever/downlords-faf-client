@@ -2,7 +2,6 @@ package com.faforever.client.replay;
 
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.builders.MapVersionBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.builders.ReplayBeanBuilder;
 import com.faforever.client.builders.ReplayReviewsSummaryBeanBuilder;
 import com.faforever.client.config.ClientProperties;
@@ -22,7 +21,7 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
@@ -156,29 +155,24 @@ public class ReplayServiceTest extends ServiceTest {
   private ReplayDataParser replayDataParser;
   @Mock
   private FileSizeReader fileSizeReader;
-
   @Spy
   private ReplayMapper replayMapper = Mappers.getMapper(ReplayMapper.class);
   @Spy
   private ReviewMapper reviewMapper = Mappers.getMapper(ReviewMapper.class);
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
+  @Spy
+  private DataPrefs dataPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(replayMapper);
     MapperSetup.injectMappers(reviewMapper);
 
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .get();
+    dataPrefs.setBaseDataDirectory(tempDirectory);
 
-    cacheDirectory = Files.createDirectories(preferences.getData().getCacheDirectory());
-    replayDirectory = Files.createDirectories(preferences.getData().getReplaysDirectory());
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    cacheDirectory = Files.createDirectories(dataPrefs.getCacheDirectory());
+    replayDirectory = Files.createDirectories(dataPrefs.getReplaysDirectory());
 
     when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 

@@ -1,10 +1,10 @@
 package com.faforever.client.patch;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 public class GameBinariesUpdateTaskTest extends ServiceTest {
   @TempDir
@@ -40,7 +39,11 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   @Mock
   private I18n i18n;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
+  @Spy
+  private DataPrefs dataPrefs;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @InjectMocks
   private GameBinariesUpdateTaskImpl instance;
@@ -49,18 +52,11 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   public void setUp() throws Exception {
     Path faPath = tempDirectory.resolve("fa");
 
-    Preferences preferences = PreferencesBuilder.create()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .forgedAlliancePrefs()
-        .installationPath(faPath)
-        .then()
-        .get();
+    dataPrefs.setBaseDataDirectory(tempDirectory);
+    forgedAlliancePrefs.setInstallationPath(faPath);
 
     faDirectory = Files.createDirectories(faPath.resolve("bin"));
-    fafBinDirectory = Files.createDirectories(preferences.getData().getBinDirectory());
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    fafBinDirectory = Files.createDirectories(dataPrefs.getBinDirectory());
   }
 
   @Test

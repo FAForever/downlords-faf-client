@@ -1,6 +1,5 @@
 package com.faforever.client.preferences.ui;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
@@ -106,15 +105,16 @@ public class SettingsControllerTest extends UITest {
   private VaultPathHandler vaultPathHandler;
   @Spy
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
-
+  @Spy
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(iceServerMapper);
-    preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferenceService.getPreferences()).thenReturn(preferences);
+
+    preferences.getData().setBaseDataDirectory(Path.of("."));
+
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
     when(uiService.getCurrentTheme())
         .thenReturn(FIRST_THEME);

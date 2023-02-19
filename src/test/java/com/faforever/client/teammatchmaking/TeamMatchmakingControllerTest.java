@@ -7,7 +7,6 @@ import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
 import com.faforever.client.chat.ChatMessage;
 import com.faforever.client.chat.MatchmakingChatController;
@@ -19,7 +18,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -37,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
@@ -80,8 +80,8 @@ public class TeamMatchmakingControllerTest extends UITest {
   private TeamMatchmakingService teamMatchmakingService;
   @Mock
   private EventBus eventBus;
-
-  private Preferences preferences;
+  @Spy
+  private MatchmakerPrefs matchmakerPrefs;
   @InjectMocks
   private TeamMatchmakingController instance;
   private PlayerBean player;
@@ -93,15 +93,11 @@ public class TeamMatchmakingControllerTest extends UITest {
     party = PartyBuilder.create().defaultValues().get();
     player = party.getOwner();
     matchmakerQueues = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
-    ObservableList<Faction> factionList = FXCollections.observableArrayList(Faction.SERAPHIM, Faction.AEON);
-    preferences = PreferencesBuilder.create().defaultValues()
-        .matchmakerPrefs()
-        .factions(factionList)
-        .then()
-        .get();
+
+    matchmakerPrefs.getFactions().setAll(List.of(Faction.SERAPHIM, Faction.AEON));
 
     when(teamMatchmakingService.getParty()).thenReturn(party);
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
     when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
@@ -184,7 +180,7 @@ public class TeamMatchmakingControllerTest extends UITest {
 
     instance.onFactionButtonClicked();
 
-    assertThat(preferences.getMatchmaker().getFactions(), containsInAnyOrder(Faction.UEF, Faction.AEON));
+    assertThat(matchmakerPrefs.getFactions(), containsInAnyOrder(Faction.UEF, Faction.AEON));
     verify(teamMatchmakingService, times(2)).sendFactionSelection(eq(List.of(Faction.UEF, Faction.AEON)));
   }
 

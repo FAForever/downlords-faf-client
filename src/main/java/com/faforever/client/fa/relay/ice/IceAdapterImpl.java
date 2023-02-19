@@ -71,6 +71,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private final FafServerAccessor fafServerAccessor;
   private final IceServerMapper iceServerMapper;
   private final Preferences preferences;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
@@ -206,8 +207,6 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
     cmd.add(operatingSystem.getJavaExecutablePath()
         .toAbsolutePath()
         .toString());
-
-    ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
 
     if (!forgedAlliancePrefs.isAllowIpv6()) {
       cmd.add("-Dorg.ice4j.ipv6.DISABLED=true");

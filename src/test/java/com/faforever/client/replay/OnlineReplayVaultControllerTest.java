@@ -8,8 +8,8 @@ import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
@@ -31,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
@@ -77,6 +78,8 @@ public class OnlineReplayVaultControllerTest extends UITest {
   private CategoryFilterController categoryFilterController;
   @Mock
   private VaultEntityShowRoomController vaultEntityShowRoomController;
+  @Spy
+  private VaultPrefs vaultPrefs;
 
   @Captor
   private ArgumentCaptor<Consumer<SearchConfig>> searchListenerCaptor;
@@ -96,14 +99,13 @@ public class OnlineReplayVaultControllerTest extends UITest {
     when(replayService.getHighestRatedReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
     when(replayService.findById(anyInt())).thenReturn(CompletableFuture.completedFuture(Optional.of(testReplay)));
     when(replayService.getOwnReplaysWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ReplayBean>of()), Mono.just(0)).toFuture());
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(uiService.loadFxml("theme/vault/vault_entity_show_room.fxml")).thenReturn(vaultEntityShowRoomController);
     when(vaultEntityShowRoomController.getRoot()).thenReturn(new VBox(), new VBox(), new VBox());
     when(vaultEntityShowRoomController.getLabel()).thenReturn(new Label());
     when(vaultEntityShowRoomController.getMoreButton()).thenReturn(new Button());
     when(i18n.get(anyString())).thenReturn("test");
 
-    sortOrder = preferencesService.getPreferences().getVault().getOnlineReplaySortConfig();
+    sortOrder = new VaultPrefs().getOnlineReplaySortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
     loadFxml("theme/vault/vault_entity.fxml", clazz -> {

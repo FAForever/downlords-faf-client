@@ -127,13 +127,9 @@ public class ServerAccessorTest extends ServiceTest {
   @Mock
   private EventBus eventBus;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
   @Spy
-  private ObjectMapper objectMapper = new ObjectMapper()
-      .registerModule(new Builder().build())
-      .registerModule(new JavaTimeModule())
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);;
+  private ObjectMapper objectMapper;
 
   @InjectMocks
   private FafServerAccessor instance;
@@ -150,6 +146,11 @@ public class ServerAccessorTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
+    objectMapper.registerModule(new Builder().build())
+        .registerModule(new JavaTimeModule())
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
+
     Preferences preferences = PreferencesBuilder.create()
         .dataPrefs()
         .dataDirectory(tempDirectory)
@@ -159,7 +160,7 @@ public class ServerAccessorTest extends ServiceTest {
         .then()
         .get();
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    
 
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
 

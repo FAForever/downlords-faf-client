@@ -13,7 +13,6 @@ import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.preferences.NewsPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.UserPrefs;
@@ -157,11 +156,6 @@ public class PreferencesConfig implements DisposableBean {
   @Bean
   public MatchmakerPrefs matchmaker() throws IOException, InterruptedException {
     return preferences().getMatchmaker();
-  }
-
-  @Bean
-  public NewsPrefs news() throws IOException, InterruptedException {
-    return preferences().getNews();
   }
 
   @Bean

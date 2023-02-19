@@ -6,6 +6,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.NavigationItem;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
@@ -23,6 +24,7 @@ import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -58,6 +60,8 @@ public class VaultEntityControllerTest extends UITest {
   private SpecificationController specificationController;
   @Mock
   private VaultEntityShowRoomController vaultEntityShowRoomController;
+  @Spy
+  private VaultPrefs vaultPrefs;
 
   private VaultEntityController<Integer> instance;
   private List<Integer> items;

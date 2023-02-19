@@ -10,14 +10,12 @@ import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.DateInfo;
-import com.faforever.client.preferences.DeveloperPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.GeneratorPrefs;
 import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.preferences.NewsPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.Preferences.UnitDataBaseType;
@@ -28,7 +26,6 @@ import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.vault.search.SearchController.SortConfig;
 import com.faforever.commons.lobby.Faction;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
@@ -37,7 +34,6 @@ import javafx.scene.paint.Color;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -81,11 +77,6 @@ public class PreferencesBuilder {
 
   public PreferencesBuilder showModdedGames(boolean showModdedGames) {
     preferences.setHideModdedGames(showModdedGames);
-    return this;
-  }
-
-  public PreferencesBuilder ignoredNotifications(List<String> ignoredNotifications) {
-    preferences.setIgnoredNotifications(FXCollections.observableList(ignoredNotifications));
     return this;
   }
 
@@ -171,14 +162,6 @@ public class PreferencesBuilder {
     return new MatchmakerPrefsBuilder();
   }
 
-  public NewsPrefsBuilder newsPrefs() {
-    return new NewsPrefsBuilder();
-  }
-
-  public DeveloperPrefsBuilder developerPrefs() {
-    return new DeveloperPrefsBuilder();
-  }
-
   public VaultPrefsBuilder vaultPrefs() {
     return new VaultPrefsBuilder();
   }
@@ -196,6 +179,7 @@ public class PreferencesBuilder {
   }
 
   abstract class SubPreferencesBuilder {
+
     public PreferencesBuilder then() {
       return PreferencesBuilder.this;
     }
@@ -264,16 +248,6 @@ public class PreferencesBuilder {
       return this;
     }
   }
-
-  public class DeveloperPrefsBuilder extends SubPreferencesBuilder {
-    private final DeveloperPrefs developerPrefs = preferences.getDeveloper();
-
-    public DeveloperPrefsBuilder gameRepositoryUrl(String gameRepositoryUrl) {
-      developerPrefs.setGameRepositoryUrl(gameRepositoryUrl);
-      return this;
-    }
-  }
-
   public class ForgedAlliancePrefsBuilder extends SubPreferencesBuilder {
     private final ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
 
@@ -475,15 +449,6 @@ public class PreferencesBuilder {
 
     public LoginPrefsBuilder refreshToken(String refreshToken) {
       loginPrefs.setRefreshToken(refreshToken);
-      return this;
-    }
-  }
-
-  public class NewsPrefsBuilder extends SubPreferencesBuilder {
-    private final NewsPrefs newsPrefs = preferences.getNews();
-
-    public NewsPrefsBuilder lastReadNewsUrl(String lastReadNewsUrl) {
-      newsPrefs.setLastReadNewsUrl(lastReadNewsUrl);
       return this;
     }
   }

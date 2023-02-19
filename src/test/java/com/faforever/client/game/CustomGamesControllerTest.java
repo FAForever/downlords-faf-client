@@ -1,7 +1,6 @@
 package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.i18n.I18n;
@@ -21,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,22 +52,20 @@ public class CustomGamesControllerTest extends UITest {
   private GamesTilesContainerController gamesTilesContainerController;
   @Mock
   private CustomGamesFilterController customGamesFilterController;
+  @Spy
+  private Preferences preferences;
 
   private ObservableList<GameBean> games;
-  private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
     games = FXCollections.observableArrayList();
 
-    preferences = PreferencesBuilder.create().defaultValues()
-        .gamesViewMode("tableButton")
-        .showGameDetailsSidePane(true)
-        .get();
+    preferences.setGamesViewMode("tableButton");
+    preferences.setShowGameDetailsSidePane(true);
 
     when(gameService.getGames()).thenReturn(games);
     when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
     when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
@@ -116,7 +114,7 @@ public class CustomGamesControllerTest extends UITest {
   public void testHideSidePane() {
     runOnFxThreadAndWait(() -> instance.toggleGameDetailPaneButton.fire());
 
-    assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
+    assertFalse(preferences.isShowGameDetailsSidePane());
 
     assertFalse(instance.gameDetailPane.isManaged());
     assertFalse(instance.gameDetailPane.isVisible());

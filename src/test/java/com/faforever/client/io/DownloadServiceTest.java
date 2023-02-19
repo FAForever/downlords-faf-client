@@ -16,7 +16,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 public class DownloadServiceTest extends ServiceTest {
   private static final ClassPathResource SAMPLE_FILE = new ClassPathResource("/io/sample-file.txt");
@@ -31,7 +30,6 @@ public class DownloadServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 
   @Test

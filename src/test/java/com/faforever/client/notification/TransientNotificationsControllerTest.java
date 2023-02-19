@@ -1,9 +1,6 @@
 package com.faforever.client.notification;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -13,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -28,17 +26,12 @@ public class TransientNotificationsControllerTest extends UITest {
   private TransientNotificationsController instance;
 
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
   private UiService uiService;
+  @Spy
   private NotificationPrefs notificationPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-    notificationPrefs = preferences.getNotification();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-
     loadFxml("theme/transient_notifications.fxml", clazz -> instance);
   }
 

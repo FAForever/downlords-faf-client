@@ -4,7 +4,6 @@ import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModVersionBean;
@@ -16,6 +15,9 @@ import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.ModMapper;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
@@ -23,7 +25,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
-import com.faforever.client.test.UITest;
+import com.faforever.client.test.ServiceTest;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -88,7 +90,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ModServiceTest extends UITest {
+public class ModServiceTest extends ServiceTest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
   private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
@@ -120,12 +122,20 @@ public class ModServiceTest extends UITest {
   private FileSizeReader fileSizeReader;
   @Mock
   private ImageViewHelper imageViewHelper;
+  @Spy
+  private ModMapper modMapper = Mappers.getMapper(ModMapper.class);
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Spy
+  private DataPrefs dataPrefs;
+  @Spy
+  private Preferences preferences;
+  @Spy
+  private NotificationPrefs notificationPrefs;
 
   private Path modsDirectory;
   @InjectMocks
   private ModService instance;
-  @Spy
-  private final ModMapper modMapper = Mappers.getMapper(ModMapper.class);
   private Path gamePrefsPath;
 
   @BeforeEach
@@ -134,23 +144,14 @@ public class ModServiceTest extends UITest {
     modsDirectory = tempDirectory.resolve("mods");
     Files.createDirectories(modsDirectory);
     gamePrefsPath = tempDirectory.resolve("game.prefs");
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .forgedAlliancePrefs()
-        .preferencesFile(gamePrefsPath)
-        .vaultBaseDirectory(tempDirectory)
-        .then()
-        .get();
+
+    forgedAlliancePrefs.setPreferencesFile(gamePrefsPath);
+    forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 
     when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 
     when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(taskService.submitTask(any(CompletableTask.class))).then(invocation -> {
-      CompletableTask<?> completableTask = invocation.getArgument(0);
-      completableTask.run();
-      completableTask.get(2, TimeUnit.SECONDS);
-      return completableTask;
-    });
+    when(taskService.submitTask(any(CompletableTask.class))).then(invocation -> invocation.getArgument(0));
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
     instance.afterPropertiesSet();
@@ -461,8 +462,6 @@ public class ModServiceTest extends UITest {
   @Test
   public void testUpdateModsWithAutoUpdateTurnedOff() throws IOException, ExecutionException, InterruptedException {
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().get();
-    Preferences preferences = new Preferences();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     preferences.setMapAndModAutoUpdate(false);
 
     Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
@@ -495,7 +494,7 @@ public class ModServiceTest extends UITest {
 
     Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
-    verify(taskService, times(2)).submitTask(any());
+    verify(taskService, times(1)).submitTask(any());
 
     assertThat(modVersions, contains(latestVersion));
   }

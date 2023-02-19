@@ -1,8 +1,8 @@
 package com.faforever.client.mod;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +19,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 public class InstallModTaskTest extends UITest {
 
@@ -31,22 +31,18 @@ public class InstallModTaskTest extends UITest {
   private I18n i18n;
   @Mock
   private PreferencesService preferencesService;
+  @Spy
+  private DataPrefs dataPrefs;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .forgedAlliancePrefs()
-        .vaultBaseDirectory(tempDirectory)
-        .then()
-        .get();
+    dataPrefs.setBaseDataDirectory(tempDirectory);
+    forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 
-    Files.createDirectories(preferences.getData().getCacheDirectory());
-    modsDirectory = Files.createDirectories(preferences.getForgedAlliance().getModsDirectory());
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    Files.createDirectories(dataPrefs.getCacheDirectory());
+    modsDirectory = Files.createDirectories(forgedAlliancePrefs.getModsDirectory());
   }
 
   @Test

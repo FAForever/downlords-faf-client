@@ -32,10 +32,10 @@ import com.faforever.commons.api.dto.ModVersion;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.mod.ModReader;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -116,23 +116,25 @@ public class ModService implements InitializingBean, DisposableBean {
 
   private final ModReader modReader = new ModReader();
 
-  private Path modsDirectory;
-  private Thread directoryWatcherThread;
-
   private final Map<Path, ModVersionBean> pathToMod = new HashMap<>();
   private final ObservableList<ModVersionBean> installedModVersions = FXCollections.observableArrayList();
   private final ObservableList<ModVersionBean> readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
-  private final ChangeListener<Path> modDirectoryChangedListener = (observable, oldValue, newValue) -> {
-    modsDirectory = newValue;
+  private final InvalidationListener modDirectoryChangedListener = observable -> updateModsDirectory();
+
+  private Path modsDirectory;
+  private Thread directoryWatcherThread;
+
+  @Override
+  public void afterPropertiesSet() {
+    JavaFxUtil.addAndTriggerListener(forgedAlliancePrefs.vaultBaseDirectoryProperty(), new WeakInvalidationListener(modDirectoryChangedListener));
+  }
+
+  private void updateModsDirectory() {
+    modsDirectory = forgedAlliancePrefs.getModsDirectory();
     if (modsDirectory != null) {
       installedModVersions.clear();
       onModDirectoryReady();
     }
-  };
-
-  @Override
-  public void afterPropertiesSet() {
-    JavaFxUtil.addAndTriggerListener(forgedAlliancePrefs.vaultBaseDirectoryProperty(), new WeakChangeListener<>(modDirectoryChangedListener));
   }
 
   private void onModDirectoryReady() {

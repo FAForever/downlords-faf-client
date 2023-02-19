@@ -22,7 +22,7 @@ class StatPingServiceTest extends ServiceTest {
   private StatPingService instance;
 
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
 
   private MockWebServer mockApi;
 

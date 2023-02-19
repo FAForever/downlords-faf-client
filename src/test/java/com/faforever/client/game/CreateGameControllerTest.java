@@ -5,7 +5,6 @@ import com.faforever.client.builders.MapBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.ModBeanBuilder;
 import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
@@ -19,7 +18,7 @@ import com.faforever.client.mod.ModManagerController;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.LastGamePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -39,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.List;
@@ -98,8 +98,8 @@ public class CreateGameControllerTest extends UITest {
   private GenerateMapController generateMapController;
   @Mock
   private MapFilterController mapFilterController;
-
-  private Preferences preferences;
+  @Spy
+  private LastGamePrefs lastGamePrefs;
   @InjectMocks
   private CreateGameController instance;
   private ObservableList<MapVersionBean> mapList;
@@ -108,12 +108,10 @@ public class CreateGameControllerTest extends UITest {
   public void setUp() throws Exception {
     mapList = FXCollections.observableArrayList();
 
-    preferences = PreferencesBuilder.create().defaultValues().get();
     when(mapGeneratorService.downloadGeneratorIfNecessary(any())).thenReturn(completedFuture(null));
     when(mapGeneratorService.getGeneratorStyles()).thenReturn(completedFuture(List.of()));
     when(uiService.showInDialog(any(), any(), anyString())).thenReturn(new Dialog());
     when(uiService.loadFxml("theme/play/generate_map.fxml")).thenReturn(generateMapController);
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(mapService.getInstalledMaps()).thenReturn(mapList);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(emptyList()));
     when(mapService.loadPreview(anyString(), any())).thenReturn(new Image("/theme/images/default_achievement.png"));
@@ -139,9 +137,9 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void showOnlyToFriendsRemembered() {
     instance.onlyForFriendsCheckBox.setSelected(true);
-    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
+    assertThat(lastGamePrefs.isLastGameOnlyFriends(), is(true));
     instance.onlyForFriendsCheckBox.setSelected(false);
-    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
+    assertThat(lastGamePrefs.isLastGameOnlyFriends(), is(false));
   }
 
   @Test
@@ -166,8 +164,14 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedUpForPopulated() {
-    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
-    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
+    mapList.add(MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .get());
+    mapList.add(MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .get());
     instance.mapSearchTextField.setText("Test");
 
     runOnFxThreadAndWait(() -> {
@@ -182,8 +186,14 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testMapSearchTextFieldKeyPressedDownForPopulated() {
-    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
-    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().displayName("Test1").get()).get());
+    mapList.add(MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .get());
+    mapList.add(MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().displayName("Test1").get())
+        .get());
     instance.mapSearchTextField.setText("Test");
 
     runOnFxThreadAndWait(() -> {
@@ -196,7 +206,7 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testSetLastGameTitle() {
-    preferences.getLastGame().setLastGameTitle("testGame");
+    lastGamePrefs.setLastGameTitle("testGame");
 
     runOnFxThreadAndWait(() -> instance.initialize());
 
@@ -206,7 +216,7 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testButtonBindingIfFeaturedModNotSet() {
-    preferences.getLastGame().setLastGameTitle("123");
+    lastGamePrefs.setLastGameTitle("123");
     when(i18n.get("game.create.featuredModMissing")).thenReturn("Mod missing");
     runOnFxThreadAndWait(() -> instance.initialize());
 
@@ -272,10 +282,17 @@ public class CreateGameControllerTest extends UITest {
 
   @Test
   public void testSelectLastMap() {
-    MapVersionBean lastMapBean = MapVersionBeanBuilder.create().defaultValues().folderName("foo").map(MapBeanBuilder.create().defaultValues().get()).get();
-    preferences.getLastGame().setLastMap("foo");
+    MapVersionBean lastMapBean = MapVersionBeanBuilder.create()
+        .defaultValues()
+        .folderName("foo")
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get();
+    lastGamePrefs.setLastMap("foo");
 
-    mapList.add(MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get());
+    mapList.add(MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get());
     mapList.add(lastMapBean);
 
     runOnFxThreadAndWait(() -> instance.initialize());
@@ -314,11 +331,18 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testCreateGameWithSelectedModAndMap() {
     ArgumentCaptor<NewGameInfo> newGameInfoArgumentCaptor = ArgumentCaptor.forClass(NewGameInfo.class);
-    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().uid("junit-mod").mod(ModBeanBuilder.create().defaultValues().get()).get();
+    ModVersionBean modVersion = ModVersionBeanBuilder.create()
+        .defaultValues()
+        .uid("junit-mod")
+        .mod(ModBeanBuilder.create().defaultValues().get())
+        .get();
 
     when(modManagerController.getSelectedModVersions()).thenReturn(Set.of(modVersion));
 
-    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
+    MapVersionBean map = MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(newGameInfoArgumentCaptor.capture())).thenReturn(completedFuture(null));
 
@@ -348,7 +372,10 @@ public class CreateGameControllerTest extends UITest {
     Set<ModVersionBean> selectedMods = singleton(modVersion);
     when(modManagerController.getSelectedModVersions()).thenReturn(selectedMods);
 
-    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
+    MapVersionBean map = MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get();
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(CompletableFuture.completedFuture(map));
 
     when(modService.updateAndActivateModVersions(eq(selectedMods)))
@@ -373,7 +400,10 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testCreateGameOnSelectedMapIfNoNewVersionMap() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
-    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
+    MapVersionBean map = MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get();
 
     when(mapService.updateLatestVersionIfNecessary(map)).thenReturn(completedFuture(map));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
@@ -392,8 +422,16 @@ public class CreateGameControllerTest extends UITest {
   public void testCreateGameOnUpdatedMapIfNewVersionMapExist() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
-    MapVersionBean outdatedMap = MapVersionBeanBuilder.create().defaultValues().folderName("test.v0001").map(MapBeanBuilder.create().defaultValues().get()).get();
-    MapVersionBean updatedMap = MapVersionBeanBuilder.create().defaultValues().folderName("test.v0002").map(MapBeanBuilder.create().defaultValues().get()).get();
+    MapVersionBean outdatedMap = MapVersionBeanBuilder.create()
+        .defaultValues()
+        .folderName("test.v0001")
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get();
+    MapVersionBean updatedMap = MapVersionBeanBuilder.create()
+        .defaultValues()
+        .folderName("test.v0002")
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get();
     when(mapService.updateLatestVersionIfNecessary(outdatedMap)).thenReturn(completedFuture(updatedMap));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
 
@@ -411,7 +449,10 @@ public class CreateGameControllerTest extends UITest {
   public void testCreateGameOnSelectedMapImmediatelyIfThrowExceptionWhenUpdatingMap() {
     ArgumentCaptor<NewGameInfo> captor = ArgumentCaptor.forClass(NewGameInfo.class);
 
-    MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).get();
+    MapVersionBean map = MapVersionBeanBuilder.create()
+        .defaultValues()
+        .map(MapBeanBuilder.create().defaultValues().get())
+        .get();
     when(mapService.updateLatestVersionIfNecessary(map))
         .thenReturn(CompletableFuture.failedFuture(new RuntimeException("error when checking for update or updating map")));
     when(gameService.hostGame(captor.capture())).thenReturn(completedFuture(null));
@@ -440,9 +481,12 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testSelectLastOrDefaultSelectDefault() {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("something").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName())
+        .get();
 
-    preferences.getLastGame().setLastGameType(null);
+    lastGamePrefs.setLastGameType(null);
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -454,9 +498,12 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testSelectLastOrDefaultSelectLast() {
     FeaturedModBean featuredModBean = FeaturedModBeanBuilder.create().defaultValues().technicalName("last").get();
-    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create().defaultValues().technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName()).get();
+    FeaturedModBean featuredModBean2 = FeaturedModBeanBuilder.create()
+        .defaultValues()
+        .technicalName(KnownFeaturedMod.DEFAULT.getTechnicalName())
+        .get();
 
-    preferences.getLastGame().setLastGameType("last");
+    lastGamePrefs.setLastGameType("last");
     when(modService.getFeaturedMods()).thenReturn(completedFuture(asList(featuredModBean, featuredModBean2)));
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
@@ -468,15 +515,15 @@ public class CreateGameControllerTest extends UITest {
   @Test
   public void testOnlyFriendsBinding() {
     instance.onlyForFriendsCheckBox.setSelected(true);
-    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(true));
+    assertThat(lastGamePrefs.isLastGameOnlyFriends(), is(true));
     instance.onlyForFriendsCheckBox.setSelected(false);
-    assertThat(preferences.getLastGame().isLastGameOnlyFriends(), is(false));
+    assertThat(lastGamePrefs.isLastGameOnlyFriends(), is(false));
   }
 
   @Test
   public void testPasswordIsSaved() {
     instance.passwordTextField.setText("1234");
-    assertEquals(preferences.getLastGame().getLastGamePassword(), "1234");
+    assertEquals(lastGamePrefs.getLastGamePassword(), "1234");
   }
 
   @Test
@@ -518,7 +565,10 @@ public class CreateGameControllerTest extends UITest {
     verify(mapFilterController).bindExternalFilter(eq(instance.mapSearchTextField.textProperty()), argumentCaptor.capture());
     BiFunction<String, MapVersionBean, Boolean> filter = argumentCaptor.getValue();
 
-    MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().map(MapBeanBuilder.create().displayName("dual").get()).folderName("gap.v0001").get();
+    MapVersionBean mapVersionBean = MapVersionBeanBuilder.create()
+        .map(MapBeanBuilder.create().displayName("dual").get())
+        .folderName("gap.v0001")
+        .get();
     assertTrue(filter.apply("", mapVersionBean));
     assertTrue(filter.apply("Gap", mapVersionBean));
     assertFalse(filter.apply("duel", mapVersionBean));

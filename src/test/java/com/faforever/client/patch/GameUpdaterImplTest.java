@@ -1,12 +1,11 @@
 package com.faforever.client.patch;
 
 import com.faforever.client.builders.FeaturedModBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
 
 import java.net.URL;
@@ -56,21 +56,22 @@ public class GameUpdaterImplTest extends ServiceTest {
   private PreferencesService preferencesService;
   @Mock
   private GameBinariesUpdateTaskImpl gameBinariesUpdateTask;
+  @Spy
+  private DataPrefs dataPrefs;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Path fafDataDirectory;
   private Path binDirectory;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create()
-        .defaultValues()
-        .dataPrefs()
-        .dataDirectory(tempDir.resolve("faf_temp_data"))
-        .then()
-        .get();
-    fafDataDirectory = Files.createDirectories(preferences.getData().getBaseDataDirectory());
-    binDirectory = Files.createDirectories(preferences.getData().getBinDirectory());
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    Path cwd = Path.of(".");
+    forgedAlliancePrefs.setInstallationPath(cwd);
+    forgedAlliancePrefs.setVaultBaseDirectory(cwd);
+    dataPrefs.setBaseDataDirectory(tempDir.resolve("faf_temp_data"));
+    fafDataDirectory = Files.createDirectories(dataPrefs.getBaseDataDirectory());
+    binDirectory = Files.createDirectories(dataPrefs.getBinDirectory());
     when(applicationContext.getBean(GameBinariesUpdateTaskImpl.class)).thenReturn(gameBinariesUpdateTask);
     when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);
     when(gameBinariesUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));

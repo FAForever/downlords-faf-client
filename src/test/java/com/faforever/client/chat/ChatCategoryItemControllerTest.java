@@ -1,13 +1,11 @@
 package com.faforever.client.chat;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -22,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,7 +44,7 @@ public class ChatCategoryItemControllerTest extends UITest {
   private PreferencesService preferencesService;
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
-
+  @Spy
   private ChatPrefs chatPrefs;
 
   @InjectMocks
@@ -53,9 +52,6 @@ public class ChatCategoryItemControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().chatPrefs().then().get();
-    chatPrefs = preferences.getChat();
-
     loadFxml("theme/chat/chat_user_category.fxml", clazz -> instance);
   }
 

@@ -161,7 +161,15 @@ public class GameService implements InitializingBean {
   private int localReplayPort;
   private boolean inOthersParty;
 
-  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor, ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService, PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater, LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper, JavaFxService javaFxService, LastGamePrefs lastGamePrefs, NotificationPrefs notificationPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
+  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor,
+                     ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService,
+                     PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater,
+                     LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n,
+                     PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService,
+                     PlatformService platformService, DiscordRichPresenceService discordRichPresenceService,
+                     ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper,
+                     JavaFxService javaFxService, LastGamePrefs lastGamePrefs, NotificationPrefs notificationPrefs,
+                     ForgedAlliancePrefs forgedAlliancePrefs) {
     this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
     this.coturnService = coturnService;
@@ -274,7 +282,8 @@ public class GameService implements InitializingBean {
   private ChangeListener<GameStatus> generateGameStatusListener(GameBean game) {
     return new ChangeListener<>() {
       @Override
-      public void changed(ObservableValue<? extends GameStatus> observable, GameStatus oldStatus, GameStatus newStatus) {
+      public void changed(ObservableValue<? extends GameStatus> observable, GameStatus oldStatus,
+                          GameStatus newStatus) {
         if (!playerService.isCurrentPlayerInGame(game)) {
           observable.removeListener(this);
           return;
@@ -386,7 +395,9 @@ public class GameService implements InitializingBean {
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer baseFafVersion, Map<String, Integer> featuredModFileVersions, Set<String> simMods, String mapFolderName) {
+  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod,
+                                               Integer baseFafVersion, Map<String, Integer> featuredModFileVersions,
+                                               Set<String> simMods, String mapFolderName) {
     if (!canStartReplay()) {
       return completedFuture(null);
     }
@@ -596,7 +607,9 @@ public class GameService implements InitializingBean {
     return updateGameIfNecessary(featuredModBean, simModUids, null, null);
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids, @Nullable Map<String, Integer> featuredModFileVersions, @Nullable Integer version) {
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids,
+                                                        @Nullable Map<String, Integer> featuredModFileVersions,
+                                                        @Nullable Integer version) {
     return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version);
   }
 

@@ -51,7 +51,7 @@ import static com.faforever.client.player.SocialStatus.FRIEND;
 import static com.faforever.client.player.SocialStatus.SELF;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -110,14 +110,13 @@ public class AbstractChatTabControllerTest extends UITest {
     when(uiService.getThemeFileUrl(any())).thenReturn(getClass().getResource("/" + UiService.CHAT_SECTION_EXTENDED));
     when(timeService.asShortTime(any())).thenReturn("123");
     when(userService.getUsername()).thenReturn("junit");
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile(":uef:|:aeon:"));
     when(emoticonService.getBase64SvgContentByShortcode(":uef:")).thenReturn("uefBase64Content");
     when(emoticonService.getBase64SvgContentByShortcode(":aeon:")).thenReturn("aeonBase64Content");
 
     instance = new AbstractChatTabController(userService, chatService, preferencesService, playerService,
         audioService, timeService, i18n, notificationService, uiService, eventBus,
-        webViewConfigurer, emoticonService, countryFlagService) {
+        webViewConfigurer, emoticonService, countryFlagService, preferences.getChat(), preferences.getNotification()) {
       private final Tab root = new Tab();
       private final WebView webView = new WebView();
       private final TextInputControl messageTextField = new TextField();
@@ -163,7 +162,7 @@ public class AbstractChatTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
-    assertThat(instance.messageTextField().getText(), is(isEmptyString()));
+    assertThat(instance.messageTextField().getText(), is(emptyString()));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
@@ -196,7 +195,7 @@ public class AbstractChatTabControllerTest extends UITest {
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
     verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
-    assertThat(instance.messageTextField().getText(), is(isEmptyString()));
+    assertThat(instance.messageTextField().getText(), is(emptyString()));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 

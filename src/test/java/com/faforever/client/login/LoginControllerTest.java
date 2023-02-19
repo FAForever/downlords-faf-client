@@ -1,7 +1,6 @@
 package com.faforever.client.login;
 
 import com.faforever.client.builders.ClientConfigurationBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -9,7 +8,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.login.OAuthValuesReceiver.Values;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.LoginPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.UITest;
@@ -91,15 +91,14 @@ public class LoginControllerTest extends UITest {
   private OAuthValuesReceiver oAuthValuesReceiver;
 
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
-  private Preferences preferences;
+  private ClientProperties clientProperties;
+  @Spy
+  private DataPrefs dataPrefs;
+  @Spy
+  private LoginPrefs loginPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
-    preferences = PreferencesBuilder.create().defaultValues().get();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-
     when(announcementController.getRoot()).thenReturn(new Pane());
     when(offlineServiceController.getRoot()).thenReturn(new Label());
     when(offlineServicesController.getRoot()).thenReturn(new Pane());
@@ -117,7 +116,7 @@ public class LoginControllerTest extends UITest {
     when(preferencesService.getRemotePreferencesAsync())
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
     String refreshToken = "asd";
-    preferences.getLogin().setRefreshToken(refreshToken);
+    loginPrefs.setRefreshToken(refreshToken);
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(userService).loginWithRefreshToken();
     assertTrue(instance.loginProgressPane.isVisible());
@@ -214,8 +213,8 @@ public class LoginControllerTest extends UITest {
     clientProperties.setUseRemotePreferences(true);
     when(preferencesService.getRemotePreferencesAsync())
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
-    preferences.getLogin().setRememberMe(true);
-    preferences.getLogin().setRefreshToken("abc");
+    loginPrefs.setRememberMe(true);
+    loginPrefs.setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
         new CompletionException(WebClientResponseException.create(HttpStatus.BAD_REQUEST.value(), "", HttpHeaders.EMPTY, new byte[]{}, null))));
     runOnFxThreadAndWait(() -> instance.initialize());
@@ -230,8 +229,8 @@ public class LoginControllerTest extends UITest {
     clientProperties.setUseRemotePreferences(true);
     when(preferencesService.getRemotePreferencesAsync())
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
-    preferences.getLogin().setRememberMe(true);
-    preferences.getLogin().setRefreshToken("abc");
+    loginPrefs.setRememberMe(true);
+    loginPrefs.setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(
         new CompletionException(WebClientResponseException.create(HttpStatus.UNAUTHORIZED.value(), "", HttpHeaders.EMPTY, new byte[]{}, null))));
     runOnFxThreadAndWait(() -> instance.initialize());
@@ -246,8 +245,8 @@ public class LoginControllerTest extends UITest {
     clientProperties.setUseRemotePreferences(true);
     when(preferencesService.getRemotePreferencesAsync())
         .thenReturn(CompletableFuture.completedFuture(ClientConfigurationBuilder.create().defaultValues().get()));
-    preferences.getLogin().setRememberMe(true);
-    preferences.getLogin().setRefreshToken("abc");
+    loginPrefs.setRememberMe(true);
+    loginPrefs.setRefreshToken("abc");
     when(userService.loginWithRefreshToken()).thenReturn(CompletableFuture.failedFuture(new CompletionException(new Exception())));
     runOnFxThreadAndWait(() -> instance.initialize());
     verify(userService).loginWithRefreshToken();
@@ -298,8 +297,8 @@ public class LoginControllerTest extends UITest {
         .then()
         .get();
 
-    preferences.getLogin().setRememberMe(true);
-    preferences.getLogin().setRefreshToken("abc");
+    loginPrefs.setRememberMe(true);
+    loginPrefs.setRefreshToken("abc");
 
     VersionTest.setCurrentVersion("1.2.0");
 

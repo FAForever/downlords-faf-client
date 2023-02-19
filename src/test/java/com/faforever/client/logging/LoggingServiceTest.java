@@ -32,7 +32,6 @@ public class LoggingServiceTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(operatingSystem.getLoggingDirectory()).thenReturn(Path.of("."));
   }
 

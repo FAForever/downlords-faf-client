@@ -39,7 +39,7 @@ public class MapUploadControllerTest extends UITest {
   @Mock
   private EventBus eventBus;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
 
 
   @BeforeEach

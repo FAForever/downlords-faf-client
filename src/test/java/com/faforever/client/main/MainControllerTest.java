@@ -2,7 +2,6 @@ package com.faforever.client.main;
 
 import ch.micheljung.fxwindow.FxStage;
 import com.faforever.client.api.SessionExpiredEvent;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.ChatController;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fx.JavaFxUtil;
@@ -18,8 +17,11 @@ import com.faforever.client.notification.PersistentNotificationsController;
 import com.faforever.client.notification.TransientNotificationsController;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.play.PlayController;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -49,6 +51,8 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.core.env.Environment;
 import org.testfx.util.WaitForAsyncUtils;
+
+import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -96,13 +100,20 @@ public class MainControllerTest extends UITest {
   private Environment environment;
   @Mock
   private OperatingSystem operatingSystem;
-  @InjectMocks
-  private MainController instance;
-  private Preferences preferences;
   @Mock
   private FxStage fxStage;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
+  @Spy
+  private WindowPrefs windowPrefs;
+  @Spy
+  private NotificationPrefs notificationPrefs;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Spy
+  private DataPrefs dataPrefs;
+  @InjectMocks
+  private MainController instance;
 
   @Override
   protected boolean showStage() {
@@ -117,14 +128,15 @@ public class MainControllerTest extends UITest {
         .setInitialMean(1500)
         .setInitialStandardDeviation(500);
 
-    preferences = PreferencesBuilder.create().defaultValues().get();
+    Path cwd = Path.of(".");
+    forgedAlliancePrefs.setVaultBaseDirectory(cwd);
+    dataPrefs.setBaseDataDirectory(cwd);
 
     when(environment.getActiveProfiles()).thenReturn(ArrayUtils.EMPTY_STRING_ARRAY);
 
     when(persistentNotificationsController.getRoot()).thenReturn(new Pane());
     when(transientNotificationsController.getRoot()).thenReturn(new Pane());
     when(loginController.getRoot()).thenReturn(new Pane());
-    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(uiService.loadFxml("theme/persistent_notifications.fxml")).thenReturn(persistentNotificationsController);
     when(uiService.loadFxml("theme/transient_notifications.fxml")).thenReturn(transientNotificationsController);
@@ -227,14 +239,14 @@ public class MainControllerTest extends UITest {
 
   @Test
   public void testOpenStartTabWithItemSet() throws Exception {
-    preferences.getWindow().setNavigationItem(NavigationItem.PLAY);
+    windowPrefs.setNavigationItem(NavigationItem.PLAY);
     instance.openStartTab();
     verify(eventBus, times(1)).post(eq(new NavigateEvent(NavigationItem.PLAY)));
   }
 
   @Test
   public void testOpenStartTabWithItemNotSet() throws Exception {
-    preferences.getWindow().setNavigationItem(null);
+    windowPrefs.setNavigationItem(null);
     instance.openStartTab();
     verify(eventBus, times(1)).post(eq(new NavigateEvent(NavigationItem.NEWS)));
     verify(notificationService, times(1)).addNotification(any(PersistentNotification.class));
@@ -252,8 +264,8 @@ public class MainControllerTest extends UITest {
   @Test
   public void testWindowOutsideScreensGetsCentered() throws Exception {
     Rectangle2D visualBounds = Screen.getPrimary().getBounds();
-    preferences.getWindow().setY(visualBounds.getMaxY() + 1);
-    preferences.getWindow().setX(visualBounds.getMaxX() + 1);
+    windowPrefs.setY(visualBounds.getMaxY() + 1);
+    windowPrefs.setX(visualBounds.getMaxX() + 1);
 
     WaitForAsyncUtils.asyncFx(() -> instance.display());
     WaitForAsyncUtils.waitForFxEvents();
@@ -278,13 +290,13 @@ public class MainControllerTest extends UITest {
   @Test
   public void testOnRevealMapFolder() throws Exception {
     instance.onRevealMapFolder();
-    verify(platformService).reveal(preferences.getForgedAlliance().getMapsDirectory());
+    verify(platformService).reveal(forgedAlliancePrefs.getMapsDirectory());
   }
 
   @Test
   public void testOnRevealModFolder() throws Exception {
     instance.onRevealModFolder();
-    verify(platformService).reveal(preferences.getForgedAlliance().getModsDirectory());
+    verify(platformService).reveal(forgedAlliancePrefs.getModsDirectory());
   }
 
   @Test
@@ -296,7 +308,7 @@ public class MainControllerTest extends UITest {
   @Test
   public void testOnRevealReplayFolder() throws Exception {
     instance.onRevealReplayFolder();
-    verify(platformService).reveal(preferences.getData().getReplaysDirectory());
+    verify(platformService).reveal(dataPrefs.getReplaysDirectory());
   }
 
   @Test

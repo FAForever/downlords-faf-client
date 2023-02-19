@@ -3,14 +3,12 @@ package com.faforever.client.user;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.api.SessionExpiredEvent;
 import com.faforever.client.api.TokenService;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
-import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.FakeTestException;
@@ -56,7 +54,7 @@ public class UserServiceTest extends ServiceTest {
   public static final String VERIFIER = "def";
 
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
   @Mock
   private FafServerAccessor fafServerAccessor;
   @Mock
@@ -71,10 +69,11 @@ public class UserServiceTest extends ServiceTest {
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Spy
+  private LoginPrefs loginPrefs;
 
   @InjectMocks
   private UserService instance;
-  private Preferences preferences;
   private LoginSuccessResponse validLoginMessage;
   private MeResult meResult;
 
@@ -93,9 +92,7 @@ public class UserServiceTest extends ServiceTest {
     oauth.setScopes(SCOPES);
 
     instance.afterPropertiesSet();
-    preferences = PreferencesBuilder.create().defaultValues().get();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    
     verify(eventBus).register(instance);
   }
 
@@ -318,7 +315,6 @@ public class UserServiceTest extends ServiceTest {
   public void testOnLogoutRequest() {
     instance.onLogoutRequestEvent(new LogOutRequestEvent());
 
-    LoginPrefs loginPrefs = preferences.getLogin();
     assertNull(loginPrefs.getRefreshToken());
     verify(fafServerAccessor).disconnect();
     assertNull(instance.getOwnUser());

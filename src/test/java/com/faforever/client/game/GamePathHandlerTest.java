@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class GamePathHandlerTest extends ServiceTest {
   @Mock
@@ -37,7 +36,6 @@ public class GamePathHandlerTest extends ServiceTest {
   @BeforeEach
   public void setUp() throws Exception {
     Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
   }
 
   @Test
