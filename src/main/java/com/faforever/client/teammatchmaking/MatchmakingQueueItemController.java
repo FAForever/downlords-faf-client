@@ -63,10 +63,10 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     refreshingLabel.setVisible(false);
     joinLeaveQueueButton.setSelected(queue.isJoined());
   });
-  private final SimpleInvalidationListener queuePopulationInvalidationListener = () -> JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
-      .toUpperCase()));
-  private final SimpleInvalidationListener queueGamesInvalidationListener = () -> JavaFxUtil.runLater(() -> activeGamesLabel.setText(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())
-      .toUpperCase()));
+  private final SimpleInvalidationListener queuePopulationInvalidationListener = this::setPlayersInQueueText;
+
+  private final SimpleInvalidationListener queueGamesInvalidationListener = this::setActiveGamesText;
+
   private final SimpleChangeListener<MatchingStatus> queueMatchStatusChangeListener = newValue -> {
     disableMatchStatus();
     if (newValue == null) {
@@ -110,6 +110,16 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addListener(userService.ownPlayerProperty(), new WeakInvalidationListener(queueButtonStateInvalidationListener));
     JavaFxUtil.addAndTriggerListener(queue.joinedProperty(), new WeakInvalidationListener(queueStateInvalidationListener));
+  }
+
+  private void setPlayersInQueueText() {
+    JavaFxUtil.runLater(() -> playersInQueueLabel.setText(i18n.get("teammatchmaking.playersInQueue", queue.getPlayersInQueue())
+        .toUpperCase()));
+  }
+
+  private void setActiveGamesText() {
+    JavaFxUtil.runLater(() -> activeGamesLabel.setText(i18n.get("teammatchmaking.activeGames", queue.getActiveGames())
+        .toUpperCase()));
   }
 
   private void setQueueButtonState() {
