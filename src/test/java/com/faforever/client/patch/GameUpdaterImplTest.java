@@ -6,7 +6,6 @@ import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
@@ -52,8 +51,7 @@ public class GameUpdaterImplTest extends ServiceTest {
   private ApplicationContext applicationContext;
   @Mock
   private TaskService taskService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private GameBinariesUpdateTaskImpl gameBinariesUpdateTask;
   @Spy

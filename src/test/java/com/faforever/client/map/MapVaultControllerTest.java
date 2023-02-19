@@ -7,7 +7,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
@@ -52,8 +51,7 @@ public class MapVaultControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private NotificationService notificationService;
   @Mock

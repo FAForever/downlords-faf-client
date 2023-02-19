@@ -6,7 +6,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.ClientUpdateService.InstallerExecutionException;
@@ -55,8 +54,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
   private ApplicationContext applicationContext;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private CheckForUpdateTask checkForUpdateTask;
   @Mock

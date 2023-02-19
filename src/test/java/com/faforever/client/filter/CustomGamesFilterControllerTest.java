@@ -6,7 +6,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.FiltersPrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -43,8 +42,7 @@ public class CustomGamesFilterControllerTest extends UITest {
   private ModService modService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private MutableListFilterController<GameBean> mapFolderNameBlackListFilter;
   @Mock

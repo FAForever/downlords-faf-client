@@ -2,12 +2,10 @@ package com.faforever.client.io;
 
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 
 import java.nio.file.Files;
@@ -21,8 +19,7 @@ public class DownloadServiceTest extends ServiceTest {
   private static final ClassPathResource SAMPLE_FILE = new ClassPathResource("/io/sample-file.txt");
   private static final String SAMPLE_FILE_CHECKSUM = "b53227da4280f0e18270f21dd77c91d0";
 
-  @Mock
-  private PreferencesService preferencesService;
+
 
   @InjectMocks
   private DownloadService instance;

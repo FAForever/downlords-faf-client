@@ -12,6 +12,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static com.faforever.client.chat.ChatColorMode.RANDOM;
 
 @Slf4j
@@ -42,5 +43,10 @@ public class ChatCategoryColorPickerCustomMenuItemController extends AbstractCus
         chatPrefs.getGroupToColor().put(object, newValue);
       }
     });
+  }
+
+  @Override
+  public boolean isItemVisible() {
+    return chatPrefs.getChatColorMode() == DEFAULT;
   }
 }

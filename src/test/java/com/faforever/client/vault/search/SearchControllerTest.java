@@ -1,7 +1,6 @@
 package com.faforever.client.vault.search;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.FilterNodeController;
 import com.faforever.client.query.LogicalNodeController;
@@ -59,8 +58,7 @@ public class SearchControllerTest extends UITest {
   private LogicalNodeController logicalNodeController;
   @Mock
   private Consumer<SearchConfig> searchListener;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private I18n i18n;
   @Mock

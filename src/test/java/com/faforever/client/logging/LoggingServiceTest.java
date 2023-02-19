@@ -3,7 +3,6 @@ package com.faforever.client.logging;
 import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +25,7 @@ public class LoggingServiceTest extends ServiceTest {
   private LoggingService instance;
   @Mock
   private OperatingSystem operatingSystem;
-  @Mock
-  private PreferencesService preferencesService;
+
 
   @BeforeEach
   public void setUp() throws Exception {

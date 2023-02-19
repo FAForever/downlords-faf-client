@@ -18,7 +18,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.AvatarListInfo;
@@ -112,8 +111,7 @@ public class ServerAccessorTest extends ServiceTest {
   @TempDir
   public Path tempDirectory;
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private UidService uidService;
   @Mock

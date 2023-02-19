@@ -23,7 +23,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
@@ -101,8 +100,7 @@ public class MapServiceTest extends UITest {
   @InjectMocks
   private MapService instance;
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private TaskService taskService;
   @Mock

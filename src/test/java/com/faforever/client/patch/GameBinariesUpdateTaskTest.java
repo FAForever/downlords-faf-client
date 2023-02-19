@@ -5,7 +5,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +31,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   public Path tempDirectory;
   private Path fafBinDirectory;
   private Path faDirectory;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlatformService platformService;
   @Mock

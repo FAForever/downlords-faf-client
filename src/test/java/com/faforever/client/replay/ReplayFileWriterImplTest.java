@@ -3,7 +3,6 @@ package com.faforever.client.replay;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.replay.ReplayMetadata;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,8 +37,7 @@ public class ReplayFileWriterImplTest extends ServiceTest {
 
   @TempDir
   public Path tempDirectory;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private I18n i81n;
   @Spy

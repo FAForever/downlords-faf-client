@@ -19,7 +19,6 @@ import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.MatchmakerPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
@@ -68,8 +67,7 @@ public class TeamMatchmakingControllerTest extends UITest {
   private AvatarService avatarService;
   @Mock
   private LeaderboardService leaderboardService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlayerService playerService;
   @Mock

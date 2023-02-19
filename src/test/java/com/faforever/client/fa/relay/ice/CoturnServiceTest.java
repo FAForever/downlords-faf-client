@@ -5,7 +5,6 @@ import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.preferences.CoturnHostPort;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.CoturnServer;
@@ -31,8 +30,7 @@ public class CoturnServiceTest extends ServiceTest {
 
   @Mock
   private FafApiAccessor fafApiAccessor;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Spy
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
   @Spy

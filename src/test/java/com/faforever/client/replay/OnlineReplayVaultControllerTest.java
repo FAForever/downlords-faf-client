@@ -8,7 +8,6 @@ import com.faforever.client.main.event.OpenOnlineReplayVaultEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.CategoryFilterController;
 import com.faforever.client.query.LogicalNodeController;
@@ -70,8 +69,7 @@ public class OnlineReplayVaultControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private SearchController searchController;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private ReportingService reportingService;
   @Mock

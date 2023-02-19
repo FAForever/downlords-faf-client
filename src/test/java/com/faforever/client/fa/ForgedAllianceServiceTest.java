@@ -5,7 +5,6 @@ import com.faforever.client.logging.LoggingService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,8 +29,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
   private PlayerService playerService ;
   @Mock
   private LoggingService loggingService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;
   @Spy

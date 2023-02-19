@@ -2,7 +2,6 @@ package com.faforever.client.map;
 
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +26,7 @@ public class DownloadMapBeanTaskTest extends UITest {
   @InjectMocks
   private DownloadMapTask instance;
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private I18n i18n;
   @Spy

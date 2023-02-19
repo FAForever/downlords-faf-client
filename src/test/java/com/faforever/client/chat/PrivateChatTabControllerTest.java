@@ -19,7 +19,6 @@ import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -87,8 +86,7 @@ public class PrivateChatTabControllerTest extends UITest {
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private EmoticonService emoticonService;
   @Mock

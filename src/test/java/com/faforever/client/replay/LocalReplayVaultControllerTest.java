@@ -5,7 +5,6 @@ import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
@@ -42,8 +41,7 @@ public class LocalReplayVaultControllerTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private ReplayService replayService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private ReportingService reportingService;
   @Mock

@@ -4,7 +4,6 @@ import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.MapGenerator;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
@@ -60,8 +59,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
   public Path tempDirectory;
 
   private MapGeneratorService instance;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private TaskService taskService;
   @Mock

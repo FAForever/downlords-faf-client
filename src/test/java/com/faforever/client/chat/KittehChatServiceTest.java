@@ -10,7 +10,6 @@ import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.UITest;
 import com.faforever.client.user.UserService;
@@ -113,8 +112,7 @@ public class KittehChatServiceTest extends UITest {
   private Channel otherChannel;
   @Mock
   private UserService userService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private FafServerAccessor fafServerAccessor;
   @Mock

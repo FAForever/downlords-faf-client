@@ -10,7 +10,6 @@ import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.mapstruct.PlayerMapper;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ElideMatchers;
@@ -77,8 +76,7 @@ public class PlayerServiceTest extends ServiceTest {
   private AvatarService avatarService;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private JavaFxService javaFxService;
   @Spy

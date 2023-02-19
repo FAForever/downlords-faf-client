@@ -10,7 +10,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -43,8 +42,7 @@ public class MatchmakingChatControllerTest extends UITest {
   private ChatService chatService;
   @Mock
   private UserService userService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlayerService playerService;
   @Mock

@@ -3,14 +3,12 @@ package com.faforever.client.fx.contextmenu;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.chat.ChatUserCategory;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 
 import java.util.HashMap;
@@ -23,8 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ChatCategoryColorPickerCustomMenuItemControllerTest extends UITest {
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Spy
   private ChatPrefs chatPrefs;
 

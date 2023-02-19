@@ -22,7 +22,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
@@ -123,8 +122,7 @@ public class ReplayServiceTest extends ServiceTest {
   private ReplayService instance;
   @Mock
   private I18n i18n;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private ReplayFileReader replayFileReader;
   @Mock

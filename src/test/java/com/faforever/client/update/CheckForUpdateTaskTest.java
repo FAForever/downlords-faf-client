@@ -2,7 +2,6 @@ package com.faforever.client.update;
 
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.util.FileSizeReader;
 import com.google.common.io.CharStreams;
@@ -41,8 +40,7 @@ public class CheckForUpdateTaskTest extends ServiceTest {
 
   @Mock
   private I18n i18n;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private FileSizeReader fileSizeReader;
 

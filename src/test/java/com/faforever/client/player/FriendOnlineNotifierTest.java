@@ -5,7 +5,6 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import org.junit.jupiter.api.Test;
@@ -25,8 +24,7 @@ public class FriendOnlineNotifierTest extends ServiceTest {
   private AudioService audioService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Spy
   private NotificationPrefs notificationPrefs;
 

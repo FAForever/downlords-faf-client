@@ -6,7 +6,6 @@ import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
@@ -34,8 +33,7 @@ public class CustomGamesControllerTest extends UITest {
   private CustomGamesController instance;
   @Mock
   private GameService gameService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private UiService uiService;
   @Mock

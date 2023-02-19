@@ -4,7 +4,6 @@ import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
@@ -28,8 +27,7 @@ public class GamePathHandlerTest extends ServiceTest {
   private EventBus eventBus;
   @Mock
   private I18n i18n;
-  @Mock
-  private PreferencesService preferencesService;
+
   @InjectMocks
   private GamePathHandler instance;
 

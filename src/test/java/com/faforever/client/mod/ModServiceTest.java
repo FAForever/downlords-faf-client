@@ -19,7 +19,6 @@ import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
@@ -102,8 +101,7 @@ public class ModServiceTest extends ServiceTest {
   @TempDir
   public Path tempDirectory;
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private ApplicationContext applicationContext;
   @Mock

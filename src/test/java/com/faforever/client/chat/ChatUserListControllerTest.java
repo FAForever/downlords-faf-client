@@ -6,7 +6,6 @@ import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -46,8 +45,7 @@ public class ChatUserListControllerTest extends UITest {
 
   private static final String CHANNEL_NAME = "#testChannel";
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private UiService uiService;
   @Mock

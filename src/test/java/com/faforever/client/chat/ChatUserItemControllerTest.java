@@ -20,7 +20,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -57,8 +56,7 @@ public class ChatUserItemControllerTest extends UITest {
   private static final String CHANNEL_NAME = "#testChannel";
   private static final String USER_NAME = "junit";
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private I18n i18n;
   @Mock

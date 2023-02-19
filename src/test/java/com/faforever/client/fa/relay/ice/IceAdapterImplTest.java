@@ -14,7 +14,6 @@ import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.CoturnServer;
@@ -62,8 +61,7 @@ public class IceAdapterImplTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private IceAdapterApi iceAdapterApi;
   @Spy

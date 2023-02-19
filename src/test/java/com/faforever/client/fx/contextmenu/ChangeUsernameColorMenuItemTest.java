@@ -6,7 +6,6 @@ import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.control.ContextMenu;
@@ -26,8 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 public class ChangeUsernameColorMenuItemTest extends UITest {
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private UiService uiService;
   @Mock

@@ -20,7 +20,6 @@ import com.faforever.client.play.PlayController;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.WindowPrefs;
 import com.faforever.client.preferences.ui.SettingsController;
 import com.faforever.client.test.UITest;
@@ -72,8 +71,7 @@ public class MainControllerTest extends UITest {
   private static final PseudoClass HIGHLIGHTED = PseudoClass.getPseudoClass("highlighted");
   @Mock
   private PersistentNotificationsController persistentNotificationsController;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlatformService platformService;
   @Mock

@@ -11,7 +11,6 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
 import com.faforever.client.preferences.NotificationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -43,8 +42,7 @@ public class FriendJoinedGameNotifierTest extends ServiceTest {
   private I18n i18n;
   @Mock
   private JoinGameHelper joinGameHelper;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private AudioService audioService;
   @Spy

@@ -6,7 +6,6 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
@@ -40,8 +39,7 @@ public class ChatCategoryItemControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private UiService uiService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private ContextMenuBuilder contextMenuBuilder;
   @Spy

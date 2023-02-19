@@ -5,7 +5,6 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
@@ -38,8 +37,7 @@ public class GamesTilesContainerControllerTest extends UITest {
   private GameTileController gameTileController;
   @Mock
   private UiService uiService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private GameTooltipController gameTooltipController;
   @Spy

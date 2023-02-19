@@ -9,7 +9,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LoginPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.FakeTestException;
 import com.faforever.client.test.ServiceTest;
@@ -59,8 +58,7 @@ public class UserServiceTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private FafApiAccessor fafApiAccessor;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private EventBus eventBus;
   @Mock

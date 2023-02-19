@@ -4,7 +4,6 @@ import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.chat.ChatChannelUser;
 import com.faforever.client.chat.ChatColorMode;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
 import javafx.collections.FXCollections;
@@ -27,8 +26,7 @@ public class ChatUserColorPickerCustomMenuItemControllerTest extends UITest {
   private static final String CHANNEL_NAME = "testChannel";
   private static final String USERNAME = "junit";
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private EventBus eventBus;
   @Spy

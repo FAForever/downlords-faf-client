@@ -7,7 +7,6 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
@@ -61,8 +60,7 @@ public class ModUploadControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private FafApiAccessor fafApiAccessor;
 

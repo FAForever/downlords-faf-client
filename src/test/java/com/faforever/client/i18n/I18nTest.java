@@ -2,12 +2,10 @@ package com.faforever.client.i18n;
 
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.LocalizationPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
@@ -27,8 +25,7 @@ public class I18nTest extends ServiceTest {
   @InjectMocks
   private I18n instance;
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Spy
   private LocalizationPrefs localizationPrefs;
   @Spy

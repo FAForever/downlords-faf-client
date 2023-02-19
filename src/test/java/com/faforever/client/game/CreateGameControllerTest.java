@@ -19,7 +19,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LastGamePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
@@ -72,8 +71,7 @@ public class CreateGameControllerTest extends UITest {
   private static final KeyEvent keyDownPressed = new KeyEvent(KeyEvent.KEY_PRESSED, "0", "", KeyCode.DOWN, false, false, false, false);
   private static final KeyEvent keyDownReleased = new KeyEvent(KeyEvent.KEY_RELEASED, "0", "", KeyCode.DOWN, false, false, false, false);
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private MapService mapService;
   @Mock

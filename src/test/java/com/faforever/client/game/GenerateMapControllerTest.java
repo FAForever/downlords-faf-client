@@ -6,7 +6,6 @@ import com.faforever.client.map.generator.GeneratorOptions;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,8 +32,7 @@ import static org.mockito.Mockito.when;
 
 public class GenerateMapControllerTest extends UITest {
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private
   NotificationService notificationService;

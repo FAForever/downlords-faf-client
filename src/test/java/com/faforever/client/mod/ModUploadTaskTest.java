@@ -3,7 +3,6 @@ package com.faforever.client.mod;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.DataPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,8 +28,7 @@ public class ModUploadTaskTest extends UITest {
   public Path tempDirectory;
   @InjectMocks
   private ModUploadTask instance;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private FafApiAccessor fafApiAccessor;
   @Mock

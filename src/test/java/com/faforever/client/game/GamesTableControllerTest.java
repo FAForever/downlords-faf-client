@@ -7,7 +7,6 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
@@ -45,8 +44,7 @@ public class GamesTableControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private ImageViewHelper imageViewHelper;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlayerService playerService;
   @Mock
