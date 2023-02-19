@@ -1,11 +1,11 @@
 package com.faforever.client.filter;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.FiltersPrefs;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,8 +42,6 @@ public class CustomGamesFilterControllerTest extends UITest {
   private ModService modService;
   @Mock
   private PlayerService playerService;
-  @Mock
-  private PreferencesService preferencesService;
 
   @Mock
   private MutableListFilterController<GameBean> mapFolderNameBlackListFilter;
@@ -50,6 +49,10 @@ public class CustomGamesFilterControllerTest extends UITest {
   private FilterCheckboxController<GameBean> privateGameFilter;
   @Mock
   private FilterCheckboxController<GameBean> simModsFilter;
+  @Spy
+  private FiltersPrefs filtersPrefs;
+  @Spy
+  private Preferences preferences;
 
   @InjectMocks
   private CustomGamesFilterController instance;
@@ -64,7 +67,6 @@ public class CustomGamesFilterControllerTest extends UITest {
         mapFolderNameBlackListFilter
     );
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(FXCollections.observableArrayList()));
-    when(preferencesService.getPreferences()).thenReturn(PreferencesBuilder.create().get());
     when(mapFolderNameBlackListFilter.getObservable()).thenReturn(new SimpleListProperty<>());
     when(privateGameFilter.getObservable()).thenReturn(new SimpleBooleanProperty());
     when(simModsFilter.getObservable()).thenReturn(new SimpleBooleanProperty());

@@ -1,8 +1,9 @@
 package com.faforever.client.remote;
 
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
 import javafx.scene.image.Image;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jetbrains.annotations.Nullable;
@@ -22,15 +23,12 @@ import java.util.function.Supplier;
 @Lazy
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AssetService {
 
-  private final PreferencesService preferencesService;
-  private final UrlValidator urlValidator;
+  private final DataPrefs dataPrefs;
 
-  public AssetService(PreferencesService preferencesService) {
-    this.preferencesService = preferencesService;
-    urlValidator = new UrlValidator();
-  }
+  private final UrlValidator urlValidator = new UrlValidator();
 
   @Nullable
   public Image loadAndCacheImage(URL url, Path cacheSubFolder) {
@@ -55,7 +53,7 @@ public class AssetService {
       String urlString = url.toString();
       urlString = urlValidator.isValid(urlString) ? urlString : UriUtils.encodePath(urlString, StandardCharsets.UTF_8);
       String filename = urlString.substring(urlString.lastIndexOf('/') + 1);
-      Path cachePath = preferencesService.getPreferences().getData().getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
+      Path cachePath = dataPrefs.getCacheDirectory().resolve(cacheSubFolder).resolve(filename);
       if (Files.exists(cachePath)) {
         log.debug("Using cached image: {}", cachePath);
         return new Image(cachePath.toUri().toURL().toExternalForm(), width, height, true, true, true);

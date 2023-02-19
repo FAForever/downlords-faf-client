@@ -4,7 +4,6 @@ import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.PlayerInfoWindowController;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.reporting.ReportDialogController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -38,8 +37,7 @@ public class UserButtonControllerTest extends UITest {
   private PlayerInfoWindowController playerInfoWindowController;
   @Mock
   private UserService userService;
-  @Mock
-  private PreferencesService preferencesService;
+
 
   @InjectMocks
   private UserButtonController instance;

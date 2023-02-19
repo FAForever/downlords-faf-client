@@ -1,14 +1,12 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.builders.ModVersionBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
@@ -25,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
@@ -54,8 +53,7 @@ public class ModVaultControllerTest extends UITest {
   private EventBus eventBus;
   @Mock
   private I18n i18n;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -68,15 +66,13 @@ public class ModVaultControllerTest extends UITest {
   private ReportingService reportingService;
   @Mock
   private PlatformService platformService;
+  @Spy
+  private VaultPrefs vaultPrefs;
 
-  private Preferences preferences;
   private ModDetailController modDetailController;
 
   @BeforeEach
   public void setUp() throws Exception {
-    preferences = PreferencesBuilder.create().defaultValues().get();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(modService.getNewestModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(modService.getHighestRatedModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
     when(modService.getHighestRatedUiModsWithPageCount(anyInt(), anyInt())).thenReturn(Mono.zip(Mono.just(List.<ModVersionBean>of()), Mono.just(0)).toFuture());
@@ -106,7 +102,7 @@ public class ModVaultControllerTest extends UITest {
 
   @Test
   public void testSetSupplier() {
-    SortConfig sortOrder = preferences.getVault().getMapSortConfig();
+    SortConfig sortOrder = vaultPrefs.getMapSortConfig();
     SearchConfig standardSearchConfig = new SearchConfig(sortOrder, "query");
     instance.searchType = SearchType.SEARCH;
     instance.setSupplier(standardSearchConfig);

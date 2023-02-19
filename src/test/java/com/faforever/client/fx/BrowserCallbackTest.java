@@ -44,7 +44,7 @@ public class BrowserCallbackTest extends UITest {
   @Mock
   private NotificationService notificationService;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
 
   @BeforeEach
   public void setUp() throws Exception {

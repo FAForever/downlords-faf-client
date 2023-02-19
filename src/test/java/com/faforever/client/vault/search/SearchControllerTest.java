@@ -1,8 +1,7 @@
 package com.faforever.client.vault.search;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.FilterNodeController;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SearchablePropertyMappings;
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.Collections;
@@ -58,8 +58,7 @@ public class SearchControllerTest extends UITest {
   private LogicalNodeController logicalNodeController;
   @Mock
   private Consumer<SearchConfig> searchListener;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private I18n i18n;
   @Mock
@@ -69,6 +68,8 @@ public class SearchControllerTest extends UITest {
   private SavedQueriesController savedQueriesController;
   @Mock
   private SaveQueryController saveQueryController;
+  @Spy
+  private VaultPrefs vaultPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -85,7 +86,6 @@ public class SearchControllerTest extends UITest {
     when(uiService.loadFxml("theme/vault/search/save_query.fxml")).thenReturn(saveQueryController);
     when(uiService.loadFxml("theme/vault/search/saved_queries.fxml")).thenReturn(savedQueriesController);
     when(uiService.showInDialog(any(), any(), any())).thenReturn(mock(Dialog.class));
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
 
     instance.setSavedQueries(savedQueries);
 
@@ -100,7 +100,7 @@ public class SearchControllerTest extends UITest {
     });
 
     instance.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    instance.setSortConfig(preferencesService.getPreferences().getVault().onlineReplaySortConfigProperty());
+    instance.setSortConfig(vaultPrefs.onlineReplaySortConfigProperty());
   }
 
   @Test
@@ -222,7 +222,7 @@ public class SearchControllerTest extends UITest {
 
     instance.onSearchButtonClicked();
 
-    SortConfig mapSortConfig = preferencesService.getPreferences().getVault().getOnlineReplaySortConfig();
+    SortConfig mapSortConfig = vaultPrefs.getOnlineReplaySortConfig();
     assertEquals(mapSortConfig.getSortOrder(), SortOrder.ASC);
     verify(searchListener).accept(new SearchConfig(mapSortConfig, "query"));
   }

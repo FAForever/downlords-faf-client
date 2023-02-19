@@ -1,14 +1,12 @@
 package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
@@ -20,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -45,19 +44,16 @@ public class GamesTableControllerTest extends UITest {
   private MapService mapService;
   @Mock
   private ImageViewHelper imageViewHelper;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlayerService playerService;
   @Mock
   private GameTooltipController gameTooltipController;
-
+  @Spy
   private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
-    preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
     when(i18n.get(any())).then(invocation -> invocation.getArguments()[0]);
@@ -145,7 +141,7 @@ public class GamesTableControllerTest extends UITest {
 
   @Test
   public void testSortingUpdatesPreferences() {
-    assertThat(preferencesService.getPreferences().getGameTableSorting().entrySet(), hasSize(0));
+    assertThat(preferences.getGameTableSorting().entrySet(), hasSize(0));
 
     runOnFxThreadAndWait(() -> {
       instance.initializeGameTable(FXCollections.observableArrayList(
@@ -157,9 +153,9 @@ public class GamesTableControllerTest extends UITest {
       instance.gamesTable.getSortOrder().add(column);
     });
 
-    assertThat(preferencesService.getPreferences().getGameTableSorting().entrySet(), hasSize(1));
+    assertThat(preferences.getGameTableSorting().entrySet(), hasSize(1));
     assertThat(
-        preferencesService.getPreferences().getGameTableSorting().get("passwordProtectionColumn"),
+        preferences.getGameTableSorting().get("passwordProtectionColumn"),
         equalTo(SortType.ASCENDING)
     );
   }

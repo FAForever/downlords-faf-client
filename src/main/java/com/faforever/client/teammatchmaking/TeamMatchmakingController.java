@@ -15,6 +15,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.MatchmakerPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.Faction;
@@ -77,6 +78,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   private final UiService uiService;
   private final TeamMatchmakingService teamMatchmakingService;
   private final EventBus eventBus;
+  private final MatchmakerPrefs matchmakerPrefs;
 
   public StackPane teamMatchmakingRoot;
   public Button invitePlayerButton;
@@ -128,7 +130,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     initializeUppercaseText();
     initializeListeners();
 
-    ObservableList<Faction> factions = preferencesService.getPreferences().getMatchmaker().getFactions();
+    ObservableList<Faction> factions = matchmakerPrefs.getFactions();
     selectFactions(factions);
     teamMatchmakingService.sendFactionSelection(factions);
     teamMatchmakingService.requestMatchmakerInfo();
@@ -303,8 +305,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
       selectFactionsBasedOnParty();
       return;
     }
-    preferencesService.getPreferences().getMatchmaker().getFactions().setAll(factions);
-    preferencesService.storeInBackground();
+    matchmakerPrefs.getFactions().setAll(factions);
 
     teamMatchmakingService.sendFactionSelection(factions);
     refreshingLabel.setVisible(true);

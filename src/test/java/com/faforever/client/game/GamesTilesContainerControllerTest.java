@@ -2,11 +2,9 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import javafx.collections.FXCollections;
@@ -20,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.util.Map;
 import java.util.Set;
@@ -38,22 +37,20 @@ public class GamesTilesContainerControllerTest extends UITest {
   private GameTileController gameTileController;
   @Mock
   private UiService uiService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private GameTooltipController gameTooltipController;
+  @Spy
+  private Preferences preferences;
 
   @InjectMocks
   private GamesTilesContainerController instance;
-  private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/play/game_card.fxml")).thenReturn(gameTileController);
     when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameTooltipController);
     when(gameTooltipController.getRoot()).thenReturn(new Pane());
-    preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(gameTileController.getRoot()).thenReturn(new Pane()).thenReturn(new FlowPane()).thenReturn(new StackPane());
 
     loadFxml("theme/play/games_tiles_container.fxml", clazz -> instance);

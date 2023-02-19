@@ -6,7 +6,6 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PlayerBean;
@@ -17,8 +16,6 @@ import com.faforever.client.io.UidService;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.Version;
 import com.faforever.commons.lobby.AvatarListInfo;
@@ -112,8 +109,7 @@ public class ServerAccessorTest extends ServiceTest {
   @TempDir
   public Path tempDirectory;
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private UidService uidService;
   @Mock
@@ -127,13 +123,9 @@ public class ServerAccessorTest extends ServiceTest {
   @Mock
   private EventBus eventBus;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
   @Spy
-  private ObjectMapper objectMapper = new ObjectMapper()
-      .registerModule(new Builder().build())
-      .registerModule(new JavaTimeModule())
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);;
+  private ObjectMapper objectMapper;
 
   @InjectMocks
   private FafServerAccessor instance;
@@ -150,16 +142,10 @@ public class ServerAccessorTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .loginPrefs()
-        .refreshToken("junit")
-        .then()
-        .get();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    objectMapper.registerModule(new Builder().build())
+        .registerModule(new JavaTimeModule())
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
 
     when(tokenService.getRefreshedTokenValue()).thenReturn(Mono.just(token));
 

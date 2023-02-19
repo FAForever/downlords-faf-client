@@ -1,13 +1,11 @@
 package com.faforever.client.game;
 
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.vault.replay.WatchButtonController;
@@ -21,10 +19,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,8 +33,7 @@ public class CustomGamesControllerTest extends UITest {
   private CustomGamesController instance;
   @Mock
   private GameService gameService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private UiService uiService;
   @Mock
@@ -53,22 +50,20 @@ public class CustomGamesControllerTest extends UITest {
   private GamesTilesContainerController gamesTilesContainerController;
   @Mock
   private CustomGamesFilterController customGamesFilterController;
+  @Spy
+  private Preferences preferences;
 
   private ObservableList<GameBean> games;
-  private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
     games = FXCollections.observableArrayList();
 
-    preferences = PreferencesBuilder.create().defaultValues()
-        .gamesViewMode("tableButton")
-        .showGameDetailsSidePane(true)
-        .get();
+    preferences.setGamesViewMode("tableButton");
+    preferences.setShowGameDetailsSidePane(true);
 
     when(gameService.getGames()).thenReturn(games);
     when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
     when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
@@ -117,8 +112,7 @@ public class CustomGamesControllerTest extends UITest {
   public void testHideSidePane() {
     runOnFxThreadAndWait(() -> instance.toggleGameDetailPaneButton.fire());
 
-    assertFalse(preferencesService.getPreferences().isShowGameDetailsSidePane());
-    verify(preferencesService, atLeast(2)).storeInBackground();
+    assertFalse(preferences.isShowGameDetailsSidePane());
 
     assertFalse(instance.gameDetailPane.isManaged());
     assertFalse(instance.gameDetailPane.isVisible());

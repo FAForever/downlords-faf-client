@@ -4,6 +4,7 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
@@ -49,6 +50,8 @@ public class GameUpdaterImpl implements GameUpdater {
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final PreferencesService preferencesService;
+  private final DataPrefs dataPrefs;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private ComparableVersion gameVersion;
   private String gameType;
@@ -93,7 +96,7 @@ public class GameUpdaterImpl implements GameUpdater {
           }
         }).exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          boolean allowReplaysWhileInGame = preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame();
+          boolean allowReplaysWhileInGame = forgedAlliancePrefs.isAllowReplaysWhileInGame();
 
           if (throwable instanceof UnsupportedOperationException || throwable instanceof ChecksumMismatchException) {
             throw new CompletionException(throwable);
@@ -114,7 +117,6 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   private void createFaPathLuaFile() throws IOException {
-    ForgedAlliancePrefs forgedAlliancePrefs = preferencesService.getPreferences().getForgedAlliance();
     String installationPath = forgedAlliancePrefs.getInstallationPath().toString().replace("\\", "/");
     String vaultPath = forgedAlliancePrefs.getVaultBaseDirectory().toString().replace("\\", "/");
     String pathFileFormat = """
@@ -125,7 +127,7 @@ public class GameUpdaterImpl implements GameUpdater {
         ClientVersion = "%s"
         """.stripIndent();
     String content = String.format(pathFileFormat, installationPath, vaultPath, gameType, gameVersion.toString(), Version.getCurrentVersion());
-    Files.writeString(preferencesService.getPreferences().getData().getBaseDataDirectory().resolve("fa_path.lua"), content);
+    Files.writeString(dataPrefs.getBaseDataDirectory().resolve("fa_path.lua"), content);
   }
 
   private void copyInitFile(Path initFile) throws IOException {

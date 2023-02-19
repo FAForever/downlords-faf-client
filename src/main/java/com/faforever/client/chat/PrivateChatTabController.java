@@ -13,6 +13,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -59,23 +60,14 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Inject
   // TODO cut dependencies
-  public PrivateChatTabController(UserService userService,
-                                  PreferencesService preferencesService,
-                                  PlayerService playerService,
-                                  TimeService timeService,
-                                  I18n i18n,
-                                  NotificationService notificationService,
-                                  UiService uiService,
-                                  EventBus eventBus,
-                                  AudioService audioService,
-                                  ChatService chatService,
-                                  WebViewConfigurer webViewConfigurer,
-                                  CountryFlagService countryFlagService,
-                                  EmoticonService emoticonService,
-                                  AvatarService avatarService) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService,
-        i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService,
-        countryFlagService);
+  public PrivateChatTabController(UserService userService, PreferencesService preferencesService,
+                                  PlayerService playerService, TimeService timeService, I18n i18n,
+                                  NotificationService notificationService, UiService uiService, EventBus eventBus,
+                                  AudioService audioService, ChatService chatService,
+                                  WebViewConfigurer webViewConfigurer, CountryFlagService countryFlagService,
+                                  EmoticonService emoticonService, AvatarService avatarService, ChatPrefs chatPrefs,
+                                  NotificationPrefs notificationPrefs) {
+    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs);
     this.avatarService = avatarService;
   }
 
@@ -94,10 +86,12 @@ public class PrivateChatTabController extends AbstractChatTabController {
     super.setReceiver(username);
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
-    playerService.getPlayerByNameIfOnline(username).ifPresent(player ->
-        avatarImageView.imageProperty().bind(player.avatarProperty().map(avatarService::loadAvatar)));
-    ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username, false);
+    playerService.getPlayerByNameIfOnline(username)
+        .ifPresent(player -> avatarImageView.imageProperty()
+            .bind(player.avatarProperty().map(avatarService::loadAvatar)));
+    ChatChannelUser chatUser = chatService.createChatUserIfNecessary(username, username);
     privatePlayerInfoController.setChatUser(chatUser);
+    chatService.addUsersListener(username, new WeakMapChangeListener<>(chatUsersByNameListener));
   }
 
   @Override
@@ -112,8 +106,6 @@ public class PrivateChatTabController extends AbstractChatTabController {
     defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull());
     JavaFxUtil.fixScrollSpeed(gameDetailScrollPane);
     userOffline = false;
-
-    chatService.addChatUsersByNameListener(new WeakMapChangeListener<>(chatUsersByNameListener));
   }
 
   @Override
@@ -129,9 +121,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   public void onChatMessage(ChatMessage chatMessage) {
     Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
 
-    if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.getHideFoeMessages()) {
+    if (playerOptional.isPresent() && playerOptional.get().getSocialStatus() == FOE && chatPrefs.isHideFoeMessages()) {
       return;
     }
 

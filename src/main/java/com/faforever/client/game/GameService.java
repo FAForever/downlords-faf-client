@@ -36,7 +36,9 @@ import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
-import com.faforever.client.preferences.NotificationsPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.LastGamePrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
@@ -137,6 +139,9 @@ public class GameService implements InitializingBean {
   private final String faWindowTitle;
   private final GameMapper gameMapper;
   private final JavaFxService javaFxService;
+  private final LastGamePrefs lastGamePrefs;
+  private final NotificationPrefs notificationPrefs;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   @VisibleForTesting
   final BooleanProperty gameRunning = new SimpleBooleanProperty();
@@ -156,7 +161,15 @@ public class GameService implements InitializingBean {
   private int localReplayPort;
   private boolean inOthersParty;
 
-  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor, ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService, PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater, LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n, PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService, PlatformService platformService, DiscordRichPresenceService discordRichPresenceService, ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper, JavaFxService javaFxService) {
+  public GameService(ClientProperties clientProperties, FafServerAccessor fafServerAccessor,
+                     ForgedAllianceService forgedAllianceService, CoturnService coturnService, MapService mapService,
+                     PreferencesService preferencesService, LoggingService loggingService, GameUpdater gameUpdater,
+                     LeaderboardService leaderboardService, NotificationService notificationService, I18n i18n,
+                     PlayerService playerService, EventBus eventBus, IceAdapter iceAdapter, ModService modService,
+                     PlatformService platformService, DiscordRichPresenceService discordRichPresenceService,
+                     ReplayServer replayServer, OperatingSystem operatingSystem, GameMapper gameMapper,
+                     JavaFxService javaFxService, LastGamePrefs lastGamePrefs, NotificationPrefs notificationPrefs,
+                     ForgedAlliancePrefs forgedAlliancePrefs) {
     this.fafServerAccessor = fafServerAccessor;
     this.forgedAllianceService = forgedAllianceService;
     this.coturnService = coturnService;
@@ -177,6 +190,9 @@ public class GameService implements InitializingBean {
     this.operatingSystem = operatingSystem;
     this.gameMapper = gameMapper;
     this.javaFxService = javaFxService;
+    this.lastGamePrefs = lastGamePrefs;
+    this.notificationPrefs = notificationPrefs;
+    this.forgedAlliancePrefs = forgedAlliancePrefs;
 
     faWindowTitle = clientProperties.getForgedAlliance().getWindowTitle();
   }
@@ -266,7 +282,8 @@ public class GameService implements InitializingBean {
   private ChangeListener<GameStatus> generateGameStatusListener(GameBean game) {
     return new ChangeListener<>() {
       @Override
-      public void changed(ObservableValue<? extends GameStatus> observable, GameStatus oldStatus, GameStatus newStatus) {
+      public void changed(ObservableValue<? extends GameStatus> observable, GameStatus oldStatus,
+                          GameStatus newStatus) {
         if (!playerService.isCurrentPlayerInGame(game)) {
           observable.removeListener(this);
           return;
@@ -378,7 +395,9 @@ public class GameService implements InitializingBean {
   /**
    * @param path a replay file that is readable by the preferences without any further conversion
    */
-  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod, Integer baseFafVersion, Map<String, Integer> featuredModFileVersions, Set<String> simMods, String mapFolderName) {
+  public CompletableFuture<Void> runWithReplay(Path path, @Nullable Integer replayId, String featuredMod,
+                                               Integer baseFafVersion, Map<String, Integer> featuredModFileVersions,
+                                               Set<String> simMods, String mapFolderName) {
     if (!canStartReplay()) {
       return completedFuture(null);
     }
@@ -401,7 +420,7 @@ public class GameService implements InitializingBean {
         .thenRun(() -> {
           try {
             Process processForReplay = forgedAllianceService.startReplay(path, replayId);
-            if (preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame() && isRunning()) {
+            if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
               return;
             }
             this.process = processForReplay;
@@ -418,7 +437,7 @@ public class GameService implements InitializingBean {
   }
 
   private boolean canStartReplay() {
-    if (isRunning() && !preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame()) {
+    if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
       log.info("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
@@ -494,7 +513,7 @@ public class GameService implements InitializingBean {
           } catch (IOException e) {
             throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
           }
-          if (preferencesService.getPreferences().getForgedAlliance().isAllowReplaysWhileInGame() && isRunning()) {
+          if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
             return;
           }
           this.process = processCreated;
@@ -588,7 +607,9 @@ public class GameService implements InitializingBean {
     return updateGameIfNecessary(featuredModBean, simModUids, null, null);
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids, @Nullable Map<String, Integer> featuredModFileVersions, @Nullable Integer version) {
+  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids,
+                                                        @Nullable Map<String, Integer> featuredModFileVersions,
+                                                        @Nullable Integer version) {
     return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version);
   }
 
@@ -657,8 +678,7 @@ public class GameService implements InitializingBean {
   }
 
   private void onRecentlyPlayedGameEnded(GameBean game) {
-    NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
-    if (!notification.isAfterGameReviewEnabled() || !notification.isTransientNotificationsEnabled()) {
+    if (!notificationPrefs.isAfterGameReviewEnabled() || !notificationPrefs.isTransientNotificationsEnabled()) {
       return;
     }
 
@@ -745,7 +765,7 @@ public class GameService implements InitializingBean {
     if (!game.isPasswordProtected()) {
       return game;
     }
-    String lastGamePassword = preferencesService.getPreferences().getLastGame().getLastGamePassword();
+    String lastGamePassword = lastGamePrefs.getLastGamePassword();
     game.setPassword(lastGamePassword);
     return game;
   }
@@ -822,13 +842,13 @@ public class GameService implements InitializingBean {
     if (isGamePrefsPatchedToAllowMultiInstances().get()) {
       return failedFuture(new IllegalStateException("Can not patch game.prefs file cause it already is patched"));
     }
-    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    Path preferencesFile = forgedAlliancePrefs.getPreferencesFile();
     Files.writeString(preferencesFile, GAME_PREFS_ALLOW_MULTI_LAUNCH_STRING, US_ASCII, StandardOpenOption.APPEND);
     return completedFuture(null);
   }
 
   private String getGamePrefsContent() throws IOException {
-    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    Path preferencesFile = forgedAlliancePrefs.getPreferencesFile();
     return Files.readString(preferencesFile, US_ASCII);
   }
 

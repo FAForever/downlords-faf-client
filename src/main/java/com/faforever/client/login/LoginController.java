@@ -63,6 +63,8 @@ public class LoginController implements Controller<Pane> {
   private final ClientUpdateService clientUpdateService;
   private final PlatformService platformService;
   private final OAuthValuesReceiver oAuthValuesReceiver;
+  private final LoginPrefs loginPrefs;
+
   public Pane messagesContainer;
   public Pane errorPane;
   public Pane loginFormPane;
@@ -93,7 +95,6 @@ public class LoginController implements Controller<Pane> {
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(downloadUpdateButton, loginErrorLabel, loginFormPane,
         serverConfigPane, errorPane, loginProgressPane, messagesContainer, loginButton);
-    LoginPrefs loginPrefs = preferencesService.getPreferences().getLogin();
     updateInfoFuture = clientUpdateService.getNewestUpdate();
 
     messagesContainer.setVisible(false);

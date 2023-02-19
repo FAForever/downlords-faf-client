@@ -6,7 +6,7 @@ import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.google.common.eventbus.EventBus;
@@ -52,14 +52,15 @@ public class ModUploadControllerTest extends UITest {
   @Mock
   private PlatformService platformService;
   @Spy
-  private ClientProperties cLientProperties = new ClientProperties();
+  private ClientProperties cLientProperties;
+  @Spy
+  private DataPrefs dataPrefs;
 
   @Mock
   private I18n i18n;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private FafApiAccessor fafApiAccessor;
 
@@ -70,7 +71,7 @@ public class ModUploadControllerTest extends UITest {
       return null;
     }).when(executorService).execute(any());
 
-    modUploadTask = new ModUploadTask(preferencesService, fafApiAccessor, i18n) {
+    modUploadTask = new ModUploadTask(fafApiAccessor, i18n, dataPrefs) {
       @Override
       protected Void call() {
         return null;

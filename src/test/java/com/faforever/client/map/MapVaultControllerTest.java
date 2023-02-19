@@ -7,7 +7,7 @@ import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.LogicalNodeController;
 import com.faforever.client.query.SpecificationController;
 import com.faforever.client.reporting.ReportingService;
@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
 
@@ -50,8 +51,7 @@ public class MapVaultControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private NotificationService notificationService;
   @Mock
@@ -64,6 +64,8 @@ public class MapVaultControllerTest extends UITest {
   private ReportingService reportingService;
   @Mock
   private PlatformService platformService;
+  @Spy
+  private VaultPrefs vaultPrefs;
 
   @InjectMocks
   private MapVaultController instance;
@@ -72,7 +74,6 @@ public class MapVaultControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(preferencesService.getPreferences()).thenReturn(new Preferences());
     when(i18n.get(anyString())).thenReturn("test");
 
     doAnswer(invocation -> {
@@ -83,7 +84,7 @@ public class MapVaultControllerTest extends UITest {
 
     when(mapService.getRecommendedMapPageCount(VaultEntityController.TOP_ELEMENT_COUNT)).thenReturn(CompletableFuture.completedFuture(0));
 
-    SortConfig sortOrder = preferencesService.getPreferences().getVault().getMapSortConfig();
+    SortConfig sortOrder = new Preferences().getVault().getMapSortConfig();
     standardSearchConfig = new SearchConfig(sortOrder, "query");
 
 

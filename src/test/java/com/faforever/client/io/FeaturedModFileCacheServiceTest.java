@@ -1,15 +1,14 @@
 package com.faforever.client.io;
 
-import com.faforever.client.builders.PreferencesBuilder;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.FeaturedModFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,7 +18,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 public class FeaturedModFileCacheServiceTest extends ServiceTest {
 
@@ -27,28 +25,25 @@ public class FeaturedModFileCacheServiceTest extends ServiceTest {
   public Path tempDirectory;
   public Path cacheDirectory;
   public Path targetDirectory;
-  @Mock
-  private PreferencesService preferenceService;
+  @Spy
+  private DataPrefs dataPrefs;
+  @Spy
+  private Preferences preferences;
+
   @InjectMocks
   private FeaturedModFileCacheService instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .gameDataCacheActivated(true)
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .get();
+    dataPrefs.setBaseDataDirectory(tempDirectory);
 
-    cacheDirectory = Files.createDirectories(tempDirectory.resolve(preferences.getData().getFeaturedModCacheDirectory()));
+    cacheDirectory = Files.createDirectories(dataPrefs.getFeaturedModCacheDirectory());
     targetDirectory = Files.createDirectories(tempDirectory.resolve("target"));
-
-    when(preferenceService.getPreferences()).thenReturn(preferences);
   }
 
   @Test
   public void testMoveFeaturedModFileFromCacheWithExistingOldFile() throws IOException {
+    preferences.setGameDataCacheActivated(true);
     final FeaturedModFile featuredModFile = new FeaturedModFile();
     featuredModFile.setId("1");
     final String fakeHashOfNewFile = "ksadduhoashaodiw";

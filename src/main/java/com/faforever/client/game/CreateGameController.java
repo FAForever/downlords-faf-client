@@ -23,7 +23,6 @@ import com.faforever.client.mod.ModService;
 import com.faforever.client.net.ConnectionState;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.LastGamePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.user.UserService;
@@ -89,16 +88,20 @@ public class CreateGameController implements Controller<Pane> {
   public static final String STYLE_CLASS_DUAL_LIST_CELL = "create-game-dual-list-cell";
   public static final PseudoClass PSEUDO_CLASS_INVALID = PseudoClass.getPseudoClass("invalid");
   private static final int MAX_RATING_LENGTH = 4;
+
   private final MapService mapService;
   private final ModService modService;
   private final GameService gameService;
-  private final PreferencesService preferencesService;
   private final I18n i18n;
   private final NotificationService notificationService;
   private final UserService userService;
   private final MapGeneratorService mapGeneratorService;
   private final UiService uiService;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final LastGamePrefs lastGamePrefs;
+
+  private final InvalidationListener createButtonStateListener = observable -> setCreateGameButtonState();;
+
   public Label mapSizeLabel;
   public Label mapPlayersLabel;
   public Label mapDescriptionLabel;
@@ -125,7 +128,6 @@ public class CreateGameController implements Controller<Pane> {
   FilteredList<MapVersionBean> filteredMaps;
   private Runnable onCloseButtonClickedListener;
   private MapFilterController mapFilterController;
-  private InvalidationListener createButtonStateListener;
 
   public void initialize() {
     contextMenuBuilder.addCopyLabelContextMenu(mapDescriptionLabel);
@@ -151,20 +153,9 @@ public class CreateGameController implements Controller<Pane> {
       mapListView.scrollTo(newMapIndex);
     });
 
-    createButtonStateListener = observable -> setCreateGameButtonState();
+    Function<FeaturedModBean, String> isDefaultModString = mod -> Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ? " " + i18n.get("game.create.defaultGameTypeMarker") : null;
 
-    Function<FeaturedModBean, String> isDefaultModString = mod ->
-        Objects.equals(mod.getTechnicalName(), KnownFeaturedMod.DEFAULT.getTechnicalName()) ?
-            " " + i18n.get("game.create.defaultGameTypeMarker") : null;
-
-    featuredModListView.setCellFactory(param ->
-        new DualStringListCell<>(
-            FeaturedModBean::getDisplayName,
-            isDefaultModString,
-            FeaturedModBean::getDescription,
-            STYLE_CLASS_DUAL_LIST_CELL, uiService
-        )
-    );
+    featuredModListView.setCellFactory(param -> new DualStringListCell<>(FeaturedModBean::getDisplayName, isDefaultModString, FeaturedModBean::getDescription, STYLE_CLASS_DUAL_LIST_CELL, uiService));
 
     JavaFxUtil.makeNumericTextField(minRankingTextField, MAX_RATING_LENGTH, true);
     JavaFxUtil.makeNumericTextField(maxRankingTextField, MAX_RATING_LENGTH, true);
@@ -184,14 +175,13 @@ public class CreateGameController implements Controller<Pane> {
     setLastGameTitle();
     initPassword();
     JavaFxUtil.addAndTriggerListener(titleTextField.textProperty(), (observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getLastGame().setLastGameTitle(newValue);
-      preferencesService.storeInBackground();
+      lastGamePrefs.setLastGameTitle(newValue);
       validateTitle(newValue);
     });
 
     JavaFxUtil.addAndTriggerListener(userService.connectionStateProperty(), new WeakInvalidationListener(createButtonStateListener));
-    JavaFxUtil.addListener(titleTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
-    JavaFxUtil.addListener(passwordTextField.textProperty(), new WeakInvalidationListener(createButtonStateListener));
+    JavaFxUtil.addListener(titleTextField.textProperty(), createButtonStateListener);
+    JavaFxUtil.addListener(passwordTextField.textProperty(), createButtonStateListener);
     JavaFxUtil.addListener(featuredModListView.getSelectionModel()
         .selectedItemProperty(), new WeakInvalidationListener(createButtonStateListener));
   }
@@ -233,11 +223,10 @@ public class CreateGameController implements Controller<Pane> {
 
   private void initMapFilterPopup() {
     mapFilterController = uiService.loadFxml("theme/filter/filter.fxml", MapFilterController.class);
-    mapFilterController.bindExternalFilter(mapSearchTextField.textProperty(),
-        (text, mapVersion) -> text.isEmpty() || mapVersion.getMap()
-            .getDisplayName()
-            .toLowerCase()
-            .contains(text.toLowerCase()) || mapVersion.getFolderName().toLowerCase().contains(text.toLowerCase()));
+    mapFilterController.bindExternalFilter(mapSearchTextField.textProperty(), (text, mapVersion) -> text.isEmpty() || mapVersion.getMap()
+        .getDisplayName()
+        .toLowerCase()
+        .contains(text.toLowerCase()) || mapVersion.getFolderName().toLowerCase().contains(text.toLowerCase()));
     mapFilterController.completeSetting();
 
     JavaFxUtil.addAndTriggerListener(mapFilterController.filterStateProperty(), (observable, oldValue, newValue) -> mapFilterButton.setSelected(newValue));
@@ -246,35 +235,25 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void validateTitle(String gameTitle) {
-    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, StringUtils.isBlank(gameTitle)
-        || !StandardCharsets.US_ASCII.newEncoder().canEncode(gameTitle));
+    titleTextField.pseudoClassStateChanged(PSEUDO_CLASS_INVALID, StringUtils.isBlank(gameTitle) || !StandardCharsets.US_ASCII.newEncoder()
+        .canEncode(gameTitle));
   }
 
   private void initPassword() {
-    LastGamePrefs lastGamePrefs = preferencesService.getPreferences().getLastGame();
     passwordTextField.setText(lastGamePrefs.getLastGamePassword());
     JavaFxUtil.addListener(passwordTextField.textProperty(), (observable, oldValue, newValue) -> {
       lastGamePrefs.setLastGamePassword(newValue);
-      preferencesService.storeInBackground();
     });
   }
 
   private void bindGameVisibility() {
-    onlyForFriendsCheckBox.selectedProperty().bindBidirectional(
-        preferencesService.getPreferences()
-            .getLastGame()
-            .lastGameOnlyFriendsProperty()
-    );
-
-    onlyForFriendsCheckBox.selectedProperty().addListener(observable -> preferencesService.storeInBackground());
+    onlyForFriendsCheckBox.selectedProperty().bindBidirectional(lastGamePrefs.lastGameOnlyFriendsProperty());
   }
 
   protected void initMapSelection() {
-    filteredMaps = new FilteredList<>(
-        mapService.getInstalledMaps()
-            .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH)
-            .sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName().toLowerCase()))
-    );
+    filteredMaps = new FilteredList<>(mapService.getInstalledMaps()
+        .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH)
+        .sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName().toLowerCase())));
     JavaFxUtil.addListener(filteredMaps.predicateProperty(), (observable, oldValue, newValue) -> {
       if (!filteredMaps.isEmpty()) {
         mapListView.getSelectionModel().select(0);
@@ -297,12 +276,10 @@ public class CreateGameController implements Controller<Pane> {
     ComparableVersion version = mapVersion.getVersion();
     MapSize mapSize = mapVersion.getSize();
     Image largePreview = mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.LARGE);
-    preferencesService.getPreferences().getLastGame().setLastMap(mapVersion.getFolderName());
-    preferencesService.storeInBackground();
+    lastGamePrefs.setLastMap(mapVersion.getFolderName());
 
     JavaFxUtil.runLater(() -> {
-      mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER,
-          new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
+      mapPreviewPane.setBackground(new Background(new BackgroundImage(largePreview, NO_REPEAT, NO_REPEAT, CENTER, new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false))));
       mapSizeLabel.setText(i18n.get("mapPreview.size", mapSize.getWidthInKm(), mapSize.getHeightInKm()));
       mapNameLabel.setText(mapVersion.getMap().getDisplayName());
       mapPlayersLabel.setText(i18n.number(mapVersion.getMaxPlayers()));
@@ -320,15 +297,14 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void initFeaturedModList() {
-    featuredModListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-      preferencesService.getPreferences().getLastGame().setLastGameType(newValue.getTechnicalName());
-      preferencesService.storeInBackground();
-    });
+    featuredModListView.getSelectionModel()
+        .selectedItemProperty()
+        .addListener((observable, oldValue, newValue) -> lastGamePrefs.setLastGameType(newValue.getTechnicalName()));
   }
 
   private void initRatingBoundaries() {
-    Integer lastGameMinRating = preferencesService.getPreferences().getLastGame().getLastGameMinRating();
-    Integer lastGameMaxRating = preferencesService.getPreferences().getLastGame().getLastGameMaxRating();
+    Integer lastGameMinRating = lastGamePrefs.getLastGameMinRating();
+    Integer lastGameMaxRating = lastGamePrefs.getLastGameMaxRating();
 
     if (lastGameMinRating != null) {
       minRankingTextField.setText(i18n.number(lastGameMinRating));
@@ -344,8 +320,7 @@ public class CreateGameController implements Controller<Pane> {
         minRating = Integer.parseInt(newValue);
       }
 
-      preferencesService.getPreferences().getLastGame().setLastGameMinRating(minRating);
-      preferencesService.storeInBackground();
+      lastGamePrefs.setLastGameMinRating(minRating);
     });
 
     maxRankingTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -353,17 +328,14 @@ public class CreateGameController implements Controller<Pane> {
       if (!newValue.isEmpty()) {
         maxRating = Integer.parseInt(newValue);
       }
-      preferencesService.getPreferences().getLastGame().setLastGameMaxRating(maxRating);
-      preferencesService.storeInBackground();
+      lastGamePrefs.setLastGameMaxRating(maxRating);
     });
 
-    enforceRankingCheckBox.selectedProperty()
-        .bindBidirectional(preferencesService.getPreferences().getLastGame().lastGameEnforceRatingProperty());
-    enforceRankingCheckBox.selectedProperty().addListener(observable -> preferencesService.storeInBackground());
+    enforceRankingCheckBox.selectedProperty().bindBidirectional(lastGamePrefs.lastGameEnforceRatingProperty());
   }
 
   private void selectLastMap() {
-    String lastMap = preferencesService.getPreferences().getLastGame().getLastMap();
+    String lastMap = lastGamePrefs.getLastMap();
     for (MapVersionBean mapVersion : mapListView.getItems()) {
       if (mapVersion.getFolderName().equalsIgnoreCase(lastMap)) {
         mapListView.getSelectionModel().select(mapVersion);
@@ -377,12 +349,12 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   private void setLastGameTitle() {
-    titleTextField.setText(Strings.nullToEmpty(preferencesService.getPreferences().getLastGame().getLastGameTitle()));
+    titleTextField.setText(Strings.nullToEmpty(lastGamePrefs.getLastGameTitle()));
   }
 
   private void selectLastOrDefaultGameType() {
     JavaFxUtil.assertApplicationThread();
-    String lastGameMod = preferencesService.getPreferences().getLastGame().getLastGameType();
+    String lastGameMod = lastGamePrefs.getLastGameType();
     if (lastGameMod == null) {
       lastGameMod = KnownFeaturedMod.DEFAULT.getTechnicalName();
     }
@@ -411,7 +383,6 @@ public class CreateGameController implements Controller<Pane> {
           Pane root = generateMapController.getRoot();
           generateMapController.setCreateGameController(this);
           Dialog dialog = uiService.showInDialog(gamesRoot, root, i18n.get("game.generateMap.dialog"));
-          dialog.setOnDialogClosed(event -> preferencesService.storeInBackground());
           generateMapController.setOnCloseButtonClickedListener(dialog::close);
 
           root.requestFocus();
@@ -432,37 +403,32 @@ public class CreateGameController implements Controller<Pane> {
     MapVersionBean selectedMap = mapListView.getSelectionModel().getSelectedItem();
     Collection<ModVersionBean> selectedModVersions = modManagerController.getSelectedModVersions();
 
-    mapService.updateLatestVersionIfNecessary(selectedMap)
-        .exceptionally(throwable -> {
-          log.error("Error when updating the map", throwable);
-          return selectedMap;
-        })
-        .thenCombine(modService.updateAndActivateModVersions(selectedModVersions)
-            .exceptionally(throwable -> {
-              log.error("Error when updating selected mods", throwable);
-              notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
-              return selectedModVersions;
-            }), (mapBean, mods) -> {
-          hostGame(mapBean, getUUIDsFromModVersions(mods));
-          return null;
-        }).exceptionally(throwable -> {
-          throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          log.error("Game could not be hosted", throwable);
-          if (throwable instanceof NotifiableException) {
-            notificationService.addErrorNotification((NotifiableException) throwable);
-          } else {
-            notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
-          }
-          return null;
-        });
+    mapService.updateLatestVersionIfNecessary(selectedMap).exceptionally(throwable -> {
+      log.error("Error when updating the map", throwable);
+      return selectedMap;
+    }).thenCombine(modService.updateAndActivateModVersions(selectedModVersions).exceptionally(throwable -> {
+      log.error("Error when updating selected mods", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "game.create.errorUpdatingMods");
+      return selectedModVersions;
+    }), (mapBean, mods) -> {
+      hostGame(mapBean, getUUIDsFromModVersions(mods));
+      return null;
+    }).exceptionally(throwable -> {
+      throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+      log.error("Game could not be hosted", throwable);
+      if (throwable instanceof NotifiableException) {
+        notificationService.addErrorNotification((NotifiableException) throwable);
+      } else {
+        notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
+      }
+      return null;
+    });
 
   }
 
   @NotNull
   private Set<String> getUUIDsFromModVersions(Collection<ModVersionBean> modVersions) {
-    return modVersions.stream()
-        .map(ModVersionBean::getUid)
-        .collect(Collectors.toSet());
+    return modVersions.stream().map(ModVersionBean::getUid).collect(Collectors.toSet());
   }
 
   private void hostGame(MapVersionBean mapVersion, Set<String> mods) {
@@ -480,19 +446,12 @@ public class CreateGameController implements Controller<Pane> {
 
     enforceRating = enforceRankingCheckBox.isSelected();
 
-    NewGameInfo newGameInfo = new NewGameInfo(
-        titleTextField.getText().trim(),
-        Strings.emptyToNull(passwordTextField.getText()),
-        featuredModListView.getSelectionModel().getSelectedItem(),
-        mapVersion.getFolderName(),
-        mods,
-        onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC,
-        minRating,
-        maxRating,
-        enforceRating);
+    NewGameInfo newGameInfo = new NewGameInfo(titleTextField.getText()
+        .trim(), Strings.emptyToNull(passwordTextField.getText()), featuredModListView.getSelectionModel()
+        .getSelectedItem(), mapVersion.getFolderName(), mods, onlyForFriendsCheckBox.isSelected() ? GameVisibility.PRIVATE : GameVisibility.PUBLIC, minRating, maxRating, enforceRating);
 
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
-      throwable  = ConcurrentUtil.unwrapIfCompletionException(throwable);
+      throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.error("Game could not be hosted", throwable);
       if (throwable instanceof NotifiableException) {
         notificationService.addErrorNotification((NotifiableException) throwable);

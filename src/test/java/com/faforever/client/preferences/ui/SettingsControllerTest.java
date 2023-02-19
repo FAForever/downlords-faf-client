@@ -1,6 +1,5 @@
 package com.faforever.client.preferences.ui;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.fa.debugger.DownloadFAFDebuggerTask;
 import com.faforever.client.fa.relay.ice.CoturnService;
@@ -66,7 +65,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -107,15 +105,16 @@ public class SettingsControllerTest extends UITest {
   private VaultPathHandler vaultPathHandler;
   @Spy
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
-
+  @Spy
   private Preferences preferences;
   private SimpleSetProperty<Locale> availableLanguages;
 
   @BeforeEach
   public void setUp() throws Exception {
     MapperSetup.injectMappers(iceServerMapper);
-    preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferenceService.getPreferences()).thenReturn(preferences);
+
+    preferences.getData().setBaseDataDirectory(Path.of("."));
+
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
     when(uiService.getCurrentTheme())
         .thenReturn(FIRST_THEME);
@@ -240,7 +239,6 @@ public class SettingsControllerTest extends UITest {
 
     assertEquals(1, preferredCoturnServers.size());
     assertTrue(preferredCoturnServers.contains(new CoturnHostPort("Test", null)));
-    verify(preferenceService, times(4)).storeInBackground();
 
     runOnFxThreadAndWait(() -> instance.initialize());
 

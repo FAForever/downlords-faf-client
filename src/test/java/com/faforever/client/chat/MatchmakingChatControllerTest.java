@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.chat.event.UnreadPartyMessageEvent;
 import com.faforever.client.discord.JoinDiscordEvent;
@@ -10,8 +9,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -23,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.Instant;
@@ -43,8 +42,7 @@ public class MatchmakingChatControllerTest extends UITest {
   private ChatService chatService;
   @Mock
   private UserService userService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlayerService playerService;
   @Mock
@@ -69,14 +67,14 @@ public class MatchmakingChatControllerTest extends UITest {
   private CountryFlagService countryFlagService;
   @Mock
   private EmoticonService emoticonService;
+  @Spy
+  private ChatPrefs chatPrefs;
 
   @InjectMocks
   private MatchmakingChatController instance;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(i18n.get(anyString())).thenReturn("");
     when(chatService.getOrCreateChannel("partyName")).thenReturn(new ChatChannel("partyName"));
     when(userService.getUsername()).thenReturn("junit");

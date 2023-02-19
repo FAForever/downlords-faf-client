@@ -1,12 +1,13 @@
 package com.faforever.client.game;
 
-import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.preferences.event.MissingGamePathEvent;
 import com.faforever.client.ui.preferences.event.GameDirectoryChosenEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class GamePathHandler implements InitializingBean {
   private static final Collection<Path> USUAL_GAME_PATHS = Arrays.asList(
       Path.of(System.getenv("ProgramFiles") + "\\THQ\\Gas Powered Games\\Supreme Commander - Forged Alliance"),
@@ -29,18 +31,11 @@ public class GamePathHandler implements InitializingBean {
       Path.of(System.getProperty("user.home"), ".steam", "steam", "steamapps", "common", "Supreme Commander Forged Alliance"),
       Path.of(System.getenv("ProgramFiles") + "\\Supreme Commander - Forged Alliance")
   );
-  private final NotificationService notificationService;
-  private final I18n i18n;
-  private final EventBus eventBus;
+
   private final PreferencesService preferencesService;
-
-  public GamePathHandler(NotificationService notificationService, I18n i18n, EventBus eventBus, PreferencesService preferencesService) {
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.eventBus = eventBus;
-    this.preferencesService = preferencesService;
-
-  }
+  private final NotificationService notificationService;
+  private final EventBus eventBus;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   @Override
   public void afterPropertiesSet() {
@@ -86,8 +81,7 @@ public class GamePathHandler implements InitializingBean {
 
 
     log.info("Found game path at {}", gamePath);
-    preferencesService.getPreferences().getForgedAlliance().setInstallationPath(gamePath);
-    preferencesService.storeInBackground();
+    forgedAlliancePrefs.setInstallationPath(gamePath);
     future.ifPresent(pathCompletableFuture -> pathCompletableFuture.complete(gamePath));
   }
 
@@ -105,7 +99,7 @@ public class GamePathHandler implements InitializingBean {
   }
 
   public void detectAndUpdateGamePath() {
-    Path faPath = preferencesService.getPreferences().getForgedAlliance().getInstallationPath();
+    Path faPath = forgedAlliancePrefs.getInstallationPath();
     if (faPath == null || Files.notExists(faPath)) {
       log.info("Game path is not specified or non-existent, trying to detect");
       detectGamePath();

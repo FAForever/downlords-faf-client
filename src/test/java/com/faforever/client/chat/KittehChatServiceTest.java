@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
@@ -10,8 +9,7 @@ import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.PlayerOnlineEvent;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.SocialStatus;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.UITest;
 import com.faforever.client.user.UserService;
@@ -67,21 +65,21 @@ import java.util.function.Consumer;
 
 import static com.faforever.client.chat.ChatColorMode.DEFAULT;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -100,10 +98,6 @@ public class KittehChatServiceTest extends UITest {
   @InjectMocks
   private KittehChatService instance;
 
-  private ChatChannelUser defaultChatUser1;
-  private ChatChannelUser otherChatUser1;
-  private ChatChannelUser defaultChatUser2;
-
   @Mock
   private User user1;
   @Mock
@@ -118,8 +112,7 @@ public class KittehChatServiceTest extends UITest {
   private Channel otherChannel;
   @Mock
   private UserService userService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private FafServerAccessor fafServerAccessor;
   @Mock
@@ -127,15 +120,17 @@ public class KittehChatServiceTest extends UITest {
   @Mock
   private EventBus eventBus;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
+  @Spy
+  private ChatPrefs chatPrefs;
 
   @Captor
   private ArgumentCaptor<Consumer<SocialInfo>> socialMessageListenerCaptor;
 
   private DefaultEventManager eventManager;
-  private DefaultClient client;
-  private Preferences preferences;
+  private DefaultClient spyClient;
   private PlayerBean player1;
+  private DefaultClient realClient;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -149,7 +144,7 @@ public class KittehChatServiceTest extends UITest {
     Irc irc = clientProperties.getIrc();
     instance.defaultChannelName = irc.getDefaultChannel();
 
-    instance.client = (DefaultClient) Client.builder()
+    realClient = (DefaultClient) Client.builder()
         .user(CHAT_USER_NAME)
         .realName(CHAT_USER_NAME)
         .nick(CHAT_USER_NAME)
@@ -161,46 +156,52 @@ public class KittehChatServiceTest extends UITest {
         .then()
         .build();
 
-    client = instance.client;
+    spyClient = spy(realClient);
 
-    eventManager = (DefaultEventManager) client.getEventManager();
+    instance.client = spyClient;
 
-    preferences = PreferencesBuilder.create().defaultValues()
-        .chatPrefs()
-        .chatColorMode(DEFAULT)
-        .then()
-        .get();
+    eventManager = (DefaultEventManager) realClient.getEventManager();
+
+    chatPrefs.setChatColorMode(DEFAULT);
 
     when(userService.getUsername()).thenReturn(CHAT_USER_NAME);
 
-    when(defaultChannel.getClient()).thenReturn(instance.client);
+    when(defaultChannel.getClient()).thenReturn(realClient);
     when(defaultChannel.getName()).thenReturn(DEFAULT_CHANNEL_NAME);
-    when(otherChannel.getClient()).thenReturn(instance.client);
+    when(otherChannel.getClient()).thenReturn(realClient);
     when(otherChannel.getName()).thenReturn(OTHER_CHANNEL_NAME);
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     Character userPrefix = '+';
 
-    when(user1.getClient()).thenReturn(instance.client);
+    when(user1.getClient()).thenReturn(realClient);
     when(user1.getNick()).thenReturn("user1");
     when(user1Mode.getNickPrefix()).thenReturn(userPrefix);
-    when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix)).add(user1Mode).build()));
-    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix)).add(user1Mode).build()));
+    when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+        .add(user1Mode)
+        .build()));
+    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+        .add(user1Mode)
+        .build()));
 
-    when(user2.getClient()).thenReturn(instance.client);
+    when(user2.getClient()).thenReturn(realClient);
     when(user2.getNick()).thenReturn("user2");
     when(user2Mode.getNickPrefix()).thenReturn(userPrefix);
-    when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix)).add(user2Mode).build()));
-    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix)).add(user1Mode).build()));
+    when(defaultChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+        .add(user2Mode)
+        .build()));
+    when(otherChannel.getUserModes(user1)).thenReturn(Optional.of(ImmutableSortedSet.orderedBy(Comparator.comparing(ChannelUserMode::getNickPrefix))
+        .add(user1Mode)
+        .build()));
 
     player1 = PlayerBeanBuilder.create().defaultValues().get();
     when(playerService.getPlayerByNameIfOnline(user1.getNick())).thenReturn(Optional.of(player1));
     when(playerService.getPlayerByNameIfOnline(user2.getNick())).thenReturn(Optional.empty());
 
-    defaultChatUser1 = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
-    otherChatUser1 = instance.getOrCreateChatUser(user1.getNick(), OTHER_CHANNEL_NAME, false);
-    defaultChatUser2 = instance.getOrCreateChatUser(user2.getNick(), DEFAULT_CHANNEL_NAME, false);
+    when(spyClient.getChannel(DEFAULT_CHANNEL_NAME)).thenReturn(Optional.of(defaultChannel));
+    when(spyClient.getChannel(OTHER_CHANNEL_NAME)).thenReturn(Optional.of(otherChannel));
+    when(defaultChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
+    when(otherChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
+    when(defaultChannel.getUser(user2.getNick())).thenReturn(Optional.of(user2));
 
     instance.afterPropertiesSet();
 
@@ -213,21 +214,21 @@ public class KittehChatServiceTest extends UITest {
   }
 
   private void join(Channel channel, User user) {
-    eventManager.callEvent(new ChannelJoinEvent(client,
+    eventManager.callEvent(new ChannelJoinEvent(realClient,
         new StringCommand("", "", List.of()),
         channel,
         user));
   }
 
   private void quit(User user) {
-    eventManager.callEvent(new UserQuitEvent(client,
+    eventManager.callEvent(new UserQuitEvent(realClient,
         new StringCommand("", "", List.of()),
         user,
         String.format("%s quit", user.getNick())));
   }
 
   private void part(Channel channel, User user) {
-    eventManager.callEvent(new ChannelPartEvent(client,
+    eventManager.callEvent(new ChannelPartEvent(realClient,
         new StringCommand("", "", List.of()),
         channel,
         user,
@@ -235,7 +236,7 @@ public class KittehChatServiceTest extends UITest {
   }
 
   private void messageChannel(Channel channel, User user, String message) {
-    eventManager.callEvent(new ChannelMessageEvent(client,
+    eventManager.callEvent(new ChannelMessageEvent(realClient,
         new StringCommand("", "", List.of()),
         user,
         channel,
@@ -243,7 +244,7 @@ public class KittehChatServiceTest extends UITest {
   }
 
   private void actionChannel(Channel channel, User user, String message) {
-    eventManager.callEvent(new ChannelCtcpEvent(client,
+    eventManager.callEvent(new ChannelCtcpEvent(realClient,
         new StringCommand("", "", List.of()),
         user,
         channel,
@@ -251,7 +252,7 @@ public class KittehChatServiceTest extends UITest {
   }
 
   private void sendPrivateMessage(User user, String message) {
-    eventManager.callEvent(new PrivateMessageEvent(client,
+    eventManager.callEvent(new PrivateMessageEvent(realClient,
         new StringCommand("", "", List.of()),
         user,
         "me",
@@ -260,11 +261,11 @@ public class KittehChatServiceTest extends UITest {
 
   private void connect() {
     eventManager.registerEventListener(instance);
-    client.getActorTracker().setQueryChannelInformation(false);
+    realClient.getActorTracker().setQueryChannelInformation(false);
 
-    eventManager.callEvent(new ClientNegotiationCompleteEvent(client,
-        new DefaultActor(client, "server"),
-        client.getServerInfo()));
+    eventManager.callEvent(new ClientNegotiationCompleteEvent(realClient,
+        new DefaultActor(realClient, "server"),
+        realClient.getServerInfo()));
 
     SocialInfo socialMessage = new SocialInfo(List.of(), List.of(), List.of(), List.of(), 0);
 
@@ -272,56 +273,70 @@ public class KittehChatServiceTest extends UITest {
   }
 
   @Test
-  public void testUserToColorChangeSaved() {
-    preferences.getChat().getUserToColor().put(user1.getNick(), Color.ALICEBLUE);
-
-    verify(preferencesService).storeInBackground();
-  }
-
-  @Test
   public void testGroupToColorChangeFriend() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user1.getNick()).socialStatus(SocialStatus.FRIEND).get();
-    defaultChatUser1.setPlayer(player);
+    PlayerBean player = PlayerBeanBuilder.create()
+        .defaultValues()
+        .username(user1.getNick())
+        .socialStatus(SocialStatus.FRIEND)
+        .get();
 
     connect();
 
     join(defaultChannel, user1);
     join(defaultChannel, user2);
 
-    preferences.getChat().getGroupToColor().put(ChatUserCategory.FRIEND, Color.ALICEBLUE);
+    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .ifPresent(chatUser -> chatUser.setPlayer(player));
 
-    verify(preferencesService).storeInBackground();
-    assertEquals(Color.ALICEBLUE, defaultChatUser1.getColor().get());
-    assertTrue(defaultChatUser2.getColor().isEmpty());
+    chatPrefs.getGroupToColor().put(ChatUserCategory.FRIEND, Color.ALICEBLUE);
+
+    assertEquals(Color.ALICEBLUE, instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .get()
+        .getColor()
+        .get());
+    assertTrue(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUser(user2.getNick()).get().getColor().isEmpty());
   }
 
   @Test
   public void testGroupToColorChangeFoe() {
-    PlayerBean player = PlayerBeanBuilder.create().defaultValues().username(user1.getNick()).socialStatus(SocialStatus.FOE).get();
-    defaultChatUser1.setPlayer(player);
+    PlayerBean player = PlayerBeanBuilder.create()
+        .defaultValues()
+        .username(user1.getNick())
+        .socialStatus(SocialStatus.FOE)
+        .get();
 
     connect();
 
     join(defaultChannel, user1);
     join(defaultChannel, user2);
 
-    preferences.getChat().getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
+    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .ifPresent(chatUser -> chatUser.setPlayer(player));
 
-    verify(preferencesService).storeInBackground();
-    assertEquals(Color.ALICEBLUE, defaultChatUser1.getColor().get());
-    assertTrue(defaultChatUser2.getColor().isEmpty());
+    chatPrefs.getGroupToColor().put(ChatUserCategory.FOE, Color.ALICEBLUE);
+
+    assertEquals(Color.ALICEBLUE, instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .get()
+        .getColor()
+        .get());
+    assertTrue(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUser(user2.getNick()).get().getColor().isEmpty());
   }
 
   @Test
   public void testGroupToColorChangeOther() {
     connect();
 
+    ChatChannel chatChannel = instance.getOrCreateChannel(defaultChannel.getName());
+
     join(defaultChannel, user1);
-    join(defaultChannel, user2);
 
-    preferences.getChat().getGroupToColor().put(ChatUserCategory.OTHER, Color.ALICEBLUE);
+    chatPrefs.getGroupToColor().put(ChatUserCategory.OTHER, Color.ALICEBLUE);
 
-    verify(preferencesService).storeInBackground();
+    assertEquals(Color.ALICEBLUE, chatChannel.getUser(user1.getNick()).flatMap(ChatChannelUser::getColor).orElse(null));
   }
 
   @Test
@@ -342,10 +357,10 @@ public class KittehChatServiceTest extends UITest {
     join(defaultChannel, user2);
 
     assertThat(chatChannel.getUsers(), hasSize(2));
-    assertThat(chatChannel.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
-    assertThat(chatChannel.getUser(user2.getNick()).orElse(null), sameInstance(defaultChatUser2));
+    assertNotNull(chatChannel.getUser(user1.getNick()).orElse(null));
+    assertNotNull(chatChannel.getUser(user2.getNick()).orElse(null));
 
-    assertEquals(player1, defaultChatUser1.getPlayer().orElse(null));
+    assertEquals(player1, chatChannel.getUser(user1.getNick()).flatMap(ChatChannelUser::getPlayer).orElse(null));
   }
 
   @Test
@@ -358,7 +373,11 @@ public class KittehChatServiceTest extends UITest {
 
     runOnFxThreadAndWait(() -> instance.onPlayerOnline(new PlayerOnlineEvent(player)));
 
-    assertEquals(player, defaultChatUser2.getPlayer().orElse(null));
+    assertEquals(player, instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user2.getNick())
+        .get()
+        .getPlayer()
+        .orElse(null));
   }
 
   @Test
@@ -370,13 +389,11 @@ public class KittehChatServiceTest extends UITest {
 
     connect();
 
-    eventManager.callEvent(new ChannelNamesUpdatedEvent(client,
+    eventManager.callEvent(new ChannelNamesUpdatedEvent(realClient,
         List.of(),
         defaultChannel));
 
     assertThat(chatChannel.getUsers(), hasSize(2));
-    assertThat(chatChannel.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
-    assertThat(chatChannel.getUser(user2.getNick()).orElse(null), sameInstance(defaultChatUser2));
   }
 
   @Test
@@ -390,18 +407,18 @@ public class KittehChatServiceTest extends UITest {
     join(defaultChannel, user2);
 
     assertThat(chatChannel.getUsers(), hasSize(2));
-    assertThat(chatChannel.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
-    assertThat(chatChannel.getUser(user2.getNick()).orElse(null), sameInstance(defaultChatUser2));
+    assertNotNull(chatChannel.getUser(user1.getNick()).orElse(null));
+    assertNotNull(chatChannel.getUser(user2.getNick()).orElse(null));
 
     part(defaultChannel, user1);
 
-    assertThat(chatChannel.getUsers(), contains(defaultChatUser2));
+    assertThat(chatChannel.getUsers(), hasSize(1));
+    assertNull(chatChannel.getUser(user1.getNick()).orElse(null));
+    assertNotNull(chatChannel.getUser(user2.getNick()).orElse(null));
   }
 
   @Test
   public void testOnChatUserQuit() {
-    defaultChatUser1.setPlayer(PlayerBeanBuilder.create().defaultValues().get());
-
     ChatChannel chatChannel1 = instance.getOrCreateChannel(defaultChannel.getName());
     ChatChannel chatChannel2 = instance.getOrCreateChannel(otherChannel.getName());
     assertThat(chatChannel1.getUsers(), empty());
@@ -412,10 +429,12 @@ public class KittehChatServiceTest extends UITest {
     join(defaultChannel, user1);
     join(otherChannel, user1);
 
-    assertThat(chatChannel1.getUsers(), contains(defaultChatUser1));
-    assertThat(chatChannel1.getUser(user1.getNick()).orElse(null), sameInstance(defaultChatUser1));
-    assertThat(chatChannel2.getUsers(), contains(otherChatUser1));
-    assertThat(chatChannel2.getUser(user1.getNick()).orElse(null), sameInstance(otherChatUser1));
+    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .ifPresent(chatUser -> chatUser.setPlayer(PlayerBeanBuilder.create().defaultValues().get()));
+
+    assertThat(chatChannel1.getUsers(), hasSize(1));
+    assertThat(chatChannel2.getUsers(), hasSize(1));
 
     quit(user1);
 
@@ -431,7 +450,7 @@ public class KittehChatServiceTest extends UITest {
 
     connect();
 
-    eventManager.callEvent(new ChannelTopicEvent(client,
+    eventManager.callEvent(new ChannelTopicEvent(realClient,
         new StringCommand("", "", List.of()),
         defaultChannel,
         new DefaultChannelTopic(null, "old topic", new DefaultActor(mock(WithManagement.class), "junit1!IP")),
@@ -458,7 +477,7 @@ public class KittehChatServiceTest extends UITest {
 
     assertThat(chatMessage.getSource(), is(defaultChannel.getName()));
     assertThat(chatMessage.getMessage(), is(message));
-    assertThat(chatMessage.getUsername(), is(defaultChatUser1.getUsername()));
+    assertThat(chatMessage.getUsername(), is(user1.getNick()));
     assertThat(chatMessage.isAction(), is(false));
   }
 
@@ -478,7 +497,7 @@ public class KittehChatServiceTest extends UITest {
 
     assertThat(chatMessage.getSource(), is(defaultChannel.getName()));
     assertThat(chatMessage.getMessage(), is(message));
-    assertThat(chatMessage.getUsername(), is(defaultChatUser1.getUsername()));
+    assertThat(chatMessage.getUsername(), is(user1.getNick()));
     assertThat(chatMessage.isAction(), is(true));
   }
 
@@ -487,6 +506,10 @@ public class KittehChatServiceTest extends UITest {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
     doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).getMessage()))
         .when(eventBus).post(any(ChatMessageEvent.class));
+
+    Channel privateChannel = mock(Channel.class);
+    when(spyClient.getChannel(user1.getNick())).thenReturn(Optional.of(privateChannel));
+    when(privateChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
 
     String message = "private message";
 
@@ -503,8 +526,16 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testChatMessageEventNotTriggeredByPrivateMessageFromFoe() {
-    ChatChannelUser foeUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick(), false);
-    foeUser.setPlayer(PlayerBeanBuilder.create().defaultValues().username(defaultChatUser1.getUsername()).socialStatus(SocialStatus.FOE).get());
+    Channel privateChannel = mock(Channel.class);
+    when(spyClient.getChannel(user1.getNick())).thenReturn(Optional.of(privateChannel));
+    when(privateChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
+
+    ChatChannelUser foeUser = instance.createChatUserIfNecessary(user1.getNick(), user1.getNick());
+    foeUser.setPlayer(PlayerBeanBuilder.create()
+        .defaultValues()
+        .username(user1.getNick())
+        .socialStatus(SocialStatus.FOE)
+        .get());
 
     String message = "private message";
 
@@ -518,28 +549,40 @@ public class KittehChatServiceTest extends UITest {
   public void testAddModerator() {
     connect();
 
-    eventManager.callEvent(new ChannelModeEvent(client,
+    join(defaultChannel, user1);
+
+    eventManager.callEvent(new ChannelModeEvent(realClient,
         new StringCommand("", "", List.of()),
         user1,
         defaultChannel,
-        DefaultModeStatusList.of(new DefaultModeStatus<>(Action.ADD, new DefaultChannelUserMode(client, 'o', '%'), user1.getNick()))));
+        DefaultModeStatusList.of(new DefaultModeStatus<>(Action.ADD, new DefaultChannelUserMode(realClient, 'o', '%'), user1.getNick()))));
 
-    assertTrue(defaultChatUser1.isModerator());
+    assertTrue(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .map(ChatChannelUser::isModerator)
+        .orElseThrow());
   }
 
   @Test
   public void testRemoveModerator() {
-    defaultChatUser1.setModerator(true);
-
     connect();
 
-    eventManager.callEvent(new ChannelModeEvent(client,
+    join(defaultChannel, user1);
+
+    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .ifPresent(chatUser -> chatUser.setModerator(true));
+
+    eventManager.callEvent(new ChannelModeEvent(realClient,
         new StringCommand("", "", List.of()),
         user1,
         defaultChannel,
-        DefaultModeStatusList.of(new DefaultModeStatus<>(Action.REMOVE, new DefaultChannelUserMode(client, 'o', '%'), user1.getNick()))));
+        DefaultModeStatusList.of(new DefaultModeStatus<>(Action.REMOVE, new DefaultChannelUserMode(realClient, 'o', '%'), user1.getNick()))));
 
-    assertFalse(defaultChatUser1.isModerator());
+    assertFalse(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUser(user1.getNick())
+        .map(ChatChannelUser::isModerator)
+        .orElseThrow());
   }
 
   @Test
@@ -563,7 +606,8 @@ public class KittehChatServiceTest extends UITest {
 
     String message = "test message";
 
-    CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message).toCompletableFuture();
+    CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message)
+        .toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
   }
@@ -580,13 +624,14 @@ public class KittehChatServiceTest extends UITest {
     join(defaultChannel, user1);
     join(otherChannel, user2);
 
-    ObservableList<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers();
-    assertThat(usersInDefaultChannel, contains(defaultChatUser1));
+    ObservableList<ChatChannelUser> usersInDefaultChannel = instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME)
+        .getUsers();
+    assertThat(usersInDefaultChannel, hasSize(1));
+    assertEquals(user1.getNick(), usersInDefaultChannel.get(0).getUsername());
 
     ObservableList<ChatChannelUser> usersInOtherChannel = instance.getOrCreateChannel(OTHER_CHANNEL_NAME).getUsers();
-
-    assertEquals(1, usersInOtherChannel.size());
-    assertTrue(usersInOtherChannel.contains(new ChatChannelUser(defaultChatUser2.getUsername(), otherChannel.getName())));
+    assertThat(usersInOtherChannel, hasSize(1));
+    assertEquals(user2.getNick(), usersInOtherChannel.get(0).getUsername());
   }
 
   @Test
@@ -599,7 +644,6 @@ public class KittehChatServiceTest extends UITest {
 
     ObservableList<ChatChannelUser> users = chatChannel.getUsers();
     assertThat(users, hasSize(2));
-    assertThat(users, containsInAnyOrder(defaultChatUser1, defaultChatUser2));
   }
 
   @Test
@@ -629,7 +673,8 @@ public class KittehChatServiceTest extends UITest {
 
     String action = "test action";
 
-    CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action).toCompletableFuture();
+    CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action)
+        .toCompletableFuture();
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(action));
   }
@@ -655,7 +700,7 @@ public class KittehChatServiceTest extends UITest {
 
     assertThat(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), hasSize(1));
 
-    eventManager.callEvent(new ClientConnectionClosedEvent(client, false, null, null));
+    eventManager.callEvent(new ClientConnectionClosedEvent(realClient, false, null, null));
 
     assertThat(instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).getUsers(), empty());
   }
@@ -667,8 +712,8 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(defaultChatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(defaultChatUser1.getUsername(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser addedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser returnedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -676,8 +721,8 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() {
-    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
-    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME, false);
+    ChatChannelUser addedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser returnedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);

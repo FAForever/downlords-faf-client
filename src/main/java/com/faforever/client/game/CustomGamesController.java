@@ -62,6 +62,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final I18n i18n;
+  private final Preferences preferences;
 
   public GameDetailController gameDetailController;
 
@@ -78,7 +79,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public Label filteredGamesCountLabel;
 
   private FilteredList<GameBean> filteredItems;
-  private Preferences preferences;
   private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
   private GamesTableController gamesTableController;
@@ -89,8 +89,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox);
-
-    preferences = preferencesService.getPreferences();
 
     initializeFilterController();
 
@@ -145,17 +143,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
         return;
       }
       preferences.setGamesViewMode(((ToggleButton) newValue).getId());
-      preferencesService.storeInBackground();
     });
 
     JavaFxUtil.bind(gameDetailPane.visibleProperty(), toggleGameDetailPaneButton.selectedProperty());
     JavaFxUtil.bind(gameDetailPane.managedProperty(), gameDetailPane.visibleProperty());
 
-    toggleGameDetailPaneButton.selectedProperty().addListener(observable -> {
-      preferences.setShowGameDetailsSidePane(toggleGameDetailPaneButton.isSelected());
-      preferencesService.storeInBackground();
-    });
-    toggleGameDetailPaneButton.setSelected(preferences.isShowGameDetailsSidePane());
+    toggleGameDetailPaneButton.selectedProperty().bindBidirectional(preferences.showGameDetailsSidePaneProperty());
 
     eventBus.register(this);
   }

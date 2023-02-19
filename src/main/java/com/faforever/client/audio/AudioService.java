@@ -1,9 +1,9 @@
 package com.faforever.client.audio;
 
-import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.preferences.NotificationsPrefs;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.theme.UiService;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.media.AudioClip;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 
 @Lazy
 @Service
@@ -29,12 +27,13 @@ public class AudioService implements InitializingBean {
   private static final String FRIEND_OFFLINE_SOUND = "theme/sounds/friendOfflineSound.mp3";
   private static final String FRIEND_JOINS_GAME_SOUND = "theme/sounds/friendJoinsGameSound.mp3";
   private static final String FRIEND_PLAYS_GAME_SOUND = "theme/sounds/friendPlaysGameSound.mp3";
-  private static final long SILENCE_PERIOD_AFTER_SOUND = 30000;
+  private static final long MILLISECONDS_SILENT_AFTER_SOUND = 30000;
 
-  private final PreferencesService preferencesService;
   private final AudioClipPlayer audioClipPlayer;
   private final UiService uiService;
-  private final Timer timer = new Timer(true);
+  private final NotificationPrefs notificationPrefs;
+
+  private final BooleanProperty playSounds = new SimpleBooleanProperty();
 
   private AudioClip chatMentionSound;
   private AudioClip achievementUnlockedSound;
@@ -47,17 +46,11 @@ public class AudioService implements InitializingBean {
   private AudioClip friendJoinsGameSound;
   private AudioClip friendPlaysGameSound;
 
-  private boolean playSounds;
-  private NotificationsPrefs notificationsPrefs;
+  private long lastPlayedSoundTime;
 
   @Override
   public void afterPropertiesSet() throws IOException {
-    notificationsPrefs = preferencesService.getPreferences().getNotification();
-    JavaFxUtil.addListener(notificationsPrefs.soundsEnabledProperty(), (observable, oldValue, newValue) -> {
-          playSounds = newValue;
-        }
-    );
-    playSounds = notificationsPrefs.isSoundsEnabled();
+    playSounds.bind(notificationPrefs.soundsEnabledProperty());
 
     loadSounds();
   }
@@ -81,7 +74,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playChatMentionSound() {
-    if (!notificationsPrefs.isMentionSoundEnabled()) {
+    if (!notificationPrefs.isMentionSoundEnabled()) {
       return;
     }
     playSound(chatMentionSound);
@@ -89,7 +82,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playPrivateMessageSound() {
-    if (!notificationsPrefs.isPrivateMessageSoundEnabled()) {
+    if (!notificationPrefs.isPrivateMessageSoundEnabled()) {
       return;
     }
     playSound(privateMessageSound);
@@ -97,7 +90,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playInfoNotificationSound() {
-    if (!notificationsPrefs.isInfoSoundEnabled()) {
+    if (!notificationPrefs.isInfoSoundEnabled()) {
       return;
     }
     playSound(infoNotificationSound);
@@ -105,7 +98,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playWarnNotificationSound() {
-    if (!notificationsPrefs.isWarnSoundEnabled()) {
+    if (!notificationPrefs.isWarnSoundEnabled()) {
       return;
     }
     playSound(warnNotificationSound);
@@ -113,7 +106,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playErrorNotificationSound() {
-    if (!notificationsPrefs.isErrorSoundEnabled()) {
+    if (!notificationPrefs.isErrorSoundEnabled()) {
       return;
     }
     playSound(errorNotificationSound);
@@ -126,7 +119,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playFriendOnlineSound() {
-    if (!notificationsPrefs.isFriendOnlineSoundEnabled()) {
+    if (!notificationPrefs.isFriendOnlineSoundEnabled()) {
       return;
     }
     playSound(friendOnlineSound);
@@ -134,7 +127,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playFriendOfflineSound() {
-    if (!notificationsPrefs.isFriendOfflineSoundEnabled()) {
+    if (!notificationPrefs.isFriendOfflineSoundEnabled()) {
       return;
     }
     playSound(friendOfflineSound);
@@ -142,7 +135,7 @@ public class AudioService implements InitializingBean {
 
 
   public void playFriendJoinsGameSound() {
-    if (!notificationsPrefs.isFriendJoinsGameSoundEnabled()) {
+    if (!notificationPrefs.isFriendJoinsGameSoundEnabled()) {
       return;
     }
     playSound(friendJoinsGameSound);
@@ -150,23 +143,22 @@ public class AudioService implements InitializingBean {
 
 
   public void playFriendPlaysGameSound() {
-    if (!notificationsPrefs.isFriendPlaysGameSoundEnabled()) {
+    if (!notificationPrefs.isFriendPlaysGameSoundEnabled()) {
       return;
     }
     playSound(friendPlaysGameSound);
   }
 
   private void playSound(AudioClip audioClip) {
-    if (!playSounds) {
+    if (!playSounds.get()) {
       return;
     }
-    playSounds = false;
+
+    long currentTimeMillis = System.currentTimeMillis();
+    if (currentTimeMillis - lastPlayedSoundTime < MILLISECONDS_SILENT_AFTER_SOUND) {
+      return;
+    }
+    lastPlayedSoundTime = currentTimeMillis;
     audioClipPlayer.playSound(audioClip);
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        playSounds = notificationsPrefs.isSoundsEnabled();
-      }
-    }, SILENCE_PERIOD_AFTER_SOUND);
   }
 }

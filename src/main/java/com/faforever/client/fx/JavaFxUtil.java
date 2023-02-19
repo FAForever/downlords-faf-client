@@ -186,34 +186,32 @@ public final class JavaFxUtil {
   }
 
   /**
-   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified map.
+   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified
+   * map.
    */
   public static <K, V> ObservableList<V> attachListToMap(ObservableList<V> list, ObservableMap<K, V> map) {
     addListener(map, (MapChangeListener<K, V>) change -> {
-      synchronized (list) {
-        if (change.wasRemoved()) {
-          list.remove(change.getValueRemoved());
-        }
-        if (change.wasAdded()) {
-          list.add(change.getValueAdded());
-        }
+      if (change.wasRemoved()) {
+        list.remove(change.getValueRemoved());
+      }
+      if (change.wasAdded()) {
+        list.add(change.getValueAdded());
       }
     });
     return FXCollections.unmodifiableObservableList(list);
   }
 
   /**
-   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified map.
+   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified
+   * map.
    */
   public static <K, V> ObservableSet<V> attachSetToMap(ObservableSet<V> set, ObservableMap<K, V> map) {
     addListener(map, (MapChangeListener<K, V>) change -> {
-      synchronized (set) {
-        if (change.wasRemoved()) {
-          set.remove(change.getValueRemoved());
-        }
-        if (change.wasAdded()) {
-          set.add(change.getValueAdded());
-        }
+      if (change.wasRemoved()) {
+        set.remove(change.getValueRemoved());
+      }
+      if (change.wasAdded()) {
+        set.add(change.getValueAdded());
       }
     });
     return FXCollections.unmodifiableObservableSet(set);
@@ -327,7 +325,8 @@ public final class JavaFxUtil {
    * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
    * is what this method does. Also manually triggers listener after adding.
    */
-  public static <K, V> void addAndTriggerListener(MapProperty<K, V> mapProperty, MapChangeListener<? super K, ? super V> listener) {
+  public static <K, V> void addAndTriggerListener(MapProperty<K, V> mapProperty,
+                                                  MapChangeListener<? super K, ? super V> listener) {
     synchronized (mapProperty) {
       mapProperty.addListener(listener);
       listener.onChanged(null);
@@ -389,7 +388,8 @@ public final class JavaFxUtil {
    * Since the JavaFX properties API is not thread safe, adding listeners must be synchronized on the property - which
    * is what this method does.
    */
-  public static <K, V> void addListener(MapProperty<K, V> mapProperty, MapChangeListener<? super K, ? super V> listener) {
+  public static <K, V> void addListener(MapProperty<K, V> mapProperty,
+                                        MapChangeListener<? super K, ? super V> listener) {
     synchronized (mapProperty) {
       mapProperty.addListener(listener);
     }
@@ -472,7 +472,8 @@ public final class JavaFxUtil {
    * visibility (e.g. method- or controller-only) as first and the property with higher visibility (e.g. a property from
    * a shared object or service) as second parameter.
    */
-  public static void bindBidirectional(StringProperty stringProperty, IntegerProperty integerProperty, NumberStringConverter numberStringConverter) {
+  public static void bindBidirectional(StringProperty stringProperty, IntegerProperty integerProperty,
+                                       NumberStringConverter numberStringConverter) {
     synchronized (stringProperty) {
       synchronized (integerProperty) {
         stringProperty.bindBidirectional(integerProperty, numberStringConverter);
@@ -516,7 +517,8 @@ public final class JavaFxUtil {
     Arrays.stream(nodes).forEach(node -> node.managedProperty().bind(node.visibleProperty()));
   }
 
-  public static void bindTextFieldAndRangeSlider(TextField lowValueTextField, TextField highValueTextField, RangeSlider rangeSlider) {
+  public static void bindTextFieldAndRangeSlider(TextField lowValueTextField, TextField highValueTextField,
+                                                 RangeSlider rangeSlider) {
     Map.of(
         lowValueTextField, Pair.of(rangeSlider.lowValueProperty(), rangeSlider.getMin()),
         highValueTextField, Pair.of(rangeSlider.highValueProperty(), rangeSlider.getMax())

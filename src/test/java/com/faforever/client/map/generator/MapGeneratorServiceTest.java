@@ -1,10 +1,9 @@
 package com.faforever.client.map.generator;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.MapGenerator;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
@@ -60,8 +59,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
   public Path tempDirectory;
 
   private MapGeneratorService instance;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private TaskService taskService;
   @Mock
@@ -79,20 +77,15 @@ public class MapGeneratorServiceTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .forgedAlliancePrefs()
-        .vaultBaseDirectory(tempDirectory)
-        .then()
-        .get();
+    ForgedAlliancePrefs forgedAlliancePrefs = new ForgedAlliancePrefs();
+    forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
+
+    DataPrefs dataPrefs = new DataPrefs();
+    dataPrefs.setBaseDataDirectory(tempDirectory);
 
     Files.createDirectories(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY));
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     Files.createFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(applicationContext.getBean(DownloadMapGeneratorTask.class)).thenReturn(downloadMapGeneratorTask);
     when(applicationContext.getBean(GenerateMapTask.class)).thenReturn(generateMapTask);
@@ -101,7 +94,7 @@ public class MapGeneratorServiceTest extends ServiceTest {
     when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
     when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
 
-    instance = new MapGeneratorService(applicationContext, preferencesService, taskService, clientProperties, WebClient.builder());
+    instance = new MapGeneratorService(applicationContext, taskService, clientProperties, forgedAlliancePrefs, dataPrefs, WebClient.builder());
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));

@@ -5,7 +5,7 @@ import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.ConcurrentUtil;
@@ -46,11 +46,13 @@ import java.util.stream.Collectors;
 public abstract class VaultEntityController<T> extends AbstractViewController<Node> {
 
   public static final int TOP_ELEMENT_COUNT = 7;
+
   protected final UiService uiService;
   protected final NotificationService notificationService;
   protected final I18n i18n;
-  protected final PreferencesService preferencesService;
   protected final ReportingService reportingService;
+  protected final VaultPrefs vaultPrefs;
+
   public Pane root;
   public StackPane vaultRoot;
   public HBox searchBox;
@@ -75,12 +77,12 @@ public abstract class VaultEntityController<T> extends AbstractViewController<No
   protected ObjectProperty<State> state;
   protected CompletableFuture<Tuple2<List<T>, Integer>> currentSupplier;
 
-  public VaultEntityController(UiService uiService, NotificationService notificationService, I18n i18n, PreferencesService preferencesService, ReportingService reportingService) {
+  public VaultEntityController(UiService uiService, NotificationService notificationService, I18n i18n, ReportingService reportingService, VaultPrefs vaultPrefs) {
     this.uiService = uiService;
     this.notificationService = notificationService;
     this.i18n = i18n;
-    this.preferencesService = preferencesService;
     this.reportingService = reportingService;
+    this.vaultPrefs = vaultPrefs;
 
     state = new SimpleObjectProperty<>(State.UNINITIALIZED);
   }

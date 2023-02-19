@@ -1,10 +1,8 @@
 package com.faforever.client.replay;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.replay.ReplayMetadata;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,16 +37,17 @@ public class ReplayFileWriterImplTest extends ServiceTest {
 
   @TempDir
   public Path tempDirectory;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private I18n i81n;
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
   @Mock
   private ByteArrayOutputStream replayData;
   @Mock
   private ClientProperties.Replay replay;
+  @Spy
+  private DataPrefs dataPrefs;
 
   @InjectMocks
   private ReplayFileWriterImpl instance;
@@ -56,16 +55,10 @@ public class ReplayFileWriterImplTest extends ServiceTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .get();
+    dataPrefs.setBaseDataDirectory(tempDirectory);
 
-    Files.createDirectories(preferences.getData().getCacheDirectory());
-    replaysDirectory = Files.createDirectories(preferences.getData().getReplaysDirectory());
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    Files.createDirectories(dataPrefs.getCacheDirectory());
+    replaysDirectory = Files.createDirectories(dataPrefs.getReplaysDirectory());
 
     when(clientProperties.getReplay()).thenReturn(replay);
     when(replay.getReplayFileFormat()).thenReturn(replayFileFormat);

@@ -1,14 +1,11 @@
 package com.faforever.client.game;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.generator.GenerationType;
 import com.faforever.client.map.generator.GeneratorOptions;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.preferences.GeneratorPrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import javafx.collections.FXCollections;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.ArrayList;
@@ -34,8 +32,7 @@ import static org.mockito.Mockito.when;
 
 public class GenerateMapControllerTest extends UITest {
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private
   NotificationService notificationService;
@@ -45,13 +42,13 @@ public class GenerateMapControllerTest extends UITest {
   private I18n i18n;
   @Mock
   private CreateGameController createGameController;
+  @Spy
+  private GeneratorPrefs generatorPrefs;
 
-  private Preferences preferences;
   @InjectMocks
   private GenerateMapController instance;
 
   public void unbindProperties() {
-    GeneratorPrefs generatorPrefs = preferences.getGenerator();
     generatorPrefs.generationTypeProperty().unbind();
     generatorPrefs.spawnCountProperty().unbind();
     generatorPrefs.mapSizeInKmProperty().unbind();
@@ -73,14 +70,8 @@ public class GenerateMapControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    preferences = PreferencesBuilder.create().defaultValues()
-        .generatorPrefs()
-        .spawnCount(10)
-        .mapSize(10.0)
-        .then()
-        .get();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    generatorPrefs.setSpawnCount(10);
+    generatorPrefs.setMapSizeInKm(10.0);
 
     loadFxml("theme/play/generate_map.fxml", clazz -> instance);
     unbindProperties();
@@ -101,12 +92,12 @@ public class GenerateMapControllerTest extends UITest {
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
 
-    assertEquals(instance.spawnCountSpinner.getValue().intValue(), 10);
+    assertEquals(10, instance.spawnCountSpinner.getValue().intValue());
   }
 
   @Test
   public void testSetLastNumTeams() {
-    preferences.getGenerator().setNumTeams(5);
+    generatorPrefs.setNumTeams(5);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -126,7 +117,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastMapStyle() {
-    preferences.getGenerator().setMapStyle("TEST");
+    generatorPrefs.setMapStyle("TEST");
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -138,7 +129,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastWaterRandom() {
-    preferences.getGenerator().setWaterRandom(false);
+    generatorPrefs.setWaterRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -148,7 +139,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastPlateauRandom() {
-    preferences.getGenerator().setPlateauRandom(false);
+    generatorPrefs.setPlateauRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -158,7 +149,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastMountainRandom() {
-    preferences.getGenerator().setMountainRandom(false);
+    generatorPrefs.setMountainRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -168,7 +159,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastRampRandom() {
-    preferences.getGenerator().setRampRandom(false);
+    generatorPrefs.setRampRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -178,7 +169,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastMexRandom() {
-    preferences.getGenerator().setMexRandom(false);
+    generatorPrefs.setMexRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -188,7 +179,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastReclaimRandom() {
-    preferences.getGenerator().setReclaimRandom(false);
+    generatorPrefs.setReclaimRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -198,7 +189,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastWaterSlider() {
-    preferences.getGenerator().setWaterDensity(71);
+    generatorPrefs.setWaterDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -208,7 +199,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastMountainSlider() {
-    preferences.getGenerator().setMountainDensity(71);
+    generatorPrefs.setMountainDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -218,7 +209,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastPlateauSlider() {
-    preferences.getGenerator().setPlateauDensity(71);
+    generatorPrefs.setPlateauDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -228,7 +219,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastRampSlider() {
-    preferences.getGenerator().setRampDensity(71);
+    generatorPrefs.setRampDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -238,7 +229,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastMexSlider() {
-    preferences.getGenerator().setMexDensity(71);
+    generatorPrefs.setMexDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -248,7 +239,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastReclaimSlider() {
-    preferences.getGenerator().setReclaimDensity(71);
+    generatorPrefs.setReclaimDensity(71);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -258,7 +249,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testSetLastCommandLineArgs() {
-    preferences.getGenerator().setCommandLineArgs("--help");
+    generatorPrefs.setCommandLineArgs("--help");
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -314,7 +305,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testWaterSliderVisibilityWhenRandom() {
-    preferences.getGenerator().setWaterRandom(true);
+    generatorPrefs.setWaterRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -324,7 +315,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testPlateauSliderVisibilityWhenRandom() {
-    preferences.getGenerator().setPlateauRandom(true);
+    generatorPrefs.setPlateauRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -334,7 +325,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testMountainSliderVisibilityWhenRandom() {
-    preferences.getGenerator().setMountainRandom(true);
+    generatorPrefs.setMountainRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -344,7 +335,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testRampSliderVisibilityWhenRandom() {
-    preferences.getGenerator().setRampRandom(true);
+    generatorPrefs.setRampRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -354,7 +345,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testMexSliderVisibilityWhenRandom() {
-    preferences.getGenerator().setMexRandom(true);
+    generatorPrefs.setMexRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -364,7 +355,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testReclaimSliderVisibilityWhenRandom() {
-    preferences.getGenerator().setReclaimRandom(true);
+    generatorPrefs.setReclaimRandom(true);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -374,7 +365,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testWaterSliderVisibilityWhenNotRandom() {
-    preferences.getGenerator().setWaterRandom(false);
+    generatorPrefs.setWaterRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -384,7 +375,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testPlateauSliderVisibilityWhenNotRandom() {
-    preferences.getGenerator().setPlateauRandom(false);
+    generatorPrefs.setPlateauRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -394,7 +385,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testMountainSliderVisibilityWhenNotRandom() {
-    preferences.getGenerator().setMountainRandom(false);
+    generatorPrefs.setMountainRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -404,7 +395,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testRampSliderVisibilityWhenNotRandom() {
-    preferences.getGenerator().setRampRandom(false);
+    generatorPrefs.setRampRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -414,7 +405,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testMexSliderVisibilityWhenNotRandom() {
-    preferences.getGenerator().setMexRandom(false);
+    generatorPrefs.setMexRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -424,7 +415,7 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testReclaimSliderVisibilityWhenNotRandom() {
-    preferences.getGenerator().setReclaimRandom(false);
+    generatorPrefs.setReclaimRandom(false);
 
     WaitForAsyncUtils.asyncFx(() -> instance.initialize());
     WaitForAsyncUtils.waitForFxEvents();
@@ -666,7 +657,6 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testGetGenerateMapNoNameNoRandom() {
-    GeneratorPrefs generatorPrefs = preferences.getGenerator();
     generatorPrefs.setWaterRandom(false);
     generatorPrefs.setMountainRandom(false);
     generatorPrefs.setPlateauRandom(false);
@@ -713,7 +703,6 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testGetGenerateMapWithCommandLineArgs() {
-    GeneratorPrefs generatorPrefs = preferences.getGenerator();
     generatorPrefs.setCommandLineArgs("--test");
 
     runOnFxThreadAndWait(() -> instance.initialize());
@@ -731,7 +720,6 @@ public class GenerateMapControllerTest extends UITest {
 
   @Test
   public void testGetGenerateMapNoNameRandom() {
-    GeneratorPrefs generatorPrefs = preferences.getGenerator();
     generatorPrefs.setWaterRandom(true);
     generatorPrefs.setMountainRandom(true);
     generatorPrefs.setPlateauRandom(true);

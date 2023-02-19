@@ -6,7 +6,6 @@ import com.faforever.client.fx.contextmenu.ChatCategoryColorPickerCustomMenuItem
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -24,7 +23,6 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -33,12 +31,12 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class ChatCategoryItemController implements Controller<Node>, InitializingBean {
+public class ChatCategoryItemController implements Controller<Node> {
 
   private final I18n i18n;
   private final UiService uiService;
-  private final PreferencesService preferencesService;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final ChatPrefs chatPrefs;
 
   private final ObjectProperty<ChatUserCategory> chatUserCategory = new SimpleObjectProperty<>();
   private final StringProperty channelName = new SimpleStringProperty();
@@ -49,13 +47,6 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
   public Label categoryLabel;
   public Label arrowLabel;
   public Label userCounterLabel;
-
-  private ChatPrefs chatPrefs;
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    chatPrefs = preferencesService.getPreferences().getChat();
-  }
 
   @Override
   public void initialize() {
@@ -108,7 +99,6 @@ public class ChatCategoryItemController implements Controller<Node>, Initializin
         } else {
           chatPrefs.getChannelNameToHiddenCategories().put(channel, channelHiddenCategories.get());
         }
-        preferencesService.storeInBackground();
       }
     }
   }

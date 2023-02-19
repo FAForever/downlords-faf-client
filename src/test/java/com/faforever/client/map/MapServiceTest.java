@@ -6,7 +6,6 @@ import com.faforever.client.builders.MapPoolAssignmentBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.MatchmakerQueueBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapPoolAssignmentBean;
@@ -22,8 +21,8 @@ import com.faforever.client.mapstruct.MatchmakerMapper;
 import com.faforever.client.mapstruct.ReplayMapper;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
@@ -88,6 +87,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -100,8 +100,7 @@ public class MapServiceTest extends UITest {
   @InjectMocks
   private MapService instance;
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private TaskService taskService;
   @Mock
@@ -124,7 +123,6 @@ public class MapServiceTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private FileSizeReader fileSizeReader;
-
   @Spy
   private MapMapper mapMapper = Mappers.getMapper(MapMapper.class);
   @Spy
@@ -132,7 +130,12 @@ public class MapServiceTest extends UITest {
   @Spy
   private MatchmakerMapper matchmakerMapper = Mappers.getMapper(MatchmakerMapper.class);
   @Spy
-  private ClientProperties clientProperties = new ClientProperties();
+  private ClientProperties clientProperties;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Spy
+  private Preferences preferences;
+
   private Path mapsDirectory;
 
   @BeforeEach
@@ -144,13 +147,9 @@ public class MapServiceTest extends UITest {
     clientProperties.getVault().setMapDownloadUrlFormat("http://127.0.0.1:65534/fakeDownload/%s");
     mapsDirectory = Files.createDirectory(tempDirectory.resolve("maps"));
 
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .forgedAlliancePrefs()
-        .vaultBaseDirectory(tempDirectory)
-        .then()
-        .get();
+    forgedAlliancePrefs.setInstallationPath(Path.of("."));
+    forgedAlliancePrefs.setVaultBaseDirectory(tempDirectory);
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 
     instance.afterPropertiesSet();
@@ -232,7 +231,7 @@ public class MapServiceTest extends UITest {
   public void testLoadPreview() {
     for (PreviewSize previewSize : PreviewSize.values()) {
       Path cacheSubDir = Path.of("maps").resolve(previewSize.folderName);
-      when(assetService.loadAndCacheImage(any(URL.class), eq(cacheSubDir), any())).thenReturn(new Image("theme/images/unknown_map.png"));
+      when(assetService.loadAndCacheImage(any(URL.class), eq(cacheSubDir), any())).thenReturn(mock(Image.class));
       instance.loadPreview("preview", previewSize);
       verify(assetService).loadAndCacheImage(any(URL.class), eq(cacheSubDir), any());
     }
@@ -359,8 +358,6 @@ public class MapServiceTest extends UITest {
   @Test
   public void testUpdateMapToLatestVersionIfAutoUpdateTurnedOff() throws Exception {
     MapVersionBean map = MapVersionBeanBuilder.create().defaultValues().folderName("bla.v0001").version(new ComparableVersion("1")).get();
-    Preferences preferences = new Preferences();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     preferences.setMapAndModAutoUpdate(false);
 
     instance.updateLatestVersionIfNecessary(map);
@@ -501,7 +498,7 @@ public class MapServiceTest extends UITest {
   }
 
   private void prepareDownloadMapTask(MapVersionBean mapToDownload) {
-    StubDownloadMapTask task = new StubDownloadMapTask(preferencesService, i18n, mapsDirectory);
+    StubDownloadMapTask task = new StubDownloadMapTask(forgedAlliancePrefs, i18n, mapsDirectory);
     task.setMapToDownload(mapToDownload);
     when(applicationContext.getBean(DownloadMapTask.class)).thenReturn(task);
   }

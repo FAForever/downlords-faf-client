@@ -5,8 +5,8 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.logging.LoggingService;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -38,15 +38,13 @@ public class ForgedAllianceService {
   public static final String DEBUGGER_EXE = "FAFDebugger.exe";
 
   private final PlayerService playerService;
-  private final PreferencesService preferencesService;
   private final LoggingService loggingService;
   private final OperatingSystem operatingSystem;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final DataPrefs dataPrefs;
 
   public Process startGameOffline(String map) throws IOException {
-    List<String> launchCommand = defaultLaunchCommand()
-        .map(map)
-        .logFile(loggingService.getNewGameLogFile(0))
-        .build();
+    List<String> launchCommand = defaultLaunchCommand().map(map).logFile(loggingService.getNewGameLogFile(0)).build();
 
     return launch(launchCommand);
   }
@@ -62,8 +60,7 @@ public class ForgedAllianceService {
 
     int uid = gameParameters.getUid();
 
-    List<String> launchCommand = defaultLaunchCommand()
-        .uid(uid)
+    List<String> launchCommand = defaultLaunchCommand().uid(uid)
         .faction(gameParameters.getFaction())
         .mapPosition(gameParameters.getMapPosition())
         .expectedPlayers(gameParameters.getExpectedPlayers())
@@ -91,8 +88,7 @@ public class ForgedAllianceService {
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
-    List<String> launchCommand = defaultLaunchCommand()
-        .replayFile(path)
+    List<String> launchCommand = defaultLaunchCommand().replayFile(path)
         .replayId(checkedReplayId)
         .logFile(loggingService.getNewGameLogFile(checkedReplayId))
         .build();
@@ -102,8 +98,7 @@ public class ForgedAllianceService {
 
 
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
-    List<String> launchCommand = defaultLaunchCommand()
-        .replayUri(replayUri)
+    List<String> launchCommand = defaultLaunchCommand().replayUri(replayUri)
         .replayId(replayId)
         .logFile(loggingService.getNewGameLogFile(replayId))
         .username(playerService.getCurrentPlayer().getUsername())
@@ -113,21 +108,19 @@ public class ForgedAllianceService {
   }
 
   public Path getExecutablePath() {
-    return preferencesService.getPreferences().getData().getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+    return dataPrefs.getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
   public Path getDebuggerExecutablePath() {
-    return preferencesService.getPreferences().getData().getBinDirectory().resolve(DEBUGGER_EXE);
+    return dataPrefs.getBinDirectory().resolve(DEBUGGER_EXE);
   }
 
   private LaunchCommandBuilder defaultLaunchCommand() {
     LaunchCommandBuilder baseCommandBuilder = LaunchCommandBuilder.create()
-        .executableDecorator(preferencesService.getPreferences().getForgedAlliance().getExecutableDecorator())
+        .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
         .executable(getExecutablePath());
 
-    if (preferencesService.getPreferences()
-        .getForgedAlliance()
-        .isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
+    if (forgedAlliancePrefs.isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
       baseCommandBuilder = baseCommandBuilder.debuggerExecutable(getDebuggerExecutablePath());
     }
 
@@ -136,8 +129,7 @@ public class ForgedAllianceService {
 
   @NotNull
   private Process launch(List<String> launchCommand) throws IOException {
-    ForgedAlliancePrefs prefs = preferencesService.getPreferences().getForgedAlliance();
-    Path executeDirectory = prefs.getExecutionDirectory();
+    Path executeDirectory = forgedAlliancePrefs.getExecutionDirectory();
     if (executeDirectory == null) {
       executeDirectory = getExecutablePath().getParent();
     }
@@ -150,7 +142,7 @@ public class ForgedAllianceService {
     log.info("Starting Forged Alliance with command: {} in directory: {}", processBuilder.command(), executeDirectory);
 
     Process process = processBuilder.start();
-    if (prefs.isChangeProcessPriority()) {
+    if (forgedAlliancePrefs.isChangeProcessPriority()) {
       log.info("Increasing process priority");
       operatingSystem.increaseProcessPriority(process);
     }

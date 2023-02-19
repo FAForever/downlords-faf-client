@@ -3,7 +3,7 @@ package com.faforever.client.util;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.preferences.DateInfo;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.LocalizationPrefs;
 import com.faforever.client.preferences.TimeInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -27,53 +26,8 @@ import java.util.TimeZone;
 public class TimeService {
 
   private final I18n i18n;
-  private final PreferencesService preferencesService;
-
-  /**
-   * A string as "10 minutes ago"
-   */
-  public String timeAgo(Temporal temporal) {
-    if (temporal == null) {
-      return "";
-    }
-
-    Duration ago = Duration.between(temporal, OffsetDateTime.now());
-
-    if (Duration.ofMinutes(1).compareTo(ago) > 0) {
-      return i18n.getQuantized("secondAgo", "secondsAgo", ago.getSeconds());
-    }
-    if (Duration.ofHours(1).compareTo(ago) > 0) {
-      return i18n.getQuantized("minuteAgo", "minutesAgo", ago.toMinutes());
-    }
-    if (Duration.ofDays(1).compareTo(ago) > 0) {
-      return i18n.getQuantized("hourAgo", "hoursAgo", ago.toHours());
-    }
-    if (Duration.ofDays(30).compareTo(ago) > 0) {
-      return i18n.getQuantized("dayAgo", "daysAgo", ago.toDays());
-    }
-    if (Duration.ofDays(365).compareTo(ago) > 0) {
-      return i18n.getQuantized("monthAgo", "monthsAgo", ago.toDays() / 30);
-    }
-
-    return i18n.getQuantized("yearAgo", "yearsAgo", ago.toDays() / 365);
-  }
-
-  /**
-   * Returns {@link #timeAgo(Temporal)} if the specified instant is less than one day ago, otherwise a date string.
-   */
-  public String lessThanOneDayAgo(Temporal temporal) {
-    if (temporal == null) {
-      return "";
-    }
-
-    Duration ago = Duration.between(temporal, OffsetDateTime.now());
-
-    if (ago.compareTo(Duration.ofDays(1)) <= 0) {
-      return timeAgo(temporal);
-    }
-
-    return asDate(temporal);
-  }
+  private final ChatPrefs chatPrefs;
+  private final LocalizationPrefs localizationPrefs;
 
   public String asDateTime(TemporalAccessor temporalAccessor) {
     if (temporalAccessor == null) {
@@ -109,22 +63,16 @@ public class TimeService {
         .format(ZonedDateTime.ofInstant(Instant.from(temporal), TimeZone.getDefault().toZoneId()));
   }
 
-  
-  public String asIsoTime(Temporal temporal) {
-    return DateTimeFormatter.ISO_TIME.format(temporal);
-  }
-
   private Locale getCurrentTimeLocale() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
     if (chatPrefs.getTimeFormat().equals(TimeInfo.AUTO)) {
       return i18n.getUserSpecificLocale();
     }
-    return preferencesService.getPreferences().getChat().getTimeFormat().getUsedLocale();
+    return chatPrefs.getTimeFormat().getUsedLocale();
 
   }
 
   private Locale getCurrentDateLocale() {
-    DateInfo dateInfo = preferencesService.getPreferences().getLocalization().getDateFormat();
+    DateInfo dateInfo = localizationPrefs.getDateFormat();
     if (dateInfo.equals(DateInfo.AUTO)) {
       return i18n.getUserSpecificLocale();
     }

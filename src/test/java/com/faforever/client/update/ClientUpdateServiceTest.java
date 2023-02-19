@@ -1,13 +1,11 @@
 package com.faforever.client.update;
 
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.update.ClientUpdateService.InstallerExecutionException;
@@ -21,6 +19,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
 
 import java.net.URL;
@@ -55,22 +54,20 @@ public class ClientUpdateServiceTest extends ServiceTest {
   private ApplicationContext applicationContext;
   @Mock
   private PlatformService platformService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private CheckForUpdateTask checkForUpdateTask;
   @Mock
   private CheckForBetaUpdateTask checkForBetaUpdateTask;
   @Mock
   private EventBus eventBus;
-
+  @Spy
   private Preferences preferences;
 
   @BeforeEach
   public void setUp() throws Exception {
     UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
     UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
-    preferences = PreferencesBuilder.create().defaultValues().get();
 
     doReturn(checkForUpdateTask).when(applicationContext).getBean(CheckForUpdateTask.class);
     doReturn(checkForBetaUpdateTask).when(applicationContext).getBean(CheckForBetaUpdateTask.class);
@@ -78,7 +75,7 @@ public class ClientUpdateServiceTest extends ServiceTest {
     when(taskService.submitTask(any(CheckForBetaUpdateTask.class))).thenReturn(checkForBetaUpdateTask);
     when(checkForUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(normalUpdateInfo));
     when(checkForBetaUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(betaUpdateInfo));
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    
 
     instance.afterPropertiesSet();
   }

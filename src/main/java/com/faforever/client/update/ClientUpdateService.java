@@ -6,12 +6,13 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.os.OperatingSystem;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.user.event.LoggedInEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -34,6 +35,7 @@ import static java.util.Collections.singletonList;
 @Lazy
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ClientUpdateService implements InitializingBean {
 
   private final OperatingSystem operatingSystem;
@@ -42,8 +44,8 @@ public class ClientUpdateService implements InitializingBean {
   private final I18n i18n;
   private final PlatformService platformService;
   private final ApplicationContext applicationContext;
-  private final PreferencesService preferencesService;
   private final EventBus eventBus;
+  private final Preferences preferences;
 
   private CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<UpdateInfo> updateInfoBetaFuture;
@@ -54,29 +56,10 @@ public class ClientUpdateService implements InitializingBean {
     }
   }
 
-  public ClientUpdateService(
-      OperatingSystem operatingSystem,
-      TaskService taskService,
-      NotificationService notificationService,
-      I18n i18n,
-      PlatformService platformService,
-      ApplicationContext applicationContext,
-      PreferencesService preferencesService,
-      EventBus eventBus) {
-    this.operatingSystem = operatingSystem;
-    this.taskService = taskService;
-    this.notificationService = notificationService;
-    this.i18n = i18n;
-    this.platformService = platformService;
-    this.applicationContext = applicationContext;
-    this.preferencesService = preferencesService;
-    this.eventBus = eventBus;
-
-    log.info("Current version: {}", Version.getCurrentVersion());
-  }
-
   @Override
   public void afterPropertiesSet() {
+    log.info("Current version: {}", Version.getCurrentVersion());
+
     eventBus.register(this);
 
     CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
@@ -94,7 +77,7 @@ public class ClientUpdateService implements InitializingBean {
   }
 
   public void checkForUpdateInBackground() {
-    if (preferencesService.getPreferences().getPreReleaseCheckEnabled()) {
+    if (preferences.isPreReleaseCheckEnabled()) {
       checkForBetaUpdateInBackground();
     } else {
       checkForRegularUpdateInBackground();

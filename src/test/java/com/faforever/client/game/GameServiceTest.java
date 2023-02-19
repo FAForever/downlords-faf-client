@@ -7,7 +7,6 @@ import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.LeagueEntryBeanBuilder;
 import com.faforever.client.builders.NewGameInfoBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.discord.DiscordRichPresenceService;
 import com.faforever.client.domain.FeaturedModBean;
@@ -33,7 +32,9 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
 import com.faforever.client.patch.GameUpdater;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.Preferences;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.LastGamePrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.replay.ReplayServer;
@@ -154,16 +155,21 @@ public class GameServiceTest extends ServiceTest {
   private CoturnService coturnService;
   @Mock
   private JavaFxService javaFxService;
+  @Spy
+  private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
+  @Spy
+  private ClientProperties clientProperties;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Spy
+  private LastGamePrefs lastGamePrefs;
+  @Spy
+  private NotificationPrefs notificationPrefs;
 
   @Captor
   private ArgumentCaptor<Set<String>> simModsCaptor;
 
   private PlayerBean junitPlayer;
-  private Preferences preferences;
-  @Spy
-  private GameMapper gameMapper = Mappers.getMapper(GameMapper.class);
-  @Spy
-  private ClientProperties clientProperties = new ClientProperties();
 
   private final TestPublisher<GameInfo> testPublisher = TestPublisher.create();
 
@@ -171,13 +177,11 @@ public class GameServiceTest extends ServiceTest {
   public void setUp() throws Exception {
     MapperSetup.injectMappers(gameMapper);
     junitPlayer = PlayerBeanBuilder.create().defaultValues().get();
-    preferences = PreferencesBuilder.create().defaultValues().get();
 
     when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
     when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
     when(fafServerAccessor.getEvents(GameInfo.class)).thenReturn(testPublisher.flux());
     when(coturnService.getSelectedCoturns()).thenReturn(completedFuture(List.of()));
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(fafServerAccessor.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
     when(replayServer.start(anyInt(), any())).thenReturn(completedFuture(LOCAL_REPLAY_PORT));
@@ -256,7 +260,7 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testStartReplayWhileInGameAllowed() throws Exception {
-    preferences.getForgedAlliance().setAllowReplaysWhileInGame(true);
+    forgedAlliancePrefs.setAllowReplaysWhileInGame(true);
     GameBean game = GameBeanBuilder.create().defaultValues().get();
 
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
@@ -287,7 +291,7 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testStartReplayWhileInGameNotAllowed() throws Exception {
-    preferences.getForgedAlliance().setAllowReplaysWhileInGame(false);
+    forgedAlliancePrefs.setAllowReplaysWhileInGame(false);
     GameBean game = GameBeanBuilder.create().defaultValues().get();
 
     GameLaunchResponse gameLaunchMessage = GameLaunchMessageBuilder.create().defaultValues().get();
@@ -453,7 +457,7 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentGameEnhancedWithPassword() {
-    preferences.getLastGame().setLastGamePassword("banana");
+    lastGamePrefs.setLastGamePassword("banana");
     instance.currentGame.set(null);
 
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
@@ -468,7 +472,6 @@ public class GameServiceTest extends ServiceTest {
     testPublisher.next(gameInfo);
 
     assertThat(instance.currentGame.get().getPassword(), is("banana"));
-
   }
 
   @Test
@@ -723,6 +726,8 @@ public class GameServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentGameEndedBehaviour() {
+    notificationPrefs.setAfterGameReviewEnabled(true);
+    notificationPrefs.setTransientNotificationsEnabled(true);
     when(playerService.isCurrentPlayerInGame(any())).thenReturn(true);
     GameBean game = GameBeanBuilder.create()
         .defaultValues()
@@ -739,7 +744,6 @@ public class GameServiceTest extends ServiceTest {
 
     game.setStatus(PLAYING);
     game.setStatus(CLOSED);
-
 
     verify(notificationService).addNotification(any(PersistentNotification.class));
   }

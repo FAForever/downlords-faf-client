@@ -2,7 +2,8 @@ package com.faforever.client.map.generator;
 
 import com.faforever.client.config.CacheNames;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.GitHubRelease;
 import com.faforever.client.util.Assert;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.Builder;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -47,19 +49,22 @@ public class MapGeneratorService implements DisposableBean {
   public static final String GENERATOR_RANDOM_STYLE = "RANDOM";
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
   protected static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
+
   private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
-  private final PreferencesService preferencesService;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final DataPrefs dataPrefs;
   private final WebClient webClient;
+
   private ComparableVersion defaultGeneratorVersion;
 
-  public MapGeneratorService(ApplicationContext applicationContext, PreferencesService preferencesService,
-                             TaskService taskService, ClientProperties clientProperties, WebClient.Builder webClientBuilder) {
+  public MapGeneratorService(ApplicationContext applicationContext, TaskService taskService, ClientProperties clientProperties, ForgedAlliancePrefs forgedAlliancePrefs, DataPrefs dataPrefs, Builder webClientBuilder) {
     this.applicationContext = applicationContext;
     this.taskService = taskService;
-    this.preferencesService = preferencesService;
     this.clientProperties = clientProperties;
+    this.forgedAlliancePrefs = forgedAlliancePrefs;
+    this.dataPrefs = dataPrefs;
     webClient = webClientBuilder.build();
   }
 
@@ -70,11 +75,10 @@ public class MapGeneratorService implements DisposableBean {
 
   private void deleteGeneratedMaps() {
     log.info("Deleting generated maps");
-    Path customMapsDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
+    Path customMapsDirectory = forgedAlliancePrefs.getMapsDirectory();
     if (customMapsDirectory != null && customMapsDirectory.toFile().exists()) {
       try (Stream<Path> listOfMapFiles = Files.list(customMapsDirectory)) {
-        listOfMapFiles
-            .filter(Files::isDirectory)
+        listOfMapFiles.filter(Files::isDirectory)
             .filter(mapPath -> GENERATED_MAP_PATTERN.matcher(mapPath.getFileName().toString()).matches())
             .forEach(generatedMapPath -> {
               try {
@@ -93,8 +97,10 @@ public class MapGeneratorService implements DisposableBean {
 
   @VisibleForTesting
   private CompletableFuture<ComparableVersion> queryMaxSupportedVersion() {
-    ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
-    ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMaxSupportedMajorVersion() + 1));
+    ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
+        .getMinSupportedMajorVersion()));
+    ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
+        .getMaxSupportedMajorVersion() + 1));
 
     return webClient.get()
         .uri(clientProperties.getMapGenerator().getQueryVersionsUrl())
@@ -145,8 +151,10 @@ public class MapGeneratorService implements DisposableBean {
   }
 
   public CompletableFuture<Void> downloadGeneratorIfNecessary(ComparableVersion version) {
-    ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMinSupportedMajorVersion()));
-    ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator().getMaxSupportedMajorVersion() + 1));
+    ComparableVersion minVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
+        .getMinSupportedMajorVersion()));
+    ComparableVersion maxVersion = new ComparableVersion(String.valueOf(clientProperties.getMapGenerator()
+        .getMaxSupportedMajorVersion() + 1));
     if (version.compareTo(maxVersion) >= 0) {
       return CompletableFuture.failedFuture(new UnsupportedVersionException("New version not supported"));
     }
@@ -173,8 +181,7 @@ public class MapGeneratorService implements DisposableBean {
 
   @Cacheable(value = CacheNames.MAP_GENERATOR, sync = true)
   public CompletableFuture<Void> getNewestGenerator() {
-    return queryMaxSupportedVersion()
-        .thenAccept(newVersion -> defaultGeneratorVersion = newVersion)
+    return queryMaxSupportedVersion().thenAccept(newVersion -> defaultGeneratorVersion = newVersion)
         .thenCompose(aVoid -> downloadGeneratorIfNecessary(defaultGeneratorVersion));
   }
 
@@ -190,7 +197,8 @@ public class MapGeneratorService implements DisposableBean {
 
   @NotNull
   public Path getGeneratorExecutablePath(ComparableVersion defaultGeneratorVersion) {
-    return preferencesService.getPreferences().getData().getMapGeneratorDirectory().resolve(String.format(GENERATOR_EXECUTABLE_FILENAME, defaultGeneratorVersion));
+    return dataPrefs.getMapGeneratorDirectory()
+        .resolve(String.format(GENERATOR_EXECUTABLE_FILENAME, defaultGeneratorVersion));
   }
 
   public boolean isGeneratedMap(String mapName) {

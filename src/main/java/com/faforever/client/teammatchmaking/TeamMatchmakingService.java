@@ -102,7 +102,7 @@ public class TeamMatchmakingService implements InitializingBean {
   @Getter
   private final PartyBean party = new PartyBean();
   @Getter
-  private final ObservableList<MatchmakerQueueBean> matchmakerQueues = FXCollections.observableArrayList();
+  private final ObservableList<MatchmakerQueueBean> matchmakerQueues = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
   private final ObservableMap<Integer, MatchmakerQueueBean> queueIdToQueue = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
   private final ReadOnlyBooleanWrapper partyMembersNotReady = new ReadOnlyBooleanWrapper();
   private final SetProperty<PlayerBean> playersInGame = new SimpleSetProperty<>(FXCollections.observableSet());

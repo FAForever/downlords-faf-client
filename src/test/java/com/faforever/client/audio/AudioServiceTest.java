@@ -1,9 +1,6 @@
 package com.faforever.client.audio;
 
-import com.faforever.client.builders.PreferencesBuilder;
-import com.faforever.client.preferences.NotificationsPrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.theme.UiService;
 import javafx.scene.media.AudioClip;
@@ -11,11 +8,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.core.io.ClassPathResource;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -31,49 +27,33 @@ public class AudioServiceTest extends ServiceTest {
   private AudioService instance;
 
   @Mock
-  private PreferencesService preferencesService;
-  @Mock
   private AudioClipPlayer audioClipPlayer;
   @Mock
   private UiService uiService;
-
-  private Preferences preferences;
-
-  private String getThemeFile(String file) {
-    return String.format("/%s", file);
-  }
-
-  private URL getThemeFileUrl(String file) throws IOException {
-    return new ClassPathResource(getThemeFile(file)).getURL();
-  }
+  @Spy
+  private NotificationPrefs notificationPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
-    preferences = PreferencesBuilder.create().defaultValues()
-        .notificationsPrefs()
-        .soundsEnabled(true)
-        .privateMessageSoundEnabled(true)
-        .mentionSoundEnabled(true)
-        .infoSoundEnabled(true)
-        .warnSoundEnabled(true)
-        .errorSoundEnabled(true)
-        .friendJoinsGameSoundEnabled(true)
-        .friendOnlineSoundEnabled(true)
-        .friendPlaysGameSoundEnabled(true)
-        .friendOfflineSoundEnabled(true)
-        .then()
-        .get();
+    when(uiService.getThemeFileUrl(any())).thenReturn(new ClassPathResource(String.format("/%s", UiService.MENTION_SOUND)).getURL());
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-    when(uiService.getThemeFileUrl(any())).thenReturn(getThemeFileUrl(UiService.MENTION_SOUND));
+    notificationPrefs.setErrorSoundEnabled(true);
+    notificationPrefs.setPrivateMessageSoundEnabled(true);
+    notificationPrefs.setMentionSoundEnabled(true);
+    notificationPrefs.setInfoSoundEnabled(true);
+    notificationPrefs.setWarnSoundEnabled(true);
+    notificationPrefs.setErrorSoundEnabled(true);
+    notificationPrefs.setFriendJoinsGameSoundEnabled(true);
+    notificationPrefs.setFriendOnlineSoundEnabled(true);
+    notificationPrefs.setFriendPlaysGameSoundEnabled(true);
+    notificationPrefs.setFriendOfflineSoundEnabled(true);
 
     instance.afterPropertiesSet();
   }
 
   @Test
   public void testNoSoundsWhenOff() {
-    NotificationsPrefs notificationsPrefs = preferences.getNotification();
-    notificationsPrefs.setSoundsEnabled(false);
+    notificationPrefs.setSoundsEnabled(false);
     instance.playChatMentionSound();
     instance.playPrivateMessageSound();
     instance.playInfoNotificationSound();
@@ -90,16 +70,15 @@ public class AudioServiceTest extends ServiceTest {
 
   @Test
   public void testNoSoundsWhenIndividuallyOff() {
-    NotificationsPrefs notificationsPrefs = preferences.getNotification();
-    notificationsPrefs.setFriendJoinsGameSoundEnabled(false);
-    notificationsPrefs.setErrorSoundEnabled(false);
-    notificationsPrefs.setInfoSoundEnabled(false);
-    notificationsPrefs.setWarnSoundEnabled(false);
-    notificationsPrefs.setMentionSoundEnabled(false);
-    notificationsPrefs.setFriendOfflineSoundEnabled(false);
-    notificationsPrefs.setFriendOnlineSoundEnabled(false);
-    notificationsPrefs.setFriendPlaysGameSoundEnabled(false);
-    notificationsPrefs.setPrivateMessageSoundEnabled(false);
+    notificationPrefs.setFriendJoinsGameSoundEnabled(false);
+    notificationPrefs.setErrorSoundEnabled(false);
+    notificationPrefs.setInfoSoundEnabled(false);
+    notificationPrefs.setWarnSoundEnabled(false);
+    notificationPrefs.setMentionSoundEnabled(false);
+    notificationPrefs.setFriendOfflineSoundEnabled(false);
+    notificationPrefs.setFriendOnlineSoundEnabled(false);
+    notificationPrefs.setFriendPlaysGameSoundEnabled(false);
+    notificationPrefs.setPrivateMessageSoundEnabled(false);
     instance.playChatMentionSound();
     instance.playPrivateMessageSound();
     instance.playInfoNotificationSound();

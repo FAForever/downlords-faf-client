@@ -1,7 +1,8 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
@@ -32,24 +33,26 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Slf4j
 public class InstallModTask extends CompletableTask<Void> {
 
-  private final PreferencesService preferencesService;
   private final I18n i18n;
+  private final DataPrefs dataPrefs;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private URL url;
 
   @Inject
-  public InstallModTask(PreferencesService preferencesService, I18n i18n) {
+  public InstallModTask(I18n i18n, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
     super(HIGH);
 
-    this.preferencesService = preferencesService;
     this.i18n = i18n;
+    this.dataPrefs = dataPrefs;
+    this.forgedAlliancePrefs = forgedAlliancePrefs;
   }
 
   @Override
   protected Void call() throws Exception {
     Objects.requireNonNull(url, "url has not been set");
 
-    Path tempFile = Files.createTempFile(preferencesService.getPreferences().getData().getCacheDirectory(), "mod", null);
+    Path tempFile = Files.createTempFile(dataPrefs.getCacheDirectory(), "mod", null);
 
     log.info("Downloading mod from `{}` to `{}`", url, tempFile);
     updateTitle(i18n.get("downloadingModTask.downloading", url));
@@ -82,7 +85,7 @@ public class InstallModTask extends CompletableTask<Void> {
   }
 
   private void extractMod(Path tempFile) throws IOException, ArchiveException {
-    Path modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
+    Path modsDirectory = forgedAlliancePrefs.getModsDirectory();
 
     updateTitle(i18n.get("downloadingModTask.unzipping", modsDirectory));
 

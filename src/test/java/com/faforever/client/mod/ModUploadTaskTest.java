@@ -1,16 +1,15 @@
 package com.faforever.client.mod;
 
 import com.faforever.client.api.FafApiAccessor;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.test.UITest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Files;
@@ -29,24 +28,19 @@ public class ModUploadTaskTest extends UITest {
   public Path tempDirectory;
   @InjectMocks
   private ModUploadTask instance;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private FafApiAccessor fafApiAccessor;
   @Mock
   private I18n i18n;
+  @Spy
+  private DataPrefs dataPrefs;
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create()
-        .dataPrefs()
-        .dataDirectory(tempDirectory)
-        .then()
-        .get();
+    dataPrefs.setBaseDataDirectory(tempDirectory);
 
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-
-    Files.createDirectories(preferences.getData().getCacheDirectory());
+    Files.createDirectories(dataPrefs.getCacheDirectory());
     when(i18n.get(any())).thenReturn("");
     when(fafApiAccessor.uploadFile(any(), any(), any(), any())).thenReturn(Mono.empty());
   }
@@ -70,6 +64,6 @@ public class ModUploadTaskTest extends UITest {
 
     verify(fafApiAccessor).uploadFile(any(), any(), any(), any());
 
-    assertThat(Files.list(preferencesService.getPreferences().getData().getCacheDirectory()).toArray(), emptyArray());
+    assertThat(Files.list(dataPrefs.getCacheDirectory()).toArray(), emptyArray());
   }
 }

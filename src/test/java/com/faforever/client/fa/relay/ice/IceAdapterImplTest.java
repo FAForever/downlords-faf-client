@@ -2,7 +2,6 @@ package com.faforever.client.fa.relay.ice;
 
 import com.faforever.client.builders.GameLaunchMessageBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fa.relay.event.CloseGameEvent;
@@ -14,8 +13,7 @@ import com.faforever.client.mapstruct.IceServerMapper;
 import com.faforever.client.mapstruct.MapperSetup;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.commons.api.dto.CoturnServer;
@@ -63,12 +61,13 @@ public class IceAdapterImplTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private EventBus eventBus;
-  @Mock
-  private PreferencesService preferencesService;
-  @Spy
-  private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
+
   @Mock
   private IceAdapterApi iceAdapterApi;
+  @Spy
+  private ForgedAlliancePrefs forgedAlliancePrefs;
+  @Spy
+  private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -116,15 +115,10 @@ public class IceAdapterImplTest extends ServiceTest {
     Path javaExecutablePath = Path.of("some", "path", "java");
 
     when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .forgedAlliancePrefs()
-        .showIceAdapterDebugWindow(true)
-        .forceRelay(true)
-        .then()
-        .get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
+    forgedAlliancePrefs.setForceRelay(true);
+    forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
 
     List<String> command = instance.buildCommand(Path.of("."), 0, 0, 4711);
 
@@ -154,14 +148,9 @@ public class IceAdapterImplTest extends ServiceTest {
     Path javaExecutablePath = Path.of("some", "path", "java");
 
     when(operatingSystem.getJavaExecutablePath()).thenReturn(javaExecutablePath);
-    Preferences preferences = PreferencesBuilder.create().defaultValues()
-        .forgedAlliancePrefs()
-        .showIceAdapterDebugWindow(true)
-        .allowIpv6(true)
-        .forceRelay(true)
-        .then()
-        .get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
+    forgedAlliancePrefs.setAllowIpv6(true);
+    forgedAlliancePrefs.setForceRelay(true);
+    forgedAlliancePrefs.setShowIceAdapterDebugWindow(true);
     PlayerBean currentPlayer = PlayerBeanBuilder.create().defaultValues().get();
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
 

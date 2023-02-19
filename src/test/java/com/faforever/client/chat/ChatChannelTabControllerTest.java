@@ -3,7 +3,6 @@ package com.faforever.client.chat;
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.PlatformService;
@@ -12,8 +11,8 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -29,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -49,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,8 +64,7 @@ public class ChatChannelTabControllerTest extends UITest {
   private ChatService chatService;
   @Mock
   private UserService userService;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private PlayerService playerService;
   @Mock
@@ -97,15 +95,16 @@ public class ChatChannelTabControllerTest extends UITest {
   private TaskScheduler taskScheduler;
   @Mock
   private ChatUserListController chatUserListController;
+  @Spy
+  private ChatPrefs chatPrefs;
+  @Spy
+  private NotificationPrefs notificationPrefs;
 
-  private Preferences preferences;
   private ChatChannel defaultChatChannel;
 
   @BeforeEach
   public void setUp() throws Exception {
     defaultChatChannel = new ChatChannel(CHANNEL_NAME);
-    preferences = PreferencesBuilder.create().defaultValues().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(userService.getUsername()).thenReturn(USER_NAME);
     when(uiService.getThemeFileUrl(CHAT_CONTAINER)).thenReturn(getClass().getResource("/theme/chat/chat_container.html"));
     when(uiService.getThemeFileUrl(CHAT_SECTION_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_section.html"));
@@ -113,9 +112,7 @@ public class ChatChannelTabControllerTest extends UITest {
     when(uiService.getThemeFileUrl(CHAT_TEXT_COMPACT)).thenReturn(getClass().getResource("/theme/chat/compact/chat_text.html"));
     when(timeService.asShortTime(any())).thenReturn("now");
     when(emoticonService.getEmoticonShortcodeDetectorPattern()).thenReturn(Pattern.compile("-----"));
-    when(chatService.getOrCreateChatUser(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
-
-    instance.afterPropertiesSet();
+    when(chatService.createChatUserIfNecessary(any(String.class), eq(CHANNEL_NAME))).thenReturn(new ChatChannelUser("junit", "test"));
 
     loadFxml("theme/chat/channel_tab.fxml", clazz -> {
       if (clazz == ChatUserListController.class) {
@@ -317,12 +314,11 @@ public class ChatChannelTabControllerTest extends UITest {
 
     runOnFxThreadAndWait(() -> instance.userListVisibilityToggleButton.fire());
     assertFalse(instance.chatUserList.isVisible());
-    assertFalse(preferences.getChat().isPlayerListShown());
+    assertFalse(chatPrefs.isPlayerListShown());
 
     runOnFxThreadAndWait(() -> instance.userListVisibilityToggleButton.fire());
     assertTrue(instance.chatUserList.isVisible());
-    assertTrue(preferences.getChat().isPlayerListShown());
-    verify(preferencesService, times(2)).storeInBackground();
+    assertTrue(chatPrefs.isPlayerListShown());
   }
 
   @Test
@@ -339,7 +335,7 @@ public class ChatChannelTabControllerTest extends UITest {
         .moderator(true)
         .get();
 
-    when(chatService.getOrCreateChatUser(USER_NAME, defaultChatChannel.getName())).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, defaultChatChannel.getName())).thenReturn(chatUser);
 
     initializeDefaultChatChannel();
 
@@ -349,7 +345,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testAtMentionTriggersNotification() {
     this.getRoot().setVisible(false);
-    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -357,7 +353,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testAtMentionTriggersNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
-    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello @" + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -365,7 +361,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testNormalMentionTriggersNotification() {
     this.getRoot().setVisible(false);
-    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService).playChatMentionSound();
   }
@@ -373,7 +369,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testNormalMentionDoesNotTriggerNotificationWhenFlagIsEnabled() {
     this.getRoot().setVisible(false);
-    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(true);
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(true);
     instance.onMention(new ChatMessage(CHANNEL_NAME, Instant.now(), USER_NAME, "hello " + USER_NAME + "!!"));
     verify(audioService, never()).playChatMentionSound();
   }
@@ -381,7 +377,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testNormalMentionDoesNotTriggerNotificationFromFoe() {
     this.getRoot().setVisible(false);
-    preferences.getNotification().notifyOnAtMentionOnlyEnabledProperty().setValue(false);
+    notificationPrefs.notifyOnAtMentionOnlyEnabledProperty().setValue(false);
     when(playerService.getPlayerByNameIfOnline(USER_NAME)).thenReturn(Optional.ofNullable(PlayerBeanBuilder.create()
         .defaultValues()
         .username("junit")
@@ -395,11 +391,11 @@ public class ChatChannelTabControllerTest extends UITest {
   public void getInlineStyleChangeToRandom() {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
-      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
-      preferences.getChat().setHideFoeMessages(false);
+      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
+      chatPrefs.setHideFoeMessages(false);
     });
 
     Color color = ColorGeneratorUtil.generateRandomColor();
@@ -417,11 +413,11 @@ public class ChatChannelTabControllerTest extends UITest {
     ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
     chatUser.setColor(color);
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
-      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
-      preferences.getChat().setHideFoeMessages(false);
+      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
+      chatPrefs.setHideFoeMessages(false);
     });
 
     String expected = instance.createInlineStyleFromColor(color);
@@ -431,19 +427,17 @@ public class ChatChannelTabControllerTest extends UITest {
 
   @Test
   public void getInlineStyleRandomFoeHide() {
-    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
+    ChatChannelUser chatUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().player(PlayerBeanBuilder.create()
+        .defaultValues()
+        .username(USER_NAME)
+        .socialStatus(FOE)
+        .get()).get();
 
-    when(playerService.getPlayerByNameIfOnline(USER_NAME))
-        .thenReturn(Optional.of(PlayerBeanBuilder.create()
-            .defaultValues()
-            .username(USER_NAME)
-            .socialStatus(FOE)
-            .get()));
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
-      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
-      preferences.getChat().setHideFoeMessages(true);
+      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
+      chatPrefs.setHideFoeMessages(true);
     });
 
     String result = instance.getInlineStyle(USER_NAME);
@@ -460,11 +454,11 @@ public class ChatChannelTabControllerTest extends UITest {
             .socialStatus(FOE)
             .get()));
 
-    when(chatService.getOrCreateChatUser(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
+    when(chatService.createChatUserIfNecessary(USER_NAME, CHANNEL_NAME)).thenReturn(chatUser);
     initializeDefaultChatChannel();
     runOnFxThreadAndWait(() -> {
-      preferences.getChat().setChatColorMode(ChatColorMode.RANDOM);
-      preferences.getChat().setHideFoeMessages(false);
+      chatPrefs.setChatColorMode(ChatColorMode.RANDOM);
+      chatPrefs.setHideFoeMessages(false);
     });
 
     String result = instance.getInlineStyle(USER_NAME);

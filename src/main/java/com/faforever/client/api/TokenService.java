@@ -5,7 +5,6 @@ import com.faforever.client.config.ClientProperties.Oauth;
 import com.faforever.client.login.NoRefreshTokenException;
 import com.faforever.client.login.TokenRetrievalException;
 import com.faforever.client.preferences.LoginPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.user.event.LoggedOutEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.Builder;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
@@ -29,42 +29,28 @@ import java.time.Duration;
 @Slf4j
 public class TokenService implements InitializingBean {
   private final ClientProperties clientProperties;
-  private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final WebClient webClient;
   private final LoginPrefs loginPrefs;
-  private final Mono<String> refreshedTokenMono;
-  private final Mono<OAuth2AccessToken> tokenRetrievalMono;
-  private final Sinks.Many<Long> logoutSink;
+
+  private final Sinks.Many<Long> logoutSink = Sinks.many().multicast().directBestEffort();
+  private final Mono<OAuth2AccessToken> tokenRetrievalMono = Mono.defer(this::retrieveToken)
+      .cacheInvalidateWhen(this::getTokenExpirartionMono)
+      .doOnNext(token -> log.trace("Token still valid for {} seconds", token.getExpiresIn()));
+  private final Mono<String> refreshedTokenMono = Mono.defer(this::refreshAccess)
+      .map(OAuth2AccessToken::getValue)
+      .doOnError(this::onTokenError);
+
 
   private String refreshTokenValue;
   private MultiValueMap<String, String> hydraPropertiesMap;
 
-  public TokenService(ClientProperties clientProperties, PreferencesService preferencesService, EventBus eventBus, WebClient.Builder webClientBuilder) {
+  public TokenService(ClientProperties clientProperties, EventBus eventBus, Builder webClientBuilder, LoginPrefs loginPrefs) {
     this.clientProperties = clientProperties;
-    this.preferencesService = preferencesService;
     this.eventBus = eventBus;
 
-    loginPrefs = preferencesService.getPreferences().getLogin();
     webClient = webClientBuilder.build();
-    logoutSink = Sinks.many().multicast().directBestEffort();
-
-    tokenRetrievalMono = Mono.defer(this::retrieveToken)
-        .cacheInvalidateWhen(token ->
-            Mono.firstWithSignal(
-                Mono.delay(Duration.ofSeconds(token.getExpiresIn() - 30)),
-                logoutSink.asFlux().next()
-            ).then()
-        ).doOnNext(token -> log.trace("Token still valid for {} seconds", token.getExpiresIn()));
-
-    refreshedTokenMono = Mono.defer(this::refreshAccess)
-        .map(OAuth2AccessToken::getValue)
-        .doOnError(throwable -> {
-          log.warn("Could not log in with token", throwable);
-          loginPrefs.setRefreshToken(null);
-          refreshTokenValue = null;
-          eventBus.post(new SessionExpiredEvent());
-        });
+    this.loginPrefs = loginPrefs;
   }
 
   @Override
@@ -96,10 +82,23 @@ public class TokenService implements InitializingBean {
     return refreshedTokenMono.then();
   }
 
+  private void onTokenError(Throwable throwable) {
+    log.warn("Could not log in with token", throwable);
+    loginPrefs.setRefreshToken(null);
+    refreshTokenValue = null;
+    eventBus.post(new SessionExpiredEvent());
+  }
+
+  private Mono<Void> getTokenExpirartionMono(OAuth2AccessToken token) {
+    return Mono.firstWithSignal(
+        Mono.delay(Duration.ofSeconds(token.getExpiresIn() - 30)),
+        logoutSink.asFlux().next()
+    ).then();
+  }
+
   private Mono<OAuth2AccessToken> refreshAccess() {
     if (refreshTokenValue == null) {
       loginPrefs.setRefreshToken(null);
-      preferencesService.storeInBackground();
       return Mono.error(new NoRefreshTokenException("No refresh token to log in with"));
     }
 
@@ -133,7 +132,6 @@ public class TokenService implements InitializingBean {
           OAuth2RefreshToken refreshToken = token.getRefreshToken();
           refreshTokenValue = refreshToken != null ? refreshToken.getValue() : null;
           loginPrefs.setRefreshToken(loginPrefs.isRememberMe() ? refreshTokenValue : null);
-          preferencesService.storeInBackground();
         });
   }
 

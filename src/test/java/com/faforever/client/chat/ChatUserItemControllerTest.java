@@ -5,7 +5,6 @@ import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.MapVersionBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
@@ -21,8 +20,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
@@ -37,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.util.Optional;
 
@@ -58,8 +56,7 @@ public class ChatUserItemControllerTest extends UITest {
   private static final String CHANNEL_NAME = "#testChannel";
   private static final String USER_NAME = "junit";
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private I18n i18n;
   @Mock
@@ -78,9 +75,10 @@ public class ChatUserItemControllerTest extends UITest {
   private AvatarService avatarService;
   @Mock
   private CountryFlagService countryFlagService;
+  @Spy
+  private ChatPrefs chatPrefs;
 
   private ChatChannelUser defaultUser;
-  private ChatPrefs chatPrefs;
 
   @InjectMocks
   private ChatUserItemController instance;
@@ -88,10 +86,6 @@ public class ChatUserItemControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     defaultUser = ChatChannelUserBuilder.create(USER_NAME, CHANNEL_NAME).defaultValues().get();
-
-    Preferences preferences = PreferencesBuilder.create().defaultValues().chatPrefs().then().get();
-    chatPrefs = preferences.getChat();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
 
     when(i18n.get(eq("clan.messageLeader"))).thenReturn("Message clan leader");
     when(i18n.get(eq("clan.visitPage"))).thenReturn("Visit clan website");

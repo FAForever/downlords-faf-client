@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * This configuration has to be imported by other configurations and should only contain beans that are necessary to run
@@ -16,6 +17,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 @Slf4j
 @Configuration
 @EnableConfigurationProperties({ClientProperties.class})
+@EnableScheduling
 public class BaseConfig {
 
   @Bean

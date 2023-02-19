@@ -4,7 +4,6 @@ import com.faforever.client.audio.AudioService;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.builders.AvatarBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.chat.emoticons.EmoticonService;
 import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
@@ -16,8 +15,8 @@ import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.player.PrivatePlayerInfoController;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -33,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.net.URL;
@@ -84,14 +84,17 @@ public class PrivateChatTabControllerTest extends UITest {
   private GameDetailController gameDetailController;
   @Mock
   private WatchButtonController watchButtonController;
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private EmoticonService emoticonService;
   @Mock
   private AvatarService avatarService;
   @Mock
   private ChatService chatService;
+  @Spy
+  private ChatPrefs chatPrefs;
+  @Spy
+  private NotificationPrefs notificationPrefs;
 
   @InjectMocks
   private PrivateChatTabController instance;
@@ -101,9 +104,6 @@ public class PrivateChatTabControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    Preferences preferences = PreferencesBuilder.create().defaultValues().notificationsPrefs().privateMessageToastEnabled(true).then().get();
-    when(preferencesService.getPreferences()).thenReturn(preferences);
-
     player = PlayerBeanBuilder.create().defaultValues().get();
     playerName = player.getUsername();
 

@@ -14,10 +14,11 @@ import com.faforever.client.mapstruct.ModMapper;
 import com.faforever.client.notification.Action;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.PersistentNotification;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
+import com.faforever.client.preferences.Preferences;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.remote.AssetService;
 import com.faforever.client.task.CompletableTask;
-import com.faforever.client.task.CompletableTask.Priority;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
@@ -32,6 +33,7 @@ import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.mod.ModReader;
 import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -109,32 +111,30 @@ public class ModService implements InitializingBean, DisposableBean {
   private final UiService uiService;
   private final FileSizeReader fileSizeReader;
   private final ModMapper modMapper;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final Preferences preferences;
+
   private final ModReader modReader = new ModReader();
 
-  private Path modsDirectory;
   private final Map<Path, ModVersionBean> pathToMod = new HashMap<>();
   private final ObservableList<ModVersionBean> installedModVersions = FXCollections.observableArrayList();
   private final ObservableList<ModVersionBean> readOnlyInstalledModVersions = FXCollections.unmodifiableObservableList(installedModVersions);
+  private final InvalidationListener modDirectoryChangedListener = observable -> updateModsDirectory();
+
+  private Path modsDirectory;
   private Thread directoryWatcherThread;
 
   @Override
   public void afterPropertiesSet() {
-    InvalidationListener modDirectoryChangedListener = observable -> {
-      modsDirectory = preferencesService.getPreferences().getForgedAlliance().getModsDirectory();
-      if (modsDirectory != null) {
-        installedModVersions.clear();
-        onModDirectoryReady();
-      }
-    };
-    taskService.submitTask(new CompletableTask<Void>(Priority.LOW) {
-      @Override
-      protected Void call() throws Exception {
-        updateTitle(i18n.get("modVault.loadingMods"));
-        modDirectoryChangedListener.invalidated(preferencesService.getPreferences().getForgedAlliance().vaultBaseDirectoryProperty());
-        return null;
-      }
-    });
-    JavaFxUtil.addListener(preferencesService.getPreferences().getForgedAlliance().vaultBaseDirectoryProperty(), modDirectoryChangedListener);
+    JavaFxUtil.addAndTriggerListener(forgedAlliancePrefs.vaultBaseDirectoryProperty(), new WeakInvalidationListener(modDirectoryChangedListener));
+  }
+
+  private void updateModsDirectory() {
+    modsDirectory = forgedAlliancePrefs.getModsDirectory();
+    if (modsDirectory != null) {
+      installedModVersions.clear();
+      onModDirectoryReady();
+    }
   }
 
   private void onModDirectoryReady() {
@@ -174,7 +174,7 @@ public class ModService implements InitializingBean, DisposableBean {
       for (Path path : directoryStream) {
         addMod(path);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.error("Mods could not be read from: " + modsDirectory, e);
     }
   }
@@ -341,7 +341,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private Set<String> readActiveMods() throws IOException {
-    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    Path preferencesFile = forgedAlliancePrefs.getPreferencesFile();
     Set<String> activeMods = new HashSet<>();
     String preferencesContent = readPreferencesFile(preferencesFile);
     Matcher matcher = ACTIVE_MODS_PATTERN.matcher(preferencesContent);
@@ -358,7 +358,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   private void writeActiveMods(Set<String> activeMods) {
-    Path preferencesFile = preferencesService.getPreferences().getForgedAlliance().getPreferencesFile();
+    Path preferencesFile = forgedAlliancePrefs.getPreferencesFile();
     try {
       String preferencesContent = readPreferencesFile(preferencesFile);
       String currentActiveModsContent = null;
@@ -416,7 +416,7 @@ public class ModService implements InitializingBean, DisposableBean {
 
   @Async
   public CompletableFuture<Collection<ModVersionBean>> updateAndActivateModVersions(final Collection<ModVersionBean> selectedModVersions) {
-    if (!preferencesService.getPreferences().getMapAndModAutoUpdate()) {
+    if (!preferences.isMapAndModAutoUpdate()) {
       return CompletableFuture.completedFuture(selectedModVersions);
     }
 

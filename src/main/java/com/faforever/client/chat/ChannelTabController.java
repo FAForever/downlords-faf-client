@@ -2,7 +2,6 @@ package com.faforever.client.chat;
 
 import com.faforever.client.audio.AudioService;
 import com.faforever.client.chat.emoticons.EmoticonService;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -11,6 +10,7 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.user.UserService;
@@ -19,6 +19,8 @@ import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.WeakListChangeListener;
@@ -40,7 +42,6 @@ import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -48,7 +49,6 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.fx.PlatformService.URL_REGEX_PATTERN;
@@ -58,7 +58,7 @@ import static java.util.Locale.US;
 @Slf4j
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class ChannelTabController extends AbstractChatTabController implements InitializingBean {
+public class ChannelTabController extends AbstractChatTabController {
 
   public static final String MODERATOR_STYLE_CLASS = "moderator";
   public static final String USER_STYLE_CLASS = "user-%s";
@@ -84,65 +84,28 @@ public class ChannelTabController extends AbstractChatTabController implements I
   public Node chatUserList;
   public ChatUserListController chatUserListController;
 
-  private ChatPrefs chatPrefs;
   private ChatChannel chatChannel;
   private String topicContent = "";
 
   /* Listeners */
   private final InvalidationListener topicListener = observable -> JavaFxUtil.runLater(this::updateChannelTopic);
   @SuppressWarnings("FieldCanBeLocal")
-  private final InvalidationListener hideFoeMessagesListener = observable -> hideFoeMessages();
+  private final ChangeListener<Boolean> hideFoeMessagesListener = (observable, oldValue, newValue) -> hideFoeMessages(newValue);
   private final InvalidationListener chatColorModeListener = observable -> chatChannel.getUsers()
       .forEach(this::updateUserMessageColor);
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
 
   private AutoCompletionHelper autoCompletionHelper;
 
-  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService, PreferencesService preferencesService, PlayerService playerService, AudioService audioService, TimeService timeService, I18n i18n, NotificationService notificationService, UiService uiService, EventBus eventBus, CountryFlagService countryFlagService, EmoticonService emoticonService, PlatformService platformService) {
-    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService);
+  public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService,
+                              PreferencesService preferencesService, PlayerService playerService,
+                              AudioService audioService, TimeService timeService, I18n i18n,
+                              NotificationService notificationService, UiService uiService, EventBus eventBus,
+                              CountryFlagService countryFlagService, EmoticonService emoticonService,
+                              PlatformService platformService, ChatPrefs chatPrefs,
+                              NotificationPrefs notificationPrefs) {
+    super(userService, chatService, preferencesService, playerService, audioService, timeService, i18n, notificationService, uiService, eventBus, webViewConfigurer, emoticonService, countryFlagService, chatPrefs, notificationPrefs);
     this.platformService = platformService;
-  }
-
-  private void highlightText(String newValue) {
-    if (StringUtils.isBlank(newValue)) {
-      callJsMethod("removeHighlight");
-    } else {
-      callJsMethod("highlightText", newValue);
-    }
-  }
-
-  private void hideFoeMessages() {
-    boolean visible = chatPrefs.getHideFoeMessages();
-    chatChannel.getUsers()
-        .stream()
-        .filter(user -> user.getCategories().stream().anyMatch(status -> status == ChatUserCategory.FOE))
-        .forEach(user -> updateUserMessageVisibility(user, visible));
-  }
-
-  private void updateChangedUsersStyles(Change<? extends ChatChannelUser> change) {
-    while (change.next()) {
-      if (change.wasUpdated()) {
-        List<ChatChannelUser> changedUsers = List.copyOf(change.getList().subList(change.getFrom(), change.getTo()));
-        changedUsers.forEach(user -> {
-          updateUserMessageVisibility(user, user.getCategories()
-              .stream()
-              .anyMatch(status -> status == ChatUserCategory.FOE));
-          updateStyleClass(user);
-          updateUserMessageColor(user);
-        });
-      }
-    }
-  }
-
-  private void updateDividerPosition() {
-    boolean selected = userListVisibilityToggleButton.isSelected();
-    splitPane.setDividerPositions(selected ? 0.8 : 1);
-    preferencesService.storeInBackground();
-  }
-
-  @Override
-  public void afterPropertiesSet() throws Exception {
-    this.chatPrefs = preferencesService.getPreferences().getChat();
   }
 
   @Override
@@ -154,7 +117,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
     JavaFxUtil.bind(chatUserList.visibleProperty(), userListVisibilityToggleButton.selectedProperty());
 
     userListVisibilityToggleButton.selectedProperty()
-        .bindBidirectional(preferencesService.getPreferences().getChat().playerListShownProperty());
+        .bindBidirectional(chatPrefs.playerListShownProperty());
     topicTextField.setTextFormatter(new TextFormatter<>(change -> change.getControlNewText()
         .length() <= TOPIC_CHARACTERS_LIMIT ? change : null));
 
@@ -163,7 +126,7 @@ public class ChannelTabController extends AbstractChatTabController implements I
             .length()
             .map(length -> String.format("%d / %d", length.intValue(), TOPIC_CHARACTERS_LIMIT)));
 
-    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakInvalidationListener(hideFoeMessagesListener));
+    JavaFxUtil.addListener(chatPrefs.hideFoeMessagesProperty(), new WeakChangeListener<>(hideFoeMessagesListener));
     JavaFxUtil.addListener(chatPrefs.chatColorModeProperty(), new WeakInvalidationListener(chatColorModeListener));
 
     userListVisibilityToggleButton.selectedProperty().addListener(observable -> updateDividerPosition());
@@ -211,6 +174,41 @@ public class ChannelTabController extends AbstractChatTabController implements I
         .filter(username -> username.toLowerCase(US).startsWith(currentWord.toLowerCase()))
         .sorted()
         .collect(Collectors.toList()));
+  }
+
+  private void highlightText(String newValue) {
+    if (StringUtils.isBlank(newValue)) {
+      callJsMethod("removeHighlight");
+    } else {
+      callJsMethod("highlightText", newValue);
+    }
+  }
+
+  private void hideFoeMessages(boolean shouldHide) {
+    chatChannel.getUsers()
+        .stream()
+        .filter(user -> user.getCategories().stream().anyMatch(status -> status == ChatUserCategory.FOE))
+        .forEach(user -> updateUserMessageVisibility(user, shouldHide));
+  }
+
+  private void updateChangedUsersStyles(Change<? extends ChatChannelUser> change) {
+    while (change.next()) {
+      if (change.wasUpdated()) {
+        List<ChatChannelUser> changedUsers = List.copyOf(change.getList().subList(change.getFrom(), change.getTo()));
+        changedUsers.forEach(user -> {
+          updateUserMessageVisibility(user, user.getCategories()
+              .stream()
+              .anyMatch(status -> status == ChatUserCategory.FOE));
+          updateStyleClass(user);
+          updateUserMessageColor(user);
+        });
+      }
+    }
+  }
+
+  private void updateDividerPosition() {
+    boolean selected = userListVisibilityToggleButton.isSelected();
+    splitPane.setDividerPositions(selected ? 0.8 : 1);
   }
 
   private void initializeListeners() {
@@ -291,8 +289,8 @@ public class ChannelTabController extends AbstractChatTabController implements I
     JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageColor", user.getUsername(), color));
   }
 
-  private void updateUserMessageVisibility(ChatChannelUser user, boolean visible) {
-    String displayPropertyValue = visible ? "none" : "";
+  private void updateUserMessageVisibility(ChatChannelUser user, boolean shouldHide) {
+    String displayPropertyValue = shouldHide ? "none" : "";
     JavaFxUtil.runLater(() -> callJsMethod("updateUserMessageDisplay", user.getUsername(), displayPropertyValue));
   }
 
@@ -318,15 +316,14 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
   @Override
   protected String getMessageCssClass(String login) {
-    return chatService.getOrCreateChatUser(login, chatChannel.getName())
+    return chatService.createChatUserIfNecessary(login, chatChannel.getName())
         .isModerator() ? MODERATOR_STYLE_CLASS : super.getMessageCssClass(login);
   }
 
   @Override
   protected void onMention(ChatMessage chatMessage) {
-    if (preferencesService.getPreferences()
-        .getNotification()
-        .getNotifyOnAtMentionOnlyEnabled() && !chatMessage.getMessage().contains("@" + userService.getUsername())) {
+    if (notificationPrefs.getNotifyOnAtMentionOnlyEnabled() && !chatMessage.getMessage()
+        .contains("@" + userService.getUsername())) {
       return;
     }
 
@@ -344,12 +341,11 @@ public class ChannelTabController extends AbstractChatTabController implements I
 
   @Override
   protected String getInlineStyle(String username) {
-    ChatChannelUser user = chatService.getOrCreateChatUser(username, chatChannel.getName());
-    Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(username);
+    ChatChannelUser user = chatService.createChatUserIfNecessary(username, chatChannel.getName());
 
-    if (chatPrefs.getHideFoeMessages() && playerOptional.map(PlayerBean::getSocialStatus)
+    if (chatPrefs.isHideFoeMessages() && user.getCategories()
         .stream()
-        .anyMatch(status -> status == FOE)) {
+        .anyMatch(category -> category == ChatUserCategory.FOE)) {
       return "display: none;";
     } else {
       return user.getColor().map(color -> String.format("color: %s;", JavaFxUtil.toRgbCode(color))).orElse("");

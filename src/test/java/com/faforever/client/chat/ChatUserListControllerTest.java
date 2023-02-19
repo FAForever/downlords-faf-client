@@ -2,19 +2,13 @@ package com.faforever.client.chat;
 
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.builders.PreferencesBuilder;
 import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.net.ConnectionState;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleSetProperty;
@@ -32,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,8 +45,7 @@ public class ChatUserListControllerTest extends UITest {
 
   private static final String CHANNEL_NAME = "#testChannel";
 
-  @Mock
-  private PreferencesService preferencesService;
+
   @Mock
   private UiService uiService;
   @Mock
@@ -60,11 +54,10 @@ public class ChatUserListControllerTest extends UITest {
   private EventBus eventBus;
   @Mock
   private ChatUserFilterController chatUserFilterController;
-
-  private ChatChannel chatChannel;
+  @Spy
   private ChatPrefs chatPrefs;
 
-  private ObjectProperty<ConnectionState> connectionState;
+  private ChatChannel chatChannel;
 
   @InjectMocks
   private ChatUserListController instance;
@@ -72,13 +65,7 @@ public class ChatUserListControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     chatChannel = new ChatChannel(CHANNEL_NAME);
-    connectionState = new ReadOnlyObjectWrapper<>(ConnectionState.CONNECTED);
 
-    Preferences preferences = PreferencesBuilder.create().defaultValues().chatPrefs()
-        .channelNameToHiddenCategories(FXCollections.observableHashMap()).then().get();
-    chatPrefs = preferences.getChat();
-
-    when(preferencesService.getPreferences()).thenReturn(preferences);
     when(uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class)).thenReturn(chatUserFilterController);
     when(chatUserFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(chatUserFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));

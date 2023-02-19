@@ -1,7 +1,7 @@
 package com.faforever.client.notification;
 
 import com.faforever.client.fx.Controller;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.ToastPosition;
 import com.faforever.client.theme.UiService;
 import javafx.geometry.Pos;
@@ -20,27 +20,19 @@ import org.springframework.stereotype.Component;
 public class TransientNotificationsController implements Controller<Node> {
 
   private final UiService uiService;
-  private final PreferencesService preferencesService;
+  private final NotificationPrefs notificationPrefs;
+
   public VBox transientNotificationsRoot;
 
   public void initialize() {
-    ToastPosition toastPosition = preferencesService.getPreferences().getNotification().getToastPosition();
+    ToastPosition toastPosition = notificationPrefs.getToastPosition();
 
     switch (toastPosition) {
-      case TOP_RIGHT:
-        transientNotificationsRoot.setAlignment(Pos.TOP_RIGHT);
-        break;
-      case BOTTOM_RIGHT:
-        transientNotificationsRoot.setAlignment(Pos.BOTTOM_RIGHT);
-        break;
-      case BOTTOM_LEFT:
-        transientNotificationsRoot.setAlignment(Pos.BOTTOM_LEFT);
-        break;
-      case TOP_LEFT:
-        transientNotificationsRoot.setAlignment(Pos.TOP_LEFT);
-        break;
-      default:
-        throw new AssertionError("Uncovered position: " + toastPosition);
+      case TOP_RIGHT -> transientNotificationsRoot.setAlignment(Pos.TOP_RIGHT);
+      case BOTTOM_RIGHT -> transientNotificationsRoot.setAlignment(Pos.BOTTOM_RIGHT);
+      case BOTTOM_LEFT -> transientNotificationsRoot.setAlignment(Pos.BOTTOM_LEFT);
+      case TOP_LEFT -> transientNotificationsRoot.setAlignment(Pos.TOP_LEFT);
+      default -> throw new AssertionError("Uncovered position: " + toastPosition);
     }
   }
 

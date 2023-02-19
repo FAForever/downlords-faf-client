@@ -7,10 +7,9 @@ import com.faforever.client.filter.function.SimModsFilterFunction;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.mod.ModService;
+import com.faforever.client.preferences.FiltersPrefs;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
-import javafx.beans.InvalidationListener;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -21,20 +20,18 @@ import org.springframework.stereotype.Component;
 public class CustomGamesFilterController extends AbstractFilterController<GameBean> {
 
   private final ModService modService;
-  private final PreferencesService preferencesService;
-
-  private final InvalidationListener propertyListener;
+  private final Preferences preferences;
+  private final FiltersPrefs filtersPrefs;
 
   private MutableListFilterController<GameBean> mapFolderNameBlackListFilter;
   private FilterCheckboxController<GameBean> privateGameFilter;
   private FilterCheckboxController<GameBean> simModsFilter;
 
-  public CustomGamesFilterController(UiService uiService, I18n i18n, ModService modService, PreferencesService preferencesService) {
+  public CustomGamesFilterController(UiService uiService, I18n i18n, ModService modService, Preferences preferences, FiltersPrefs filtersPrefs) {
     super(uiService, i18n);
     this.modService = modService;
-    this.preferencesService = preferencesService;
-
-    this.propertyListener = observable -> preferencesService.storeInBackground();
+    this.preferences = preferences;
+    this.filtersPrefs = filtersPrefs;
   }
 
   @Override
@@ -53,14 +50,8 @@ public class CustomGamesFilterController extends AbstractFilterController<GameBe
 
   @Override
   protected void afterBuilt() {
-    Preferences preferences = preferencesService.getPreferences();
-
     JavaFxUtil.bindBidirectional(privateGameFilter.getObservable(), preferences.hidePrivateGamesProperty());
     JavaFxUtil.bindBidirectional(simModsFilter.getObservable(), preferences.hideModdedGamesProperty());
-    JavaFxUtil.bindBidirectional(mapFolderNameBlackListFilter.getObservable(), preferences.getFilters().mapNameBlacklistProperty());
-
-    JavaFxUtil.addListener(preferences.hideModdedGamesProperty(), propertyListener);
-    JavaFxUtil.addListener(preferences.hidePrivateGamesProperty(), propertyListener);
-    JavaFxUtil.addListener(preferences.getFilters().mapNameBlacklistProperty(), propertyListener);
+    JavaFxUtil.bindBidirectional(mapFolderNameBlackListFilter.getObservable(), filtersPrefs.mapNameBlacklistProperty());
   }
 }

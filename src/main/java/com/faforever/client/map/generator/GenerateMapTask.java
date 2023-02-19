@@ -4,7 +4,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsUtils;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.ForgedAlliancePrefs;
 import com.faforever.client.task.CompletableTask;
 import com.google.common.eventbus.EventBus;
 import lombok.Setter;
@@ -30,11 +30,11 @@ import java.util.regex.Matcher;
 public class GenerateMapTask extends CompletableTask<String> {
   private static final Logger generatorLogger = LoggerFactory.getLogger("faf-map-generator");
 
-  private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final OperatingSystem operatingSystem;
   private final EventBus eventBus;
+  private final ForgedAlliancePrefs forgedAlliancePrefs;
 
   private Path generatorExecutableFile;
   private ComparableVersion version;
@@ -43,10 +43,9 @@ public class GenerateMapTask extends CompletableTask<String> {
   private String mapName;
 
   @Inject
-  public GenerateMapTask(PreferencesService preferencesService, NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem, EventBus eventBus) {
+  public GenerateMapTask(NotificationService notificationService, I18n i18n, OperatingSystem operatingSystem, EventBus eventBus, ForgedAlliancePrefs forgedAlliancePrefs) {
     super(Priority.HIGH);
-
-    this.preferencesService = preferencesService;
+    this.forgedAlliancePrefs = forgedAlliancePrefs;
     this.notificationService = notificationService;
     this.i18n = i18n;
     this.operatingSystem = operatingSystem;
@@ -82,7 +81,7 @@ public class GenerateMapTask extends CompletableTask<String> {
           .commandLineArgs(generatorOptions.getCommandLineArgs());
     }
 
-    Path workingDirectory = preferencesService.getPreferences().getForgedAlliance().getMapsDirectory();
+    Path workingDirectory = forgedAlliancePrefs.getMapsDirectory();
 
     try {
       List<String> command = generatorCommandBuilder.build().getCommand();

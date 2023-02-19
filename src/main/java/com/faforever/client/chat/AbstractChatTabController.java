@@ -16,6 +16,8 @@ import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.preferences.ChatPrefs;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -132,6 +134,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   protected final WebViewConfigurer webViewConfigurer;
   protected final EmoticonService emoticonService;
   protected final CountryFlagService countryFlagService;
+  protected final ChatPrefs chatPrefs;
+  protected final NotificationPrefs notificationPrefs;
 
   /**
    * Messages that arrived before the web view was ready. Those are appended as soon as it is ready.
@@ -176,11 +180,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     if (hasFocus()) {
       setUnread(false);
     }
-  }
-
-  private void updateZoomPreferences(Number newValue) {
-    preferencesService.getPreferences().getChat().setZoom(newValue.doubleValue());
-    preferencesService.storeInBackground();
   }
 
   private void addTabListeners(TabPane newTabPane) {
@@ -292,7 +291,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     WebView messagesWebView = getMessagesWebView();
     webViewConfigurer.configureWebView(messagesWebView);
 
-    messagesWebView.zoomProperty().addListener((observable, oldValue, newValue) -> updateZoomPreferences(newValue));
+    messagesWebView.zoomProperty().bindBidirectional(chatPrefs.zoomProperty());
 
     configureBrowser(messagesWebView);
     loadChatContainer();
@@ -315,15 +314,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private void configureBrowser(WebView messagesWebView) {
     engine = messagesWebView.getEngine();
 
-    configureZoomLevel();
     configureLoadListener();
-  }
-
-  private void configureZoomLevel() {
-    Double zoom = preferencesService.getPreferences().getChat().getZoom();
-    if (zoom != null) {
-      getMessagesWebView().setZoom(zoom);
-    }
   }
 
   private void configureLoadListener() {
@@ -457,7 +448,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private void removeTopmostMessages() {
     JavaFxUtil.assertApplicationThread();
-    int maxMessageItems = preferencesService.getPreferences().getChat().getMaxMessages();
+    int maxMessageItems = chatPrefs.getMaxMessages();
 
     int numberOfMessages = (int) engine.executeScript("document.getElementsByClassName('" + MESSAGE_ITEM_CLASS + "').length");
     while (numberOfMessages > maxMessageItems) {
@@ -493,7 +484,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private void appendMessage(ChatMessage chatMessage) throws IOException {
     URL themeFileUrl;
-    if (preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT) {
+    if (chatPrefs.getChatFormat() == ChatFormat.COMPACT) {
       themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT_COMPACT);
     } else {
       themeFileUrl = uiService.getThemeFileUrl(CHAT_TEXT_EXTENDED);
@@ -506,7 +497,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   private void appendChatMessageSection(ChatMessage chatMessage) throws IOException {
     URL themeFileURL;
-    if (preferencesService.getPreferences().getChat().getChatFormat() == ChatFormat.COMPACT) {
+    if (chatPrefs.getChatFormat() == ChatFormat.COMPACT) {
       themeFileURL = uiService.getThemeFileUrl(CHAT_SECTION_COMPACT);
     } else {
       themeFileURL = uiService.getThemeFileUrl(CHAT_SECTION_EXTENDED);
@@ -614,7 +605,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     Optional<PlayerBean> playerOptional = playerService.getPlayerByNameIfOnline(chatMessage.getUsername());
     String identIconSource = playerOptional.map(player -> String.valueOf(player.getId())).orElseGet(chatMessage::getUsername);
 
-    if (preferencesService.getPreferences().getNotification().isPrivateMessageToastEnabled()) {
+    if (notificationPrefs.isPrivateMessageToastEnabled()) {
       notificationService.addNotification(new TransientNotification(
           chatMessage.getUsername(),
           chatMessage.getMessage(),

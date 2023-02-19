@@ -5,8 +5,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
-import com.faforever.client.preferences.NotificationsPrefs;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -25,8 +24,7 @@ public class FriendOfflineNotifier implements InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
   private final AudioService audioService;
-  private final PlayerService playerService;
-  private final PreferencesService preferencesService;
+  private final NotificationPrefs notificationPrefs;
 
   @Override
   public void afterPropertiesSet() {
@@ -35,18 +33,17 @@ public class FriendOfflineNotifier implements InitializingBean {
 
   @Subscribe
   public void onPlayerOffline(PlayerOfflineEvent event) {
-    NotificationsPrefs notification = preferencesService.getPreferences().getNotification();
     PlayerBean player = event.player();
 
     if (player.getSocialStatus() != SocialStatus.FRIEND) {
       return;
     }
 
-    if (notification.isFriendOfflineSoundEnabled()) {
+    if (notificationPrefs.isFriendOfflineSoundEnabled()) {
       audioService.playFriendOfflineSound();
     }
 
-    if (notification.isFriendOfflineToastEnabled()) {
+    if (notificationPrefs.isFriendOfflineToastEnabled()) {
       notificationService.addNotification(
           new TransientNotification(
               i18n.get("friend.nowOfflineNotification.title", player.getUsername()), "",

@@ -1,7 +1,7 @@
 package com.faforever.client.update;
 
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.commons.io.ByteCopier;
@@ -25,16 +25,16 @@ import java.nio.file.StandardCopyOption;
 public class DownloadUpdateTask extends CompletableTask<Path> {
 
   private final I18n i18n;
-  private final PreferencesService preferencesService;
+  private final DataPrefs dataPrefs;
 
   private UpdateInfo updateInfo;
 
   @Inject
-  public DownloadUpdateTask(I18n i18n, PreferencesService preferencesService) {
+  public DownloadUpdateTask(I18n i18n, DataPrefs dataPrefs) {
     super(Priority.MEDIUM);
 
     this.i18n = i18n;
-    this.preferencesService = preferencesService;
+    this.dataPrefs = dataPrefs;
   }
 
   @Override
@@ -42,7 +42,7 @@ public class DownloadUpdateTask extends CompletableTask<Path> {
     updateTitle(i18n.get("clientUpdateDownloadTask.title"));
     URL url = updateInfo.getUrl();
 
-    Path updateDirectory = preferencesService.getPreferences().getData().getCacheDirectory().resolve("update");
+    Path updateDirectory = dataPrefs.getCacheDirectory().resolve("update");
     Path targetFile = updateDirectory.resolve(updateInfo.getFileName());
     Files.createDirectories(targetFile.getParent());
 

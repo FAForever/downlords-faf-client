@@ -35,7 +35,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
@@ -68,7 +67,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ChatUserItemController implements Controller<Node> {
 
-  private final PreferencesService preferencesService;
   private final I18n i18n;
   private final UiService uiService;
   private final MapService mapService;
@@ -77,6 +75,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final AvatarService avatarService;
   private final EventBus eventBus;
   private final ContextMenuBuilder contextMenuBuilder;
+  private final ChatPrefs chatPrefs;
 
   private final ObjectProperty<ChatChannelUser> chatUser = new SimpleObjectProperty<>();
 
@@ -230,8 +229,6 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void bindProperties() {
-    ChatPrefs chatPrefs = preferencesService.getPreferences().getChat();
-
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, noteIcon);
     noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
     mapNameLabel.visibleProperty().bind(chatPrefs.showMapNameProperty().and(mapNameLabel.textProperty().isNotEmpty()));

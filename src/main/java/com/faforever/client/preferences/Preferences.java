@@ -4,17 +4,14 @@ import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder
 import com.fasterxml.jackson.annotation.JsonMerge;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.TableColumn.SortType;
 import lombok.AccessLevel;
@@ -23,7 +20,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.Map;
 
-import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.collections.FXCollections.observableHashMap;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -31,53 +27,50 @@ public class Preferences {
 
   public static final String DEFAULT_THEME_NAME = "default";
 
-  @Getter
   @JsonMerge
+  @Getter
   GeneralPrefs general = new GeneralPrefs();
-  @Getter
   @JsonMerge
+  @Getter
   DataPrefs data = new DataPrefs();
-  @Getter
   @JsonMerge
-  WindowPrefs mainWindow = new WindowPrefs();
   @Getter
+  WindowPrefs window = new WindowPrefs();
   @JsonMerge
+  @Getter
   GeneratorPrefs generator = new GeneratorPrefs();
-  @Getter
   @JsonMerge
+  @Getter
   ForgedAlliancePrefs forgedAlliance = new ForgedAlliancePrefs();
-  @Getter
   @JsonMerge
+  @Getter
   LoginPrefs login = new LoginPrefs();
-  @Getter
   @JsonMerge
+  @Getter
   ChatPrefs chat = new ChatPrefs();
-  @Getter
   @JsonMerge
-  NotificationsPrefs notification = new NotificationsPrefs();
   @Getter
+  NotificationPrefs notification = new NotificationPrefs();
   @JsonMerge
+  @Getter
   LocalizationPrefs localization = new LocalizationPrefs();
-  @Getter
   @JsonMerge
+  @Getter
   LastGamePrefs lastGame = new LastGamePrefs();
-  @Getter
   @JsonMerge
+  @Getter
   MatchmakerPrefs matchmaker = new MatchmakerPrefs();
-  @Getter
   @JsonMerge
-  NewsPrefs news = new NewsPrefs();
   @Getter
-  @JsonMerge
   DeveloperPrefs developer = new DeveloperPrefs();
-  @Getter
   @JsonMerge
+  @Getter
   VaultPrefs vault = new VaultPrefs();
-  @Getter
   @JsonMerge
+  @Getter
   UserPrefs user = new UserPrefs();
-  @Getter
   @JsonMerge
+  @Getter
   FiltersPrefs filters = new FiltersPrefs();
 
   StringProperty themeName = new SimpleStringProperty(DEFAULT_THEME_NAME);
@@ -85,7 +78,6 @@ public class Preferences {
   BooleanProperty mapAndModAutoUpdate = new SimpleBooleanProperty(true);
   BooleanProperty hidePrivateGames = new SimpleBooleanProperty(false);
   BooleanProperty hideModdedGames = new SimpleBooleanProperty(false);
-  ListProperty<String> ignoredNotifications = new SimpleListProperty<>(observableArrayList());
   StringProperty gamesViewMode = new SimpleStringProperty();
   MapProperty<String, SortType> gameTableSorting = new SimpleMapProperty<>(observableHashMap());
   ObjectProperty<TilesSortingOrder> gameTileSortingOrder = new SimpleObjectProperty<>(TilesSortingOrder.PLAYER_DES);
@@ -95,7 +87,6 @@ public class Preferences {
   BooleanProperty advancedIceLogEnabled = new SimpleBooleanProperty(false);
   IntegerProperty cacheLifeTimeInDays = new SimpleIntegerProperty(30);
   BooleanProperty gameDataCacheActivated = new SimpleBooleanProperty(false);
-  BooleanProperty debugLogEnabled = new SimpleBooleanProperty(false);
 
 
   public TilesSortingOrder getGameTileSortingOrder() {
@@ -140,18 +131,6 @@ public class Preferences {
 
   public StringProperty themeNameProperty() {
     return themeName;
-  }
-
-  public ObservableList<String> getIgnoredNotifications() {
-    return ignoredNotifications.get();
-  }
-
-  public void setIgnoredNotifications(ObservableList<String> ignoredNotifications) {
-    this.ignoredNotifications.set(ignoredNotifications);
-  }
-
-  public ListProperty<String> ignoredNotificationsProperty() {
-    return ignoredNotifications;
   }
 
   public ObservableMap<String, SortType> getGameTableSorting() {
@@ -211,7 +190,7 @@ public class Preferences {
     return showGameDetailsSidePane;
   }
 
-  public boolean getPreReleaseCheckEnabled() {
+  public boolean isPreReleaseCheckEnabled() {
     return preReleaseCheckEnabled.get();
   }
 
@@ -263,19 +242,7 @@ public class Preferences {
     return gameDataCacheActivated;
   }
 
-  public boolean isDebugLogEnabled() {
-    return debugLogEnabled.get();
-  }
-
-  public void setDebugLogEnabled(boolean debugLogEnabled) {
-    this.debugLogEnabled.set(debugLogEnabled);
-  }
-
-  public BooleanProperty debugLogEnabledProperty() {
-    return debugLogEnabled;
-  }
-
-  public boolean getMapAndModAutoUpdate() {
+  public boolean isMapAndModAutoUpdate() {
     return mapAndModAutoUpdate.get();
   }
 

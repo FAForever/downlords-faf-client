@@ -8,7 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.TransientNotification;
 import com.faforever.client.player.event.FriendJoinedGameEvent;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.NotificationPrefs;
 import com.faforever.client.util.IdenticonUtil;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -27,8 +27,8 @@ public class FriendJoinedGameNotifier implements InitializingBean {
   private final I18n i18n;
   private final EventBus eventBus;
   private final JoinGameHelper joinGameHelper;
-  private final PreferencesService preferencesService;
   private final AudioService audioService;
+  private final NotificationPrefs notificationPrefs;
 
   @Override
   public void afterPropertiesSet() {
@@ -39,11 +39,11 @@ public class FriendJoinedGameNotifier implements InitializingBean {
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
     PlayerBean player = event.getPlayer();
     GameBean game = event.getGame();
-    if (preferencesService.getPreferences().getNotification().isFriendJoinsGameSoundEnabled()) {
+    if (notificationPrefs.isFriendJoinsGameSoundEnabled()) {
       audioService.playFriendJoinsGameSound();
     }
 
-    if (preferencesService.getPreferences().getNotification().isFriendJoinsGameToastEnabled()) {
+    if (notificationPrefs.isFriendJoinsGameToastEnabled()) {
       notificationService.addNotification(new TransientNotification(
           i18n.get("friend.joinedGameNotification.title", player.getUsername(), game.getTitle()),
           i18n.get("friend.joinedGameNotification.action"),

@@ -7,7 +7,7 @@ import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLocalReplayVaultEvent;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.preferences.PreferencesService;
+import com.faforever.client.preferences.VaultPrefs;
 import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
@@ -33,13 +33,16 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
 
   private final ReplayService replayService;
   private final EventBus eventBus;
+  private final VaultPrefs vaultPrefs;
+
   private ReplayDetailController replayDetailController;
 
 
-  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, EventBus eventBus, PreferencesService preferencesService, ReportingService reportingService) {
-    super(uiService, notificationService, i18n, preferencesService, reportingService);
+  public LocalReplayVaultController(ReplayService replayService, UiService uiService, NotificationService notificationService, I18n i18n, EventBus eventBus, ReportingService reportingService, VaultPrefs vaultPrefs) {
+    super(uiService, notificationService, i18n, reportingService, vaultPrefs);
     this.replayService = replayService;
     this.eventBus = eventBus;
+    this.vaultPrefs = vaultPrefs;
   }
 
   @Override
@@ -121,7 +124,7 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   protected void initSearchController() {
     searchController.setRootType(Game.class);
     searchController.setSearchableProperties(SearchablePropertyMappings.GAME_PROPERTY_MAPPING);
-    searchController.setSortConfig(preferencesService.getPreferences().getVault().onlineReplaySortConfigProperty());
+    searchController.setSortConfig(vaultPrefs.onlineReplaySortConfigProperty());
     searchController.setOnlyShowLastYearCheckBoxVisible(true);
   }
 
