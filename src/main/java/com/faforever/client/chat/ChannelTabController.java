@@ -20,7 +20,6 @@ import com.faforever.client.util.Assert;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.WeakInvalidationListener;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
@@ -319,7 +318,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getMessageCssClass(String login) {
-    return chatService.createChatUserIfNecessary(login, chatChannel.getName())
+    return chatService.getOrCreateChatUser(login, chatChannel.getName())
         .isModerator() ? MODERATOR_STYLE_CLASS : super.getMessageCssClass(login);
   }
 
@@ -344,7 +343,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getInlineStyle(String username) {
-    ChatChannelUser user = chatService.createChatUserIfNecessary(username, chatChannel.getName());
+    ChatChannelUser user = chatService.getOrCreateChatUser(username, chatChannel.getName());
 
     if (chatPrefs.isHideFoeMessages() && user.getCategories()
         .stream()

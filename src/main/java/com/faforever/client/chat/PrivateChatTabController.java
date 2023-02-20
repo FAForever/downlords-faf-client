@@ -89,7 +89,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
     playerService.getPlayerByNameIfOnline(username)
         .ifPresent(player -> avatarImageView.imageProperty()
             .bind(player.avatarProperty().map(avatarService::loadAvatar)));
-    ChatChannelUser chatUser = chatService.createChatUserIfNecessary(username, username);
+    ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username);
     privatePlayerInfoController.setChatUser(chatUser);
     chatService.addUsersListener(username, new WeakMapChangeListener<>(chatUsersByNameListener));
   }
