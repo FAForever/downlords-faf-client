@@ -388,7 +388,7 @@ public class GameService implements InitializingBean {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Set<String> simModUIds = game.getSimMods().keySet();
-    return modService.getFeaturedMod(game.getFeaturedMod())
+    return modService.getFeaturedMod(game.getFeaturedMod()).toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUIds))
         .thenRun(() -> {
           try {
@@ -443,7 +443,7 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    return modService.getFeaturedMod(featuredMod)
+    return modService.getFeaturedMod(featuredMod).toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapFolderName).handleAsync((ignoredResult, throwable) -> {
           try {
@@ -538,7 +538,7 @@ public class GameService implements InitializingBean {
 
     Set<String> simModUids = game.getSimMods().keySet();
 
-    return modService.getFeaturedMod(gameType)
+    return modService.getFeaturedMod(gameType).toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
@@ -589,7 +589,7 @@ public class GameService implements InitializingBean {
 
     log.info("Matchmaking search has been started");
 
-    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
+    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName()).toFuture()
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
@@ -773,7 +773,7 @@ public class GameService implements InitializingBean {
     synchronized (currentGame) {
       GameBean game = currentGame.get();
 
-      modService.getFeaturedMod(game.getFeaturedMod())
+      modService.getFeaturedMod(game.getFeaturedMod()).toFuture()
           .thenCompose(featuredModBean -> hostGame(new NewGameInfo(game.getTitle(), game.getPassword(), featuredModBean, game.getMapFolderName(), new HashSet<>(game.getSimMods()
               .values()), GameVisibility.PUBLIC, game.getRatingMin(), game.getRatingMax(), game.getEnforceRating())));
     }
@@ -830,7 +830,7 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    modService.getFeaturedMod(TUTORIALS.getTechnicalName())
+    modService.getFeaturedMod(TUTORIALS.getTechnicalName()).toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, emptySet()))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))
         .thenCompose(aVoid -> {

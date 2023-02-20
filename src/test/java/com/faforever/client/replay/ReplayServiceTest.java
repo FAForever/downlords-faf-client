@@ -263,7 +263,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     when(replayDataParser.getMetadata()).thenReturn(replayMetadata);
     when(replayFileReader.parseReplay(file1)).thenReturn(replayDataParser);
-    when(modService.getFeaturedMod(any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(modService.getFeaturedMod(any())).thenReturn(Mono.empty());
     when(mapService.findByMapFolderName(any())).thenReturn(CompletableFuture.completedFuture(Optional.of(MapVersionBeanBuilder.create().defaultValues().get())));
 
     List<ReplayBean> localReplays = instance.loadLocalReplayPage(1, 1).get().getT1();

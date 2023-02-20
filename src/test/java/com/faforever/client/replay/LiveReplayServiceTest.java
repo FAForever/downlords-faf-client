@@ -75,10 +75,10 @@ public class LiveReplayServiceTest extends UITest {
   @Test
   public void testGetWatchDelayTime() {
     GameBean game1 = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now()).get();
-    assertFalse(instance.getWatchDelayTime(game1).isNegative());
+    assertFalse(instance.getWatchDelayDuration(game1).isNegative());
 
     GameBean game2 = GameBeanBuilder.create().defaultValues().startTime(OffsetDateTime.now().minusSeconds(6)).get();
-    assertTrue(instance.getWatchDelayTime(game2).isNegative());
+    assertTrue(instance.getWatchDelayDuration(game2).isNegative());
   }
 
   @Test

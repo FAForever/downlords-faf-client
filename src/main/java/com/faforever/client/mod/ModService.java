@@ -466,7 +466,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)
-  public CompletableFuture<FeaturedModBean> getFeaturedMod(String technicalName) {
+  public Mono<FeaturedModBean> getFeaturedMod(String technicalName) {
     ElideNavigatorOnCollection<FeaturedMod> navigator = ElideNavigator.of(FeaturedMod.class)
         .collection()
         .setFilter(qBuilder().string("technicalName").eq(technicalName))
@@ -474,9 +474,9 @@ public class ModService implements InitializingBean, DisposableBean {
         .pageSize(1);
     return fafApiAccessor.getMany(navigator)
         .next()
-        .map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
         .switchIfEmpty(Mono.error(new IllegalArgumentException("Not a valid featured mod: " + technicalName)))
-        .toFuture();
+        .map(dto -> modMapper.map(dto, new CycleAvoidingMappingContext()))
+        .cache();
   }
 
   @Cacheable(value = CacheNames.FEATURED_MODS, sync = true)

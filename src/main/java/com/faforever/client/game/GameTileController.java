@@ -104,7 +104,7 @@ public class GameTileController implements Controller<Node> {
     Assert.checkNotNullIllegalState(this.game, "Game has already been set");
     this.game = game;
 
-    modService.getFeaturedMod(game.getFeaturedMod())
+    modService.getFeaturedMod(game.getFeaturedMod()).toFuture()
         .thenAccept(featuredModBean -> JavaFxUtil.runLater(() -> gameTypeLabel.setText(StringUtils.defaultString(featuredModBean.getDisplayName()))));
 
     WeakInvalidationListener weakGamePropertiesListener = new WeakInvalidationListener(gamePropertiesInvalidationListener);

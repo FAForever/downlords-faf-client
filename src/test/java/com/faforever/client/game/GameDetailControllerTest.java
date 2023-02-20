@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
@@ -89,7 +90,7 @@ public class GameDetailControllerTest extends UITest {
     game = GameBeanBuilder.create().defaultValues().get();
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(teamCardController.getRoot()).then(invocation -> new Pane());
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(FeaturedModBeanBuilder.create()
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(mock(Image.class));
@@ -174,7 +175,7 @@ public class GameDetailControllerTest extends UITest {
         .technicalName("ladder")
         .displayName("LADDER")
         .get();
-    when(modService.getFeaturedMod(mod.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(mod));
+    when(modService.getFeaturedMod(mod.getTechnicalName())).thenReturn(Mono.just(mod));
     runOnFxThreadAndWait(() -> game.setFeaturedMod(mod.getTechnicalName()));
     assertEquals(mod.getDisplayName(), instance.gameTypeLabel.getText());
   }

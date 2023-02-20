@@ -26,6 +26,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +76,7 @@ public class CoopControllerTest extends UITest {
   public void setUp() throws Exception {
     when(coopService.getLeaderboard(any(), anyInt())).thenReturn(completedFuture(emptyList()));
     when(coopService.getMissions()).thenReturn(completedFuture(emptyList()));
-    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(completedFuture(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
+    when(modService.getFeaturedMod(COOP.getTechnicalName())).thenReturn(Mono.just(FeaturedModBeanBuilder.create().defaultValues().technicalName("coop").get()));
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(gamesTableController.getRoot()).thenReturn(new Pane());

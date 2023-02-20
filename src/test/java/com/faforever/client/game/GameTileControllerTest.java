@@ -17,10 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -59,7 +59,7 @@ public class GameTileControllerTest extends UITest {
     game = GameBeanBuilder.create().defaultValues().get();
 
     when(i18n.get(anyString())).thenReturn("test");
-    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(CompletableFuture.completedFuture(
+    when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(
         FeaturedModBeanBuilder.create().defaultValues().get()
     ));
 
