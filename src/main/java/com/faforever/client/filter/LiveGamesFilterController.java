@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -55,6 +56,8 @@ public class LiveGamesFilterController extends AbstractFilterController<GameBean
         .values()
         .stream()
         .flatMap(Collection::stream)
+        .map(playerService::getPlayerByIdIfOnline)
+        .flatMap(Optional::stream)
         .map(PlayerBean::getUsername)
         .anyMatch(name -> StringUtils.containsIgnoreCase(name, text)));
   }

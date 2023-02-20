@@ -95,7 +95,7 @@ public class GameTileController implements Controller<Node> {
     boolean friendsInGame = playerService.areFriendsInGame(game);
     JavaFxUtil.runLater(() -> {
       numberOfPlayersLabel.setText(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers()));
-      avgRatingLabel.setText(i18n.get("game.avgRating.format", Math.round(game.getAverageRating() / 100.0) * 100.0));
+      avgRatingLabel.setText(i18n.get("game.avgRating.format", Math.round(playerService.getAverageRatingForGame(game) / 100.0) * 100.0));
       getRoot().pseudoClassStateChanged(FRIEND_IN_GAME_PSEUDO_CLASS, friendsInGame);
     });
   }
@@ -116,6 +116,8 @@ public class GameTileController implements Controller<Node> {
     JavaFxUtil.addListener(game.simModsProperty(), weakGamePropertiesListener);
     JavaFxUtil.addAndTriggerListener(game.passwordProtectedProperty(), weakGamePropertiesListener);
     JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamsListener);
+    JavaFxUtil.addAndTriggerListener(game.maxPlayersProperty(), weakTeamsListener);
+    JavaFxUtil.addAndTriggerListener(game.numActivePlayersProperty(), weakTeamsListener);
   }
 
   private String getSimModsLabelContent(Map<String, String> simMods) {

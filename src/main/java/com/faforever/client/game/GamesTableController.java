@@ -16,7 +16,6 @@ import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.base.Joiner;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
@@ -67,7 +66,7 @@ public class GamesTableController implements Controller<Node> {
   public TableColumn<GameBean, Image> mapPreviewColumn;
   public TableColumn<GameBean, String> gameTitleColumn;
   public TableColumn<GameBean, PlayerFill> playersColumn;
-  public TableColumn<GameBean, Number> averageRatingColumn;
+  public TableColumn<GameBean, Double> averageRatingColumn;
   public TableColumn<GameBean, RatingRange> ratingRangeColumn;
   public TableColumn<GameBean, ObservableMap<String, String>> modsColumn;
   public TableColumn<GameBean, String> hostColumn;
@@ -122,11 +121,9 @@ public class GamesTableController implements Controller<Node> {
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
-    playersColumn.setCellValueFactory(param -> Bindings.createObjectBinding(() -> new PlayerFill(param.getValue()
-        .getNumActivePlayers(), param.getValue().getMaxPlayers()), param.getValue().teamsProperty()));
+    playersColumn.setCellValueFactory(param -> param.getValue().maxPlayersProperty().flatMap(max -> param.getValue().numActivePlayersProperty().map(active -> new PlayerFill(active, max.intValue()))));
     playersColumn.setCellFactory(param -> playersCell());
-    ratingRangeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(new RatingRange(param.getValue()
-        .getRatingMin(), param.getValue().getRatingMax())));
+    ratingRangeColumn.setCellValueFactory(param -> param.getValue().ratingMaxProperty().flatMap(max -> param.getValue().ratingMinProperty().map(min -> new RatingRange(min, max))));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new HostTableCell(playerService));
@@ -135,9 +132,8 @@ public class GamesTableController implements Controller<Node> {
     coopMissionName.setVisible(coopMissionNameProvider != null);
 
     if (averageRatingColumn != null) {
-      averageRatingColumn.setCellValueFactory(param -> Bindings.createDoubleBinding(() -> param.getValue()
-          .getAverageRating(), param.getValue().teamsProperty()));
-      averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"), number -> Math.round(number.doubleValue() / 100.0) * 100.0));
+      averageRatingColumn.setCellValueFactory(param -> playerService.getAverageRatingPropertyForGame(param.getValue()));
+      averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"), number -> Math.round(number / 100.0) * 100.0));
     }
 
     if (coopMissionNameProvider != null) {

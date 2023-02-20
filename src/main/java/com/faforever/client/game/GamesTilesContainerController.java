@@ -5,6 +5,7 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.lobby.GameStatus;
@@ -20,7 +21,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -34,11 +34,16 @@ import java.util.Map;
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
-@RequiredArgsConstructor
 public class GamesTilesContainerController implements Controller<Node> {
 
   private final UiService uiService;
+  private final PlayerService playerService;
   private final Preferences preferences;
+
+  private final Comparator<Node> averageRatingComparator;
+  private final Comparator<Node> titleComparator = Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle()
+      .toLowerCase(Locale.US));
+  private final Comparator<Node> playerCountComparator = Comparator.comparingInt(o -> ((GameBean) o.getUserData()).getNumActivePlayers());
 
   public FlowPane tiledFlowPane;
   public ScrollPane tiledScrollPane;
@@ -56,8 +61,16 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   private final SimpleChangeListener<? super TilesSortingOrder> sortingListener  = this::onSortingChanged;
 
-  private final ListChangeListener<GameBean> gameListChangeListener = this::onGameListChange;;
+  private final ListChangeListener<GameBean> gameListChangeListener = this::onGameListChange;
   private final SimpleInvalidationListener tooltipShowingListener = this::onTooltipChanged;
+
+  public GamesTilesContainerController(UiService uiService, PlayerService playerService, Preferences preferences) {
+    this.uiService = uiService;
+    this.playerService = playerService;
+    this.preferences = preferences;
+
+    averageRatingComparator = Comparator.comparingDouble(o -> this.playerService.getAverageRatingForGame((GameBean) o.getUserData()));
+  }
 
   private void sortNodes() {
     ObservableList<Node> sortedChildren = tiledFlowPane.getChildren().sorted(appliedComparator);
@@ -99,7 +112,14 @@ public class GamesTilesContainerController implements Controller<Node> {
       return;
     }
     preferences.setGameTileSortingOrder(newValue);
-    appliedComparator = newValue.getComparator();
+    appliedComparator = switch (newValue) {
+      case PLAYER_DES -> playerCountComparator.reversed();
+      case PLAYER_ASC -> playerCountComparator;
+      case AVG_RATING_DES -> averageRatingComparator.reversed();
+      case AVG_RATING_ASC -> averageRatingComparator;
+      case NAME_DES -> titleComparator.reversed();
+      case NAME_ASC -> titleComparator;
+    };
     sortNodes();
   }
 
@@ -189,21 +209,18 @@ public class GamesTilesContainerController implements Controller<Node> {
   }
 
   public enum TilesSortingOrder {
-    PLAYER_DES(Comparator.comparingInt(o -> ((GameBean) o.getUserData()).getNumActivePlayers()), true, "tiles.comparator.playersDescending"),
-    PLAYER_ASC(Comparator.comparingInt(o -> ((GameBean) o.getUserData()).getNumActivePlayers()), false, "tiles.comparator.playersAscending"),
-    AVG_RATING_DES(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), true, "tiles.comparator.averageRatingDescending"),
-    AVG_RATING_ASC(Comparator.comparingDouble(o -> ((GameBean) o.getUserData()).getAverageRating()), false, "tiles.comparator.averageRatingAscending"),
-    NAME_DES(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), true, "tiles.comparator.nameDescending"),
-    NAME_ASC(Comparator.comparing(o -> ((GameBean) o.getUserData()).getTitle().toLowerCase(Locale.US)), false, "tiles.comparator.nameAscending");
+    PLAYER_DES("tiles.comparator.playersDescending"),
+    PLAYER_ASC("tiles.comparator.playersAscending"),
+    AVG_RATING_DES("tiles.comparator.averageRatingDescending"),
+    AVG_RATING_ASC("tiles.comparator.averageRatingAscending"),
+    NAME_DES("tiles.comparator.nameDescending"),
+    NAME_ASC("tiles.comparator.nameAscending");
 
-    @Getter
-    private final Comparator<Node> comparator;
     @Getter
     private final String displayNameKey;
 
-    TilesSortingOrder(Comparator<Node> comparator, boolean reversed, String displayNameKey) {
+    TilesSortingOrder(String displayNameKey) {
       this.displayNameKey = displayNameKey;
-      this.comparator = reversed ? comparator.reversed() : comparator;
     }
   }
 }
