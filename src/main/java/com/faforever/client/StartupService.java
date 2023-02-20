@@ -24,10 +24,14 @@ public class StartupService {
   private final GeneralPrefs generalPrefs;
 
   private void checkCyrillic() {
+    if (!generalPrefs.isShowCyrillicWarning()) {
+      return;
+    }
+
     String preferencesDirectoryString = String.valueOf(operatingSystem.getPreferencesDirectory());
     log.debug("Current preferences directory " + preferencesDirectoryString);
 
-    if (preferencesDirectoryString.matches(".*[а-яА-ЯёЁ].*") && !generalPrefs.isShowCyrillicWarning()) {
+    if (!preferencesDirectoryString.matches(".*[а-яА-ЯёЁ].*")) {
       return;
     }
 
