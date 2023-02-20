@@ -94,7 +94,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.TUTORIALS;
@@ -276,18 +275,15 @@ public class GameService implements InitializingBean {
 
   private ChangeListener<Set<Integer>> generatePlayerChangeListener(GameBean newGame) {
     return (observable, oldValue, newValue) -> {
-      Set<Integer> playersToRemove = oldValue.stream()
+      oldValue.stream()
           .filter(player -> !newValue.contains(player))
-          .collect(Collectors.toSet());
-      Set<Integer> playersToAdd = newValue.stream()
-          .filter(player -> !oldValue.contains(player))
-          .collect(Collectors.toSet());
-      playersToRemove.stream()
           .map(playerService::getPlayerByIdIfOnline)
           .flatMap(Optional::stream)
           .filter(player -> newGame.equals(player.getGame()))
           .forEach(player -> player.setGame(null));
-      playersToAdd.stream()
+
+      newValue.stream()
+          .filter(player -> !oldValue.contains(player))
           .map(playerService::getPlayerByIdIfOnline)
           .flatMap(Optional::stream)
           .forEach(player -> player.setGame(newGame));
