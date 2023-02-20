@@ -36,7 +36,7 @@ public class FriendOnlineNotifier implements InitializingBean {
 
   @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
-    PlayerBean player = event.getPlayer();
+    PlayerBean player = event.player();
 
     if (player.getSocialStatus() != SocialStatus.FRIEND) {
       return;

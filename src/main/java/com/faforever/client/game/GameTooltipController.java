@@ -6,6 +6,7 @@ import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
@@ -23,7 +24,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
@@ -31,6 +34,7 @@ import java.util.Set;
 public class GameTooltipController implements Controller<Node> {
 
   private final UiService uiService;
+  private final PlayerService playerService;
 
   public TitledPane modsPane;
   public TilePane teamsPane;
@@ -69,12 +73,17 @@ public class GameTooltipController implements Controller<Node> {
   private void createTeams() {
     if (game != null) {
       List<Node> teamCardPanes = new ArrayList<>();
-      for (Map.Entry<Integer, Set<PlayerBean>> entry : game.getTeams().entrySet()) {
+      for (Map.Entry<Integer, Set<Integer>> entry : game.getTeams().entrySet()) {
         Integer team = entry.getKey();
         if (team != null) {
 
           TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-          teamCardController.setPlayersInTeam(team, entry.getValue(),
+          Set<PlayerBean> players = entry.getValue()
+              .stream()
+              .map(playerService::getPlayerByIdIfOnline)
+              .flatMap(Optional::stream)
+              .collect(Collectors.toSet());
+          teamCardController.setPlayersInTeam(team, players,
               player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
           teamCardPanes.add(teamCardController.getRoot());
         }

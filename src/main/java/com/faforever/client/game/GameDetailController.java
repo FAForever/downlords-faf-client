@@ -14,6 +14,7 @@ import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.RatingUtil;
@@ -46,7 +47,9 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -64,6 +67,7 @@ public class GameDetailController implements Controller<Pane> {
   private final ContextMenuBuilder contextMenuBuilder;
   private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
+  private final PlayerService playerService;
   private final EventBus eventBus;
 
   public Pane root;
@@ -229,12 +233,17 @@ public class GameDetailController implements Controller<Pane> {
   private void createTeams() {
     List<Node> teamCardPanes = new ArrayList<>();
     if (game != null) {
-      for (Map.Entry<Integer, Set<PlayerBean>> entry : game.getTeams().entrySet()) {
+      for (Map.Entry<Integer, Set<Integer>> entry : game.getTeams().entrySet()) {
         Integer team = entry.getKey();
 
         if (team != null) {
           TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-          teamCardController.setPlayersInTeam(team, entry.getValue(),
+          Set<PlayerBean> players = entry.getValue()
+              .stream()
+              .map(playerService::getPlayerByIdIfOnline)
+              .flatMap(Optional::stream)
+              .collect(Collectors.toSet());
+          teamCardController.setPlayersInTeam(team, players,
               player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
           teamCardPanes.add(teamCardController.getRoot());
         }
