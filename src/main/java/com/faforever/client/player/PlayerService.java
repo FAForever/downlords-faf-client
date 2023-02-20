@@ -20,7 +20,6 @@ import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SocialInfo;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -134,7 +133,7 @@ public class PlayerService implements InitializingBean {
       }
     });
 
-    currentPlayer.bind(userService.ownPlayerProperty().map(this::createOrUpdatePlayerForPlayerInfo));
+    currentPlayer.bind(userService.ownPlayerProperty().map(this::createOrUpdateFromOwnPlayer));
   }
 
   @Subscribe
@@ -181,8 +180,7 @@ public class PlayerService implements InitializingBean {
   /**
    * Gets a player for the given username. A new player is created and registered if it does not yet exist.
    */
-  @VisibleForTesting
-  PlayerBean createOrUpdatePlayerForPlayerInfo(@NonNull com.faforever.commons.lobby.Player playerInfo) {
+  private PlayerBean createOrUpdateFromOwnPlayer(@NonNull com.faforever.commons.lobby.Player playerInfo) {
     return playersById.compute(playerInfo.getId(), (id, knownPlayer) -> {
       if (knownPlayer == null) {
         PlayerBean newPlayer = new PlayerBean();

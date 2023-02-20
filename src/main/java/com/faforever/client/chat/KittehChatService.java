@@ -201,7 +201,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
 
   @Subscribe
   public void onPlayerOnline(PlayerOnlineEvent event) {
-    PlayerBean player = event.getPlayer();
+    PlayerBean player = event.player();
 
     channels.values()
         .stream()

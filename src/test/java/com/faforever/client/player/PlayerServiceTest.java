@@ -111,8 +111,7 @@ public class PlayerServiceTest extends ServiceTest {
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance.afterPropertiesSet();
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo2);
+    playerInfoTestPublisher.next(new PlayerInfo(List.of(playerInfo1, playerInfo2)));
 
     socialInfoTestPublisher.assertSubscribers(1);
     playerInfoTestPublisher.assertSubscribers(1);
@@ -124,7 +123,7 @@ public class PlayerServiceTest extends ServiceTest {
 
     assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
     assertNotNull(instance.getPlayerByIdIfOnline(4).map(PlayerBean::getIdleSince).orElse(null));
-    verify(eventBus).post(any(PlayerOnlineEvent.class));
+    verify(eventBus).post(new PlayerOnlineEvent(instance.getPlayerByIdIfOnline(4).orElseThrow()));
   }
 
   @Test
@@ -156,7 +155,7 @@ public class PlayerServiceTest extends ServiceTest {
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
-    instance.createOrUpdatePlayerForPlayerInfo(new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()));
+    playerInfoTestPublisher.next(new PlayerInfo(List.of(new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()))));
 
     assertEquals(0, player.getNumberOfGames());
     assertEquals("ABC", player.getClan());
@@ -307,9 +306,7 @@ public class PlayerServiceTest extends ServiceTest {
   public void testThereIsFriendInGame() {
     Map<Integer, Set<Integer>> teams = Map.of(1, Set.of(1, 2));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo2);
     instance.addFriend(player1);
 
     assertTrue(instance.areFriendsInGame(game));
@@ -336,7 +333,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentPlayerNotInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(1))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(0))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
   }
