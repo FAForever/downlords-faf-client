@@ -51,6 +51,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 
 import static java.nio.file.Files.createDirectories;
 import static javax.imageio.ImageIO.write;
@@ -510,6 +511,23 @@ public final class JavaFxUtil {
       }
     } else {
       Platform.runLater(runnable);
+    }
+  }
+
+  public static void runLaterAndAwait(Runnable runnable) {
+    CountDownLatch doneLatch = new CountDownLatch(1);
+    runLater(() -> {
+      try {
+        runnable.run();
+      } finally {
+        doneLatch.countDown();
+      }
+    });
+
+    try {
+      doneLatch.await();
+    } catch (InterruptedException e) {
+      log.error("A thread interrupted", e);
     }
   }
 

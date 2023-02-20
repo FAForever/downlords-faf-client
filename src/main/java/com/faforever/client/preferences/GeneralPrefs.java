@@ -9,6 +9,7 @@ import lombok.experimental.FieldDefaults;
 public class GeneralPrefs {
 
   BooleanProperty disableSteamStart = new SimpleBooleanProperty(false);
+  BooleanProperty showCyrillicWarning = new SimpleBooleanProperty(true);
 
   public boolean getDisableSteamStart() {
     return disableSteamStart.get();
@@ -20,5 +21,17 @@ public class GeneralPrefs {
 
   public void setDisableSteamStart(boolean disableSteamStart) {
     this.disableSteamStart.set(disableSteamStart);
+  }
+
+  public boolean isShowCyrillicWarning() {
+    return showCyrillicWarning.get();
+  }
+
+  public BooleanProperty showCyrillicWarningProperty() {
+    return showCyrillicWarning;
+  }
+
+  public void setShowCyrillicWarning(boolean showCyrillicWarning) {
+    this.showCyrillicWarning.set(showCyrillicWarning);
   }
 }

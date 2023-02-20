@@ -10,17 +10,12 @@ import com.faforever.client.notification.Action;
 import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
-import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.svg.SvgImageLoaderFactory;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
 import com.faforever.client.ui.taskbar.WindowsTaskbarProgressUpdater;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -36,9 +31,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -55,7 +48,6 @@ public class FafClientApplication extends Application {
   public static final String PROFILE_WINDOWS = "windows";
   public static final String PROFILE_LINUX = "linux";
   public static final String PROFILE_MAC = "mac";
-  public static final int EXIT_STATUS_RAN_AS_ADMIN = 3;
 
   private ConfigurableApplicationContext applicationContext;
 
@@ -72,37 +64,6 @@ public class FafClientApplication extends Application {
     applicationContext = new SpringApplicationBuilder(FafClientApplication.class)
         .bannerMode(Mode.OFF)
         .run(getParameters().getRaw().toArray(new String[0]));
-
-    OperatingSystem operatingSystem = applicationContext.getBean(OperatingSystem.class);
-
-    String preferencesDirectoryString = String.valueOf(operatingSystem.getPreferencesDirectory());
-    log.debug("Current preferences directory " + preferencesDirectoryString);
-    if (preferencesDirectoryString.matches(".*[а-яА-ЯёЁ].*")) {
-      I18n i18n = applicationContext.getBean(I18n.class);
-      String warningMessage = i18n.get("home.directory.warning.cyrillic");
-      String closeText = i18n.get("close");
-      ButtonType closeButton = new ButtonType(closeText, ButtonData.CANCEL_CLOSE);
-      CountDownLatch waitForUserInput = new CountDownLatch(1);
-      JavaFxUtil.runLater(() -> {
-        Alert alert = new Alert(AlertType.WARNING, warningMessage, closeButton);
-        alert.showAndWait();
-        waitForUserInput.countDown();
-      });
-      waitForUserInput.await();
-    }
-
-    if (operatingSystem.runsAsAdmin()) {
-      CountDownLatch waitForUserInput = new CountDownLatch(1);
-      JavaFxUtil.runLater(() -> {
-        Alert alert = new Alert(AlertType.WARNING, "Please don't run the client as admin. Because if you do you might need to delete C:\\ProgramData\\FAForever to be able to run it as a normal user again. Do you want to ignore the warning and continue?", ButtonType.YES, ButtonType.NO);
-        Optional<ButtonType> buttonType = alert.showAndWait();
-        if (buttonType.filter(button -> button == ButtonType.NO).isPresent()) {
-          System.exit(EXIT_STATUS_RAN_AS_ADMIN);
-        }
-        waitForUserInput.countDown();
-      });
-      waitForUserInput.await();
-    }
 
     Thread.setDefaultUncaughtExceptionHandler(applicationContext.getBean(GlobalExceptionHandler.class));
   }
