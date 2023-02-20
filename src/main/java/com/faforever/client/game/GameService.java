@@ -72,6 +72,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.function.TupleUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -222,8 +224,10 @@ public class GameService implements InitializingBean {
 
     Flux<GameBean> gameUpdateFlux = fafServerAccessor.getEvents(GameInfo.class)
         .flatMap(gameInfo -> gameInfo.getGames() == null ? Flux.just(gameInfo) : Flux.fromIterable(gameInfo.getGames()))
+        .flatMap(gameInfo -> Mono.zip(Mono.just(gameInfo), Mono.justOrEmpty(gameIdToGame.get(gameInfo.getUid()))
+            .switchIfEmpty(initializeGameBean(gameInfo))))
         .publishOn(javaFxService.getFxApplicationScheduler())
-        .map(gameInfo -> gameIdToGame.compute(gameInfo.getUid(), (id, knownGame) -> gameMapper.update(gameInfo, knownGame == null ? new GameBean() : knownGame)))
+        .map(TupleUtils.function(gameMapper::update))
         .publishOn(javaFxService.getSingleScheduler())
         .doOnNext(this::notifyIfFriendJoinedGame)
         .doOnError(throwable -> log.error("Error processing game", throwable))
@@ -231,6 +235,7 @@ public class GameService implements InitializingBean {
         .share();
 
     gameUpdateFlux.filter(game -> game.getStatus() == GameStatus.CLOSED)
+        .doOnNext(GameBean::removeListeners)
         .publishOn(javaFxService.getFxApplicationScheduler())
         .doOnError(throwable -> log.error("Error closing game", throwable))
         .retry()
@@ -257,10 +262,40 @@ public class GameService implements InitializingBean {
     });
   }
 
+  private Mono<GameBean> initializeGameBean(GameInfo gameInfo) {
+    return Mono.fromCallable(() -> {
+          GameBean newGame = new GameBean();
+          newGame.setId(gameInfo.getUid());
+          newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
+          return newGame;
+        })
+        .publishOn(javaFxService.getFxApplicationScheduler())
+        .doOnNext(game -> gameIdToGame.put(game.getId(), game));
+  }
+
+  private ChangeListener<Set<Integer>> generatePlayerChangeListener(GameBean newGame) {
+    return (observable, oldValue, newValue) -> {
+      oldValue.stream()
+          .filter(player -> !newValue.contains(player))
+          .map(playerService::getPlayerByIdIfOnline)
+          .flatMap(Optional::stream)
+          .filter(player -> newGame.equals(player.getGame()))
+          .forEach(player -> player.setGame(null));
+
+      newValue.stream()
+          .filter(player -> !oldValue.contains(player))
+          .map(playerService::getPlayerByIdIfOnline)
+          .flatMap(Optional::stream)
+          .forEach(player -> player.setGame(newGame));
+    };
+  }
+
   private void notifyIfFriendJoinedGame(GameBean game) {
     if (game.getStatus() == GameStatus.OPEN && game.getGameType() != GameType.MATCHMAKER) {
       game.getAllPlayersInGame()
           .stream()
+          .map(playerService::getPlayerByIdIfOnline)
+          .flatMap(Optional::stream)
           .filter(player -> player.getSocialStatus() == SocialStatus.FRIEND)
           .forEach(player -> eventBus.post(new FriendJoinedGameEvent(player, game)));
     }

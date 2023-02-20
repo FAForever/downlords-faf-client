@@ -3,7 +3,6 @@ package com.faforever.client.player;
 import com.faforever.client.api.FafApiAccessor;
 import com.faforever.client.avatar.AvatarService;
 import com.faforever.client.avatar.event.AvatarChangedEvent;
-import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.NameRecordBean;
 import com.faforever.client.domain.PlayerBean;
@@ -14,16 +13,17 @@ import com.faforever.client.mapstruct.PlayerMapper;
 import com.faforever.client.preferences.UserPrefs;
 import com.faforever.client.remote.FafServerAccessor;
 import com.faforever.client.user.UserService;
+import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.NameRecord;
 import com.faforever.commons.api.dto.Player;
 import com.faforever.commons.api.elide.ElideNavigator;
 import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.lobby.PlayerInfo;
 import com.faforever.commons.lobby.SocialInfo;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
@@ -36,8 +36,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.function.TupleUtils;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -96,17 +96,13 @@ public class PlayerService implements InitializingBean {
     fafServerAccessor.getEvents(PlayerInfo.class)
         .flatMap(playerInfo -> Flux.fromIterable(playerInfo.getPlayers()))
         .publishOn(javaFxService.getFxApplicationScheduler())
-        .map(this::createOrUpdatePlayerForPlayerInfo)
-        .publishOn(javaFxService.getSingleScheduler())
-        .doOnNext(player -> {
-          if (player.getIdleSince() == null) {
-            eventBus.post(new PlayerOnlineEvent(player));
-          }
-        })
+        .flatMap(player -> Mono.zip(Mono.just(player), Mono.justOrEmpty(playersById.get(player.getId()))
+            .switchIfEmpty(initializePlayer(player))))
         .publishOn(javaFxService.getFxApplicationScheduler())
+        .map(TupleUtils.function(playerMapper::update))
         .doOnError(throwable -> log.error("Error processing player", throwable))
         .retry()
-        .subscribe(player -> player.setIdleSince(Instant.now()));
+        .subscribe();
 
     fafServerAccessor.getEvents(SocialInfo.class)
         .flatMap(socialInfo -> {
@@ -137,7 +133,7 @@ public class PlayerService implements InitializingBean {
       }
     });
 
-    currentPlayer.bind(userService.ownPlayerProperty().map(this::createOrUpdatePlayerForPlayerInfo));
+    currentPlayer.bind(userService.ownPlayerProperty().map(this::createOrUpdateFromOwnPlayer));
   }
 
   @Subscribe
@@ -147,20 +143,25 @@ public class PlayerService implements InitializingBean {
     player.setAvatar(event.getAvatar());
   }
 
-  @Subscribe
-  public void onChatMessage(ChatMessageEvent event) {
-    getPlayerByNameIfOnline(event.getMessage().getUsername()).ifPresent(this::resetIdleTime);
+  public ObservableValue<Double> getAverageRatingPropertyForGame(GameBean gameBean) {
+    return gameBean.activePlayersInGameProperty()
+        .map(ids -> ids.stream()
+            .map(this::getPlayerByIdIfOnline)
+            .flatMap(Optional::stream)
+            .mapToInt(player -> RatingUtil.getLeaderboardRating(player, gameBean.getLeaderboard()))
+            .average()
+            .orElse(0));
   }
 
-  private void resetIdleTime(PlayerBean player) {
-    player.setIdleSince(Instant.now());
+  public double getAverageRatingForGame(GameBean gameBean) {
+    return getAverageRatingPropertyForGame(gameBean).getValue();
   }
 
   public boolean areFriendsInGame(GameBean game) {
     if (game == null) {
       return false;
     }
-    return game.getAllPlayersInGame().stream().anyMatch(player -> friendList.contains(player.getId()));
+    return game.getAllPlayersInGame().stream().anyMatch(friendList::contains);
   }
 
   public Optional<Image> getCurrentAvatarByPlayerName(String name) {
@@ -169,7 +170,7 @@ public class PlayerService implements InitializingBean {
 
   public boolean isCurrentPlayerInGame(GameBean game) {
     // TODO the following can be removed as soon as the server tells us which game a player is in.
-    return game.getAllPlayersInGame().contains(getCurrentPlayer());
+    return game.getAllPlayersInGame().contains(userService.getUserId());
   }
 
   public boolean isOnline(Integer playerId) {
@@ -179,8 +180,7 @@ public class PlayerService implements InitializingBean {
   /**
    * Gets a player for the given username. A new player is created and registered if it does not yet exist.
    */
-  @VisibleForTesting
-  PlayerBean createOrUpdatePlayerForPlayerInfo(@NonNull com.faforever.commons.lobby.Player playerInfo) {
+  private PlayerBean createOrUpdateFromOwnPlayer(@NonNull com.faforever.commons.lobby.Player playerInfo) {
     return playersById.compute(playerInfo.getId(), (id, knownPlayer) -> {
       if (knownPlayer == null) {
         PlayerBean newPlayer = new PlayerBean();
@@ -193,6 +193,19 @@ public class PlayerService implements InitializingBean {
         return playerMapper.update(playerInfo, knownPlayer);
       }
     });
+  }
+
+  private Mono<PlayerBean> initializePlayer(com.faforever.commons.lobby.Player player) {
+    return Mono.fromCallable(() -> {
+          PlayerBean newPlayer = new PlayerBean();
+          newPlayer.setId(player.getId());
+          newPlayer.setUsername(player.getLogin());
+          newPlayer.setNote(notesByPlayerId.get(player.getId()));
+          setPlayerSocialStatus(newPlayer);
+          return newPlayer;
+        }).publishOn(javaFxService.getFxApplicationScheduler())
+        .doOnNext(playerBean -> playersById.put(playerBean.getId(), playerBean))
+        .doOnNext(playerBean -> eventBus.post(new PlayerOnlineEvent(playerBean)));
   }
 
   public void updateNote(PlayerBean player, String text) {
@@ -339,7 +352,6 @@ public class PlayerService implements InitializingBean {
   public void removePlayerIfOnline(String username) {
     synchronized (lock) {
       getPlayerByNameIfOnline(username).ifPresent(player -> {
-        playersByName.remove(player.getUsername());
         playersById.remove(player.getId());
 
         eventBus.post(new PlayerOfflineEvent(player));

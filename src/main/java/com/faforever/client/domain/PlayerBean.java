@@ -151,18 +151,6 @@ public class PlayerBean extends AbstractEntityBean<PlayerBean> {
     return game;
   }
 
-  public Instant getIdleSince() {
-    return idleSince.get();
-  }
-
-  public void setIdleSince(Instant idleSince) {
-    this.idleSince.set(idleSince);
-  }
-
-  public ObjectProperty<Instant> idleSinceProperty() {
-    return idleSince;
-  }
-
   public StringProperty noteProperty() {
     return note;
   }

@@ -16,6 +16,7 @@ import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.main.event.OpenLiveReplayViewEvent;
 import com.faforever.client.map.MapService;
 import com.faforever.client.map.MapService.PreviewSize;
+import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.table.NoSelectionModelTableView;
 import com.faforever.client.util.PopupUtil;
@@ -67,6 +68,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
   private final I18n i18n;
   private final MapService mapService;
   private final TimeService timeService;
+  private final PlayerService playerService;
 
   public VBox root;
   public ToggleButton filterButton;
@@ -138,7 +140,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
     playersColumn.setCellValueFactory(param -> param.getValue().numActivePlayersProperty());
     playersColumn.setCellFactory(param -> new StringCell<>(i18n::number));
-    averageRatingColumn.setCellValueFactory(param -> param.getValue().averageRatingProperty());
+    averageRatingColumn.setCellValueFactory(param -> playerService.getAverageRatingPropertyForGame(param.getValue()));
     averageRatingColumn.setCellFactory(param -> new DecimalCell<>(new DecimalFormat("0"),
         number -> Math.round(number / 100.0) * 100.0));
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());

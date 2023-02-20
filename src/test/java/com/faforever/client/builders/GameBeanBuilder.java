@@ -1,7 +1,6 @@
 package com.faforever.client.builders;
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.game.KnownFeaturedMod;
 import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameStatus;
@@ -125,7 +124,7 @@ public class GameBeanBuilder {
     return this;
   }
 
-  public GameBeanBuilder teams(Map<Integer, Set<PlayerBean>> teams) {
+  public GameBeanBuilder teams(Map<Integer, Set<Integer>> teams) {
     gameBean.setTeams(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
     return this;
   }

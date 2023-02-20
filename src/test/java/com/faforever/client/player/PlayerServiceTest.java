@@ -24,8 +24,6 @@ import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,15 +104,14 @@ public class PlayerServiceTest extends ServiceTest {
 
     when(userService.ownPlayerProperty()).thenReturn(new ReadOnlyObjectWrapper<>(currentPlayer));
     when(userService.getUsername()).thenReturn("junit");
+    when(userService.getUserId()).thenReturn(1);
 
     userPrefs.getNotesByPlayerId().put(3, "junit3");
-    
 
     when(userService.connectionStateProperty()).thenReturn(new SimpleObjectProperty<>());
 
     instance.afterPropertiesSet();
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo2);
+    playerInfoTestPublisher.next(new PlayerInfo(List.of(playerInfo1, playerInfo2)));
 
     socialInfoTestPublisher.assertSubscribers(1);
     playerInfoTestPublisher.assertSubscribers(1);
@@ -126,7 +123,7 @@ public class PlayerServiceTest extends ServiceTest {
 
     assertTrue(instance.getPlayerByIdIfOnline(4).isPresent());
     assertNotNull(instance.getPlayerByIdIfOnline(4).map(PlayerBean::getIdleSince).orElse(null));
-    verify(eventBus).post(any(PlayerOnlineEvent.class));
+    verify(eventBus).post(new PlayerOnlineEvent(instance.getPlayerByIdIfOnline(4).orElseThrow()));
   }
 
   @Test
@@ -158,7 +155,7 @@ public class PlayerServiceTest extends ServiceTest {
     assertEquals(playerInfo1.getClan(), player.getClan());
     assertEquals(playerInfo1.getCountry(), player.getCountry());
 
-    instance.createOrUpdatePlayerForPlayerInfo(new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()));
+    playerInfoTestPublisher.next(new PlayerInfo(List.of(new com.faforever.commons.lobby.Player(2, "junit2", "ABC", null, "DE", new HashMap<>(), new HashMap<>()))));
 
     assertEquals(0, player.getNumberOfGames());
     assertEquals("ABC", player.getClan());
@@ -307,11 +304,9 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testThereIsFriendInGame() {
-    ObservableMap<Integer, Set<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, Set.of(playerMapper.update(playerInfo1, new PlayerBean()), playerMapper.update(playerInfo2, new PlayerBean()))));
+    Map<Integer, Set<Integer>> teams = Map.of(1, Set.of(1, 2));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo1);
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
-    instance.createOrUpdatePlayerForPlayerInfo(playerInfo2);
     instance.addFriend(player1);
 
     assertTrue(instance.areFriendsInGame(game));
@@ -319,7 +314,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testNoFriendInGame() {
-    ObservableMap<Integer, Set<PlayerBean>> teams = FXCollections.observableMap(Map.of(1, Set.of(playerMapper.update(playerInfo1, new PlayerBean()))));
+    Map<Integer, Set<Integer>> teams = Map.of(1, Set.of(1));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
     player2.setId(100);
@@ -331,14 +326,14 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentPlayerInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(PlayerBeanBuilder.create().defaultValues().id(1).get()))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(1))).get();
 
     assertTrue(instance.isCurrentPlayerInGame(game));
   }
 
   @Test
   public void testCurrentPlayerNotInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(PlayerBeanBuilder.create().defaultValues().id(2).get()))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(0))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
   }

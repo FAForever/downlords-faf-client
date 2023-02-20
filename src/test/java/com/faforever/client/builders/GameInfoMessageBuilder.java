@@ -79,6 +79,11 @@ public class GameInfoMessageBuilder {
     return this;
   }
 
+  public GameInfoMessageBuilder teamIds(List<TeamIds> teamIds) {
+    this.teamIds = teamIds;
+    return this;
+  }
+
   public GameInfoMessageBuilder simMods(Map<String, String> simMods) {
     this.simMods = simMods;
     return this;

@@ -1,6 +1,5 @@
 package com.faforever.client.domain;
 
-import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
@@ -26,6 +25,7 @@ import lombok.Value;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -62,15 +62,15 @@ public class GameBean {
    * Maps a sim mod's UID to its name.
    */
   ReadOnlyMapWrapper<String, String> simMods = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
-  ReadOnlyMapWrapper<Integer, Set<PlayerBean>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
-  ObservableValue<Set<PlayerBean>> allPlayersInGame = teams.map(team -> team.values()
+  ReadOnlyMapWrapper<Integer, Set<Integer>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
+  ObservableValue<Set<Integer>> allPlayersInGame = teams.map(team -> team.values()
       .stream()
       .flatMap(Collection::stream)
       .collect(Collectors.toSet()))
       .orElse(Collections.emptySet());
 
   @Getter(AccessLevel.NONE)
-  ObservableValue<Set<PlayerBean>> nonObservingPlayersInGame = teams.map(team -> team.entrySet()
+  ObservableValue<Set<Integer>> activePlayersInGame = teams.map(team -> team.entrySet()
       .stream()
       .filter(entry -> !OBSERVERS_TEAM.equals(entry.getKey()))
       .map(Entry::getValue)
@@ -78,12 +78,9 @@ public class GameBean {
       .collect(Collectors.toSet()))
       .orElse(Collections.emptySet());
 
-  ObservableValue<Double> averageRating = nonObservingPlayersInGame.map(players -> players.stream()
-          .mapToInt(player -> RatingUtil.getLeaderboardRating(player, getLeaderboard()))
-          .average()
-          .orElse(0.0))
-      .orElse(0.0);
-  ObservableValue<Integer> numActivePlayers = nonObservingPlayersInGame.map(Collection::size).orElse(0);
+  ObservableValue<Integer> numActivePlayers = activePlayersInGame.map(Collection::size).orElse(0);
+
+  Set<ChangeListener<Set<Integer>>> playerChangeListeners = new HashSet<>();
 
   ChangeListener<Set<PlayerBean>> playerChangeListener = (observable, oldValue, newValue) -> {
     Set<PlayerBean> playersToRemove = oldValue.stream().filter(player -> !newValue.contains(player)).collect(Collectors.toSet());
@@ -91,10 +88,6 @@ public class GameBean {
     playersToRemove.stream().filter(player -> equals(player.getGame())).forEach(player -> player.setGame(null));
     playersToAdd.forEach(player -> player.setGame(this));
   };
-
-  public GameBean() {
-    allPlayersInGame.addListener(playerChangeListener);
-  }
 
   public String getHost() {
     return host.get();
@@ -266,15 +259,15 @@ public class GameBean {
   /**
    * Returns an unmodifiable map that maps team numbers (1, 2, ...) to a list of player ids.
    */
-  public Map<Integer, Set<PlayerBean>> getTeams() {
+  public Map<Integer, Set<Integer>> getTeams() {
     return teams.get();
   }
 
-  public void setTeams(Map<Integer, Set<PlayerBean>> teams) {
+  public void setTeams(Map<Integer, Set<Integer>> teams) {
     this.teams.set(teams == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
   }
 
-  public ReadOnlyMapProperty<Integer, Set<PlayerBean>> teamsProperty() {
+  public ReadOnlyMapProperty<Integer, Set<Integer>> teamsProperty() {
     return teams.getReadOnlyProperty();
   }
 
@@ -314,12 +307,20 @@ public class GameBean {
     return startTime;
   }
 
-  public Collection<PlayerBean> getAllPlayersInGame() {
+  public Collection<Integer> getAllPlayersInGame() {
     return allPlayersInGame.getValue();
   }
 
-  public ObservableValue<Set<PlayerBean>> allPlayersInGameProperty() {
+  public ObservableValue<Set<Integer>> allPlayersInGameProperty() {
     return allPlayersInGame;
+  }
+
+  public Set<Integer> getActivePlayersInGame() {
+    return activePlayersInGame.getValue();
+  }
+
+  public ObservableValue<Set<Integer>> activePlayersInGameProperty() {
+    return activePlayersInGame;
   }
 
   public int getNumActivePlayers() {
@@ -330,11 +331,12 @@ public class GameBean {
     return numActivePlayers;
   }
 
-  public double getAverageRating() {
-    return averageRating.getValue();
+  public void addPlayerChangeListener(ChangeListener<Set<Integer>> listener) {
+    playerChangeListeners.add(listener);
+    allPlayersInGame.addListener(listener);
   }
 
-  public ObservableValue<Double> averageRatingProperty() {
-    return averageRating;
+  public void removeListeners() {
+    playerChangeListeners.forEach(allPlayersInGame::removeListener);
   }
 }
