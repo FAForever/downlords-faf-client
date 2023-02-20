@@ -37,10 +37,10 @@ public class StartupService {
 
     JavaFxUtil.runLaterAndAwait(() -> {
       Alert alert = new Alert(AlertType.WARNING, i18n.get("home.directory.warning.cyrillic"),
-          new ButtonType(i18n.get("ignoreWarning"), ButtonData.LEFT),
-          new ButtonType(i18n.get("close"), ButtonData.CANCEL_CLOSE));
+          new ButtonType(i18n.get("ignoreWarning"), ButtonData.CANCEL_CLOSE),
+          new ButtonType(i18n.get("close"), ButtonData.OK_DONE));
       alert.showAndWait()
-          .filter(button -> button.getButtonData() == ButtonData.LEFT)
+          .filter(button -> button.getButtonData() == ButtonData.CANCEL_CLOSE)
           .ifPresent(button -> generalPrefs.setShowCyrillicWarning(false));
     });
   }
