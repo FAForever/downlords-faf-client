@@ -298,6 +298,8 @@ dependencies {
   implementation("org.springframework:spring-web")
   implementation("org.springframework:spring-websocket")
 
+  implementation("io.projectreactor.addons:reactor-extra")
+
   def commonsVersion = "b0a374fa17988e0a8249fcf9b6d3a511b476ef8d"
 
   implementation("com.github.FAForever.faf-java-commons:faf-commons-data:${commonsVersion}") {

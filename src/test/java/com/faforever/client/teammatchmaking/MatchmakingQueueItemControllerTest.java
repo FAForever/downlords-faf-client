@@ -18,7 +18,6 @@ import com.google.common.eventbus.EventBus;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.ActionEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -88,7 +87,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
 
   @Test
   public void testShowMapPool() {
-    instance.showMapPool(new ActionEvent());
+    instance.showMapPool();
 
     verify(eventBus).post(any(ShowMapPoolEvent.class));
   }
@@ -105,7 +104,7 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     queue.setJoined(true);
     runOnFxThreadAndWait(() -> instance.joinLeaveQueueButton.fire());
 
-    verify(teamMatchmakingService).leaveQueue(instance.queue);
+    verify(teamMatchmakingService).leaveQueue(instance.getQueue());
     assertThat(instance.refreshingLabel.isVisible(), is(true));
   }
 
@@ -149,9 +148,9 @@ public class MatchmakingQueueItemControllerTest extends UITest {
   public void testPopulationListener() {
     assertThat(instance.playersInQueueLabel.getText(), is(String.valueOf(queue.getPlayersInQueue())));
     when(i18n.get(eq("teammatchmaking.playersInQueue"), anyInt())).thenReturn("10");
-    runOnFxThreadAndWait(() -> queue.setPlayersInQueue(10));
-    verify(i18n).get("teammatchmaking.playersInQueue", queue.getPlayersInQueue());
+    queue.setPlayersInQueue(10);
     assertThat(instance.playersInQueueLabel.getText(), is(String.valueOf(queue.getPlayersInQueue())));
+    verify(i18n).get("teammatchmaking.playersInQueue", queue.getPlayersInQueue());
   }
 
   @Test
@@ -159,8 +158,8 @@ public class MatchmakingQueueItemControllerTest extends UITest {
     assertThat(instance.activeGamesLabel.getText(), is(String.valueOf(queue.getActiveGames())));
     when(i18n.get(eq("teammatchmaking.activeGames"), anyInt())).thenReturn("10");
     runOnFxThreadAndWait(() -> queue.setActiveGames(10));
-    verify(i18n).get("teammatchmaking.activeGames", queue.getActiveGames());
     assertThat(instance.activeGamesLabel.getText(), is(String.valueOf(queue.getActiveGames())));
+    verify(i18n).get("teammatchmaking.activeGames", queue.getActiveGames());
   }
 
   @Test
