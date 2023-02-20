@@ -102,7 +102,7 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
-    when(teamMatchmakingService.getMatchmakerQueues()).thenReturn(matchmakerQueues);
+    when(teamMatchmakingService.getQueues()).thenReturn(matchmakerQueues);
     when(playerService.getCurrentPlayer()).thenReturn(player);
     when(i18n.get(anyString())).thenReturn("");
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");

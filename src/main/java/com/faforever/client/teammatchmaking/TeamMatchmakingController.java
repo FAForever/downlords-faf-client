@@ -26,6 +26,7 @@ import com.google.common.eventbus.Subscribe;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.WeakChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -137,6 +138,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     selectFactions(factions);
     teamMatchmakingService.sendFactionSelection(factions);
     teamMatchmakingService.requestMatchmakerInfo();
+    renderQueues();
   }
 
   private void initializeDynamicChatPosition() {
@@ -224,7 +226,16 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().ownerProperty(), new WeakChangeListener<>(partyOwnerChangeListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> setCrownVisibility());
     JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getParty().getMembers(), (InvalidationListener) observable -> renderPartyMembers());
-    JavaFxUtil.addAndTriggerListener(teamMatchmakingService.getMatchmakerQueues(), (InvalidationListener) observable -> renderQueues());
+    JavaFxUtil.addListener(teamMatchmakingService.getQueues(), (ListChangeListener<MatchmakerQueueBean>) change -> {
+      boolean shouldReRender = false;
+      while (change.next()) {
+        shouldReRender |= change.wasAdded() || change.wasRemoved();
+      }
+
+      if (shouldReRender) {
+        renderQueues();
+      }
+    });
     JavaFxUtil.addListener(teamMatchmakingService.currentlyInQueueProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
@@ -334,7 +345,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
   }
 
   private synchronized void renderQueues() {
-    List<MatchmakerQueueBean> queues = new ArrayList<>(teamMatchmakingService.getMatchmakerQueues());
+    List<MatchmakerQueueBean> queues = new ArrayList<>(teamMatchmakingService.getQueues());
     queues.sort(Comparator.comparing(MatchmakerQueueBean::getId));
     int queuesPerRow = Math.min(queues.size(), 4);
     List<VBox> queueCards = queues.stream().map(queue -> {
