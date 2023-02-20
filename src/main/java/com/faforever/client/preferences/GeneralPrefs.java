@@ -23,7 +23,7 @@ public class GeneralPrefs {
     this.disableSteamStart.set(disableSteamStart);
   }
 
-  public boolean getShowCyrillicWarning() {
+  public boolean isShowCyrillicWarning() {
     return showCyrillicWarning.get();
   }
 
