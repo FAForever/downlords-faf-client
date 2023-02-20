@@ -142,34 +142,42 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   }
 
   @Override
-  public ChatChannelUser createChatUserIfNecessary(String username, String channelName) {
-    Channel channel = client.getChannel(channelName)
-        .orElseThrow(() -> new IllegalArgumentException("Channel '" + channelName + "' is unknown"));
-    User user = channel.getUser(username)
-        .orElseThrow(() -> new IllegalArgumentException("Chat user '" + username + "' is unknown for channel '" + channelName + "'"));
+  public ChatChannelUser getOrCreateChatUser(String username, String channelName) {
+    Optional<Channel> channel = client.getChannel(channelName);
+    Optional<User> user = channel.flatMap(chan -> chan.getUser(username));
 
-   return createChatUserIfNecessary(user, channel);
+    if (channel.isPresent() && user.isPresent()) {
+      return getOrCreateChatUser(user.get(), channel.get());
+    } else {
+      ChatChannel chatChannel = getOrCreateChannel(channelName);
+      return chatChannel.getUser(username).orElseGet(() -> initializeUserForChannel(username, chatChannel));
+    }
   }
 
-  private ChatChannelUser createChatUserIfNecessary(User user, Channel channel) {
+  private ChatChannelUser getOrCreateChatUser(User user, Channel channel) {
     String username = user.getNick();
     String channelName = channel.getName();
 
     ChatChannel chatChannel = getOrCreateChannel(channelName);
     return chatChannel.getUser(username).orElseGet(() -> {
+      ChatChannelUser chatChannelUser = initializeUserForChannel(username, chatChannel);
+
       boolean isModerator = channel.getUserModes(user)
           .stream()
           .flatMap(Collection::stream)
           .map(ChannelUserMode::getNickPrefix)
           .anyMatch(MODERATOR_PREFIXES::contains);
-
-      ChatChannelUser chatChannelUser = new ChatChannelUser(username, channelName);
       chatChannelUser.setModerator(isModerator);
-      playerService.getPlayerByNameIfOnline(username).ifPresent(chatChannelUser::setPlayer);
-      populateColor(chatChannelUser);
-      chatChannel.addUser(chatChannelUser);
       return chatChannelUser;
     });
+  }
+
+  private ChatChannelUser initializeUserForChannel(String username, ChatChannel chatChannel) {
+    ChatChannelUser chatChannelUser = new ChatChannelUser(username, chatChannel.getName());
+    playerService.getPlayerByNameIfOnline(username).ifPresent(chatChannelUser::setPlayer);
+    populateColor(chatChannelUser);
+    chatChannel.addUser(chatChannelUser);
+    return chatChannelUser;
   }
 
   @Subscribe
@@ -224,7 +232,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
   private void onJoinEvent(ChannelJoinEvent event) {
     User user = event.getActor();
     ircLog.debug("User joined channel: {}", user);
-    createChatUserIfNecessary(user, event.getChannel());
+    getOrCreateChatUser(user, event.getChannel());
   }
 
   @Handler
@@ -232,7 +240,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     Channel channel = event.getChannel();
     List<ChatChannelUser> users = channel.getUsers()
         .stream()
-        .map(user -> createChatUserIfNecessary(user, channel))
+        .map(user -> getOrCreateChatUser(user, channel))
         .collect(Collectors.toList());
     getOrCreateChannel(channel.getName()).addUsers(users);
   }
@@ -289,7 +297,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
       Mode changedMode = channelModeStatus.getMode();
       Action modeAction = channelModeStatus.getAction();
       if (changedMode instanceof ChannelUserMode && MODERATOR_PREFIXES.contains(((ChannelUserMode) changedMode).getNickPrefix())) {
-        ChatChannelUser chatChannelUser = createChatUserIfNecessary(username, channel.getName());
+        ChatChannelUser chatChannelUser = getOrCreateChatUser(username, channel.getName());
         if (modeAction == Action.ADD) {
           chatChannelUser.setModerator(true);
         } else if (modeAction == Action.REMOVE) {
@@ -304,7 +312,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     User user = event.getActor();
     ircLog.debug("Received private message: {}", event);
 
-    ChatChannelUser sender = createChatUserIfNecessary(user.getNick(), user.getNick());
+    ChatChannelUser sender = getOrCreateChatUser(user.getNick(), user.getNick());
     if (sender.getPlayer()
         .map(PlayerBean::getSocialStatus)
         .filter(status -> status == SocialStatus.FOE)
@@ -402,7 +410,8 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     } else if (userToColor.containsKey(lowercaseUsername)) {
       color = userToColor.get(lowercaseUsername);
     } else {
-      color = chatChannelUser.getCategories().stream()
+      color = chatChannelUser.getCategories()
+          .stream()
           .sorted()
           .map(groupToColor::get)
           .filter(Objects::nonNull)

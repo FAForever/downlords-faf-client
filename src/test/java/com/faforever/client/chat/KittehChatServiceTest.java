@@ -530,7 +530,7 @@ public class KittehChatServiceTest extends UITest {
     when(spyClient.getChannel(user1.getNick())).thenReturn(Optional.of(privateChannel));
     when(privateChannel.getUser(user1.getNick())).thenReturn(Optional.of(user1));
 
-    ChatChannelUser foeUser = instance.createChatUserIfNecessary(user1.getNick(), user1.getNick());
+    ChatChannelUser foeUser = instance.getOrCreateChatUser(user1.getNick(), user1.getNick());
     foeUser.setPlayer(PlayerBeanBuilder.create()
         .defaultValues()
         .username(user1.getNick())
@@ -712,8 +712,8 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testCreateOrGetChatUserStringPopulatedMap() {
-    ChatChannelUser addedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
-    ChatChannelUser returnedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
@@ -721,8 +721,8 @@ public class KittehChatServiceTest extends UITest {
 
   @Test
   public void testCreateOrGetChatUserUserObjectPopulatedMap() {
-    ChatChannelUser addedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
-    ChatChannelUser returnedUser = instance.createChatUserIfNecessary(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser addedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
+    ChatChannelUser returnedUser = instance.getOrCreateChatUser(user1.getNick(), DEFAULT_CHANNEL_NAME);
 
     assertThat(returnedUser, is(addedUser));
     assertEquals(returnedUser, addedUser);
