@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
-import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.ImageViewHelper;
@@ -161,7 +160,7 @@ public class GameDetailControllerTest extends UITest {
     assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
     when(i18n.get("game.detail.players.format", 2, 16)).thenReturn("2/16");
     runOnFxThreadAndWait(() -> {
-      game.setTeams(Map.of(1, Set.of(PlayerBeanBuilder.create().id(1).get()), 2, Set.of(PlayerBeanBuilder.create().id(2).get())));
+      game.setTeams(Map.of(1, Set.of(1), 2, Set.of(2)));
       game.setMaxPlayers(16);
     });
     assertEquals(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()), instance.numberOfPlayersLabel.getText());
@@ -184,7 +183,7 @@ public class GameDetailControllerTest extends UITest {
   public void testTeamListener() {
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
     runOnFxThreadAndWait(() -> game.getTeams()
-        .putAll(Map.of(1, Set.of(PlayerBeanBuilder.create().id(1).get()), 2, Set.of(PlayerBeanBuilder.create().id(0).get()))));
+        .putAll(Map.of(1, Set.of(1), 2, Set.of(2))));
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
   }
 

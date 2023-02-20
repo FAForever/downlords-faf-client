@@ -3,7 +3,6 @@ package com.faforever.client.game;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
@@ -50,7 +49,7 @@ public class GameTooltipControllerTest extends UITest {
   @Test
   public void testSetGame() {
     Map<String, String> simMods = new HashMap<>();
-    Map<Integer, Set<PlayerBean>> teams = new HashMap<>();
+    Map<Integer, Set<Integer>> teams = new HashMap<>();
 
     GameBean game = GameBeanBuilder.create().defaultValues().simMods(simMods).teams(teams).get();
 
@@ -60,7 +59,7 @@ public class GameTooltipControllerTest extends UITest {
     assertFalse(instance.modsPane.isVisible());
     assertThat(instance.teamsPane.getPrefColumns(), is(0));
 
-    teams.put(1, Set.of(PlayerBeanBuilder.create().defaultValues().get()));
+    teams.put(1, Set.of(1));
     instance.setGame(game);
     instance.displayGame();
     WaitForAsyncUtils.waitForFxEvents();

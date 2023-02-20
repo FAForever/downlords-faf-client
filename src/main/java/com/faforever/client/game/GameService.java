@@ -265,7 +265,8 @@ public class GameService implements InitializingBean {
 
   private Mono<GameBean> initializeGameBean(GameInfo gameInfo) {
     return Mono.fromCallable(() -> {
-          GameBean newGame = new GameBean(gameInfo.getUid());
+          GameBean newGame = new GameBean();
+          newGame.setId(gameInfo.getUid());
           newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
           return newGame;
         })

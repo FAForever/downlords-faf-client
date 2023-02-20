@@ -6,7 +6,6 @@ import com.faforever.client.domain.LeaderboardRatingBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.player.SocialStatus;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,11 +62,6 @@ public class PlayerBeanBuilder {
 
   public PlayerBeanBuilder game(GameBean game) {
     playerBean.setGame(game);
-    return this;
-  }
-
-  public PlayerBeanBuilder idleSince(Instant idleSince) {
-    playerBean.setIdleSince(idleSince);
     return this;
   }
 

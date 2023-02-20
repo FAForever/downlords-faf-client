@@ -6,8 +6,6 @@ import com.faforever.commons.lobby.GameType;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyMapProperty;
 import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -47,7 +45,7 @@ public class GameBean {
   StringProperty featuredMod = new SimpleStringProperty();
   @EqualsAndHashCode.Include
   @ToString.Include
-  ReadOnlyIntegerWrapper id = new ReadOnlyIntegerWrapper();
+  IntegerProperty id = new SimpleIntegerProperty();
   IntegerProperty maxPlayers = new SimpleIntegerProperty();
   StringProperty leaderboard = new SimpleStringProperty();
   ObjectProperty<Integer> ratingMin = new SimpleObjectProperty<>();
@@ -90,10 +88,6 @@ public class GameBean {
     playersToRemove.stream().filter(player -> equals(player.getGame())).forEach(player -> player.setGame(null));
     playersToAdd.forEach(player -> player.setGame(this));
   };
-
-  public GameBean(Integer uid) {
-    id.set(uid);
-  }
 
   public String getHost() {
     return host.get();
@@ -147,8 +141,12 @@ public class GameBean {
     return id.get();
   }
 
-  public ReadOnlyIntegerProperty idProperty() {
-    return id.getReadOnlyProperty();
+  public void setId(Integer id) {
+    this.id.setValue(id);
+  }
+
+  public IntegerProperty idProperty() {
+    return id;
   }
 
   public Integer getMaxPlayers() {

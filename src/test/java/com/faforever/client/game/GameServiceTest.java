@@ -42,6 +42,7 @@ import com.faforever.client.teammatchmaking.event.PartyOwnerChangedEvent;
 import com.faforever.client.test.ServiceTest;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.commons.lobby.GameInfo;
+import com.faforever.commons.lobby.GameInfo.TeamIds;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.eventbus.EventBus;
@@ -406,13 +407,19 @@ public class GameServiceTest extends ServiceTest {
   public void testPlayerLeftOpenGame() {
     PlayerBean player1 = PlayerBeanBuilder.create().defaultValues().id(1).get();
     PlayerBean player2 = PlayerBeanBuilder.create().defaultValues().id(2).get();
-    Map<Integer, Set<PlayerBean>> teams = Map.of(1, Set.of(player1), 2, Set.of(player2));
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
+
+    when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player1));
+    when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(player2));
+
+    List<TeamIds> teamIds = List.of(new TeamIds(1, List.of(1)), new TeamIds(2, List.of(2)));
+
+    testPublisher.next(GameInfoMessageBuilder.create(0).defaultValues().teamIds(teamIds).get());
+    GameBean game = instance.getByUid(0);
 
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
 
-    game.setTeams(Map.of(2, Set.of(player2)));
+    game.setTeams(Map.of(2, Set.of(2)));
 
     assertThat(player1.getGame(), is(CoreMatchers.nullValue()));
     assertThat(player2.getGame(), is(game));
@@ -733,7 +740,7 @@ public class GameServiceTest extends ServiceTest {
         .defaultValues()
         .id(123)
         .status(PLAYING)
-        .teams(Map.of(1, Set.of(junitPlayer)))
+        .teams(Map.of(1, Set.of(junitPlayer.getId())))
         .get();
     junitPlayer.setGame(game);
 

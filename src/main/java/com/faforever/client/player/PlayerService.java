@@ -95,8 +95,8 @@ public class PlayerService implements InitializingBean {
     eventBus.register(this);
 
     fafServerAccessor.getEvents(PlayerInfo.class)
-        .publishOn(javaFxService.getFxApplicationScheduler())
         .flatMap(playerInfo -> Flux.fromIterable(playerInfo.getPlayers()))
+        .publishOn(javaFxService.getFxApplicationScheduler())
         .flatMap(player -> Mono.zip(Mono.just(player), Mono.justOrEmpty(playersById.get(player.getId()))
             .switchIfEmpty(initializePlayer(player))))
         .publishOn(javaFxService.getFxApplicationScheduler())
