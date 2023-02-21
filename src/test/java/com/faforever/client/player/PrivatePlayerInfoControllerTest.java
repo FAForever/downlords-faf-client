@@ -15,6 +15,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.leaderboard.LeaderboardService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.vault.replay.WatchButtonController;
+import javafx.beans.property.SimpleObjectProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -32,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +64,7 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     player = PlayerBeanBuilder.create().defaultValues().game(null).get();
     chatChannelUser = ChatChannelUserBuilder.create(USERNAME, CHANNEL_NAME).defaultValues().player(player).get();
 
+    when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(achievementService.getPlayerAchievements(player.getId())).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(achievementService.getAchievementDefinitions()).thenReturn(CompletableFuture.completedFuture(List.of()));
     when(leaderboardService.getLeaderboards()).thenReturn(CompletableFuture.completedFuture(List.of(leaderboard)));
@@ -114,7 +115,6 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController).setGame(player.getGame());
   }
 
   @Test
@@ -127,7 +127,6 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     player.setGame(GameBeanBuilder.create().defaultValues().get());
 
     assertTrue(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController).setGame(player.getGame());
   }
 
   @Test
@@ -137,12 +136,10 @@ public class PrivatePlayerInfoControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     assertTrue(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController, times(1)).setGame(player.getGame());
 
     player.setGame(null);
 
     assertFalse(instance.gameDetailWrapper.isVisible());
-    verify(gameDetailController, times(1)).setGame(player.getGame());
   }
 
   @Test

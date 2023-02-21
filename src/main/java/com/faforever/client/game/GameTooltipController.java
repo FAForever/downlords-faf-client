@@ -75,16 +75,15 @@ public class GameTooltipController implements Controller<Node> {
       List<Node> teamCardPanes = new ArrayList<>();
       for (Map.Entry<Integer, Set<Integer>> entry : game.getTeams().entrySet()) {
         Integer team = entry.getKey();
-        if (team != null) {
 
+        if (team != null) {
           TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
           Set<PlayerBean> players = entry.getValue()
               .stream()
               .map(playerService::getPlayerByIdIfOnline)
               .flatMap(Optional::stream)
               .collect(Collectors.toSet());
-          teamCardController.setPlayersInTeam(team, players,
-              player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
+          teamCardController.setPlayersInTeam(team, players, player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
           teamCardPanes.add(teamCardController.getRoot());
         }
       }

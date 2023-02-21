@@ -3,6 +3,8 @@ package com.faforever.client.domain;
 import com.faforever.commons.api.dto.VictoryCondition;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
+import javafx.beans.binding.IntegerBinding;
+import javafx.beans.binding.IntegerExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -14,6 +16,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import lombok.AccessLevel;
@@ -78,7 +81,7 @@ public class GameBean {
       .collect(Collectors.toSet()))
       .orElse(Collections.emptySet());
 
-  ObservableValue<Integer> numActivePlayers = activePlayersInGame.map(Collection::size).orElse(0);
+  IntegerExpression numActivePlayers = IntegerBinding.integerExpression(activePlayersInGame.map(Collection::size).orElse(0));
 
   Set<ChangeListener<Set<Integer>>> playerChangeListeners = new HashSet<>();
 
@@ -149,7 +152,7 @@ public class GameBean {
     return id;
   }
 
-  public Integer getMaxPlayers() {
+  public int getMaxPlayers() {
     return maxPlayers.get();
   }
 
@@ -324,10 +327,10 @@ public class GameBean {
   }
 
   public int getNumActivePlayers() {
-    return numActivePlayers.getValue();
+    return numActivePlayers.get();
   }
 
-  public ObservableValue<Integer> numActivePlayersProperty() {
+  public ObservableIntegerValue numActivePlayersProperty() {
     return numActivePlayers;
   }
 

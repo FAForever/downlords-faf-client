@@ -97,7 +97,8 @@ public class GamesTableController implements Controller<Node> {
     initializeGameTable(games, null, true);
   }
 
-  public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider, boolean listenToFilterPreferences) {
+  public void initializeGameTable(ObservableList<GameBean> games, Function<String, String> coopMissionNameProvider,
+                                  boolean listenToFilterPreferences) {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
     JavaFxUtil.addListener(tooltip.showingProperty(), tooltipShowingListener);
@@ -121,9 +122,16 @@ public class GamesTableController implements Controller<Node> {
 
     gameTitleColumn.setCellValueFactory(param -> param.getValue().titleProperty());
     gameTitleColumn.setCellFactory(param -> new StringCell<>(StringUtils::normalizeSpace));
-    playersColumn.setCellValueFactory(param -> param.getValue().maxPlayersProperty().flatMap(max -> param.getValue().numActivePlayersProperty().map(active -> new PlayerFill(active, max.intValue()))));
+    playersColumn.setCellValueFactory(param -> param.getValue()
+        .maxPlayersProperty()
+        .flatMap(max -> param.getValue()
+            .numActivePlayersProperty()
+            .map(Number::intValue)
+            .map(active -> new PlayerFill(active, max.intValue()))));
     playersColumn.setCellFactory(param -> playersCell());
-    ratingRangeColumn.setCellValueFactory(param -> param.getValue().ratingMaxProperty().flatMap(max -> param.getValue().ratingMinProperty().map(min -> new RatingRange(min, max))));
+    ratingRangeColumn.setCellValueFactory(param -> param.getValue()
+        .ratingMaxProperty()
+        .flatMap(max -> param.getValue().ratingMinProperty().map(min -> new RatingRange(min, max))));
     ratingRangeColumn.setCellFactory(param -> ratingTableCell());
     hostColumn.setCellValueFactory(param -> param.getValue().hostProperty());
     hostColumn.setCellFactory(param -> new HostTableCell(playerService));

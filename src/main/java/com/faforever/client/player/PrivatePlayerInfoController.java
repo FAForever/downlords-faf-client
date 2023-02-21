@@ -18,7 +18,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WeakChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -66,9 +65,6 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     }
   };
 
-  private final ChangeListener<GameBean> gameChangeListener = ((observable, oldValue, newValue) -> onPlayerGameChanged(newValue));
-
-
   @Override
   public Node getRoot() {
     return privateUserInfoRoot;
@@ -86,8 +82,7 @@ public class PrivatePlayerInfoController implements Controller<Node> {
   }
 
   private void initializeListeners() {
-    chatUser.flatMap(ChatChannelUser::playerProperty).addListener(new WeakChangeListener<>(playerChangeListener));
-    chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty).addListener(new WeakChangeListener<>(gameChangeListener));
+    chatUser.flatMap(ChatChannelUser::playerProperty).addListener(playerChangeListener);
   }
 
   private void bindProperties() {
@@ -101,11 +96,27 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     unlockedAchievements.visibleProperty().bind(playerExistsProperty);
     unlockedAchievementsLabel.visibleProperty().bind(playerExistsProperty);
 
+    ObservableValue<PlayerBean> playerObservable = chatUser.flatMap(ChatChannelUser::playerProperty);
+
+    gamesPlayed.textProperty()
+        .bind(playerObservable
+            .flatMap(PlayerBean::numberOfGamesProperty)
+            .map(i18n::number));
+
     username.textProperty().bind(chatUser.flatMap(ChatChannelUser::usernameProperty));
-    country.textProperty().bind(chatUser.flatMap(ChatChannelUser::playerProperty)
+    country.textProperty().bind(playerObservable
         .flatMap(PlayerBean::countryProperty)
         .map(i18n::getCountryNameLocalized));
-    userImageView.imageProperty().bind(chatUser.flatMap(ChatChannelUser::playerProperty).map(PlayerBean::getId).map(IdenticonUtil::createIdenticon));
+    userImageView.imageProperty()
+        .bind(playerObservable
+            .map(PlayerBean::getId)
+            .map(IdenticonUtil::createIdenticon));
+    ObservableValue<GameBean> gameObservable = playerObservable
+        .flatMap(PlayerBean::gameProperty);
+    gameDetailController.gameProperty().bind(gameObservable);
+    gameDetailWrapper.visibleProperty().bind(gameObservable.flatMap(GameBean::statusProperty)
+        .map(status -> status == GameStatus.OPEN || status == GameStatus.PLAYING)
+        .orElse(false));
   }
 
   public void setChatUser(ChatChannelUser chatUser) {
@@ -133,11 +144,6 @@ public class PrivatePlayerInfoController implements Controller<Node> {
         });
   }
 
-  private void onPlayerGameChanged(GameBean game) {
-    gameDetailController.setGame(game);
-    gameDetailWrapper.setVisible(game != null && game.getStatus() != GameStatus.CLOSED);
-  }
-
   private void loadReceiverRatingInformation(PlayerBean player) {
     leaderboardService.getLeaderboards().thenAccept(leaderboards -> {
       StringBuilder ratingNames = new StringBuilder();
@@ -153,7 +159,6 @@ public class PrivatePlayerInfoController implements Controller<Node> {
       JavaFxUtil.runLater(() -> {
         ratingsLabels.setText(ratingNames.toString());
         ratingsValues.setText(ratingNumbers.toString());
-        gamesPlayed.setText(i18n.number(player.getNumberOfGames()));
       });
     });
   }

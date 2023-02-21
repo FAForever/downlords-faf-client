@@ -4,7 +4,7 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.fx.ImageViewHelper;
+import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -21,6 +21,7 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.Animation.Status;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
@@ -32,6 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
@@ -40,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,7 +59,7 @@ public class GameDetailControllerTest extends UITest {
   @Mock
   private ModService modService;
   @Mock
-  private ImageViewHelper imageViewHelper;
+  private JavaFxService javaFxService;
   @Mock
   private UiService uiService;
   @Mock
@@ -88,6 +90,9 @@ public class GameDetailControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     game = GameBeanBuilder.create().defaultValues().get();
+
+    when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
+    when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(teamCardController.getRoot()).then(invocation -> new Pane());
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
@@ -97,6 +102,7 @@ public class GameDetailControllerTest extends UITest {
     when(timeService.shortDuration(any())).thenReturn("duration");
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(i18n.get("game.detail.players.format", game.getNumActivePlayers(), game.getMaxPlayers())).thenReturn(String.format("%d/%d", game.getNumActivePlayers(), game.getMaxPlayers()));
+    when(i18n.get("unknown")).thenReturn("unknown");
 
     loadFxml("theme/play/game_detail.fxml", clazz -> {
       if (clazz == WatchButtonController.class) {
@@ -113,7 +119,6 @@ public class GameDetailControllerTest extends UITest {
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
 
     runOnFxThreadAndWait(() -> instance.setGame(null));
-    assertFalse(instance.getRoot().isVisible());
     assertEquals(0, instance.teamListPane.getChildren().size());
   }
 
@@ -122,7 +127,7 @@ public class GameDetailControllerTest extends UITest {
     assertFalse(instance.watchButton.isVisible());
     assertTrue(instance.joinButton.isVisible());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.PLAYING));
-    assertFalse(instance.watchButton.isVisible());
+    assertTrue(instance.watchButton.isVisible());
     assertFalse(instance.joinButton.isVisible());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
     assertFalse(instance.watchButton.isVisible());
@@ -132,11 +137,8 @@ public class GameDetailControllerTest extends UITest {
     assertFalse(instance.joinButton.isVisible());
     runOnFxThreadAndWait(() -> {
       game.setStatus(GameStatus.PLAYING);
-      game.setStartTime(OffsetDateTime.now());
+      game.setStartTime(null);
     });
-    assertTrue(instance.watchButton.isVisible());
-    assertFalse(instance.joinButton.isVisible());
-    runOnFxThreadAndWait(() -> game.setStartTime(null));
     assertFalse(instance.watchButton.isVisible());
     assertFalse(instance.joinButton.isVisible());
 
@@ -144,6 +146,8 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testGamePropertyListener() {
+    when(i18n.get("unknown")).thenReturn("unknown");
+
     assertEquals(game.getTitle(), instance.gameTitleLabel.getText());
     assertEquals(game.getHost(), instance.hostLabel.getText());
     assertEquals(game.getMapFolderName(), instance.mapLabel.getText());
@@ -206,7 +210,7 @@ public class GameDetailControllerTest extends UITest {
       instance.setGame(null);
     });
     assertFalse(instance.playtimeLabel.isVisible());
-    assertNull(instance.getPlayTimeTimeline());
+    assertNotSame(instance.getPlayTimeTimeline().getStatus(), Status.RUNNING);
   }
 
   @Test
@@ -216,7 +220,7 @@ public class GameDetailControllerTest extends UITest {
       instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.CLOSED).get());
     });
     assertFalse(instance.playtimeLabel.isVisible());
-    assertNull(instance.getPlayTimeTimeline());
+    assertNotSame(instance.getPlayTimeTimeline().getStatus(), Status.RUNNING);
   }
 
   @Test
@@ -226,7 +230,7 @@ public class GameDetailControllerTest extends UITest {
       instance.setGame(GameBeanBuilder.create().defaultValues().status(GameStatus.OPEN).get());
     });
     assertFalse(instance.playtimeLabel.isVisible());
-    assertNull(instance.getPlayTimeTimeline());
+    assertNotSame(instance.getPlayTimeTimeline().getStatus(), Status.RUNNING);
   }
 
   @Test
@@ -258,6 +262,7 @@ public class GameDetailControllerTest extends UITest {
     Thread.sleep(2000);
     assertSame(Status.RUNNING, instance.getPlayTimeTimeline().getStatus());
     runOnFxThreadAndWait(() -> game.setStatus(GameStatus.CLOSED));
+    Thread.sleep(1000);
 
     assertFalse(instance.playtimeLabel.isVisible());
     assertSame(Status.STOPPED, instance.getPlayTimeTimeline().getStatus());
@@ -312,6 +317,7 @@ public class GameDetailControllerTest extends UITest {
     verify(mapService).generateIfNotInstalled(game.getMapFolderName());
     assertEquals(noImageMock, instance.mapImageView.getImage());
 
+    when(mapService.isInstalled(game.getMapFolderName())).thenReturn(true);
     runOnFxThreadAndWait(() -> instance.onMapGeneratedEvent(new MapGeneratedEvent(game.getMapFolderName())));
 
     assertEquals(instance.mapImageView.getImage(), imageMock);
@@ -357,7 +363,7 @@ public class GameDetailControllerTest extends UITest {
   @ValueSource(booleans = {false, true})
   public void testOnGenerateMapClickedAndCompleted(boolean succeed) {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
-    when(i18n.get("game.create.generatedMap2")).thenReturn("text");
+    when(i18n.get("game.create.generatedMap")).thenReturn("text");
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
         succeed ? CompletableFuture.completedFuture(game.getMapFolderName()) : CompletableFuture.failedFuture(new RuntimeException("failed")));
 

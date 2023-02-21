@@ -76,7 +76,7 @@
             </VBox>
                 <ScrollPane fx:id="gameDetailPane" fitToWidth="true" minWidth="200.0" prefWidth="300.0" styleClass="game-detail-pane">
                     <content>
-                        <fx:include fx:id="gameDetail" source="game_detail.fxml" visible="false"/>
+                        <fx:include fx:id="gameDetail" source="game_detail.fxml"/>
                     </content>
                 </ScrollPane>
          </children>
