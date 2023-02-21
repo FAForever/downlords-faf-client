@@ -249,7 +249,7 @@ public class GameDetailController implements Controller<Pane> {
   public void onMapPreviewImageClicked() {
     GameBean gameBean = getGame();
     if (gameBean != null) {
-      PopupUtil.showImagePopup(mapService.loadPreview(gameBean.getMapFolderName(), PreviewSize.LARGE));
+      PopupUtil.showImagePopup(mapImageView.getImage());
     }
   }
 
