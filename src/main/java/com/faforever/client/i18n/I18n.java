@@ -134,16 +134,16 @@ public class I18n implements InitializingBean {
     return messageSource.getMessage(pluralKey, args, userSpecificLocale);
   }
 
-  public String number(int number) {
-    return String.format(userSpecificLocale, "%d", number);
+  public String number(Number number) {
+    return rounded(number, 0);
   }
 
   public String numberWithSign(int number) {
     return String.format(userSpecificLocale, "%+d", number);
   }
 
-  public String rounded(double number, int digits) {
-    return String.format(userSpecificLocale, "%." + digits + "f", number);
+  public String rounded(Number number, int digits) {
+    return String.format(userSpecificLocale, "%." + digits + "f", number.doubleValue());
   }
 
   public ReadOnlySetWrapper<Locale> getAvailableLanguages() {

@@ -530,7 +530,7 @@ public class ModServiceTest extends ServiceTest {
     FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
     Flux<ElideEntity> resultFlux = Flux.just(modMapper.map(featuredMod, new CycleAvoidingMappingContext()));
     when(fafApiAccessor.getMany(any())).thenReturn(resultFlux);
-    FeaturedModBean result = instance.getFeaturedMod("test").join();
+    FeaturedModBean result = instance.getFeaturedMod("test").block();
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasFilter(qBuilder().string("technicalName").eq("test"))));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasSort("order", true)));
     verify(fafApiAccessor).getMany(argThat(ElideMatchers.hasPageSize(1)));

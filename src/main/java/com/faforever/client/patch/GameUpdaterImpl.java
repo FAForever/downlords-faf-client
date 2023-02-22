@@ -77,7 +77,7 @@ public class GameUpdaterImpl implements GameUpdater {
       // Really don't want to encourage the ability for featuredModFiles to not be packaged together
       Integer featuredModVersion = Optional.ofNullable(featuredModFileVersions).map(Map::values).stream().flatMap(Collection::stream).max(Comparator.nullsLast(Comparator.naturalOrder())).orElse(null);
 
-      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()))
+      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()).toFuture())
           .thenCompose(baseMod -> updateFeaturedMod(baseMod, baseVersion))
           .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion()))
           .thenCompose(aVoid -> updateFeaturedMod(featuredMod, featuredModVersion));

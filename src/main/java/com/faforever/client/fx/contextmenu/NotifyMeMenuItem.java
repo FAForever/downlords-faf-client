@@ -35,7 +35,7 @@ public class NotifyMeMenuItem extends AbstractMenuItem<GameBean> {
 
     Optional<TrackingLiveReplay> trackingLiveReplayOptional = liveReplayService.getTrackingLiveReplay();
     return trackingLiveReplayOptional.isEmpty() || trackingLiveReplayOptional.stream()
-        .anyMatch(trackingLiveReplay -> !trackingLiveReplay.getGameId().equals(object.getId()) || trackingLiveReplay.getAction() != NOTIFY_ME);
+        .anyMatch(trackingLiveReplay -> !trackingLiveReplay.gameId().equals(object.getId()) || trackingLiveReplay.action() != NOTIFY_ME);
   }
 
   @Override

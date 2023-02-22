@@ -53,6 +53,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.scheduling.TaskScheduler;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.publisher.TestPublisher;
 
@@ -408,7 +409,7 @@ public class TeamMatchmakingServiceTest extends UITest {
   public void testJoinQueue() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
     when(mapService.downloadAllMatchmakerMaps(queue)).thenReturn(CompletableFuture.completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(CompletableFuture.completedFuture(new FeaturedModBean()));
+    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     Boolean success = instance.joinQueue(queue).join();
@@ -421,7 +422,7 @@ public class TeamMatchmakingServiceTest extends UITest {
   public void testJoinQueueFailed() {
     MatchmakerQueueBean queue = new MatchmakerQueueBean();
     when(mapService.downloadAllMatchmakerMaps(queue)).thenReturn(CompletableFuture.completedFuture(null));
-    when(modService.getFeaturedMod(anyString())).thenReturn(CompletableFuture.completedFuture(new FeaturedModBean()));
+    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(new FeaturedModBean()));
     when(gameService.updateGameIfNecessary(any(), any())).thenReturn(CompletableFuture.failedFuture(new Exception()));
 
     Boolean success = instance.joinQueue(queue).join();

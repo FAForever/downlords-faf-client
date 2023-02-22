@@ -11,7 +11,6 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-
 <GridPane fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="50.0"
           styleClass="game-detail" vgap="10.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
           fx:controller="com.faforever.client.game.GameDetailController">
@@ -39,7 +38,7 @@
                       styleClass="clickable" StackPane.alignment="CENTER"/>
             </StackPane>
             <Button fx:id="generateMapButton" prefWidth="256.0" mnemonicParsing="false"
-                    onAction="#onGenerateMapClicked" text="%game.create.generatedMap2"/>
+                    onAction="#onGenerateMapClicked" text="%game.create.generatedMap"/>
         </children>
     </VBox>
     <Label fx:id="gameTitleLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" styleClass="game-title"
@@ -72,7 +71,7 @@
     <VBox fx:id="teamListPane" maxWidth="1.7976931348623157E308" spacing="10.0" GridPane.columnSpan="2147483647"
           GridPane.rowIndex="8"/>
     <Label fx:id="playtimeLabel" maxWidth="1.7976931348623157E308" minWidth="0.0" text="&lt;Playtime&gt;"
-           visible="false" wrapText="true" GridPane.rowIndex="6">
+           wrapText="true" GridPane.rowIndex="6">
         <graphic>
             <Region styleClass="icon,time-icon"/>
         </graphic>

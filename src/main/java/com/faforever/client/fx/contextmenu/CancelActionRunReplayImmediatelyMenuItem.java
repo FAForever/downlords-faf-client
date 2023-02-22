@@ -39,8 +39,8 @@ public class CancelActionRunReplayImmediatelyMenuItem extends AbstractMenuItem<G
     }
 
     Optional<TrackingLiveReplay> trackingLiveReplayOptional = liveReplayService.getTrackingLiveReplay();
-    return trackingLiveReplayOptional.stream().anyMatch(trackingLiveReplay -> trackingLiveReplay.getGameId().equals(object.getId())
-        && trackingLiveReplay.getAction() == RUN_REPLAY);
+    return trackingLiveReplayOptional.stream().anyMatch(trackingLiveReplay -> trackingLiveReplay.gameId().equals(object.getId())
+        && trackingLiveReplay.action() == RUN_REPLAY);
   }
 
   @Override

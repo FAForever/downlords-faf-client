@@ -43,14 +43,15 @@ public class WatchButtonControllerTest extends UITest {
   @InjectMocks
   private WatchButtonController instance;
 
+  private final ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
+
   private GameBean game;
 
   @BeforeEach
   public void setUp() throws Exception {
     game = GameBeanBuilder.create().defaultValues().get();
-    ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty = new SimpleObjectProperty<>(null);
 
-    when(liveReplayService.getTrackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
+    when(liveReplayService.trackingLiveReplayProperty()).thenReturn(trackingLiveReplayProperty);
     when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.ofNullable(trackingLiveReplayProperty.get()));
     when(i18n.get("game.watch")).thenReturn("watch");
 
@@ -79,8 +80,8 @@ public class WatchButtonControllerTest extends UITest {
 
   @Test
   public void testWatchButtonStateWhenReplayIsTracking() {
-    when(liveReplayService.getTrackingLiveReplay()).thenReturn(Optional.of(new TrackingLiveReplay(game.getId(), TrackingLiveReplayAction.NOTIFY_ME)));
-    setGame(game);
+    trackingLiveReplayProperty.set(new TrackingLiveReplay(game.getId(), TrackingLiveReplayAction.NOTIFY_ME));
+    runOnFxThreadAndWait(() -> setGame(game));
     assertTrue(instance.watchButton.getPseudoClassStates().contains(WatchButtonController.TRACKABLE_PSEUDO_CLASS));
   }
 
@@ -94,7 +95,7 @@ public class WatchButtonControllerTest extends UITest {
 
   @AfterEach
   public void stopTimer() {
-    Timeline timeline = instance.getDelayTimeline();
+    Timeline timeline = instance.getWatchTimeTimeline();
     if (timeline != null) {
       timeline.stop();
     }

@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
+import reactor.core.publisher.Mono;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -116,10 +117,10 @@ public class GameUpdaterImplTest extends ServiceTest {
   public void nonBaseModUpdateTestEmptyVersions() throws Exception {
     when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
     FeaturedModBean baseMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(baseMod));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), Map.of(), 0).join();
@@ -139,10 +140,10 @@ public class GameUpdaterImplTest extends ServiceTest {
   public void nonBaseModUpdateTest() throws Exception {
     when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
     FeaturedModBean baseMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(baseMod));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), Map.of("1", 100), 0).join();
@@ -162,10 +163,10 @@ public class GameUpdaterImplTest extends ServiceTest {
   public void nonBaseModUpdateTestWithNulls() throws Exception {
     when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
     FeaturedModBean baseMod = FeaturedModBeanBuilder.create().defaultValues().get();
-    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(CompletableFuture.completedFuture(baseMod));
+    when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(baseMod));
     String technicalName = "Test_Mod";
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().id(100).technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), null, null).join();
@@ -186,7 +187,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
     String technicalName = FAF.getTechnicalName();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
 
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), Map.of(), 0).join();
@@ -205,7 +206,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
     String technicalName = FAF.getTechnicalName();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
     String modUID = "abc";
     when(modService.isModInstalled(modUID)).thenReturn(true);
 
@@ -227,7 +228,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
     String technicalName = FAF.getTechnicalName();
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
-    when(modService.getFeaturedMod(technicalName)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
     String modUID = "abc";
     when(modService.isModInstalled(modUID)).thenReturn(false);
     when(modService.downloadAndInstallMod(modUID)).thenReturn(CompletableFuture.completedFuture(null));
@@ -253,7 +254,7 @@ public class GameUpdaterImplTest extends ServiceTest {
 
     when(simpleHttpFeaturedModUpdater.canUpdate(any())).thenReturn(true);
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(gameType).get();
-    when(modService.getFeaturedMod(gameType)).thenReturn(CompletableFuture.completedFuture(updatedMod));
+    when(modService.getFeaturedMod(gameType)).thenReturn(Mono.just(updatedMod));
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), Map.of(), gameVersion).join();
 

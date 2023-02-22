@@ -195,7 +195,7 @@ public class ReplayService {
       ReplayDataParser replayData = replayFileReader.parseReplay(replayFile);
       ReplayMetadata replayMetadata = replayData.getMetadata();
 
-      CompletableFuture<FeaturedModBean> featuredModFuture = modService.getFeaturedMod(replayMetadata.getFeaturedMod());
+      CompletableFuture<FeaturedModBean> featuredModFuture = modService.getFeaturedMod(replayMetadata.getFeaturedMod()).toFuture();
       CompletableFuture<Optional<MapVersionBean>> mapVersionFuture = mapService.findByMapFolderName(replayMetadata.getMapname());
 
       return CompletableFuture.allOf(featuredModFuture, mapVersionFuture).thenApply(ignoredVoid -> {

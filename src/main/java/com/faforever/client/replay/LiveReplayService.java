@@ -135,7 +135,7 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     futureTask = null;
   }
 
-  public ObjectProperty<TrackingLiveReplay> getTrackingLiveReplayProperty() {
+  public ObjectProperty<TrackingLiveReplay> trackingLiveReplayProperty() {
     return trackingLiveReplayProperty;
   }
 
@@ -146,7 +146,8 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
   public void runLiveReplay(int gameId) {
     GameBean game = gameService.getByUid(gameId);
     if (game == null) {
-      throw new IllegalArgumentException("No game with ID: " + gameId);
+      log.warn("No game with ID `{}`", gameId);
+      return;
     }
     /* A courtesy towards the replay server so we can see in logs who we're dealing with. */
     String playerName = playerService.getCurrentPlayer().getUsername();

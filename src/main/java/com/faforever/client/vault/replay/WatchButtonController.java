@@ -3,7 +3,7 @@ package com.faforever.client.vault.replay;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.contextmenu.CancelActionNotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.CancelActionRunReplayImmediatelyMenuItem;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
@@ -16,7 +16,8 @@ import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.WeakInvalidationListener;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -28,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -43,85 +43,91 @@ public class WatchButtonController implements Controller<Node> {
   private final I18n i18n;
   private final ContextMenuBuilder contextMenuBuilder;
 
+  private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
+  private final Timeline watchTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updateDisplay()), new KeyFrame(Duration.seconds(1)));
+
   public Button watchButton;
 
-  private GameBean game;
-  private Timeline delayTimeline;
   private ContextMenu contextMenu;
 
-  private final SimpleInvalidationListener trackingLiveReplayPropertyListener = this::updateWatchButtonState;
-
-
   public void initialize() {
-    delayTimeline = new Timeline(
-        new KeyFrame(Duration.ZERO, event -> onFinished()),
-        new KeyFrame(Duration.seconds(1))
-    );
-    delayTimeline.setCycleCount(Timeline.INDEFINITE);
-    JavaFxUtil.addListener(liveReplayService.getTrackingLiveReplayProperty(), new WeakInvalidationListener(trackingLiveReplayPropertyListener));
+    watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);
+
+    game.addListener((SimpleChangeListener<GameBean>) this::onGameChanged);
+
+    liveReplayService.trackingLiveReplayProperty()
+        .map(TrackingLiveReplay::gameId)
+        .flatMap(trackedId -> game.flatMap(GameBean::idProperty).map(trackedId::equals).orElse(false))
+        .addListener((SimpleChangeListener<Boolean>) this::updateButtonTrackingClass);
+
+    watchButton.onActionProperty()
+        .bind(game.flatMap(game -> game.startTimeProperty()
+            .map(startTime -> liveReplayService.canWatchReplay(game))
+            .orElse(false)
+            .map(canWatch -> canWatch ? event -> liveReplayService.runLiveReplay(game.getId()) : event -> showContextMenu())));
   }
 
   public void setGame(GameBean game) {
-    Assert.notNull(game, "Game must not be null");
-    Assert.notNull(game.getStartTime(), "The game's start must not be null: " + game);
+    this.game.set(game);
+  }
 
-    this.game = game;
-    if (liveReplayService.canWatchReplay(game)) {
-      allowWatch();
-    } else {
-      updateWatchButtonTimer();
-      updateWatchButtonState();
-      delayTimeline.play();
-      watchButton.setOnAction(event -> showContextMenu());
+  private void onGameChanged(GameBean game) {
+    watchTimeTimeline.stop();
+    if (game == null) {
+      return;
     }
+
+    if (liveReplayService.canWatchReplay(game)) {
+      JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watch")));
+    } else {
+      watchTimeTimeline.play();
+    }
+  }
+
+  public GameBean getGame() {
+    return game.get();
+  }
+
+  public ObjectProperty<GameBean> gameProperty() {
+    return game;
   }
 
   private void showContextMenu() {
     Bounds screenBounds = watchButton.localToScreen(watchButton.getBoundsInLocal());
+    GameBean gameBean = getGame();
+    if (gameBean == null) {
+      return;
+    }
+
     contextMenu = contextMenuBuilder.newBuilder()
-        .addItem(NotifyMeMenuItem.class, game)
-        .addItem(CancelActionNotifyMeMenuItem.class, game)
-        .addItem(RunReplayImmediatelyMenuItem.class, game)
-        .addItem(CancelActionRunReplayImmediatelyMenuItem.class, game)
+        .addItem(NotifyMeMenuItem.class, gameBean)
+        .addItem(CancelActionNotifyMeMenuItem.class, gameBean)
+        .addItem(RunReplayImmediatelyMenuItem.class, gameBean)
+        .addItem(CancelActionRunReplayImmediatelyMenuItem.class, gameBean)
         .build();
     contextMenu.show(watchButton.getScene().getWindow(), screenBounds.getMinX(), screenBounds.getMaxY());
   }
 
-  private void allowWatch() {
-    JavaFxUtil.runLater(() -> {
-      watchButton.setOnAction(event -> liveReplayService.runLiveReplay(game.getId()));
-      watchButton.setText(i18n.get("game.watch"));
-    });
-  }
-
-  private void onFinished() {
-    if (liveReplayService.canWatchReplay(game)) {
-      delayTimeline.stop();
-      allowWatch();
+  private void updateDisplay() {
+    if (liveReplayService.canWatchReplay(getGame())) {
+      watchTimeTimeline.stop();
+      JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watch")));
       if (contextMenu != null && contextMenu.isShowing()) {
         contextMenu.hide();
       }
     } else {
-      updateWatchButtonTimer();
+      String waitDuration = timeService.shortDuration(liveReplayService.getWatchDelayTime(getGame()));
+      JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watchDelayedFormat", waitDuration)));
     }
   }
 
-  private void updateWatchButtonState() {
-    liveReplayService.getTrackingLiveReplay().map(TrackingLiveReplay::getGameId).ifPresentOrElse(gameId -> {
-          boolean isTracking = game != null && game.getId().equals(gameId);
-          JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, isTracking));
-        },
-        () -> JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, false)));
-  }
-
-  private void updateWatchButtonTimer() {
-    JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watchDelayedFormat",
-        timeService.shortDuration(liveReplayService.getWatchDelayTime(game)))));
+  private void updateButtonTrackingClass(boolean isTracking) {
+    JavaFxUtil.runLater(() -> watchButton.pseudoClassStateChanged(TRACKABLE_PSEUDO_CLASS, isTracking));
   }
 
   @VisibleForTesting
-  public Timeline getDelayTimeline() {
-    return delayTimeline;
+  public Timeline getWatchTimeTimeline() {
+    return watchTimeTimeline;
   }
 
   @Override

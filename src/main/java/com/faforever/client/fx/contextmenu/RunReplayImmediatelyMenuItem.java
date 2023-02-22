@@ -40,7 +40,7 @@ public class RunReplayImmediatelyMenuItem extends AbstractMenuItem<GameBean> {
 
     Optional<TrackingLiveReplay> trackingLiveReplayOptional = liveReplayService.getTrackingLiveReplay();
     return trackingLiveReplayOptional.isEmpty() || trackingLiveReplayOptional.stream()
-        .anyMatch(trackingLiveReplay -> !trackingLiveReplay.getGameId().equals(object.getId()) || trackingLiveReplay.getAction() != RUN_REPLAY);
+        .anyMatch(trackingLiveReplay -> !trackingLiveReplay.gameId().equals(object.getId()) || trackingLiveReplay.action() != RUN_REPLAY);
   }
 
   @Override

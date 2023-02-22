@@ -76,7 +76,7 @@ public class LiveReplayController extends AbstractViewController<Node> {
   public TableColumn<GameBean, Image> mapPreviewColumn;
   public TableColumn<GameBean, OffsetDateTime> startTimeColumn;
   public TableColumn<GameBean, String> gameTitleColumn;
-  public TableColumn<GameBean, Integer> playersColumn;
+  public TableColumn<GameBean, Number> playersColumn;
   public TableColumn<GameBean, Double> averageRatingColumn;
   public TableColumn<GameBean, String> modsColumn;
   public TableColumn<GameBean, String> hostColumn;

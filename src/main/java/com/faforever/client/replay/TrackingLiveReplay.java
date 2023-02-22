@@ -1,10 +1,3 @@
 package com.faforever.client.replay;
 
-import lombok.Data;
-
-@Data
-public class TrackingLiveReplay {
-
-  private final Integer gameId;
-  private final TrackingLiveReplayAction action;
-}
+public record TrackingLiveReplay(Integer gameId, TrackingLiveReplayAction action) {}
