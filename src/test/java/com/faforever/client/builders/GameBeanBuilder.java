@@ -8,8 +8,8 @@ import com.faforever.commons.lobby.GameType;
 import javafx.collections.FXCollections;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 public class GameBeanBuilder {
@@ -124,7 +124,7 @@ public class GameBeanBuilder {
     return this;
   }
 
-  public GameBeanBuilder teams(Map<Integer, Set<Integer>> teams) {
+  public GameBeanBuilder teams(Map<Integer, List<Integer>> teams) {
     gameBean.setTeams(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
     return this;
   }

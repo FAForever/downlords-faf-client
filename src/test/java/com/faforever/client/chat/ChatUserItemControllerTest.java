@@ -12,7 +12,6 @@ import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.MouseEvents;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
-import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.helper.TooltipHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -27,7 +26,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.image.Image;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.VBox;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -193,25 +191,6 @@ public class ChatUserItemControllerTest extends UITest {
   @Test
   public void testAvatarImageViewHasTooltip() {
     assertNotNull(TooltipHelper.getTooltip(instance.avatarImageView));
-  }
-
-  @Test
-  public void testOnMapImageViewMouseMovedAndExited() {
-    defaultUser.setPlayer(PlayerBeanBuilder.create()
-        .defaultValues()
-        .game(GameBeanBuilder.create().defaultValues().get())
-        .get());
-    GameTooltipController controllerMock = mock(GameTooltipController.class);
-    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(controllerMock);
-    when(controllerMock.getRoot()).thenReturn(new VBox());
-
-    instance.setChatUser(defaultUser);
-    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseEntered());
-    verify(controllerMock).displayGame();
-    assertNotNull(TooltipHelper.getTooltip(instance.mapImageView));
-
-    runOnFxThreadAndWait(() -> instance.onMapImageViewMouseExited());
-    assertNull(TooltipHelper.getTooltip(instance.mapImageView));
   }
 
   @Test

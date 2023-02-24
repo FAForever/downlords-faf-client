@@ -87,6 +87,11 @@ public class LiveReplayService implements InitializingBean, DisposableBean {
     return duration.isZero() || duration.isNegative();
   }
 
+  public boolean canWatchReplay(OffsetDateTime startTime) {
+    Duration duration = Duration.between(OffsetDateTime.now(), startTime.plusSeconds(getWatchDelaySeconds()));
+    return duration.isZero() || duration.isNegative();
+  }
+
   public Duration getWatchDelayTime(GameBean game) {
     Assert.notNull(game.getStartTime(), "Game's start time is null, in which case it shouldn't even be listed: " + game);
     return Duration.between(OffsetDateTime.now(), game.getStartTime().plusSeconds(getWatchDelaySeconds()));

@@ -19,8 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -110,10 +110,10 @@ public class GamesTilesContainerControllerTest extends UITest {
     GameBean game1 = GameBeanBuilder.create().defaultValues().get();
     GameBean game2 = GameBeanBuilder.create().defaultValues().title("xyz").get();
 
-    game1.setTeams(Map.of(1, Set.of(1, 2)));
+    game1.setTeams(Map.of(1, List.of(1, 2)));
     game1.setId(234);
     game2.setId(123);
-    game2.setTeams(Map.of(1, Set.of(3)));
+    game2.setTeams(Map.of(1, List.of(3)));
 
 
     observableList.addAll(game1, game2);

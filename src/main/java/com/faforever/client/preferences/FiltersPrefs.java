@@ -10,8 +10,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(makeFinal=true, level= AccessLevel.PRIVATE)
 public class FiltersPrefs {
 
-  ListProperty<String> mapNameBlacklist = new SimpleListProperty<>(FXCollections.observableArrayList()) {
-  };
+  ListProperty<String> mapNameBlacklist = new SimpleListProperty<>(FXCollections.observableArrayList());
 
   public ObservableList<String> getMapNameBlacklist() {
     return mapNameBlacklist.getValue();

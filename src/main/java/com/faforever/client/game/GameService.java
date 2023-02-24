@@ -154,7 +154,7 @@ public class GameService implements InitializingBean {
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final ObservableMap<Integer, GameBean> gameIdToGame = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
   @Getter
-  private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(), game.mapFolderNameProperty(), game.simModsProperty()})), gameIdToGame);
+  private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(), game.mapFolderNameProperty(), game.simModsProperty(), game.passwordProtectedProperty()})), gameIdToGame);
 
   private Process process;
   private CompletableFuture<Void> matchmakerFuture;
@@ -255,7 +255,7 @@ public class GameService implements InitializingBean {
 
     fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == ConnectionState.DISCONNECTED) {
-        gameIdToGame.clear();
+        JavaFxUtil.runLater(gameIdToGame::clear);
       } else if (newValue == ConnectionState.CONNECTED && oldValue != ConnectionState.CONNECTED) {
         onLoggedIn();
       }

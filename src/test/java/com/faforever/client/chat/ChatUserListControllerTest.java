@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.builders.ChatChannelUserBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.filter.ChatUserFilterController;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.preferences.ChatPrefs;
@@ -16,6 +17,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.collections.ObservableSet;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.Window;
@@ -54,6 +56,8 @@ public class ChatUserListControllerTest extends UITest {
   private EventBus eventBus;
   @Mock
   private ChatUserFilterController chatUserFilterController;
+  @Mock
+  private GameTooltipController gameInfoController;
   @Spy
   private ChatPrefs chatPrefs;
 
@@ -67,6 +71,8 @@ public class ChatUserListControllerTest extends UITest {
     chatChannel = new ChatChannel(CHANNEL_NAME);
 
     when(uiService.loadFxml("theme/filter/filter.fxml", ChatUserFilterController.class)).thenReturn(chatUserFilterController);
+    when(uiService.loadFxml("theme/play/game_tooltip.fxml")).thenReturn(gameInfoController);
+    when(gameInfoController.getRoot()).thenReturn(new Pane());
     when(chatUserFilterController.filterStateProperty()).thenReturn(new SimpleBooleanProperty());
     when(chatUserFilterController.predicateProperty()).thenReturn(new SimpleObjectProperty<>(item -> true));
     when(chatUserFilterController.getPredicate()).thenReturn(item -> true);

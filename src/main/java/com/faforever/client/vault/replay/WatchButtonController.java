@@ -30,6 +30,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
+
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
@@ -53,7 +55,7 @@ public class WatchButtonController implements Controller<Node> {
   public void initialize() {
     watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 
-    game.addListener((SimpleChangeListener<GameBean>) this::onGameChanged);
+    game.flatMap(GameBean::startTimeProperty).addListener((SimpleChangeListener<OffsetDateTime>) this::checkGameTimeline);
 
     liveReplayService.trackingLiveReplayProperty()
         .map(TrackingLiveReplay::gameId)
@@ -71,14 +73,14 @@ public class WatchButtonController implements Controller<Node> {
     this.game.set(game);
   }
 
-  private void onGameChanged(GameBean game) {
+  private void checkGameTimeline(OffsetDateTime startTime) {
     watchTimeTimeline.stop();
-    if (game == null) {
+    if (startTime == null) {
       return;
     }
 
-    if (liveReplayService.canWatchReplay(game)) {
-      JavaFxUtil.runLater(() -> watchButton.setText(i18n.get("game.watch")));
+    if (liveReplayService.canWatchReplay(startTime)) {
+      watchButton.setText(i18n.get("game.watch"));
     } else {
       watchTimeTimeline.play();
     }

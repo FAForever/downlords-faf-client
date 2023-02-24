@@ -1,6 +1,7 @@
 package com.faforever.client.game;
 
 import com.faforever.client.avatar.AvatarService;
+import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
@@ -22,7 +23,8 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.player.SocialStatus;
 import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
-import javafx.beans.value.WeakChangeListener;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -39,7 +41,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Component
@@ -62,53 +63,66 @@ public class PlayerCardController implements Controller<Node> {
   public ImageView factionImage;
   public Label noteIcon;
 
-  private PlayerBean player;
-  private Tooltip noteTooltip;
+  private final ObjectProperty<PlayerBean> player = new SimpleObjectProperty<>();
+  private final ObjectProperty<Integer> rating = new SimpleObjectProperty<>();
+  private final ObjectProperty<Faction> faction = new SimpleObjectProperty<>();
+  private final Tooltip noteTooltip = new Tooltip();
 
-  private final SimpleChangeListener<String> noteListener = this::updateNoteTooltip;
+  @Override
+  public void initialize() {
+    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
+    countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
+    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
-  public void setPlayer(PlayerBean player, Integer rating, Faction faction) {
-    if (player == null) {
-      return;
-    }
-    this.player = player;
-    countryFlagService.loadCountryFlag(player.getCountry()).ifPresentOrElse(image ->
-        countryImageView.setImage(image), () -> countryImageView.setVisible(false));
-    Optional.ofNullable(player.getAvatar()).map(avatarService::loadAvatar).ifPresent(avatarImage -> {
-      Tooltip.install(avatarImageView, new Tooltip(player.getAvatar().getDescription()));
-      avatarImageView.setImage(avatarImage);
-      avatarImageView.setVisible(true);
-    });
-    playerInfo.setText(rating != null
-        ? i18n.get("userInfo.tooltipFormat.withRating", player.getUsername(), rating)
-        : i18n.get("userInfo.tooltipFormat.noRating", player.getUsername()));
-    setFactionIcon(faction);
-    JavaFxUtil.bind(foeIconText.visibleProperty(), player.socialStatusProperty()
-        .map(socialStatus -> socialStatus == SocialStatus.FOE));
-    JavaFxUtil.bind(friendIconText.visibleProperty(), player.socialStatusProperty()
-        .map(socialStatus -> socialStatus == SocialStatus.FRIEND));
+    factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
+    factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
+    factionIcon.visibleProperty().bind(faction.map(value -> value != Faction.RANDOM && value != Faction.CIVILIAN));
+
+    countryImageView.imageProperty()
+        .bind(player.flatMap(PlayerBean::countryProperty)
+            .map(country -> countryFlagService.loadCountryFlag(country).orElse(null)));
+    avatarImageView.imageProperty()
+        .bind(player.flatMap(PlayerBean::avatarProperty)
+            .map(avatarService::loadAvatar));
+    playerInfo.textProperty()
+        .bind(player.flatMap(PlayerBean::usernameProperty)
+            .flatMap(username -> rating.map(value -> i18n.get("userInfo.tooltipFormat.withRating", username, value))
+                .orElse(i18n.get("userInfo.tooltipFormat.noRating", username))));
+    foeIconText.visibleProperty()
+        .bind(player.flatMap(PlayerBean::socialStatusProperty).map(socialStatus -> socialStatus == SocialStatus.FOE));
+    friendIconText.visibleProperty()
+        .bind(player.flatMap(PlayerBean::socialStatusProperty)
+            .map(socialStatus -> socialStatus == SocialStatus.FRIEND));
+    player.flatMap(PlayerBean::noteProperty).addListener((SimpleChangeListener<String>) this::onNoteChanged);
+
+    faction.addListener(((observable, oldValue, newValue) -> onFactionChanged(oldValue, newValue)));
 
     initializeNoteTooltip();
-    JavaFxUtil.bind(noteIcon.visibleProperty(), noteTooltip.textProperty().isNotEmpty());
-    JavaFxUtil.addAndTriggerListener(player.noteProperty(), new WeakChangeListener<>(noteListener));
+    initializeAvatarTooltip();
+  }
+
+  private void onNoteChanged(String newValue) {
+    if (StringUtils.isEmpty(newValue)) {
+      Tooltip.uninstall(root, noteTooltip);
+    } else {
+      Tooltip.install(root, noteTooltip);
+    }
   }
 
   private void initializeNoteTooltip() {
-    noteTooltip = new Tooltip(player.getNote());
+    noteTooltip.textProperty().bind(player.flatMap(PlayerBean::noteProperty));
     noteTooltip.setShowDelay(Duration.ZERO);
     noteTooltip.setShowDuration(Duration.seconds(30));
+    noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
   }
 
-  private void updateNoteTooltip(String note) {
-    JavaFxUtil.runLater(() -> {
-      if (StringUtils.isNotBlank(note)) {
-        noteTooltip.setText(note);
-        Tooltip.install(root, noteTooltip);
-      } else {
-        noteTooltip.setText("");
-        Tooltip.uninstall(root, noteTooltip);
-      }
-    });
+  private void initializeAvatarTooltip() {
+    Tooltip avatarTooltip = new Tooltip();
+    avatarTooltip.textProperty()
+        .bind(player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty));
+    avatarTooltip.setShowDelay(Duration.ZERO);
+    avatarTooltip.setShowDuration(Duration.seconds(30));
+    Tooltip.install(avatarImageView, avatarTooltip);
   }
 
   public Node getRoot() {
@@ -116,50 +130,81 @@ public class PlayerCardController implements Controller<Node> {
   }
 
   public void openContextMenu(MouseEvent event) {
-    if (player != null) {
+    PlayerBean playerBean = player.get();
+    if (playerBean != null) {
       contextMenuBuilder.newBuilder()
-          .addItem(ShowPlayerInfoMenuItem.class, player)
-          .addItem(SendPrivateMessageMenuItem.class, player.getUsername())
-          .addItem(CopyUsernameMenuItem.class, player.getUsername())
+          .addItem(ShowPlayerInfoMenuItem.class, playerBean)
+          .addItem(SendPrivateMessageMenuItem.class, playerBean.getUsername())
+          .addItem(CopyUsernameMenuItem.class, playerBean.getUsername())
           .addSeparator()
-          .addItem(AddFriendMenuItem.class, player)
-          .addItem(RemoveFriendMenuItem.class, player)
-          .addItem(AddFoeMenuItem.class, player)
-          .addItem(RemoveFoeMenuItem.class, player)
+          .addItem(AddFriendMenuItem.class, playerBean)
+          .addItem(RemoveFriendMenuItem.class, playerBean)
+          .addItem(AddFoeMenuItem.class, playerBean)
+          .addItem(RemoveFoeMenuItem.class, playerBean)
           .addSeparator()
-          .addItem(AddEditPlayerNoteMenuItem.class, player)
-          .addItem(RemovePlayerNoteMenuItem.class, player)
+          .addItem(AddEditPlayerNoteMenuItem.class, playerBean)
+          .addItem(RemovePlayerNoteMenuItem.class, playerBean)
           .addSeparator()
-          .addItem(ReportPlayerMenuItem.class, player)
+          .addItem(ReportPlayerMenuItem.class, playerBean)
           .addSeparator()
-          .addItem(ViewReplaysMenuItem.class, player)
+          .addItem(ViewReplaysMenuItem.class, playerBean)
           .build()
           .show(getRoot().getScene().getWindow(), event.getScreenX(), event.getScreenY());
     }
   }
 
-  @Override
-  public void initialize() {
-    JavaFxUtil.bindManagedToVisible(factionIcon, foeIconText, factionImage, friendIconText, countryImageView, noteIcon);
-  }
-
-  private void setFactionIcon(Faction faction) {
-    if (faction == null) {
-      return;
+  private void onFactionChanged(Faction oldFaction, Faction newFaction) {
+    List<String> classes = factionIcon.getStyleClass();
+    if (oldFaction != null) {
+      switch (oldFaction) {
+        case AEON -> classes.remove(UiService.AEON_STYLE_CLASS);
+        case CYBRAN -> classes.remove(UiService.CYBRAN_STYLE_CLASS);
+        case SERAPHIM -> classes.remove(UiService.SERAPHIM_STYLE_CLASS);
+        case UEF -> classes.remove(UiService.UEF_STYLE_CLASS);
+      }
     }
 
-    factionIcon.setVisible(true);
-    List<String> classes = factionIcon.getStyleClass();
-    switch (faction) {
+    switch (newFaction) {
       case AEON -> classes.add(UiService.AEON_STYLE_CLASS);
       case CYBRAN -> classes.add(UiService.CYBRAN_STYLE_CLASS);
       case SERAPHIM -> classes.add(UiService.SERAPHIM_STYLE_CLASS);
       case UEF -> classes.add(UiService.UEF_STYLE_CLASS);
-      default -> {
-        factionIcon.setVisible(false);
-        factionImage.setVisible(true);
-        factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
-      }
     }
+  }
+
+  public PlayerBean getPlayer() {
+    return player.get();
+  }
+
+  public ObjectProperty<PlayerBean> playerProperty() {
+    return player;
+  }
+
+  public void setPlayer(PlayerBean player) {
+    this.player.set(player);
+  }
+
+  public Integer getRating() {
+    return rating.get();
+  }
+
+  public ObjectProperty<Integer> ratingProperty() {
+    return rating;
+  }
+
+  public void setRating(Integer rating) {
+    this.rating.set(rating);
+  }
+
+  public Faction getFaction() {
+    return faction.get();
+  }
+
+  public ObjectProperty<Faction> factionProperty() {
+    return faction;
+  }
+
+  public void setFaction(Faction faction) {
+    this.faction.set(faction);
   }
 }

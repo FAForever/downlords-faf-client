@@ -420,7 +420,7 @@ public class GameServiceTest extends ServiceTest {
     assertThat(player1.getGame(), is(game));
     assertThat(player2.getGame(), is(game));
 
-    game.setTeams(Map.of(2, Set.of(2)));
+    game.setTeams(Map.of(2, List.of(2)));
 
     assertThat(player1.getGame(), is(CoreMatchers.nullValue()));
     assertThat(player2.getGame(), is(game));
@@ -741,7 +741,7 @@ public class GameServiceTest extends ServiceTest {
         .defaultValues()
         .id(123)
         .status(PLAYING)
-        .teams(Map.of(1, Set.of(junitPlayer.getId())))
+        .teams(Map.of(1, List.of(junitPlayer.getId())))
         .get();
     junitPlayer.setGame(game);
 

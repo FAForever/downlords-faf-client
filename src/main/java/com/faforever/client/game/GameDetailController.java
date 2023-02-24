@@ -2,7 +2,6 @@ package com.faforever.client.game;
 
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
@@ -16,7 +15,6 @@ import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.RatingUtil;
@@ -30,11 +28,19 @@ import com.google.common.eventbus.Subscribe;
 import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -52,13 +58,8 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -75,12 +76,14 @@ public class GameDetailController implements Controller<Pane> {
   private final ContextMenuBuilder contextMenuBuilder;
   private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
-  private final PlayerService playerService;
   private final JavaFxService javaFxService;
   private final EventBus eventBus;
 
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty playtimeVisible = new SimpleBooleanProperty();
+  private final MapProperty<Integer, List<Integer>> teams = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
+  private final ListProperty<TeamCardController> teamCardControllers = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
   private final Timeline playTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updatePlaytimeValue()), new KeyFrame(Duration.seconds(1)));
 
   public Pane root;
@@ -97,7 +100,6 @@ public class GameDetailController implements Controller<Pane> {
   public WatchButtonController watchButtonController;
   public Node watchButton;
   public Button generateMapButton;
-
 
   public void initialize() {
     playTimeTimeline.setCycleCount(Timeline.INDEFINITE);
@@ -150,7 +152,8 @@ public class GameDetailController implements Controller<Pane> {
 
     game.flatMap(GameBean::statusProperty).addListener((SimpleChangeListener<GameStatus>) this::onGameStatusChanged);
 
-    game.flatMap(GameBean::teamsProperty).addListener((SimpleInvalidationListener) this::createTeams);
+    teams.bind(game.flatMap(GameBean::teamsProperty));
+    teams.addListener((SimpleInvalidationListener) this::onTeamsInvalidated);
 
     eventBus.register(this);
   }
@@ -210,27 +213,40 @@ public class GameDetailController implements Controller<Pane> {
     return game;
   }
 
-  private void createTeams() {
-    List<Node> teamCardPanes = new ArrayList<>();
-    GameBean gameBean = getGame();
-    if (gameBean != null) {
-      for (Map.Entry<Integer, Set<Integer>> entry : gameBean.getTeams().entrySet()) {
-        Integer team = entry.getKey();
+  public ObservableMap<Integer, List<Integer>> getTeams() {
+    return teams.get();
+  }
 
-        if (team != null) {
-          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-          Set<PlayerBean> players = entry.getValue()
-              .stream()
-              .map(playerService::getPlayerByIdIfOnline)
-              .flatMap(Optional::stream)
-              .collect(Collectors.toSet());
-          teamCardController.setPlayersInTeam(team, players, player -> RatingUtil.getLeaderboardRating(player, gameBean.getLeaderboard()), null, RatingPrecision.ROUNDED);
-          teamCardPanes.add(teamCardController.getRoot());
-        }
-      }
+  public MapProperty<Integer, List<Integer>> teamsProperty() {
+    return teams;
+  }
+
+  public void setTeams(ObservableMap<Integer, List<Integer>> teams) {
+    this.teams.set(teams);
+  }
+
+  private void onTeamsInvalidated() {
+    List<Integer> teamIds = teams.keySet().stream().sorted().toList();
+    int numTeams = teamIds.size();
+    int numControllers = teamCardControllers.size();
+    int difference = numTeams - numControllers;
+    if (difference > 0) {
+      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+      teamCardController.bindPlayersToPlayerIds();
+      teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
+      teamCardController.ratingProviderProperty().bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
+      teamCardController.playerIdsProperty().bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject()).map(FXCollections::observableList));
+      teamCardControllers.add(teamCardController);
+      teamListPane.getChildren().add(teamCardController.getRoot());
+    } else if (difference < 0) {
+      int from = numControllers + difference;
+      teamCardControllers.remove(from, numControllers);
+      teamListPane.getChildren().remove(from, numControllers);
     }
 
-    JavaFxUtil.runLater(() -> teamListPane.getChildren().setAll(teamCardPanes));
+    for (int i = 0; i < numTeams; i++) {
+      teamCardControllers.get(i).setTeamId(teamIds.get(i));
+    }
   }
 
   public void setPlaytimeVisible(boolean visible) {
