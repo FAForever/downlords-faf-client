@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,14 +38,13 @@ public class TeamCardControllerTest extends UITest {
   @Mock
   private RatingChangeLabelController ratingChangeLabelController;
 
-  private PlayerBean player;
   private ArrayList<PlayerBean> playerList;
   private ObservableMap<String, List<GamePlayerStatsBean>> teams;
   private GamePlayerStatsBean playerStats;
 
   @BeforeEach
   public void setUp() throws Exception {
-    player = PlayerBeanBuilder.create().defaultValues().id(1).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().id(1).get();
     playerList = new ArrayList<>();
     playerList.add(player);
     teams = FXCollections.observableHashMap();
@@ -52,6 +52,8 @@ public class TeamCardControllerTest extends UITest {
     when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
     when(uiService.loadFxml("theme/rating_change_label.fxml")).thenReturn(ratingChangeLabelController);
     when(playerCardController.ratingProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(playerCardController.factionProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(playerCardController.playerProperty()).thenReturn(new SimpleObjectProperty<>());
     when(playerCardController.getRoot()).thenReturn(new Label());
     when(ratingChangeLabelController.getRoot()).thenReturn(new Label());
     playerStats = GamePlayerStatsBeanBuilder.create()
@@ -66,11 +68,12 @@ public class TeamCardControllerTest extends UITest {
 
   @Test
   public void setPlayersInTeam() {
+    when(i18n.get("game.tooltip.teamTitle", 1, 1000)).thenReturn("1 (1000)");
+    when(playerCardController.getRating()).thenReturn(1000);
+
     instance.setTeamId(2);
     instance.setPlayers(playerList);
-    instance.setRatingProvider(player -> RatingUtil.getRating(1000, 0));
-    instance.setRatingPrecision(RatingPrecision.ROUNDED);
-    verify(i18n).get("game.tooltip.teamTitle", 1, 1000);
+    assertEquals("1 (1000)", instance.teamNameLabel.getText());
   }
 
   @Test
