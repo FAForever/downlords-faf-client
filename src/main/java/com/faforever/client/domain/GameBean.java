@@ -29,6 +29,7 @@ import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -38,8 +39,8 @@ import java.util.stream.Collectors;
 @ToString(onlyExplicitlyIncluded = true)
 @Value
 public class GameBean {
-  public static final Integer OBSERVERS_TEAM = -1;
-  public static final Integer NO_TEAM = 1;
+  public static final int OBSERVERS_TEAM = -1;
+  public static final int NO_TEAM = 1;
 
   StringProperty host = new SimpleStringProperty();
   @ToString.Include
@@ -65,7 +66,7 @@ public class GameBean {
    * Maps a sim mod's UID to its name.
    */
   ReadOnlyMapWrapper<String, String> simMods = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
-  ReadOnlyMapWrapper<Integer, Set<Integer>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
+  ReadOnlyMapWrapper<Integer, List<Integer>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
   ObservableValue<Set<Integer>> allPlayersInGame = teams.map(team -> team.values()
       .stream()
       .flatMap(Collection::stream)
@@ -75,7 +76,7 @@ public class GameBean {
   @Getter(AccessLevel.NONE)
   ObservableValue<Set<Integer>> activePlayersInGame = teams.map(team -> team.entrySet()
       .stream()
-      .filter(entry -> !OBSERVERS_TEAM.equals(entry.getKey()))
+      .filter(entry -> OBSERVERS_TEAM != entry.getKey())
       .map(Entry::getValue)
       .flatMap(Collection::stream)
       .collect(Collectors.toSet()))
@@ -262,15 +263,15 @@ public class GameBean {
   /**
    * Returns an unmodifiable map that maps team numbers (1, 2, ...) to a list of player ids.
    */
-  public Map<Integer, Set<Integer>> getTeams() {
+  public Map<Integer, List<Integer>> getTeams() {
     return teams.get();
   }
 
-  public void setTeams(Map<Integer, Set<Integer>> teams) {
+  public void setTeams(Map<Integer, List<Integer>> teams) {
     this.teams.set(teams == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
   }
 
-  public ReadOnlyMapProperty<Integer, Set<Integer>> teamsProperty() {
+  public ReadOnlyMapProperty<Integer, List<Integer>> teamsProperty() {
     return teams.getReadOnlyProperty();
   }
 

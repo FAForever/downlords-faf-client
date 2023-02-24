@@ -4,7 +4,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
@@ -12,14 +11,12 @@ import com.faforever.client.main.event.HostGameEvent;
 import com.faforever.client.main.event.NavigateEvent;
 import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.preferences.Preferences;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
 import com.faforever.client.ui.preferences.event.GameDirectoryChooseEvent;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.binding.Bindings;
@@ -59,7 +56,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private final UiService uiService;
   private final GameService gameService;
-  private final PreferencesService preferencesService;
   private final EventBus eventBus;
   private final I18n i18n;
   private final Preferences preferences;
@@ -85,7 +81,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private GamesTilesContainerController gamesTilesContainerController;
 
   private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
-  private final SimpleChangeListener<GameBean> gameChangeListener = this::setSelectedGame;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox);
@@ -145,8 +140,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
       preferences.setGamesViewMode(((ToggleButton) newValue).getId());
     });
 
-    JavaFxUtil.bind(gameDetailPane.visibleProperty(), toggleGameDetailPaneButton.selectedProperty());
-    JavaFxUtil.bind(gameDetailPane.managedProperty(), gameDetailPane.visibleProperty());
+    gameDetailPane.visibleProperty().bind(toggleGameDetailPaneButton.selectedProperty());
+    gameDetailPane.managedProperty().bind(gameDetailPane.visibleProperty());
 
     toggleGameDetailPaneButton.selectedProperty().bindBidirectional(preferences.showGameDetailsSidePaneProperty());
 
@@ -203,7 +198,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     disposeGamesContainer();
 
     gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
-    JavaFxUtil.addListener(gamesTableController.selectedGameProperty(), gameChangeListener);
+    gameDetailController.gameProperty().bind(gamesTableController.selectedGameProperty());
     gamesTableController.initializeGameTable(filteredItems);
     populateContainer(gamesTableController.getRoot());
   }
@@ -221,7 +216,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
     disposeGamesContainer();
 
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
-    JavaFxUtil.addListener(gamesTilesContainerController.selectedGameProperty(), gameChangeListener);
+    gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
     populateContainer(gamesTilesContainerController.getRoot());
     gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
   }
@@ -243,19 +238,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   private void disposeGamesContainer() {
     if (gamesTilesContainerController != null) {
-      JavaFxUtil.removeListener(gamesTilesContainerController.selectedGameProperty(), gameChangeListener);
       gamesTilesContainerController.removeListeners();
     }
-
-    if (gamesTableController != null) {
-      JavaFxUtil.removeListener(gamesTableController.selectedGameProperty(), gameChangeListener);
-      gamesTableController.removeListeners();
-    }
-  }
-
-  @VisibleForTesting
-  void setSelectedGame(GameBean game) {
-    gameDetailController.setGame(game);
   }
 
   public void onFilterButtonClicked() {

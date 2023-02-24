@@ -8,6 +8,7 @@ import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
@@ -50,6 +51,7 @@ public class TeamCardControllerTest extends UITest {
 
     when(uiService.loadFxml("theme/player_card.fxml")).thenReturn(playerCardController);
     when(uiService.loadFxml("theme/rating_change_label.fxml")).thenReturn(ratingChangeLabelController);
+    when(playerCardController.ratingProperty()).thenReturn(new SimpleObjectProperty<>());
     when(playerCardController.getRoot()).thenReturn(new Label());
     when(ratingChangeLabelController.getRoot()).thenReturn(new Label());
     playerStats = GamePlayerStatsBeanBuilder.create()
@@ -64,14 +66,20 @@ public class TeamCardControllerTest extends UITest {
 
   @Test
   public void setPlayersInTeam() {
-    instance.setPlayersInTeam(2, playerList, player -> RatingUtil.getRating(1000, 0), null, RatingPrecision.ROUNDED);
+    instance.setTeamId(2);
+    instance.setPlayers(playerList);
+    instance.setRatingProvider(player -> RatingUtil.getRating(1000, 0));
+    instance.setRatingPrecision(RatingPrecision.ROUNDED);
     verify(i18n).get("game.tooltip.teamTitle", 1, 1000);
   }
 
   @Test
   public void showRatingChange() {
-    instance.setPlayersInTeam(2, playerList, player -> RatingUtil.getRating(1000, 0), null, RatingPrecision.EXACT);
-    instance.showRatingChange(teams);
+    instance.setTeamId(2);
+    instance.setPlayers(playerList);
+    instance.setRatingProvider(player -> RatingUtil.getRating(1000, 0));
+    instance.setRatingPrecision(RatingPrecision.EXACT);
+    instance.setStats(teams.get("2"));
     verify(ratingChangeLabelController).setRatingChange(playerStats);
   }
 

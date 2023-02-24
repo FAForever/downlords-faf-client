@@ -304,7 +304,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testThereIsFriendInGame() {
-    Map<Integer, Set<Integer>> teams = Map.of(1, Set.of(1, 2));
+    Map<Integer, List<Integer>> teams = Map.of(1, List.of(1, 2));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     PlayerBean player1 = instance.getPlayerByNameIfOnline(playerInfo1.getLogin()).orElseThrow();
     instance.addFriend(player1);
@@ -314,7 +314,7 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testNoFriendInGame() {
-    Map<Integer, Set<Integer>> teams = Map.of(1, Set.of(1));
+    Map<Integer, List<Integer>> teams = Map.of(1, List.of(1));
     GameBean game = GameBeanBuilder.create().defaultValues().teams(teams).get();
     PlayerBean player2 = instance.getPlayerByNameIfOnline(playerInfo2.getLogin()).orElseThrow();
     player2.setId(100);
@@ -326,14 +326,14 @@ public class PlayerServiceTest extends ServiceTest {
 
   @Test
   public void testCurrentPlayerInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(1))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(1))).get();
 
     assertTrue(instance.isCurrentPlayerInGame(game));
   }
 
   @Test
   public void testCurrentPlayerNotInGame() {
-    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, Set.of(0))).get();
+    GameBean game = GameBeanBuilder.create().defaultValues().teams(Map.of(1, List.of(0))).get();
 
     assertFalse(instance.isCurrentPlayerInGame(game));
   }

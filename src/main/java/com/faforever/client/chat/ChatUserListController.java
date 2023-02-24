@@ -3,6 +3,7 @@ package com.faforever.client.chat;
 import com.faforever.client.filter.ChatUserFilterController;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
@@ -25,12 +26,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow;
 import javafx.stage.PopupWindow.AnchorLocation;
+import javafx.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +78,8 @@ public class ChatUserListController implements Controller<VBox> {
   public Button listCustomizationButton;
   public VBox userListContainer;
   private VirtualFlow<ChatListItem, Cell<ChatListItem, Node>> chatItemListView;
+  private GameTooltipController gameInfoController;
+  private Tooltip gameTooltip;
 
   private Popup filterPopup;
 
@@ -96,6 +101,7 @@ public class ChatUserListController implements Controller<VBox> {
   public void initialize() {
     initializeFilter();
     initializeList();
+    initializeGameTooltip();
   }
 
   public void dispose() {
@@ -120,7 +126,8 @@ public class ChatUserListController implements Controller<VBox> {
           categoryFilteredList.predicateProperty()
               .bind(chatUserFilterController.predicateProperty()
                   .map(filterPredicate -> filterPredicate.and(item -> item.user() != null && item.category() == category)));
-          JavaFxUtil.runLater(() -> unfilteredSource.add(new ChatListItem(null, category, chatChannel.getName(), Bindings.size(categoryFilteredList).asObject())));
+          JavaFxUtil.runLater(() -> unfilteredSource.add(new ChatListItem(null, category, chatChannel.getName(), Bindings.size(categoryFilteredList)
+              .asObject())));
         });
 
     JavaFxUtil.addListener(users, new WeakListChangeListener<>(channelUserListListener));
@@ -131,7 +138,17 @@ public class ChatUserListController implements Controller<VBox> {
   private ChatListItemCell createCellWithItem(ChatListItem item) {
     ChatListItemCell cell = chatListItemCellFactory.getObject();
     cell.updateItem(item);
+    cell.installGameTooltip(gameInfoController, gameTooltip);
     return cell;
+  }
+
+  private void initializeGameTooltip() {
+    gameInfoController = uiService.loadFxml("theme/play/game_tooltip.fxml");
+    gameInfoController.setShowMods(false);
+
+    gameTooltip = JavaFxUtil.createCustomTooltip(gameInfoController.getRoot());
+    gameTooltip.setShowDelay(Duration.ZERO);
+    gameTooltip.setShowDuration(Duration.seconds(30));
   }
 
   private void initializeList() {

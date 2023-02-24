@@ -4,7 +4,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.preferences.Preferences;
 import com.faforever.client.theme.UiService;
@@ -62,7 +61,6 @@ public class GamesTilesContainerController implements Controller<Node> {
   private final SimpleChangeListener<? super TilesSortingOrder> sortingListener  = this::onSortingChanged;
 
   private final ListChangeListener<GameBean> gameListChangeListener = this::onGameListChange;
-  private final SimpleInvalidationListener tooltipShowingListener = this::onTooltipChanged;
 
   public GamesTilesContainerController(UiService uiService, PlayerService playerService, Preferences preferences) {
     this.uiService = uiService;
@@ -77,10 +75,10 @@ public class GamesTilesContainerController implements Controller<Node> {
     tiledFlowPane.getChildren().setAll(sortedChildren);
   }
 
+  @Override
   public void initialize() {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
-    JavaFxUtil.addListener(tooltip.showingProperty(), tooltipShowingListener);
     JavaFxUtil.fixScrollSpeed(tiledScrollPane);
   }
 
@@ -97,14 +95,6 @@ public class GamesTilesContainerController implements Controller<Node> {
       }
       sortNodes();
     });
-  }
-
-  private void onTooltipChanged() {
-    if (tooltip.isShowing()) {
-      gameTooltipController.displayGame();
-    } else {
-      gameTooltipController.setGame(null);
-    }
   }
 
   private void onSortingChanged(TilesSortingOrder newValue) {
@@ -158,12 +148,7 @@ public class GamesTilesContainerController implements Controller<Node> {
     tiledFlowPane.getChildren().add(root);
     gameIdToGameCard.put(game.getId(), root);
 
-    root.setOnMouseEntered(event -> {
-      gameTooltipController.setGame(game);
-      if (tooltip.isShowing()) {
-        gameTooltipController.displayGame();
-      }
-    });
+    root.setOnMouseEntered(event -> gameTooltipController.setGame(game));
     Tooltip.install(root, tooltip);
   }
 
@@ -204,7 +189,6 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   public void removeListeners() {
     JavaFxUtil.removeListener(games, gameListChangeListener);
-    JavaFxUtil.removeListener(tooltip.showingProperty(), tooltipShowingListener);
     JavaFxUtil.removeListener(sortingTypeChoiceBox.getSelectionModel().selectedItemProperty(), sortingListener);
   }
 

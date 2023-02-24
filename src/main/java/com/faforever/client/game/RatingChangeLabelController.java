@@ -1,9 +1,14 @@
 package com.faforever.client.game;
 
 import com.faforever.client.domain.GamePlayerStatsBean;
+import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.util.RatingUtil;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -18,8 +23,12 @@ import org.springframework.stereotype.Component;
 public class RatingChangeLabelController implements Controller<Node> {
   private static final PseudoClass POSITIVE = PseudoClass.getPseudoClass("positive");
   private static final PseudoClass NEGATIVE = PseudoClass.getPseudoClass("negative");
-  public Label ratingChangeLabelRoot;
+
   private final I18n i18n;
+
+  private final ObjectProperty<GamePlayerStatsBean> playerStats = new SimpleObjectProperty<>();
+
+  public Label ratingChangeLabelRoot;
 
   @Override
   public Node getRoot() {
@@ -28,22 +37,35 @@ public class RatingChangeLabelController implements Controller<Node> {
 
   @Override
   public void initialize() {
-    ratingChangeLabelRoot.setVisible(false);
+    ratingChangeLabelRoot.visibleProperty().bind(playerStats.isNotNull());
+    ObservableValue<Integer> ratingChangeObservable = playerStats.flatMap(stats -> Bindings.valueAt(stats.getLeaderboardRatingJournals(), 0))
+        .map(RatingChangeLabelController::getRatingChange);
+    ratingChangeLabelRoot.textProperty().bind(ratingChangeObservable.map(i18n::numberWithSign));
+    ratingChangeObservable.addListener((observable, oldValue, newValue) -> onRatingChanged(oldValue, newValue));
+  }
+
+  private void onRatingChanged(Integer oldValue, Integer newValue) {
+    if (oldValue != null) {
+      ratingChangeLabelRoot.pseudoClassStateChanged(oldValue < 0 ? NEGATIVE : POSITIVE, false);
+    }
+
+    if (newValue != null) {
+      ratingChangeLabelRoot.pseudoClassStateChanged(newValue < 0 ? NEGATIVE : POSITIVE, true);
+    }
+  }
+
+  private static Integer getRatingChange(LeaderboardRatingJournalBean ratingJournal) {
+    if (ratingJournal.getMeanAfter() != null && ratingJournal.getDeviationAfter() != null) {
+      int newRating = RatingUtil.getRating(ratingJournal.getMeanAfter(), ratingJournal.getDeviationAfter());
+      int oldRating = RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore());
+
+      return newRating - oldRating;
+    }
+
+    return null;
   }
 
   public void setRatingChange(GamePlayerStatsBean playerStats) {
-    playerStats.getLeaderboardRatingJournals().stream().findFirst()
-        .ifPresent(ratingChange -> {
-          if (ratingChange.getMeanAfter() != null && ratingChange.getDeviationAfter() != null) {
-            int newRating = RatingUtil.getRating(ratingChange.getMeanAfter(), ratingChange.getDeviationAfter());
-            int oldRating = RatingUtil.getRating(ratingChange.getMeanBefore(), ratingChange.getDeviationBefore());
-
-            int ratingChangeValue = newRating - oldRating;
-            ratingChangeLabelRoot.setText(i18n.numberWithSign(ratingChangeValue));
-            ratingChangeLabelRoot.pseudoClassStateChanged(ratingChangeValue < 0 ? NEGATIVE : POSITIVE, true);
-
-            ratingChangeLabelRoot.setVisible(true);
-          }
-        });
+    this.playerStats.set(playerStats);
   }
 }

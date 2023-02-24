@@ -66,6 +66,7 @@ public class CustomGamesControllerTest extends UITest {
     when(gameService.gameRunningProperty()).thenReturn(new SimpleBooleanProperty());
     when(uiService.loadFxml("theme/play/games_table.fxml")).thenReturn(gamesTableController);
     when(uiService.loadFxml("theme/play/games_tiles_container.fxml")).thenReturn(gamesTilesContainerController);
+    when(gameDetailController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(gamesTilesContainerController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.getRoot()).thenReturn(new Pane());
     when(gamesTableController.selectedGameProperty()).thenReturn(new SimpleObjectProperty<>());
@@ -90,7 +91,6 @@ public class CustomGamesControllerTest extends UITest {
   @Test
   public void testSetSelectedGameShowsDetailPane() {
     instance.toggleGameDetailPaneButton.setSelected(true);
-    instance.setSelectedGame(GameBeanBuilder.create().defaultValues().get());
     assertTrue(instance.gameDetailPane.isVisible());
   }
 
@@ -98,7 +98,6 @@ public class CustomGamesControllerTest extends UITest {
   public void testSetSelectedGameDoesNotShowDetailPaneIfDisabled() {
     instance.toggleGameDetailPaneButton.setSelected(false);
     preferences.setShowGameDetailsSidePane(false);
-    instance.setSelectedGame(GameBeanBuilder.create().defaultValues().get());
     assertFalse(instance.gameDetailPane.isVisible());
   }
 

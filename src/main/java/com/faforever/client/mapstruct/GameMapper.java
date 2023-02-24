@@ -14,7 +14,6 @@ import org.mapstruct.MappingTarget;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, config = MapperConfiguration.class)
@@ -30,12 +29,12 @@ public abstract class GameMapper {
   @Mapping(target = "teams", source = "teamIds")
   public abstract GameBean update(GameInfo dto, @MappingTarget GameBean bean);
 
-  public Map<Integer, Set<Integer>> map(List<TeamIds> teamIds) {
+  public Map<Integer, List<Integer>> map(List<TeamIds> teamIds) {
     if (teamIds == null || teamIds.isEmpty()) {
       return Map.of();
     }
     return teamIds.stream()
-        .collect(Collectors.toMap(TeamIds::getTeamId, teamIds1 -> Set.copyOf(teamIds1.getPlayerIds())));
+        .collect(Collectors.toMap(TeamIds::getTeamId, teamIds1 -> List.copyOf(teamIds1.getPlayerIds())));
   }
 
   public OffsetDateTime mapLaunchedAt(Double launchedAt) {

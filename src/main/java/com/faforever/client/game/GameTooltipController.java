@@ -2,15 +2,23 @@ package com.faforever.client.game;
 
 
 import com.faforever.client.domain.GameBean;
-import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleInvalidationListener;
-import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
-import javafx.beans.WeakInvalidationListener;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleMapProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -21,12 +29,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
@@ -34,79 +37,71 @@ import java.util.stream.Collectors;
 public class GameTooltipController implements Controller<Node> {
 
   private final UiService uiService;
-  private final PlayerService playerService;
+
+  private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
+  private final BooleanProperty showMods = new SimpleBooleanProperty(true);
+  private final MapProperty<Integer, List<Integer>> teams = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
+  private final ListProperty<TeamCardController> teamCardControllers = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
+
 
   public TitledPane modsPane;
   public TilePane teamsPane;
   public Label modsLabel;
   public VBox gameTooltipRoot;
-  private final SimpleInvalidationListener teamInvalidationListener = this::createTeams;
-  private final SimpleInvalidationListener simModsInvalidationListener = this ::createModsList;
-  private int maxPrefColumns;
-  private GameBean game;
-  private boolean showMods;
 
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(modsPane);
     modsPane.visibleProperty().bind(modsLabel.textProperty().isNotEmpty());
-    modsLabel.setText("");
-    maxPrefColumns = teamsPane.getPrefColumns();
-    showMods = true;
+    modsLabel.textProperty()
+        .bind(game.flatMap(GameBean::simModsProperty)
+            .map(mods -> Joiner.on(System.getProperty("line.separator")).join(mods.values()))
+            .flatMap(mods -> showMods.map(show -> show ? mods : "")));
+
+    teams.bind(game.flatMap(GameBean::teamsProperty));
+    teams.addListener((SimpleInvalidationListener) this::onTeamsInvalidated);
+
+    teamsPane.prefColumnsProperty().bind(Bindings.min(2, Bindings.size(teams)));
   }
 
   public void setGame(GameBean game) {
-    this.game = game;
+    this.game.set(game);
   }
 
-  public void displayGame() {
-    if (game == null) {
-      return;
-    }
-    WeakInvalidationListener weakTeamInvalidationListener = new WeakInvalidationListener(teamInvalidationListener);
-    JavaFxUtil.addAndTriggerListener(game.teamsProperty(), weakTeamInvalidationListener);
-    if (showMods) {
-      WeakInvalidationListener weakModInvalidationListener = new WeakInvalidationListener(simModsInvalidationListener);
-      JavaFxUtil.addAndTriggerListener(game.simModsProperty(), weakModInvalidationListener);
-    }
+  public GameBean getGame() {
+    return game.get();
   }
 
-  private void createTeams() {
-    if (game != null) {
-      List<Node> teamCardPanes = new ArrayList<>();
-      for (Map.Entry<Integer, Set<Integer>> entry : game.getTeams().entrySet()) {
-        Integer team = entry.getKey();
-
-        if (team != null) {
-          TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-          Set<PlayerBean> players = entry.getValue()
-              .stream()
-              .map(playerService::getPlayerByIdIfOnline)
-              .flatMap(Optional::stream)
-              .collect(Collectors.toSet());
-          teamCardController.setPlayersInTeam(team, players, player -> RatingUtil.getLeaderboardRating(player, game.getLeaderboard()), null, RatingPrecision.ROUNDED);
-          teamCardPanes.add(teamCardController.getRoot());
-        }
-      }
-
-      JavaFxUtil.runLater(() -> {
-        teamsPane.getChildren().setAll(teamCardPanes);
-        teamsPane.setPrefColumns(Math.min(game.getTeams().size(), maxPrefColumns));
-      });
-    }
+  public ObjectProperty<GameBean> gameProperty() {
+    return game;
   }
 
-  private void createModsList() {
-    String stringSimMods;
-    if (game != null) {
-      stringSimMods = Joiner.on(System.getProperty("line.separator")).join(game.getSimMods().values());
-    } else {
-      stringSimMods = "";
+  private void onTeamsInvalidated() {
+    List<Integer> teamIds = teams.keySet().stream().sorted().toList();
+    int numTeams = teamIds.size();
+    int numControllers = teamCardControllers.size();
+    int difference = numTeams - numControllers;
+    if (difference > 0) {
+      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+      teamCardController.bindPlayersToPlayerIds();
+      teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
+      teamCardController.ratingProviderProperty().bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
+      teamCardController.playerIdsProperty().bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject()).map(FXCollections::observableList));
+      teamCardControllers.add(teamCardController);
+      teamsPane.getChildren().add(teamCardController.getRoot());
+    } else if (difference < 0) {
+      int from = numControllers + difference;
+      teamCardControllers.remove(from, numControllers);
+      teamsPane.getChildren().remove(from, numControllers);
     }
-    JavaFxUtil.runLater(() -> modsLabel.setText(stringSimMods));
+
+    for (int i = 0; i < numTeams; i++) {
+      teamCardControllers.get(i).setTeamId(teamIds.get(i));
+    }
   }
 
   public void setShowMods(boolean showMods) {
-    this.showMods = showMods;
+    this.showMods.set(showMods);
   }
 
   public Node getRoot() {

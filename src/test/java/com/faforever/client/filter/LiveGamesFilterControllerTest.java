@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
@@ -110,7 +109,7 @@ public class LiveGamesFilterControllerTest extends UITest {
     when(playerService.getPlayerByIdIfOnline(4)).thenReturn(Optional.of(enemy2));
 
     GameBean game = create().defaultValues()
-        .teams(Map.of(1, Set.of(1, 2), 2, Set.of(3, 4)))
+        .teams(Map.of(1, List.of(1, 2), 2, List.of(3, 4)))
         .get();
     BiFunction<String, GameBean, Boolean> filter = argumentCaptor.getValue();
     assertTrue(filter.apply("", game));
@@ -126,10 +125,10 @@ public class LiveGamesFilterControllerTest extends UITest {
 
     BiFunction<Boolean, GameBean, Boolean> filter = argumentCaptor.getValue();
 
-    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, Set.of(1))).get()));
-    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, Set.of(1, 2))).get()));
-    assertTrue(filter.apply(true, create().defaultValues().teams(Map.of(1, Set.of(1), 2, Set.of(2))).get()));
-    assertFalse(filter.apply(true, create().defaultValues().teams(Map.of(1, Set.of(1))).get()));
+    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, List.of(1))).get()));
+    assertTrue(filter.apply(false, create().defaultValues().teams(Map.of(1, List.of(1, 2))).get()));
+    assertTrue(filter.apply(true, create().defaultValues().teams(Map.of(1, List.of(1), 2, List.of(2))).get()));
+    assertFalse(filter.apply(true, create().defaultValues().teams(Map.of(1, List.of(1))).get()));
   }
 
   @Test

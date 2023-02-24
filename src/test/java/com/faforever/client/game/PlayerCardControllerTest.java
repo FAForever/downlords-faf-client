@@ -63,7 +63,9 @@ public class PlayerCardControllerTest extends UITest {
         .username("foe")
         .socialStatus(SocialStatus.FOE);
     PlayerBean player = playerBeanBuilder.get();
-    runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.CYBRAN));
+    instance.setPlayer(player);
+    instance.setRating(1000);
+    instance.setFaction(Faction.CYBRAN);
 
     assertTrue(instance.factionIcon.getStyleClass().contains(UiService.CYBRAN_STYLE_CLASS));
     assertTrue(instance.factionIcon.isVisible());
@@ -82,7 +84,9 @@ public class PlayerCardControllerTest extends UITest {
         .username("user")
         .socialStatus(SocialStatus.FRIEND);
     PlayerBean player = playerBeanBuilder.get();
-    runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.SERAPHIM));
+    instance.setPlayer(player);
+    instance.setRating(1000);
+    instance.setFaction(Faction.SERAPHIM);
 
     assertTrue(instance.factionIcon.getStyleClass().contains(UiService.SERAPHIM_STYLE_CLASS));
     assertTrue(instance.factionIcon.isVisible());
@@ -101,7 +105,9 @@ public class PlayerCardControllerTest extends UITest {
         .username("user")
         .socialStatus(SocialStatus.OTHER);
     PlayerBean player = playerBeanBuilder.get();
-    runOnFxThreadAndWait(() -> instance.setPlayer(player, 1000, Faction.RANDOM));
+    instance.setPlayer(player);
+    instance.setRating(1000);
+    instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.factionImage.getImage().getUrl().contains(UiService.RANDOM_FACTION_IMAGE));
     assertFalse(instance.factionIcon.isVisible());
@@ -114,10 +120,12 @@ public class PlayerCardControllerTest extends UITest {
   @Test
   public void testSetPlayerAvatar() {
     Image avatarImage = mock(Image.class);
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    when(avatarService.loadAvatar(playerBean.getAvatar())).thenReturn(avatarImage);
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    when(avatarService.loadAvatar(player.getAvatar())).thenReturn(avatarImage);
 
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+    instance.setPlayer(player);
+    instance.setRating(1000);
+    instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.avatarImageView.isVisible());
     assertEquals(avatarImage, instance.avatarImageView.getImage());
@@ -125,9 +133,11 @@ public class PlayerCardControllerTest extends UITest {
 
   @Test
   public void testInvisibleAvatarImageView() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().avatar(null).get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().avatar(null).get();
 
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+    instance.setPlayer(player);
+    instance.setRating(1000);
+    instance.setFaction(Faction.RANDOM);
 
     assertFalse(instance.avatarImageView.isVisible());
   }
@@ -135,10 +145,12 @@ public class PlayerCardControllerTest extends UITest {
   @Test
   public void testSetCountryImage() {
     Image countryImage = mock(Image.class);
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    when(countryFlagService.loadCountryFlag(playerBean.getCountry())).thenReturn(Optional.of(countryImage));
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    when(countryFlagService.loadCountryFlag(player.getCountry())).thenReturn(Optional.of(countryImage));
 
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+    instance.setPlayer(player);
+    instance.setRating(1000);
+    instance.setFaction(Faction.RANDOM);
 
     assertTrue(instance.countryImageView.isVisible());
     assertEquals(countryImage, instance.countryImageView.getImage());
@@ -146,21 +158,25 @@ public class PlayerCardControllerTest extends UITest {
 
   @Test
   public void testInvisibleCountryImageView() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
-    when(countryFlagService.loadCountryFlag(playerBean.getCountry())).thenReturn(Optional.empty());
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
+    when(countryFlagService.loadCountryFlag(player.getCountry())).thenReturn(Optional.empty());
 
-    runOnFxThreadAndWait(() -> instance.setPlayer(playerBean, 1000, Faction.RANDOM));
+    instance.setPlayer(player);
+    instance.setRating(1000);
+    instance.setFaction(Faction.RANDOM);
 
     assertFalse(instance.countryImageView.isVisible());
   }
 
   @Test
   public void testOpenContextMenu() {
-    PlayerBean playerBean = PlayerBeanBuilder.create().defaultValues().get();
+    PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
     runOnFxThreadAndWait(() -> {
       getRoot().getChildren().add(instance.getRoot());
-      instance.setPlayer(playerBean, 1000, Faction.RANDOM);
+      instance.setPlayer(player);
+      instance.setRating(1000);
+      instance.setFaction(Faction.RANDOM);
       instance.openContextMenu(mock(MouseEvent.class));
     });
 
@@ -176,7 +192,9 @@ public class PlayerCardControllerTest extends UITest {
             .defaultValues()
             .get())
         .get();
-    runOnFxThreadAndWait(() -> instance.setPlayer(player, 0, Faction.AEON));
+    instance.setPlayer(player);
+    instance.setRating(0);
+    instance.setFaction(Faction.AEON);
     assertEquals("Player 1", TooltipHelper.getTooltipText(instance.root));
 
     runOnFxThreadAndWait(() -> player.setNote(""));

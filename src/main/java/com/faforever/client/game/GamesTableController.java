@@ -6,7 +6,6 @@ import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.IconCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -30,6 +29,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
@@ -75,16 +75,6 @@ public class GamesTableController implements Controller<Node> {
   private GameTooltipController gameTooltipController;
   private Tooltip tooltip;
 
-  private final SimpleInvalidationListener tooltipShowingListener = () -> {
-    if (tooltip.isShowing()) {
-      gameTooltipController.displayGame();
-    } else {
-      gameTooltipController.setGame(null);
-    }
-  };
-  private final SimpleInvalidationListener selectedItemListener = () -> JavaFxUtil.runLater(() -> selectedGame.setValue(gamesTable.getSelectionModel()
-      .getSelectedItem()));
-
   public ObjectProperty<GameBean> selectedGameProperty() {
     return selectedGame;
   }
@@ -101,7 +91,6 @@ public class GamesTableController implements Controller<Node> {
                                   boolean listenToFilterPreferences) {
     gameTooltipController = uiService.loadFxml("theme/play/game_tooltip.fxml");
     tooltip = JavaFxUtil.createCustomTooltip(gameTooltipController.getRoot());
-    JavaFxUtil.addListener(tooltip.showingProperty(), tooltipShowingListener);
 
     SortedList<GameBean> sortedList = new SortedList<>(games);
     sortedList.comparatorProperty().bind(gamesTable.comparatorProperty());
@@ -150,7 +139,7 @@ public class GamesTableController implements Controller<Node> {
           .getMapFolderName())));
     }
 
-    JavaFxUtil.addListener(gamesTable.getSelectionModel().selectedItemProperty(), selectedItemListener);
+    selectedGameProperty().bind(gamesTable.selectionModelProperty().flatMap(TableViewSelectionModel::selectedItemProperty));
 
     //bindings do not work as that interferes with some bidirectional bindings in the TableView itself
     if (listenToFilterPreferences && coopMissionNameProvider == null) {
@@ -216,14 +205,11 @@ public class GamesTableController implements Controller<Node> {
       }
     });
     row.setOnMouseEntered(event -> {
-      if (row.getItem() == null) {
+      GameBean game = row.getItem();
+      if (game == null) {
         return;
       }
-      GameBean game = row.getItem();
       gameTooltipController.setGame(game);
-      if (tooltip.isShowing()) {
-        gameTooltipController.displayGame();
-      }
     });
     return row;
   }
@@ -260,11 +246,6 @@ public class GamesTableController implements Controller<Node> {
 
   public TableColumn<GameBean, RatingRange> getRatingRangeColumn() {
     return ratingRangeColumn;
-  }
-
-  public void removeListeners() {
-    JavaFxUtil.removeListener(tooltip.showingProperty(), tooltipShowingListener);
-    JavaFxUtil.removeListener(gamesTable.getSelectionModel().selectedItemProperty(), selectedItemListener);
   }
 
   public void refreshTable() {

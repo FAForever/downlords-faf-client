@@ -1,7 +1,9 @@
 package com.faforever.client.chat;
 
+import com.faforever.client.game.GameTooltipController;
 import com.faforever.client.theme.UiService;
 import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
 import org.fxmisc.flowless.Cell;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -17,6 +19,10 @@ public class ChatListItemCell implements Cell<ChatListItem, Node> {
   public ChatListItemCell(UiService uiService) {
     chatCategoryItemController = uiService.loadFxml("theme/chat/chat_user_category.fxml");
     chatUserItemController = uiService.loadFxml("theme/chat/chat_user_item.fxml");
+  }
+
+  public void installGameTooltip(GameTooltipController gameTooltipController, Tooltip tooltip) {
+    chatUserItemController.installGameTooltip(gameTooltipController, tooltip);
   }
 
   @Override

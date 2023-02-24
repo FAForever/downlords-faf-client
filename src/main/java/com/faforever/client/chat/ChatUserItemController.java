@@ -59,8 +59,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
@@ -92,9 +90,7 @@ public class ChatUserItemController implements Controller<Node> {
   private Tooltip avatarTooltip;
   private Tooltip statusTooltip;
   private Tooltip countryTooltip;
-  private Tooltip gameInfoTooltip;
   private Tooltip noteTooltip;
-  private GameTooltipController gameInfoController;
 
   public void initialize() {
     initializeTooltips();
@@ -139,38 +135,9 @@ public class ChatUserItemController implements Controller<Node> {
     Tooltip.install(gameStatusImageView, statusTooltip);
   }
 
-  public void onMapImageViewMouseExited() {
-    if (gameInfoTooltip == null || gameInfoController == null) {
-      return;
-    }
-    Tooltip.uninstall(mapImageView, gameInfoTooltip);
-    gameInfoTooltip = null;
-    gameInfoController = null;
-  }
-
-  public void onMapImageViewMouseEntered() {
-    PlayerBean player = Optional.ofNullable(chatUser.get()).flatMap(ChatChannelUser::getPlayer).orElse(null);
-    if (player == null || gameInfoTooltip != null || gameInfoController != null) {
-      return;
-    }
-    gameInfoController = prepareGameInfoController(player.getGame());
-    gameInfoTooltip = prepareGameInfoTooltip(gameInfoController);
-    gameInfoController.displayGame();
-    Tooltip.install(mapImageView, gameInfoTooltip);
-  }
-
-  private GameTooltipController prepareGameInfoController(GameBean game) {
-    GameTooltipController controller = uiService.loadFxml("theme/play/game_tooltip.fxml");
-    controller.setShowMods(false);
-    controller.setGame(game);
-    return controller;
-  }
-
-  private Tooltip prepareGameInfoTooltip(GameTooltipController controller) {
-    Tooltip tooltip = JavaFxUtil.createCustomTooltip(controller.getRoot());
-    tooltip.setShowDelay(Duration.ZERO);
-    tooltip.setShowDuration(Duration.seconds(30));
-    return tooltip;
+  public void installGameTooltip(GameTooltipController gameInfoController, Tooltip tooltip) {
+    mapImageView.setOnMouseEntered(event -> gameInfoController.gameProperty().bind(chatUser.flatMap(ChatChannelUser::playerProperty).flatMap(PlayerBean::gameProperty)));
+    Tooltip.install(mapImageView, tooltip);
   }
 
   public void onContextMenuRequested(ContextMenuEvent event) {
