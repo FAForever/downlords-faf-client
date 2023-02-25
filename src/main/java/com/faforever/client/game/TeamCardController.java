@@ -20,6 +20,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -60,19 +61,20 @@ public class TeamCardController implements Controller<Node> {
   private final ObjectProperty<RatingPrecision> ratingPrecision = new SimpleObjectProperty<>();
   private final IntegerProperty teamId = new SimpleIntegerProperty();
   private final ListProperty<Pair<PlayerCardController, RatingChangeLabelController>> playerInfoControllers = new SimpleListProperty<>(FXCollections.observableArrayList());
+  private final ObservableValue<Integer> teamRating = ratingProvider.flatMap(provider -> ratingPrecision.flatMap(precision -> players.map(playerBeans -> playerBeans.stream()
+      .map(provider)
+      .filter(Objects::nonNull)
+      .map(rating -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating)
+      .reduce(0, Integer::sum))));
 
   public void initialize() {
     teamNameLabel.textProperty()
-        .bind(playerInfoControllers.map(controllers -> controllers.stream()
-            .map(Pair::getKey)
-            .map(PlayerCardController::getRating)
-            .filter(Objects::nonNull)
-            .reduce(0, Integer::sum)).flatMap(totalRating -> teamId.map(id -> switch (id.intValue()) {
+        .bind(teamRating.flatMap(teamRating -> teamId.map(id -> switch (id.intValue()) {
           case 0, GameBean.NO_TEAM -> i18n.get("game.tooltip.teamTitleNoTeam");
           case GameBean.OBSERVERS_TEAM -> i18n.get("game.tooltip.observers");
           default -> {
             try {
-              yield i18n.get("game.tooltip.teamTitle", id.intValue() - 1, totalRating);
+              yield i18n.get("game.tooltip.teamTitle", id.intValue() - 1, teamRating);
             } catch (NumberFormatException e) {
               yield "";
             }

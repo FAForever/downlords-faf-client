@@ -30,6 +30,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
@@ -40,7 +41,9 @@ import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -58,6 +61,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -82,6 +86,7 @@ public class GameDetailController implements Controller<Pane> {
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty playtimeVisible = new SimpleBooleanProperty();
   private final MapProperty<Integer, List<Integer>> teams = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
+  private final ObservableList<Integer> teamIds = new SortedList<>(JavaFxUtil.attachListToMapKeys(FXCollections.observableArrayList(), teams), Comparator.naturalOrder());
   private final ListProperty<TeamCardController> teamCardControllers = new SimpleListProperty<>(FXCollections.observableArrayList());
   private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
   private final Timeline playTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updatePlaytimeValue()), new KeyFrame(Duration.seconds(1)));
@@ -226,8 +231,7 @@ public class GameDetailController implements Controller<Pane> {
   }
 
   private void onTeamsInvalidated() {
-    List<Integer> teamIds = teams.keySet().stream().sorted().toList();
-    int numTeams = teamIds.size();
+    int numTeams = teams.size();
     int numControllers = teamCardControllers.size();
     int difference = numTeams - numControllers;
     if (difference > 0) {
@@ -236,16 +240,14 @@ public class GameDetailController implements Controller<Pane> {
       teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
       teamCardController.ratingProviderProperty().bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
       teamCardController.playerIdsProperty().bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject()).map(FXCollections::observableList));
+      IntegerBinding indexBinding = Bindings.createIntegerBinding(() -> teamCardControllers.indexOf(teamCardController), teamCardControllers);
+      teamCardController.teamIdProperty().bind(Bindings.valueAt(teamIds, indexBinding));
       teamCardControllers.add(teamCardController);
       teamListPane.getChildren().add(teamCardController.getRoot());
     } else if (difference < 0) {
       int from = numControllers + difference;
       teamCardControllers.remove(from, numControllers);
       teamListPane.getChildren().remove(from, numControllers);
-    }
-
-    for (int i = 0; i < numTeams; i++) {
-      teamCardControllers.get(i).setTeamId(teamIds.get(i));
     }
   }
 

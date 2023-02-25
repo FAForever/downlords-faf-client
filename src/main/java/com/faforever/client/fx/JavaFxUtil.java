@@ -190,6 +190,22 @@ public final class JavaFxUtil {
    * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified
    * map.
    */
+  public static <K, V> ObservableList<K> attachListToMapKeys(ObservableList<K> list, ObservableMap<K, V> map) {
+    addListener(map, (MapChangeListener<K, V>) change -> {
+      if (change.wasRemoved()) {
+        list.remove(change.getKey());
+      }
+      if (change.wasAdded()) {
+        list.add(change.getKey());
+      }
+    });
+    return FXCollections.unmodifiableObservableList(list);
+  }
+
+  /**
+   * Returns an unmodifiable observable list from the specified list that mirrors any changes made to the specified
+   * map.
+   */
   public static <K, V> ObservableList<V> attachListToMap(ObservableList<V> list, ObservableMap<K, V> map) {
     addListener(map, (MapChangeListener<K, V>) change -> {
       if (change.wasRemoved()) {

@@ -9,6 +9,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
@@ -19,6 +20,8 @@ import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -29,6 +32,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -41,6 +45,7 @@ public class GameTooltipController implements Controller<Node> {
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty showMods = new SimpleBooleanProperty(true);
   private final MapProperty<Integer, List<Integer>> teams = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
+  private final ObservableList<Integer> teamIds = new SortedList<>(JavaFxUtil.attachListToMapKeys(FXCollections.observableArrayList(), teams), Comparator.naturalOrder());
   private final ListProperty<TeamCardController> teamCardControllers = new SimpleListProperty<>(FXCollections.observableArrayList());
   private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
 
@@ -77,8 +82,7 @@ public class GameTooltipController implements Controller<Node> {
   }
 
   private void onTeamsInvalidated() {
-    List<Integer> teamIds = teams.keySet().stream().sorted().toList();
-    int numTeams = teamIds.size();
+    int numTeams = teams.size();
     int numControllers = teamCardControllers.size();
     int difference = numTeams - numControllers;
     if (difference > 0) {
@@ -87,16 +91,14 @@ public class GameTooltipController implements Controller<Node> {
       teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
       teamCardController.ratingProviderProperty().bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
       teamCardController.playerIdsProperty().bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject()).map(FXCollections::observableList));
+      IntegerBinding indexBinding = Bindings.createIntegerBinding(() -> teamCardControllers.indexOf(teamCardController), teamCardControllers);
+      teamCardController.teamIdProperty().bind(Bindings.valueAt(teamIds, indexBinding));
       teamCardControllers.add(teamCardController);
       teamsPane.getChildren().add(teamCardController.getRoot());
     } else if (difference < 0) {
       int from = numControllers + difference;
       teamCardControllers.remove(from, numControllers);
       teamsPane.getChildren().remove(from, numControllers);
-    }
-
-    for (int i = 0; i < numTeams; i++) {
-      teamCardControllers.get(i).setTeamId(teamIds.get(i));
     }
   }
 

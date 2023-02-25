@@ -38,14 +38,13 @@ public class TeamCardControllerTest extends UITest {
   @Mock
   private RatingChangeLabelController ratingChangeLabelController;
 
-  private ArrayList<PlayerBean> playerList;
+  private ArrayList<PlayerBean> playerList = new ArrayList<>();
   private ObservableMap<String, List<GamePlayerStatsBean>> teams;
   private GamePlayerStatsBean playerStats;
 
   @BeforeEach
   public void setUp() throws Exception {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().id(1).get();
-    playerList = new ArrayList<>();
     playerList.add(player);
     teams = FXCollections.observableHashMap();
 
@@ -69,10 +68,11 @@ public class TeamCardControllerTest extends UITest {
   @Test
   public void setPlayersInTeam() {
     when(i18n.get("game.tooltip.teamTitle", 1, 1000)).thenReturn("1 (1000)");
-    when(playerCardController.getRating()).thenReturn(1000);
 
+    instance.setRatingProvider(playerBean -> 1000);
     instance.setTeamId(2);
     instance.setPlayers(playerList);
+    instance.setRatingPrecision(RatingPrecision.ROUNDED);
     assertEquals("1 (1000)", instance.teamNameLabel.getText());
   }
 
