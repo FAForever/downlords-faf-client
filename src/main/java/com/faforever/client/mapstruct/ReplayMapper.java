@@ -6,12 +6,14 @@ import com.faforever.client.domain.LeaderboardRatingJournalBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.util.TimeUtil;
 import com.faforever.commons.api.dto.Faction;
 import com.faforever.commons.api.dto.Game;
 import com.faforever.commons.api.dto.GamePlayerStats;
+import com.faforever.commons.replay.ChatMessage;
+import com.faforever.commons.replay.GameOption;
 import com.faforever.commons.replay.ReplayDataParser;
 import com.faforever.commons.replay.ReplayMetadata;
+import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -32,7 +34,7 @@ import java.util.stream.Collectors;
 
 import static com.faforever.client.util.TimeUtil.fromPythonTime;
 
-@Mapper(imports = {TimeUtil.class}, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
+@Mapper(collectionMappingStrategy = CollectionMappingStrategy.TARGET_IMMUTABLE, uses = {ModMapper.class, PlayerMapper.class, MapMapper.class, LeaderboardMapper.class, ReviewMapper.class}, config = MapperConfiguration.class)
 public interface ReplayMapper {
   @Mapping(target = "title", source = "name")
   @Mapping(target = "teamPlayerStats", source = "dto", qualifiedBy = MapTeamStats.class)
@@ -47,22 +49,24 @@ public interface ReplayMapper {
       return Map.of();
     }
 
-    return playerStats.stream().filter(gamePlayerStats -> Objects.nonNull(gamePlayerStats.getPlayer()))
-        .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()),
-            Collectors.mapping(gamePlayerStats -> gamePlayerStats.getPlayer().getLogin(), Collectors.toList())));
+    return playerStats.stream()
+        .filter(gamePlayerStats -> Objects.nonNull(gamePlayerStats.getPlayer()))
+        .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()), Collectors.mapping(gamePlayerStats -> gamePlayerStats.getPlayer()
+            .getLogin(), Collectors.toList())));
   }
 
   @MapTeamStats
-  default Map<String, List<GamePlayerStatsBean>> mapToTeamPlayerStats(Game dto, @Context CycleAvoidingMappingContext context) {
+  default Map<String, List<GamePlayerStatsBean>> mapToTeamPlayerStats(Game dto,
+                                                                      @Context CycleAvoidingMappingContext context) {
     List<GamePlayerStats> playerStats = dto.getPlayerStats();
 
     if (playerStats == null) {
       return Map.of();
     }
 
-    return playerStats.stream().filter(gamePlayerStats -> Objects.nonNull(gamePlayerStats.getPlayer()))
-        .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()),
-            Collectors.mapping(gamePlayerStats -> map(gamePlayerStats, context), Collectors.toList())));
+    return playerStats.stream()
+        .filter(gamePlayerStats -> Objects.nonNull(gamePlayerStats.getPlayer()))
+        .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()), Collectors.mapping(gamePlayerStats -> map(gamePlayerStats, context), Collectors.toList())));
   }
 
   @Mapping(target = "id", source = "parser.metadata.uid")
@@ -77,7 +81,12 @@ public interface ReplayMapper {
   @Mapping(target = "teams", source = "parser", qualifiedBy = MapTeams.class)
   @Mapping(target = "host", ignore = true)
   @Mapping(target = "reviews", ignore = true)
-  ReplayBean map(ReplayDataParser parser, Path replayFile, FeaturedModBean featuredModBean, MapVersionBean mapVersionBean);
+  ReplayBean map(ReplayDataParser parser, Path replayFile, FeaturedModBean featuredModBean,
+                 MapVersionBean mapVersionBean);
+
+  ReplayBean.ChatMessage map(ChatMessage chatMessage);
+
+  ReplayBean.GameOption map(GameOption gameOption);
 
   @MapStartTime
   default OffsetDateTime mapStartFromParser(ReplayDataParser parser) {
@@ -92,9 +101,11 @@ public interface ReplayMapper {
 
   @MapTeams
   default Map<String, List<String>> mapTeamsFromParser(ReplayDataParser parser) {
-    return parser.getArmies().values().stream().filter(armyInfo -> !((boolean) armyInfo.get("Human")))
-        .collect(Collectors.groupingBy(armyInfo -> String.valueOf(((Float) armyInfo.get("Team")).intValue()),
-            Collectors.mapping(armyInfo -> (String) armyInfo.get("PlayerName"), Collectors.toList())));
+    return parser.getArmies()
+        .values()
+        .stream()
+        .filter(armyInfo -> !((boolean) armyInfo.get("Human")))
+        .collect(Collectors.groupingBy(armyInfo -> String.valueOf(((Float) armyInfo.get("Team")).intValue()), Collectors.mapping(armyInfo -> (String) armyInfo.get("PlayerName"), Collectors.toList())));
   }
 
   @MapTeamStats
@@ -132,20 +143,20 @@ public interface ReplayMapper {
   @Qualifier
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.CLASS)
-  @interface MapTeams { }
+  @interface MapTeams {}
 
   @Qualifier
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.CLASS)
-  @interface MapTeamStats { }
+  @interface MapTeamStats {}
 
   @Qualifier
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.CLASS)
-  @interface MapStartTime { }
+  @interface MapStartTime {}
 
   @Qualifier
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.CLASS)
-  @interface MapEndTime { }
+  @interface MapEndTime {}
 }

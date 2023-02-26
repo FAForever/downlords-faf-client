@@ -7,7 +7,6 @@ import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.domain.ReplayBean.ChatMessage;
 import com.faforever.client.domain.ReplayBean.GameOption;
 import com.faforever.client.fx.PlatformService;
 import com.faforever.client.game.GameService;
@@ -281,18 +280,14 @@ public class ReplayService {
   public void enrich(ReplayBean replay, Path path) {
     try {
       ReplayDataParser replayDataParser = replayFileReader.parseReplay(path);
-      replay.getChatMessages()
-          .setAll(replayDataParser.getChatMessages()
+      replay.setChatMessages(replayDataParser.getChatMessages()
               .stream()
-              .map(chatMessage -> new ChatMessage(chatMessage.getTime(), chatMessage.getSender(), chatMessage.getMessage()))
+              .map(replayMapper::map)
               .collect(Collectors.toList()));
-      replay.getGameOptions()
-          .setAll(replayDataParser.getGameOptions()
+      replay.setGameOptions(Stream.concat(Stream.of(new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser)))), replayDataParser.getGameOptions()
               .stream()
-              .map(gameOption -> new GameOption(gameOption.getKey(), gameOption.getValue()))
-              .collect(Collectors.toList()));
-      replay.getGameOptions()
-          .add(0, new GameOption("FAF Version", String.valueOf(parseSupComVersion(replayDataParser))));
+              .map(replayMapper::map))
+              .toList());
       if (replay.getMapVersion() == null) {
         MapVersionBean mapVersion = new MapVersionBean();
         MapBean map = new MapBean();

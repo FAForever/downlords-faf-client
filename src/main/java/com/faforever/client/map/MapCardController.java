@@ -126,7 +126,7 @@ public class MapCardController implements Controller<Node> {
       numReviews = 0;
       avgScore = 0;
     } else {
-      numReviews = mapReviewsSummary.getReviews();
+      numReviews = mapReviewsSummary.getNumReviews();
       avgScore = mapReviewsSummary.getScore() / numReviews;
     }
     JavaFxUtil.runLater(() -> {

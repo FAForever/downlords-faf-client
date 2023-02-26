@@ -155,7 +155,7 @@ public class ReportDialogControllerTest extends UITest {
 
   @Test
   public void testOnReportOffenderNotInGame() {
-    replay.getTeams().clear();
+    replay.setTeams(Map.of());
 
     instance.onReportButtonClicked();
 

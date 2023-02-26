@@ -338,7 +338,7 @@ public class ReplayDetailControllerTest extends UITest {
     when(replayService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(PlayerBeanBuilder.create().defaultValues().get()).get();
-    replay.getReviews().add(review);
+    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
     instance.setReplay(replay);
@@ -446,7 +446,7 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.getReviews().add(review);
+    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
     instance.setReplay(replay);
@@ -457,7 +457,7 @@ public class ReplayDetailControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).deleteGameReview(review);
-    assertFalse(replay.getReviews().contains(review));
+    verify(reviewsController).setOwnReview(null);
   }
 
   @Test
@@ -465,7 +465,7 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.getReviews().add(review);
+    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
     instance.setReplay(replay);
@@ -494,7 +494,7 @@ public class ReplayDetailControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
 
     verify(reviewService).saveReplayReview(review);
-    assertTrue(replay.getReviews().contains(review));
+    verify(reviewsController).setOwnReview(review);
     assertEquals(currentPlayer, review.getPlayer());
   }
 
@@ -503,7 +503,7 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().id(0).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.getReviews().add(review);
+    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
     instance.setReplay(replay);
@@ -524,7 +524,7 @@ public class ReplayDetailControllerTest extends UITest {
     ReplayReviewBean review = ReplayReviewBeanBuilder.create().defaultValues().player(currentPlayer).get();
 
     ReplayBean replay = ReplayBeanBuilder.create().defaultValues().get();
-    replay.getReviews().add(review);
+    replay.setReviews(List.of(review));
     review.setReplay(replay);
 
     instance.setReplay(replay);

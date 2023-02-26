@@ -59,7 +59,7 @@ public class ModCardController implements Controller<Node> {
       numReviews = 0;
       avgScore = 0;
     } else {
-      numReviews = modReviewsSummary.getReviews();
+      numReviews = modReviewsSummary.getNumReviews();
       avgScore = modReviewsSummary.getScore() / numReviews;
     }
     JavaFxUtil.runLater(() -> {
