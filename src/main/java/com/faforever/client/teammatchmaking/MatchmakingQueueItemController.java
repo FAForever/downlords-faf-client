@@ -125,7 +125,7 @@ public class MatchmakingQueueItemController implements Controller<VBox> {
   }
 
   private void setQueuePopTimeUpdater(MatchmakerQueueBean queue) {
-    Timeline queuePopTimeUpdater = new Timeline(1, new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
+    Timeline queuePopTimeUpdater = new Timeline(new KeyFrame(javafx.util.Duration.seconds(0), (ActionEvent event) -> {
       if (queue.getQueuePopTime() != null) {
         OffsetDateTime now = OffsetDateTime.now();
         Duration timeUntilPopQueue = Duration.between(now, queue.getQueuePopTime());
