@@ -33,6 +33,10 @@ public class Preferences {
   @JsonMerge
   @Getter
   DataPrefs data = new DataPrefs();
+  @Getter
+  @JsonMerge
+  @Deprecated
+  WindowPrefs mainWindow = new WindowPrefs();
   @JsonMerge
   @Getter
   WindowPrefs window = new WindowPrefs();

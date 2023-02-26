@@ -28,6 +28,7 @@ import com.faforever.client.serialization.SimpleSetPropertyInstantiator;
 import com.faforever.commons.api.dto.Faction;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -73,10 +74,11 @@ public class PreferencesConfig implements DisposableBean {
   private final Path preferencesFilePath;
   private final ObjectWriter preferencesWriter;
   private final ObjectReader preferencesUpdater;
+  private final ObjectMapper configuredObjectMapper;
   private final Preferences preferences;
 
   public PreferencesConfig(OperatingSystem operatingSystem, ObjectMapper objectMapper) throws IOException, InterruptedException {
-    ObjectMapper configuredObjectMapper = configureObjectMapper(objectMapper);
+    configuredObjectMapper = configureObjectMapper(objectMapper);
 
     preferences = new Preferences();
 
@@ -248,8 +250,8 @@ public class PreferencesConfig implements DisposableBean {
    * Sometimes, old preferences values are renamed or moved. The purpose of this method is to temporarily perform such
    * migrations.
    */
-  private void migratePreferences(Preferences preferences) {
-
+  private void migratePreferences(Preferences preferences) throws JsonMappingException {
+    configuredObjectMapper.updateValue(preferences.getWindow(), preferences.getMainWindow());
   }
 
   @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)
