@@ -3,7 +3,7 @@ package com.faforever.client.map;
 import lombok.Getter;
 
 @Getter
-public class MapLoadException extends Exception {
+public class MapLoadException extends RuntimeException {
   private final String i18nKey;
   private final Object[] i18nArgs;
 

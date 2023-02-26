@@ -370,6 +370,7 @@ public class MapServiceTest extends UITest {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().folderName("palaneum.v0001").version(new ComparableVersion("1")).get();
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    prepareDownloadMapTask(mapVersionBean);
 
     copyMapsToCustomMapsDirectory(mapVersionBean);
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));
@@ -385,6 +386,20 @@ public class MapServiceTest extends UITest {
     instance.hideMapVersion(map);
 
     verify(fafApiAccessor).patch(any(), argThat(mapVersion -> ((MapVersion) mapVersion).getHidden()));
+  }
+
+  @Test
+  public void testLoadMapNoLargeThumbnailUrl() {
+    instance.loadPreview(MapVersionBeanBuilder.create().defaultValues().thumbnailUrlLarge(null).get(), PreviewSize.LARGE);
+
+    verify(assetService).loadAndCacheImage(any(), any(), any());
+  }
+
+  @Test
+  public void testLoadMapNoSmallThumbnailUrl() {
+    instance.loadPreview(MapVersionBeanBuilder.create().defaultValues().thumbnailUrlSmall(null).get(), PreviewSize.SMALL);
+
+    verify(assetService).loadAndCacheImage(any(), any(), any());
   }
 
   @Test
@@ -517,7 +532,6 @@ public class MapServiceTest extends UITest {
           Path.of(getClass().getResource("/maps/" + folder).toURI()),
           mapPath
       );
-      instance.tryAddInstalledMap(mapPath);
     }
   }
 

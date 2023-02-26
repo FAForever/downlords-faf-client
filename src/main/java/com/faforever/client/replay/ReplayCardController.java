@@ -6,6 +6,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
@@ -17,7 +18,6 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rating.RatingService;
-import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.StarsController;
 import com.google.common.eventbus.EventBus;
@@ -54,7 +54,7 @@ public class ReplayCardController implements Controller<Node> {
   private final MapService mapService;
   private final RatingService ratingService;
   private final NotificationService notificationService;
-  private final UiService uiService;
+  private final ImageViewHelper imageViewHelper;
   private final I18n i18n;
   private final EventBus eventBus;
 
@@ -92,8 +92,7 @@ public class ReplayCardController implements Controller<Node> {
     mapThumbnailImageView.imageProperty()
         .bind(mapVersionObservable.flatMap(MapVersionBean::folderNameProperty)
             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
-            .flatMap(image -> image.errorProperty()
-                .map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image)));
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
     deleteButton.visibleProperty().bind(replay.flatMap(replayBean -> replayBean.replayFileProperty().isNotNull()));
     watchButton.disableProperty().bind(replay.flatMap(replayBean -> replayBean.replayAvailableProperty().not()));

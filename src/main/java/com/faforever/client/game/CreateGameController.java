@@ -34,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
@@ -251,12 +252,27 @@ public class CreateGameController implements Controller<Pane> {
   }
 
   protected void initMapSelection() {
-    filteredMaps = new FilteredList<>(mapService.getInstalledMaps()
-        .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH)
+    FilteredList<MapVersionBean> skirmishMaps = mapService.getInstalledMaps()
+        .filtered(mapVersion -> mapVersion.getMap().getMapType() == MapType.SKIRMISH);
+    filteredMaps = new FilteredList<>(skirmishMaps
         .sorted(Comparator.comparing(mapVersion -> mapVersion.getMap().getDisplayName().toLowerCase())));
     JavaFxUtil.addListener(filteredMaps.predicateProperty(), (observable, oldValue, newValue) -> {
       if (!filteredMaps.isEmpty()) {
         mapListView.getSelectionModel().select(0);
+      }
+    });
+
+    skirmishMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
+      MapVersionBean added = null;
+      while (change.next()) {
+        if (change.wasAdded()) {
+          added = change.getList().get(change.getTo() - 1);
+        }
+      }
+
+      if (added != null) {
+        mapListView.getSelectionModel().select(added);
+        mapListView.scrollTo(added);
       }
     });
 
@@ -267,7 +283,7 @@ public class CreateGameController implements Controller<Pane> {
         .addListener((observable, oldValue, newValue) -> setSelectedMap(newValue));
   }
 
-  protected void setSelectedMap(MapVersionBean mapVersion) {
+  private void setSelectedMap(MapVersionBean mapVersion) {
     if (mapVersion == null) {
       JavaFxUtil.runLater(() -> mapNameLabel.setText(""));
       return;

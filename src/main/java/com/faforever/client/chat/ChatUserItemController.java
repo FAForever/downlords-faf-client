@@ -5,6 +5,7 @@ import com.faforever.client.domain.AvatarBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.contextmenu.AddEditPlayerNoteMenuItem;
 import com.faforever.client.fx.contextmenu.AddFoeMenuItem;
@@ -76,6 +77,7 @@ public class ChatUserItemController implements Controller<Node> {
   private final EventBus eventBus;
   private final ContextMenuBuilder contextMenuBuilder;
   private final ChatPrefs chatPrefs;
+  private final ImageViewHelper imageViewHelper;
 
   private final ObjectProperty<ChatChannelUser> chatUser = new SimpleObjectProperty<>();
 
@@ -222,8 +224,7 @@ public class ChatUserItemController implements Controller<Node> {
     mapImageView.imageProperty()
         .bind(gameProperty.flatMap(GameBean::mapFolderNameProperty)
             .map(mapFolderName -> mapService.loadPreview(mapFolderName, PreviewSize.SMALL))
-            .flatMap(image -> image.errorProperty()
-                .map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image)));
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
     ObservableValue<PlayerStatus> statusProperty = playerProperty.flatMap(PlayerBean::statusProperty);
     gameStatusImageView.imageProperty()

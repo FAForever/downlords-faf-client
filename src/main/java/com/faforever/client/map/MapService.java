@@ -13,7 +13,6 @@ import com.faforever.client.exception.AssetLoadException;
 import com.faforever.client.fa.FaStrings;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mapstruct.CycleAvoidingMappingContext;
 import com.faforever.client.mapstruct.MapMapper;
@@ -43,13 +42,11 @@ import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +66,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
+import reactor.util.retry.Retry;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,9 +77,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -118,7 +116,6 @@ public class MapService implements InitializingBean, DisposableBean {
   private final I18n i18n;
   private final UiService uiService;
   private final MapGeneratorService mapGeneratorService;
-  private final EventBus eventBus;
   private final PlayerService playerService;
   private final MapMapper mapMapper;
   private final ReplayMapper replayMapper;
@@ -127,9 +124,8 @@ public class MapService implements InitializingBean, DisposableBean {
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final Preferences preferences;
 
-  private final java.util.Map<Path, MapVersionBean> pathToMap = new HashMap<>();
-  private final ObservableList<MapVersionBean> installedMaps = FXCollections.observableArrayList();
-  private final java.util.Map<String, MapVersionBean> mapsByFolderName = new HashMap<>();
+  private final ObservableMap<String, MapVersionBean> mapsByFolderName = FXCollections.observableHashMap();
+  private final ObservableList<MapVersionBean> installedMaps = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList()), mapsByFolderName);
   private String mapDownloadUrlFormat;
   private String mapPreviewUrlFormat;
   @VisibleForTesting
@@ -155,19 +151,8 @@ public class MapService implements InitializingBean, DisposableBean {
     Vault vault = clientProperties.getVault();
     mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
     mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
-    eventBus.register(this);
     JavaFxUtil.addListener(forgedAlliancePrefs.installationPathProperty(), observable -> tryLoadMaps());
     JavaFxUtil.addListener(forgedAlliancePrefs.vaultBaseDirectoryProperty(), observable -> tryLoadMaps());
-    installedMaps.addListener((ListChangeListener<MapVersionBean>) change -> {
-      while (change.next()) {
-        for (MapVersionBean mapVersion : change.getRemoved()) {
-          mapsByFolderName.remove(mapVersion.getFolderName().toLowerCase());
-        }
-        for (MapVersionBean mapVersion : change.getAddedSubList()) {
-          mapsByFolderName.put(mapVersion.getFolderName().toLowerCase(), mapVersion);
-        }
-      }
-    });
     tryLoadMaps();
   }
 
@@ -191,7 +176,7 @@ public class MapService implements InitializingBean, DisposableBean {
       log.warn("Could not start map directory watcher", e);
     }
 
-    installedMaps.clear();
+    mapsByFolderName.clear();
     loadInstalledMaps();
   }
 
@@ -204,16 +189,15 @@ public class MapService implements InitializingBean, DisposableBean {
           key.pollEvents().stream()
               .filter(event -> event.kind() == ENTRY_DELETE || event.kind() == ENTRY_CREATE)
               .forEach(event -> {
+                Path mapPath = mapsDirectory.resolve((Path) event.context());
                 if (event.kind() == ENTRY_DELETE) {
-                  removeMap(mapsDirectory.resolve((Path) event.context()));
+                  removeMap(mapPath);
                 } else if (event.kind() == ENTRY_CREATE) {
-                  Path mapPath = mapsDirectory.resolve((Path) event.context());
-                  try {
-                    Thread.sleep(5000);
-                  } catch (InterruptedException e) {
-                    log.info("Thread interrupted ({})", e.getMessage());
-                  }
-                  tryAddInstalledMap(mapPath);
+                  Mono.just(mapPath)
+                      .filter(Files::exists)
+                      .doOnNext(this::addInstalledMap)
+                      .retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(1)).filter(MapLoadException.class::isInstance))
+                      .subscribe(null, throwable -> log.error("Map could not be read: `{}`", mapPath, throwable));
                 }
               });
           key.reset();
@@ -249,7 +233,11 @@ public class MapService implements InitializingBean, DisposableBean {
               continue;
             }
             updateProgress(++mapsRead, totalMaps);
-            tryAddInstalledMap(mapPath);
+            try {
+              addInstalledMap(mapPath);
+            } catch (MapLoadException exception) {
+              log.error("Map could not be read: `{}`", mapPath, exception);
+            }
           }
         } catch (IOException e) {
           log.error("Maps could not be read from: `{}`", forgedAlliancePrefs.getMapsDirectory(), e);
@@ -259,28 +247,17 @@ public class MapService implements InitializingBean, DisposableBean {
     });
   }
 
-  private void removeMap(Path path) {
-    installedMaps.remove(pathToMap.remove(path));
+  private void removeMap(Path mapFolder) {
+    mapsByFolderName.remove(mapFolder.getFileName().toString().toLowerCase(Locale.ROOT));
   }
 
-  @VisibleForTesting
-  void tryAddInstalledMap(Path path) {
-    try {
-      MapVersionBean mapVersion = readMap(path);
-      pathToMap.put(path, mapVersion);
-      if (!isInstalled(mapVersion.getFolderName())) {
-        installedMaps.add(mapVersion);
-      }
-    } catch (MapLoadException e) {
-      log.error("Map could not be read: `{}`", path, e);
+  private void addInstalledMap(Path mapFolder) throws MapLoadException {
+    MapVersionBean mapVersion = readMap(mapFolder);
+    if (!isInstalled(mapVersion.getFolderName())) {
+      mapsByFolderName.put(mapVersion.getFolderName().toLowerCase(Locale.ROOT), mapVersion);
+      log.debug("Added map from {}", mapFolder);
     }
   }
-
-  @Subscribe
-  public void onMapGenerated(MapGeneratedEvent event) {
-    tryAddInstalledMap(getPathForMap(event.mapName()));
-  }
-
 
   @NotNull
   public MapVersionBean readMap(Path mapFolder) throws MapLoadException {
@@ -323,7 +300,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapService.getGeneratedMapPreviewImage())")
   public Image loadPreview(String mapName, PreviewSize previewSize) {
-    if(mapGeneratorService.isGeneratedMap(mapName)) {
+    if (mapGeneratorService.isGeneratedMap(mapName)) {
       return getGeneratedMapPreview(mapName);
     }
 
@@ -359,8 +336,7 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public Optional<MapVersionBean> getMapLocallyFromName(String mapFolderName) {
     log.trace("Looking for map '{}' locally", mapFolderName);
-    String mapFolderKey = mapFolderName.toLowerCase();
-    return Optional.ofNullable(mapsByFolderName.get(mapFolderKey));
+    return Optional.ofNullable(mapsByFolderName.get(mapFolderName.toLowerCase(Locale.ROOT)));
   }
 
   public boolean isOfficialMap(String mapName) {
@@ -368,7 +344,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public boolean isOfficialMap(MapVersionBean mapVersion) {
-    return isOfficialMap(mapVersion.getFolderName());
+    return mapVersion != null && isOfficialMap(mapVersion.getFolderName());
   }
 
   public boolean isCustomMap(MapVersionBean mapVersion) {
@@ -378,9 +354,12 @@ public class MapService implements InitializingBean, DisposableBean {
   /**
    * Returns {@code true} if the given map is available locally, {@code false} otherwise.
    */
-
   public boolean isInstalled(String mapFolderName) {
-    return mapsByFolderName.containsKey(mapFolderName.toLowerCase());
+    return mapsByFolderName.containsKey(mapFolderName.toLowerCase(Locale.ROOT));
+  }
+
+  public boolean isInstalled(MapVersionBean mapVersion) {
+    return mapVersion != null && isInstalled(mapVersion.getFolderName());
   }
 
   public CompletableFuture<String> generateIfNotInstalled(String mapName) {
@@ -408,17 +387,21 @@ public class MapService implements InitializingBean, DisposableBean {
    * Loads the preview of a map or returns a "unknown map" image.
    */
 
-  @Cacheable(value = CacheNames.MAP_PREVIEW)
+  @Cacheable(value = CacheNames.MAP_PREVIEW, unless = "#result.equals(@mapService.getGeneratedMapPreviewImage())")
   public Image loadPreview(MapVersionBean mapVersion, PreviewSize previewSize) {
     URL url = switch (previewSize) {
       case SMALL -> mapVersion.getThumbnailUrlSmall();
       case LARGE -> mapVersion.getThumbnailUrlLarge();
     };
-    return loadPreview(url, previewSize);
+
+    if (url != null) {
+      return loadPreview(url, previewSize);
+    } else {
+      return loadPreview(mapVersion.getFolderName(), previewSize);
+    }
   }
 
-  @Cacheable(value = CacheNames.MAP_PREVIEW)
-  public Image loadPreview(URL url, PreviewSize previewSize) {
+  private Image loadPreview(URL url, PreviewSize previewSize) {
     return assetService.loadAndCacheImage(url, Path.of("maps").resolve(previewSize.folderName),
         () -> uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE));
   }
@@ -443,14 +426,6 @@ public class MapService implements InitializingBean, DisposableBean {
       return forgedAlliancePrefs.getInstallationPath().resolve("maps");
     }
     return forgedAlliancePrefs.getMapsDirectory();
-  }
-
-  public Path getPathForMap(String technicalName) {
-    Path path = getMapsDirectory(technicalName).resolve(technicalName);
-    if (Files.notExists(path)) {
-      return null;
-    }
-    return path;
   }
 
   public Path getPathForMapCaseInsensitive(String approxName) {
@@ -532,8 +507,7 @@ public class MapService implements InitializingBean, DisposableBean {
       titleProperty.bind(task.titleProperty());
     }
 
-    return taskService.submitTask(task).getFuture()
-        .thenRun(() -> tryAddInstalledMap(getPathForMapCaseInsensitive(folderName)));
+    return taskService.submitTask(task).getFuture();
   }
 
   @Override
