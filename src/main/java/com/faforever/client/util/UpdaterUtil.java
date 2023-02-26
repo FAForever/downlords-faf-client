@@ -38,8 +38,8 @@ public class UpdaterUtil {
     ZipEntry movieEntry = downloadedFile.getEntry(topEntryName);
     if (movieEntry != null && movieEntry.isDirectory()) {
       Enumeration<? extends ZipEntry> entries = downloadedFile.entries();
-      ZipEntry nextEntry = entries.nextElement();
-      for (; entries.hasMoreElements(); nextEntry = entries.nextElement()) {
+      do {
+        ZipEntry nextEntry = entries.nextElement();
         String entryName = nextEntry.getName();
         if (!entryName.startsWith(topEntryName)) {
           continue;
@@ -50,7 +50,7 @@ public class UpdaterUtil {
           InputStream inputStream = downloadedFile.getInputStream(nextEntry);
           Files.copy(inputStream, fafDataDirectory.resolve(entryName), StandardCopyOption.REPLACE_EXISTING);
         }
-      }
+      } while (entries.hasMoreElements());
     }
   }
 }
