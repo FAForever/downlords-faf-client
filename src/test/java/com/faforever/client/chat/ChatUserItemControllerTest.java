@@ -21,6 +21,7 @@ import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
+import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.image.Image;
@@ -158,6 +159,11 @@ public class ChatUserItemControllerTest extends UITest {
   @Test
   public void testCheckShowMapPreviewListener() {
     boolean visible = chatPrefs.isShowMapPreview();
+    instance.setChatUser(defaultUser);
+    defaultUser.setPlayer(PlayerBeanBuilder.create()
+        .defaultValues()
+        .game(GameBeanBuilder.create().status(GameStatus.OPEN).get())
+        .get());
     assertEquals(instance.mapImageView.isVisible(), visible);
 
     runOnFxThreadAndWait(() -> chatPrefs.setShowMapPreview(!visible));
@@ -180,7 +186,8 @@ public class ChatUserItemControllerTest extends UITest {
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.SMALL)).thenReturn(mock(Image.class));
     when(mapService.getMapLocallyFromName(mapFolderName)).thenReturn(Optional.of(mapVersion));
     when(mapService.convertMapFolderNameToHumanNameIfPossible(mapFolderName)).thenReturn("map name");
-    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap().getDisplayName(), "map name", "Neroxis Generated Map");
+    when(i18n.get(eq("game.onMapFormat"), anyString())).thenReturn(mapVersion.getMap()
+        .getDisplayName(), "map name", "Neroxis Generated Map");
 
     runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertNotNull(instance.gameStatusImageView.getImage());
@@ -195,12 +202,12 @@ public class ChatUserItemControllerTest extends UITest {
 
   @Test
   public void testPlayerNoteTooltip() {
+    runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     defaultUser.setPlayer(PlayerBeanBuilder.create()
         .defaultValues()
         .game(GameBeanBuilder.create().defaultValues().get())
         .note("Player 1")
         .get());
-    runOnFxThreadAndWait(() -> instance.setChatUser(defaultUser));
     assertEquals("Player 1", TooltipHelper.getTooltipText(instance.userContainer));
 
     runOnFxThreadAndWait(() -> defaultUser.getPlayer().orElseThrow().setNote(""));
