@@ -236,15 +236,20 @@ public class GameDetailController implements Controller<Pane> {
     int numControllers = teamCardControllers.size();
     int difference = numTeams - numControllers;
     if (difference > 0) {
-      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-      teamCardController.bindPlayersToPlayerIds();
-      teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
-      teamCardController.ratingProviderProperty().bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
-      teamCardController.playerIdsProperty().bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject()).map(FXCollections::observableList));
-      IntegerBinding indexBinding = Bindings.createIntegerBinding(() -> teamCardControllers.indexOf(teamCardController), teamCardControllers);
-      teamCardController.teamIdProperty().bind(Bindings.valueAt(teamIds, indexBinding));
-      teamCardControllers.add(teamCardController);
-      teamListPane.getChildren().add(teamCardController.getRoot());
+      for (int i = 0; i < difference; i++) {
+        TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+        teamCardController.bindPlayersToPlayerIds();
+        teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
+        teamCardController.ratingProviderProperty()
+            .bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
+        teamCardController.playerIdsProperty()
+            .bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject())
+                .map(FXCollections::observableList));
+        IntegerBinding indexBinding = Bindings.createIntegerBinding(() -> teamCardControllers.indexOf(teamCardController), teamCardControllers);
+        teamCardController.teamIdProperty().bind(Bindings.valueAt(teamIds, indexBinding));
+        teamCardControllers.add(teamCardController);
+        teamListPane.getChildren().add(teamCardController.getRoot());
+      }
     } else if (difference < 0) {
       int from = numControllers + difference;
       teamCardControllers.remove(from, numControllers);

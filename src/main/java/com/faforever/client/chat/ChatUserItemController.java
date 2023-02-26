@@ -36,8 +36,10 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.player.CountryFlagService;
 import com.faforever.client.preferences.ChatPrefs;
 import com.faforever.client.theme.UiService;
+import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -196,14 +198,16 @@ public class ChatUserItemController implements Controller<Node> {
   }
 
   private void bindProperties() {
+    ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
+    ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);
+    BooleanExpression gameNotClosedObservable = BooleanExpression.booleanExpression(gameProperty.flatMap(GameBean::statusProperty)
+        .map(status1 -> status1 != GameStatus.CLOSED));
+
+
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, noteIcon);
     noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
-    mapNameLabel.visibleProperty().bind(chatPrefs.showMapNameProperty().and(mapNameLabel.textProperty().isNotEmpty()));
-    mapImageView.visibleProperty().bind(chatPrefs.showMapPreviewProperty());
-
-    ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
-
-    ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);
+    mapNameLabel.visibleProperty().bind(chatPrefs.showMapNameProperty().and(mapNameLabel.textProperty().isNotEmpty()).and(gameNotClosedObservable));
+    mapImageView.visibleProperty().bind(chatPrefs.showMapPreviewProperty().and(gameNotClosedObservable));
 
     mapNameLabel.textProperty().bind(gameProperty.flatMap(GameBean::mapFolderNameProperty).map(mapFolderName -> {
       if (mapGeneratorService.isGeneratedMap(mapFolderName)) {
