@@ -1,7 +1,9 @@
 package com.faforever.client.exception;
 
 import com.faforever.client.notification.NotificationService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
@@ -16,8 +18,16 @@ import java.lang.reflect.Method;
 public class GlobalExceptionHandler implements UncaughtExceptionHandler, AsyncUncaughtExceptionHandler {
   private final NotificationService notificationService;
 
+  @Getter
+  @Setter
+  private boolean shuttingDown;
+
   @Override
   public void uncaughtException(Thread t, Throwable ex) {
+    if (shuttingDown) {
+      return;
+    }
+
     if (ex instanceof NotifiableException) {
       log.error("Exception on Thread {}: ", t, ex);
       notificationService.addErrorNotification((NotifiableException) ex);

@@ -289,7 +289,7 @@ public class SettingsController implements Controller<Node> {
 
   private void bindGeneralPreferences() {
     backgroundImageLocation.textProperty()
-        .bindBidirectional(preferences.getWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
+        .bindBidirectional(preferences.getMainWindow().backgroundImagePathProperty(), PATH_STRING_CONVERTER);
 
     advancedIceLogToggle.selectedProperty().bindBidirectional(preferences.advancedIceLogEnabledProperty());
 
@@ -437,7 +437,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   private void configureStartTab() {
-    WindowPrefs mainWindow = preferences.getWindow();
+    WindowPrefs mainWindow = preferences.getMainWindow();
     startTabChoiceBox.setItems(FXCollections.observableArrayList(NavigationItem.values()));
     startTabChoiceBox.setConverter(new StringConverter<>() {
       @Override
@@ -626,14 +626,14 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onSelectBackgroundImage() {
-    WindowPrefs windowPrefs = preferences.getWindow();
+    WindowPrefs windowPrefs = preferences.getMainWindow();
     platformService.askForFile(i18n.get("settings.appearance.chooseImage"), windowPrefs.getBackgroundImagePath(),
             new ExtensionFilter(i18n.get("fileChooser.dialog.imageFiles"), "*.png", "*.jpg", "*.jpeg"))
         .ifPresent(windowPrefs::setBackgroundImagePath);
   }
 
   public void onUseNoBackgroundImage() {
-    preferences.getWindow().setBackgroundImagePath(null);
+    preferences.getMainWindow().setBackgroundImagePath(null);
   }
 
   public void openDiscordFeedbackChannel() {

@@ -119,6 +119,7 @@ public class GameDetailController implements Controller<Pane> {
       root.maxWidthProperty().bind(((Pane) root.getParent()).widthProperty());
     });
 
+    root.visibleProperty().bind(game.isNotNull());
     gameTitleLabel.textProperty().bind(game.flatMap(GameBean::titleProperty).map(StringUtils::normalizeSpace));
     hostLabel.textProperty().bind(game.flatMap(GameBean::hostProperty));
     mapLabel.textProperty().bind(game.flatMap(GameBean::mapFolderNameProperty));

@@ -28,7 +28,6 @@ import com.faforever.client.serialization.SimpleSetPropertyInstantiator;
 import com.faforever.commons.api.dto.Faction;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -62,7 +61,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -101,82 +99,82 @@ public class PreferencesConfig implements DisposableBean {
   }
 
   @Bean
-  public Preferences preferences() throws IOException, InterruptedException {
+  public Preferences preferences() {
     return preferences;
   }
 
   @Bean
-  public GeneralPrefs general() throws IOException, InterruptedException {
+  public GeneralPrefs general() {
     return preferences().getGeneral();
   }
 
   @Bean
-  public DataPrefs data() throws IOException, InterruptedException {
+  public DataPrefs data() {
     return preferences().getData();
   }
 
   @Bean
-  public WindowPrefs window() throws IOException, InterruptedException {
-    return preferences().getWindow();
+  public WindowPrefs window() {
+    return preferences().getMainWindow();
   }
 
   @Bean
-  public GeneratorPrefs generator() throws IOException, InterruptedException {
+  public GeneratorPrefs generator() {
     return preferences().getGenerator();
   }
 
   @Bean
-  public ForgedAlliancePrefs forgedAlliance() throws IOException, InterruptedException {
+  public ForgedAlliancePrefs forgedAlliance() {
     return preferences().getForgedAlliance();
   }
 
   @Bean
-  public LoginPrefs login() throws IOException, InterruptedException {
+  public LoginPrefs login() {
     return preferences().getLogin();
   }
 
   @Bean
-  public ChatPrefs chat() throws IOException, InterruptedException {
+  public ChatPrefs chat() {
     return preferences().getChat();
   }
 
   @Bean
-  public NotificationPrefs notification() throws IOException, InterruptedException {
+  public NotificationPrefs notification() {
     return preferences().getNotification();
   }
 
   @Bean
-  public LocalizationPrefs localization() throws IOException, InterruptedException {
+  public LocalizationPrefs localization() {
     return preferences().getLocalization();
   }
 
   @Bean
-  public LastGamePrefs lastGame() throws IOException, InterruptedException {
+  public LastGamePrefs lastGame() {
     return preferences().getLastGame();
   }
 
   @Bean
-  public MatchmakerPrefs matchmaker() throws IOException, InterruptedException {
+  public MatchmakerPrefs matchmaker() {
     return preferences().getMatchmaker();
   }
 
   @Bean
-  public DeveloperPrefs developer() throws IOException, InterruptedException {
+  public DeveloperPrefs developer() {
     return preferences().getDeveloper();
   }
 
   @Bean
-  public VaultPrefs vault() throws IOException, InterruptedException {
+  public VaultPrefs vault() {
     return preferences().getVault();
   }
 
   @Bean
-  public UserPrefs user() throws IOException, InterruptedException {
+  public UserPrefs user() {
     return preferences().getUser();
   }
 
   @Bean
-  public FiltersPrefs filters() throws IOException, InterruptedException {
+  public FiltersPrefs filters() {
     return preferences().getFilters();
   }
 
@@ -225,24 +223,20 @@ public class PreferencesConfig implements DisposableBean {
       migratePreferences(preferences);
     } catch (Exception e) {
       log.warn("Preferences file `{}` could not be read", path, e);
-      CountDownLatch waitForUser = new CountDownLatch(1);
-      JavaFxUtil.runLater(() -> {
+      JavaFxUtil.runLaterAndAwait(() -> {
         Alert errorReading = new Alert(AlertType.ERROR, "Error reading setting. Reset settings? ", ButtonType.YES, ButtonType.CANCEL);
         errorReading.showAndWait();
 
         if (errorReading.getResult() == ButtonType.YES) {
           try {
             Files.delete(path);
-            waitForUser.countDown();
           } catch (Exception ex) {
             log.error("Error deleting settings file", ex);
             Alert errorDeleting = new Alert(AlertType.ERROR, MessageFormat.format("Error deleting setting. Please delete them yourself. You find them under {} .", path.toAbsolutePath()), ButtonType.OK);
             errorDeleting.showAndWait();
-            waitForUser.countDown();
           }
         }
       });
-      waitForUser.await();
     }
   }
 
@@ -250,8 +244,8 @@ public class PreferencesConfig implements DisposableBean {
    * Sometimes, old preferences values are renamed or moved. The purpose of this method is to temporarily perform such
    * migrations.
    */
-  private void migratePreferences(Preferences preferences) throws JsonMappingException {
-    configuredObjectMapper.updateValue(preferences.getWindow(), preferences.getMainWindow());
+  private void migratePreferences(Preferences preferences) throws IOException, InterruptedException {
+
   }
 
   @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.MINUTES)

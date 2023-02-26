@@ -115,6 +115,7 @@ public class FafClientApplication extends Application {
 
   @Override
   public void stop() throws Exception {
+    applicationContext.getBean(GlobalExceptionHandler.class).setShuttingDown(true);
     applicationContext.close();
     super.stop();
 
