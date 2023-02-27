@@ -1,7 +1,7 @@
 package com.faforever.client.vault;
 
 import com.faforever.client.fx.Controller;
-import javafx.fxml.FXML;
+import com.faforever.client.fx.JavaFxUtil;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,24 +19,19 @@ import java.util.List;
 @Getter
 public class VaultEntityShowRoomController implements Controller<Node> {
 
-  @FXML
-  private Label label;
-  @FXML
-  private VBox root;
-  @FXML
-  private Button moreButton;
-  @FXML
-  private FlowPane pane;
+  public Label label;
+  public VBox root;
+  public Button moreButton;
+  public FlowPane pane;
 
   @Override
   public void initialize() {
-    root.managedProperty().bind(root.visibleProperty());
-    pane.setUserData(moreButton);
+    JavaFxUtil.bindManagedToVisible(root);
   }
 
-  public void addChildren(List<Node> children) {
+  public void setChildren(List<Node> children) {
+    pane.getChildren().clear();
     pane.getChildren().addAll(children);
     pane.getChildren().add(moreButton);
   }
-
 }

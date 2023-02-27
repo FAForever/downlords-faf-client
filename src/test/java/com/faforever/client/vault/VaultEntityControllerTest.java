@@ -18,7 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,6 @@ public class VaultEntityControllerTest extends UITest {
   private VaultEntityController<Integer> instance;
   private List<Integer> items;
   private VBox showRoomRoot;
-  private Label showRoomLabel;
   private Button moreButton;
   private FlowPane showRoomPane;
 
@@ -82,10 +81,6 @@ public class VaultEntityControllerTest extends UITest {
         Math.min((page + 1) * pageSize, elements.size()));
   }
 
-  private CompletableFuture<Tuple2<List<Integer>, Integer>> asFuture(Tuple2<List<Integer>, Integer> page) {
-    return CompletableFuture.completedFuture(page);
-  }
-
   private CompletableFuture<Tuple2<List<Integer>, Integer>> mocksAsFuture(List<Integer> elements, int pageSize, int page) {
     return Mono.zip(Mono.just(getMockPageElements(elements, pageSize, page)),
         Mono.just((int) Math.ceil((double) elements.size() / pageSize))).toFuture();
@@ -94,7 +89,7 @@ public class VaultEntityControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     showRoomRoot = new VBox();
-    showRoomLabel = new Label();
+    Label showRoomLabel = new Label();
     showRoomPane = new FlowPane();
     moreButton = new Button();
     showRoomPane.setUserData(moreButton);
@@ -114,10 +109,13 @@ public class VaultEntityControllerTest extends UITest {
       }
 
       @Override
-      protected Node getEntityCard(Integer integer) {
-        GridPane card = new GridPane();
-        card.setUserData(integer);
-        return card;
+      protected VaultEntityCardController<Integer> createEntityCard() {
+        return new VaultEntityCardController<>() {
+          @Override
+          public Node getRoot() {
+            return new Pane();
+          }
+        };
       }
 
       @Override

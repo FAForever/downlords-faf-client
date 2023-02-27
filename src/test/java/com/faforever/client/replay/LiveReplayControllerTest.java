@@ -11,7 +11,6 @@ import com.faforever.client.map.MapService;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.replay.LiveReplayController;
 import com.faforever.commons.lobby.GameStatus;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;

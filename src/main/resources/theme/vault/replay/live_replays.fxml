@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.faforever.client.vault.replay.LiveReplayController">
+      fx:controller="com.faforever.client.replay.LiveReplayController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <VBox.margin>

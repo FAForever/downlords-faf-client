@@ -4,17 +4,15 @@ import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapReviewsSummaryBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -33,7 +31,7 @@ import java.util.function.Consumer;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class MapCardController implements Controller<Node> {
+public class MapCardController extends VaultEntityCardController<MapVersionBean> {
 
   private final MapService mapService;
   private final NotificationService notificationService;
@@ -53,8 +51,6 @@ public class MapCardController implements Controller<Node> {
   public Button installButton;
   public Button uninstallButton;
 
-  private final ObjectProperty<MapVersionBean> mapVersion = new SimpleObjectProperty<>();
-
   private Consumer<MapVersionBean> onOpenDetailListener;
 
   public void initialize() {
@@ -62,13 +58,13 @@ public class MapCardController implements Controller<Node> {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
 
     thumbnailImageView.imageProperty()
-        .bind(mapVersion.map(mapVersionBean -> mapService.loadPreview(mapVersionBean, PreviewSize.LARGE))
+        .bind(entity.map(mapVersionBean -> mapService.loadPreview(mapVersionBean, PreviewSize.LARGE))
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
-    ObservableValue<MapBean> mapObservable = mapVersion.flatMap(MapVersionBean::mapProperty);
+    ObservableValue<MapBean> mapObservable = entity.flatMap(MapVersionBean::mapProperty);
     nameLabel.textProperty().bind(mapObservable.flatMap(MapBean::displayNameProperty));
     versionLabel.textProperty()
-        .bind(mapVersion.flatMap(MapVersionBean::versionProperty)
+        .bind(entity.flatMap(MapVersionBean::versionProperty)
             .map(ComparableVersion::getCanonical)
             .map(version -> i18n.get("versionFormat", version)));
     authorLabel.textProperty()
@@ -79,13 +75,13 @@ public class MapCardController implements Controller<Node> {
     numberOfPlaysLabel.textProperty().bind(mapObservable.flatMap(MapBean::gamesPlayedProperty).map(i18n::number));
 
     sizeLabel.textProperty()
-        .bind(mapVersion.flatMap(MapVersionBean::sizeProperty)
+        .bind(entity.flatMap(MapVersionBean::sizeProperty)
             .map(size -> i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm())));
 
-    maxPlayersLabel.textProperty().bind(mapVersion.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number));
+    maxPlayersLabel.textProperty().bind(entity.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number));
 
-    BooleanExpression isOfficialMap = BooleanExpression.booleanExpression(mapVersion.map(mapService::isOfficialMap));
-    BooleanExpression isMapInstalled = BooleanExpression.booleanExpression(mapVersion.flatMap(mapVersionBean ->
+    BooleanExpression isOfficialMap = BooleanExpression.booleanExpression(entity.map(mapService::isOfficialMap));
+    BooleanExpression isMapInstalled = BooleanExpression.booleanExpression(entity.flatMap(mapVersionBean ->
         Bindings.createBooleanBinding(() -> mapService.isInstalled(mapVersionBean), mapService.getInstalledMaps())));
 
     installButton.visibleProperty().bind(isOfficialMap.not().and(isMapInstalled.not()));
@@ -100,13 +96,8 @@ public class MapCardController implements Controller<Node> {
         .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty)
             .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty())));
   }
-
-  public void setMapVersion(MapVersionBean mapVersion) {
-    this.mapVersion.set(mapVersion);
-  }
-
   public void onInstallButtonClicked() {
-    MapVersionBean mapVersionBean = mapVersion.get();
+    MapVersionBean mapVersionBean = entity.get();
     mapService.downloadAndInstallMap(mapVersionBean, null, null).exceptionally(throwable -> {
       log.error("Map installation failed", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed", mapVersionBean
@@ -117,7 +108,7 @@ public class MapCardController implements Controller<Node> {
   }
 
   public void onUninstallButtonClicked() {
-    MapVersionBean mapVersionBean = mapVersion.get();
+    MapVersionBean mapVersionBean = entity.get();
     mapService.uninstallMap(mapVersionBean).exceptionally(throwable -> {
       log.error("Could not delete map", throwable);
       notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap", mapVersionBean
@@ -136,6 +127,6 @@ public class MapCardController implements Controller<Node> {
   }
 
   public void onShowMapDetail() {
-    onOpenDetailListener.accept(mapVersion.get());
+    onOpenDetailListener.accept(entity.get());
   }
 }

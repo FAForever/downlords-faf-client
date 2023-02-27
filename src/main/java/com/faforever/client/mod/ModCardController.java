@@ -4,16 +4,14 @@ import com.faforever.client.domain.ModBean;
 import com.faforever.client.domain.ModReviewsSummaryBean;
 import com.faforever.client.domain.ModVersionBean;
 import com.faforever.client.domain.ModVersionBean.ModType;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -31,7 +29,7 @@ import java.util.function.Consumer;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class ModCardController implements Controller<Node> {
+public class ModCardController extends VaultEntityCardController<ModVersionBean> {
 
   private final ModService modService;
   private final ImageViewHelper imageViewHelper;
@@ -50,12 +48,10 @@ public class ModCardController implements Controller<Node> {
 
   private Consumer<ModVersionBean> onOpenDetailListener;
 
-  private final ObjectProperty<ModVersionBean> modVersion = new SimpleObjectProperty<>();
-
   public void initialize() {
     JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
 
-    ObservableValue<ModBean> modObservable = modVersion.flatMap(ModVersionBean::modProperty);
+    ObservableValue<ModBean> modObservable = entity.flatMap(ModVersionBean::modProperty);
     numberOfReviewsLabel.textProperty()
         .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
             .flatMap(ModReviewsSummaryBean::numReviewsProperty)
@@ -65,28 +61,24 @@ public class ModCardController implements Controller<Node> {
         .bind(modObservable.flatMap(ModBean::modReviewsSummaryProperty)
             .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty())));
 
-    BooleanExpression isModInstalled = BooleanExpression.booleanExpression(modVersion.flatMap(modVersionBean ->
+    BooleanExpression isModInstalled = BooleanExpression.booleanExpression(entity.flatMap(modVersionBean ->
         Bindings.createBooleanBinding(() -> modService.isInstalled(modVersionBean), modService.getInstalledMods())));
 
     installButton.visibleProperty().bind(isModInstalled.not());
     uninstallButton.visibleProperty().bind(isModInstalled);
 
     thumbnailImageView.imageProperty()
-        .bind(modVersion.map(modService::loadThumbnail)
+        .bind(entity.map(modService::loadThumbnail)
             .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
     nameLabel.textProperty().bind(modObservable.flatMap(ModBean::displayNameProperty));
     authorLabel.textProperty().bind(modObservable.flatMap(ModBean::authorProperty));
     typeLabel.textProperty()
-        .bind(modVersion.flatMap(ModVersionBean::modTypeProperty).map(ModType::getI18nKey).map(i18n::get));
-  }
-
-  public void setModVersion(ModVersionBean modVersion) {
-    this.modVersion.set(modVersion);
+        .bind(entity.flatMap(ModVersionBean::modTypeProperty).map(ModType::getI18nKey).map(i18n::get));
   }
 
   public void onInstallButtonClicked() {
-    ModVersionBean modVersionBean = modVersion.get();
+    ModVersionBean modVersionBean = entity.get();
     modService.downloadAndInstallMod(modVersionBean, null, null)
         .exceptionally(throwable -> {
           log.error("Could not install mod", throwable);
@@ -97,7 +89,7 @@ public class ModCardController implements Controller<Node> {
   }
 
   public void onUninstallButtonClicked() {
-    ModVersionBean modVersionBean = modVersion.get();
+    ModVersionBean modVersionBean = entity.get();
     modService.uninstallMod(modVersionBean)
         .exceptionally(throwable -> {
           log.error("Could not delete mod", throwable);
@@ -116,6 +108,6 @@ public class ModCardController implements Controller<Node> {
   }
 
   public void onShowModDetail() {
-    onOpenDetailListener.accept(modVersion.get());
+    onOpenDetailListener.accept(entity.get());
   }
 }

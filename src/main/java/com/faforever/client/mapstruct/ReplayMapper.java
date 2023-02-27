@@ -65,7 +65,6 @@ public interface ReplayMapper {
     }
 
     return playerStats.stream()
-        .filter(gamePlayerStats -> Objects.nonNull(gamePlayerStats.getPlayer()))
         .collect(Collectors.groupingBy(gamePlayerStats -> String.valueOf(gamePlayerStats.getTeam()), Collectors.mapping(gamePlayerStats -> map(gamePlayerStats, context), Collectors.toList())));
   }
 

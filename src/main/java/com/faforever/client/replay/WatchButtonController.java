@@ -1,4 +1,4 @@
-package com.faforever.client.vault.replay;
+package com.faforever.client.replay;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
@@ -10,8 +10,6 @@ import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.fx.contextmenu.NotifyMeMenuItem;
 import com.faforever.client.fx.contextmenu.RunReplayImmediatelyMenuItem;
 import com.faforever.client.i18n.I18n;
-import com.faforever.client.replay.LiveReplayService;
-import com.faforever.client.replay.TrackingLiveReplay;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import javafx.animation.KeyFrame;
