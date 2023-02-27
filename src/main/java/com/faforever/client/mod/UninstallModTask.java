@@ -28,7 +28,7 @@ public class UninstallModTask extends CompletableTask<Void> {
     this.modService = modService;
   }
 
-  public void setModVersion(ModVersionBean modVersion) {
+  public void setMod(ModVersionBean modVersion) {
     this.modVersion = modVersion;
   }
 

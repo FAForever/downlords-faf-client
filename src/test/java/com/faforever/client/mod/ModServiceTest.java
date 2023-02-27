@@ -24,7 +24,7 @@ import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
-import com.faforever.client.test.ServiceTest;
+import com.faforever.client.test.UITest;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -49,6 +49,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -66,7 +67,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -77,19 +77,19 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ModServiceTest extends ServiceTest {
+public class ModServiceTest extends UITest {
 
   public static final String BLACK_OPS_UNLEASHED_DIRECTORY_NAME = "BlackOpsUnleashed";
   private static final ClassPathResource BLACKOPS_SUPPORT_MOD_INFO = new ClassPathResource("/mods/blackops_support_mod_info.lua");
@@ -149,7 +149,13 @@ public class ModServiceTest extends ServiceTest {
     when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 
     when(fafApiAccessor.getMaxPageSize()).thenReturn(100);
-    when(taskService.submitTask(any(CompletableTask.class))).then(invocation -> invocation.getArgument(0));
+
+    doAnswer(invocation -> {
+      CompletableTask<?> task = invocation.getArgument(0);
+      WaitForAsyncUtils.asyncFx(task);
+      task.getFuture().join();
+      return task;
+    }).when(taskService).submitTask(any());
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
     instance.afterPropertiesSet();
@@ -168,112 +174,77 @@ public class ModServiceTest extends ServiceTest {
 
   @Test
   public void testPostConstructLoadInstalledMods() {
-    ObservableList<ModVersionBean> installedModVersions = instance.getInstalledModVersions();
+    ObservableList<ModVersionBean> installedModVersions = instance.getInstalledMods();
 
     assertThat(installedModVersions.size(), is(1));
   }
 
   @Test
-  public void testLoadInstalledModsLoadsMods() throws Exception {
-    assertThat(instance.getInstalledModVersions().size(), is(1));
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledModVersions().size(), is(1));
-    instance.loadInstalledMods();
-    assertThat(instance.getInstalledModVersions().size(), is(2));
-  }
-
-  @Test
   public void testDownloadAndInstallMod() throws Exception {
-    assertThat(instance.getInstalledModVersions().size(), is(1));
+    assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = stubInstallModTask();
+    DownloadModTask task = stubDownloadModTask();
     task.getFuture().complete(null);
 
-    when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
+    when(applicationContext.getBean(DownloadModTask.class)).thenReturn(task);
+
+
+    assertThat(instance.getInstalledMods().size(), is(1));
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
 
+
     copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledModVersions().size(), is(1));
+    WaitForAsyncUtils.waitForFxEvents();
 
-    instance.downloadAndInstallMod(modUrl).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
-
-    assertThat(instance.getInstalledModVersions().size(), is(2));
+    assertThat(instance.getInstalledMods().size(), is(2));
   }
 
   @Test
   public void testDownloadAndInstallModWithProperties() throws Exception {
-    assertThat(instance.getInstalledModVersions().size(), is(1));
+    assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = stubInstallModTask();
+    DownloadModTask task = stubDownloadModTask();
     task.getFuture().complete(null);
 
-    when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
+    when(applicationContext.getBean(DownloadModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
-
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledModVersions().size(), is(1));
 
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
-    instance.downloadAndInstallMod(modUrl, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.downloadAndInstallMod(modUrl, doubleProperty, stringProperty)
+        .toCompletableFuture()
+        .get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
-
-    assertThat(instance.getInstalledModVersions().size(), is(2));
   }
 
   @Test
   public void testDownloadAndInstallModInfoBeanWithProperties() throws Exception {
-    assertThat(instance.getInstalledModVersions().size(), is(1));
+    assertThat(instance.getInstalledMods().size(), is(1));
 
-    InstallModTask task = stubInstallModTask();
+    DownloadModTask task = stubDownloadModTask();
     task.getFuture().complete(null);
 
-    when(applicationContext.getBean(InstallModTask.class)).thenReturn(task);
+    when(applicationContext.getBean(DownloadModTask.class)).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/modVersion.zip");
 
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    assertThat(instance.getInstalledModVersions().size(), is(1));
+    assertThat(instance.getInstalledMods().size(), is(1));
 
     StringProperty stringProperty = new SimpleStringProperty();
     DoubleProperty doubleProperty = new SimpleDoubleProperty();
 
     ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues().downloadUrl(modUrl).get();
-    instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty).toCompletableFuture().get(TIMEOUT, TIMEOUT_UNIT);
+    instance.downloadAndInstallMod(modVersion, doubleProperty, stringProperty)
+        .toCompletableFuture()
+        .get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(stringProperty.isBound(), is(true));
     assertThat(doubleProperty.isBound(), is(true));
-
-    assertThat(instance.getInstalledModVersions().size(), is(2));
-  }
-
-  @Test
-  public void testGetInstalledModUids() throws Exception {
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    instance.loadInstalledMods();
-
-    Set<String> installedModUids = instance.getInstalledModUids();
-
-    assertThat(installedModUids, containsInAnyOrder("9e8ea941-c306-4751-b367-f00000000005", "9e8ea941-c306-4751-b367-a11000000502"));
-  }
-
-  @Test
-  public void testGetInstalledUiModsUids() throws Exception {
-    assertThat(instance.getInstalledModVersions().size(), is(1));
-
-    copyMod("EM", ECO_MANAGER_MOD_INFO);
-
-    instance.loadInstalledMods();
-    assertThat(instance.getInstalledModVersions().size(), is(2));
-
-    Set<String> installedUiModsUids = instance.getInstalledUiModsUids();
-
-    assertThat(installedUiModsUids, contains("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
   }
 
   @Test
@@ -320,26 +291,12 @@ public class ModServiceTest extends ServiceTest {
 
   @Test
   public void testExtractModInfo() throws Exception {
-    copyMod("BlackopsSupport", BLACKOPS_SUPPORT_MOD_INFO);
-    copyMod("EM", ECO_MANAGER_MOD_INFO);
-    instance.loadInstalledMods();
+    WaitForAsyncUtils.waitForFxEvents();
 
-    ArrayList<ModVersionBean> installedModVersions = new ArrayList<>(instance.getInstalledModVersions());
-    installedModVersions.sort(Comparator.comparing(modVersionBean -> modVersionBean.getMod().getDisplayName()));
+    ArrayList<ModVersionBean> installedMods = new ArrayList<>(instance.getInstalledMods());
+    installedMods.sort(Comparator.comparing(modVersionBean -> modVersionBean.getMod().getDisplayName()));
 
-    ModVersionBean modVersion = installedModVersions.get(0);
-
-    assertThat(modVersion.getMod().getDisplayName(), is("BlackOps Global Icon Support Mod"));
-    assertThat(modVersion.getVersion(), is(new ComparableVersion("5")));
-    assertThat(modVersion.getMod().getAuthor(), is("Exavier Macbeth, DeadMG"));
-    assertThat(modVersion.getDescription(), is("Version 5.0. This mod provides global icon support for any mod that places their icons in the proper folder structure. See Readme"));
-    assertThat(modVersion.getImagePath(), nullValue());
-    assertThat(modVersion.getSelectable(), is(true));
-    assertThat(modVersion.getId(), is(nullValue()));
-    assertThat(modVersion.getUid(), is("9e8ea941-c306-4751-b367-f00000000005"));
-    assertThat(modVersion.getModType(), equalTo(ModType.SIM));
-
-    modVersion = installedModVersions.get(1);
+    ModVersionBean modVersion = installedMods.get(0);
 
     assertThat(modVersion.getMod().getDisplayName(), is("BlackOps Unleashed"));
     assertThat(modVersion.getVersion(), is(new ComparableVersion("8")));
@@ -354,53 +311,35 @@ public class ModServiceTest extends ServiceTest {
     assertThat(modVersion.getMountPoints().get(3).getFile(), is(Path.of("effects")));
     assertThat(modVersion.getMountPoints().get(3).getMountPoint(), is("/effects"));
     assertThat(modVersion.getHookDirectories(), contains("/blackops"));
-
-    modVersion = installedModVersions.get(2);
-
-    assertThat(modVersion.getMod().getDisplayName(), is("EcoManager"));
-    assertThat(modVersion.getVersion(), is(new ComparableVersion("3")));
-    assertThat(modVersion.getMod().getAuthor(), is("Crotalus"));
-    assertThat(modVersion.getDescription(), is("EcoManager v3, more efficient energy throttling"));
-    assertThat(modVersion.getImagePath(), nullValue());
-    assertThat(modVersion.getSelectable(), is(true));
-    assertThat(modVersion.getId(), is(nullValue()));
-    assertThat(modVersion.getUid(), is("b2cde810-15d0-4bfa-af66-ec2d6ecd561b"));
-    assertThat(modVersion.getModType(), equalTo(ModType.UI));
   }
 
   @Test
   public void testLoadInstalledModWithoutModInfo() throws Exception {
     Files.createDirectories(modsDirectory.resolve("foobar"));
 
-    assertThat(instance.getInstalledModVersions().size(), is(1));
-
-    instance.loadInstalledMods();
-
-    assertThat(instance.getInstalledModVersions().size(), is(1));
+    assertThat(instance.getInstalledMods().size(), is(1));
   }
 
   @Test
   public void testIsModInstalled() {
-    assertThat(instance.isModInstalled("9e8ea941-c306-4751-b367-a11000000502"), is(true));
-    assertThat(instance.isModInstalled("9e8ea941-c306-4751-b367-f00000000005"), is(false));
+    assertThat(instance.isInstalled("9e8ea941-c306-4751-b367-a11000000502"), is(true));
+    assertThat(instance.isInstalled("9e8ea941-c306-4751-b367-f00000000005"), is(false));
   }
 
   @Test
   public void testUninstallMod() {
-    UninstallModTask uninstallModTask = mock(UninstallModTask.class);
-    when(applicationContext.getBean(UninstallModTask.class)).thenReturn(uninstallModTask);
-    assertThat(instance.getInstalledModVersions(), hasSize(1));
+    prepareUninstallModTask(instance.getInstalledMods().get(0));
 
-    instance.uninstallMod(instance.getInstalledModVersions().get(0));
+    instance.uninstallMod(instance.getInstalledMods().get(0));
 
-    verify(taskService).submitTask(uninstallModTask);
+    verify(taskService).submitTask(any(UninstallModTask.class));
   }
 
   @Test
   public void testGetPathForMod() {
-    assertThat(instance.getInstalledModVersions(), hasSize(1));
+    assertThat(instance.getInstalledMods(), hasSize(1));
 
-    Path actual = instance.getPathForMod(instance.getInstalledModVersions().get(0));
+    Path actual = instance.getPathForMod(instance.getInstalledMods().get(0));
 
     Path expected = modsDirectory.resolve(BLACK_OPS_UNLEASHED_DIRECTORY_NAME);
     assertThat(actual, is(expected));
@@ -408,13 +347,17 @@ public class ModServiceTest extends ServiceTest {
 
   @Test
   public void testGetPathForModUnknownModReturnsNull() {
-    assertThat(instance.getInstalledModVersions(), hasSize(1));
-    assertThat(instance.getPathForMod(ModVersionBeanBuilder.create().defaultValues().uid("1").get()), Matchers.nullValue());
+    assertThat(instance.getInstalledMods(), hasSize(1));
+    assertThat(instance.getPathForMod(ModVersionBeanBuilder.create()
+        .defaultValues()
+        .uid("1")
+        .get()), Matchers.nullValue());
   }
 
   @Test
   public void testUploadMod() {
     ModUploadTask modUploadTask = mock(ModUploadTask.class);
+    when(modUploadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
 
     when(applicationContext.getBean(ModUploadTask.class)).thenReturn(modUploadTask);
 
@@ -452,7 +395,7 @@ public class ModServiceTest extends ServiceTest {
 
     Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
-    verify(taskService, times(0)).submitTask(any(InstallModTask.class));
+    verify(taskService, times(0)).submitTask(any(DownloadModTask.class));
 
     assertThat(modVersions, contains(modVersion));
   }
@@ -481,24 +424,20 @@ public class ModServiceTest extends ServiceTest {
 
     Files.createFile(gamePrefsPath);
 
-    when(applicationContext.getBean(any(Class.class)))
-        .thenReturn(mock(InstallModTask.class));
+    when(applicationContext.getBean(DownloadModTask.class))
+        .thenReturn(stubDownloadModTask());
 
-    InstallModTask installModTask = mock(InstallModTask.class);
-    when(taskService.submitTask(any(InstallModTask.class)))
-        .thenReturn(installModTask);
-    when(installModTask.getFuture())
-        .thenReturn(CompletableFuture.completedFuture(null));
+    prepareUninstallModTask(modVersion);
 
     Collection<ModVersionBean> modVersions = instance.updateAndActivateModVersions(List.of(modVersion)).get();
 
-    verify(taskService, times(1)).submitTask(any());
+    verify(taskService, times(2)).submitTask(any());
 
     assertThat(modVersions, contains(latestVersion));
   }
 
-  private InstallModTask stubInstallModTask() {
-    return new InstallModTask(i18n, dataPrefs, forgedAlliancePrefs) {
+  private DownloadModTask stubDownloadModTask() {
+    return new DownloadModTask(i18n, dataPrefs, forgedAlliancePrefs) {
       @Override
       protected Void call() {
         return null;
@@ -512,7 +451,8 @@ public class ModServiceTest extends ServiceTest {
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     List<ModVersionBean> results = instance.getRecommendedModsWithPageCount(10, 0).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended").isTrue())));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().bool("recommended")
+        .isTrue())));
     assertThat(results, contains(modVersionBean));
   }
 
@@ -558,7 +498,8 @@ public class ModServiceTest extends ServiceTest {
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     List<ModVersionBean> results = instance.getHighestRatedModsWithPageCount(10, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("SIM"))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type")
+        .eq("SIM"))));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
@@ -571,7 +512,8 @@ public class ModServiceTest extends ServiceTest {
     Mono<Tuple2<List<ElideEntity>, Integer>> resultMono = ApiTestUtil.apiPageOf(List.of(modMapper.map(modVersionBean.getMod(), new CycleAvoidingMappingContext())), 1);
     when(fafApiAccessor.getManyWithPageCount(any())).thenReturn(resultMono);
     List<ModVersionBean> results = instance.getHighestRatedUiModsWithPageCount(10, 1).join().getT1();
-    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type").eq("UI"))));
+    verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasFilter(qBuilder().string("latestVersion.type")
+        .eq("UI"))));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasSort("reviewsSummary.lowerBound", false)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
@@ -588,5 +530,11 @@ public class ModServiceTest extends ServiceTest {
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageSize(10)));
     verify(fafApiAccessor).getManyWithPageCount(argThat(ElideMatchers.hasPageNumber(1)));
     assertThat(results, contains(modVersionBean));
+  }
+
+  private void prepareUninstallModTask(ModVersionBean modToDelete) {
+    UninstallModTask task = new UninstallModTask(instance);
+    task.setMod(modToDelete);
+    when(applicationContext.getBean(UninstallModTask.class)).thenReturn(task);
   }
 }

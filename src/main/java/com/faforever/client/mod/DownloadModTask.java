@@ -31,7 +31,7 @@ import static com.faforever.client.task.CompletableTask.Priority.HIGH;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class InstallModTask extends CompletableTask<Void> {
+public class DownloadModTask extends CompletableTask<Void> {
 
   private final I18n i18n;
   private final DataPrefs dataPrefs;
@@ -40,7 +40,7 @@ public class InstallModTask extends CompletableTask<Void> {
   private URL url;
 
   @Inject
-  public InstallModTask(I18n i18n, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
+  public DownloadModTask(I18n i18n, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs) {
     super(HIGH);
 
     this.i18n = i18n;

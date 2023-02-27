@@ -35,7 +35,7 @@ public class ModManagerControllerTest extends UITest {
   public void setUp() throws Exception {
     modUI = ModVersionBeanBuilder.create().defaultValues().uid("UI").modType(ModType.UI).id(null).get();
     modSIM = ModVersionBeanBuilder.create().defaultValues().uid("SIM").modType(ModType.SIM).id(null).get();
-    when(modService.getInstalledModVersions()).thenReturn(FXCollections.observableArrayList(modUI, modSIM));
+    when(modService.getInstalledMods()).thenReturn(FXCollections.observableArrayList(modUI, modSIM));
 
     when(modService.getActivatedSimAndUIMods()).thenReturn(Collections.singletonList(modUI));
 

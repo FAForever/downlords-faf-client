@@ -66,7 +66,6 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   public void onReloadModsButtonClicked() {
-    modService.loadInstalledMods();
     loadActivatedMods();
   }
 
@@ -102,7 +101,7 @@ public class ModManagerController implements Controller<Parent> {
   }
 
   private void loadActivatedMods() {
-    ObservableList<ModVersionBean> installedModVersions = modService.getInstalledModVersions();
+    ObservableList<ModVersionBean> installedModVersions = modService.getInstalledMods();
     try {
       selectedMods.addAll(modService.getActivatedSimAndUIMods());
     } catch (IOException e) {

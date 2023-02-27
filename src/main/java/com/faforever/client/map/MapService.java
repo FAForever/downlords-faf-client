@@ -42,12 +42,15 @@ import com.github.rutledgepaulv.qbuilders.conditions.Condition;
 import com.github.rutledgepaulv.qbuilders.visitors.RSQLVisitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -125,6 +128,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private final Preferences preferences;
 
   private final ObservableMap<String, MapVersionBean> mapsByFolderName = FXCollections.observableHashMap();
+  @Getter
   private final ObservableList<MapVersionBean> installedMaps = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList()), mapsByFolderName);
   private String mapDownloadUrlFormat;
   private String mapPreviewUrlFormat;
@@ -137,13 +141,16 @@ public class MapService implements InitializingBean, DisposableBean {
       "X1MP_005", "X1MP_006", "X1MP_007", "X1MP_008", "X1MP_009", "X1MP_010", "X1MP_011", "X1MP_012", "X1MP_014", "X1MP_017"
   );
   private Thread directoryWatcherThread;
+  private InvalidationListener mapsDirectoryInvalidationListener = observable -> tryLoadMaps();
 
   private static URL getDownloadUrl(String mapName, String baseUrl) throws MalformedURLException {
     return new URL(format(baseUrl, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US)));
   }
 
-  private static URL getPreviewUrl(String mapName, String baseUrl, PreviewSize previewSize) throws MalformedURLException {
-    return new URL(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName).toLowerCase(Locale.US)));
+  private static URL getPreviewUrl(String mapName, String baseUrl,
+                                   PreviewSize previewSize) throws MalformedURLException {
+    return new URL(format(baseUrl, previewSize.folderName, urlFragmentEscaper().escape(mapName)
+        .toLowerCase(Locale.US)));
   }
 
   @Override
@@ -151,9 +158,9 @@ public class MapService implements InitializingBean, DisposableBean {
     Vault vault = clientProperties.getVault();
     mapDownloadUrlFormat = vault.getMapDownloadUrlFormat();
     mapPreviewUrlFormat = vault.getMapPreviewUrlFormat();
-    JavaFxUtil.addListener(forgedAlliancePrefs.installationPathProperty(), observable -> tryLoadMaps());
-    JavaFxUtil.addListener(forgedAlliancePrefs.vaultBaseDirectoryProperty(), observable -> tryLoadMaps());
-    tryLoadMaps();
+    WeakInvalidationListener weakDirectoryListener = new WeakInvalidationListener(mapsDirectoryInvalidationListener);
+    JavaFxUtil.addListener(forgedAlliancePrefs.installationPathProperty(), weakDirectoryListener);
+    JavaFxUtil.addAndTriggerListener(forgedAlliancePrefs.vaultBaseDirectoryProperty(), weakDirectoryListener);
   }
 
   private void tryLoadMaps() {
@@ -196,7 +203,7 @@ public class MapService implements InitializingBean, DisposableBean {
                   Mono.just(mapPath)
                       .filter(Files::exists)
                       .doOnNext(this::addInstalledMap)
-                      .retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(1)).filter(MapLoadException.class::isInstance))
+                      .retryWhen(Retry.fixedDelay(30, Duration.ofSeconds(1)).filter(MapLoadException.class::isInstance))
                       .subscribe(null, throwable -> log.error("Map could not be read: `{}`", mapPath, throwable));
                 }
               });
@@ -254,7 +261,7 @@ public class MapService implements InitializingBean, DisposableBean {
   private void addInstalledMap(Path mapFolder) throws MapLoadException {
     MapVersionBean mapVersion = readMap(mapFolder);
     if (!isInstalled(mapVersion.getFolderName())) {
-      mapsByFolderName.put(mapVersion.getFolderName().toLowerCase(Locale.ROOT), mapVersion);
+      JavaFxUtil.runLater(() -> mapsByFolderName.put(mapVersion.getFolderName().toLowerCase(Locale.ROOT), mapVersion));
       log.debug("Added map from {}", mapFolder);
     }
   }
@@ -282,7 +289,12 @@ public class MapService implements InitializingBean, DisposableBean {
       mapVersion.setDescription(FaStrings.removeLocalizationTag(scenarioInfo.get("description").toString()));
       map.setMapType(MapType.fromString(scenarioInfo.get("type").toString()));
       mapVersion.setSize(MapSize.valueOf(size.get(1).toint(), size.get(2).toint()));
-      mapVersion.setMaxPlayers(scenarioInfo.get("Configurations").get("standard").get("teams").get(1).get("armies").length());
+      mapVersion.setMaxPlayers(scenarioInfo.get("Configurations")
+          .get("standard")
+          .get("teams")
+          .get(1)
+          .get("armies")
+          .length());
       mapVersion.setMap(map);
 
       LuaValue version = scenarioInfo.get("map_version");
@@ -327,11 +339,6 @@ public class MapService implements InitializingBean, DisposableBean {
 
   public Image getGeneratedMapPreviewImage() {
     return uiService.getThemeImage(UiService.GENERATED_MAP_IMAGE);
-  }
-
-
-  public ObservableList<MapVersionBean> getInstalledMaps() {
-    return installedMaps;
   }
 
   public Optional<MapVersionBean> getMapLocallyFromName(String mapFolderName) {
@@ -379,7 +386,9 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
 
-  public CompletableFuture<Void> downloadAndInstallMap(MapVersionBean mapVersion, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+  public CompletableFuture<Void> downloadAndInstallMap(MapVersionBean mapVersion,
+                                                       @Nullable DoubleProperty progressProperty,
+                                                       @Nullable StringProperty titleProperty) {
     return downloadAndInstallMap(mapVersion.getFolderName(), mapVersion.getDownloadUrl(), progressProperty, titleProperty);
   }
 
@@ -486,7 +495,9 @@ public class MapService implements InitializingBean, DisposableBean {
     return fileSizeReader.getFileSize(mapVersion.getDownloadUrl());
   }
 
-  private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl, @Nullable DoubleProperty progressProperty, @Nullable StringProperty titleProperty) {
+  private CompletableFuture<Void> downloadAndInstallMap(String folderName, URL downloadUrl,
+                                                        @Nullable DoubleProperty progressProperty,
+                                                        @Nullable StringProperty titleProperty) {
     if (mapGeneratorService.isGeneratedMap(folderName)) {
       return generateIfNotInstalled(folderName).thenRun(() -> {});
     }
@@ -596,9 +607,11 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   @Cacheable(value = CacheNames.MATCHMAKER_POOLS, sync = true)
-  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(MatchmakerQueueBean matchmakerQueue, int count, int page) {
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMatchmakerMapsWithPageCount(
+      MatchmakerQueueBean matchmakerQueue, int count, int page) {
     PlayerBean player = playerService.getCurrentPlayer();
-    float rating = Optional.ofNullable(player.getLeaderboardRatings().get(matchmakerQueue.getLeaderboard().getTechnicalName()))
+    float rating = Optional.ofNullable(player.getLeaderboardRatings()
+            .get(matchmakerQueue.getLeaderboard().getTechnicalName()))
         .map(ratingBean -> ratingBean.getMean() - 3 * ratingBean.getDeviation()).orElse(0f);
     ElideNavigatorOnCollection<MapPoolAssignment> navigator = ElideNavigator.of(MapPoolAssignment.class).collection();
     List<Condition<?>> conditions = new ArrayList<>();
@@ -610,7 +623,8 @@ public class MapService implements InitializingBean, DisposableBean {
     Flux<MapVersionBean> matchmakerMapsFlux = fafApiAccessor.getMany(navigator, customFilter)
         .map(mapPoolAssignment -> mapMapper.mapFromPoolAssignment(mapPoolAssignment, new CycleAvoidingMappingContext()))
         .distinct()
-        .sort(Comparator.comparing(MapVersionBean::getSize).thenComparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER));
+        .sort(Comparator.comparing(MapVersionBean::getSize)
+            .thenComparing(mapVersion -> mapVersion.getMap().getDisplayName(), String.CASE_INSENSITIVE_ORDER));
     return Mono.zip(
         matchmakerMapsFlux.skip((long) (page - 1) * count)
             .take(count).collectList(),
@@ -645,7 +659,8 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   @Cacheable(value = CacheNames.MAPS, sync = true)
-  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig, int count, int page) {
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> findByQueryWithPageCount(SearchConfig searchConfig,
+                                                                                           int count, int page) {
     SortConfig sortConfig = searchConfig.getSortConfig();
     ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
         .addSortingRule(sortConfig.getSortProperty(), sortConfig.getSortOrder().equals(SortOrder.ASC));
@@ -663,7 +678,8 @@ public class MapService implements InitializingBean, DisposableBean {
     return getMapPage(navigator, count, page);
   }
 
-  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getHighestRatedMapsWithPageCount(int count, int page) {
+  public CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getHighestRatedMapsWithPageCount(int count,
+                                                                                                   int page) {
     ElideNavigatorOnCollection<Map> navigator = ElideNavigator.of(Map.class).collection()
         .addSortingRule("reviewsSummary.lowerBound", false);
     return getMapPage(navigator, count, page);
@@ -681,19 +697,27 @@ public class MapService implements InitializingBean, DisposableBean {
     return getMapPage(navigator, count, page);
   }
 
-  private CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMapPage(ElideNavigatorOnCollection<Map> navigator, int count, int page) {
+  private CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMapPage(ElideNavigatorOnCollection<Map> navigator,
+                                                                              int count, int page) {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator)
         .map(tuple -> tuple.mapT1(maps ->
-            maps.stream().map(Map::getLatestVersion).map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext())).collect(toList())
+            maps.stream()
+                .map(Map::getLatestVersion)
+                .map(dto -> mapMapper.map(dto, new CycleAvoidingMappingContext()))
+                .collect(toList())
         )).toFuture();
   }
 
-  private CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMapPage(ElideNavigatorOnCollection<Map> navigator, String customFilter, int count, int page) {
+  private CompletableFuture<Tuple2<List<MapVersionBean>, Integer>> getMapPage(ElideNavigatorOnCollection<Map> navigator,
+                                                                              String customFilter, int count,
+                                                                              int page) {
     navigator.pageNumber(page).pageSize(count);
     return fafApiAccessor.getManyWithPageCount(navigator, customFilter)
         .map(tuple -> tuple.mapT1(maps ->
-            maps.stream().map(dto -> mapMapper.map(dto.getLatestVersion(), new CycleAvoidingMappingContext())).collect(toList())
+            maps.stream()
+                .map(dto -> mapMapper.map(dto.getLatestVersion(), new CycleAvoidingMappingContext()))
+                .collect(toList())
         )).toFuture();
   }
 }

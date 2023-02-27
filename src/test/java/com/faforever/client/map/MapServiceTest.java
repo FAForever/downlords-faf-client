@@ -152,14 +152,14 @@ public class MapServiceTest extends UITest {
 
     when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 
-    instance.afterPropertiesSet();
-
     doAnswer(invocation -> {
       CompletableTask<?> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
       task.getFuture().join();
       return task;
     }).when(taskService).submitTask(any());
+
+    instance.afterPropertiesSet();
 
     instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
@@ -342,6 +342,8 @@ public class MapServiceTest extends UITest {
     prepareDownloadMapTask(updatedMap);
     prepareUninstallMapTask(outdatedMap);
     assertThat(instance.updateLatestVersionIfNecessary(outdatedMap).join().getId(), is(updatedMap.getId()));
+
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
     assertThat(checkCustomMapFolderExist(updatedMap), is(true));
   }
@@ -373,6 +375,7 @@ public class MapServiceTest extends UITest {
     prepareDownloadMapTask(mapVersionBean);
 
     copyMapsToCustomMapsDirectory(mapVersionBean);
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));
     assertThat(instance.updateLatestVersionIfNecessary(mapVersionBean).join(), is(mapVersionBean));
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));

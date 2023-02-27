@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 
 import static com.faforever.client.notification.Severity.ERROR;
@@ -91,13 +90,7 @@ public class ModUploadController implements Controller<Node> {
   public void setModPath(Path modPath) {
     this.modPath = modPath;
     enterParsingState();
-    CompletableFuture.supplyAsync(() -> {
-      try {
-        return modService.extractModInfo(modPath);
-      } catch (ModLoadException e) {
-        throw new CompletionException(e);
-      }
-    }, executorService)
+    CompletableFuture.supplyAsync(() -> modService.extractModInfo(modPath), executorService)
         .thenAccept(this::setModVersionInfo)
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);

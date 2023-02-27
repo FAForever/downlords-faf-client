@@ -134,13 +134,13 @@ public class ModDetailController implements Controller<Node> {
 
     setUploaderAndAuthor(modVersion);
 
-    boolean modInstalled = modService.isModInstalled(modVersion.getUid());
+    boolean modInstalled = modService.isInstalled(modVersion.getUid());
     installButton.setVisible(!modInstalled);
     uninstallButton.setVisible(modInstalled);
 
     modDescriptionLabel.setText(modVersion.getDescription());
-    JavaFxUtil.addListener(modService.getInstalledModVersions(), new WeakListChangeListener<>(installStatusChangeListener));
-    setInstalled(modService.isModInstalled(modVersion.getUid()));
+    JavaFxUtil.addListener(modService.getInstalledMods(), new WeakListChangeListener<>(installStatusChangeListener));
+    setInstalled(modService.isInstalled(modVersion.getUid()));
 
     updatedLabel.setText(timeService.asDate(modVersion.getUpdateTime()));
     modService.getFileSize(modVersion)
@@ -161,7 +161,7 @@ public class ModDetailController implements Controller<Node> {
 
     PlayerBean player = playerService.getCurrentPlayer();
 
-    reviewsController.setCanWriteReview(modService.isModInstalled(modVersion.getUid())
+    reviewsController.setCanWriteReview(modService.isInstalled(modVersion.getUid())
         && !player.getUsername().equals(modVersion.getMod().getAuthor()) && !player.equals(modVersion.getMod().getUploader()));
     reviewsController.setOnSendReviewListener(this::onSendReview);
     reviewsController.setOnDeleteReviewListener(this::onDeleteReview);

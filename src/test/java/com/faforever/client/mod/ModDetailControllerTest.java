@@ -87,7 +87,7 @@ public class ModDetailControllerTest extends UITest {
 
     installedModVersions = FXCollections.observableArrayList();
     when(modService.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
-    when(modService.getInstalledModVersions()).thenReturn(installedModVersions);
+    when(modService.getInstalledMods()).thenReturn(installedModVersions);
     when(i18n.get("modVault.details.author", modVersion.getMod().getAuthor())).thenReturn(modVersion.getMod().getAuthor());
     when(i18n.get("modVault.details.uploader", modVersion.getMod().getUploader().getUsername())).thenReturn(modVersion.getMod().getUploader().getUsername());
     when(playerService.getCurrentPlayer()).thenReturn(currentPlayer);
@@ -245,7 +245,7 @@ public class ModDetailControllerTest extends UITest {
   public void testSetInstalledMod() {
     modVersion.getMod().setAuthor("nobody");
     modVersion.getMod().setUploader(PlayerBeanBuilder.create().defaultValues().id(100).get());
-    when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
+    when(modService.isInstalled(modVersion.getUid())).thenReturn(true);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -256,7 +256,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testSetUninstalledMod() {
-    when(modService.isModInstalled(modVersion.getUid())).thenReturn(false);
+    when(modService.isInstalled(modVersion.getUid())).thenReturn(false);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
@@ -267,7 +267,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testSetOwnedMod() {
-    when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
+    when(modService.isInstalled(modVersion.getUid())).thenReturn(true);
     ModBean modBean = ModBeanBuilder.create().defaultValues().uploader(currentPlayer).author(currentPlayer.getUsername()).get();
     modVersion.setMod(modBean);
     instance.setModVersion(modVersion);
@@ -280,7 +280,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testChangeInstalledStateWhenModIsUninstalled() {
-    when(modService.isModInstalled(modVersion.getUid())).thenReturn(true);
+    when(modService.isInstalled(modVersion.getUid())).thenReturn(true);
     instance.setModVersion(modVersion);
     installedModVersions.add(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
@@ -296,7 +296,7 @@ public class ModDetailControllerTest extends UITest {
 
   @Test
   public void testChangeInstalledStateWhenModIsInstalled() {
-    when(modService.isModInstalled(modVersion.getUid())).thenReturn(false);
+    when(modService.isInstalled(modVersion.getUid())).thenReturn(false);
     instance.setModVersion(modVersion);
     WaitForAsyncUtils.waitForFxEvents();
 
