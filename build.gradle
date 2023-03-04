@@ -7,7 +7,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:3.0.2"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:3.0.3"
   }
 }
 
@@ -312,7 +312,7 @@ dependencies {
   implementation("net.java.dev.jna:jna:5.13.0")
   implementation("net.java.dev.jna:jna-platform:5.13.0")
   implementation("org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r")
-  implementation("org.jetbrains:annotations:24.0.0")
+  implementation("org.jetbrains:annotations:24.0.1")
   implementation("com.neovisionaries:nv-i18n:1.29")
   implementation("com.nativelibs4java:bridj:0.7.0")
   implementation("org.luaj:luaj-jse:3.0.1")
@@ -367,7 +367,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
   annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
   testAnnotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.2.Final")
+  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
   compileOnly("org.projectlombok:lombok")
   testCompileOnly("org.projectlombok:lombok")
 
