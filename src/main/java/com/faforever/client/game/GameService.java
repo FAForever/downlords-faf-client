@@ -264,13 +264,11 @@ public class GameService implements InitializingBean {
 
   private Mono<GameBean> initializeGameBean(GameInfo gameInfo) {
     return Mono.fromCallable(() -> {
-          GameBean newGame = new GameBean();
-          newGame.setId(gameInfo.getUid());
-          newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
-          return newGame;
-        })
-        .publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(game -> gameIdToGame.put(game.getId(), game));
+      GameBean newGame = new GameBean();
+      newGame.setId(gameInfo.getUid());
+      newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
+      return newGame;
+    }).publishOn(javaFxService.getFxApplicationScheduler()).doOnNext(game -> gameIdToGame.put(game.getId(), game));
   }
 
   private ChangeListener<Set<Integer>> generatePlayerChangeListener(GameBean newGame) {
@@ -354,7 +352,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> hostGame(newGameInfo));
     }
 
-    if (isInMatchmakerQueue()) {
+    if (waitingForMatchMakerGame()) {
       addAlreadyInQueueNotification();
       return completedFuture(null);
     }
@@ -380,7 +378,7 @@ public class GameService implements InitializingBean {
       return gameDirectoryFuture.thenCompose(path -> joinGame(game, password));
     }
 
-    if (isInMatchmakerQueue()) {
+    if (waitingForMatchMakerGame()) {
       addAlreadyInQueueNotification();
       return completedFuture(null);
     }
@@ -388,7 +386,8 @@ public class GameService implements InitializingBean {
     log.info("Joining game: '{}' ({})", game.getTitle(), game.getId());
 
     Set<String> simModUIds = game.getSimMods().keySet();
-    return modService.getFeaturedMod(game.getFeaturedMod()).toFuture()
+    return modService.getFeaturedMod(game.getFeaturedMod())
+        .toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUIds))
         .thenRun(() -> {
           try {
@@ -443,7 +442,8 @@ public class GameService implements InitializingBean {
       return completedFuture(null);
     }
 
-    return modService.getFeaturedMod(featuredMod).toFuture()
+    return modService.getFeaturedMod(featuredMod)
+        .toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapFolderName).handleAsync((ignoredResult, throwable) -> {
           try {
@@ -476,7 +476,7 @@ public class GameService implements InitializingBean {
       log.info("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
-    } else if (isInMatchmakerQueue()) {
+    } else if (waitingForMatchMakerGame()) {
       log.info("In matchmaker queue, not starting replay");
       notificationService.addImmediateWarnNotification("replay.inQueue");
       return false;
@@ -538,7 +538,8 @@ public class GameService implements InitializingBean {
 
     Set<String> simModUids = game.getSimMods().keySet();
 
-    return modService.getFeaturedMod(gameType).toFuture()
+    return modService.getFeaturedMod(gameType)
+        .toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUids))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
@@ -570,26 +571,28 @@ public class GameService implements InitializingBean {
     return game;
   }
 
-  public CompletableFuture<Void> startSearchMatchmaker() {
+  public void startSearchMatchmaker() {
     if (isRunning()) {
       log.info("Game is running, ignoring matchmaking search request");
       notificationService.addImmediateWarnNotification("game.gameRunning");
-      return completedFuture(null);
+      return;
     }
 
-    if (isInMatchmakerQueue()) {
+    if (waitingForMatchMakerGame()) {
       log.info("Matchmaker search has already been started, ignoring call");
-      return matchmakerFuture;
+      return;
     }
 
     if (!preferencesService.isGamePathValid()) {
       CompletableFuture<Path> gameDirectoryFuture = postGameDirectoryChooseEvent();
-      return gameDirectoryFuture.thenCompose(path -> startSearchMatchmaker());
+      gameDirectoryFuture.thenRun(this::startSearchMatchmaker);
+      return;
     }
 
     log.info("Matchmaking search has been started");
 
-    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName()).toFuture()
+    matchmakerFuture = modService.getFeaturedMod(FAF.getTechnicalName())
+        .toFuture()
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
@@ -604,24 +607,29 @@ public class GameService implements InitializingBean {
             .thenCompose(this::startGame));
 
     matchmakerFuture.whenComplete((aVoid, throwable) -> {
-      if (throwable != null) {
-        throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-        if (throwable instanceof CancellationException) {
-          log.info("Matchmaking search has been cancelled");
-          if (isRunning()) {
-            notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
-            gameKilled = true;
-            process.destroy();
+          if (throwable != null) {
+            throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+            if (throwable instanceof CancellationException) {
+              log.info("Matchmaking search has been cancelled");
+              if (isRunning()) {
+                notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
+                gameKilled = true;
+                process.destroy();
+              }
+            } else {
+              log.warn("Matchmade game could not be started", throwable);
+            }
+          } else {
+            log.info("Matchmaker queue exited");
           }
-        } else {
-          log.warn("Matchmade game could not be started", throwable);
-        }
-      } else {
-        log.info("Matchmaker queue exited");
-      }
-    });
+        });
+  }
 
-    return matchmakerFuture;
+  public void stopSearchMatchmaker() {
+    log.info("Stopping matchmaker search");
+    if (matchmakerFuture != null) {
+      matchmakerFuture.cancel(true);
+    }
   }
 
   /**
@@ -660,7 +668,7 @@ public class GameService implements InitializingBean {
     }
   }
 
-  public boolean isInMatchmakerQueue() {
+  private boolean waitingForMatchMakerGame() {
     return matchmakerFuture != null && !matchmakerFuture.isDone();
   }
 
@@ -773,7 +781,8 @@ public class GameService implements InitializingBean {
     synchronized (currentGame) {
       GameBean game = currentGame.get();
 
-      modService.getFeaturedMod(game.getFeaturedMod()).toFuture()
+      modService.getFeaturedMod(game.getFeaturedMod())
+          .toFuture()
           .thenCompose(featuredModBean -> hostGame(new NewGameInfo(game.getTitle(), game.getPassword(), featuredModBean, game.getMapFolderName(), new HashSet<>(game.getSimMods()
               .values()), GameVisibility.PUBLIC, game.getRatingMin(), game.getRatingMax(), game.getEnforceRating())));
     }
@@ -830,7 +839,8 @@ public class GameService implements InitializingBean {
       return;
     }
 
-    modService.getFeaturedMod(TUTORIALS.getTechnicalName()).toFuture()
+    modService.getFeaturedMod(TUTORIALS.getTechnicalName())
+        .toFuture()
         .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, emptySet()))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapVersion.getFolderName()))
         .thenCompose(aVoid -> {

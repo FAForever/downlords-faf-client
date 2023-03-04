@@ -93,7 +93,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -580,7 +579,7 @@ public class GameServiceTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
-    instance.startSearchMatchmaker().join();
+    instance.startSearchMatchmaker();
 
     verify(fafServerAccessor).startSearchMatchmaker();
     verify(mapService).download(map);
@@ -617,7 +616,7 @@ public class GameServiceTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
-    instance.startSearchMatchmaker().join();
+    instance.startSearchMatchmaker();
 
     verify(fafServerAccessor).startSearchMatchmaker();
     verify(mapService).download(map);
@@ -652,9 +651,9 @@ public class GameServiceTest extends ServiceTest {
     when(modService.getFeaturedMod(FAF.getTechnicalName())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process).newIncompleteFuture());
 
-    CompletableFuture<Void> matchmakerFuture = instance.startSearchMatchmaker();
+    instance.startSearchMatchmaker();
 
-    assertSame(matchmakerFuture, instance.startSearchMatchmaker());
+    verify(fafServerAccessor).startSearchMatchmaker();
   }
 
   @Test
@@ -680,7 +679,7 @@ public class GameServiceTest extends ServiceTest {
     instance.hostGame(newGameInfo);
     gameRunningLatch.await(TIMEOUT, TIME_UNIT);
 
-    instance.startSearchMatchmaker().join();
+    instance.startSearchMatchmaker();
 
     verify(notificationService).addImmediateWarnNotification("game.gameRunning");
   }
@@ -832,7 +831,7 @@ public class GameServiceTest extends ServiceTest {
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
-    instance.startSearchMatchmaker().join();
+    instance.startSearchMatchmaker();
     verify(forgedAllianceService).startGameOnline(gameParameters);
   }
 
@@ -861,9 +860,9 @@ public class GameServiceTest extends ServiceTest {
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
-    CompletableFuture<Void> future = instance.startSearchMatchmaker();
+    instance.startSearchMatchmaker();
     when(process.isAlive()).thenReturn(true);
-    future.cancel(false);
+    instance.stopSearchMatchmaker();
     verify(notificationService).addServerNotification(any());
   }
 
@@ -889,7 +888,8 @@ public class GameServiceTest extends ServiceTest {
     when(gameUpdater.update(any(), any(), any(), any())).thenReturn(completedFuture(null));
     when(mapService.download(gameLaunchMessage.getMapName())).thenReturn(completedFuture(null));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(CompletableFuture.completedFuture(gameLaunchMessage));
-    instance.startSearchMatchmaker().cancel(false);
+    instance.startSearchMatchmaker();
+    instance.stopSearchMatchmaker();
     verify(notificationService, never()).addServerNotification(any());
   }
 

@@ -28,6 +28,7 @@ import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.UITest;
 import com.faforever.commons.api.dto.Leaderboard;
 import com.faforever.commons.api.dto.MatchmakerQueue;
+import com.faforever.commons.api.elide.ElideNavigatorOnCollection;
 import com.faforever.commons.lobby.Faction;
 import com.faforever.commons.lobby.GameLaunchResponse;
 import com.faforever.commons.lobby.GameType;
@@ -103,8 +104,6 @@ public class TeamMatchmakingServiceTest extends UITest {
   private JavaFxService javaFxService;
   @Mock
   private GameService gameService;
-  @Mock
-  private CompletableFuture<Void> matchmakingFuture;
 
   private PlayerBean player;
   private PlayerBean otherPlayer;
@@ -119,7 +118,8 @@ public class TeamMatchmakingServiceTest extends UITest {
   private final TestPublisher<PartyInvite> inviteTestPublisher = TestPublisher.create();
   private final TestPublisher<PartyKick> kickTestPublisher = TestPublisher.create();
   private final TestPublisher<PartyInfo> partyInfoTestPublisher = TestPublisher.create();
-
+  private final TestPublisher<SearchInfo> searchInfoTestPublisher = TestPublisher.create();
+  private final TestPublisher<GameLaunchResponse> gameLaunchResponseTestPublisher = TestPublisher.create();
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -128,7 +128,6 @@ public class TeamMatchmakingServiceTest extends UITest {
     otherPlayer = PlayerBeanBuilder.create().defaultValues().username("junit2").id(2).get();
     when(playerService.getPlayerByIdIfOnline(2)).thenReturn(Optional.of(otherPlayer));
     when(playerService.getPlayerByIdIfOnline(1)).thenReturn(Optional.of(player));
-    when(gameService.startSearchMatchmaker()).thenReturn(matchmakingFuture);
     when(gameService.getGames()).thenReturn(FXCollections.emptyObservableList());
     when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
     when(javaFxService.getSingleScheduler()).thenReturn(Schedulers.immediate());
@@ -138,6 +137,8 @@ public class TeamMatchmakingServiceTest extends UITest {
     when(fafServerAccessor.getEvents(PartyInvite.class)).thenReturn(inviteTestPublisher.flux());
     when(fafServerAccessor.getEvents(PartyKick.class)).thenReturn(kickTestPublisher.flux());
     when(fafServerAccessor.getEvents(PartyInfo.class)).thenReturn(partyInfoTestPublisher.flux());
+    when(fafServerAccessor.getEvents(SearchInfo.class)).thenReturn(searchInfoTestPublisher.flux());
+    when(fafServerAccessor.getEvents(GameLaunchResponse.class)).thenReturn(gameLaunchResponseTestPublisher.flux());
 
     when(preferencesService.isGamePathValid()).thenReturn(true);
     when(playerService.getCurrentPlayer()).thenReturn(player);
@@ -257,15 +258,16 @@ public class TeamMatchmakingServiceTest extends UITest {
 
     SearchInfo message = new SearchInfo("notExistingQueue", MatchmakerState.START);
 
-    instance.onSearchInfoMessage(message);
+    searchInfoTestPublisher.next(message);
 
     verify(gameService, never()).startSearchMatchmaker();
 
     SearchInfo message2 = new SearchInfo("queue1", MatchmakerState.START);
 
-    instance.onSearchInfoMessage(message2);
+    searchInfoTestPublisher.next(message2);
 
     verify(gameService).startSearchMatchmaker();
+    assertThat(instance.isInQueue(), is(true));
     assertThat(instance.getQueues().get(0).isJoined(), is(true));
   }
 
@@ -280,7 +282,7 @@ public class TeamMatchmakingServiceTest extends UITest {
     verify(notificationService).addNotification(captor.capture());
     assertThat(instance.getQueues().get(0).getMatchingStatus(), is(MatchingStatus.MATCH_FOUND));
     assertThat(instance.getQueues().get(1).getMatchingStatus(), is(nullValue()));
-    assertThat(instance.isCurrentlyInQueue(), is(false));
+    assertThat(instance.isInQueue(), is(false));
   }
 
   @Test
@@ -302,7 +304,7 @@ public class TeamMatchmakingServiceTest extends UITest {
         .initMode(LobbyMode.AUTO_LOBBY)
         .get();
 
-    instance.onGameLaunchMessage(message);
+    gameLaunchResponseTestPublisher.next(message);
 
     assertThat(instance.getQueues().get(0).getMatchingStatus(), is(MatchingStatus.GAME_LAUNCHING));
     assertThat(instance.getQueues().get(1).getMatchingStatus(), is(nullValue()));
@@ -329,21 +331,21 @@ public class TeamMatchmakingServiceTest extends UITest {
 
     MatchmakerQueue matchmakerQueue1 = new MatchmakerQueue().setTechnicalName("queue1").setLeaderboard(new Leaderboard());
     MatchmakerQueue matchmakerQueue2 = new MatchmakerQueue().setTechnicalName("queue2").setLeaderboard(new Leaderboard());
-    when(fafApiAccessor.getMany(any())).thenReturn(Flux.just(matchmakerQueue1), Flux.just(matchmakerQueue2));
+    when(fafApiAccessor.getMany(any(ElideNavigatorOnCollection.class))).thenReturn(Flux.just(matchmakerQueue1), Flux.just(matchmakerQueue2));
     return new MatchmakerInfo(queues);
   }
 
   @Test
   public void testInvitePlayer() {
+    matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
+
     when(playerService.getPlayerByNameIfOnline("invitee")).thenReturn(Optional.of(otherPlayer));
-    instance.currentlyInQueueProperty().set(false);
 
     instance.invitePlayer("invitee");
 
     verify(fafServerAccessor).inviteToParty(otherPlayer);
 
-
-    instance.currentlyInQueueProperty().set(true);
+    searchInfoTestPublisher.next(new SearchInfo("queue1", MatchmakerState.START));
 
     instance.invitePlayer("invitee");
 
@@ -352,8 +354,6 @@ public class TeamMatchmakingServiceTest extends UITest {
 
   @Test
   public void testAcceptInvite() {
-    instance.currentlyInQueueProperty().set(false);
-
     instance.acceptPartyInvite(player);
 
     verify(fafServerAccessor).acceptPartyInvite(player);
@@ -362,7 +362,8 @@ public class TeamMatchmakingServiceTest extends UITest {
 
   @Test
   public void testAcceptInvitePlayerInQueue() {
-    instance.currentlyInQueueProperty().set(true);
+    matchmakerInfoTestPublisher.next(createMatchmakerInfoMessage());
+    searchInfoTestPublisher.next(new SearchInfo("queue1", MatchmakerState.START));
 
     instance.acceptPartyInvite(player);
 
@@ -371,7 +372,6 @@ public class TeamMatchmakingServiceTest extends UITest {
 
   @Test
   public void testAcceptInviteGameRunning() {
-    instance.currentlyInQueueProperty().set(false);
     when(gameService.isGameRunning()).thenReturn(true);
 
     instance.acceptPartyInvite(player);
