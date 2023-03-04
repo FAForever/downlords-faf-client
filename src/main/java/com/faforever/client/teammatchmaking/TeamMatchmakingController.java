@@ -172,7 +172,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
 
   private void setQueueHeadingLabel() {
     String labelText;
-    if (teamMatchmakingService.isCurrentlyInQueue()) {
+    if (teamMatchmakingService.isInQueue()) {
       labelText = i18n.get("teammatchmaking.queueTitle.inQueue").toUpperCase();
     } else if (!teamMatchmakingService.getParty().getOwner().equals(player)) {
       labelText = i18n.get("teammatchmaking.queueTitle.inParty").toUpperCase();
@@ -236,7 +236,7 @@ public class TeamMatchmakingController extends AbstractViewController<Node> {
         renderQueues();
       }
     });
-    JavaFxUtil.addListener(teamMatchmakingService.currentlyInQueueProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
+    JavaFxUtil.addListener(teamMatchmakingService.inQueueProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.getParty().ownerProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addListener(teamMatchmakingService.partyMembersNotReadyProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));
     JavaFxUtil.addAndTriggerListener(player.statusProperty(), new WeakInvalidationListener(matchmakingQueuesLabelInvalidationListener));

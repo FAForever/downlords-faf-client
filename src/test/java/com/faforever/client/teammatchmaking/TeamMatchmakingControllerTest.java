@@ -99,7 +99,7 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(i18n.get(anyString(), any(Object.class))).thenReturn("");
     when(leaderboardService.getHighestActiveLeagueEntryForPlayer(player)).thenReturn(
         CompletableFuture.completedFuture(Optional.empty()));
-    when(teamMatchmakingService.currentlyInQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
+    when(teamMatchmakingService.inQueueProperty()).thenReturn(new SimpleBooleanProperty(false));
     when(teamMatchmakingService.partyMembersNotReadyProperty()).thenReturn(new ReadOnlyBooleanWrapper());
     when(teamMatchmakingService.partyMembersNotReady()).thenReturn(false);
     when(teamMatchmakingService.getQueues()).thenReturn(matchmakerQueues);
@@ -235,7 +235,7 @@ public class TeamMatchmakingControllerTest extends UITest {
     runOnFxThreadAndWait(() -> party.setOwner(PlayerBeanBuilder.create().defaultValues().username("test").id(100).get()));
     verify(i18n).get("teammatchmaking.queueTitle.inParty");
 
-    when(teamMatchmakingService.isCurrentlyInQueue()).thenReturn(true);
+    when(teamMatchmakingService.isInQueue()).thenReturn(true);
     runOnFxThreadAndWait(() -> party.setOwner(player));
     verify(i18n).get("teammatchmaking.queueTitle.inParty");
   }
