@@ -253,6 +253,10 @@ public class GameBean {
   }
 
   public void setSimMods(Map<String, String> simMods) {
+    if (this.simMods.equals(simMods)) {
+      return;
+    }
+
     this.simMods.set(simMods == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(simMods)));
   }
 
@@ -268,6 +272,10 @@ public class GameBean {
   }
 
   public void setTeams(Map<Integer, List<Integer>> teams) {
+    if (this.teams.equals(teams)) {
+      return;
+    }
+
     this.teams.set(teams == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
   }
 

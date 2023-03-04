@@ -6,7 +6,6 @@ import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService;
@@ -30,19 +29,15 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -87,7 +82,6 @@ public class GameDetailController implements Controller<Pane> {
   private final BooleanProperty playtimeVisible = new SimpleBooleanProperty();
   private final MapProperty<Integer, List<Integer>> teams = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
   private final ObservableList<Integer> teamIds = new SortedList<>(JavaFxUtil.attachListToMapKeys(FXCollections.observableArrayList(), teams), Comparator.naturalOrder());
-  private final ListProperty<TeamCardController> teamCardControllers = new SimpleListProperty<>(FXCollections.observableArrayList());
   private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
   private final Timeline playTimeTimeline = new Timeline(new KeyFrame(Duration.ZERO, event -> updatePlaytimeValue()), new KeyFrame(Duration.seconds(1)));
 
@@ -159,7 +153,22 @@ public class GameDetailController implements Controller<Pane> {
     game.flatMap(GameBean::statusProperty).addListener((SimpleChangeListener<GameStatus>) this::onGameStatusChanged);
 
     teams.bind(game.flatMap(GameBean::teamsProperty));
-    teams.addListener((SimpleInvalidationListener) this::onTeamsInvalidated);
+
+    for (int i = -1; i < 8; i++) {
+      TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
+      teamCardController.bindPlayersToPlayerIds();
+      teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
+      teamCardController.ratingProviderProperty()
+          .bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
+      teamCardController.playerIdsProperty()
+          .bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject())
+              .map(FXCollections::observableList));
+      teamCardController.teamIdProperty().bind(Bindings.valueAt(teamIds, i + 1));
+      Node teamCardControllerRoot = teamCardController.getRoot();
+      teamCardControllerRoot.visibleProperty().bind(teamCardController.playerIdsProperty().emptyProperty().not());
+      JavaFxUtil.bindManagedToVisible(teamCardControllerRoot);
+      teamListPane.getChildren().add(teamCardControllerRoot);
+    }
 
     eventBus.register(this);
   }
@@ -217,44 +226,6 @@ public class GameDetailController implements Controller<Pane> {
 
   public ObjectProperty<GameBean> gameProperty() {
     return game;
-  }
-
-  public ObservableMap<Integer, List<Integer>> getTeams() {
-    return teams.get();
-  }
-
-  public MapProperty<Integer, List<Integer>> teamsProperty() {
-    return teams;
-  }
-
-  public void setTeams(ObservableMap<Integer, List<Integer>> teams) {
-    this.teams.set(teams);
-  }
-
-  private void onTeamsInvalidated() {
-    int numTeams = teams.size();
-    int numControllers = teamCardControllers.size();
-    int difference = numTeams - numControllers;
-    if (difference > 0) {
-      for (int i = 0; i < difference; i++) {
-        TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
-        teamCardController.bindPlayersToPlayerIds();
-        teamCardController.setRatingPrecision(RatingPrecision.ROUNDED);
-        teamCardController.ratingProviderProperty()
-            .bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
-        teamCardController.playerIdsProperty()
-            .bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject())
-                .map(FXCollections::observableList));
-        IntegerBinding indexBinding = Bindings.createIntegerBinding(() -> teamCardControllers.indexOf(teamCardController), teamCardControllers);
-        teamCardController.teamIdProperty().bind(Bindings.valueAt(teamIds, indexBinding));
-        teamCardControllers.add(teamCardController);
-        teamListPane.getChildren().add(teamCardController.getRoot());
-      }
-    } else if (difference < 0) {
-      int from = numControllers + difference;
-      teamCardControllers.remove(from, numControllers);
-      teamListPane.getChildren().remove(from, numControllers);
-    }
   }
 
   public void setPlaytimeVisible(boolean visible) {

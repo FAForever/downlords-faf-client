@@ -5,14 +5,13 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.domain.GamePlayerStatsBean;
 import com.faforever.client.domain.PlayerBean;
 import com.faforever.client.fx.Controller;
-import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.player.PlayerService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Faction;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -80,7 +79,25 @@ public class TeamCardController implements Controller<Node> {
             }
           }
         })));
-    players.addListener((SimpleInvalidationListener) this::onPlayerListInvalidated);
+
+    for (int i = 0; i < 16; i++) {
+      PlayerCardController playerCardController = uiService.loadFxml("theme/player_card.fxml");
+      RatingChangeLabelController ratingChangeLabelController = uiService.loadFxml("theme/rating_change_label.fxml");
+      Pair<PlayerCardController, RatingChangeLabelController> pair = new Pair<>(playerCardController, ratingChangeLabelController);
+
+      ObjectBinding<PlayerBean> playerBinding = Bindings.valueAt(players, i);
+      playerCardController.ratingProperty()
+          .bind(playerBinding.flatMap(player -> ratingProvider.map(ratingFunction -> ratingFunction.apply(player))
+              .flatMap(rating -> ratingPrecision.map(precision -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating))));
+      playerCardController.factionProperty()
+          .bind(playerBinding.flatMap(player -> factionProvider.map(factionFunction -> factionFunction.apply(player))));
+      playerCardController.playerProperty().bind(playerBinding);
+      HBox playerRoot = new HBox(pair.getKey().getRoot(), pair.getValue().getRoot());
+      playerRoot.visibleProperty().bind(playerCardController.playerProperty().isNotNull());
+      JavaFxUtil.bindManagedToVisible(playerRoot);
+      playerInfoControllers.add(pair);
+      teamPane.getChildren().add(playerRoot);
+    }
   }
 
   public void bindPlayersToPlayerIds() {
@@ -128,34 +145,6 @@ public class TeamCardController implements Controller<Node> {
 
   public ObjectProperty<Function<PlayerBean, Integer>> ratingProviderProperty() {
     return ratingProvider;
-  }
-
-  private void onPlayerListInvalidated() {
-    int numPlayers = players.size();
-    int numPlayerNodes = playerInfoControllers.size();
-    int difference = numPlayers - numPlayerNodes;
-    if (difference > 0) {
-      for (int i = 0; i < difference; i++) {
-        PlayerCardController playerCardController = uiService.loadFxml("theme/player_card.fxml");
-        RatingChangeLabelController ratingChangeLabelController = uiService.loadFxml("theme/rating_change_label.fxml");
-        Pair<PlayerCardController, RatingChangeLabelController> pair = new Pair<>(playerCardController, ratingChangeLabelController);
-
-        IntegerBinding indexBinding = Bindings.createIntegerBinding(() -> playerInfoControllers.indexOf(pair), playerInfoControllers);
-        ObjectBinding<PlayerBean> playerBinding = Bindings.valueAt(players, indexBinding);
-        playerCardController.ratingProperty()
-            .bind(playerBinding.flatMap(player -> ratingProvider.map(ratingFunction -> ratingFunction.apply(player))
-                .flatMap(rating -> ratingPrecision.map(precision -> precision == RatingPrecision.ROUNDED ? RatingUtil.getRoundedRating(rating) : rating))));
-        playerCardController.factionProperty()
-            .bind(playerBinding.flatMap(player -> factionProvider.map(factionFunction -> factionFunction.apply(player))));
-        playerCardController.playerProperty().bind(playerBinding);
-        playerInfoControllers.add(pair);
-        teamPane.getChildren().add(new HBox(pair.getKey().getRoot(), pair.getValue().getRoot()));
-      }
-    } else if (difference < 0) {
-      int from = numPlayerNodes + difference;
-      playerInfoControllers.remove(from, numPlayerNodes);
-      teamPane.getChildren().remove(from, numPlayerNodes);
-    }
   }
 
   public void setStats(List<GamePlayerStatsBean> teamPlayerStats) {

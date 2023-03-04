@@ -21,7 +21,10 @@ import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.Animation.Status;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
@@ -95,6 +98,9 @@ public class GameDetailControllerTest extends UITest {
     when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(teamCardController.getRoot()).then(invocation -> new Pane());
+    when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
+    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleListProperty<>());
+    when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
         .get()));
@@ -116,10 +122,10 @@ public class GameDetailControllerTest extends UITest {
   @Test
   public void testSetGame() {
     assertTrue(instance.getRoot().isVisible());
-    assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
+    assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().stream().filter(Node::isVisible).count());
 
     runOnFxThreadAndWait(() -> instance.setGame(null));
-    assertEquals(0, instance.teamListPane.getChildren().size());
+    assertTrue(instance.teamListPane.getChildren().stream().noneMatch(Node::isVisible));
   }
 
   @Test
@@ -186,10 +192,10 @@ public class GameDetailControllerTest extends UITest {
 
   @Test
   public void testTeamListener() {
-    assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
+    assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().stream().filter(Node::isVisible).count());
     runOnFxThreadAndWait(() -> game.getTeams()
         .putAll(Map.of(1, List.of(1), 2, List.of(2))));
-    assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().size());
+    assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().stream().filter(Node::isVisible).count());
   }
 
   @Test
