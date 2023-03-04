@@ -367,7 +367,7 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
   annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
   testAnnotationProcessor("org.projectlombok:lombok")
-  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.2.Final")
+  testAnnotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
   compileOnly("org.projectlombok:lombok")
   testCompileOnly("org.projectlombok:lombok")
 
