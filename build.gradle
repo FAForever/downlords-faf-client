@@ -349,7 +349,7 @@ dependencies {
 
   implementation("org.javassist:javassist:3.29.2-GA")
 
-  implementation("com.install4j:install4j-runtime:10.0.4")
+  implementation("com.install4j:install4j-runtime:10.0.5")
 
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("com.squareup.okhttp3:mockwebserver")
