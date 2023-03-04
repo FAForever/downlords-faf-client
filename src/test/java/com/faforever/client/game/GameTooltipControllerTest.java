@@ -42,7 +42,7 @@ public class GameTooltipControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
-    when(teamCardController.getRoot()).thenReturn(new Pane());
+    when(teamCardController.getRoot()).then(invocation -> new Pane());
     when(teamCardController.playerIdsProperty()).thenReturn(new SimpleListProperty<>());
     when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
     when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
