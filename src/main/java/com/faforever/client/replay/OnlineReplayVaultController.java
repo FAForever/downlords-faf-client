@@ -185,9 +185,9 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
       state.addListener(stateChangeListener);
       //We have to wait for the Show Room to load otherwise it will not be loaded and it looks strange
       loadShowRooms();
-    } else {
-      showReplayWithID(replayId);
     }
+
+    showReplayWithID(replayId);
   }
 
   private void showReplayWithID(int replayId) {

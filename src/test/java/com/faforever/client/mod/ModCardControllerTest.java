@@ -86,7 +86,7 @@ public class ModCardControllerTest extends UITest {
   @Test
   public void testSetMod() {
     when(modService.loadThumbnail(modVersion)).thenReturn(new Image("/theme/images/default_achievement.png"));
-    instance.setModVersion(modVersion);
+    instance.setEntity(modVersion);
 
     assertEquals(modVersion.getMod().getDisplayName(), instance.nameLabel.getText());
     assertEquals(modVersion.getMod().getAuthor(), instance.authorLabel.getText());
@@ -99,7 +99,7 @@ public class ModCardControllerTest extends UITest {
     Image image = mock(Image.class);
     when(modService.loadThumbnail(modVersion)).thenReturn(image);
 
-    instance.setModVersion(modVersion);
+    instance.setEntity(modVersion);
 
     assertNotNull(instance.thumbnailImageView.getImage());
   }
@@ -121,13 +121,13 @@ public class ModCardControllerTest extends UITest {
 
   @Test
   public void testUiModLabel() {
-    instance.setModVersion(modVersion);
+    instance.setEntity(modVersion);
     assertEquals(ModType.UI.name(), instance.typeLabel.getText());
   }
 
   @Test
   public void installedButtonVisibility() {
-    instance.setModVersion(modVersion);
+    instance.setEntity(modVersion);
 
     when(modService.isInstalled(modVersion)).thenReturn(false);
     installedMods.add(modVersion);

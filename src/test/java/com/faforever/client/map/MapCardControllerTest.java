@@ -98,7 +98,7 @@ public class MapCardControllerTest extends UITest {
   public void testSetMap() {
     when(mapService.loadPreview(mapBean, PreviewSize.LARGE)).thenReturn(mock(Image.class));
 
-    instance.setMapVersion(mapBean);
+    instance.setEntity(mapBean);
 
     assertThat(instance.nameLabel.getText(), is("test"));
     assertThat(instance.authorLabel.getText(), is("junit"));
@@ -109,7 +109,7 @@ public class MapCardControllerTest extends UITest {
   @Test
   public void installedButtonVisibility() {
     when(mapService.isOfficialMap(mapBean)).thenReturn(false);
-    instance.setMapVersion(mapBean);
+    instance.setEntity(mapBean);
 
     when(mapService.isInstalled(mapBean)).thenReturn(false);
     installedMaps.add(mapBean);
@@ -125,7 +125,7 @@ public class MapCardControllerTest extends UITest {
   @Test
   public void officialMapButtonVisibility() {
     when(mapService.isOfficialMap(mapBean)).thenReturn(true);
-    instance.setMapVersion(mapBean);
+    instance.setEntity(mapBean);
 
     assertFalse(instance.uninstallButton.isVisible());
     assertFalse(instance.installButton.isVisible());
