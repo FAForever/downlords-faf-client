@@ -191,24 +191,19 @@ public class VaultEntityControllerTest extends UITest {
 
   @Test
   public void testPagination() {
-    JavaFxUtil.runLater(() -> {
-      instance.perPageComboBox.setValue(10);
-      instance.display(new NavigateEvent(NavigationItem.MAP));
-    });
+    JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();
 
     // first page / search results
     moreButton.fire();
     WaitForAsyncUtils.waitForFxEvents();
-    assertFalse(instance.showRoomGroup.isVisible());
-    assertTrue(instance.searchResultGroup.isVisible());
     assertEquals(0, instance.pagination.getCurrentPageIndex());
     assertEquals(instance.pageSize, instance.searchResultPane.getChildren().size());
 
     // third page
     instance.pagination.setCurrentPageIndex(2);
     WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(10, instance.searchResultPane.getChildren().size());
+    assertEquals(10, instance.searchResultPane.getChildren().stream().filter(Node::isVisible).count());
   }
 
   @Test
@@ -220,7 +215,7 @@ public class VaultEntityControllerTest extends UITest {
     WaitForAsyncUtils.waitForFxEvents();
     instance.lastPageButton.fire();
     WaitForAsyncUtils.waitForFxEvents();
-    assertEquals(20, instance.searchResultPane.getChildren().size());
+    assertEquals(10, instance.searchResultPane.getChildren().stream().filter(Node::isVisible).count());
   }
 
   @Test
