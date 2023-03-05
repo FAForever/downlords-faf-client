@@ -86,13 +86,6 @@ public class GameBean {
 
   Set<ChangeListener<Set<Integer>>> playerChangeListeners = new HashSet<>();
 
-  ChangeListener<Set<PlayerBean>> playerChangeListener = (observable, oldValue, newValue) -> {
-    Set<PlayerBean> playersToRemove = oldValue.stream().filter(player -> !newValue.contains(player)).collect(Collectors.toSet());
-    Set<PlayerBean> playersToAdd = newValue.stream().filter(player -> !oldValue.contains(player)).collect(Collectors.toSet());
-    playersToRemove.stream().filter(player -> equals(player.getGame())).forEach(player -> player.setGame(null));
-    playersToAdd.forEach(player -> player.setGame(this));
-  };
-
   public String getHost() {
     return host.get();
   }

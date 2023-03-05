@@ -48,7 +48,6 @@ import com.faforever.client.util.ConcurrentUtil;
 import com.faforever.client.util.MaskPatternLayout;
 import com.faforever.commons.lobby.GameInfo;
 import com.faforever.commons.lobby.GameStatus;
-import com.faforever.commons.lobby.GameType;
 import com.faforever.commons.lobby.GameVisibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
@@ -228,8 +227,6 @@ public class GameService implements InitializingBean {
             .switchIfEmpty(initializeGameBean(gameInfo))))
         .publishOn(javaFxService.getFxApplicationScheduler())
         .map(TupleUtils.function(gameMapper::update))
-        .publishOn(javaFxService.getSingleScheduler())
-        .doOnNext(this::notifyIfFriendJoinedGame)
         .doOnError(throwable -> log.error("Error processing game", throwable))
         .retry()
         .share();
@@ -284,19 +281,13 @@ public class GameService implements InitializingBean {
           .filter(player -> !oldValue.contains(player))
           .map(playerService::getPlayerByIdIfOnline)
           .flatMap(Optional::stream)
-          .forEach(player -> player.setGame(newGame));
+          .forEach(player -> {
+            player.setGame(newGame);
+            if (player.getSocialStatus() == SocialStatus.FRIEND) {
+              eventBus.post(new FriendJoinedGameEvent(player, newGame));
+            }
+          });
     };
-  }
-
-  private void notifyIfFriendJoinedGame(GameBean game) {
-    if (game.getStatus() == GameStatus.OPEN && game.getGameType() != GameType.MATCHMAKER) {
-      game.getAllPlayersInGame()
-          .stream()
-          .map(playerService::getPlayerByIdIfOnline)
-          .flatMap(Optional::stream)
-          .filter(player -> player.getSocialStatus() == SocialStatus.FRIEND)
-          .forEach(player -> eventBus.post(new FriendJoinedGameEvent(player, game)));
-    }
   }
 
   private InvalidationListener generateNumberOfPlayersChangeListener(GameBean game) {
