@@ -69,27 +69,27 @@ public class RangeSliderWithChoiceFilterControllerTest extends UITest {
 
   @Test
   public void testGetObservableValueWhenNoChange() {
-    assertEquals("first", instance.getObservable().getValue().item());
-    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.getObservable().getValue().range());
+    assertEquals("first", instance.valueProperty().getValue().item());
+    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.valueProperty().getValue().range());
 
     runOnFxThreadAndWait(() -> instance.choiceView.getSelectionModel().select("second item"));
 
-    assertEquals("second item", instance.getObservable().getValue().item());
-    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.getObservable().getValue().range());
+    assertEquals("second item", instance.valueProperty().getValue().item());
+    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.valueProperty().getValue().range());
   }
 
   @Test
   public void testChangeLowValueAndGetObservableValue() {
     runOnFxThreadAndWait(() -> instance.lowValueTextField.setText("-500"));
-    assertEquals("first", instance.getObservable().getValue().item());
-    assertEquals(Range.between(-500, 1000), instance.getObservable().getValue().range());
+    assertEquals("first", instance.valueProperty().getValue().item());
+    assertEquals(Range.between(-500, 1000), instance.valueProperty().getValue().range());
   }
 
   @Test
   public void testChangeHighValueAndGetObservableValue() {
     runOnFxThreadAndWait(() -> instance.highValueTextField.setText("500"));
-    assertEquals("first", instance.getObservable().getValue().item());
-    assertEquals(Range.between(-1000, 500), instance.getObservable().getValue().range());
+    assertEquals("first", instance.valueProperty().getValue().item());
+    assertEquals(Range.between(-1000, 500), instance.valueProperty().getValue().range());
   }
 
   @Test
@@ -98,8 +98,8 @@ public class RangeSliderWithChoiceFilterControllerTest extends UITest {
       instance.lowValueTextField.setText("-500");
       instance.highValueTextField.setText("500");
     });
-    assertEquals("first", instance.getObservable().getValue().item());
-    assertEquals(Range.between(-500, 500), instance.getObservable().getValue().range());
+    assertEquals("first", instance.valueProperty().getValue().item());
+    assertEquals(Range.between(-500, 500), instance.valueProperty().getValue().range());
   }
 
   @Test
@@ -110,7 +110,7 @@ public class RangeSliderWithChoiceFilterControllerTest extends UITest {
       instance.resetFilter();
     });
     assertEquals("first", instance.choiceView.getSelectionModel().getSelectedItem());
-    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.getObservable().getValue().range());
+    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.valueProperty().getValue().range());
   }
 
   @Test

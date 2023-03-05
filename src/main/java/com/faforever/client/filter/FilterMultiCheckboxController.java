@@ -67,7 +67,7 @@ public class FilterMultiCheckboxController<U, T> extends AbstractFilterNodeContr
   }
 
   @Override
-  public ListProperty<U> getObservable() {
+  public ListProperty<U> valueProperty() {
     return selectedItemListProperty;
   }
 

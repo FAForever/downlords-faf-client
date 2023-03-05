@@ -27,7 +27,7 @@ public class FilterCheckboxController<T> extends AbstractFilterNodeController<Bo
   }
 
   @Override
-  public BooleanProperty getObservable() {
+  public BooleanProperty valueProperty() {
     return root.selectedProperty();
   }
 

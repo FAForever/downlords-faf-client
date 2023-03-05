@@ -67,9 +67,9 @@ public class CustomGamesFilterControllerTest extends UITest {
         mapFolderNameBlackListFilter
     );
     when(modService.getFeaturedMods()).thenReturn(CompletableFuture.completedFuture(FXCollections.observableArrayList()));
-    when(mapFolderNameBlackListFilter.getObservable()).thenReturn(new SimpleListProperty<>());
-    when(privateGameFilter.getObservable()).thenReturn(new SimpleBooleanProperty());
-    when(simModsFilter.getObservable()).thenReturn(new SimpleBooleanProperty());
+    when(mapFolderNameBlackListFilter.valueProperty()).thenReturn(new SimpleListProperty<>());
+    when(privateGameFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());
+    when(simModsFilter.valueProperty()).thenReturn(new SimpleBooleanProperty());
 
     loadFxml("theme/filter/filter.fxml", clazz -> instance, instance);
   }

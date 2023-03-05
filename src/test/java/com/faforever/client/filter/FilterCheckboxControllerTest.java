@@ -61,7 +61,7 @@ public class FilterCheckboxControllerTest extends UITest {
 
   @Test
   public void testGetObservable() {
-    assertEquals(instance.getRoot().selectedProperty(), instance.getObservable());
+    assertEquals(instance.getRoot().selectedProperty(), instance.valueProperty());
   }
 
   @Test

@@ -18,12 +18,12 @@ public abstract class AbstractFilterNodeController<U, N extends Observable, T> i
 
   public abstract void resetFilter();
 
-  public abstract N getObservable();
+  public abstract N valueProperty();
 
   protected abstract U getValue();
 
   public void registerListener(BiFunction<U, T, Boolean> filter) {
-    JavaFxUtil.addAndTriggerListener(getObservable(), observable -> predicate.set(item -> filter.apply(getValue(), item)));
+    JavaFxUtil.addAndTriggerListener(valueProperty(), observable -> predicate.set(item -> filter.apply(getValue(), item)));
   }
 
   public ObjectProperty<Predicate<T>> predicateProperty() {

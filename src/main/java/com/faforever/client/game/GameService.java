@@ -233,21 +233,24 @@ public class GameService implements InitializingBean {
 
     gameUpdateFlux.filter(game -> game.getStatus() == GameStatus.CLOSED)
         .doOnNext(GameBean::removeListeners)
+        .map(GameBean::getId)
         .publishOn(javaFxService.getFxApplicationScheduler())
+        .doOnNext(gameIdToGame::remove)
         .doOnError(throwable -> log.error("Error closing game", throwable))
         .retry()
-        .subscribe(game -> gameIdToGame.remove(game.getId()));
+        .subscribe();
 
     gameUpdateFlux.filter(playerService::isCurrentPlayerInGame)
-        .doOnError(throwable -> log.error("Error setting current game", throwable))
-        .retry()
-        .subscribe(game -> {
+        .doOnNext(game -> {
           if (GameStatus.OPEN == game.getStatus()) {
             currentGame.set(enhanceWithLastPasswordIfPasswordProtected(game));
           } else if (GameStatus.CLOSED == game.getStatus()) {
             currentGame.set(null);
           }
-        });
+        })
+        .doOnError(throwable -> log.error("Error setting current game", throwable))
+        .retry()
+        .subscribe();
 
 
     fafServerAccessor.connectionStateProperty().addListener((observable, oldValue, newValue) -> {
@@ -261,11 +264,14 @@ public class GameService implements InitializingBean {
 
   private Mono<GameBean> initializeGameBean(GameInfo gameInfo) {
     return Mono.fromCallable(() -> {
-      GameBean newGame = new GameBean();
-      newGame.setId(gameInfo.getUid());
-      newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
-      return newGame;
-    }).publishOn(javaFxService.getFxApplicationScheduler()).doOnNext(game -> gameIdToGame.put(game.getId(), game));
+          GameBean newGame = new GameBean();
+          newGame.setId(gameInfo.getUid());
+          newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
+          return newGame;
+        })
+        .doOnNext(game -> gameMapper.update(gameInfo, game))
+        .publishOn(javaFxService.getFxApplicationScheduler())
+        .doOnNext(game -> gameIdToGame.put(game.getId(), game));
   }
 
   private ChangeListener<Set<Integer>> generatePlayerChangeListener(GameBean newGame) {
@@ -598,22 +604,22 @@ public class GameService implements InitializingBean {
             .thenCompose(this::startGame));
 
     matchmakerFuture.whenComplete((aVoid, throwable) -> {
-          if (throwable != null) {
-            throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-            if (throwable instanceof CancellationException) {
-              log.info("Matchmaking search has been cancelled");
-              if (isRunning()) {
-                notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
-                gameKilled = true;
-                process.destroy();
-              }
-            } else {
-              log.warn("Matchmade game could not be started", throwable);
-            }
-          } else {
-            log.info("Matchmaker queue exited");
+      if (throwable != null) {
+        throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
+        if (throwable instanceof CancellationException) {
+          log.info("Matchmaking search has been cancelled");
+          if (isRunning()) {
+            notificationService.addServerNotification(new ImmediateNotification(i18n.get("matchmaker.cancelled.title"), i18n.get("matchmaker.cancelled"), Severity.INFO));
+            gameKilled = true;
+            process.destroy();
           }
-        });
+        } else {
+          log.warn("Matchmade game could not be started", throwable);
+        }
+      } else {
+        log.info("Matchmaker queue exited");
+      }
+    });
   }
 
   public void stopSearchMatchmaker() {
