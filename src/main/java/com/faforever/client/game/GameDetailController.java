@@ -3,6 +3,7 @@ package com.faforever.client.game;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.fx.Controller;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.JavaFxUtil;
 import com.faforever.client.fx.SimpleChangeListener;
@@ -14,11 +15,11 @@ import com.faforever.client.map.generator.MapGeneratedEvent;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
+import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
 import com.faforever.commons.lobby.GameType;
 import com.google.common.annotations.VisibleForTesting;
@@ -76,6 +77,7 @@ public class GameDetailController implements Controller<Pane> {
   private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
   private final JavaFxService javaFxService;
+  private final ImageViewHelper imageViewHelper;
   private final EventBus eventBus;
 
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
@@ -120,8 +122,7 @@ public class GameDetailController implements Controller<Pane> {
     mapImageView.imageProperty()
         .bind(game.flatMap(GameBean::mapFolderNameProperty)
             .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
-            .flatMap(image -> image.errorProperty()
-                .map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image)));
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
 
     game.flatMap(GameBean::featuredModProperty).addListener((SimpleChangeListener<String>) this::onFeaturedModChanged);
 
@@ -266,8 +267,7 @@ public class GameDetailController implements Controller<Pane> {
       mapImageView.imageProperty()
           .bind(game.flatMap(GameBean::mapFolderNameProperty)
               .map(folderName -> mapService.loadPreview(folderName, PreviewSize.LARGE))
-              .flatMap(image -> image.errorProperty()
-                  .map(error -> error ? uiService.getThemeImage(UiService.NO_IMAGE_AVAILABLE) : image)));
+              .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
       generateMapButton.visibleProperty()
           .bind(game.flatMap(GameBean::mapFolderNameProperty)
               .map(mapName -> mapGeneratorService.isGeneratedMap(mapName) && !mapService.isInstalled(mapName))

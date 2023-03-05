@@ -13,7 +13,6 @@ import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
-import com.faforever.client.util.IdenticonUtil;
 import com.faforever.client.util.PopupUtil;
 import com.faforever.client.util.TimeService;
 import com.faforever.client.vault.review.ReviewService;
@@ -162,14 +161,7 @@ public class MapDetailController implements Controller<Node> {
 
   public void setMapVersion(MapVersionBean mapVersion) {
     this.mapVersion = mapVersion;
-    Image image;
-    if (mapVersion.getThumbnailUrlLarge() != null) {
-      image = mapService.loadPreview(mapVersion.getThumbnailUrlLarge(), PreviewSize.LARGE);
-    } else if (mapGeneratorService.isGeneratedMap(mapVersion.getMap().getDisplayName())) {
-      image = mapService.loadPreview(mapVersion.getMap().getDisplayName(), PreviewSize.LARGE);
-    } else {
-      image = IdenticonUtil.createIdenticon(mapVersion.getId());
-    }
+    Image image = mapService.loadPreview(mapVersion, PreviewSize.LARGE);
     thumbnailImageView.setImage(image);
     renewAuthorControls();
     nameLabel.setText(mapVersion.getMap().getDisplayName());

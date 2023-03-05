@@ -1,4 +1,4 @@
-package com.faforever.client.vault.replay;
+package com.faforever.client.replay;
 
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.LiveGamesFilterController;

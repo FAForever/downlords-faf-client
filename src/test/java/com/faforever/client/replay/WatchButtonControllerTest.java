@@ -7,7 +7,6 @@ import com.faforever.client.fx.contextmenu.helper.ContextMenuBuilderHelper;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.test.UITest;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.replay.WatchButtonController;
 import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

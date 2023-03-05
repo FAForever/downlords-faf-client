@@ -299,10 +299,7 @@ public class ReplayDetailController implements Controller<Node> {
 
   @VisibleForTesting
   void onDeleteReview(ReplayReviewBean review) {
-    reviewService.deleteGameReview(review).thenRun(() -> JavaFxUtil.runLater(() -> {
-      replay.getReviews().remove(review);
-      reviewsController.setOwnReview(null);
-    })).exceptionally(throwable -> {
+    reviewService.deleteGameReview(review).thenRun(() -> JavaFxUtil.runLater(() -> reviewsController.setOwnReview(null))).exceptionally(throwable -> {
       log.error("Review could not be saved", throwable);
       notificationService.addImmediateErrorNotification(throwable, "review.delete.error");
       return null;
@@ -311,16 +308,10 @@ public class ReplayDetailController implements Controller<Node> {
 
   @VisibleForTesting
   void onSendReview(ReplayReviewBean review) {
-    boolean isNew = review.getId() == null;
     PlayerBean player = playerService.getCurrentPlayer();
     review.setPlayer(player);
     review.setReplay(replay);
-    reviewService.saveReplayReview(review).thenRun(() -> {
-      if (isNew) {
-        replay.getReviews().add(review);
-      }
-      reviewsController.setOwnReview(review);
-    }).exceptionally(throwable -> {
+    reviewService.saveReplayReview(review).thenRun(() -> JavaFxUtil.runLater(() -> reviewsController.setOwnReview(review))).exceptionally(throwable -> {
       log.error("Review could not be saved", throwable);
       notificationService.addImmediateErrorNotification(throwable, "review.save.error");
       return null;

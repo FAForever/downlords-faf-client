@@ -1,13 +1,13 @@
 package com.faforever.client.replay;
 
+import com.faforever.client.domain.FeaturedModBean;
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.ReplayBean;
-import com.faforever.client.domain.ReplayReviewBean;
 import com.faforever.client.domain.ReplayReviewsSummaryBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleInvalidationListener;
+import com.faforever.client.fx.SimpleChangeListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.DeleteLocalReplayEvent;
 import com.faforever.client.map.MapService;
@@ -17,17 +17,15 @@ import com.faforever.client.notification.ImmediateNotification;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.notification.Severity;
 import com.faforever.client.rating.RatingService;
-import com.faforever.client.util.RatingUtil;
 import com.faforever.client.util.TimeService;
+import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
 import com.google.common.eventbus.EventBus;
-import javafx.beans.WeakInvalidationListener;
-import javafx.collections.ObservableList;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -37,16 +35,17 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 // TODO: Add tests
-public class ReplayCardController implements Controller<Node> {
+public class ReplayCardController extends VaultEntityCardController<ReplayBean> {
 
   private final ReplayService replayService;
   private final TimeService timeService;
@@ -63,7 +62,8 @@ public class ReplayCardController implements Controller<Node> {
   public Node replayTileRoot;
   public Label timeLabel;
   public Label modLabel;
-  public Label durationLabel;
+  public Label tickDurationLabel;
+  public Label realTimeDurationLabel;
   public Label playerCountLabel;
   public Label ratingLabel;
   public Label qualityLabel;
@@ -73,96 +73,72 @@ public class ReplayCardController implements Controller<Node> {
   public Button watchButton;
   public Button deleteButton;
   public StarsController starsController;
-  private ReplayBean replay;
-  private final SimpleInvalidationListener reviewsChangedListener = this::populateReviews;
+
   private Consumer<ReplayBean> onOpenDetailListener;
 
   public void initialize() {
-    imageViewHelper.setDefaultPlaceholderImage(mapThumbnailImageView);
-    JavaFxUtil.bindManagedToVisible(deleteButton);
+    JavaFxUtil.bindManagedToVisible(deleteButton, tickDurationLabel, realTimeDurationLabel);
+
+    ObservableValue<MapVersionBean> mapVersionObservable = entity.flatMap(ReplayBean::mapVersionProperty);
+    onMapLabel.textProperty()
+        .bind(mapVersionObservable.flatMap(MapVersionBean::mapProperty)
+            .flatMap(MapBean::displayNameProperty)
+            .map(displayName -> i18n.get("game.onMapFormat", displayName)));
+
+    mapThumbnailImageView.imageProperty()
+        .bind(mapVersionObservable.flatMap(MapVersionBean::folderNameProperty)
+            .map(folderName -> mapService.loadPreview(folderName, PreviewSize.SMALL))
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
+
+    deleteButton.visibleProperty().bind(entity.flatMap(replayBean -> replayBean.replayFileProperty().isNotNull()));
+    watchButton.disableProperty().bind(entity.flatMap(replayBean -> replayBean.replayAvailableProperty().not()));
+    gameTitleLabel.textProperty().bind(entity.flatMap(ReplayBean::titleProperty));
+    ObservableValue<OffsetDateTime> startTimeObservable = entity.flatMap(ReplayBean::startTimeProperty);
+    dateLabel.textProperty().bind(startTimeObservable.map(timeService::asDate));
+    timeLabel.textProperty().bind(startTimeObservable.map(timeService::asShortTime));
+    modLabel.textProperty()
+        .bind(entity.flatMap(ReplayBean::featuredModProperty).flatMap(FeaturedModBean::displayNameProperty));
+    playerCountLabel.textProperty().bind(entity.flatMap(ReplayBean::numPlayersProperty).map(i18n::number));
+    qualityLabel.textProperty()
+        .bind(entity.map(ratingService::calculateQuality)
+            .map(quality -> !Double.isNaN(quality) ? i18n.get("percentage", Math.round(quality * 100)) : i18n.get("gameQuality.undefined")));
+    ratingLabel.textProperty().bind(entity.flatMap(ReplayBean::averageRatingProperty).map(i18n::number).orElse("-"));
+    tickDurationLabel.visibleProperty().bind(tickDurationLabel.textProperty().isNotEmpty());
+    tickDurationLabel.textProperty()
+        .bind(entity.flatMap(ReplayBean::replayTicksProperty)
+            .map(ticks -> Duration.ofMillis(ticks * 100))
+            .map(timeService::shortDuration));
+    realTimeDurationLabel.visibleProperty().bind(tickDurationLabel.textProperty().isEmpty());
+    realTimeDurationLabel.textProperty()
+        .bind(entity.flatMap(replayBean -> replayBean.endTimeProperty()
+            .flatMap(endTime -> replayBean.startTimeProperty()
+                .map(startTime -> Duration.between(startTime, endTime))
+                .map(timeService::shortDuration))).orElse(i18n.get("notAvailable")));
+    numberOfReviewsLabel.textProperty()
+        .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty)
+            .flatMap(ReplayReviewsSummaryBean::numReviewsProperty)
+            .orElse(0)
+            .map(i18n::number));
+    starsController.valueProperty()
+        .bind(entity.flatMap(ReplayBean::gameReviewsSummaryProperty)
+            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty())));
+
+    entity.flatMap(ReplayBean::teamsProperty).addListener((SimpleChangeListener<Map<String, List<String>>>) this::onTeamsChanged);
   }
 
-  public void setReplay(ReplayBean replay) {
-    this.replay = replay;
+  private void onTeamsChanged(Map<String, List<String>> teams) {
+    teamsContainer.getChildren().clear();
+    teams.forEach((id, team) -> {
+      VBox teamBox = new VBox();
 
-    Optional<MapVersionBean> optionalMap = Optional.ofNullable(replay.getMapVersion());
-    if (optionalMap.isPresent()) {
-      MapVersionBean mapVersion = optionalMap.get();
-      Image image = mapService.loadPreview(mapVersion.getFolderName(), PreviewSize.SMALL);
-      mapThumbnailImageView.setImage(image);
-      onMapLabel.setText(i18n.get("game.onMapFormat", mapVersion.getMap().getDisplayName()));
-    } else {
-      mapThumbnailImageView.setImage(imageViewHelper.getDefaultPlaceholderImage());
-      onMapLabel.setText(i18n.get("game.onUnknownMap"));
-    }
+      String teamLabelText = id.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(id) - 1);
+      Label teamLabel = new Label(teamLabelText);
+      teamLabel.getStyleClass().add("replay-card-team-label");
+      teamLabel.setPadding(new Insets(0, 0, 5, 0));
+      teamBox.getChildren().add(teamLabel);
+      team.forEach(player -> teamBox.getChildren().add(new Label(player)));
 
-    deleteButton.setVisible(replay.getReplayFile() != null);
-    watchButton.setDisable(!replay.getReplayAvailable());
-    gameTitleLabel.setText(replay.getTitle());
-    dateLabel.setText(timeService.asDate(replay.getStartTime()));
-    timeLabel.setText(timeService.asShortTime(replay.getStartTime()));
-    modLabel.setText(replay.getFeaturedMod().getDisplayName());
-    playerCountLabel.setText(i18n.number(replay.getTeams().values().stream().mapToInt(List::size).sum()));
-    double gameQuality = ratingService.calculateQuality(replay);
-    if (!Double.isNaN(gameQuality)) {
-      qualityLabel.setText(i18n.get("percentage", Math.round(gameQuality * 100)));
-    } else {
-      qualityLabel.setText(i18n.get("gameQuality.undefined"));
-    }
-
-    replay.getTeamPlayerStats().values().stream()
-        .flatMapToInt(playerStats -> playerStats.stream().map(stats -> stats.getLeaderboardRatingJournals().stream().findFirst())
-            .filter(Optional::isPresent).map(Optional::get)
-            .mapToInt(ratingJournal -> RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore())))
-        .average()
-        .ifPresentOrElse(averageRating -> ratingLabel.setText(i18n.number((int) averageRating)),
-            () -> ratingLabel.setText("-"));
-
-    Integer replayTicks = replay.getReplayTicks();
-    if (replayTicks != null) {
-      durationLabel.setText(timeService.shortDuration(Duration.ofMillis(replayTicks * 100)));
-      // FIXME which icon was added in https://github.com/FAForever/downlords-faf-client/commit/58357c603eafead218ef7cceb8907e86c5d864b6#r40460680
-//      durationLabel.getGraphic().getStyleClass().remove("duration-icon");
-//      durationLabel.getGraphic().getStyleClass().remove("time-icon");
-    } else {
-      durationLabel.setText(Optional.ofNullable(replay.getEndTime())
-          .map(endTime -> timeService.shortDuration(Duration.between(replay.getStartTime(), endTime)))
-          .orElse(i18n.get("notAvailable")));
-    }
-
-    replay.getTeams()
-        .forEach((id, team) -> {
-          VBox teamBox = new VBox();
-
-          String teamLabelText = id.equals("1") ? i18n.get("replay.noTeam") : i18n.get("replay.team", Integer.parseInt(id) - 1);
-          Label teamLabel = new Label(teamLabelText);
-          teamLabel.getStyleClass().add("replay-card-team-label");
-          teamLabel.setPadding(new Insets(0, 0, 5, 0));
-          teamBox.getChildren().add(teamLabel);
-          team.forEach(player -> teamBox.getChildren().add(new Label(player)));
-
-          teamsContainer.getChildren().add(teamBox);
-        });
-
-    ObservableList<ReplayReviewBean> reviews = replay.getReviews();
-    JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
-    reviewsChangedListener.invalidated(reviews);
-  }
-
-  private void populateReviews() {
-    ReplayReviewsSummaryBean replayReviewsSummary = replay.getGameReviewsSummary();
-    int numReviews;
-    float avgScore;
-    if (replayReviewsSummary == null) {
-      numReviews = 0;
-      avgScore = 0;
-    } else {
-      numReviews = replayReviewsSummary.getReviews();
-      avgScore = replayReviewsSummary.getScore() / numReviews;
-    }
-    JavaFxUtil.runLater(() -> {
-      numberOfReviewsLabel.setText(i18n.number(numReviews));
-      starsController.setValue(avgScore);
+      teamsContainer.getChildren().add(teamBox);
     });
   }
 
@@ -175,23 +151,18 @@ public class ReplayCardController implements Controller<Node> {
   }
 
   public void onShowReplayDetail() {
-    onOpenDetailListener.accept(replay);
+    onOpenDetailListener.accept(entity.get());
   }
 
   public void onWatchButtonClicked() {
-    replayService.runReplay(replay);
+    replayService.runReplay(entity.get());
   }
 
   public void onDeleteButtonClicked() {
-    notificationService.addNotification(new ImmediateNotification(
-      i18n.get("replay.deleteNotification.heading", replay.getTitle()),
-      i18n.get("replay.deleteNotification.info"),
-      Severity.INFO, Arrays.asList(
-      new Action(i18n.get("cancel")),
-      new Action(i18n.get("delete"), event -> deleteReplay()))
-  )); }
+    notificationService.addNotification(new ImmediateNotification(i18n.get("replay.deleteNotification.heading", entity.get().getTitle()), i18n.get("replay.deleteNotification.info"), Severity.INFO, Arrays.asList(new Action(i18n.get("cancel")), new Action(i18n.get("delete"), event -> deleteReplay()))));
+  }
 
   private void deleteReplay() {
-    eventBus.post(new DeleteLocalReplayEvent(replay.getReplayFile()));
+    eventBus.post(new DeleteLocalReplayEvent(entity.get().getReplayFile()));
   }
 }

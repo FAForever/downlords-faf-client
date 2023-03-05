@@ -152,14 +152,14 @@ public class MapServiceTest extends UITest {
 
     when(fileSizeReader.getFileSize(any())).thenReturn(CompletableFuture.completedFuture(1024));
 
-    instance.afterPropertiesSet();
-
     doAnswer(invocation -> {
       CompletableTask<?> task = invocation.getArgument(0);
       WaitForAsyncUtils.asyncFx(task);
       task.getFuture().join();
       return task;
     }).when(taskService).submitTask(any());
+
+    instance.afterPropertiesSet();
 
     instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
@@ -342,6 +342,8 @@ public class MapServiceTest extends UITest {
     prepareDownloadMapTask(updatedMap);
     prepareUninstallMapTask(outdatedMap);
     assertThat(instance.updateLatestVersionIfNecessary(outdatedMap).join().getId(), is(updatedMap.getId()));
+
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(checkCustomMapFolderExist(outdatedMap), is(false));
     assertThat(checkCustomMapFolderExist(updatedMap), is(true));
   }
@@ -370,8 +372,10 @@ public class MapServiceTest extends UITest {
     MapVersionBean mapVersionBean = MapVersionBeanBuilder.create().defaultValues().folderName("palaneum.v0001").version(new ComparableVersion("1")).get();
 
     when(fafApiAccessor.getMany(any())).thenReturn(Flux.empty());
+    prepareDownloadMapTask(mapVersionBean);
 
     copyMapsToCustomMapsDirectory(mapVersionBean);
+    WaitForAsyncUtils.waitForFxEvents();
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));
     assertThat(instance.updateLatestVersionIfNecessary(mapVersionBean).join(), is(mapVersionBean));
     assertThat(checkCustomMapFolderExist(mapVersionBean), is(true));
@@ -385,6 +389,20 @@ public class MapServiceTest extends UITest {
     instance.hideMapVersion(map);
 
     verify(fafApiAccessor).patch(any(), argThat(mapVersion -> ((MapVersion) mapVersion).getHidden()));
+  }
+
+  @Test
+  public void testLoadMapNoLargeThumbnailUrl() {
+    instance.loadPreview(MapVersionBeanBuilder.create().defaultValues().thumbnailUrlLarge(null).get(), PreviewSize.LARGE);
+
+    verify(assetService).loadAndCacheImage(any(), any(), any());
+  }
+
+  @Test
+  public void testLoadMapNoSmallThumbnailUrl() {
+    instance.loadPreview(MapVersionBeanBuilder.create().defaultValues().thumbnailUrlSmall(null).get(), PreviewSize.SMALL);
+
+    verify(assetService).loadAndCacheImage(any(), any(), any());
   }
 
   @Test
@@ -517,7 +535,6 @@ public class MapServiceTest extends UITest {
           Path.of(getClass().getResource("/maps/" + folder).toURI()),
           mapPath
       );
-      instance.tryAddInstalledMap(mapPath);
     }
   }
 

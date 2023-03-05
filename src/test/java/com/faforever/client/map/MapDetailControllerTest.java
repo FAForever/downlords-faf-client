@@ -45,7 +45,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -212,18 +211,6 @@ public class MapDetailControllerTest extends UITest {
     assertTrue(instance.uninstallButton.isVisible());
     assertFalse(instance.installButton.isVisible());
     assertFalse(instance.hideButton.isVisible());
-  }
-
-  @Test
-  public void testSetMapNoThumbnailLoadsDefault() {
-    testMap.setThumbnailUrlLarge(null);
-
-    instance.setMapVersion(testMap);
-    WaitForAsyncUtils.waitForFxEvents();
-
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(mapService, never()).loadPreview(any(MapVersionBean.class), any());
   }
 
   @Test

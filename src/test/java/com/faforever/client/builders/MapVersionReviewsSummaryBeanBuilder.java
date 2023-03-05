@@ -48,7 +48,7 @@ public class MapVersionReviewsSummaryBeanBuilder {
   }
 
   public MapVersionReviewsSummaryBeanBuilder reviews(int reviews) {
-    mapVersionReviewsSummaryBean.setReviews(reviews);
+    mapVersionReviewsSummaryBean.setNumReviews(reviews);
     return this;
   }
 

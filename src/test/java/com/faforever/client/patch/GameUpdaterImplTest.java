@@ -208,7 +208,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
     when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
     String modUID = "abc";
-    when(modService.isModInstalled(modUID)).thenReturn(true);
+    when(modService.isInstalled(modUID)).thenReturn(true);
 
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(modUID), Map.of(), 0).join();
@@ -230,7 +230,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     FeaturedModBean updatedMod = FeaturedModBeanBuilder.create().defaultValues().technicalName(technicalName).get();
     when(modService.getFeaturedMod(technicalName)).thenReturn(Mono.just(updatedMod));
     String modUID = "abc";
-    when(modService.isModInstalled(modUID)).thenReturn(false);
+    when(modService.isInstalled(modUID)).thenReturn(false);
     when(modService.downloadAndInstallMod(modUID)).thenReturn(CompletableFuture.completedFuture(null));
 
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);

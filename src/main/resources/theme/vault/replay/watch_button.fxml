@@ -5,4 +5,4 @@
         maxHeight="1.7976931348623157E308"
         maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="80.0"
         xmlns="http://javafx.com/javafx/8.0.141" styleClass="watch-button"
-        fx:controller="com.faforever.client.vault.replay.WatchButtonController"/>
+        fx:controller="com.faforever.client.replay.WatchButtonController"/>

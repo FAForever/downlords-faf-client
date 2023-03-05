@@ -17,6 +17,7 @@ import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
+import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.eventbus.EventBus;
@@ -28,7 +29,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
@@ -119,24 +119,25 @@ public class MapVaultController extends VaultEntityController<MapVersionBean> {
     }
   }
 
-  protected Node getEntityCard(MapVersionBean map) {
+  @Override
+  protected VaultEntityCardController<MapVersionBean> createEntityCard() {
     MapCardController controller = uiService.loadFxml("theme/vault/map/map_card.fxml");
-    controller.setMapVersion(map);
     controller.setOnOpenDetailListener(this::onDisplayDetails);
-    return controller.getRoot();
+    return controller;
   }
 
   @Override
   protected List<ShowRoomCategory> getShowRoomCategories() {
-    int recommendedPage;
-    if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
-      recommendedPage = new Random().nextInt(recommendedShowRoomPageCount) + 1;
-    } else {
-      recommendedPage = 1;
-    }
-
-    return Arrays.asList(
-        new ShowRoomCategory(() -> mapService.getRecommendedMapsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage), SearchType.RECOMMENDED, "mapVault.recommended"),
+return List.of(
+        new ShowRoomCategory(() -> {
+          int recommendedPage;
+          if (recommendedShowRoomPageCount != null && recommendedShowRoomPageCount > 0) {
+            recommendedPage = new Random().nextInt(recommendedShowRoomPageCount) + 1;
+          } else {
+            recommendedPage = 1;
+          }
+          return mapService.getRecommendedMapsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage);
+        }, SearchType.RECOMMENDED, "mapVault.recommended"),
         new ShowRoomCategory(() -> mapService.getHighestRatedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "mapVault.mostLikedMaps"),
         new ShowRoomCategory(() -> mapService.getNewestMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "mapVault.newestMaps"),
         new ShowRoomCategory(() -> mapService.getMostPlayedMapsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.PLAYED, "mapVault.mostPlayed"),

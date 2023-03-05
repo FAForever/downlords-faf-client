@@ -48,7 +48,7 @@ public class ReplayReviewsSummaryBeanBuilder {
   }
 
   public ReplayReviewsSummaryBeanBuilder reviews(int reviews) {
-    replayReviewsSummaryBean.setReviews(reviews);
+    replayReviewsSummaryBean.setNumReviews(reviews);
     return this;
   }
 

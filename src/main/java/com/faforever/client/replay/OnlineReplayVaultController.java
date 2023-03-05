@@ -27,7 +27,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,16 +80,16 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
     }
   }
 
-  protected Node getEntityCard(ReplayBean replay) {
+  @Override
+  protected ReplayCardController createEntityCard() {
     ReplayCardController controller = uiService.loadFxml("theme/vault/replay/replay_card.fxml");
-    controller.setReplay(replay);
     controller.setOnOpenDetailListener(this::onDisplayDetails);
-    return controller.getRoot();
+    return controller;
   }
 
   @Override
   protected List<ShowRoomCategory> getShowRoomCategories() {
-    return Arrays.asList(
+    return List.of(
         new ShowRoomCategory(() -> replayService.getOwnReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.OWN, "vault.replays.ownReplays"),
         new ShowRoomCategory(() -> replayService.getNewestReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.NEWEST, "vault.replays.newest"),
         new ShowRoomCategory(() -> replayService.getHighestRatedReplaysWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "vault.replays.highestRated")
@@ -185,10 +184,10 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
       };
       state.addListener(stateChangeListener);
       //We have to wait for the Show Room to load otherwise it will not be loaded and it looks strange
-      loadShowRoom();
-    } else {
-      showReplayWithID(replayId);
+      loadShowRooms();
     }
+
+    showReplayWithID(replayId);
   }
 
   private void showReplayWithID(int replayId) {

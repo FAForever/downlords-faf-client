@@ -4,6 +4,7 @@ import com.faforever.client.builders.FeaturedModBeanBuilder;
 import com.faforever.client.builders.GameBeanBuilder;
 import com.faforever.client.domain.FeaturedModBean;
 import com.faforever.client.domain.GameBean;
+import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxService;
 import com.faforever.client.fx.contextmenu.ContextMenuBuilder;
 import com.faforever.client.i18n.I18n;
@@ -14,10 +15,10 @@ import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.player.PlayerService;
+import com.faforever.client.replay.WatchButtonController;
 import com.faforever.client.test.UITest;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.util.TimeService;
-import com.faforever.client.vault.replay.WatchButtonController;
 import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.Animation.Status;
@@ -49,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,6 +81,8 @@ public class GameDetailControllerTest extends UITest {
   private NotificationService notificationService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private ImageViewHelper imageViewHelper;
 
   @Mock
   private WatchButtonController watchButtonController;
@@ -94,6 +98,8 @@ public class GameDetailControllerTest extends UITest {
   public void setUp() throws Exception {
     game = GameBeanBuilder.create().defaultValues().get();
 
+    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+        .createPlaceholderImageOnErrorObservable(any());
     when(javaFxService.getFxApplicationScheduler()).thenReturn(Schedulers.immediate());
     when(watchButtonController.gameProperty()).thenReturn(new SimpleObjectProperty<>());
     when(watchButtonController.getRoot()).thenReturn(new Button());

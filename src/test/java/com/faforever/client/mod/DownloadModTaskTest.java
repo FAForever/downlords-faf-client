@@ -19,13 +19,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class InstallModTaskTest extends UITest {
+public class DownloadModTaskTest extends UITest {
 
   @TempDir
   public Path tempDirectory;
   private Path modsDirectory;
   @InjectMocks
-  private InstallModTask instance;
+  private DownloadModTask instance;
   @Mock
   private I18n i18n;
 

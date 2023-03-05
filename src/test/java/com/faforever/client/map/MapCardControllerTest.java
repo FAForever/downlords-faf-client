@@ -6,6 +6,7 @@ import com.faforever.client.domain.MapVersionBean;
 import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.i18n.I18n;
+import com.faforever.client.map.MapService.PreviewSize;
 import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
 import com.faforever.client.test.UITest;
@@ -13,13 +14,15 @@ import com.faforever.client.vault.review.ReviewController;
 import com.faforever.client.vault.review.ReviewsController;
 import com.faforever.client.vault.review.StarController;
 import com.faforever.client.vault.review.StarsController;
+import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.testfx.util.WaitForAsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -31,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class MapCardControllerTest extends UITest {
@@ -61,10 +66,12 @@ public class MapCardControllerTest extends UITest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {
-    }));
-    when(mapService.uninstallMap(any())).thenReturn(CompletableFuture.runAsync(() -> {
-    }));
+    doAnswer(invocation -> new SimpleObjectProperty<>(invocation.getArgument(0))).when(imageViewHelper)
+        .createPlaceholderImageOnErrorObservable(any());
+
+    when(starsController.valueProperty()).thenReturn(new SimpleFloatProperty());
+    when(mapService.downloadAndInstallMap(any(), isNull(), isNull())).thenReturn(CompletableFuture.runAsync(() -> {}));
+    when(mapService.uninstallMap(any())).thenReturn(CompletableFuture.runAsync(() -> {}));
     installedMaps = FXCollections.observableArrayList();
     when(mapService.getInstalledMaps()).thenReturn(installedMaps);
     mapBean = MapVersionBeanBuilder.create().defaultValues().map(MapBeanBuilder.create().defaultValues().get()).folderName("testMap").ranked(true).id(23).size(MapSize.valueOf(1, 1)).get();
@@ -89,7 +96,9 @@ public class MapCardControllerTest extends UITest {
 
   @Test
   public void testSetMap() {
-    instance.setMapVersion(mapBean);
+    when(mapService.loadPreview(mapBean, PreviewSize.LARGE)).thenReturn(mock(Image.class));
+
+    instance.setEntity(mapBean);
 
     assertThat(instance.nameLabel.getText(), is("test"));
     assertThat(instance.authorLabel.getText(), is("junit"));
@@ -98,38 +107,28 @@ public class MapCardControllerTest extends UITest {
   }
 
   @Test
-  public void onInstallButtonClicked() {
-    instance.onInstallButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
-    assertTrue(instance.uninstallButton.isVisible());
-    assertFalse(instance.installButton.isVisible());
-  }
+  public void installedButtonVisibility() {
+    when(mapService.isOfficialMap(mapBean)).thenReturn(false);
+    instance.setEntity(mapBean);
 
-  @Test
-  public void onUninstallButtonClicked() {
-    instance.onUninstallButtonClicked();
-    WaitForAsyncUtils.waitForFxEvents();
+    when(mapService.isInstalled(mapBean)).thenReturn(false);
+    installedMaps.add(mapBean);
     assertFalse(instance.uninstallButton.isVisible());
     assertTrue(instance.installButton.isVisible());
-  }
 
-  @Test
-  public void onMapInstalled() {
-    instance.setMapVersion(mapBean);
-    installedMaps.add(mapBean);
-    WaitForAsyncUtils.waitForFxEvents();
-    assertTrue(instance.uninstallButton.isVisible());
-    assertFalse(instance.installButton.isVisible());
-  }
-
-  @Test
-  public void onMapUninstalled() {
-    instance.setMapVersion(mapBean);
-    installedMaps.add(mapBean);
+    when(mapService.isInstalled(mapBean)).thenReturn(true);
     installedMaps.remove(mapBean);
-    WaitForAsyncUtils.waitForFxEvents();
+    assertTrue(instance.uninstallButton.isVisible());
+    assertFalse(instance.installButton.isVisible());
+  }
+
+  @Test
+  public void officialMapButtonVisibility() {
+    when(mapService.isOfficialMap(mapBean)).thenReturn(true);
+    instance.setEntity(mapBean);
+
     assertFalse(instance.uninstallButton.isVisible());
-    assertTrue(instance.installButton.isVisible());
+    assertFalse(instance.installButton.isVisible());
   }
 
   @Test

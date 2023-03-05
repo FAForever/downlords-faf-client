@@ -140,7 +140,7 @@ public class GameUpdaterImpl implements GameUpdater {
     }
 
     return CompletableFuture.allOf(simModUids.stream()
-        .filter(uid -> !modService.isModInstalled(uid))
+        .filter(uid -> !modService.isInstalled(uid))
         .map(modService::downloadAndInstallMod).toArray(CompletableFuture[]::new));
   }
 

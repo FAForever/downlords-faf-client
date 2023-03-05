@@ -1,14 +1,20 @@
 package com.faforever.client.domain;
 
+import com.faforever.client.util.RatingUtil;
 import com.faforever.commons.api.dto.Validity;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.ReadOnlyListWrapper;
+import javafx.beans.property.ReadOnlyMapProperty;
+import javafx.beans.property.ReadOnlyMapWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -21,8 +27,10 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
@@ -36,8 +44,8 @@ public class ReplayBean {
   @ToString.Include
   StringProperty title = new SimpleStringProperty();
   BooleanProperty replayAvailable = new SimpleBooleanProperty();
-  ObservableMap<String, List<String>> teams = FXCollections.observableHashMap();
-  ObservableMap<String, List<GamePlayerStatsBean>> teamPlayerStats = FXCollections.observableHashMap();
+  ReadOnlyMapWrapper<String, List<String>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
+  ReadOnlyMapWrapper<String, List<GamePlayerStatsBean>> teamPlayerStats = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
   ObjectProperty<PlayerBean> host = new SimpleObjectProperty<>();
   ObjectProperty<OffsetDateTime> startTime = new SimpleObjectProperty<>();
   ObjectProperty<OffsetDateTime> endTime = new SimpleObjectProperty<>();
@@ -46,11 +54,24 @@ public class ReplayBean {
   ObjectProperty<Path> replayFile = new SimpleObjectProperty<>();
   ObjectProperty<Integer> replayTicks = new SimpleObjectProperty<>();
   IntegerProperty views = new SimpleIntegerProperty();
-  ObservableList<ChatMessage> chatMessages = FXCollections.observableArrayList();
-  ObservableList<GameOption> gameOptions = FXCollections.observableArrayList();
-  ObservableList<ReplayReviewBean> reviews = FXCollections.observableArrayList();
+  ReadOnlyListWrapper<ChatMessage> chatMessages = new ReadOnlyListWrapper<>(FXCollections.emptyObservableList());
+  ReadOnlyListWrapper<GameOption> gameOptions = new ReadOnlyListWrapper<>(FXCollections.emptyObservableList());
+  ReadOnlyListWrapper<ReplayReviewBean> reviews = new ReadOnlyListWrapper<>(FXCollections.emptyObservableList());
   ObjectProperty<Validity> validity = new SimpleObjectProperty<>();
   ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummary = new SimpleObjectProperty<>();
+  ObservableValue<Integer> numPlayers = teams.map(team -> team.values().stream().mapToInt(Collection::size).sum())
+      .orElse(0);
+  ObservableValue<Double> averageRating = teamPlayerStats.map(playerStats -> playerStats.values()
+      .stream()
+      .flatMap(Collection::stream)
+      .map(stats -> stats.getLeaderboardRatingJournals().stream().findFirst())
+      .flatMap(Optional::stream)
+      .mapToInt(ratingJournal -> RatingUtil.getRating(ratingJournal.getMeanBefore(), ratingJournal.getDeviationBefore()))
+      .average()
+      .stream()
+      .boxed()
+      .findFirst()
+      .orElse(null));
 
   public static String getReplayUrl(int replayId, String baseUrlFormat) {
     return String.format(baseUrlFormat, replayId);
@@ -109,10 +130,11 @@ public class ReplayBean {
   }
 
   public void setTeams(Map<String, List<String>> teams) {
-    this.teams.clear();
-    if (teams != null) {
-      this.teams.putAll(teams);
-    }
+    this.teams.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
+  }
+
+  public ReadOnlyMapProperty<String, List<String>> teamsProperty() {
+    return teams.getReadOnlyProperty();
   }
 
   public int getId() {
@@ -207,10 +229,11 @@ public class ReplayBean {
   }
 
   public void setChatMessages(List<ChatMessage> chatMessages) {
-    if (chatMessages == null) {
-      chatMessages = List.of();
-    }
-    this.chatMessages.setAll(chatMessages);
+    this.chatMessages.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(chatMessages)));
+  }
+
+  public ReadOnlyListProperty<ChatMessage> chatMessagesProperty() {
+    return chatMessages.getReadOnlyProperty();
   }
 
   public ObservableList<GameOption> getGameOptions() {
@@ -218,10 +241,11 @@ public class ReplayBean {
   }
 
   public void setGameOptions(List<GameOption> gameOptions) {
-    if (gameOptions == null) {
-      gameOptions = List.of();
-    }
-    this.gameOptions.setAll(gameOptions);
+    this.gameOptions.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(gameOptions)));
+  }
+
+  public ReadOnlyListProperty<GameOption> gameOptionsProperty() {
+    return gameOptions.getReadOnlyProperty();
   }
 
   public ObservableMap<String, List<GamePlayerStatsBean>> getTeamPlayerStats() {
@@ -229,11 +253,11 @@ public class ReplayBean {
   }
 
   public void setTeamPlayerStats(Map<String, List<GamePlayerStatsBean>> teamPlayerStats) {
-    this.teamPlayerStats.clear();
-    if (teamPlayerStats == null) {
-      teamPlayerStats = Map.of();
-    }
-    this.teamPlayerStats.putAll(teamPlayerStats);
+    this.teamPlayerStats.set(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teamPlayerStats)));
+  }
+
+  public ReadOnlyMapProperty<String, List<GamePlayerStatsBean>> teamPlayerStatsProperty() {
+    return teamPlayerStats.getReadOnlyProperty();
   }
 
   public ObservableList<ReplayReviewBean> getReviews() {
@@ -241,10 +265,11 @@ public class ReplayBean {
   }
 
   public void setReviews(List<ReplayReviewBean> reviews) {
-    if (reviews == null) {
-      reviews = List.of();
-    }
-    this.reviews.setAll(reviews);
+    this.reviews.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(reviews)));
+  }
+
+  public ReadOnlyListProperty<ReplayReviewBean> reviewsProperty() {
+    return reviews.getReadOnlyProperty();
   }
 
   public ObjectProperty<ReplayReviewsSummaryBean> gameReviewsSummaryProperty() {
@@ -273,6 +298,22 @@ public class ReplayBean {
 
   public void setHost(PlayerBean host) {
     this.host.set(host);
+  }
+
+  public Integer getNumPlayers() {
+    return numPlayers.getValue();
+  }
+
+  public ObservableValue<Integer> numPlayersProperty() {
+    return numPlayers;
+  }
+
+  public Double getAverageRating() {
+    return averageRating.getValue();
+  }
+
+  public ObservableValue<Double> averageRatingProperty() {
+    return averageRating;
   }
 
   @Value

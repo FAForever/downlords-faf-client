@@ -1,45 +1,39 @@
 package com.faforever.client.map;
 
+import com.faforever.client.domain.MapBean;
 import com.faforever.client.domain.MapReviewsSummaryBean;
 import com.faforever.client.domain.MapVersionBean;
-import com.faforever.client.domain.MapVersionReviewBean;
 import com.faforever.client.domain.PlayerBean;
-import com.faforever.client.fx.Controller;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.map.MapService.PreviewSize;
-import com.faforever.client.map.generator.MapGeneratorService;
 import com.faforever.client.notification.NotificationService;
-import com.faforever.client.util.IdenticonUtil;
+import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.review.StarsController;
-import javafx.beans.WeakInvalidationListener;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.collections.WeakListChangeListener;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
-public class MapCardController implements Controller<Node> {
+public class MapCardController extends VaultEntityCardController<MapVersionBean> {
 
   private final MapService mapService;
-  private final MapGeneratorService mapGeneratorService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final ImageViewHelper imageViewHelper;
@@ -57,111 +51,71 @@ public class MapCardController implements Controller<Node> {
   public Button installButton;
   public Button uninstallButton;
 
-  private MapVersionBean mapVersion;
   private Consumer<MapVersionBean> onOpenDetailListener;
-  private ListChangeListener<MapVersionBean> installStatusChangeListener;
-  private final SimpleInvalidationListener reviewsChangedListener = this::populateReviews;
 
   public void initialize() {
     imageViewHelper.setDefaultPlaceholderImage(thumbnailImageView);
-    installButton.managedProperty().bind(installButton.visibleProperty());
-    uninstallButton.managedProperty().bind(uninstallButton.visibleProperty());
-    installStatusChangeListener = change -> {
-      while (change.next()) {
-        for (MapVersionBean mapVersion : change.getAddedSubList()) {
-          if (this.mapVersion.getFolderName().equalsIgnoreCase(mapVersion.getFolderName())) {
-            setInstalled(true);
-            return;
-          }
-        }
-        for (MapVersionBean mapVersion : change.getRemoved()) {
-          if (this.mapVersion.getFolderName().equals(mapVersion.getFolderName())) {
-            setInstalled(false);
-            return;
-          }
-        }
-      }
-    };
+    JavaFxUtil.bindManagedToVisible(installButton, uninstallButton);
+
+    thumbnailImageView.imageProperty()
+        .bind(entity.map(mapVersionBean -> mapService.loadPreview(mapVersionBean, PreviewSize.LARGE))
+            .flatMap(imageViewHelper::createPlaceholderImageOnErrorObservable));
+
+    ObservableValue<MapBean> mapObservable = entity.flatMap(MapVersionBean::mapProperty);
+    nameLabel.textProperty().bind(mapObservable.flatMap(MapBean::displayNameProperty));
+    versionLabel.textProperty()
+        .bind(entity.flatMap(MapVersionBean::versionProperty)
+            .map(ComparableVersion::getCanonical)
+            .map(version -> i18n.get("versionFormat", version)));
+    authorLabel.textProperty()
+        .bind(mapObservable.flatMap(MapBean::authorProperty)
+            .flatMap(PlayerBean::usernameProperty)
+            .orElse(i18n.get("map.unknownAuthor")));
+
+    numberOfPlaysLabel.textProperty().bind(mapObservable.flatMap(MapBean::gamesPlayedProperty).map(i18n::number));
+
+    sizeLabel.textProperty()
+        .bind(entity.flatMap(MapVersionBean::sizeProperty)
+            .map(size -> i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm())));
+
+    maxPlayersLabel.textProperty().bind(entity.flatMap(MapVersionBean::maxPlayersProperty).map(i18n::number));
+
+    BooleanExpression isOfficialMap = BooleanExpression.booleanExpression(entity.map(mapService::isOfficialMap));
+    BooleanExpression isMapInstalled = BooleanExpression.booleanExpression(entity.flatMap(mapVersionBean ->
+        Bindings.createBooleanBinding(() -> mapService.isInstalled(mapVersionBean), mapService.getInstalledMaps())));
+
+    installButton.visibleProperty().bind(isOfficialMap.not().and(isMapInstalled.not()));
+    uninstallButton.visibleProperty().bind(isOfficialMap.not().and(isMapInstalled));
+
+    numberOfReviewsLabel.textProperty()
+        .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty)
+            .flatMap(MapReviewsSummaryBean::numReviewsProperty)
+            .orElse(0)
+            .map(i18n::number));
+    starsController.valueProperty()
+        .bind(mapObservable.flatMap(MapBean::mapReviewsSummaryProperty)
+            .flatMap(reviewsSummary -> reviewsSummary.scoreProperty().divide(reviewsSummary.numReviewsProperty())));
   }
-
-  public void setMapVersion(MapVersionBean mapVersion) {
-    this.mapVersion = mapVersion;
-    Image image;
-    if (mapVersion.getThumbnailUrlLarge() != null) {
-      image = mapService.loadPreview(mapVersion.getThumbnailUrlLarge(), PreviewSize.LARGE);
-    } else if (mapGeneratorService.isGeneratedMap(mapVersion.getMap().getDisplayName())) {
-      image = mapService.loadPreview(mapVersion.getMap().getDisplayName(), PreviewSize.LARGE);
-    } else {
-      image = IdenticonUtil.createIdenticon(mapVersion.getId());
-    }
-    thumbnailImageView.setImage(image);
-    nameLabel.setText(mapVersion.getMap().getDisplayName());
-    versionLabel.setText(Optional.ofNullable(mapVersion.getVersion()).map(version -> i18n.get("versionFormat", version.getCanonical())).orElse(""));
-    authorLabel.setText(Optional.ofNullable(mapVersion.getMap().getAuthor()).map(PlayerBean::getUsername).orElse(i18n.get("map.unknownAuthor")));
-    numberOfPlaysLabel.setText(i18n.number(mapVersion.getMap().getGamesPlayed()));
-
-    MapSize size = mapVersion.getSize();
-    sizeLabel.setText(i18n.get("mapPreview.size", size.getWidthInKm(), size.getHeightInKm()));
-    maxPlayersLabel.setText(i18n.number(mapVersion.getMaxPlayers()));
-
-    if (mapService.isOfficialMap(mapVersion.getFolderName())) {
-      installButton.setVisible(false);
-      uninstallButton.setVisible(false);
-    } else {
-      ObservableList<MapVersionBean> installedMaps = mapService.getInstalledMaps();
-      JavaFxUtil.addListener(installedMaps, new WeakListChangeListener<>(installStatusChangeListener));
-      setInstalled(mapService.isInstalled(mapVersion.getFolderName()));
-    }
-
-    ObservableList<MapVersionReviewBean> reviews = mapVersion.getReviews();
-    JavaFxUtil.addListener(reviews, new WeakInvalidationListener(reviewsChangedListener));
-    reviewsChangedListener.invalidated(reviews);
-  }
-
-  private void populateReviews() {
-    MapReviewsSummaryBean mapReviewsSummary = mapVersion.getMap().getMapReviewsSummary();
-    int numReviews;
-    float avgScore;
-    if (mapReviewsSummary == null) {
-      numReviews = 0;
-      avgScore = 0;
-    } else {
-      numReviews = mapReviewsSummary.getReviews();
-      avgScore = mapReviewsSummary.getScore() / numReviews;
-    }
-    JavaFxUtil.runLater(() -> {
-      numberOfReviewsLabel.setText(i18n.number(numReviews));
-      starsController.setValue(avgScore);
+  public void onInstallButtonClicked() {
+    MapVersionBean mapVersionBean = entity.get();
+    mapService.downloadAndInstallMap(mapVersionBean, null, null).exceptionally(throwable -> {
+      log.error("Map installation failed", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed", mapVersionBean
+          .getMap()
+          .getDisplayName(), throwable.getLocalizedMessage());
+      return null;
     });
   }
 
-  public void onInstallButtonClicked() {
-    mapService.downloadAndInstallMap(mapVersion, null, null)
-        .thenRun(() -> setInstalled(true))
-        .exceptionally(throwable -> {
-          log.error("Map installation failed", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "mapVault.installationFailed",
-              mapVersion.getMap().getDisplayName(), throwable.getLocalizedMessage());
-          setInstalled(false);
-          return null;
-        });
-  }
-
   public void onUninstallButtonClicked() {
-    mapService.uninstallMap(mapVersion)
-        .thenRun(() -> setInstalled(false))
-        .exceptionally(throwable -> {
-          log.error("Could not delete map", throwable);
-          notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap",
-              mapVersion.getMap().getDisplayName(), throwable.getLocalizedMessage());
-          setInstalled(true);
-          return null;
-        });
-  }
-
-  private void setInstalled(boolean installed) {
-    installButton.setVisible(!installed);
-    uninstallButton.setVisible(installed);
+    MapVersionBean mapVersionBean = entity.get();
+    mapService.uninstallMap(mapVersionBean).exceptionally(throwable -> {
+      log.error("Could not delete map", throwable);
+      notificationService.addImmediateErrorNotification(throwable, "mapVault.couldNotDeleteMap", mapVersionBean
+          .getMap()
+          .getDisplayName(), throwable.getLocalizedMessage());
+      return null;
+    });
   }
 
   public Node getRoot() {
@@ -173,6 +127,6 @@ public class MapCardController implements Controller<Node> {
   }
 
   public void onShowMapDetail() {
-    onOpenDetailListener.accept(mapVersion);
+    onOpenDetailListener.accept(entity.get());
   }
 }

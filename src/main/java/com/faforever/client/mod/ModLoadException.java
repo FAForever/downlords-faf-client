@@ -3,7 +3,7 @@ package com.faforever.client.mod;
 import lombok.Getter;
 
 @Getter
-public class ModLoadException extends Exception {
+public class ModLoadException extends RuntimeException {
   private final String i18nKey;
   private final Object[] i18nArgs;
 

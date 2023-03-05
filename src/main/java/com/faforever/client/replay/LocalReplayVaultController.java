@@ -49,9 +49,9 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   public void initialize() {
     super.initialize();
     uploadButton.setVisible(false);
+
+    backButton.visibleProperty().unbind();
     backButton.setVisible(false);
-    searchBox.setVisible(false);
-    searchSeparator.setVisible(false);
     this.eventBus.register(this);
   }
 
@@ -71,19 +71,13 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
   }
 
   @Override
-  protected void loadShowRoom() {
+  protected void loadShowRooms() {
     onPageChange(null, true);
   }
 
   @Override
   protected void enterResultState() {
     state.set(State.RESULT);
-
-    showRoomGroup.setVisible(false);
-    searchResultGroup.setVisible(true);
-    loadingPane.setVisible(false);
-    backButton.setVisible(false);
-    paginationGroup.setVisible(true);
   }
 
   protected void setSupplier(SearchConfig searchConfig) {
@@ -94,16 +88,15 @@ public class LocalReplayVaultController extends VaultEntityController<ReplayBean
     }
   }
 
-  protected Node getEntityCard(ReplayBean replay) {
+  @Override
+  protected ReplayCardController createEntityCard() {
     ReplayCardController controller = uiService.loadFxml("theme/vault/replay/replay_card.fxml");
-    controller.setReplay(replay);
     controller.setOnOpenDetailListener(this::onDisplayDetails);
-    return controller.getRoot();
+    return controller;
   }
-
   @Override
   protected List<ShowRoomCategory> getShowRoomCategories() {
-    return null;
+    return List.of();
   }
 
   public void onUploadButtonClicked() {

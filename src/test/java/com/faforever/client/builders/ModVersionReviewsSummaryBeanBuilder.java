@@ -48,7 +48,7 @@ public class ModVersionReviewsSummaryBeanBuilder {
   }
 
   public ModVersionReviewsSummaryBeanBuilder reviews(int reviews) {
-    modVersionReviewsSummaryBean.setReviews(reviews);
+    modVersionReviewsSummaryBean.setNumReviews(reviews);
     return this;
   }
 

@@ -15,6 +15,7 @@ import com.faforever.client.query.SearchablePropertyMappings;
 import com.faforever.client.reporting.ReportingService;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.dialog.Dialog;
+import com.faforever.client.vault.VaultEntityCardController;
 import com.faforever.client.vault.VaultEntityController;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.google.common.eventbus.EventBus;
@@ -26,7 +27,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -86,11 +86,11 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
     }
   }
 
-  protected Node getEntityCard(ModVersionBean modVersion) {
+  @Override
+  protected VaultEntityCardController<ModVersionBean> createEntityCard() {
     ModCardController controller = uiService.loadFxml("theme/vault/mod/mod_card.fxml");
-    controller.setModVersion(modVersion);
     controller.setOnOpenDetailListener(this::onDisplayDetails);
-    return controller.getRoot();
+    return controller;
   }
 
   @Override
@@ -102,7 +102,7 @@ public class ModVaultController extends VaultEntityController<ModVersionBean> {
       recommendedPage = 1;
     }
 
-    return Arrays.asList(
+    return List.of(
         new ShowRoomCategory(() -> modService.getRecommendedModsWithPageCount(TOP_ELEMENT_COUNT, recommendedPage), SearchType.RECOMMENDED, "modVault.recommended"),
         new ShowRoomCategory(() -> modService.getHighestRatedModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED, "modVault.highestRated"),
         new ShowRoomCategory(() -> modService.getHighestRatedUiModsWithPageCount(TOP_ELEMENT_COUNT, 1), SearchType.HIGHEST_RATED_UI, "modVault.highestRatedUiMods"),

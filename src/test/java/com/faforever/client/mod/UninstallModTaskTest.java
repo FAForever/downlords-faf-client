@@ -8,7 +8,6 @@ import com.faforever.commons.io.ByteCopier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.core.io.ClassPathResource;
 
@@ -60,7 +59,7 @@ public class UninstallModTaskTest extends ServiceTest {
     Path ecoManagerPath = Files.createDirectories(modsDirectory.resolve("ecoManager"));
     when(modService.getPathForMod(modVersion)).thenReturn(ecoManagerPath);
 
-    instance.setModVersion(modVersion);
+    instance.setMod(modVersion);
     instance.call();
 
     assertThat(Files.exists(modsDirectory.resolve("blackOpsSupport")), is(true));
