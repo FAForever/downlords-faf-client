@@ -73,7 +73,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   public ComboBox<TilesSortingOrder> chooseSortingTypeChoiceBox;
   public Label filteredGamesCountLabel;
 
-  private FilteredList<GameBean> filteredItems;
+  private FilteredList<GameBean> filteredGames;
   private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
   private GamesTableController gamesTableController;
@@ -106,15 +106,18 @@ public class CustomGamesController extends AbstractViewController<Node> {
       }
     });
 
-    filteredItems = new FilteredList<>(gameService.getGames());
-    filteredItems.predicateProperty().bind(customGamesFilterController.predicateProperty());
+    filteredGames = new FilteredList<>(gameService.getGames());
+    filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty());
 
-    IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredItems);
-    IntegerBinding gameListSizeBinding = Bindings.size(gameService.getGames().filtered(openGamesPredicate));
-    JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
+    IntegerBinding filteredGameCount = Bindings.size(filteredGames);
+    IntegerBinding gameCount = Bindings.size(gameService.getGames().filtered(openGamesPredicate));
+    JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGameCount.isNotEqualTo(gameCount));
 
     filteredGamesCountLabel.textProperty()
-        .bind(filteredGamesSizeBinding.flatMap(filteredCount -> gameListSizeBinding.map(gameCount -> i18n.get("filteredOutItemsCount", gameCount.intValue() - filteredCount.intValue(), gameCount))));
+        .bind(Bindings.createStringBinding(() -> {
+          int numGames = gameCount.intValue();
+          return i18n.get("filteredOutItemsCount", numGames - filteredGameCount.intValue(), numGames);
+        }, gameCount, filteredGameCount));
 
     if (tilesButton.getId().equals(preferences.getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
@@ -194,7 +197,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
     gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
     gameDetailController.gameProperty().bind(gamesTableController.selectedGameProperty());
-    gamesTableController.initializeGameTable(filteredItems);
+    gamesTableController.initializeGameTable(filteredGames);
     populateContainer(gamesTableController.getRoot());
   }
 
@@ -213,12 +216,12 @@ public class CustomGamesController extends AbstractViewController<Node> {
     gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
     populateContainer(gamesTilesContainerController.getRoot());
-    gamesTilesContainerController.createTiledFlowPane(filteredItems, chooseSortingTypeChoiceBox);
+    gamesTilesContainerController.createTiledFlowPane(filteredGames, chooseSortingTypeChoiceBox);
   }
 
   @Subscribe
   public void onMapGeneratedEvent(MapGeneratedEvent event) {
-    filteredItems.stream()
+    filteredGames.stream()
         .filter(game -> game.getMapFolderName().equals(event.mapName()) && game.getStatus() == GameStatus.OPEN)
         .findFirst()
         .ifPresent(game -> {
