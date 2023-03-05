@@ -76,7 +76,7 @@ public class MutableListFilterController<T> extends AbstractFilterNodeController
   }
 
   @Override
-  public ListProperty<String> getObservable() {
+  public ListProperty<String> valueProperty() {
     return itemListProperty;
   }
 

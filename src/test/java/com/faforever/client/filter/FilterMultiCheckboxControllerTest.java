@@ -135,6 +135,6 @@ public class FilterMultiCheckboxControllerTest extends UITest {
 
   @Test
   public void testGetObservable() {
-    assertInstanceOf(ListProperty.class, instance.getObservable());
+    assertInstanceOf(ListProperty.class, instance.valueProperty());
   }
 }

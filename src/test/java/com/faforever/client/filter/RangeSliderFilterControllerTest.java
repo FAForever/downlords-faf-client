@@ -54,19 +54,19 @@ public class RangeSliderFilterControllerTest extends UITest {
 
   @Test
   public void testGetObservableValueWhenNoChange() {
-    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.getObservable().getValue());
+    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.valueProperty().getValue());
   }
 
   @Test
   public void testChangeLowValueAndGetObservableValue() {
     runOnFxThreadAndWait(() -> instance.lowValueTextField.setText("-500"));
-    assertEquals(Range.between(-500, 1000), instance.getObservable().getValue());
+    assertEquals(Range.between(-500, 1000), instance.valueProperty().getValue());
   }
 
   @Test
   public void testChangeHighValueAndGetObservableValue() {
     runOnFxThreadAndWait(() -> instance.highValueTextField.setText("500"));
-    assertEquals(Range.between(-1000, 500), instance.getObservable().getValue());
+    assertEquals(Range.between(-1000, 500), instance.valueProperty().getValue());
   }
 
   @Test
@@ -75,7 +75,7 @@ public class RangeSliderFilterControllerTest extends UITest {
       instance.lowValueTextField.setText("-500");
       instance.highValueTextField.setText("500");
     });
-    assertEquals(Range.between(-500, 500), instance.getObservable().getValue());
+    assertEquals(Range.between(-500, 500), instance.valueProperty().getValue());
   }
 
   @Test
@@ -85,7 +85,7 @@ public class RangeSliderFilterControllerTest extends UITest {
       instance.highValueTextField.setText("500");
       instance.resetFilter();
     });
-    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.getObservable().getValue());
+    assertEquals(AbstractRangeSliderFilterController.NO_CHANGE, instance.valueProperty().getValue());
   }
 
   @Test

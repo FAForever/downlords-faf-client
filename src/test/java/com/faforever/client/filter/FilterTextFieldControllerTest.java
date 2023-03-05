@@ -41,7 +41,7 @@ public class FilterTextFieldControllerTest extends UITest {
 
   @Test
   public void testGetObservable() {
-    assertEquals(instance.getRoot().textProperty(), instance.getObservable());
+    assertEquals(instance.getRoot().textProperty(), instance.valueProperty());
   }
 
   @Test

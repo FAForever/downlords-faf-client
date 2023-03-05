@@ -57,7 +57,7 @@ public class RangeSliderWithChoiceFilterController<I, T> extends AbstractRangeSl
   }
 
   @Override
-  public ObjectBinding<ItemWithRange<I, Integer>> getObservable() {
+  public ObjectBinding<ItemWithRange<I, Integer>> valueProperty() {
     if (rangeProperty == null) {
       rangeProperty = Bindings.createObjectBinding(() -> {
             int lowValue = (int) rangeSlider.getLowValue();

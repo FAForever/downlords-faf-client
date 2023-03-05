@@ -153,7 +153,7 @@ public class GameService implements InitializingBean {
   private final MaskPatternLayout logMasker = new MaskPatternLayout();
   private final ObservableMap<Integer, GameBean> gameIdToGame = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
   @Getter
-  private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(), game.mapFolderNameProperty(), game.simModsProperty(), game.passwordProtectedProperty()})), gameIdToGame);
+  private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(), game.mapFolderNameProperty(), game.simModsProperty(), game.passwordProtectedProperty(), game.gameTypeProperty()})), gameIdToGame);
 
   private Process process;
   private CompletableFuture<Void> matchmakerFuture;

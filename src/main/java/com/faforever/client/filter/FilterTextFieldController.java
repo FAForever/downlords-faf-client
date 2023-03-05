@@ -23,7 +23,7 @@ public class FilterTextFieldController<T> extends AbstractFilterNodeController<S
   }
 
   @Override
-  public StringProperty getObservable() {
+  public StringProperty valueProperty() {
     return root.textProperty();
   }
 

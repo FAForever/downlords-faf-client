@@ -4,7 +4,6 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
@@ -108,18 +107,14 @@ public class CustomGamesController extends AbstractViewController<Node> {
     });
 
     filteredItems = new FilteredList<>(gameService.getGames());
-    JavaFxUtil.addAndTriggerListener(customGamesFilterController.predicateProperty(),
-        (observable, oldValue, newValue) -> filteredItems.setPredicate(newValue));
+    filteredItems.predicateProperty().bind(customGamesFilterController.predicateProperty());
 
     IntegerBinding filteredGamesSizeBinding = Bindings.size(filteredItems);
-    IntegerBinding gameListSizeBinding = Bindings.size(new FilteredList<>(gameService.getGames(), openGamesPredicate));
+    IntegerBinding gameListSizeBinding = Bindings.size(gameService.getGames().filtered(openGamesPredicate));
     JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGamesSizeBinding.isNotEqualTo(gameListSizeBinding));
-    SimpleInvalidationListener gameListSizeListener = () -> JavaFxUtil.runLater(() -> {
-      int gameListSize = gameListSizeBinding.get();
-      filteredGamesCountLabel.setText(i18n.get("filteredOutItemsCount", gameListSize - filteredGamesSizeBinding.get(), gameListSize));
-    });
-    JavaFxUtil.addListener(filteredGamesSizeBinding, gameListSizeListener);
-    JavaFxUtil.addAndTriggerListener(gameListSizeBinding, gameListSizeListener);
+
+    filteredGamesCountLabel.textProperty()
+        .bind(filteredGamesSizeBinding.flatMap(filteredCount -> gameListSizeBinding.map(gameCount -> i18n.get("filteredOutItemsCount", gameCount.intValue() - filteredCount.intValue(), gameCount))));
 
     if (tilesButton.getId().equals(preferences.getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
