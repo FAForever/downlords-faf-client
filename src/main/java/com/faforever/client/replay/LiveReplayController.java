@@ -3,10 +3,10 @@ package com.faforever.client.replay;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.LiveGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.DecimalCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.SimpleInvalidationListener;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.game.GameService;
@@ -148,19 +148,13 @@ public class LiveReplayController extends AbstractViewController<Node> {
     modsColumn.setCellValueFactory(this::modCell);
     modsColumn.setCellFactory(param -> new StringCell<>(String::toString));
     watchColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
-    watchColumn.setCellFactory(param -> new NodeTableCell<>(this::watchReplayButton));
+    watchColumn.setCellFactory(param -> new ControllerTableCell<>(uiService.loadFxml("theme/vault/replay/watch_button.fxml"), WatchButtonController::setGame));
 
     tableView.setItems(sortedList);
 
     startTimeColumn.setSortType(SortType.DESCENDING);
     tableView.getSortOrder().add(startTimeColumn);
     tableView.sort();
-  }
-
-  private Node watchReplayButton(GameBean game) {
-    WatchButtonController controller = uiService.loadFxml("theme/vault/replay/watch_button.fxml");
-    controller.setGame(game);
-    return controller.getRoot();
   }
 
   @Override

@@ -5,9 +5,9 @@ import com.faforever.client.domain.CoopResultBean;
 import com.faforever.client.domain.GameBean;
 import com.faforever.client.exception.NotifiableException;
 import com.faforever.client.fx.AbstractViewController;
+import com.faforever.client.fx.ControllerTableCell;
 import com.faforever.client.fx.ImageViewHelper;
 import com.faforever.client.fx.JavaFxUtil;
-import com.faforever.client.fx.NodeTableCell;
 import com.faforever.client.fx.StringCell;
 import com.faforever.client.fx.StringListCell;
 import com.faforever.client.fx.WebViewConfigurer;
@@ -142,12 +142,11 @@ public class CoopController extends AbstractViewController<Node> {
     timeColumn.setCellFactory(param -> new StringCell<>(timeService::shortDuration));
 
     replayColumn.setCellValueFactory(param -> param.getValue().getReplay().idProperty().asString());
-    replayColumn.setCellFactory(param -> new NodeTableCell<>((replayId) -> {
-      ReplayButtonController button = uiService.loadFxml("theme/play/coop/replay_button.fxml");
-      button.setReplayId(replayId);
-      button.setOnClickedAction(this::onReplayButtonClicked);
-      return button.getRoot();
-    }));
+    replayColumn.setCellFactory(param -> {
+      ReplayButtonController controller = uiService.loadFxml("theme/play/coop/replay_button.fxml");
+      controller.setOnClickedAction(this::onReplayButtonClicked);
+      return new ControllerTableCell<>(controller, ReplayButtonController::setReplayId);
+    });
 
     Tooltip tooltip = new Tooltip(i18n.get("coop.leaderboard.table.criteria"));
     tooltip.setShowDelay(javafx.util.Duration.ZERO);
