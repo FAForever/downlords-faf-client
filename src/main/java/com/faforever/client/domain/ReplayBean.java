@@ -265,7 +265,11 @@ public class ReplayBean {
   }
 
   public void setReviews(List<ReplayReviewBean> reviews) {
-    this.reviews.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(reviews)));
+    if (reviews == null) {
+      this.reviews.set(FXCollections.emptyObservableList());
+    } else {
+      this.reviews.set(FXCollections.unmodifiableObservableList(FXCollections.observableList(reviews)));
+    }
   }
 
   public ReadOnlyListProperty<ReplayReviewBean> reviewsProperty() {

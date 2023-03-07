@@ -24,7 +24,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.scene.image.Image;
@@ -43,9 +42,11 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -59,12 +60,11 @@ import static com.faforever.commons.api.elide.ElideNavigator.qBuilder;
 @RequiredArgsConstructor
 public class PlayerService implements InitializingBean {
 
-  private final ObservableMap<String, PlayerBean> playersByName = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
-  private final ObservableMap<Integer, PlayerBean> playersById = FXCollections.synchronizedObservableMap(FXCollections.observableHashMap());
+  private final Map<String, PlayerBean> playersByName = new ConcurrentHashMap<>();
+  private final Map<Integer, PlayerBean> playersById = new ConcurrentHashMap<>();
   private final List<Integer> foeList = new ArrayList<>();
   private final List<Integer> friendList = new ArrayList<>();
   private final ReadOnlyObjectWrapper<PlayerBean> currentPlayer = new ReadOnlyObjectWrapper<>();
-  private final Object lock = new Object();
 
   private final FafServerAccessor fafServerAccessor;
   private final FafApiAccessor fafApiAccessor;
@@ -75,27 +75,14 @@ public class PlayerService implements InitializingBean {
   private final JavaFxService javaFxService;
   private final UserPrefs userPrefs;
 
-  private final MapChangeListener<Integer, PlayerBean> playerByIdChangeListener = change -> {
-    if (change.wasAdded()) {
-      PlayerBean player = change.getValueAdded();
-      playersByName.put(player.getUsername(), player);
-    } else if (change.wasRemoved()) {
-      PlayerBean player = change.getValueRemoved();
-      playersByName.remove(player.getUsername());
-    }
-  };
-
   private ObservableMap<Integer, String> notesByPlayerId;
 
   @Override
   public void afterPropertiesSet() {
-    playersById.addListener(playerByIdChangeListener);
-
     eventBus.register(this);
 
     fafServerAccessor.getEvents(PlayerInfo.class)
         .flatMap(playerInfo -> Flux.fromIterable(playerInfo.getPlayers()))
-        .publishOn(javaFxService.getFxApplicationScheduler())
         .flatMap(player -> Mono.zip(Mono.just(player), Mono.justOrEmpty(playersById.get(player.getId()))
             .switchIfEmpty(initializePlayer(player))))
         .publishOn(javaFxService.getFxApplicationScheduler())
@@ -203,8 +190,11 @@ public class PlayerService implements InitializingBean {
           newPlayer.setNote(notesByPlayerId.get(player.getId()));
           setPlayerSocialStatus(newPlayer);
           return newPlayer;
-        }).publishOn(javaFxService.getFxApplicationScheduler())
-        .doOnNext(playerBean -> playersById.put(playerBean.getId(), playerBean))
+        })
+        .doOnNext(playerBean -> {
+          playersById.put(playerBean.getId(), playerBean);
+          playersByName.put(playerBean.getUsername(), playerBean);
+        })
         .doOnNext(playerBean -> eventBus.post(new PlayerOnlineEvent(playerBean)));
   }
 
@@ -350,12 +340,11 @@ public class PlayerService implements InitializingBean {
   }
 
   public void removePlayerIfOnline(String username) {
-    synchronized (lock) {
-      getPlayerByNameIfOnline(username).ifPresent(player -> {
-        playersById.remove(player.getId());
+    PlayerBean player = playersByName.remove(username);
+    if (player != null) {
+      playersById.remove(player.getId());
 
-        eventBus.post(new PlayerOfflineEvent(player));
-      });
+      eventBus.post(new PlayerOfflineEvent(player));
     }
   }
 }

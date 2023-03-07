@@ -203,7 +203,7 @@ public class ChatUserItemController implements Controller<Node> {
     ObservableValue<PlayerBean> playerProperty = chatUser.flatMap(ChatChannelUser::playerProperty);
     ObservableValue<GameBean> gameProperty = playerProperty.flatMap(PlayerBean::gameProperty);
     BooleanExpression gameNotClosedObservable = BooleanExpression.booleanExpression(gameProperty.flatMap(GameBean::statusProperty)
-        .map(status1 -> status1 != GameStatus.CLOSED));
+        .map(status -> status != GameStatus.CLOSED));
 
 
     JavaFxUtil.bindManagedToVisible(mapNameLabel, mapImageView, noteIcon);
