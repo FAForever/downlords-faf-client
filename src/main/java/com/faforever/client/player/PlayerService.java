@@ -175,6 +175,7 @@ public class PlayerService implements InitializingBean {
         newPlayer.setUsername(playerInfo.getLogin());
         newPlayer.setNote(notesByPlayerId.get(id));
         setPlayerSocialStatus(newPlayer);
+        playersByName.put(newPlayer.getUsername(), newPlayer);
         return playerMapper.update(playerInfo, newPlayer);
       } else {
         return playerMapper.update(playerInfo, knownPlayer);

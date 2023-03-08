@@ -29,8 +29,8 @@ import javafx.scene.image.Image;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import org.hamcrest.CoreMatchers;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -207,7 +207,7 @@ public class ChatUserItemControllerTest extends UITest {
   }
 
   @Test
-  @Ignore("Flaky test due to race condition with tooltip installation")
+  @Disabled("Flaky test due to race condition with tooltip installation")
   public void testPlayerNoteTooltip() throws Exception {
     defaultUser.setPlayer(PlayerBeanBuilder.create()
         .defaultValues()

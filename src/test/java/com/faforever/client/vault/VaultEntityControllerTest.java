@@ -20,8 +20,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -305,7 +305,7 @@ public class VaultEntityControllerTest extends UITest {
   }
 
   @Test
-  @Ignore("Flaky Test")
+  @Disabled("Flaky Test")
   public void testOnSearch() {
     JavaFxUtil.runLater(() -> instance.display(new NavigateEvent(NavigationItem.MAP)));
     WaitForAsyncUtils.waitForFxEvents();

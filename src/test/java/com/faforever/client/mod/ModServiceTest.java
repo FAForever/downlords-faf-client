@@ -40,8 +40,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mapstruct.factory.Mappers;
@@ -181,7 +181,7 @@ public class ModServiceTest extends UITest {
   }
 
   @Test
-  @Ignore("Flaky Test")
+  @Disabled("Flaky Test")
   public void testDownloadAndInstallMod() throws Exception {
     assertThat(instance.getInstalledMods().size(), is(1));
 
