@@ -165,7 +165,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
 
   @Subscribe
   public void onChatMessage(ChatMessageEvent event) {
-    ChatMessage message = event.getMessage();
+    ChatMessage message = event.message();
     if (isMatchmakerPartyMessage(message)) {
       return;
     }
@@ -203,7 +203,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
 
   @Subscribe
   public void onInitiatePrivateChatEvent(InitiatePrivateChatEvent event) {
-    JavaFxUtil.runLater(() -> openPrivateMessageTabForUser(event.getUsername()));
+    JavaFxUtil.runLater(() -> openPrivateMessageTabForUser(event.username()));
   }
 
   private void openPrivateMessageTabForUser(String username) {

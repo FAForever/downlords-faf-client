@@ -79,7 +79,7 @@ public class AvatarServiceTest extends ServiceTest {
     ArgumentCaptor<AvatarChangedEvent> eventCaptor = ArgumentCaptor.forClass(AvatarChangedEvent.class);
     verify(eventBus).post(eventCaptor.capture());
 
-    AvatarBean avatar = eventCaptor.getValue().getAvatar();
+    AvatarBean avatar = eventCaptor.getValue().avatar();
     assertNotNull(avatar);
     assertEquals(url, avatar.getUrl());
     assertEquals("Description", avatar.getDescription());

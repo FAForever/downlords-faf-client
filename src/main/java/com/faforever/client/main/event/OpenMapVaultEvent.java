@@ -1,6 +1,6 @@
 package com.faforever.client.main.event;
 
-public class OpenMapVaultEvent extends NavigateEvent {
+public sealed class OpenMapVaultEvent extends NavigateEvent permits ShowMapPoolEvent {
   public OpenMapVaultEvent() {
     super(NavigationItem.MAP);
   }

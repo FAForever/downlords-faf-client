@@ -1,12 +1,12 @@
 package com.faforever.client.main.event;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Value;
 
-@Data
+@Value
 @EqualsAndHashCode(callSuper = true)
 public class JoinChannelEvent extends NavigateEvent {
-  private final String channel;
+  String channel;
 
   public JoinChannelEvent(String channel) {
     super(NavigationItem.CHAT);

@@ -122,7 +122,7 @@ public class ChatUserItemControllerTest extends UITest {
 
     ArgumentCaptor<InitiatePrivateChatEvent> captor = ArgumentCaptor.forClass(InitiatePrivateChatEvent.class);
     verify(eventBus, times(1)).post(captor.capture());
-    assertEquals(USER_NAME, captor.getValue().getUsername());
+    assertEquals(USER_NAME, captor.getValue().username());
   }
 
   @Test

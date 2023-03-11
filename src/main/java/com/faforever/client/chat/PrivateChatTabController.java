@@ -30,11 +30,11 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -58,7 +58,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   private boolean userOffline;
 
-  @Inject
+  @Autowired
   // TODO cut dependencies
   public PrivateChatTabController(UserService userService, PreferencesService preferencesService,
                                   PlayerService playerService, TimeService timeService, I18n i18n,

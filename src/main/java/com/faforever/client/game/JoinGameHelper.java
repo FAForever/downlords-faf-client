@@ -98,7 +98,7 @@ public class JoinGameHelper {
 
   @Subscribe
   public void onDiscordGameJoinEvent(DiscordJoinEvent discordJoinEvent) {
-    Integer gameId = discordJoinEvent.getGameId();
+    Integer gameId = discordJoinEvent.gameId();
     boolean disallowJoinsViaDiscord = preferences.isDisallowJoinsViaDiscord();
     if (disallowJoinsViaDiscord) {
       log.info("Join was requested via Discord but was rejected due to it being disabled in settings");

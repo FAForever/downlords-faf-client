@@ -37,8 +37,8 @@ public class FriendJoinedGameNotifier implements InitializingBean {
 
   @Subscribe
   public void onFriendJoinedGame(FriendJoinedGameEvent event) {
-    PlayerBean player = event.getPlayer();
-    GameBean game = event.getGame();
+    PlayerBean player = event.player();
+    GameBean game = event.game();
     if (notificationPrefs.isFriendJoinsGameSoundEnabled()) {
       audioService.playFriendJoinsGameSound();
     }

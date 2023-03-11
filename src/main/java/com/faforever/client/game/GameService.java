@@ -825,7 +825,7 @@ public class GameService implements InitializingBean {
 
   @Subscribe
   public void onPartyOwnerChangedEvent(PartyOwnerChangedEvent event) {
-    inOthersParty = !Objects.equals(playerService.getCurrentPlayer(), event.getNewOwner());
+    inOthersParty = !Objects.equals(playerService.getCurrentPlayer(), event.newOwner());
   }
 
   public void launchTutorial(MapVersionBean mapVersion, String technicalMapName) {

@@ -40,7 +40,7 @@ public class MissingGamePathNotifierTest extends ServiceTest {
 
   @Test
   public void testPersistentNotificationOnDefaultEvent() {
-    instance.onMissingGamePathEvent(new MissingGamePathEvent());
+    instance.onMissingGamePathEvent(new MissingGamePathEvent(false));
 
     verify(notificationService).addNotification(any(PersistentNotification.class));
   }

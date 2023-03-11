@@ -160,10 +160,10 @@ public class OnlineReplayVaultController extends VaultEntityController<ReplayBea
 
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
-    if (navigateEvent instanceof ShowReplayEvent) {
-      onShowReplayEvent((ShowReplayEvent) navigateEvent);
-    } else if (navigateEvent instanceof ShowUserReplaysEvent) {
-      onShowUserReplaysEvent((ShowUserReplaysEvent) navigateEvent);
+    if (navigateEvent instanceof ShowReplayEvent showReplayEvent) {
+      onShowReplayEvent(showReplayEvent);
+    } else if (navigateEvent instanceof ShowUserReplaysEvent showUserReplaysEvent) {
+      onShowUserReplaysEvent(showUserReplaysEvent);
     } else {
       log.warn("No such NavigateEvent for this Controller: {}", navigateEvent.getClass());
     }

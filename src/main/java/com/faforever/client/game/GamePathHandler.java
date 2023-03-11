@@ -48,8 +48,8 @@ public class GamePathHandler implements InitializingBean {
    */
   @Subscribe
   public void onGameDirectoryChosenEvent(GameDirectoryChosenEvent event) {
-    Path path = event.getPath();
-    Optional<CompletableFuture<Path>> future = event.getFuture();
+    Path path = event.path();
+    Optional<CompletableFuture<Path>> future = event.future();
 
     if (path == null) {
       notificationService.addImmediateWarnNotification("gamePath.select.noneChosen");
@@ -95,7 +95,7 @@ public class GamePathHandler implements InitializingBean {
     }
 
     log.warn("Game path could not be detected");
-    eventBus.post(new MissingGamePathEvent());
+    eventBus.post(new MissingGamePathEvent(false));
   }
 
   public void detectAndUpdateGamePath() {

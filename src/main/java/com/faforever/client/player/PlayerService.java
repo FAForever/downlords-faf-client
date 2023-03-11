@@ -127,7 +127,7 @@ public class PlayerService implements InitializingBean {
   public void onAvatarChanged(AvatarChangedEvent event) {
     PlayerBean player = getCurrentPlayer();
 
-    player.setAvatar(event.getAvatar());
+    player.setAvatar(event.avatar());
   }
 
   public ObservableValue<Double> getAverageRatingPropertyForGame(GameBean gameBean) {
