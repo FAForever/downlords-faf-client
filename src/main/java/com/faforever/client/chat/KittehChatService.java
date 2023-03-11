@@ -296,7 +296,7 @@ public class KittehChatService implements ChatService, InitializingBean, Disposa
     event.getStatusList().getAll().forEach(channelModeStatus -> channelModeStatus.getParameter().ifPresent(username -> {
       Mode changedMode = channelModeStatus.getMode();
       Action modeAction = channelModeStatus.getAction();
-      if (changedMode instanceof ChannelUserMode && MODERATOR_PREFIXES.contains(((ChannelUserMode) changedMode).getNickPrefix())) {
+      if (changedMode instanceof ChannelUserMode channelUserMode && MODERATOR_PREFIXES.contains(channelUserMode.getNickPrefix())) {
         ChatChannelUser chatChannelUser = getOrCreateChatUser(username, channel.getName());
         if (modeAction == Action.ADD) {
           chatChannelUser.setModerator(true);

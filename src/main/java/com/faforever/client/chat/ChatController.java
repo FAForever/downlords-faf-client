@@ -261,8 +261,8 @@ public class ChatController extends AbstractViewController<AnchorPane> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    if (navigateEvent instanceof JoinChannelEvent) {
-      chatService.joinChannel(((JoinChannelEvent) navigateEvent).getChannel());
+    if (navigateEvent instanceof JoinChannelEvent joinChannelEvent) {
+      chatService.joinChannel(joinChannelEvent.getChannel());
       return;
     }
     if (!tabPane.getTabs().isEmpty()) {

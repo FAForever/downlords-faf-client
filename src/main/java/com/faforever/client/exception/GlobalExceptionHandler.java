@@ -28,9 +28,9 @@ public class GlobalExceptionHandler implements UncaughtExceptionHandler, AsyncUn
       return;
     }
 
-    if (ex instanceof NotifiableException) {
+    if (ex instanceof NotifiableException notifiableException) {
       log.error("Exception on Thread {}: ", t, ex);
-      notificationService.addErrorNotification((NotifiableException) ex);
+      notificationService.addErrorNotification(notifiableException);
     } else {
       log.error("Uncaught exception on {}: ", t, ex);
     }

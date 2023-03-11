@@ -274,8 +274,8 @@ public class TeamMatchmakingService implements InitializingBean {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Unable to join queue", throwable);
-          if (throwable instanceof NotifiableException) {
-            notificationService.addErrorNotification((NotifiableException) throwable);
+          if (throwable instanceof NotifiableException notifiableException) {
+            notificationService.addErrorNotification(notifiableException);
           } else {
             notificationService.addImmediateErrorNotification(throwable, "game.start.couldNotStart");
           }

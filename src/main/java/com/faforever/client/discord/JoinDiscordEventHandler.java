@@ -64,11 +64,11 @@ public class JoinDiscordEventHandler implements InitializingBean {
 
       @Override
       public void handleMessage(@NotNull WebSocketSession session, @NotNull WebSocketMessage<?> message) throws Exception {
-        if (!(message instanceof TextMessage)) {
+        if (!(message instanceof TextMessage textMessage)) {
           session.close(CloseStatus.BAD_DATA);
           return;
         }
-        TextMessage textMessage = (TextMessage) message;
+
         if (textMessage.getPayload().contains("DISPATCH")) {
           session.sendMessage(new TextMessage("{\"cmd\":\"INVITE_BROWSER\",\"args\":{\"code\":\"" + joinUrl.replaceAll("https://.*/", "") + "\"},\"nonce\":\"bcf3dcce-e76e-44d3-8bde-d3c7e435d165\"}"));
         } else if (textMessage.getPayload().contains("INVITE_BROWSER")) {

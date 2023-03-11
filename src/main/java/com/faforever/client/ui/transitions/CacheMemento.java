@@ -47,11 +47,11 @@ public class CacheMemento {
             this.cacheHint = node.getCacheHint();
             node.setCache(true);
             node.setCacheHint(CacheHint.SPEED);
-            if (node instanceof Region) {
-                this.cacheShape = ((Region) node).isCacheShape();
-                this.snapToPixel = ((Region) node).isSnapToPixel();
-                ((Region) node).setCacheShape(true);
-                ((Region) node).setSnapToPixel(true);
+            if (node instanceof Region region) {
+                this.cacheShape = region.isCacheShape();
+                this.snapToPixel = region.isSnapToPixel();
+                region.setCacheShape(true);
+                region.setSnapToPixel(true);
             }
         }
     }
@@ -60,9 +60,9 @@ public class CacheMemento {
         if (isCached.getAndSet(false)) {
             node.setCache(cache);
             node.setCacheHint(cacheHint);
-            if (node instanceof Region) {
-                ((Region) node).setCacheShape(cacheShape);
-                ((Region) node).setSnapToPixel(snapToPixel);
+            if (node instanceof Region region) {
+                region.setCacheShape(cacheShape);
+                region.setSnapToPixel(snapToPixel);
             }
         }
     }

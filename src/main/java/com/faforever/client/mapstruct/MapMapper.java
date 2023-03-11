@@ -53,8 +53,8 @@ public interface MapMapper {
   default MapVersionBean mapFromPoolAssignment(MapPoolAssignment dto, @Context CycleAvoidingMappingContext context) {
     if (dto.getMapVersion() != null) {
       return map(dto.getMapVersion(), context);
-    } else if (dto.getMapParams() instanceof NeroxisGeneratorParams) {
-      return map((NeroxisGeneratorParams) dto.getMapParams());
+    } else if (dto.getMapParams() instanceof NeroxisGeneratorParams neroxisGeneratorParams) {
+      return map(neroxisGeneratorParams);
     } else {
       return null;
     }

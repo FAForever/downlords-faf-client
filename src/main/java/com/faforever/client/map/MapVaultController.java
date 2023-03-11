@@ -169,8 +169,8 @@ return List.of(
 
   @Override
   protected void handleSpecialNavigateEvent(NavigateEvent navigateEvent) {
-    if (navigateEvent instanceof ShowMapPoolEvent) {
-      matchmakerQueue = ((ShowMapPoolEvent) navigateEvent).getQueue();
+    if (navigateEvent instanceof ShowMapPoolEvent showMapPoolEvent) {
+      matchmakerQueue = showMapPoolEvent.getQueue();
       searchType = SearchType.MAP_POOL;
       onPageChange(null, true);
     } else {

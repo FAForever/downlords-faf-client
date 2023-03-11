@@ -432,8 +432,8 @@ public class CreateGameController implements Controller<Pane> {
     }).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.error("Game could not be hosted", throwable);
-      if (throwable instanceof NotifiableException) {
-        notificationService.addErrorNotification((NotifiableException) throwable);
+      if (throwable instanceof NotifiableException notifiableException) {
+        notificationService.addErrorNotification(notifiableException);
       } else {
         notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
       }
@@ -469,8 +469,8 @@ public class CreateGameController implements Controller<Pane> {
     gameService.hostGame(newGameInfo).exceptionally(throwable -> {
       throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
       log.error("Game could not be hosted", throwable);
-      if (throwable instanceof NotifiableException) {
-        notificationService.addErrorNotification((NotifiableException) throwable);
+      if (throwable instanceof NotifiableException notifiableException) {
+        notificationService.addErrorNotification(notifiableException);
       } else {
         notificationService.addImmediateErrorNotification(throwable, "game.create.failed");
       }
