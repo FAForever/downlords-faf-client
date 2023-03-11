@@ -451,23 +451,26 @@ public class MainController implements Controller<Node>, InitializingBean {
     NavigationItem navigationItem = windowPrefs.getNavigationItem();
     if (navigationItem == null) {
       navigationItem = NavigationItem.NEWS;
-      askUserForPreferenceOverStartTab(windowPrefs);
+
+      if (!windowPrefs.navigationItemProperty().isBound()) {
+        askUserForPreferenceOverStartTab();
+      }
     }
     eventBus.post(new NavigateEvent(navigationItem));
   }
 
-  private void askUserForPreferenceOverStartTab(WindowPrefs mainWindow) {
-    mainWindow.setNavigationItem(NavigationItem.NEWS);
+  private void askUserForPreferenceOverStartTab() {
+    windowPrefs.setNavigationItem(NavigationItem.NEWS);
     List<Action> actions = Collections.singletonList(new Action(i18n.get("startTab.configure"), event ->
-        makePopUpAskingForPreferenceInStartTab(mainWindow)));
+        makePopUpAskingForPreferenceInStartTab()));
     notificationService.addNotification(new PersistentNotification(i18n.get("startTab.wantToConfigure"), Severity.INFO, actions));
   }
 
-  private void makePopUpAskingForPreferenceInStartTab(WindowPrefs mainWindow) {
+  private void makePopUpAskingForPreferenceInStartTab() {
     StartTabChooseController startTabChooseController = uiService.loadFxml("theme/start_tab_choose.fxml");
     Action saveAction = new Action(i18n.get("startTab.save"), event -> {
       NavigationItem newSelection = startTabChooseController.getSelected();
-      mainWindow.setNavigationItem(newSelection);
+      windowPrefs.setNavigationItem(newSelection);
       eventBus.post(new NavigateEvent(newSelection));
     });
     ImmediateNotification notification =
