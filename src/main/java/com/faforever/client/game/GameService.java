@@ -269,8 +269,8 @@ public class GameService implements InitializingBean {
           newGame.addPlayerChangeListener(generatePlayerChangeListener(newGame));
           return newGame;
         })
-        .doOnNext(game -> gameMapper.update(gameInfo, game))
         .publishOn(javaFxService.getFxApplicationScheduler())
+        .doOnNext(game -> gameMapper.update(gameInfo, game))
         .doOnNext(game -> gameIdToGame.put(game.getId(), game));
   }
 
