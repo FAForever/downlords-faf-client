@@ -1,4 +1,4 @@
 package com.faforever.client.user.event;
 
-public class LoginSuccessEvent {
+public record LoginSuccessEvent() {
 }

@@ -464,7 +464,7 @@ public class KittehChatServiceTest extends UITest {
   @Test
   public void testChatMessageEventTriggeredByChannelMessage() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).getMessage()))
+    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).message()))
         .when(eventBus).post(any());
 
     String message = "chat message";
@@ -484,7 +484,7 @@ public class KittehChatServiceTest extends UITest {
   @Test
   public void testChatMessageEventTriggeredByChannelAction() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).getMessage()))
+    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).message()))
         .when(eventBus).post(any());
 
     String message = "chat action";
@@ -504,7 +504,7 @@ public class KittehChatServiceTest extends UITest {
   @Test
   public void testChatMessageEventTriggeredByPrivateMessage() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).getMessage()))
+    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).message()))
         .when(eventBus).post(any(ChatMessageEvent.class));
 
     Channel privateChannel = mock(Channel.class);

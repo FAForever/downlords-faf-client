@@ -35,7 +35,7 @@ public class JoinDiscordEventHandler implements InitializingBean {
 
   @Subscribe
   public void onJoin(JoinDiscordEvent event) throws URISyntaxException {
-    joinViaDiscord(event.getChannelUrl());
+    joinViaDiscord(event.channelUrl());
   }
 
   private void joinViaBrowser(String joinUrl) {

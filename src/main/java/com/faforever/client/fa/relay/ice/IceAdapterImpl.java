@@ -97,7 +97,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
 
   @Subscribe
   public void onGpgGameMessage(GpgOutboundMessageEvent event) {
-    GpgGameOutboundMessage gpgMessage = event.getGpgMessage();
+    GpgGameOutboundMessage gpgMessage = event.gpgMessage();
     String command = gpgMessage.getCommand();
 
     if (command.equals("Rehost")) {

@@ -37,7 +37,7 @@ public class MissingGamePathNotifier implements InitializingBean {
     );
     String notificationText = i18n.get("missingGamePath.notification");
 
-    if (event.isImmediateUserActionRequired()) {
+    if (event.immediateUserActionRequired()) {
       notificationService.addNotification(new ImmediateNotification(notificationText, notificationText, Severity.WARN, actions));
     } else {
       notificationService.addNotification(new PersistentNotification(notificationText, Severity.WARN, actions));
