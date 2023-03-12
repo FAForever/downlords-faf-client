@@ -246,17 +246,17 @@ public class SpecificationController implements Controller<Node> {
     Class<?> propertyClass = getPropertyClass(propertyName);
     Property property = getProperty(qBuilder, propertyName, propertyClass);
 
-    if (property instanceof NumberProperty) {
-      return Optional.ofNullable(getNumberCondition(comparisonOperator, value, propertyClass, (NumberProperty) property));
+    if (property instanceof NumberProperty numberProperty) {
+      return Optional.ofNullable(getNumberCondition(comparisonOperator, value, propertyClass, numberProperty));
     }
-    if (property instanceof BooleanProperty) {
-      return Optional.ofNullable(getBooleanCondition(comparisonOperator, value, propertyClass, (BooleanProperty) property));
+    if (property instanceof BooleanProperty booleanProperty) {
+      return Optional.ofNullable(getBooleanCondition(comparisonOperator, value, propertyClass, booleanProperty));
     }
-    if (property instanceof InstantProperty) {
-      return Optional.ofNullable(getInstantCondition(comparisonOperator, value, propertyClass, (InstantProperty) property));
+    if (property instanceof InstantProperty instantProperty) {
+      return Optional.ofNullable(getInstantCondition(comparisonOperator, value, propertyClass, instantProperty));
     }
-    if (property instanceof EnumProperty) {
-      return Optional.ofNullable(getEquitableCondition(comparisonOperator, value, propertyClass, (EnumProperty) property));
+    if (property instanceof EnumProperty enumProperty) {
+      return Optional.ofNullable(getEquitableCondition(comparisonOperator, value, propertyClass, enumProperty));
     }
 
     return Optional.ofNullable(getStringCondition(comparisonOperator, value, propertyClass, (StringProperty) property));

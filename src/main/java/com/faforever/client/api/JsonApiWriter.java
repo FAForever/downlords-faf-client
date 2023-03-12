@@ -40,10 +40,10 @@ public class JsonApiWriter implements HttpMessageWriter<Object> {
         Mono.from(inputStream).flatMap(objects ->
             Mono.fromCallable(() -> {
               byte[] serializedObject;
-              if (objects instanceof Iterable) {
-                serializedObject = resourceConverter.writeDocumentCollection(new JSONAPIDocument<Iterable<?>>((Iterable<?>) objects));
-              } else if (objects instanceof JSONAPIDocument) {
-                serializedObject = resourceConverter.writeDocument((JSONAPIDocument<?>) objects);
+              if (objects instanceof Iterable<?> iterable) {
+                serializedObject = resourceConverter.writeDocumentCollection(new JSONAPIDocument<>(iterable));
+              } else if (objects instanceof JSONAPIDocument<?> document) {
+                serializedObject = resourceConverter.writeDocument(document);
               } else {
                 serializedObject = resourceConverter.writeDocument(new JSONAPIDocument<>(objects));
               }

@@ -407,8 +407,8 @@ public class GameService implements InitializingBean {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Game could not be joined", throwable);
-          if (throwable instanceof NotifiableException) {
-            notificationService.addErrorNotification((NotifiableException) throwable);
+          if (throwable instanceof NotifiableException notifiableException) {
+            notificationService.addErrorNotification(notifiableException);
           } else {
             notificationService.addImmediateErrorNotification(throwable, "games.couldNotJoin");
           }
@@ -705,8 +705,8 @@ public class GameService implements InitializingBean {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Game could not be started", throwable);
-          if (throwable instanceof NotifiableException) {
-            notificationService.addErrorNotification((NotifiableException) throwable);
+          if (throwable instanceof NotifiableException notifiableException) {
+            notificationService.addErrorNotification(notifiableException);
           } else {
             notificationService.addImmediateErrorNotification(throwable, "games.couldNotStart");
           }
@@ -852,8 +852,8 @@ public class GameService implements InitializingBean {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Launching tutorials failed", throwable);
-          if (throwable instanceof NotifiableException) {
-            notificationService.addErrorNotification((NotifiableException) throwable);
+          if (throwable instanceof NotifiableException notifiableException) {
+            notificationService.addErrorNotification(notifiableException);
           } else {
             notificationService.addImmediateErrorNotification(throwable, "tutorial.launchFailed");
           }

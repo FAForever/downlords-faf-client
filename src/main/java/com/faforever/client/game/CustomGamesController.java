@@ -157,8 +157,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
 
   @Override
   protected void onDisplay(NavigateEvent navigateEvent) {
-    if (navigateEvent instanceof HostGameEvent) {
-      onCreateGame(((HostGameEvent) navigateEvent).getMapFolderName());
+    if (navigateEvent instanceof HostGameEvent hostGameEvent) {
+      onCreateGame(hostGameEvent.getMapFolderName());
     }
   }
 

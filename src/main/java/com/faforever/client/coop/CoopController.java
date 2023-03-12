@@ -292,8 +292,8 @@ public class CoopController extends AbstractViewController<Node> {
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
           log.error("Could not host coop game", throwable);
-          if (throwable instanceof NotifiableException) {
-            notificationService.addErrorNotification((NotifiableException) throwable);
+          if (throwable instanceof NotifiableException notifiableException) {
+            notificationService.addErrorNotification(notifiableException);
           } else {
             notificationService.addImmediateErrorNotification(throwable, "coop.host.error");
           }

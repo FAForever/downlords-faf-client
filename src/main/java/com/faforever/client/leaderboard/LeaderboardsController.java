@@ -90,10 +90,9 @@ public class LeaderboardsController extends AbstractViewController<Node> {
     isHandlingEvent = true;
 
     try {
-      if (navigateEvent instanceof OpenLeaderboardEvent) {
-        OpenLeaderboardEvent event = (OpenLeaderboardEvent) navigateEvent;
+      if (navigateEvent instanceof OpenLeaderboardEvent openLeaderboardEvent) {
         controllers.forEach(controller -> {
-          if (controller.getRoot().equals(event.getLeagueTab())) {
+          if (controller.getRoot().equals(openLeaderboardEvent.getLeagueTab())) {
             lastTab = controller.getRoot();
           }
         });
