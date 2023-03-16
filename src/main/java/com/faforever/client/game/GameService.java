@@ -451,7 +451,7 @@ public class GameService implements InitializingBean {
         }))
         .thenRun(() -> {
           try {
-            Process processForReplay = forgedAllianceService.startReplay(path, replayId);
+            Process processForReplay = forgedAllianceService.startReplay(path, replayId, forgedAlliancePrefs.isAllowReplaysWhileInGame());
             if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
               return;
             }
@@ -539,12 +539,12 @@ public class GameService implements InitializingBean {
 
     return modService.getFeaturedMod(gameType)
         .toFuture()
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUids))
+        .thenCompose(featuredModBean -> updateReplayFilesIfNecessary(featuredModBean, simModUids, null, null))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
           Process processCreated;
           try {
-            processCreated = forgedAllianceService.startReplay(replayUrl, gameId);
+            processCreated = forgedAllianceService.startReplay(replayUrl, gameId, forgedAlliancePrefs.isAllowReplaysWhileInGame());
           } catch (IOException e) {
             throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
           }

@@ -65,7 +65,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartReplay() throws Exception {
-    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0));
+    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0, false));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
@@ -73,7 +73,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartOnlineReplay() throws Exception {
-    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0));
+    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0, false));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(playerService).getCurrentPlayer();

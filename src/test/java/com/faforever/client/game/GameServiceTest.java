@@ -212,7 +212,7 @@ public class GameServiceTest extends ServiceTest {
   }
 
   private void mockStartReplayProcess(Path path, int id) throws IOException {
-    when(forgedAllianceService.startReplay(path, id)).thenReturn(process);
+    when(forgedAllianceService.startReplay(path, id, false)).thenReturn(process);
   }
 
   private void mockMatchmakerChain() {
@@ -288,7 +288,7 @@ public class GameServiceTest extends ServiceTest {
 
     verify(replayServer).start(eq(game.getId()), any());
     verify(forgedAllianceService).startGameOnline(gameParameters);
-    verify(forgedAllianceService).startReplay(replayPath, replayId);
+    verify(forgedAllianceService).startReplay(replayPath, replayId, true);
   }
 
   @Test
@@ -319,7 +319,7 @@ public class GameServiceTest extends ServiceTest {
 
     verify(replayServer).start(eq(game.getId()), any());
     verify(forgedAllianceService).startGameOnline(gameParameters);
-    verify(forgedAllianceService, never()).startReplay(replayPath, replayId);
+    verify(forgedAllianceService, never()).startReplay(replayPath, replayId, false);
   }
 
   @Test
