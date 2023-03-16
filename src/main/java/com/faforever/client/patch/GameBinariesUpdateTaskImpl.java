@@ -94,7 +94,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
     Path exePath = forgedAllianceService.getExecutablePath();
     if (useReplayFolder) {
-      exePath = dataPrefs.getReplaysBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+      exePath = dataPrefs.getReplayBinDirectory().resolve(FORGED_ALLIANCE_EXE);
     }
 
     copyGameFilesToFafBinDirectory();
@@ -132,11 +132,12 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   void copyGameFilesToFafBinDirectory() {
     log.trace("Copying Forged Alliance binaries FAF folder");
 
-    Path directory = dataPrefs.getBinDirectory();
+    Path fafBinDirectory;
     if (useReplayFolder) {
-      directory = dataPrefs.getReplaysBinDirectory();
+      fafBinDirectory = dataPrefs.getReplayBinDirectory();
+    } else {
+      fafBinDirectory = dataPrefs.getBinDirectory();
     }
-    Path fafBinDirectory = directory;
 
     Path faBinPath = forgedAlliancePrefs.getInstallationPath().resolve("bin");
 

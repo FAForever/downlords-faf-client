@@ -30,6 +30,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
   @TempDir
   public Path tempDirectory;
   private Path fafBinDirectory;
+  private Path fafReplayBinDirectory;
   private Path faDirectory;
 
   @Mock
@@ -55,6 +56,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
 
     faDirectory = Files.createDirectories(faPath.resolve("bin"));
     fafBinDirectory = Files.createDirectories(dataPrefs.getBinDirectory());
+    fafReplayBinDirectory = Files.createDirectories(dataPrefs.getReplayBinDirectory());
   }
 
   @Test
@@ -79,6 +81,27 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
     assertThat(resultFiles.size(), is(GameBinariesUpdateTaskImpl.BINARIES_TO_COPY.size()));
     for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
       assertTrue(Files.exists(fafBinDirectory.resolve(fileName)));
+    }
+  }
+
+  @Test
+  public void testCopyGameFilesToFafReplayBinDirectory() throws Exception {
+    Path faBinPath = Files.createDirectories(faDirectory);
+
+    for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
+      createFileWithSize(faBinPath.resolve(fileName), 1024);
+    }
+    createFileWithSize(faBinPath.resolve("splash.png"), 1024);
+
+    instance.setUseReplayFolder(true);
+    instance.copyGameFilesToFafBinDirectory();
+
+    List<Path> resultFiles = Files.list(fafReplayBinDirectory).filter(file -> !file.toFile().isDirectory()).collect(Collectors.toList());
+
+    // Expected all files except splash.png to be copied
+    assertThat(resultFiles.size(), is(GameBinariesUpdateTaskImpl.BINARIES_TO_COPY.size()));
+    for (String fileName : GameBinariesUpdateTaskImpl.BINARIES_TO_COPY) {
+      assertTrue(Files.exists(fafReplayBinDirectory.resolve(fileName)));
     }
   }
 

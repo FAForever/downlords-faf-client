@@ -126,7 +126,7 @@ public class ForgedAllianceService {
   }
 
   public Path getReplayExecutablePath() {
-    return dataPrefs.getReplaysBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+    return dataPrefs.getReplayBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
   public Path getDebuggerExecutablePath() {

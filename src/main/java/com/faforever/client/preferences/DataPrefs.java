@@ -37,7 +37,7 @@ public class DataPrefs {
     return getBaseDataDirectory().resolve(BIN_SUB_FOLDER);
   }
 
-  public Path getReplaysBinDirectory() {
+  public Path getReplayBinDirectory() {
     return getBaseDataDirectory().resolve(REPLAYS_SUB_FOLDER).resolve(BIN_SUB_FOLDER);
   }
 

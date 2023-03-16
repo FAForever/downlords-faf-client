@@ -63,11 +63,12 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     updateTitle(i18n.get("updater.taskTitle"));
     updateMessage(i18n.get("updater.readingFileList"));
 
-    Path directory = dataPrefs.getBaseDataDirectory();
+    Path fafDataDirectory;
     if (useReplayFolder) {
-      directory = dataPrefs.getReplaysDirectory();
+      fafDataDirectory = dataPrefs.getReplaysDirectory();
+    } else {
+      fafDataDirectory = dataPrefs.getBaseDataDirectory();
     }
-    Path fafDataDirectory = directory;
 
     List<FeaturedModFile> featuredModFiles = modService.getFeaturedModFiles(featuredMod, version).join();
 
