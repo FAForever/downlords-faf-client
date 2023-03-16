@@ -31,17 +31,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
 
-import static com.faforever.client.game.KnownFeaturedMod.BALANCE_TESTING;
 import static com.faforever.client.game.KnownFeaturedMod.FAF;
 import static com.faforever.client.game.KnownFeaturedMod.FAF_BETA;
 import static com.faforever.client.game.KnownFeaturedMod.FAF_DEVELOP;
-import static com.faforever.client.game.KnownFeaturedMod.LADDER_1V1;
 
 @Slf4j
 @RequiredArgsConstructor
 public class GameUpdaterImpl implements GameUpdater {
 
-  private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP, BALANCE_TESTING, LADDER_1V1)
+  private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP)
       .map(KnownFeaturedMod::getTechnicalName).toList();
 
   private final List<FeaturedModUpdater> featuredModUpdaters = new ArrayList<>();
@@ -144,9 +142,7 @@ public class GameUpdaterImpl implements GameUpdater {
 
   private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version) {
     for (FeaturedModUpdater featuredModUpdater : featuredModUpdaters) {
-      if (featuredModUpdater.canUpdate(featuredMod)) {
-        return featuredModUpdater.updateMod(featuredMod, version);
-      }
+      return featuredModUpdater.updateMod(featuredMod, version);
     }
     throw new UnsupportedOperationException("No updater available for featured mod: " + featuredMod
         + " with version:" + version);

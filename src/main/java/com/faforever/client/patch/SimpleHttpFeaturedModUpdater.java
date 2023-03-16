@@ -27,9 +27,4 @@ public class SimpleHttpFeaturedModUpdater implements FeaturedModUpdater {
 
     return taskService.submitTask(task).getFuture();
   }
-
-  @Override
-  public boolean canUpdate(FeaturedModBean featuredMod) {
-    return true;
-  }
 }

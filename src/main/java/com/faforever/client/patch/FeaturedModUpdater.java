@@ -13,8 +13,4 @@ public interface FeaturedModUpdater {
    */
   CompletableFuture<PatchResult> updateMod(FeaturedModBean featuredMod, @Nullable Integer version);
 
-  /**
-   * Returns {@code true} if this updater is able to update the specified featured mod.
-   */
-  boolean canUpdate(FeaturedModBean featuredModBean);
 }
