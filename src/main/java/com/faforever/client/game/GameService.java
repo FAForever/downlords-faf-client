@@ -441,7 +441,7 @@ public class GameService implements InitializingBean {
 
     return modService.getFeaturedMod(featuredMod)
         .toFuture()
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
+        .thenCompose(featuredModBean -> updateReplayFilesIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapFolderName).handleAsync((ignoredResult, throwable) -> {
           try {
             return askWhetherToStartWithOutMap(throwable);
@@ -469,16 +469,18 @@ public class GameService implements InitializingBean {
   }
 
   private boolean canStartReplay() {
-    if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
+    if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
+      return true;
+    } else if (isRunning()) {
       log.info("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
     } else if (waitingForMatchMakerGame()) {
-      log.info("In matchmaker queue, not starting replay");
+      log.info("In matchmaker queue and concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.inQueue");
       return false;
     } else if (inOthersParty) {
-      log.info("In party, not starting replay");
+      log.info("In party and concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.inParty");
       return false;
     }
@@ -644,13 +646,14 @@ public class GameService implements InitializingBean {
   }
 
   public CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids) {
-    return updateGameIfNecessary(featuredModBean, simModUids, null, null);
+    return gameUpdater.update(featuredModBean, simModUids, null, null, false);
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids,
-                                                        @Nullable Map<String, Integer> featuredModFileVersions,
-                                                        @Nullable Integer version) {
-    return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version);
+  private CompletableFuture<Void> updateReplayFilesIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids,
+                                                               @Nullable Map<String, Integer> featuredModFileVersions,
+                                                               @Nullable Integer version) {
+    boolean useReplayFolder = forgedAlliancePrefs.isAllowReplaysWhileInGame();
+    return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version, useReplayFolder);
   }
 
   public boolean isGameRunning() {

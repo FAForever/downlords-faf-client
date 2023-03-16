@@ -9,7 +9,6 @@ import com.faforever.client.os.OperatingSystem;
 import com.faforever.client.os.OsWindows;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.CompletableTask;
 import com.faforever.client.task.ResourceLocks;
 import com.faforever.client.util.Assert;
@@ -34,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
+import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.setAttribute;
@@ -63,7 +63,6 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
 
   private final ForgedAllianceService forgedAllianceService;
   private final I18n i18n;
-  private final PreferencesService preferencesService;
   private final PlatformService platformService;
   private final OperatingSystem operatingSystem;
   private final DataPrefs dataPrefs;
@@ -72,13 +71,13 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   private final String fafExeUrl;
 
   private Integer version;
+  private boolean useReplayFolder;
 
-  public GameBinariesUpdateTaskImpl(ForgedAllianceService forgedAllianceService, I18n i18n, PreferencesService preferencesService, PlatformService platformService, OperatingSystem operatingSystem, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs, ClientProperties clientProperties) {
+  public GameBinariesUpdateTaskImpl(ForgedAllianceService forgedAllianceService, I18n i18n, PlatformService platformService, OperatingSystem operatingSystem, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs, ClientProperties clientProperties) {
     super(Priority.HIGH);
 
     this.forgedAllianceService = forgedAllianceService;
     this.i18n = i18n;
-    this.preferencesService = preferencesService;
     this.platformService = platformService;
     this.operatingSystem = operatingSystem;
     this.dataPrefs = dataPrefs;
@@ -94,6 +93,9 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     log.info("Updating binaries to `{}`", version);
 
     Path exePath = forgedAllianceService.getExecutablePath();
+    if (useReplayFolder) {
+      exePath = dataPrefs.getReplaysBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+    }
 
     copyGameFilesToFafBinDirectory();
     downloadFafExeIfNecessary(exePath);
@@ -130,7 +132,11 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   void copyGameFilesToFafBinDirectory() {
     log.trace("Copying Forged Alliance binaries FAF folder");
 
-    Path fafBinDirectory = dataPrefs.getBinDirectory();
+    Path directory = dataPrefs.getBinDirectory();
+    if (useReplayFolder) {
+      directory = dataPrefs.getReplaysBinDirectory();
+    }
+    Path fafBinDirectory = directory;
 
     Path faBinPath = forgedAlliancePrefs.getInstallationPath().resolve("bin");
 
@@ -166,5 +172,10 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
       throw new IllegalArgumentException("Versions of featured preferences mods must be integers");
     }
     this.version = Integer.parseInt(versionString);
+  }
+
+  @Override
+  public void setUseReplayFolder(boolean useReplayFolder) {
+    this.useReplayFolder = useReplayFolder;
   }
 }

@@ -23,7 +23,10 @@ public interface GameUpdater {
    * @param baseVersion the version of faf to update to
    * @param simModUIDs a list of sim mod UIDs to update
    * @param featuredModFileVersions a map of the featuredModFileIds to the version of the file
+   * @param useReplayFolder whether to update the files in the replay or the game path
    * @return a completion stage that completes when the mod is fully updated
    */
-  CompletableFuture<Void> update(FeaturedModBean featuredMod, Set<String> simModUIDs, @Nullable Map<String, Integer> featuredModFileVersions, @Nullable Integer baseVersion);
+  CompletableFuture<Void> update(FeaturedModBean featuredMod, Set<String> simModUIDs,
+                                 @Nullable Map<String, Integer> featuredModFileVersions, @Nullable Integer baseVersion,
+                                 boolean useReplayFolder);
 }

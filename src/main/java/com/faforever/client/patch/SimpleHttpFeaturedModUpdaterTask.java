@@ -39,6 +39,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
   private FeaturedModBean featuredMod;
   private Integer version;
+  private boolean useReplayFolder;
 
   public SimpleHttpFeaturedModUpdaterTask(
       ModService modService,
@@ -62,7 +63,11 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
     updateTitle(i18n.get("updater.taskTitle"));
     updateMessage(i18n.get("updater.readingFileList"));
 
-    Path fafDataDirectory = dataPrefs.getBaseDataDirectory();
+    Path directory = dataPrefs.getBaseDataDirectory();
+    if (useReplayFolder) {
+      directory = dataPrefs.getReplaysDirectory();
+    }
+    Path fafDataDirectory = directory;
 
     List<FeaturedModFile> featuredModFiles = modService.getFeaturedModFiles(featuredMod, version).join();
 
@@ -159,4 +164,9 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
   public void setVersion(Integer version) {
     this.version = version;
   }
+
+  public void setUseReplayFolder(boolean useReplayFolder) {
+    this.useReplayFolder = useReplayFolder;
+  }
+
 }
