@@ -87,7 +87,7 @@ public class GameUpdaterImpl implements GameUpdater {
     return featuredModUpdateFuture
         .thenAccept(patchResult -> {
           try {
-            createFaPathLuaFile();
+            createFaPathLuaFile(useReplayFolder);
             copyInitFile(patchResult.getInitFile());
           } catch (IOException e) {
             throw new CompletionException(e);
@@ -114,7 +114,7 @@ public class GameUpdaterImpl implements GameUpdater {
         });
   }
 
-  private void createFaPathLuaFile() throws IOException {
+  private void createFaPathLuaFile(boolean useReplayFolder) throws IOException {
     String installationPath = forgedAlliancePrefs.getInstallationPath().toString().replace("\\", "/");
     String vaultPath = forgedAlliancePrefs.getVaultBaseDirectory().toString().replace("\\", "/");
     String pathFileFormat = """
@@ -125,7 +125,13 @@ public class GameUpdaterImpl implements GameUpdater {
         ClientVersion = "%s"
         """.stripIndent();
     String content = String.format(pathFileFormat, installationPath, vaultPath, gameType, gameVersion.toString(), Version.getCurrentVersion());
-    Files.writeString(dataPrefs.getBaseDataDirectory().resolve("fa_path.lua"), content);
+    Path baseDirectory;
+    if (useReplayFolder) {
+      baseDirectory = dataPrefs.getReplaysDirectory();
+    } else {
+      baseDirectory = dataPrefs.getBaseDataDirectory();
+    }
+    Files.writeString(baseDirectory.resolve("fa_path.lua"), content);
   }
 
   private void copyInitFile(Path initFile) throws IOException {
