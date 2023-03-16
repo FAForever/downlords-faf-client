@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,7 +75,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     when(gameBinariesUpdateTaskFactory.getObject()).thenReturn(gameBinariesUpdateTask);
     when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);
     when(gameBinariesUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
-    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), any())).thenAnswer(invocation -> {
+    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), anyBoolean())).thenAnswer(invocation -> {
       FeaturedModBean featuredMod = invocation.getArgument(0, FeaturedModBean.class);
       Path initFile = binDirectory.resolve(String.format("init_%s", featuredMod.getTechnicalName()));
       Files.createFile(initFile);
@@ -101,7 +102,7 @@ public class GameUpdaterImplTest extends ServiceTest {
 
   @Test
   public void badChecksumTest() throws Exception {
-    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), any()))
+    when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any(), anyBoolean()))
         .thenAnswer(invocation -> CompletableFuture.failedFuture(new ChecksumMismatchException(new URL("http://google.com"), "asd", "qwe")));
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     CompletionException exception = assertThrows(CompletionException.class, () -> instance.update(FeaturedModBeanBuilder.create().defaultValues().get(), Set.of(), Map.of(), 0, false).join());
