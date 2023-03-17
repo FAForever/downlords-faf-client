@@ -594,7 +594,13 @@ public class GameService implements InitializingBean {
         .toFuture()
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
-        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
+        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> {
+              if (isRunning()) {
+                gameKilled = true;
+                process.destroy();
+              }
+              return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard());
+            })
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
               parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey())
