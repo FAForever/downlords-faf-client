@@ -85,9 +85,9 @@ public class ForgedAllianceService {
   }
 
 
-  public Process startReplay(Path path, @Nullable Integer replayId, boolean useReplayFolder) throws IOException {
+  public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     LaunchCommandBuilder baseLaunchCommand;
-    if (useReplayFolder) {
+    if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
       baseLaunchCommand = replayLaunchCommand();
     } else {
       baseLaunchCommand = defaultLaunchCommand();
@@ -104,9 +104,9 @@ public class ForgedAllianceService {
   }
 
 
-  public Process startReplay(URI replayUri, Integer replayId, boolean useReplayFolder) throws IOException {
+  public Process startReplay(URI replayUri, Integer replayId) throws IOException {
     LaunchCommandBuilder baseLaunchCommand;
-    if (useReplayFolder) {
+    if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
       baseLaunchCommand = replayLaunchCommand();
     } else {
       baseLaunchCommand = defaultLaunchCommand();

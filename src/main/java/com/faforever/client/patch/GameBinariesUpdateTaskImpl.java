@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import static com.faforever.client.preferences.PreferencesService.FORGED_ALLIANCE_EXE;
 import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.setAttribute;
@@ -92,9 +91,11 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     Assert.checkNullIllegalState(version, "Field 'version' must not be null");
     log.info("Updating binaries to `{}`", version);
 
-    Path exePath = forgedAllianceService.getExecutablePath();
+    Path exePath;
     if (useReplayFolder) {
-      exePath = dataPrefs.getReplayBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+      exePath = forgedAllianceService.getReplayExecutablePath();
+    } else {
+      exePath = forgedAllianceService.getExecutablePath();
     }
 
     copyGameFilesToFafBinDirectory();
