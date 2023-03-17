@@ -149,11 +149,11 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version, boolean useReplayFolder) {
-    for (FeaturedModUpdater featuredModUpdater : featuredModUpdaters) {
-      return featuredModUpdater.updateMod(featuredMod, version, useReplayFolder);
-    }
-    throw new UnsupportedOperationException("No updater available for featured mod: " + featuredMod
-        + " with version:" + version);
+    return featuredModUpdaters.stream()
+        .findFirst()
+        .map(updater -> updater.updateMod(featuredMod, version, useReplayFolder))
+        .orElseThrow(() -> new UnsupportedOperationException("No updater available for featured mod: " + featuredMod
+            + " with version: " + version));
   }
 
   private CompletableFuture<Void> updateGameBinaries(ComparableVersion version, boolean useReplayFolder) {
