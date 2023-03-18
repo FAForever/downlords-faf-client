@@ -93,7 +93,7 @@ public class GameBinariesUpdateTaskTest extends ServiceTest {
     }
     createFileWithSize(faBinPath.resolve("splash.png"), 1024);
 
-    instance.setUseReplayFolder(true);
+    instance.setForReplays(true);
     instance.copyGameFilesToFafBinDirectory();
 
     List<Path> resultFiles = Files.list(fafReplayBinDirectory).filter(file -> !file.toFile().isDirectory()).collect(Collectors.toList());

@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,17 +66,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartReplay() throws Exception {
-    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(false);
-    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0));
-    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
-
-    verify(loggingService).getNewGameLogFile(0);
-    verify(instance, never()).getReplayExecutablePath();
-  }
-
-  @Test
-  public void testStartReplayWithReplayFolder() throws Exception {
-    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(true);
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(Path.of("."), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
@@ -87,18 +75,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
   @Test
   public void testStartOnlineReplay() throws Exception {
-    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(false);
-    IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0));
-    assertThat(throwable.getCause().getMessage(), containsString("error=2"));
-
-    verify(playerService).getCurrentPlayer();
-    verify(loggingService).getNewGameLogFile(0);
-    verify(instance, never()).getReplayExecutablePath();
-  }
-
-  @Test
-  public void testStartOnlineReplayWithReplayFolder() throws Exception {
-    when(forgedAlliancePrefs.isAllowReplaysWhileInGame()).thenReturn(true);
     IOException throwable = assertThrows(IOException.class, () -> instance.startReplay(URI.create("google.com"), 0));
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 

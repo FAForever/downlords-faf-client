@@ -61,7 +61,7 @@ public class GameUpdaterImpl implements GameUpdater {
   @Override
   public CompletableFuture<Void> update(FeaturedModBean featuredMod, Set<String> simModUIDs,
                                         @Nullable Map<String, Integer> featuredModFileVersions,
-                                        @Nullable Integer baseVersion, boolean useReplayFolder) {
+                                        @Nullable Integer baseVersion, boolean forReplays) {
     gameType = featuredMod.getTechnicalName();
 
     // The following ugly code is sponsored by the featured-mod-mess. FAF and Coop are both featured mods - but others,
@@ -76,45 +76,37 @@ public class GameUpdaterImpl implements GameUpdater {
       Integer featuredModVersion = Optional.ofNullable(featuredModFileVersions).map(Map::values).stream().flatMap(Collection::stream).max(Comparator.nullsLast(Comparator.naturalOrder())).orElse(null);
 
       featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> modService.getFeaturedMod(FAF.getTechnicalName()).toFuture())
-          .thenCompose(baseMod -> updateFeaturedMod(baseMod, baseVersion, useReplayFolder))
-          .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion(), useReplayFolder))
-          .thenCompose(aVoid -> updateFeaturedMod(featuredMod, featuredModVersion, useReplayFolder));
+          .thenCompose(baseMod -> updateFeaturedMod(baseMod, baseVersion, forReplays))
+          .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion(), forReplays))
+          .thenCompose(aVoid -> updateFeaturedMod(featuredMod, featuredModVersion, forReplays));
     } else {
-      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> updateFeaturedMod(featuredMod, baseVersion, useReplayFolder))
-          .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion(), useReplayFolder).thenApply(aVoid -> patchResult));
+      featuredModUpdateFuture = simModsUpdateFuture.thenCompose(aVoid -> updateFeaturedMod(featuredMod, baseVersion, forReplays))
+          .thenCompose(patchResult -> updateGameBinaries(patchResult.getVersion(), forReplays).thenApply(aVoid -> patchResult));
     }
 
     return featuredModUpdateFuture
         .thenAccept(patchResult -> {
           try {
-            createFaPathLuaFile(useReplayFolder);
+            createFaPathLuaFile(forReplays);
             copyInitFile(patchResult.getInitFile());
           } catch (IOException e) {
             throw new CompletionException(e);
           }
         }).exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
-          boolean allowReplaysWhileInGame = forgedAlliancePrefs.isAllowReplaysWhileInGame();
 
           if (throwable instanceof UnsupportedOperationException || throwable instanceof ChecksumMismatchException) {
             throw new CompletionException(throwable);
-          } else if (allowReplaysWhileInGame) {
-            log.warn("Unable to update files and experimental replay feature is turned on " +
-                "that allows multiple game instances to run in parallel this is most likely the cause.");
-            if (throwable.getCause() instanceof AccessDeniedException) {
+          } else if (throwable.getCause() instanceof AccessDeniedException) {
               throw new UnsupportedOperationException("Unable to patch Forged Alliance to the required version " +
                   "due to conflicting version running", throwable);
-            } else {
-              log.warn("Ignored error while updating featured mod due to likely concurrent versions", throwable);
-              return null;
-            }
           } else {
             throw new CompletionException(throwable);
           }
         });
   }
 
-  private void createFaPathLuaFile(boolean useReplayFolder) throws IOException {
+  private void createFaPathLuaFile(boolean forReplays) throws IOException {
     String installationPath = forgedAlliancePrefs.getInstallationPath().toString().replace("\\", "/");
     String vaultPath = forgedAlliancePrefs.getVaultBaseDirectory().toString().replace("\\", "/");
     String pathFileFormat = """
@@ -126,8 +118,8 @@ public class GameUpdaterImpl implements GameUpdater {
         """.stripIndent();
     String content = String.format(pathFileFormat, installationPath, vaultPath, gameType, gameVersion.toString(), Version.getCurrentVersion());
     Path baseDirectory;
-    if (useReplayFolder) {
-      baseDirectory = dataPrefs.getReplaysDirectory();
+    if (forReplays) {
+      baseDirectory = dataPrefs.getCacheDirectory();
     } else {
       baseDirectory = dataPrefs.getBaseDataDirectory();
     }
@@ -148,18 +140,18 @@ public class GameUpdaterImpl implements GameUpdater {
         .map(modService::downloadAndInstallMod).toArray(CompletableFuture[]::new));
   }
 
-  private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version, boolean useReplayFolder) {
+  private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version, boolean forReplays) {
     return featuredModUpdaters.stream()
         .findFirst()
-        .map(updater -> updater.updateMod(featuredMod, version, useReplayFolder))
+        .map(updater -> updater.updateMod(featuredMod, version, forReplays))
         .orElseThrow(() -> new UnsupportedOperationException("No updater available for featured mod: " + featuredMod
             + " with version: " + version));
   }
 
-  private CompletableFuture<Void> updateGameBinaries(ComparableVersion version, boolean useReplayFolder) {
+  private CompletableFuture<Void> updateGameBinaries(ComparableVersion version, boolean forReplays) {
     GameBinariesUpdateTask binariesUpdateTask = gameBinariesUpdateTaskFactory.getObject();
     binariesUpdateTask.setVersion(version);
-    binariesUpdateTask.setUseReplayFolder(useReplayFolder);
+    binariesUpdateTask.setForReplays(forReplays);
     gameVersion = version;
     return taskService.submitTask(binariesUpdateTask).getFuture();
   }

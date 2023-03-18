@@ -470,7 +470,7 @@ public class GameService implements InitializingBean {
   }
 
   private boolean canStartReplay() {
-    if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
+    if (isOfflineGameRunning()) {
       return true;
     } else if (isRunning()) {
       log.info("Forged Alliance is already running and concurrent game feature not turned on, not starting replay");
@@ -659,8 +659,7 @@ public class GameService implements InitializingBean {
   private CompletableFuture<Void> updateReplayFilesIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids,
                                                                @Nullable Map<String, Integer> featuredModFileVersions,
                                                                @Nullable Integer version) {
-    boolean useReplayFolder = forgedAlliancePrefs.isAllowReplaysWhileInGame();
-    return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version, useReplayFolder);
+    return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version, true);
   }
 
   public boolean isGameRunning() {

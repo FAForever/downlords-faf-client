@@ -70,7 +70,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   private final String fafExeUrl;
 
   private Integer version;
-  private boolean useReplayFolder;
+  private boolean forReplays;
 
   public GameBinariesUpdateTaskImpl(ForgedAllianceService forgedAllianceService, I18n i18n, PlatformService platformService, OperatingSystem operatingSystem, DataPrefs dataPrefs, ForgedAlliancePrefs forgedAlliancePrefs, ClientProperties clientProperties) {
     super(Priority.HIGH);
@@ -92,7 +92,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     log.info("Updating binaries to `{}`", version);
 
     Path exePath;
-    if (useReplayFolder) {
+    if (forReplays) {
       exePath = forgedAllianceService.getReplayExecutablePath();
     } else {
       exePath = forgedAllianceService.getExecutablePath();
@@ -134,7 +134,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
     log.trace("Copying Forged Alliance binaries FAF folder");
 
     Path fafBinDirectory;
-    if (useReplayFolder) {
+    if (forReplays) {
       fafBinDirectory = dataPrefs.getReplayBinDirectory();
     } else {
       fafBinDirectory = dataPrefs.getBinDirectory();
@@ -177,7 +177,7 @@ public class GameBinariesUpdateTaskImpl extends CompletableTask<Void> implements
   }
 
   @Override
-  public void setUseReplayFolder(boolean useReplayFolder) {
-    this.useReplayFolder = useReplayFolder;
+  public void setForReplays(boolean forReplays) {
+    this.forReplays = forReplays;
   }
 }

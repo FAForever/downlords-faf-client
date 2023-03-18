@@ -5,5 +5,5 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 
 public interface GameBinariesUpdateTask extends PrioritizedCompletableTask<Void> {
   void setVersion(ComparableVersion version);
-  void setUseReplayFolder(boolean useReplayFolder);
+  void setForReplays(boolean forReplays);
 }

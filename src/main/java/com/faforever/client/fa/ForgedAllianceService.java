@@ -86,16 +86,9 @@ public class ForgedAllianceService {
 
 
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
-    LaunchCommandBuilder baseLaunchCommand;
-    if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
-      baseLaunchCommand = replayLaunchCommand();
-    } else {
-      baseLaunchCommand = defaultLaunchCommand();
-    }
-
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
-    List<String> launchCommand = baseLaunchCommand.replayFile(path)
+    List<String> launchCommand = replayLaunchCommand().replayFile(path)
         .replayId(checkedReplayId)
         .logFile(loggingService.getNewGameLogFile(checkedReplayId))
         .build();
@@ -105,14 +98,7 @@ public class ForgedAllianceService {
 
 
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
-    LaunchCommandBuilder baseLaunchCommand;
-    if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
-      baseLaunchCommand = replayLaunchCommand();
-    } else {
-      baseLaunchCommand = defaultLaunchCommand();
-    }
-
-    List<String> launchCommand = baseLaunchCommand.replayUri(replayUri)
+    List<String> launchCommand = replayLaunchCommand().replayUri(replayUri)
         .replayId(replayId)
         .logFile(loggingService.getNewGameLogFile(replayId))
         .username(playerService.getCurrentPlayer().getUsername())
