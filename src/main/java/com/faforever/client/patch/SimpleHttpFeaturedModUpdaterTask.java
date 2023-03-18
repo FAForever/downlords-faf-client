@@ -65,7 +65,7 @@ public class SimpleHttpFeaturedModUpdaterTask extends CompletableTask<PatchResul
 
     Path fafDataDirectory;
     if (useReplayFolder) {
-      fafDataDirectory = dataPrefs.getReplaysDirectory();
+      fafDataDirectory = dataPrefs.getReplayDataDirectory();
     } else {
       fafDataDirectory = dataPrefs.getBaseDataDirectory();
     }

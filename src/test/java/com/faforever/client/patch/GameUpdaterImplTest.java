@@ -64,7 +64,7 @@ public class GameUpdaterImplTest extends ServiceTest {
 
   private Path fafDataDirectory;
   private Path binDirectory;
-  private Path cacheDirectory;
+  private Path replayDataDirectory;
   private Path replayBinDirectory;
 
   @BeforeEach
@@ -75,7 +75,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     dataPrefs.setBaseDataDirectory(tempDir.resolve("faf_temp_data"));
     fafDataDirectory = Files.createDirectories(dataPrefs.getBaseDataDirectory());
     binDirectory = Files.createDirectories(dataPrefs.getBinDirectory());
-    cacheDirectory = Files.createDirectories(dataPrefs.getCacheDirectory());
+    replayDataDirectory = Files.createDirectories(dataPrefs.getReplayDataDirectory());
     replayBinDirectory = Files.createDirectories(dataPrefs.getReplayBinDirectory());
     when(gameBinariesUpdateTaskFactory.getObject()).thenReturn(gameBinariesUpdateTask);
     when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);
@@ -174,7 +174,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(modService).getFeaturedMod(FAF.getTechnicalName());
     verify(simpleHttpFeaturedModUpdater).updateMod(baseMod, 0, true);
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 100, true);
-    assertTrue(Files.exists(cacheDirectory.resolve("fa_path.lua")));
+    assertTrue(Files.exists(replayDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(replayBinDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(replayBinDirectory.resolve(String.format("init_%s", technicalName))));
   }
@@ -230,7 +230,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0, true);
-    assertTrue(Files.exists(cacheDirectory.resolve("fa_path.lua")));
+    assertTrue(Files.exists(replayDataDirectory.resolve("fa_path.lua")));
     assertTrue(Files.exists(replayBinDirectory.resolve(ForgedAlliancePrefs.INIT_FILE_NAME)));
     assertTrue(Files.exists(replayBinDirectory.resolve(String.format("init_%s", technicalName))));
   }

@@ -11,6 +11,7 @@ import java.nio.file.Path;
 public class DataPrefs {
   private static final String BIN_SUB_FOLDER = "bin";
   private static final String REPLAYS_SUB_FOLDER = "replays";
+  private static final String REPLAY_DATA_SUB_FOLDER = "replaydata";
   private static final String CORRUPTED_REPLAYS_SUB_FOLDER = "corrupt";
   private static final String CACHE_SUB_FOLDER = "cache";
   private static final String FEATURED_MOD_CACHE_SUB_FOLDER = "featured_mod";
@@ -37,8 +38,12 @@ public class DataPrefs {
     return getBaseDataDirectory().resolve(BIN_SUB_FOLDER);
   }
 
+  public Path getReplayDataDirectory() {
+    return getBaseDataDirectory().resolve(REPLAY_DATA_SUB_FOLDER);
+  }
+
   public Path getReplayBinDirectory() {
-    return getBaseDataDirectory().resolve(CACHE_SUB_FOLDER).resolve(BIN_SUB_FOLDER);
+    return getBaseDataDirectory().resolve(REPLAY_DATA_SUB_FOLDER).resolve(BIN_SUB_FOLDER);
   }
 
   public Path getCacheDirectory() {

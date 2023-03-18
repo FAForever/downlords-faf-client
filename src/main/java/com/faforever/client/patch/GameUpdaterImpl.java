@@ -119,7 +119,7 @@ public class GameUpdaterImpl implements GameUpdater {
     String content = String.format(pathFileFormat, installationPath, vaultPath, gameType, gameVersion.toString(), Version.getCurrentVersion());
     Path baseDirectory;
     if (forReplays) {
-      baseDirectory = dataPrefs.getCacheDirectory();
+      baseDirectory = dataPrefs.getReplayDataDirectory();
     } else {
       baseDirectory = dataPrefs.getBaseDataDirectory();
     }
