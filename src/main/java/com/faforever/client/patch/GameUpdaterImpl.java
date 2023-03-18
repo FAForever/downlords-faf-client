@@ -20,7 +20,6 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -42,7 +41,7 @@ public class GameUpdaterImpl implements GameUpdater {
   private static final List<String> NAMES_OF_FEATURED_BASE_MODS = Stream.of(FAF, FAF_BETA, FAF_DEVELOP)
       .map(KnownFeaturedMod::getTechnicalName).toList();
 
-  private final List<FeaturedModUpdater> featuredModUpdaters = new ArrayList<>();
+  private FeaturedModUpdater featuredModUpdater;
   private final ModService modService;
   private final TaskService taskService;
   private final DataPrefs dataPrefs;
@@ -53,8 +52,8 @@ public class GameUpdaterImpl implements GameUpdater {
   private String gameType;
 
   @Override
-  public GameUpdater addFeaturedModUpdater(FeaturedModUpdater featuredModUpdater) {
-    featuredModUpdaters.add(featuredModUpdater);
+  public GameUpdater setFeaturedModUpdater(FeaturedModUpdater featuredModUpdater) {
+    this.featuredModUpdater = featuredModUpdater;
     return this;
   }
 
@@ -141,11 +140,10 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   private CompletableFuture<PatchResult> updateFeaturedMod(FeaturedModBean featuredMod, Integer version, boolean forReplays) {
-    return featuredModUpdaters.stream()
-        .findFirst()
-        .map(updater -> updater.updateMod(featuredMod, version, forReplays))
-        .orElseThrow(() -> new UnsupportedOperationException("No updater available for featured mod: " + featuredMod
-            + " with version: " + version));
+    if (featuredModUpdater == null) {
+      throw new UnsupportedOperationException("No updater available for featured mods");
+    }
+    return featuredModUpdater.updateMod(featuredMod, version, forReplays);
   }
 
   private CompletableFuture<Void> updateGameBinaries(ComparableVersion version, boolean forReplays) {

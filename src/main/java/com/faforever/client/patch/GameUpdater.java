@@ -14,9 +14,9 @@ import java.util.concurrent.CompletableFuture;
 public interface GameUpdater {
 
   /**
-   * Adds an updater to the chain. For each mod to update, the first updater which can update a mod will be called.
+   * Sets the updater. This needs to be called before calling update().
    */
-  GameUpdater addFeaturedModUpdater(FeaturedModUpdater featuredModUpdater);
+  GameUpdater setFeaturedModUpdater(FeaturedModUpdater featuredModUpdater);
 
   /**
    * @param featuredMod the featured mod to update

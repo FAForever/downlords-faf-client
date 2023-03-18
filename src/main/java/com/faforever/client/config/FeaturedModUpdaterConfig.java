@@ -27,6 +27,6 @@ public class FeaturedModUpdaterConfig {
   @Bean
   GameUpdater gameUpdater() {
     return new GameUpdaterImpl(modService, taskService, dataPrefs, forgedAlliancePrefs, gameBinariesUpdateTaskFactory)
-        .addFeaturedModUpdater(httpFeaturedModUpdater);
+        .setFeaturedModUpdater(httpFeaturedModUpdater);
   }
 }
