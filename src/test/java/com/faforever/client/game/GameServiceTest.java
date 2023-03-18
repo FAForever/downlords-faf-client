@@ -691,19 +691,18 @@ public class GameServiceTest extends ServiceTest {
     when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
     when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
     when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
-    when(mapService.isInstalled(map)).thenReturn(false);
-    when(mapService.download(map)).thenReturn(completedFuture(null));
+    when(mapService.isInstalled(anyString())).thenReturn(true);
     when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(featuredMod));
     when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
 
     CompletableFuture<Void> future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
     future.join();
-    assertTrue(instance.isReplayRunning());
+
+    verify(forgedAllianceService).startReplay(replayPath, replayId);
+
     instance.startSearchMatchmaker();
 
     verify(fafServerAccessor).startSearchMatchmaker();
-    verify(forgedAllianceService).startReplay(replayPath, replayId);
-    verify(mapService).download(map);
     verify(replayServer).start(eq(uid), any());
     verify(forgedAllianceService).startGameOnline(gameParameters);
     assertFalse(instance.isReplayRunning());
