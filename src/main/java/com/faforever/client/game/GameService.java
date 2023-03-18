@@ -262,6 +262,12 @@ public class GameService implements InitializingBean {
         onLoggedIn();
       }
     });
+
+    try {
+      patchGamePrefsForMultiInstances();
+    } catch (Exception e) {
+      log.error("Game.prefs patch failed", e);
+    }
   }
 
   private Mono<GameBean> initializeGameBean(GameInfo gameInfo) {

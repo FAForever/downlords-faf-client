@@ -80,7 +80,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
@@ -176,8 +175,6 @@ public class SettingsController implements Controller<Node> {
   public Button clearCacheButton;
   public CheckBox gameDataCacheCheckBox;
   public Spinner<Integer> gameDataCacheTimeSpinner;
-  public CheckBox allowReplayWhileInGameCheckBox;
-  public Button allowReplayWhileInGameButton;
   public ComboBox<Level> logLevelComboBox;
   public CheckBox mapAndModAutoUpdateCheckBox;
   public ListView<CoturnServer> preferredCoturnListView;
@@ -237,7 +234,6 @@ public class SettingsController implements Controller<Node> {
     initAutoChannelListView();
     initPreferredCoturnListView();
     initUnitDatabaseSelection();
-    initAllowReplaysWhileInGame();
     initNotifyMeOnAtMention();
     initGameDataCache();
     initMapAndModAutoUpdate();
@@ -423,19 +419,6 @@ public class SettingsController implements Controller<Node> {
     String username = userService.getUsername();
     notifyAtMentionTitle.setText(i18n.get("settings.chat.notifyOnAtMentionOnly", "@" + username));
     notifyAtMentionDescription.setText(i18n.get("settings.chat.notifyOnAtMentionOnly.description", "@" + username));
-  }
-
-  private void initAllowReplaysWhileInGame() {
-    ForgedAlliancePrefs forgedAlliancePrefs = preferences.getForgedAlliance();
-    allowReplayWhileInGameCheckBox.setSelected(forgedAlliancePrefs.isAllowReplaysWhileInGame());
-    JavaFxUtil.bindBidirectional(allowReplayWhileInGameCheckBox.selectedProperty(), forgedAlliancePrefs.allowReplaysWhileInGameProperty());
-    try {
-      gameService.isGamePrefsPatchedToAllowMultiInstances()
-          .thenAccept(isPatched -> allowReplayWhileInGameButton.setDisable(isPatched));
-    } catch (IOException e) {
-      log.warn("Failed evaluating if game.prefs file is patched for multiple instances", e);
-      allowReplayWhileInGameButton.setDisable(true);
-    }
   }
 
   private void configureStartTab() {
@@ -655,21 +638,6 @@ public class SettingsController implements Controller<Node> {
     }
     preferences.getChat().getAutoJoinChannels().add(channelTextField.getText());
     channelTextField.clear();
-  }
-
-  public void onPatchGamePrefsForMultipleInstances() {
-    try {
-      gameService.patchGamePrefsForMultiInstances()
-          .thenRun(() -> JavaFxUtil.runLater(() -> allowReplayWhileInGameButton.setDisable(true)))
-          .exceptionally(throwable -> {
-            log.error("Game.prefs patch failed", throwable);
-            notificationService.addImmediateErrorNotification(throwable, "settings.fa.patchGamePrefsFailed");
-            return null;
-          });
-    } catch (Exception e) {
-      log.error("Game.prefs patch failed", e);
-      notificationService.addImmediateErrorNotification(e, "settings.fa.patchGamePrefsFailed");
-    }
   }
 
   public void onUpdateDebuggerClicked() {
