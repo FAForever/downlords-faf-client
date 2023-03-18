@@ -72,11 +72,10 @@ public class PreferencesConfig implements DisposableBean {
   private final Path preferencesFilePath;
   private final ObjectWriter preferencesWriter;
   private final ObjectReader preferencesUpdater;
-  private final ObjectMapper configuredObjectMapper;
   private final Preferences preferences;
 
   public PreferencesConfig(OperatingSystem operatingSystem, ObjectMapper objectMapper) throws IOException, InterruptedException {
-    configuredObjectMapper = configureObjectMapper(objectMapper);
+    ObjectMapper configuredObjectMapper = configureObjectMapper(objectMapper);
 
     preferences = new Preferences();
 
