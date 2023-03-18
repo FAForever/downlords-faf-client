@@ -146,6 +146,7 @@ public class GameService implements InitializingBean {
 
   @VisibleForTesting
   final BooleanProperty gameRunning = new SimpleBooleanProperty();
+  final BooleanProperty offlineGameRunning = new SimpleBooleanProperty();
   ;
   /** TODO: Explain why access needs to be synchronized. */
   @VisibleForTesting
@@ -456,8 +457,8 @@ public class GameService implements InitializingBean {
               return;
             }
             this.process = processForReplay;
-            setGameRunning(true);
-            spawnTerminationListener(this.process);
+            setOfflineGameRunning(true);
+            spawnTerminationListener(this.process, false);
           } catch (IOException e) {
             notifyCantPlayReplay(replayId, e);
           }
@@ -472,7 +473,7 @@ public class GameService implements InitializingBean {
     if (forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
       return true;
     } else if (isRunning()) {
-      log.info("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
+      log.info("Forged Alliance is already running and concurrent game feature not turned on, not starting replay");
       notificationService.addImmediateWarnNotification("replay.gameRunning");
       return false;
     } else if (waitingForMatchMakerGame()) {
@@ -552,8 +553,8 @@ public class GameService implements InitializingBean {
             return;
           }
           this.process = processCreated;
-          setGameRunning(true);
-          spawnTerminationListener(this.process);
+          setOfflineGameRunning(true);
+          spawnTerminationListener(this.process, false);
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
@@ -674,6 +675,19 @@ public class GameService implements InitializingBean {
     }
   }
 
+  public boolean isOfflineGameRunning() {
+    synchronized (offlineGameRunning) {
+      return offlineGameRunning.get();
+    }
+  }
+
+  public void setOfflineGameRunning(boolean running) {
+    synchronized (offlineGameRunning) {
+      this.offlineGameRunning.set(running);
+    }
+  }
+
+
   private boolean waitingForMatchMakerGame() {
     return matchmakerFuture != null && !matchmakerFuture.isDone();
   }
@@ -765,8 +779,8 @@ public class GameService implements InitializingBean {
       }
 
       synchronized (gameRunning) {
-        gameRunning.set(false);
         if (forOnlineGame) {
+          gameRunning.set(false);
           fafServerAccessor.notifyGameEnded();
           iceAdapter.stop();
           try {
@@ -778,6 +792,12 @@ public class GameService implements InitializingBean {
 
         if (rehostRequested) {
           rehost();
+        }
+      }
+
+      if (!forOnlineGame) {
+        synchronized (offlineGameRunning) {
+          offlineGameRunning.set(false);
         }
       }
     });
@@ -852,7 +872,7 @@ public class GameService implements InitializingBean {
         .thenCompose(aVoid -> {
           try {
             process = forgedAllianceService.startGameOffline(technicalMapName);
-            setGameRunning(true);
+            setOfflineGameRunning(true);
             return spawnTerminationListener(process, false);
           } catch (IOException e) {
             throw new CompletionException(e);
@@ -884,7 +904,7 @@ public class GameService implements InitializingBean {
     }
 
     process = forgedAllianceService.startGameOffline(null);
-    setGameRunning(true);
+    setOfflineGameRunning(true);
     spawnTerminationListener(process, false);
   }
 
