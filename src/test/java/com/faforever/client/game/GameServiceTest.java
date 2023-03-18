@@ -93,6 +93,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -662,6 +663,50 @@ public class GameServiceTest extends ServiceTest {
     instance.startSearchMatchmaker();
 
     verify(fafServerAccessor).startSearchMatchmaker();
+  }
+
+  @Test
+  public void testGameLaunchKillsReplay() throws Exception {
+    int uid = 123;
+    String map = "scmp_037";
+    GameLaunchResponse gameLaunchMessage = new GameLaunchMessageBuilder().defaultValues()
+        .uid(uid).mod("FAF").mapname(map)
+        .expectedPlayers(2)
+        .faction(com.faforever.commons.lobby.Faction.CYBRAN)
+        .gameType(GameType.MATCHMAKER)
+        .mapPosition(4)
+        .team(1)
+        .ratingType(LADDER_1v1_RATING_TYPE)
+        .get();
+
+    FeaturedModBean featuredMod = FeaturedModBeanBuilder.create().defaultValues().get();
+    GameParameters gameParameters = gameMapper.map(gameLaunchMessage);
+    gameParameters.setDivision("unlisted");
+
+    Path replayPath = Path.of("temp.scfareplay");
+    int replayId = 1234;
+
+    mockStartReplayProcess(replayPath, replayId);
+    mockStartGameProcess(gameParameters);
+    when(leaderboardService.getActiveLeagueEntryForPlayer(junitPlayer, LADDER_1v1_RATING_TYPE)).thenReturn(completedFuture(Optional.empty()));
+    when(fafServerAccessor.startSearchMatchmaker()).thenReturn(completedFuture(gameLaunchMessage));
+    when(gameUpdater.update(any(), any(), any(), any(), anyBoolean())).thenReturn(completedFuture(null));
+    when(mapService.isInstalled(map)).thenReturn(false);
+    when(mapService.download(map)).thenReturn(completedFuture(null));
+    when(modService.getFeaturedMod(anyString())).thenReturn(Mono.just(featuredMod));
+    when(process.onExit()).thenReturn(CompletableFuture.completedFuture(process));
+
+    CompletableFuture<Void> future = instance.runWithReplay(replayPath, replayId, "", null, null, null, "map");
+    future.join();
+    assertTrue(instance.isReplayRunning());
+    instance.startSearchMatchmaker();
+
+    verify(fafServerAccessor).startSearchMatchmaker();
+    verify(forgedAllianceService).startReplay(replayPath, replayId);
+    verify(mapService).download(map);
+    verify(replayServer).start(eq(uid), any());
+    verify(forgedAllianceService).startGameOnline(gameParameters);
+    assertFalse(instance.isReplayRunning());
   }
 
   @Test

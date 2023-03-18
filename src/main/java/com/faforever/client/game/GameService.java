@@ -580,6 +580,7 @@ public class GameService implements InitializingBean {
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> {
+              // We need to kill the replay to free the lock on the game.prefs
               if (isReplayRunning()) {
                 gameKilled = true;
                 replayProcess.destroy();
@@ -669,7 +670,6 @@ public class GameService implements InitializingBean {
       this.replayRunning.set(running);
     }
   }
-
 
   private boolean waitingForMatchMakerGame() {
     return matchmakerFuture != null && !matchmakerFuture.isDone();
