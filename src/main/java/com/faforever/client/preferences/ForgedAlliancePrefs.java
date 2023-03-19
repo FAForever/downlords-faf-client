@@ -26,7 +26,6 @@ public class ForgedAlliancePrefs {
   BooleanProperty warnNonAsciiVaultPath = new SimpleBooleanProperty(true);
   BooleanProperty forceRelay = new SimpleBooleanProperty(false);
   BooleanProperty autoDownloadMaps = new SimpleBooleanProperty(true);
-  BooleanProperty allowReplaysWhileInGame = new SimpleBooleanProperty(false);
   BooleanProperty allowIpv6 = new SimpleBooleanProperty(false);
 
   /**
@@ -131,18 +130,6 @@ public class ForgedAlliancePrefs {
 
   public ObjectProperty<Path> vaultBaseDirectoryProperty() {
     return vaultBaseDirectory;
-  }
-
-  public boolean isAllowReplaysWhileInGame() {
-    return allowReplaysWhileInGame.get();
-  }
-
-  public void setAllowReplaysWhileInGame(boolean allowReplaysWhileInGame) {
-    this.allowReplaysWhileInGame.set(allowReplaysWhileInGame);
-  }
-
-  public BooleanProperty allowReplaysWhileInGameProperty() {
-    return allowReplaysWhileInGame;
   }
 
   public boolean isAllowIpv6() {
