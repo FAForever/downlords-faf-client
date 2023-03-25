@@ -51,10 +51,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.luaj.vm2.LuaError;
 import org.mapstruct.factory.Mappers;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.util.FileSystemUtils;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
@@ -97,9 +96,7 @@ public class MapServiceTest extends UITest {
   @TempDir
   public Path tempDirectory;
 
-  @InjectMocks
   private MapService instance;
-
 
   @Mock
   private TaskService taskService;
@@ -110,8 +107,6 @@ public class MapServiceTest extends UITest {
   @Mock
   private AssetService assetService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private FafApiAccessor fafApiAccessor;
   @Mock
   private MapGeneratorService mapGeneratorService;
@@ -121,6 +116,12 @@ public class MapServiceTest extends UITest {
   private EventBus eventBus;
   @Mock
   private NotificationService notificationService;
+  @Mock
+  private ObjectFactory<MapUploadTask> mapUploadTaskFactory;
+  @Mock
+  private ObjectFactory<DownloadMapTask> downloadMapTaskFactory;
+  @Mock
+  private ObjectFactory<UninstallMapTask> uninstallMapTaskFactory;
   @Mock
   private FileSizeReader fileSizeReader;
   @Spy
@@ -159,8 +160,7 @@ public class MapServiceTest extends UITest {
       return task;
     }).when(taskService).submitTask(any());
 
-    instance.afterPropertiesSet();
-
+    instance = new MapService(notificationService, taskService, fafApiAccessor, assetService, i18n, uiService, mapGeneratorService, playerService, mapMapper, replayMapper, fileSizeReader, clientProperties, forgedAlliancePrefs, preferences, mapUploadTaskFactory, downloadMapTaskFactory, uninstallMapTaskFactory);
     instance.officialMaps = ImmutableSet.of();
     instance.afterPropertiesSet();
   }
@@ -518,13 +518,13 @@ public class MapServiceTest extends UITest {
   private void prepareDownloadMapTask(MapVersionBean mapToDownload) {
     StubDownloadMapTask task = new StubDownloadMapTask(forgedAlliancePrefs, i18n, mapsDirectory);
     task.setMapToDownload(mapToDownload);
-    when(applicationContext.getBean(DownloadMapTask.class)).thenReturn(task);
+    when(downloadMapTaskFactory.getObject()).thenReturn(task);
   }
 
   private void prepareUninstallMapTask(MapVersionBean mapToDelete) {
     UninstallMapTask task = new UninstallMapTask(instance);
     task.setMap(mapToDelete);
-    when(applicationContext.getBean(UninstallMapTask.class)).thenReturn(task);
+    when(uninstallMapTaskFactory.getObject()).thenReturn(task);
   }
 
   private void copyMapsToCustomMapsDirectory(MapVersionBean... maps) throws Exception {

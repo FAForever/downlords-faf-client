@@ -17,10 +17,9 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 
 import java.net.URL;
 import java.nio.file.Files;
@@ -31,13 +30,11 @@ import static com.faforever.client.notification.Severity.INFO;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ClientUpdateServiceTest extends ServiceTest {
 
-  @InjectMocks
   private ClientUpdateService instance;
 
   @TempDir
@@ -51,9 +48,13 @@ public class ClientUpdateServiceTest extends ServiceTest {
   @Mock
   private TaskService taskService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private PlatformService platformService;
+  @Mock
+  private ObjectFactory<CheckForBetaUpdateTask> checkForBetaUpdateTaskFactory;
+  @Mock
+  private ObjectFactory<CheckForUpdateTask> checkForUpdateTaskFactory;
+  @Mock
+  private ObjectFactory<DownloadUpdateTask> downloadUpdateTaskFactory;
 
   @Mock
   private CheckForUpdateTask checkForUpdateTask;
@@ -69,13 +70,14 @@ public class ClientUpdateServiceTest extends ServiceTest {
     UpdateInfo normalUpdateInfo = new UpdateInfo("v0.4.9.1-alpha", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), false);
     UpdateInfo betaUpdateInfo = new UpdateInfo("v0.4.9.0-RC1", "test.exe", new URL("http://www.example.com"), 56098816, new URL("http://www.example.com"), true);
 
-    doReturn(checkForUpdateTask).when(applicationContext).getBean(CheckForUpdateTask.class);
-    doReturn(checkForBetaUpdateTask).when(applicationContext).getBean(CheckForBetaUpdateTask.class);
+    when(checkForUpdateTaskFactory.getObject()).thenReturn(checkForUpdateTask);
+    when(checkForBetaUpdateTaskFactory.getObject()).thenReturn(checkForBetaUpdateTask);
     when(taskService.submitTask(any(CheckForUpdateTask.class))).thenReturn(checkForUpdateTask);
     when(taskService.submitTask(any(CheckForBetaUpdateTask.class))).thenReturn(checkForBetaUpdateTask);
     when(checkForUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(normalUpdateInfo));
     when(checkForBetaUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(betaUpdateInfo));
-    
+
+    instance = new ClientUpdateService(operatingSystem, taskService, notificationService, i18n, platformService, eventBus, preferences, checkForBetaUpdateTaskFactory, checkForUpdateTaskFactory, downloadUpdateTaskFactory);
 
     instance.afterPropertiesSet();
   }
@@ -129,7 +131,8 @@ public class ClientUpdateServiceTest extends ServiceTest {
     Path faExePath = Files.createFile(fafBinDirectory.resolve("ForgedAlliance.exe"));
     try {
       instance.install(faExePath);
-    } catch (InstallerExecutionException ignored) {}
+    } catch (InstallerExecutionException ignored) {
+    }
     verify(platformService).setUnixExecutableAndWritableBits(faExePath);
   }
 }

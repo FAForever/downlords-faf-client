@@ -25,6 +25,7 @@ import com.faforever.client.task.TaskService;
 import com.faforever.client.test.ApiTestUtil;
 import com.faforever.client.test.ElideMatchers;
 import com.faforever.client.test.UITest;
+import com.faforever.client.theme.UiService;
 import com.faforever.client.util.FileSizeReader;
 import com.faforever.client.vault.search.SearchController.SearchConfig;
 import com.faforever.client.vault.search.SearchController.SortConfig;
@@ -48,7 +49,7 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.testfx.util.WaitForAsyncUtils;
 import reactor.core.publisher.Flux;
@@ -102,9 +103,6 @@ public class ModServiceTest extends UITest {
   @TempDir
   public Path tempDirectory;
 
-
-  @Mock
-  private ApplicationContext applicationContext;
   @Mock
   private TaskService taskService;
   @Mock
@@ -121,6 +119,14 @@ public class ModServiceTest extends UITest {
   private FileSizeReader fileSizeReader;
   @Mock
   private ImageViewHelper imageViewHelper;
+  @Mock
+  private ObjectFactory<ModUploadTask> modUploadTaskFactory;
+  @Mock
+  private ObjectFactory<DownloadModTask> downloadModTaskFactory;
+  @Mock
+  private ObjectFactory<UninstallModTask> uninstallModTaskFactory;
+  @Mock
+  private UiService uiService;
   @Spy
   private ModMapper modMapper = Mappers.getMapper(ModMapper.class);
   @Spy
@@ -159,17 +165,17 @@ public class ModServiceTest extends UITest {
     }).when(taskService).submitTask(any());
 
     copyMod(BLACK_OPS_UNLEASHED_DIRECTORY_NAME, BLACKOPS_UNLEASHED_MOD_INFO);
+
+    instance = new ModService(fafApiAccessor, taskService, notificationService, i18n, platformService, assetService, uiService, fileSizeReader, modMapper, forgedAlliancePrefs, preferences, modUploadTaskFactory, downloadModTaskFactory, uninstallModTaskFactory);
+
     instance.afterPropertiesSet();
   }
 
   private void copyMod(String directoryName, ClassPathResource classPathResource) throws IOException {
     Path targetDir = Files.createDirectories(modsDirectory.resolve(directoryName));
 
-    try (InputStream inputStream = classPathResource.getInputStream();
-         OutputStream outputStream = Files.newOutputStream(targetDir.resolve("mod_info.lua"))) {
-      ByteCopier.from(inputStream)
-          .to(outputStream)
-          .copy();
+    try (InputStream inputStream = classPathResource.getInputStream(); OutputStream outputStream = Files.newOutputStream(targetDir.resolve("mod_info.lua"))) {
+      ByteCopier.from(inputStream).to(outputStream).copy();
     }
   }
 
@@ -188,7 +194,7 @@ public class ModServiceTest extends UITest {
     DownloadModTask task = stubDownloadModTask();
     task.getFuture().complete(null);
 
-    when(applicationContext.getBean(DownloadModTask.class)).thenReturn(task);
+    when(downloadModTaskFactory.getObject()).thenReturn(task);
 
 
     assertThat(instance.getInstalledMods().size(), is(1));
@@ -209,7 +215,7 @@ public class ModServiceTest extends UITest {
     DownloadModTask task = stubDownloadModTask();
     task.getFuture().complete(null);
 
-    when(applicationContext.getBean(DownloadModTask.class)).thenReturn(task);
+    when(downloadModTaskFactory.getObject()).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/mod.zip");
 
@@ -231,7 +237,7 @@ public class ModServiceTest extends UITest {
     DownloadModTask task = stubDownloadModTask();
     task.getFuture().complete(null);
 
-    when(applicationContext.getBean(DownloadModTask.class)).thenReturn(task);
+    when(downloadModTaskFactory.getObject()).thenReturn(task);
 
     URL modUrl = new URL("http://example.com/some/modVersion.zip");
 
@@ -260,22 +266,12 @@ public class ModServiceTest extends UITest {
 
     List<String> lines = Files.readAllLines(gamePrefsPath);
 
-    assertThat(lines, contains(
-        "active_mods = {",
-        "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,",
-        "    ['9e8ea941-c306-4751-b367-a11000000502'] = true",
-        "}"
-    ));
+    assertThat(lines, contains("active_mods = {", "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,", "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}"));
   }
 
   @Test
   public void testEnableSimModsModDisableUnselectedMods() throws Exception {
-    Iterable<? extends CharSequence> lines = Arrays.asList(
-        "active_mods = {",
-        "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,",
-        "    ['9e8ea941-c306-4751-b367-a11000000502'] = true",
-        "}"
-    );
+    Iterable<? extends CharSequence> lines = Arrays.asList("active_mods = {", "    ['9e8ea941-c306-4751-b367-f00000000005'] = true,", "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}");
     Files.write(gamePrefsPath, lines);
 
     HashSet<String> simMods = new HashSet<>();
@@ -284,11 +280,7 @@ public class ModServiceTest extends UITest {
 
     lines = Files.readAllLines(gamePrefsPath);
 
-    assertThat(lines, contains(
-        "active_mods = {",
-        "    ['9e8ea941-c306-4751-b367-a11000000502'] = true",
-        "}"
-    ));
+    assertThat(lines, contains("active_mods = {", "    ['9e8ea941-c306-4751-b367-a11000000502'] = true", "}"));
   }
 
   @Test
@@ -361,20 +353,20 @@ public class ModServiceTest extends UITest {
     ModUploadTask modUploadTask = mock(ModUploadTask.class);
     when(modUploadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
 
-    when(applicationContext.getBean(ModUploadTask.class)).thenReturn(modUploadTask);
+    when(modUploadTaskFactory.getObject()).thenReturn(modUploadTask);
 
     Path modPath = Path.of(".");
 
     instance.uploadMod(modPath);
 
-    verify(applicationContext).getBean(ModUploadTask.class);
     verify(modUploadTask).setModPath(modPath);
     verify(taskService).submitTask(modUploadTask);
   }
 
   @Test
   public void testLoadThumbnail() throws MalformedURLException {
-    ModVersionBean modVersion = ModVersionBeanBuilder.create().defaultValues()
+    ModVersionBean modVersion = ModVersionBeanBuilder.create()
+        .defaultValues()
         .thumbnailUrl(new URL("http://127.0.0.1:65534/thumbnail.png"))
         .get();
     instance.loadThumbnail(modVersion);
@@ -426,8 +418,7 @@ public class ModServiceTest extends UITest {
 
     Files.createFile(gamePrefsPath);
 
-    when(applicationContext.getBean(DownloadModTask.class))
-        .thenReturn(stubDownloadModTask());
+    when(downloadModTaskFactory.getObject()).thenReturn(stubDownloadModTask());
 
     prepareUninstallModTask(modVersion);
 
@@ -537,6 +528,6 @@ public class ModServiceTest extends UITest {
   private void prepareUninstallModTask(ModVersionBean modToDelete) {
     UninstallModTask task = new UninstallModTask(instance);
     task.setMod(modToDelete);
-    when(applicationContext.getBean(UninstallModTask.class)).thenReturn(task);
+    when(uninstallModTaskFactory.getObject()).thenReturn(task);
   }
 }

@@ -6,7 +6,6 @@ import com.faforever.client.io.ChecksumMismatchException;
 import com.faforever.client.mod.ModService;
 import com.faforever.client.preferences.DataPrefs;
 import com.faforever.client.preferences.ForgedAlliancePrefs;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.task.TaskService;
 import com.faforever.client.update.Version;
 import com.faforever.client.util.ConcurrentUtil;
@@ -14,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -47,11 +46,10 @@ public class GameUpdaterImpl implements GameUpdater {
 
   private final List<FeaturedModUpdater> featuredModUpdaters = new ArrayList<>();
   private final ModService modService;
-  private final ApplicationContext applicationContext;
   private final TaskService taskService;
-  private final PreferencesService preferencesService;
   private final DataPrefs dataPrefs;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final ObjectFactory<GameBinariesUpdateTask> gameBinariesUpdateTaskFactory;
 
   private ComparableVersion gameVersion;
   private String gameType;
@@ -155,7 +153,7 @@ public class GameUpdaterImpl implements GameUpdater {
   }
 
   private CompletableFuture<Void> updateGameBinaries(ComparableVersion version) {
-    GameBinariesUpdateTask binariesUpdateTask = applicationContext.getBean(GameBinariesUpdateTaskImpl.class);
+    GameBinariesUpdateTask binariesUpdateTask = gameBinariesUpdateTaskFactory.getObject();
     binariesUpdateTask.setVersion(version);
     gameVersion = version;
     return taskService.submitTask(binariesUpdateTask).getFuture();

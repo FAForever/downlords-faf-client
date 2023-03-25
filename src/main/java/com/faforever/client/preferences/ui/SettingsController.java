@@ -75,8 +75,8 @@ import javafx.util.StringConverter;
 import javafx.util.converter.NumberStringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -97,7 +97,6 @@ import static com.faforever.client.fx.JavaFxUtil.PATH_STRING_CONVERTER;
 @RequiredArgsConstructor
 public class SettingsController implements Controller<Node> {
 
-  private final ApplicationContext applicationContext;
   private final NotificationService notificationService;
   private final UserService userService;
   private final PreferencesService preferencesService;
@@ -113,6 +112,9 @@ public class SettingsController implements Controller<Node> {
   private final IceServerMapper iceServerMapper;
   private final VaultPathHandler vaultPathHandler;
   private final Preferences preferences;
+  private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
+  private final ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
+  private final ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
 
   public TextField executableDecoratorField;
   public TextField executionDirectoryField;
@@ -602,7 +604,7 @@ public class SettingsController implements Controller<Node> {
       log.info("User changed data directory to: `{}`", newDataDirectory);
       DataPrefs dataPrefs = preferences.getData();
 
-      MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
+      MoveDirectoryTask moveDirectoryTask = moveDirectoryTaskFactory.getObject();
       moveDirectoryTask.setNewDirectory(newDataDirectory);
       moveDirectoryTask.setOldDirectory(dataPrefs.getBaseDataDirectory());
       moveDirectoryTask.setAfterCopyAction(() -> dataPrefs.setBaseDataDirectory(newDataDirectory));
@@ -671,7 +673,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onUpdateDebuggerClicked() {
-    DownloadFAFDebuggerTask downloadFAFDebuggerTask = applicationContext.getBean(DownloadFAFDebuggerTask.class);
+    DownloadFAFDebuggerTask downloadFAFDebuggerTask = downloadFAFDebuggerTaskFactory.getObject();
     taskService.submitTask(downloadFAFDebuggerTask).getFuture().exceptionally(throwable -> {
       useFAFDebuggerToggle.setSelected(false);
       notificationService.addImmediateErrorNotification(throwable, "settings.fa.updateDebugger.failed");
@@ -680,7 +682,7 @@ public class SettingsController implements Controller<Node> {
   }
 
   public void onClearCacheClicked() {
-    DeleteDirectoryTask deleteDirectoryTask = applicationContext.getBean(DeleteDirectoryTask.class);
+    DeleteDirectoryTask deleteDirectoryTask = deleteDirectoryTaskFactory.getObject();
     deleteDirectoryTask.setDirectory(preferences.getData().getCacheDirectory());
 
     taskService.submitTask(deleteDirectoryTask);
