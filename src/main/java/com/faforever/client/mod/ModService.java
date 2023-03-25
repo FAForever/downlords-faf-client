@@ -45,8 +45,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -105,7 +105,6 @@ public class ModService implements InitializingBean, DisposableBean {
 
   private final FafApiAccessor fafApiAccessor;
   private final TaskService taskService;
-  private final ApplicationContext applicationContext;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
@@ -115,6 +114,9 @@ public class ModService implements InitializingBean, DisposableBean {
   private final ModMapper modMapper;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final Preferences preferences;
+  private final ObjectFactory<ModUploadTask> modUploadTaskFactory;
+  private final ObjectFactory<DownloadModTask> downloadModTaskFactory;
+  private final ObjectFactory<UninstallModTask> uninstallModTaskFactory;
 
   private final ModReader modReader = new ModReader();
 
@@ -234,7 +236,7 @@ public class ModService implements InitializingBean, DisposableBean {
 
   public CompletableFuture<Void> downloadAndInstallMod(URL url, @Nullable DoubleProperty progressProperty,
                                                        @Nullable StringProperty titleProperty) {
-    DownloadModTask task = applicationContext.getBean(DownloadModTask.class);
+    DownloadModTask task = downloadModTaskFactory.getObject();
     task.setUrl(url);
     if (progressProperty != null) {
       progressProperty.bind(task.progressProperty());
@@ -273,7 +275,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public CompletableFuture<Void> uninstallMod(ModVersionBean modVersion) {
-    UninstallModTask task = applicationContext.getBean(UninstallModTask.class);
+    UninstallModTask task = uninstallModTaskFactory.getObject();
     task.setMod(modVersion);
     return taskService.submitTask(task).getFuture();
   }
@@ -306,7 +308,7 @@ public class ModService implements InitializingBean, DisposableBean {
   }
 
   public CompletableTask<Void> uploadMod(Path modPath) {
-    ModUploadTask modUploadTask = applicationContext.getBean(ModUploadTask.class);
+    ModUploadTask modUploadTask = modUploadTaskFactory.getObject();
     modUploadTask.setModPath(modPath);
 
     return taskService.submitTask(modUploadTask);

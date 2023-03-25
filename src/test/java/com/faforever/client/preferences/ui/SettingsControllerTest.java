@@ -39,10 +39,9 @@ import javafx.scene.layout.Pane;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.nio.file.Path;
@@ -73,10 +72,8 @@ public class SettingsControllerTest extends UITest {
   private static final Theme FIRST_THEME = new Theme("First", "none", 1, "1");
   private static final Theme SECOND_THEME = new Theme("Second", "none", 1, "1");
 
-  @InjectMocks
   private SettingsController instance;
-  @Mock
-  private ApplicationContext applicationContext;
+
   @Mock
   private UserService userService;
   @Mock
@@ -103,6 +100,12 @@ public class SettingsControllerTest extends UITest {
   private CoturnService coturnService;
   @Mock
   private VaultPathHandler vaultPathHandler;
+  @Mock
+  private ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
+  @Mock
+  private ObjectFactory<DeleteDirectoryTask> deleteDirectoryTaskFactory;
+  @Mock
+  private ObjectFactory<DownloadFAFDebuggerTask> downloadFAFDebuggerTaskFactory;
   @Spy
   private IceServerMapper iceServerMapper = Mappers.getMapper(IceServerMapper.class);
   @Spy
@@ -116,13 +119,8 @@ public class SettingsControllerTest extends UITest {
     preferences.getData().setBaseDataDirectory(Path.of("."));
 
     when(uiService.currentThemeProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(uiService.getCurrentTheme())
-        .thenReturn(FIRST_THEME);
-    when(uiService.getAvailableThemes())
-        .thenReturn(Arrays.asList(
-            FIRST_THEME,
-            SECOND_THEME
-        ));
+    when(uiService.getCurrentTheme()).thenReturn(FIRST_THEME);
+    when(uiService.getAvailableThemes()).thenReturn(Arrays.asList(FIRST_THEME, SECOND_THEME));
     CoturnServer coturnServer = new CoturnServer();
     coturnServer.setHost("Test");
     when(coturnService.getActiveCoturns()).thenReturn(CompletableFuture.completedFuture(List.of(coturnServer)));
@@ -131,11 +129,13 @@ public class SettingsControllerTest extends UITest {
     availableLanguages = new SimpleSetProperty<>(FXCollections.observableSet());
     when(i18n.getAvailableLanguages()).thenReturn(new ReadOnlySetWrapper<>(availableLanguages));
 
+    instance = new SettingsController(notificationService, userService, preferenceService, uiService, i18n, eventBus, platformService, clientProperties, clientUpdateService, gameService, taskService, coturnService, iceServerMapper, vaultPathHandler, preferences, moveDirectoryTaskFactory, deleteDirectoryTaskFactory, downloadFAFDebuggerTaskFactory);
+
     loadFxml("theme/settings/settings.fxml", param -> instance);
   }
 
   @Test
-  public void testThemesDisplayed() throws Exception{
+  public void testThemesDisplayed() throws Exception {
     assertThat(instance.themeComboBox.getSelectionModel().getSelectedItem(), is(FIRST_THEME));
     assertThat(instance.themeComboBox.getItems(), hasItem(FIRST_THEME));
     assertThat(instance.themeComboBox.getItems(), hasItem(SECOND_THEME));
@@ -258,7 +258,7 @@ public class SettingsControllerTest extends UITest {
     MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
     Path newDataLocation = Path.of(".");
     when(platformService.askForPath(any())).thenReturn(Optional.of(newDataLocation));
-    when(applicationContext.getBean(MoveDirectoryTask.class)).thenReturn(moveDirectoryTask);
+    when(moveDirectoryTaskFactory.getObject()).thenReturn(moveDirectoryTask);
 
     instance.onSelectDataLocation();
 
@@ -278,7 +278,7 @@ public class SettingsControllerTest extends UITest {
   @Test
   public void testClearCache() throws Exception {
     DeleteDirectoryTask deleteDirectoryTask = mock(DeleteDirectoryTask.class);
-    when(applicationContext.getBean(DeleteDirectoryTask.class)).thenReturn(deleteDirectoryTask);
+    when(deleteDirectoryTaskFactory.getObject()).thenReturn(deleteDirectoryTask);
     when(taskService.submitTask(any(DeleteDirectoryTask.class))).thenReturn(deleteDirectoryTask);
     when(deleteDirectoryTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     instance.onClearCacheClicked();
@@ -289,7 +289,7 @@ public class SettingsControllerTest extends UITest {
   @Test
   public void testSetFAFDebuggerOn() throws Exception {
     DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
-    when(applicationContext.getBean(DownloadFAFDebuggerTask.class)).thenReturn(downloadFAFDebuggerTask);
+    when(downloadFAFDebuggerTaskFactory.getObject()).thenReturn(downloadFAFDebuggerTask);
     when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
     when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     instance.onUpdateDebuggerClicked();
@@ -300,7 +300,7 @@ public class SettingsControllerTest extends UITest {
   @Test
   public void testSetFAFDebuggerOnException() throws Exception {
     DownloadFAFDebuggerTask downloadFAFDebuggerTask = mock(DownloadFAFDebuggerTask.class);
-    when(applicationContext.getBean(DownloadFAFDebuggerTask.class)).thenReturn(downloadFAFDebuggerTask);
+    when(downloadFAFDebuggerTaskFactory.getObject()).thenReturn(downloadFAFDebuggerTask);
     when(taskService.submitTask(any(DownloadFAFDebuggerTask.class))).thenReturn(downloadFAFDebuggerTask);
     when(downloadFAFDebuggerTask.getFuture()).thenReturn(CompletableFuture.failedFuture(new FakeTestException()));
     instance.onUpdateDebuggerClicked();

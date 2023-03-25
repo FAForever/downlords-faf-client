@@ -1,7 +1,6 @@
 package com.faforever.client.fx;
 
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.preferences.PreferencesService;
 import com.faforever.client.theme.UiService;
 import javafx.concurrent.Worker.State;
 import javafx.event.EventHandler;
@@ -12,8 +11,8 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import lombok.RequiredArgsConstructor;
 import netscape.javascript.JSObject;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -32,8 +31,8 @@ public class WebViewConfigurer {
   private static final double ZOOM_STEP = 0.2d;
 
   private final UiService uiService;
-  private final ApplicationContext applicationContext;
   private final ClientProperties clientProperties;
+  private final ObjectFactory<BrowserCallback> browserCallbackFactory;
 
   public void configureWebView(WebView webView) {
     WebEngine engine = webView.getEngine();
@@ -50,7 +49,7 @@ public class WebViewConfigurer {
       }
     });
 
-    BrowserCallback browserCallback = applicationContext.getBean(BrowserCallback.class);
+    BrowserCallback browserCallback = browserCallbackFactory.getObject();
     EventHandler<MouseEvent> moveHandler = event -> {
       browserCallback.setLastMouseX(event.getScreenX());
       browserCallback.setLastMouseY(event.getScreenY());

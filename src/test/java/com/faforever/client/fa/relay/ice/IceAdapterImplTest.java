@@ -29,7 +29,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.file.Path;
@@ -52,8 +52,6 @@ public class IceAdapterImplTest extends ServiceTest {
   @Mock
   private OperatingSystem operatingSystem;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private ClientProperties clientProperties;
   @Mock
   private PlayerService playerService;
@@ -61,6 +59,8 @@ public class IceAdapterImplTest extends ServiceTest {
   private FafServerAccessor fafServerAccessor;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
 
   @Mock
   private IceAdapterApi iceAdapterApi;
