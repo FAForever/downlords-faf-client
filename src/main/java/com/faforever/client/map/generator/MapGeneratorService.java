@@ -12,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -50,22 +50,29 @@ public class MapGeneratorService implements DisposableBean {
   private static final Pattern VERSION_PATTERN = Pattern.compile("\\d\\d?\\d?\\.\\d\\d?\\d?\\.\\d\\d?\\d?");
   protected static final Pattern GENERATED_MAP_PATTERN = Pattern.compile("neroxis_map_generator_(" + VERSION_PATTERN + ")_(.*)");
 
-  private final ApplicationContext applicationContext;
   private final TaskService taskService;
   private final ClientProperties clientProperties;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final DataPrefs dataPrefs;
   private final WebClient webClient;
+  private final ObjectFactory<GenerateMapTask> generateMapTaskFactory;
+  private final ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory;
+  private final ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory;
 
   private ComparableVersion defaultGeneratorVersion;
 
-  public MapGeneratorService(ApplicationContext applicationContext, TaskService taskService, ClientProperties clientProperties, ForgedAlliancePrefs forgedAlliancePrefs, DataPrefs dataPrefs, Builder webClientBuilder) {
-    this.applicationContext = applicationContext;
+  public MapGeneratorService(TaskService taskService, ClientProperties clientProperties, ForgedAlliancePrefs forgedAlliancePrefs, DataPrefs dataPrefs, Builder webClientBuilder,
+                             ObjectFactory<GenerateMapTask> generateMapTaskFactory,
+                             ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory,
+                             ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory) {
     this.taskService = taskService;
     this.clientProperties = clientProperties;
     this.forgedAlliancePrefs = forgedAlliancePrefs;
     this.dataPrefs = dataPrefs;
-    webClient = webClientBuilder.build();
+    this.webClient = webClientBuilder.build();
+    this.generateMapTaskFactory = generateMapTaskFactory;
+    this.downloadMapGeneratorTaskFactory = downloadMapGeneratorTaskFactory;
+    this.generatorOptionsTaskFactory = generatorOptionsTaskFactory;
   }
 
   @Override
@@ -128,7 +135,7 @@ public class MapGeneratorService implements DisposableBean {
 
     CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(version);
 
-    GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
+    GenerateMapTask generateMapTask = generateMapTaskFactory.getObject();
     generateMapTask.setVersion(version);
     generateMapTask.setSeed(seed);
     generateMapTask.setMapName(mapName);
@@ -142,7 +149,7 @@ public class MapGeneratorService implements DisposableBean {
 
     CompletableFuture<Void> downloadGeneratorFuture = downloadGeneratorIfNecessary(defaultGeneratorVersion);
 
-    GenerateMapTask generateMapTask = applicationContext.getBean(GenerateMapTask.class);
+    GenerateMapTask generateMapTask = generateMapTaskFactory.getObject();
     generateMapTask.setVersion(defaultGeneratorVersion);
     generateMapTask.setGeneratorExecutableFile(generatorExecutablePath);
     generateMapTask.setGeneratorOptions(generatorOptions);
@@ -170,7 +177,7 @@ public class MapGeneratorService implements DisposableBean {
       }
 
       log.info("Downloading MapGenerator version: {}", version);
-      DownloadMapGeneratorTask downloadMapGeneratorTask = applicationContext.getBean(DownloadMapGeneratorTask.class);
+      DownloadMapGeneratorTask downloadMapGeneratorTask = downloadMapGeneratorTaskFactory.getObject();
       downloadMapGeneratorTask.setVersion(version);
       return taskService.submitTask(downloadMapGeneratorTask).getFuture();
     } else {
@@ -187,7 +194,7 @@ public class MapGeneratorService implements DisposableBean {
 
   public CompletableFuture<List<String>> getGeneratorStyles() {
     Assert.checkNullIllegalState(defaultGeneratorVersion, "Generator version not set");
-    GeneratorOptionsTask generatorOptionsTask = applicationContext.getBean(GeneratorOptionsTask.class);
+    GeneratorOptionsTask generatorOptionsTask = generatorOptionsTaskFactory.getObject();
     Path generatorExecutablePath = getGeneratorExecutablePath(defaultGeneratorVersion);
     generatorOptionsTask.setVersion(defaultGeneratorVersion);
     generatorOptionsTask.setQuery("--styles");

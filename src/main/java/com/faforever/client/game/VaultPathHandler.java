@@ -16,7 +16,7 @@ import com.faforever.client.task.TaskService;
 import javafx.scene.control.CheckBox;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -29,11 +29,11 @@ public class VaultPathHandler {
 
   private final PlatformService platformService;
   private final TaskService taskService;
-  private final ApplicationContext applicationContext;
   private final PreferencesService preferencesService;
   private final NotificationService notificationService;
   private final I18n i18n;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
 
   public void verifyVaultPathAndShowWarning() {
     if (preferencesService.isVaultBasePathInvalidForAscii()) {
@@ -61,7 +61,7 @@ public class VaultPathHandler {
   public void onVaultPathUpdated(Path newPath) {
     log.info("User changed vault directory to: `{}`", newPath);
 
-    MoveDirectoryTask moveDirectoryTask = applicationContext.getBean(MoveDirectoryTask.class);
+    MoveDirectoryTask moveDirectoryTask = moveDirectoryTaskFactory.getObject();
     moveDirectoryTask.setOldDirectory(forgedAlliancePrefs.getVaultBaseDirectory());
     moveDirectoryTask.setNewDirectory(newPath);
     moveDirectoryTask.setAfterCopyAction(() -> forgedAlliancePrefs.setVaultBaseDirectory(newPath));

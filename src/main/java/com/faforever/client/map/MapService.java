@@ -60,9 +60,9 @@ import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -113,7 +113,6 @@ public class MapService implements InitializingBean, DisposableBean {
 
   private final NotificationService notificationService;
   private final TaskService taskService;
-  private final ApplicationContext applicationContext;
   private final FafApiAccessor fafApiAccessor;
   private final AssetService assetService;
   private final I18n i18n;
@@ -126,6 +125,9 @@ public class MapService implements InitializingBean, DisposableBean {
   private final ClientProperties clientProperties;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
   private final Preferences preferences;
+  private final ObjectFactory<MapUploadTask> mapUploadTaskFactory;
+  private final ObjectFactory<DownloadMapTask> downloadMapTaskFactory;
+  private final ObjectFactory<UninstallMapTask> uninstallMapTaskFactory;
 
   private final ObservableMap<String, MapVersionBean> mapsByFolderName = FXCollections.observableHashMap();
   @Getter
@@ -420,7 +422,7 @@ public class MapService implements InitializingBean, DisposableBean {
     if (isOfficialMap(mapVersion.getFolderName())) {
       throw new IllegalArgumentException("Attempt to uninstall an official map");
     }
-    UninstallMapTask task = applicationContext.getBean(UninstallMapTask.class);
+    UninstallMapTask task = uninstallMapTaskFactory.getObject();
     task.setMap(mapVersion);
     return taskService.submitTask(task).getFuture();
   }
@@ -451,7 +453,7 @@ public class MapService implements InitializingBean, DisposableBean {
   }
 
   public CompletableTask<Void> uploadMap(Path mapPath, boolean ranked) {
-    MapUploadTask mapUploadTask = applicationContext.getBean(MapUploadTask.class);
+    MapUploadTask mapUploadTask = mapUploadTaskFactory.getObject();
     mapUploadTask.setMapPath(mapPath);
     mapUploadTask.setRanked(ranked);
 
@@ -507,7 +509,7 @@ public class MapService implements InitializingBean, DisposableBean {
       return CompletableFuture.completedFuture(null);
     }
 
-    DownloadMapTask task = applicationContext.getBean(DownloadMapTask.class);
+    DownloadMapTask task = downloadMapTaskFactory.getObject();
     task.setMapUrl(downloadUrl);
     task.setFolderName(folderName);
 

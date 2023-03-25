@@ -37,8 +37,8 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.compressors.CompressorException;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -95,7 +95,6 @@ public class ReplayService {
   private final GameService gameService;
   private final TaskService taskService;
   private final I18n i18n;
-  private final ApplicationContext applicationContext;
   private final PlatformService platformService;
   private final FafApiAccessor fafApiAccessor;
   private final ModService modService;
@@ -103,6 +102,7 @@ public class ReplayService {
   private final FileSizeReader fileSizeReader;
   private final ReplayMapper replayMapper;
   private final DataPrefs dataPrefs;
+  private final ObjectFactory<ReplayDownloadTask> replayDownloadTaskFactory;
 
   @VisibleForTesting
   static Integer parseSupComVersion(ReplayDataParser parser) {
@@ -269,7 +269,7 @@ public class ReplayService {
   }
 
   public CompletableFuture<Path> downloadReplay(int id) {
-    ReplayDownloadTask task = applicationContext.getBean(ReplayDownloadTask.class);
+    ReplayDownloadTask task = replayDownloadTaskFactory.getObject();
     task.setReplayId(id);
     return taskService.submitTask(task).getFuture();
   }

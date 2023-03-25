@@ -15,7 +15,7 @@ import com.google.common.eventbus.Subscribe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -43,9 +43,11 @@ public class ClientUpdateService implements InitializingBean {
   private final NotificationService notificationService;
   private final I18n i18n;
   private final PlatformService platformService;
-  private final ApplicationContext applicationContext;
   private final EventBus eventBus;
   private final Preferences preferences;
+  private final ObjectFactory<CheckForBetaUpdateTask> checkForBetaUpdateTaskFactory;
+  private final ObjectFactory<CheckForUpdateTask> checkForUpdateTaskFactory;
+  private final ObjectFactory<DownloadUpdateTask> downloadUpdateTaskFactory;
 
   private CompletableFuture<UpdateInfo> updateInfoFuture;
   private CompletableFuture<UpdateInfo> updateInfoBetaFuture;
@@ -62,10 +64,10 @@ public class ClientUpdateService implements InitializingBean {
 
     eventBus.register(this);
 
-    CheckForUpdateTask task = applicationContext.getBean(CheckForUpdateTask.class);
+    CheckForUpdateTask task = checkForUpdateTaskFactory.getObject();
     this.updateInfoFuture = taskService.submitTask(task).getFuture();
 
-    CheckForBetaUpdateTask betaTask = applicationContext.getBean(CheckForBetaUpdateTask.class);
+    CheckForBetaUpdateTask betaTask = checkForBetaUpdateTaskFactory.getObject();
     this.updateInfoBetaFuture = taskService.submitTask(betaTask).getFuture();
   }
 
@@ -150,7 +152,7 @@ public class ClientUpdateService implements InitializingBean {
   }
 
   public DownloadUpdateTask downloadAndInstallInBackground(UpdateInfo updateInfo) {
-    DownloadUpdateTask task = applicationContext.getBean(DownloadUpdateTask.class);
+    DownloadUpdateTask task = downloadUpdateTaskFactory.getObject();
     task.setUpdateInfo(updateInfo);
 
     taskService.submitTask(task).getFuture()
