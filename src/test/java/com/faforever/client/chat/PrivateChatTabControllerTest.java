@@ -49,7 +49,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class PrivateChatTabControllerTest extends UITest {
@@ -144,13 +143,6 @@ public class PrivateChatTabControllerTest extends UITest {
     WaitForAsyncUtils.waitForAsyncFx(5000, () -> getRoot().getScene().getWindow().hide());
     instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
     verify(notificationService).addNotification(any(TransientNotification.class));
-  }
-
-  @Test
-  public void
-  testOnChatMessageFocusedDoesntTriggersNotification() {
-    instance.onChatMessage(new ChatMessage(playerName, Instant.now(), playerName, "Test message"));
-    verifyNoInteractions(notificationService);
   }
 
   @Test

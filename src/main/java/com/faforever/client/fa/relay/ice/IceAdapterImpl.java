@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -65,13 +65,13 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
   private static final Logger advancedLogger = LoggerFactory.getLogger("faf-ice-adapter-advanced");
 
   private final OperatingSystem operatingSystem;
-  private final ApplicationContext applicationContext;
   private final PlayerService playerService;
   private final EventBus eventBus;
   private final FafServerAccessor fafServerAccessor;
   private final IceServerMapper iceServerMapper;
   private final Preferences preferences;
   private final ForgedAlliancePrefs forgedAlliancePrefs;
+  private final ObjectFactory<IceAdapterCallbacks> iceAdapterCallbacksFactory;
 
   private final IceAdapterApi iceAdapterProxy = newIceAdapterProxy();
   private GameType gameType;
@@ -134,7 +134,7 @@ public class IceAdapterImpl implements IceAdapter, InitializingBean, DisposableB
         throw new CompletionException(e);
       }
 
-      IceAdapterCallbacks iceAdapterCallbacks = applicationContext.getBean(IceAdapterCallbacks.class);
+      IceAdapterCallbacks iceAdapterCallbacks = iceAdapterCallbacksFactory.getObject();
       initializeIceAdapterConnection(adapterPort, iceAdapterCallbacks);
 
       return gpgPort;

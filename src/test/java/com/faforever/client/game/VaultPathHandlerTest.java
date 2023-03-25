@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 
 import java.nio.file.Path;
 
@@ -31,13 +31,13 @@ public class VaultPathHandlerTest extends UITest {
   @Mock
   private TaskService taskService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private PreferencesService preferencesService;
   @Mock
   private NotificationService notificationService;
   @Mock
   private I18n i18n;
+  @Mock
+  private ObjectFactory<MoveDirectoryTask> moveDirectoryTaskFactory;
   @Spy
   private ForgedAlliancePrefs forgedAlliancePrefs;
 
@@ -48,7 +48,7 @@ public class VaultPathHandlerTest extends UITest {
   public void testOnVaultPathUpdated() {
     MoveDirectoryTask moveDirectoryTask = mock(MoveDirectoryTask.class);
     Path newVaultLocation = Path.of(".");
-    when(applicationContext.getBean(MoveDirectoryTask.class)).thenReturn(moveDirectoryTask);
+    when(moveDirectoryTaskFactory.getObject()).thenReturn(moveDirectoryTask);
 
     instance.onVaultPathUpdated(newVaultLocation);
 

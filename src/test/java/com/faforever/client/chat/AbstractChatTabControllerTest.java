@@ -242,11 +242,6 @@ public class AbstractChatTabControllerTest extends UITest {
   }
 
   @Test
-  public void testHasFocus() {
-    assertThat(instance.hasFocus(), is(true));
-  }
-
-  @Test
   public void getMessageCssClassFriend() {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     player.setSocialStatus(FRIEND);

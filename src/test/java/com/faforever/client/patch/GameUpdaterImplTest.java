@@ -16,7 +16,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import reactor.core.publisher.Mono;
 
 import java.net.URL;
@@ -49,9 +49,9 @@ public class GameUpdaterImplTest extends ServiceTest {
   @Mock
   private SimpleHttpFeaturedModUpdater simpleHttpFeaturedModUpdater;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private TaskService taskService;
+  @Mock
+  private ObjectFactory<GameBinariesUpdateTask> gameBinariesUpdateTaskFactory;
 
   @Mock
   private GameBinariesUpdateTaskImpl gameBinariesUpdateTask;
@@ -71,7 +71,7 @@ public class GameUpdaterImplTest extends ServiceTest {
     dataPrefs.setBaseDataDirectory(tempDir.resolve("faf_temp_data"));
     fafDataDirectory = Files.createDirectories(dataPrefs.getBaseDataDirectory());
     binDirectory = Files.createDirectories(dataPrefs.getBinDirectory());
-    when(applicationContext.getBean(GameBinariesUpdateTaskImpl.class)).thenReturn(gameBinariesUpdateTask);
+    when(gameBinariesUpdateTaskFactory.getObject()).thenReturn(gameBinariesUpdateTask);
     when(taskService.submitTask(gameBinariesUpdateTask)).thenReturn(gameBinariesUpdateTask);
     when(gameBinariesUpdateTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(simpleHttpFeaturedModUpdater.updateMod(any(FeaturedModBean.class), any())).thenAnswer(invocation -> {
@@ -125,7 +125,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), Map.of(), 0).join();
 
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(modService).getFeaturedMod(FAF.getTechnicalName());
@@ -148,7 +147,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), Map.of("1", 100), 0).join();
 
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(modService).getFeaturedMod(FAF.getTechnicalName());
@@ -171,7 +169,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), null, null).join();
 
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(Integer.MAX_VALUE)));
     verify(modService).getFeaturedMod(FAF.getTechnicalName());
@@ -192,7 +189,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     instance.addFeaturedModUpdater(simpleHttpFeaturedModUpdater);
     instance.update(updatedMod, Set.of(), Map.of(), 0).join();
 
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0);
@@ -214,7 +210,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     instance.update(updatedMod, Set.of(modUID), Map.of(), 0).join();
 
     verify(modService, never()).downloadAndInstallMod(modUID);
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0);
@@ -237,7 +232,6 @@ public class GameUpdaterImplTest extends ServiceTest {
     instance.update(updatedMod, Set.of(modUID), Map.of(), 0).join();
 
     verify(modService).downloadAndInstallMod(modUID);
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0);

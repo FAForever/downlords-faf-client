@@ -45,7 +45,7 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
@@ -128,8 +128,6 @@ public class ReplayServiceTest extends ServiceTest {
   @Mock
   private NotificationService notificationService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private TaskService taskService;
   @Mock
   private GameService gameService;
@@ -153,6 +151,8 @@ public class ReplayServiceTest extends ServiceTest {
   private ReplayDataParser replayDataParser;
   @Mock
   private FileSizeReader fileSizeReader;
+  @Mock
+  private ObjectFactory<ReplayDownloadTask> replayDownloadTaskFactory;
   @Spy
   private ReplayMapper replayMapper = Mappers.getMapper(ReplayMapper.class);
   @Spy
@@ -362,7 +362,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
-    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
+    when(replayDownloadTaskFactory.getObject()).thenReturn(replayDownloadTask);
     ReplayBean replay = new ReplayBean();
 
     ReplayMetadata replayMetadata = new ReplayMetadata();
@@ -389,7 +389,7 @@ public class ReplayServiceTest extends ServiceTest {
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
 
-    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
+    when(replayDownloadTaskFactory.getObject()).thenReturn(replayDownloadTask);
     ReplayBean replay = new ReplayBean();
 
     when(replayFileReader.parseReplay(replayFile)).thenReturn(replayDataParser);
@@ -408,7 +408,7 @@ public class ReplayServiceTest extends ServiceTest {
 
     ReplayDownloadTask replayDownloadTask = mock(ReplayDownloadTask.class);
     when(replayDownloadTask.getFuture()).thenReturn(CompletableFuture.completedFuture(replayFile));
-    when(applicationContext.getBean(ReplayDownloadTask.class)).thenReturn(replayDownloadTask);
+    when(replayDownloadTaskFactory.getObject()).thenReturn(replayDownloadTask);
     ReplayBean replay = new ReplayBean();
 
     instance.runReplay(replay);

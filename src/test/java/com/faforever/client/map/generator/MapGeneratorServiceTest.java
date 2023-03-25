@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -63,8 +63,6 @@ public class MapGeneratorServiceTest extends ServiceTest {
   @Mock
   private TaskService taskService;
   @Mock
-  private ApplicationContext applicationContext;
-  @Mock
   private DownloadMapGeneratorTask downloadMapGeneratorTask;
   @Mock
   private GeneratorOptionsTask generatorOptionsTask;
@@ -74,6 +72,12 @@ public class MapGeneratorServiceTest extends ServiceTest {
   private ClientProperties clientProperties;
   @Mock
   private MapGenerator mapGenerator;
+  @Mock
+  private ObjectFactory<GenerateMapTask> generateMapTaskFactory;
+  @Mock
+  private ObjectFactory<DownloadMapGeneratorTask> downloadMapGeneratorTaskFactory;
+  @Mock
+  private ObjectFactory<GeneratorOptionsTask> generatorOptionsTaskFactory;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -87,14 +91,14 @@ public class MapGeneratorServiceTest extends ServiceTest {
     String generatorExecutableName = String.format(MapGeneratorService.GENERATOR_EXECUTABLE_FILENAME, versionGeneratorPresent);
     Files.createFile(tempDirectory.resolve(MapGeneratorService.GENERATOR_EXECUTABLE_SUB_DIRECTORY).resolve(generatorExecutableName));
 
-    when(applicationContext.getBean(DownloadMapGeneratorTask.class)).thenReturn(downloadMapGeneratorTask);
-    when(applicationContext.getBean(GenerateMapTask.class)).thenReturn(generateMapTask);
-    when(applicationContext.getBean(GeneratorOptionsTask.class)).thenReturn(generatorOptionsTask);
+    when(downloadMapGeneratorTaskFactory.getObject()).thenReturn(downloadMapGeneratorTask);
+    when(generateMapTaskFactory.getObject()).thenReturn(generateMapTask);
+    when(generatorOptionsTaskFactory.getObject()).thenReturn(generatorOptionsTask);
     when(clientProperties.getMapGenerator()).thenReturn(mapGenerator);
     when(mapGenerator.getMaxSupportedMajorVersion()).thenReturn(maxVersion);
     when(mapGenerator.getMinSupportedMajorVersion()).thenReturn(minVersion);
 
-    instance = new MapGeneratorService(applicationContext, taskService, clientProperties, forgedAlliancePrefs, dataPrefs, WebClient.builder());
+    instance = new MapGeneratorService(taskService, clientProperties, forgedAlliancePrefs, dataPrefs, WebClient.builder(), generateMapTaskFactory, downloadMapGeneratorTaskFactory, generatorOptionsTaskFactory);
 
     when(downloadMapGeneratorTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
     when(generateMapTask.getFuture()).thenReturn(CompletableFuture.completedFuture(null));
