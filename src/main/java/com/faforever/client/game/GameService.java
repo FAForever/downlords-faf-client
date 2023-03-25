@@ -160,6 +160,7 @@ public class GameService implements InitializingBean {
   private Process replayProcess;
   private CompletableFuture<Void> matchmakerFuture;
   private boolean gameKilled;
+  private boolean replayKilled;
   private boolean rehostRequested;
   private int localReplayPort;
   private boolean inOthersParty;
@@ -588,7 +589,7 @@ public class GameService implements InitializingBean {
         .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> {
               // We need to kill the replay to free the lock on the game.prefs
               if (isReplayRunning()) {
-                gameKilled = true;
+                replayKilled = true;
                 replayProcess.destroy();
               }
               return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard());
@@ -703,6 +704,7 @@ public class GameService implements InitializingBean {
         .thenApply(adapterPort -> {
           fafServerAccessor.setPingIntervalSeconds(5);
           gameKilled = false;
+          replayKilled = false;
           gameParameters.setLocalGpgPort(adapterPort);
           gameParameters.setLocalReplayPort(localReplayPort);
           gameParameters.setRehost(rehostRequested);
@@ -783,7 +785,7 @@ public class GameService implements InitializingBean {
       }
     });
 
-    if (exitCode != 0 && !gameKilled) {
+    if (exitCode != 0 && !(gameKilled || replayKilled)) {
       if (exitCode == -1073741515) {
         notificationService.addImmediateWarnNotification("game.crash.notInitialized");
       } else {
