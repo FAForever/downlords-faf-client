@@ -168,7 +168,7 @@ public class GameUpdaterImplTest extends ServiceTest {
 
     instance.update(updatedMod, Set.of(), Map.of("1", 100), 0, true).join();
 
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
+    verify(gameBinariesUpdateTaskFactory).getObject();
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(modService).getFeaturedMod(FAF.getTechnicalName());
@@ -223,7 +223,7 @@ public class GameUpdaterImplTest extends ServiceTest {
 
     instance.update(updatedMod, Set.of(), Map.of(), 0, true).join();
 
-    verify(applicationContext).getBean(GameBinariesUpdateTaskImpl.class);
+    verify(gameBinariesUpdateTaskFactory).getObject();
     verify(taskService).submitTask(gameBinariesUpdateTask);
     verify(gameBinariesUpdateTask).setVersion(new ComparableVersion(String.valueOf(0)));
     verify(simpleHttpFeaturedModUpdater).updateMod(updatedMod, 0, true);
