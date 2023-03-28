@@ -459,6 +459,7 @@ public class GameService implements InitializingBean {
           }
         }))
         .thenRun(() -> {
+          replayKilled = false;
           try {
             this.replayProcess = forgedAllianceService.startReplay(path, replayId);
             setReplayRunning(true);
@@ -537,15 +538,14 @@ public class GameService implements InitializingBean {
         .thenCompose(featuredModBean -> updateReplayFilesIfNecessary(featuredModBean, simModUids, null, null))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
-          Process processCreated;
+          replayKilled = false;
           try {
-            processCreated = forgedAllianceService.startReplay(replayUrl, gameId);
+            this.replayProcess = forgedAllianceService.startReplay(replayUrl, gameId);
+            setReplayRunning(true);
+            spawnReplayTerminationListener(this.replayProcess);
           } catch (IOException e) {
             throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
           }
-          this.replayProcess = processCreated;
-          setReplayRunning(true);
-          spawnReplayTerminationListener(this.replayProcess);
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
@@ -704,7 +704,6 @@ public class GameService implements InitializingBean {
         .thenApply(adapterPort -> {
           fafServerAccessor.setPingIntervalSeconds(5);
           gameKilled = false;
-          replayKilled = false;
           gameParameters.setLocalGpgPort(adapterPort);
           gameParameters.setLocalReplayPort(localReplayPort);
           gameParameters.setRehost(rehostRequested);
@@ -743,7 +742,7 @@ public class GameService implements InitializingBean {
   CompletableFuture<Void> spawnTerminationListener(Process process, Boolean forOnlineGame) {
     rehostRequested = false;
     return process.onExit().thenAccept(finishedProcess -> {
-      handleTermination(finishedProcess);
+      handleTermination(finishedProcess, false);
 
       synchronized (gameRunning) {
         gameRunning.set(false);
@@ -767,12 +766,12 @@ public class GameService implements InitializingBean {
   @VisibleForTesting
   void spawnReplayTerminationListener(Process process) {
     process.onExit().thenAccept(finishedProcess -> {
-      handleTermination(finishedProcess);
+      handleTermination(finishedProcess, true);
       setReplayRunning(false);
     });
   }
 
-  private void handleTermination(Process finishedProcess) {
+  private void handleTermination(Process finishedProcess, boolean isReplay) {
     fafServerAccessor.setPingIntervalSeconds(25);
     int exitCode = finishedProcess.exitValue();
     log.info("Forged Alliance terminated with exit code {}", exitCode);
@@ -785,7 +784,7 @@ public class GameService implements InitializingBean {
       }
     });
 
-    if (exitCode != 0 && !(gameKilled || replayKilled)) {
+    if (exitCode != 0 && ((!isReplay && !gameKilled) || (isReplay && !replayKilled))) {
       if (exitCode == -1073741515) {
         notificationService.addImmediateWarnNotification("game.crash.notInitialized");
       } else {
