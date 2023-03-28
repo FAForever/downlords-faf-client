@@ -820,37 +820,6 @@
                                                        GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
                                             </children>
                                         </GridPane>
-                                        <GridPane hgap="10.0" styleClass="setting-container">
-                                            <columnConstraints>
-                                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>
-                                                <ColumnConstraints minWidth="10.0"/>
-                                            </columnConstraints>
-                                            <rowConstraints>
-                                                <RowConstraints minHeight="10.0" valignment="TOP" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
-                                            </rowConstraints>
-                                            <children>
-                                                <Label contentDisplay="RIGHT" maxWidth="1.7976931348623157E308"
-                                                       styleClass="setting-title"
-                                                       text="%settings.fa.allowReplayWhileInGame">
-                                                    <graphic>
-                                                        <Label styleClass="button-mini-label"
-                                                               text="%settings.experimental"
-                                                               GridPane.columnIndex="1"/>
-                                                    </graphic>
-                                                </Label>
-                                                <Button fx:id="allowReplayWhileInGameButton" minWidth="-Infinity"
-                                                        mnemonicParsing="false"
-                                                        onAction="#onPatchGamePrefsForMultipleInstances"
-                                                        text="%settings.fa.patchGamePrefs" GridPane.rowIndex="2"/>
-                                                <CheckBox fx:id="allowReplayWhileInGameCheckBox"
-                                                          GridPane.columnIndex="1"/>
-                                                <Label styleClass="setting-description"
-                                                       text="%settings.fa.allowReplayWhileInGame.description"
-                                                       GridPane.columnSpan="2147483647" GridPane.rowIndex="1"/>
-                                            </children>
-                                        </GridPane>
                                         <GridPane styleClass="setting-container">
                                             <columnConstraints>
                                                 <ColumnConstraints hgrow="ALWAYS" minWidth="10.0"/>

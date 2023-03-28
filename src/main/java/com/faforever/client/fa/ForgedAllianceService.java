@@ -88,7 +88,7 @@ public class ForgedAllianceService {
   public Process startReplay(Path path, @Nullable Integer replayId) throws IOException {
     int checkedReplayId = Objects.requireNonNullElse(replayId, -1);
 
-    List<String> launchCommand = defaultLaunchCommand().replayFile(path)
+    List<String> launchCommand = replayLaunchCommand().replayFile(path)
         .replayId(checkedReplayId)
         .logFile(loggingService.getNewGameLogFile(checkedReplayId))
         .build();
@@ -98,7 +98,7 @@ public class ForgedAllianceService {
 
 
   public Process startReplay(URI replayUri, Integer replayId) throws IOException {
-    List<String> launchCommand = defaultLaunchCommand().replayUri(replayUri)
+    List<String> launchCommand = replayLaunchCommand().replayUri(replayUri)
         .replayId(replayId)
         .logFile(loggingService.getNewGameLogFile(replayId))
         .username(playerService.getCurrentPlayer().getUsername())
@@ -111,6 +111,10 @@ public class ForgedAllianceService {
     return dataPrefs.getBinDirectory().resolve(FORGED_ALLIANCE_EXE);
   }
 
+  public Path getReplayExecutablePath() {
+    return dataPrefs.getReplayBinDirectory().resolve(FORGED_ALLIANCE_EXE);
+  }
+
   public Path getDebuggerExecutablePath() {
     return dataPrefs.getBinDirectory().resolve(DEBUGGER_EXE);
   }
@@ -120,10 +124,21 @@ public class ForgedAllianceService {
         .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
         .executable(getExecutablePath());
 
+    return addDebugger(baseCommandBuilder);
+  }
+
+  private LaunchCommandBuilder replayLaunchCommand() {
+    LaunchCommandBuilder baseCommandBuilder = LaunchCommandBuilder.create()
+        .executableDecorator(forgedAlliancePrefs.getExecutableDecorator())
+        .executable(getReplayExecutablePath());
+
+    return addDebugger(baseCommandBuilder);
+  }
+
+  private LaunchCommandBuilder addDebugger(LaunchCommandBuilder baseCommandBuilder) {
     if (forgedAlliancePrefs.isRunFAWithDebugger() && Files.exists(getDebuggerExecutablePath())) {
       baseCommandBuilder = baseCommandBuilder.debuggerExecutable(getDebuggerExecutablePath());
     }
-
     return baseCommandBuilder;
   }
 

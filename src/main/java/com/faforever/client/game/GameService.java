@@ -146,6 +146,7 @@ public class GameService implements InitializingBean {
 
   @VisibleForTesting
   final BooleanProperty gameRunning = new SimpleBooleanProperty();
+  final BooleanProperty replayRunning = new SimpleBooleanProperty();
   ;
   /** TODO: Explain why access needs to be synchronized. */
   @VisibleForTesting
@@ -156,8 +157,10 @@ public class GameService implements InitializingBean {
   private final ObservableList<GameBean> games = JavaFxUtil.attachListToMap(FXCollections.synchronizedObservableList(FXCollections.observableArrayList(game -> new Observable[]{game.statusProperty(), game.teamsProperty(), game.titleProperty(), game.mapFolderNameProperty(), game.simModsProperty(), game.passwordProtectedProperty()})), gameIdToGame);
 
   private Process process;
+  private Process replayProcess;
   private CompletableFuture<Void> matchmakerFuture;
   private boolean gameKilled;
+  private boolean replayKilled;
   private boolean rehostRequested;
   private int localReplayPort;
   private boolean inOthersParty;
@@ -260,6 +263,12 @@ public class GameService implements InitializingBean {
         onLoggedIn();
       }
     });
+
+    try {
+      patchGamePrefsForMultiInstances();
+    } catch (Exception e) {
+      log.error("Game.prefs patch failed", e);
+    }
   }
 
   private Mono<GameBean> initializeGameBean(GameInfo gameInfo) {
@@ -441,7 +450,7 @@ public class GameService implements InitializingBean {
 
     return modService.getFeaturedMod(featuredMod)
         .toFuture()
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
+        .thenCompose(featuredModBean -> updateReplayFilesIfNecessary(featuredModBean, simMods, featuredModFileVersions, baseFafVersion))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapFolderName).handleAsync((ignoredResult, throwable) -> {
           try {
             return askWhetherToStartWithOutMap(throwable);
@@ -450,14 +459,11 @@ public class GameService implements InitializingBean {
           }
         }))
         .thenRun(() -> {
+          replayKilled = false;
           try {
-            Process processForReplay = forgedAllianceService.startReplay(path, replayId);
-            if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
-              return;
-            }
-            this.process = processForReplay;
-            setGameRunning(true);
-            spawnTerminationListener(this.process);
+            this.replayProcess = forgedAllianceService.startReplay(path, replayId);
+            setReplayRunning(true);
+            spawnReplayTerminationListener(this.replayProcess);
           } catch (IOException e) {
             notifyCantPlayReplay(replayId, e);
           }
@@ -469,17 +475,9 @@ public class GameService implements InitializingBean {
   }
 
   private boolean canStartReplay() {
-    if (isRunning() && !forgedAlliancePrefs.isAllowReplaysWhileInGame()) {
-      log.info("Forged Alliance is already running and experimental concurrent game feature not turned on, not starting replay");
-      notificationService.addImmediateWarnNotification("replay.gameRunning");
-      return false;
-    } else if (waitingForMatchMakerGame()) {
-      log.info("In matchmaker queue, not starting replay");
-      notificationService.addImmediateWarnNotification("replay.inQueue");
-      return false;
-    } else if (inOthersParty) {
-      log.info("In party, not starting replay");
-      notificationService.addImmediateWarnNotification("replay.inParty");
+    if (isReplayRunning()) {
+      log.info("Another replay is already running, not starting replay");
+      notificationService.addImmediateWarnNotification("replay.replayRunning");
       return false;
     }
     return true;
@@ -537,21 +535,17 @@ public class GameService implements InitializingBean {
 
     return modService.getFeaturedMod(gameType)
         .toFuture()
-        .thenCompose(featuredModBean -> updateGameIfNecessary(featuredModBean, simModUids))
+        .thenCompose(featuredModBean -> updateReplayFilesIfNecessary(featuredModBean, simModUids, null, null))
         .thenCompose(aVoid -> downloadMapIfNecessary(mapName))
         .thenRun(() -> {
-          Process processCreated;
+          replayKilled = false;
           try {
-            processCreated = forgedAllianceService.startReplay(replayUrl, gameId);
+            this.replayProcess = forgedAllianceService.startReplay(replayUrl, gameId);
+            setReplayRunning(true);
+            spawnReplayTerminationListener(this.replayProcess);
           } catch (IOException e) {
             throw new GameLaunchException("Live replay could not be started", e, "replay.live.startError");
           }
-          if (forgedAlliancePrefs.isAllowReplaysWhileInGame() && isRunning()) {
-            return;
-          }
-          this.process = processCreated;
-          setGameRunning(true);
-          spawnTerminationListener(this.process);
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
@@ -592,7 +586,14 @@ public class GameService implements InitializingBean {
         .toFuture()
         .thenAccept(featuredModBean -> updateGameIfNecessary(featuredModBean, Set.of()))
         .thenCompose(aVoid -> fafServerAccessor.startSearchMatchmaker())
-        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard()))
+        .thenCompose(gameLaunchResponse -> downloadMapIfNecessary(gameLaunchResponse.getMapName()).thenCompose(aVoid -> {
+              // We need to kill the replay to free the lock on the game.prefs
+              if (isReplayRunning()) {
+                replayKilled = true;
+                replayProcess.destroy();
+              }
+              return leaderboardService.getActiveLeagueEntryForPlayer(playerService.getCurrentPlayer(), gameLaunchResponse.getLeaderboard());
+            })
             .thenApply(leagueEntryOptional -> {
               GameParameters parameters = gameMapper.map(gameLaunchResponse);
               parameters.setDivision(leagueEntryOptional.map(bean -> bean.getSubdivision().getDivision().getNameKey())
@@ -644,13 +645,13 @@ public class GameService implements InitializingBean {
   }
 
   public CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids) {
-    return updateGameIfNecessary(featuredModBean, simModUids, null, null);
+    return gameUpdater.update(featuredModBean, simModUids, null, null, false);
   }
 
-  private CompletableFuture<Void> updateGameIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids,
-                                                        @Nullable Map<String, Integer> featuredModFileVersions,
-                                                        @Nullable Integer version) {
-    return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version);
+  private CompletableFuture<Void> updateReplayFilesIfNecessary(FeaturedModBean featuredModBean, Set<String> simModUids,
+                                                               @Nullable Map<String, Integer> featuredModFileVersions,
+                                                               @Nullable Integer version) {
+    return gameUpdater.update(featuredModBean, simModUids, featuredModFileVersions, version, true);
   }
 
   public boolean isGameRunning() {
@@ -662,6 +663,18 @@ public class GameService implements InitializingBean {
   private void setGameRunning(boolean running) {
     synchronized (gameRunning) {
       gameRunning.set(running);
+    }
+  }
+
+  public boolean isReplayRunning() {
+    synchronized (replayRunning) {
+      return replayRunning.get();
+    }
+  }
+
+  private void setReplayRunning(boolean running) {
+    synchronized (replayRunning) {
+      this.replayRunning.set(running);
     }
   }
 
@@ -714,7 +727,7 @@ public class GameService implements InitializingBean {
           setGameRunning(false);
           return null;
         })
-        .thenCompose(this::spawnTerminationListener);
+        .thenCompose(process -> spawnTerminationListener(process, true));
   }
 
   private void onRecentlyPlayedGameEnded(GameBean game) {
@@ -726,34 +739,10 @@ public class GameService implements InitializingBean {
   }
 
   @VisibleForTesting
-  CompletableFuture<Void> spawnTerminationListener(Process process) {
-    return spawnTerminationListener(process, true);
-  }
-
-  @VisibleForTesting
   CompletableFuture<Void> spawnTerminationListener(Process process, Boolean forOnlineGame) {
     rehostRequested = false;
     return process.onExit().thenAccept(finishedProcess -> {
-      fafServerAccessor.setPingIntervalSeconds(25);
-      int exitCode = finishedProcess.exitValue();
-      log.info("Forged Alliance terminated with exit code {}", exitCode);
-      Optional<Path> logFile = loggingService.getMostRecentGameLogFile();
-      logFile.ifPresent(file -> {
-        try {
-          Files.writeString(file, logMasker.maskMessage(Files.readString(file)));
-        } catch (IOException e) {
-          log.warn("Could not open log file", e);
-        }
-      });
-
-      if (exitCode != 0 && !gameKilled) {
-        if (exitCode == -1073741515) {
-          notificationService.addImmediateWarnNotification("game.crash.notInitialized");
-        } else {
-          notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get("game.crash", exitCode, logFile.map(Path::toString)
-              .orElse("")), WARN, List.of(new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(operatingSystem.getLoggingDirectory()))), new DismissAction(i18n))));
-        }
-      }
+      handleTermination(finishedProcess, false);
 
       synchronized (gameRunning) {
         gameRunning.set(false);
@@ -772,6 +761,37 @@ public class GameService implements InitializingBean {
         }
       }
     });
+  }
+
+  @VisibleForTesting
+  void spawnReplayTerminationListener(Process process) {
+    process.onExit().thenAccept(finishedProcess -> {
+      handleTermination(finishedProcess, true);
+      setReplayRunning(false);
+    });
+  }
+
+  private void handleTermination(Process finishedProcess, boolean isReplay) {
+    fafServerAccessor.setPingIntervalSeconds(25);
+    int exitCode = finishedProcess.exitValue();
+    log.info("Forged Alliance terminated with exit code {}", exitCode);
+    Optional<Path> logFile = loggingService.getMostRecentGameLogFile();
+    logFile.ifPresent(file -> {
+      try {
+        Files.writeString(file, logMasker.maskMessage(Files.readString(file)));
+      } catch (IOException e) {
+        log.warn("Could not open log file", e);
+      }
+    });
+
+    if (exitCode != 0 && ((!isReplay && !gameKilled) || (isReplay && !replayKilled))) {
+      if (exitCode == -1073741515) {
+        notificationService.addImmediateWarnNotification("game.crash.notInitialized");
+      } else {
+        notificationService.addNotification(new ImmediateNotification(i18n.get("errorTitle"), i18n.get("game.crash", exitCode, logFile.map(Path::toString)
+            .orElse("")), WARN, List.of(new Action(i18n.get("game.open.log"), event -> platformService.reveal(logFile.orElse(operatingSystem.getLoggingDirectory()))), new DismissAction(i18n))));
+      }
+    }
   }
 
   private void rehost() {
@@ -812,7 +832,7 @@ public class GameService implements InitializingBean {
   }
 
   public void killGame() {
-    if (process != null && process.isAlive()) {
+    if (isRunning()) {
       log.info("ForgedAlliance still running, destroying process");
       process.destroy();
     }

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class ForgedAllianceServiceTest extends ServiceTest {
   @InjectMocks
+  @Spy
   private ForgedAllianceService instance;
   @Mock
   private PlayerService playerService ;
@@ -69,6 +70,7 @@ public class ForgedAllianceServiceTest extends ServiceTest {
     assertThat(throwable.getCause().getMessage(), containsString("error=2"));
 
     verify(loggingService).getNewGameLogFile(0);
+    verify(instance).getReplayExecutablePath();
   }
 
   @Test
@@ -78,5 +80,6 @@ public class ForgedAllianceServiceTest extends ServiceTest {
 
     verify(playerService).getCurrentPlayer();
     verify(loggingService).getNewGameLogFile(0);
+    verify(instance).getReplayExecutablePath();
   }
 }
