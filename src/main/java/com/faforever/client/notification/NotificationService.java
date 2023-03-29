@@ -111,8 +111,8 @@ public class NotificationService {
     addNotification(new PersistentNotification(i18n.get(messageKey, args), ERROR, singletonList(new GetHelpAction(i18n, reportingService))));
   }
 
-  public void addPersistentWarnNotification(String messageKey, List<Action> actions) {
-    addNotification(new PersistentNotification(i18n.get(messageKey), WARN, actions));
+  public void addPersistentWarnNotification(List<Action> actions, String messageKey, Object... args) {
+    addNotification(new PersistentNotification(i18n.get(messageKey, args), WARN, actions));
   }
 
   public void addImmediateErrorNotification(Throwable throwable, String messageKey, Object... args) {
