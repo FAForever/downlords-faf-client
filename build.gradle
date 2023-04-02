@@ -178,7 +178,7 @@ bootRun {
     jvmArgs = [
             "-DnativeDir=build/resources/native",
             "-Dprism.forceGPU=true",
-            "-Xmx712m",
+            "-Xmx1g",
             "-XX:MinHeapFreeRatio=15",
             "-XX:MaxHeapFreeRatio=33",
             "-XX:+HeapDumpOnOutOfMemoryError",

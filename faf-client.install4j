@@ -57,7 +57,7 @@
       <vmOptionsFile mode="content" overwriteMode="3">
         <content># Enter one VM parameter per line
 # Adjust maximum memory usage to 712MiB
--Xmx712m
+-Xmx1g
 -XX:+UseZGC
 -XX:+HeapDumpOnOutOfMemoryError
 -Djava.net.preferIPv4Stack=true
