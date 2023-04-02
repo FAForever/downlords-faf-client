@@ -122,7 +122,7 @@ public class ChatController extends AbstractViewController<AnchorPane> {
     if (tabPane.getSelectionModel().getSelectedIndex() == tabPane.getTabs().size() - 1) {
       tabPane.getSelectionModel().select(tab);
     }
-    nameToChatTabController.get(tab.getId()).onDisplay();
+    tabController.onDisplay();
   }
 
   @Override
