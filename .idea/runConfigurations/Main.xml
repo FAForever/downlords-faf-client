@@ -4,8 +4,8 @@
       <env name="SPRING_PROFILES_ACTIVE" value="prod" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.faforever.client.Main" />
-    <module name="faf-client.main" />
-    <option name="VM_PARAMETERS" value="-DnativeDir=build/resources/native -Dprism.forceGPU=true -Xms128m -Xmx712m -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseStringDeduplication -XX:ConcGCThreads=1 -XX:ParallelGCThreads=1 -XX:+UseG1GC -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 --add-opens=java.base/java.lang=ALL-UNNAMED" />
+    <module name="FAFProjects.faf-client.main" />
+    <option name="VM_PARAMETERS" value="-DnativeDir=build/resources/native -Dprism.forceGPU=true -Xmx712m -XX:MinHeapFreeRatio=15 -XX:MaxHeapFreeRatio=33 -XX:+HeapDumpOnOutOfMemoryError -XX:+UseStringDeduplication -XX:+UseZGC -Djava.net.preferIPv4Stack=true -XX:TieredStopAtLevel=1 --add-opens=java.base/java.lang=ALL-UNNAMED" />
     <RunnerSettings RunnerId="Profile ">
       <option name="myExternalizedOptions" value="additional-options2=onexit\=snapshot,_no_java_version_check" />
     </RunnerSettings>
