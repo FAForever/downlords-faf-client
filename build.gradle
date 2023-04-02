@@ -182,7 +182,6 @@ bootRun {
             "-XX:MinHeapFreeRatio=15",
             "-XX:MaxHeapFreeRatio=33",
             "-XX:+HeapDumpOnOutOfMemoryError",
-            "-XX:+UseStringDeduplication",
             "-XX:+UseZGC",
             "-Djava.net.preferIPv4Stack=true",
             "-XX:TieredStopAtLevel=1",
