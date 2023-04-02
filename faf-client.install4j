@@ -58,9 +58,7 @@
         <content># Enter one VM parameter per line
 # Adjust maximum memory usage to 712MiB
 -Xmx712m
--XX:ConcGCThreads=1
--XX:ParallelGCThreads=1
--XX:+UseG1GC
+-XX:+UseZGC
 -XX:+HeapDumpOnOutOfMemoryError
 -Djava.net.preferIPv4Stack=true
 -DnativeDir=natives
