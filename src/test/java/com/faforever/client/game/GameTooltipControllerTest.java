@@ -43,7 +43,7 @@ public class GameTooltipControllerTest extends UITest {
   public void setUp() throws Exception {
     when(uiService.loadFxml("theme/team_card.fxml")).thenReturn(teamCardController);
     when(teamCardController.getRoot()).then(invocation -> new Pane());
-    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleListProperty<>());
+    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
     when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
     when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
     when(playerService.getPlayerByNameIfOnline(Mockito.anyString())).thenReturn(Optional.of(PlayerBeanBuilder.create().defaultValues().get()));

@@ -105,7 +105,7 @@ public class GameDetailControllerTest extends UITest {
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(teamCardController.getRoot()).then(invocation -> new Pane());
     when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleListProperty<>());
+    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
     when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()

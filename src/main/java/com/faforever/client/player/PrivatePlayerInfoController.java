@@ -77,16 +77,9 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     gameDetailController.setPlaytimeVisible(true);
     gameDetailWrapper.setVisible(false);
 
-    bindProperties();
-    initializeListeners();
-  }
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
 
-  private void initializeListeners() {
-    chatUser.flatMap(ChatChannelUser::playerProperty).addListener(playerChangeListener);
-  }
-
-  private void bindProperties() {
-    ObservableValue<Boolean> playerExistsProperty = chatUser.flatMap(user -> user.playerProperty().isNotNull());
+    ObservableValue<Boolean> playerExistsProperty = chatUser.flatMap(user -> user.playerProperty().isNotNull()).when(showing);
     userImageView.visibleProperty().bind(playerExistsProperty);
     country.visibleProperty().bind(playerExistsProperty);
     ratingsLabels.visibleProperty().bind(playerExistsProperty);
@@ -101,22 +94,24 @@ public class PrivatePlayerInfoController implements Controller<Node> {
     gamesPlayed.textProperty()
         .bind(playerObservable
             .flatMap(PlayerBean::numberOfGamesProperty)
-            .map(i18n::number));
+            .map(i18n::number)
+            .when(showing));
 
-    username.textProperty().bind(chatUser.flatMap(ChatChannelUser::usernameProperty));
+    username.textProperty().bind(chatUser.flatMap(ChatChannelUser::usernameProperty).when(showing));
     country.textProperty().bind(playerObservable
         .flatMap(PlayerBean::countryProperty)
-        .map(i18n::getCountryNameLocalized));
+        .map(i18n::getCountryNameLocalized).when(showing));
     userImageView.imageProperty()
         .bind(playerObservable
             .map(PlayerBean::getId)
-            .map(IdenticonUtil::createIdenticon));
+            .map(IdenticonUtil::createIdenticon).when(showing));
     ObservableValue<GameBean> gameObservable = playerObservable
         .flatMap(PlayerBean::gameProperty);
-    gameDetailController.gameProperty().bind(gameObservable);
+    gameDetailController.gameProperty().bind(gameObservable.when(showing));
     gameDetailWrapper.visibleProperty().bind(gameObservable.flatMap(GameBean::statusProperty)
         .map(status -> status == GameStatus.OPEN || status == GameStatus.PLAYING)
-        .orElse(false));
+        .orElse(false).when(showing));
+    chatUser.flatMap(ChatChannelUser::playerProperty).when(showing).addListener(playerChangeListener);
   }
 
   public void setChatUser(ChatChannelUser chatUser) {

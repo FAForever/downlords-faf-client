@@ -25,6 +25,7 @@ import com.faforever.client.theme.UiService;
 import com.faforever.commons.api.dto.Faction;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -74,31 +75,46 @@ public class PlayerCardController implements Controller<Node> {
     countryImageView.visibleProperty().bind(countryImageView.imageProperty().isNotNull());
     avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
 
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
     factionImage.setImage(new Image(UiService.RANDOM_FACTION_IMAGE));
     factionImage.visibleProperty().bind(faction.map(value -> value == Faction.RANDOM));
     factionIcon.visibleProperty().bind(faction.map(value -> value != Faction.RANDOM && value != Faction.CIVILIAN));
 
     countryImageView.imageProperty()
         .bind(player.flatMap(PlayerBean::countryProperty)
-            .map(country -> countryFlagService.loadCountryFlag(country).orElse(null)));
+            .map(country -> countryFlagService.loadCountryFlag(country).orElse(null))
+            .when(showing));
     avatarImageView.imageProperty()
-        .bind(player.flatMap(PlayerBean::avatarProperty)
-            .map(avatarService::loadAvatar));
+        .bind(player.flatMap(PlayerBean::avatarProperty).map(avatarService::loadAvatar).when(showing));
     playerInfo.textProperty()
         .bind(player.flatMap(PlayerBean::usernameProperty)
             .flatMap(username -> rating.map(value -> i18n.get("userInfo.tooltipFormat.withRating", username, value))
-                .orElse(i18n.get("userInfo.tooltipFormat.noRating", username))));
+                .orElse(i18n.get("userInfo.tooltipFormat.noRating", username)))
+            .when(showing));
     foeIconText.visibleProperty()
-        .bind(player.flatMap(PlayerBean::socialStatusProperty).map(socialStatus -> socialStatus == SocialStatus.FOE));
+        .bind(player.flatMap(PlayerBean::socialStatusProperty)
+            .map(socialStatus -> socialStatus == SocialStatus.FOE)
+            .when(showing));
     friendIconText.visibleProperty()
         .bind(player.flatMap(PlayerBean::socialStatusProperty)
-            .map(socialStatus -> socialStatus == SocialStatus.FRIEND));
-    player.flatMap(PlayerBean::noteProperty).addListener((SimpleChangeListener<String>) this::onNoteChanged);
+            .map(socialStatus -> socialStatus == SocialStatus.FRIEND)
+            .when(showing));
+    player.flatMap(PlayerBean::noteProperty).when(showing).addListener((SimpleChangeListener<String>) this::onNoteChanged);
 
-    faction.addListener(((observable, oldValue, newValue) -> onFactionChanged(oldValue, newValue)));
+    faction.when(showing).addListener(((observable, oldValue, newValue) -> onFactionChanged(oldValue, newValue)));
 
-    initializeNoteTooltip();
-    initializeAvatarTooltip();
+    noteTooltip.textProperty().bind(player.flatMap(PlayerBean::noteProperty).when(showing));
+    noteTooltip.setShowDelay(Duration.ZERO);
+    noteTooltip.setShowDuration(Duration.seconds(30));
+    noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
+
+    Tooltip avatarTooltip = new Tooltip();
+    avatarTooltip.textProperty()
+        .bind(player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty).when(showing));
+    avatarTooltip.setShowDelay(Duration.ZERO);
+    avatarTooltip.setShowDuration(Duration.seconds(30));
+    Tooltip.install(avatarImageView, avatarTooltip);
   }
 
   private void onNoteChanged(String newValue) {
@@ -107,22 +123,6 @@ public class PlayerCardController implements Controller<Node> {
     } else {
       Tooltip.install(root, noteTooltip);
     }
-  }
-
-  private void initializeNoteTooltip() {
-    noteTooltip.textProperty().bind(player.flatMap(PlayerBean::noteProperty));
-    noteTooltip.setShowDelay(Duration.ZERO);
-    noteTooltip.setShowDuration(Duration.seconds(30));
-    noteIcon.visibleProperty().bind(noteTooltip.textProperty().isNotEmpty());
-  }
-
-  private void initializeAvatarTooltip() {
-    Tooltip avatarTooltip = new Tooltip();
-    avatarTooltip.textProperty()
-        .bind(player.flatMap(PlayerBean::avatarProperty).flatMap(AvatarBean::descriptionProperty));
-    avatarTooltip.setShowDelay(Duration.ZERO);
-    avatarTooltip.setShowDuration(Duration.seconds(30));
-    Tooltip.install(avatarImageView, avatarTooltip);
   }
 
   public Node getRoot() {
