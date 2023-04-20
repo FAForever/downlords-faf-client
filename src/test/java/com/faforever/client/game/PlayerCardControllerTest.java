@@ -52,6 +52,7 @@ public class PlayerCardControllerTest extends UITest {
   @BeforeEach
   public void setUp() throws Exception {
     loadFxml("theme/player_card.fxml", clazz -> instance);
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
@@ -173,7 +174,6 @@ public class PlayerCardControllerTest extends UITest {
     PlayerBean player = PlayerBeanBuilder.create().defaultValues().get();
     ContextMenu contextMenuMock = ContextMenuBuilderHelper.mockContextMenuBuilderAndGetContextMenuMock(contextMenuBuilder);
     runOnFxThreadAndWait(() -> {
-      getRoot().getChildren().add(instance.getRoot());
       instance.setPlayer(player);
       instance.setRating(1000);
       instance.setFaction(Faction.RANDOM);

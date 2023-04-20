@@ -82,6 +82,8 @@ public class PrivatePlayerInfoControllerTest extends UITest {
       }
       return instance;
     });
+
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test
