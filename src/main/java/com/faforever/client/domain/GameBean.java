@@ -8,8 +8,8 @@ import javafx.beans.binding.IntegerExpression;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyMapProperty;
-import javafx.beans.property.ReadOnlyMapWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -18,7 +18,6 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableIntegerValue;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -32,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,8 +65,8 @@ public class GameBean {
   /**
    * Maps a sim mod's UID to its name.
    */
-  ReadOnlyMapWrapper<String, String> simMods = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
-  ReadOnlyMapWrapper<Integer, List<Integer>> teams = new ReadOnlyMapWrapper<>(FXCollections.emptyObservableMap());
+  ReadOnlyObjectWrapper<Map<String, String>> simMods = new ReadOnlyObjectWrapper<>(Map.of());
+  ReadOnlyObjectWrapper<Map<Integer, List<Integer>>> teams = new ReadOnlyObjectWrapper<>(Map.of());
   ObservableValue<Set<Integer>> allPlayersInGame = teams.map(team -> team.values()
       .stream()
       .flatMap(Collection::stream)
@@ -246,14 +246,14 @@ public class GameBean {
   }
 
   public void setSimMods(Map<String, String> simMods) {
-    if (this.simMods.equals(simMods)) {
+    if (Objects.equals(this.simMods.get(), simMods)) {
       return;
     }
 
-    this.simMods.set(simMods == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(simMods)));
+    this.simMods.set(simMods == null ? Map.of() : Map.copyOf(simMods));
   }
 
-  public ReadOnlyMapProperty<String, String> simModsProperty() {
+  public ReadOnlyObjectProperty<Map<String, String>> simModsProperty() {
     return simMods.getReadOnlyProperty();
   }
 
@@ -265,14 +265,14 @@ public class GameBean {
   }
 
   public void setTeams(Map<Integer, List<Integer>> teams) {
-    if (this.teams.equals(teams)) {
+    if (Objects.equals(this.teams.get(), teams)) {
       return;
     }
 
-    this.teams.set(teams == null ? FXCollections.emptyObservableMap() : FXCollections.unmodifiableObservableMap(FXCollections.observableMap(teams)));
+    this.teams.set(teams == null ? Map.of() : Map.copyOf(teams));
   }
 
-  public ReadOnlyMapProperty<Integer, List<Integer>> teamsProperty() {
+  public ReadOnlyObjectProperty<Map<Integer, List<Integer>>> teamsProperty() {
     return teams.getReadOnlyProperty();
   }
 

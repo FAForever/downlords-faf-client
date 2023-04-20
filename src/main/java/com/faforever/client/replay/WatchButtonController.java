@@ -16,7 +16,10 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -51,20 +54,26 @@ public class WatchButtonController implements Controller<Node> {
   private ContextMenu contextMenu;
 
   public void initialize() {
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
+
     watchTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 
-    game.flatMap(GameBean::startTimeProperty).addListener((SimpleChangeListener<OffsetDateTime>) this::checkGameTimeline);
+    game.flatMap(GameBean::startTimeProperty)
+        .when(showing)
+        .addListener((SimpleChangeListener<OffsetDateTime>) this::checkGameTimeline);
 
     liveReplayService.trackingLiveReplayProperty()
         .map(TrackingLiveReplay::gameId)
         .flatMap(trackedId -> game.flatMap(GameBean::idProperty).map(trackedId::equals).orElse(false))
+        .when(showing)
         .addListener((SimpleChangeListener<Boolean>) this::updateButtonTrackingClass);
 
     watchButton.onActionProperty()
         .bind(game.flatMap(game -> game.startTimeProperty()
-            .map(startTime -> liveReplayService.canWatchReplay(game))
-            .orElse(false)
-            .map(canWatch -> canWatch ? event -> liveReplayService.runLiveReplay(game.getId()) : event -> showContextMenu())));
+                .map(startTime -> liveReplayService.canWatchReplay(game))
+                .orElse(false)
+                .map(canWatch -> canWatch ? (EventHandler<ActionEvent>) event -> liveReplayService.runLiveReplay(game.getId()) : (EventHandler<ActionEvent>) event -> showContextMenu()))
+            .when(showing));
   }
 
   public void setGame(GameBean game) {
@@ -126,12 +135,16 @@ public class WatchButtonController implements Controller<Node> {
   }
 
   @VisibleForTesting
-  public Timeline getWatchTimeTimeline() {
+  Timeline getWatchTimeTimeline() {
     return watchTimeTimeline;
   }
 
   @Override
   public Node getRoot() {
     return watchButton;
+  }
+
+  public void dispose() {
+    watchTimeTimeline.stop();
   }
 }

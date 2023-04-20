@@ -55,6 +55,7 @@ public class WatchButtonControllerTest extends UITest {
     when(i18n.get("game.watch")).thenReturn("watch");
 
     loadFxml("theme/vault/replay/watch_button.fxml", clazz -> instance);
+    runOnFxThreadAndWait(() -> getRoot().getChildren().add(instance.getRoot()));
   }
 
   @Test

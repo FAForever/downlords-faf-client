@@ -23,7 +23,6 @@ import com.faforever.commons.lobby.GameStatus;
 import com.google.common.eventbus.EventBus;
 import javafx.animation.Animation.Status;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -105,7 +104,7 @@ public class GameDetailControllerTest extends UITest {
     when(watchButtonController.getRoot()).thenReturn(new Button());
     when(teamCardController.getRoot()).then(invocation -> new Pane());
     when(teamCardController.ratingProviderProperty()).thenReturn(new SimpleObjectProperty<>());
-    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleListProperty<>());
+    when(teamCardController.playerIdsProperty()).thenReturn(new SimpleObjectProperty<>());
     when(teamCardController.teamIdProperty()).thenReturn(new SimpleIntegerProperty());
     when(modService.getFeaturedMod(game.getFeaturedMod())).thenReturn(Mono.just(FeaturedModBeanBuilder.create()
         .defaultValues()
@@ -122,7 +121,11 @@ public class GameDetailControllerTest extends UITest {
       }
       return instance;
     });
-    runOnFxThreadAndWait(() -> instance.setGame(game));
+
+    runOnFxThreadAndWait(() -> {
+      getRoot().getChildren().add(instance.getRoot());
+      instance.setGame(game);
+    });
   }
 
   @Test
@@ -199,8 +202,7 @@ public class GameDetailControllerTest extends UITest {
   @Test
   public void testTeamListener() {
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().stream().filter(Node::isVisible).count());
-    runOnFxThreadAndWait(() -> game.getTeams()
-        .putAll(Map.of(1, List.of(1), 2, List.of(2))));
+    runOnFxThreadAndWait(() -> game.getTeams().putAll(Map.of(1, List.of(1), 2, List.of(2))));
     assertEquals(game.getTeams().size(), instance.teamListPane.getChildren().stream().filter(Node::isVisible).count());
   }
 
@@ -355,7 +357,7 @@ public class GameDetailControllerTest extends UITest {
   @Test
   public void testOnGenerateMapClickedAndInProcess() {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
-    when(i18n.get("game.mapGeneration.notification.title" )).thenReturn("in process");
+    when(i18n.get("game.mapGeneration.notification.title")).thenReturn("in process");
 
     when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
       assertEquals("in process", instance.generateMapButton.getText());
@@ -376,8 +378,7 @@ public class GameDetailControllerTest extends UITest {
   public void testOnGenerateMapClickedAndCompleted(boolean succeed) {
     GameBean game = GameBeanBuilder.create().defaultValues().get();
     when(i18n.get("game.create.generatedMap")).thenReturn("text");
-    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(
-        succeed ? CompletableFuture.completedFuture(game.getMapFolderName()) : CompletableFuture.failedFuture(new RuntimeException("failed")));
+    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenReturn(succeed ? CompletableFuture.completedFuture(game.getMapFolderName()) : CompletableFuture.failedFuture(new RuntimeException("failed")));
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);
@@ -397,12 +398,11 @@ public class GameDetailControllerTest extends UITest {
     when(mapService.loadPreview(game.getMapFolderName(), PreviewSize.LARGE)).thenReturn(image);
     when(mapService.loadPreview(anotherGame.getMapFolderName(), PreviewSize.LARGE)).thenReturn(anotherImage);
 
-    when(mapService.generateIfNotInstalled(game.getMapFolderName()))
-        .thenAnswer(invocation -> {
-          assertEquals(image, instance.mapImageView.getImage());
-          runOnFxThreadAndWait(() -> instance.setGame(anotherGame));
-          return CompletableFuture.completedFuture(game.getMapFolderName());
-        });
+    when(mapService.generateIfNotInstalled(game.getMapFolderName())).thenAnswer(invocation -> {
+      assertEquals(image, instance.mapImageView.getImage());
+      runOnFxThreadAndWait(() -> instance.setGame(anotherGame));
+      return CompletableFuture.completedFuture(game.getMapFolderName());
+    });
 
     runOnFxThreadAndWait(() -> {
       instance.setGame(game);

@@ -20,12 +20,14 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
 import javafx.collections.MapChangeListener.Change;
 import javafx.collections.WeakMapChangeListener;
 import javafx.event.Event;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
@@ -50,7 +52,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public ImageView avatarImageView;
   public Region defaultIconImageView;
   public WebView messagesWebView;
-  public TextInputControl messageTextField;
+  public TextField messageTextField;
   public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
 
@@ -71,6 +73,13 @@ public class PrivateChatTabController extends AbstractChatTabController {
     this.avatarService = avatarService;
   }
 
+  public void initialize() {
+    super.initialize();
+    JavaFxUtil.bindManagedToVisible(avatarImageView, defaultIconImageView);
+    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
+    defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull());
+    userOffline = false;
+  }
 
   boolean isUserOffline() {
     return userOffline;
@@ -84,11 +93,14 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   public void setReceiver(String username) {
     super.setReceiver(username);
+
+    ObservableValue<Boolean> showing = getRoot().tabPaneProperty().flatMap(JavaFxUtil::showingProperty);
+
     privateChatTabRoot.setId(username);
     privateChatTabRoot.setText(username);
     playerService.getPlayerByNameIfOnline(username)
         .ifPresent(player -> avatarImageView.imageProperty()
-            .bind(player.avatarProperty().map(avatarService::loadAvatar)));
+            .bind(player.avatarProperty().map(avatarService::loadAvatar).when(showing)));
     ChatChannelUser chatUser = chatService.getOrCreateChatUser(username, username);
     privatePlayerInfoController.setChatUser(chatUser);
     chatService.addUsersListener(username, new WeakMapChangeListener<>(chatUsersByNameListener));
@@ -96,16 +108,8 @@ public class PrivateChatTabController extends AbstractChatTabController {
 
   @Override
   protected void onClosed(Event event) {
+    super.onClosed(event);
     privatePlayerInfoController.dispose();
-  }
-
-  public void initialize() {
-    super.initialize();
-    JavaFxUtil.bindManagedToVisible(avatarImageView, defaultIconImageView);
-    avatarImageView.visibleProperty().bind(avatarImageView.imageProperty().isNotNull());
-    defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull());
-    JavaFxUtil.fixScrollSpeed(gameDetailScrollPane);
-    userOffline = false;
   }
 
   @Override

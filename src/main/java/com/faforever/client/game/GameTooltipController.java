@@ -9,15 +9,10 @@ import com.faforever.client.util.RatingUtil;
 import com.google.common.base.Joiner;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -28,8 +23,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Component
@@ -40,8 +35,11 @@ public class GameTooltipController implements Controller<Node> {
 
   private final ObjectProperty<GameBean> game = new SimpleObjectProperty<>();
   private final BooleanProperty showMods = new SimpleBooleanProperty(true);
-  private final MapProperty<Integer, List<Integer>> teams = new SimpleMapProperty<>(FXCollections.emptyObservableMap());
-  private final ObservableList<Integer> teamIds = new SortedList<>(JavaFxUtil.attachListToMapKeys(FXCollections.observableArrayList(), teams), Comparator.naturalOrder());
+  private final ObservableValue<Map<Integer, List<Integer>>> teams = game.flatMap(GameBean::teamsProperty).orElse(Map.of());
+  private final ObservableValue<List<Integer>> teamIds = teams.map(teamMap -> teamMap.keySet()
+      .stream()
+      .sorted()
+      .toList());
   private final ObservableValue<String> leaderboard = game.flatMap(GameBean::leaderboardProperty);
 
 
@@ -58,9 +56,7 @@ public class GameTooltipController implements Controller<Node> {
             .map(mods -> Joiner.on(System.getProperty("line.separator")).join(mods.values()))
             .flatMap(mods -> showMods.map(show -> show ? mods : "")));
 
-    teams.bind(game.flatMap(GameBean::teamsProperty));
-
-    teamsPane.prefColumnsProperty().bind(Bindings.min(2, Bindings.size(teams)));
+    teamsPane.prefColumnsProperty().bind(teams.map(Map::size));
 
     for (int i = -1; i < 8; i++) {
       TeamCardController teamCardController = uiService.loadFxml("theme/team_card.fxml");
@@ -69,11 +65,13 @@ public class GameTooltipController implements Controller<Node> {
       teamCardController.ratingProviderProperty()
           .bind(leaderboard.map(name -> player -> RatingUtil.getLeaderboardRating(player, name)));
       teamCardController.playerIdsProperty()
-          .bind(Bindings.valueAt(teams, teamCardController.teamIdProperty().asObject())
-              .map(FXCollections::observableList));
-      teamCardController.teamIdProperty().bind(Bindings.valueAt(teamIds, i + 1));
+          .bind(Bindings.createObjectBinding(() -> teams.getValue()
+              .get(teamCardController.getTeamId()), teams, teamCardController.teamIdProperty()));
+      int index = i + 1;
+      teamCardController.teamIdProperty().bind(teamIds.map(ids -> index < ids.size() ? ids.get(index) : null));
       Node teamCardControllerRoot = teamCardController.getRoot();
-      teamCardControllerRoot.visibleProperty().bind(teamCardController.playerIdsProperty().emptyProperty().not());
+      teamCardControllerRoot.visibleProperty()
+          .bind(teamCardController.playerIdsProperty().map(players -> !players.isEmpty()));
       JavaFxUtil.bindManagedToVisible(teamCardControllerRoot);
       teamsPane.getChildren().add(teamCardControllerRoot);
     }

@@ -23,6 +23,7 @@ import javafx.collections.WeakMapChangeListener;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
@@ -39,7 +40,7 @@ public class MatchmakingChatController extends AbstractChatTabController {
 
   public Tab matchmakingChatTabRoot;
   public WebView messagesWebView;
-  public TextInputControl messageTextField;
+  public TextField messageTextField;
   public TextFlow topicText;
   public Hyperlink discordLink;
 
