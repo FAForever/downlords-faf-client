@@ -127,7 +127,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
     root.idProperty().bind(channelName);
     root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")));
-    root.onCloseRequestProperty().bind(chatChannel.map(channel -> event -> chatService.leaveChannel(channel)));
 
     chatUserListController.chatChannelProperty().bind(chatChannel);
 

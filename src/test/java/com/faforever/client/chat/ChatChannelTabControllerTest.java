@@ -330,7 +330,7 @@ public class ChatChannelTabControllerTest extends UITest {
   @Test
   public void testOnTabClosed() {
     initializeDefaultChatChannel();
-    runOnFxThreadAndWait(() -> instance.getRoot().getOnCloseRequest().handle(null));
+    runOnFxThreadAndWait(() -> instance.getRoot().getOnClosed().handle(null));
     verify(chatService).leaveChannel(defaultChatChannel);
   }
 
