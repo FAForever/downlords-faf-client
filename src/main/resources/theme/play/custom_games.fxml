@@ -68,10 +68,16 @@
                         <Insets bottom="10.0" left="10.0" top="10.0" />
                      </padding>
                               </HBox>
-                      <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-                     <padding>
-                        <Insets left="10.0" right="10.0" />
-                     </padding></AnchorPane>
+                      <AnchorPane fx:id="gameViewContainer" maxHeight="1.7976931348623157E308"
+                                  maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                          <padding>
+                              <Insets left="10.0" right="10.0"/>
+                          </padding>
+                          <children>
+                              <fx:include fx:id="gamesTilesContainer" source="games_tiles_container.fxml"/>
+                              <fx:include fx:id="gamesTable" source="games_table.fxml"/>
+                          </children>
+                      </AnchorPane>
                </children>
             </VBox>
                 <ScrollPane fx:id="gameDetailPane" fitToWidth="true" minWidth="200.0" prefWidth="300.0" styleClass="game-detail-pane">

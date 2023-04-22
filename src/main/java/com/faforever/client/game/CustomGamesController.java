@@ -4,6 +4,7 @@ import com.faforever.client.domain.GameBean;
 import com.faforever.client.filter.CustomGamesFilterController;
 import com.faforever.client.fx.AbstractViewController;
 import com.faforever.client.fx.JavaFxUtil;
+import com.faforever.client.fx.ToStringOnlyConverter;
 import com.faforever.client.game.GamesTilesContainerController.TilesSortingOrder;
 import com.faforever.client.i18n.I18n;
 import com.faforever.client.main.event.HostGameEvent;
@@ -20,6 +21,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -34,7 +36,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Popup;
 import javafx.stage.PopupWindow.AnchorLocation;
-import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +61,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private final Preferences preferences;
 
   public GameDetailController gameDetailController;
+  public GamesTableController gamesTableController;
+  public GamesTilesContainerController gamesTilesContainerController;
 
   public ToggleButton tableButton;
   public ToggleButton tilesButton;
@@ -76,48 +79,31 @@ public class CustomGamesController extends AbstractViewController<Node> {
   private FilteredList<GameBean> filteredGames;
   private CustomGamesFilterController customGamesFilterController;
   private Popup gameFilterPopup;
-  private GamesTableController gamesTableController;
-  private GamesTilesContainerController gamesTilesContainerController;
 
   private final Predicate<GameBean> openGamesPredicate = game -> game.getStatus() == GameStatus.OPEN && game.getGameType() == GameType.CUSTOM;
 
   public void initialize() {
-    JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox);
+    JavaFxUtil.bindManagedToVisible(chooseSortingTypeChoiceBox, gameDetailPane);
+    ObservableValue<Boolean> showing = JavaFxUtil.showingProperty(getRoot());
 
     initializeFilterController();
 
-    JavaFxUtil.bind(createGameButton.disableProperty(), gameService.gameRunningProperty());
-    getRoot().sceneProperty().addListener((observable, oldValue, newValue) -> {
-      if (newValue == null) {
-        createGameButton.disableProperty().unbind();
-      }
-    });
+    createGameButton.disableProperty().bind(gameService.gameRunningProperty().when(showing));
 
     chooseSortingTypeChoiceBox.getItems().addAll(TilesSortingOrder.values());
-    chooseSortingTypeChoiceBox.setConverter(new StringConverter<>() {
-      @Override
-      public String toString(TilesSortingOrder tilesSortingOrder) {
-        return tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey());
-      }
-
-      @Override
-      public TilesSortingOrder fromString(String string) {
-        throw new UnsupportedOperationException("Not supported");
-      }
-    });
+    chooseSortingTypeChoiceBox.setConverter(new ToStringOnlyConverter<>(tilesSortingOrder -> tilesSortingOrder == null ? "null" : i18n.get(tilesSortingOrder.getDisplayNameKey())));
 
     filteredGames = new FilteredList<>(gameService.getGames());
     filteredGames.predicateProperty().bind(customGamesFilterController.predicateProperty());
 
     IntegerBinding filteredGameCount = Bindings.size(filteredGames);
     IntegerBinding gameCount = Bindings.size(gameService.getGames().filtered(openGamesPredicate));
-    JavaFxUtil.bind(filteredGamesCountLabel.visibleProperty(), filteredGameCount.isNotEqualTo(gameCount));
+    filteredGamesCountLabel.visibleProperty().bind(filteredGameCount.isNotEqualTo(gameCount).when(showing));
 
-    filteredGamesCountLabel.textProperty()
-        .bind(Bindings.createStringBinding(() -> {
-          int numGames = gameCount.intValue();
-          return i18n.get("filteredOutItemsCount", numGames - filteredGameCount.intValue(), numGames);
-        }, gameCount, filteredGameCount));
+    filteredGamesCountLabel.textProperty().bind(Bindings.createStringBinding(() -> {
+      int numGames = gameCount.intValue();
+      return i18n.get("filteredOutItemsCount", numGames - filteredGameCount.intValue(), numGames);
+    }, gameCount, filteredGameCount).when(showing));
 
     if (tilesButton.getId().equals(preferences.getGamesViewMode())) {
       viewToggleGroup.selectToggle(tilesButton);
@@ -126,6 +112,13 @@ public class CustomGamesController extends AbstractViewController<Node> {
       viewToggleGroup.selectToggle(tableButton);
       tableButton.getOnAction().handle(null);
     }
+
+    preferences.gamesViewModeProperty()
+        .bind(viewToggleGroup.selectedToggleProperty()
+            .map(toggle -> (ToggleButton) toggle)
+            .map(ToggleButton::getId)
+            .when(showing));
+
     viewToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
       if (newValue == null) {
         if (oldValue != null) {
@@ -133,15 +126,15 @@ public class CustomGamesController extends AbstractViewController<Node> {
         } else {
           viewToggleGroup.selectToggle(viewToggleGroup.getToggles().get(0));
         }
-        return;
       }
-      preferences.setGamesViewMode(((ToggleButton) newValue).getId());
     });
 
     gameDetailPane.visibleProperty().bind(toggleGameDetailPaneButton.selectedProperty());
-    gameDetailPane.managedProperty().bind(gameDetailPane.visibleProperty());
 
     toggleGameDetailPaneButton.selectedProperty().bindBidirectional(preferences.showGameDetailsSidePaneProperty());
+
+    gamesTilesContainerController.createTiledFlowPane(filteredGames, chooseSortingTypeChoiceBox);
+    gamesTableController.initializeGameTable(filteredGames);
 
     eventBus.register(this);
   }
@@ -193,11 +186,7 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   public void onTableButtonClicked() {
-    disposeGamesContainer();
-
-    gamesTableController = uiService.loadFxml("theme/play/games_table.fxml");
     gameDetailController.gameProperty().bind(gamesTableController.selectedGameProperty());
-    gamesTableController.initializeGameTable(filteredGames);
     populateContainer(gamesTableController.getRoot());
   }
 
@@ -211,12 +200,8 @@ public class CustomGamesController extends AbstractViewController<Node> {
   }
 
   public void onTilesButtonClicked() {
-    disposeGamesContainer();
-
-    gamesTilesContainerController = uiService.loadFxml("theme/play/games_tiles_container.fxml");
     gameDetailController.gameProperty().bind(gamesTilesContainerController.selectedGameProperty());
     populateContainer(gamesTilesContainerController.getRoot());
-    gamesTilesContainerController.createTiledFlowPane(filteredGames, chooseSortingTypeChoiceBox);
   }
 
   @Subscribe
@@ -232,12 +217,6 @@ public class CustomGamesController extends AbstractViewController<Node> {
             gamesTableController.refreshTable();
           }
         });
-  }
-
-  private void disposeGamesContainer() {
-    if (gamesTilesContainerController != null) {
-      gamesTilesContainerController.removeListeners();
-    }
   }
 
   public void onFilterButtonClicked() {

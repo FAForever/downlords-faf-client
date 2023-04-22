@@ -67,7 +67,7 @@ public class GamesTilesContainerController implements Controller<Node> {
     this.playerService = playerService;
     this.preferences = preferences;
 
-    averageRatingComparator = Comparator.comparingDouble(o -> this.playerService.getAverageRatingForGame((GameBean) o.getUserData()));
+    averageRatingComparator = Comparator.comparingDouble(tile -> this.playerService.getAverageRatingForGame((GameBean) tile.getUserData()));
   }
 
   private void sortNodes() {
@@ -185,11 +185,6 @@ public class GamesTilesContainerController implements Controller<Node> {
 
   public Node getRoot() {
     return tiledScrollPane;
-  }
-
-  public void removeListeners() {
-    JavaFxUtil.removeListener(games, gameListChangeListener);
-    JavaFxUtil.removeListener(sortingTypeChoiceBox.getSelectionModel().selectedItemProperty(), sortingListener);
   }
 
   public enum TilesSortingOrder {

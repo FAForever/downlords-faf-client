@@ -32,15 +32,10 @@ import javafx.animation.Timeline;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleMapProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -117,12 +112,8 @@ public class GameDetailController implements Controller<Pane> {
 
     playTimeTimeline.setCycleCount(Timeline.INDEFINITE);
 
-    root.parentProperty().addListener(observable -> {
-      if (!(root.getParent() instanceof Pane)) {
-        return;
-      }
-      root.maxWidthProperty().bind(((Pane) root.getParent()).widthProperty());
-    });
+    root.maxWidthProperty()
+        .bind(root.parentProperty().flatMap(parent -> parent instanceof Pane pane ? pane.widthProperty() : null));
 
     root.visibleProperty().bind(game.isNotNull());
     gameTitleLabel.textProperty()

@@ -78,6 +78,12 @@ public class CustomGamesControllerTest extends UITest {
     when(gameDetailController.getRoot()).thenReturn(new Pane());
 
     loadFxml("theme/play/custom_games.fxml", clazz -> {
+      if (clazz == GamesTableController.class) {
+        return gamesTableController;
+      }
+      if (clazz == GamesTilesContainerController.class) {
+        return gamesTilesContainerController;
+      }
       if (clazz == GameDetailController.class) {
         return gameDetailController;
       }
