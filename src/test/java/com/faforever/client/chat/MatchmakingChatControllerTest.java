@@ -89,17 +89,10 @@ public class MatchmakingChatControllerTest extends UITest {
   }
 
   @Test
-  public void testSetChannel() {
-    instance.setReceiver("partyName");
-
-    verify(chatService).joinChannel("partyName");
-  }
-
-  @Test
   public void testOnChatMessage() {
     doReturn(false).when(instance).hasFocus();
 
-    instance.onChatMessage(new ChatMessage("junit", Instant.now(), "mock", "test", true));
+    instance.onChatMessage(new ChatMessage(Instant.now(), "mock", "test", true));
 
     verify(eventBus).post(any(UnreadPartyMessageEvent.class));
   }

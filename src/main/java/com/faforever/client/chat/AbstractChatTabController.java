@@ -36,9 +36,10 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 import javafx.concurrent.Worker.State;
 import javafx.css.PseudoClass;
@@ -69,12 +70,12 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -145,10 +146,8 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
    */
   private final List<ChatMessage> waitingMessages = new ArrayList<>();
   private final IntegerProperty unreadMessagesCount = new SimpleIntegerProperty();
-  /**
-   * Either a channel like "#aeolus" or a user like "Visionik".
-   */
-  protected final StringProperty receiver = new SimpleStringProperty();
+  protected final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
+  protected final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName);
 
   private final SimpleInvalidationListener stageFocusedListener = this::focusTextFieldIfStageFocused;
   private final SimpleInvalidationListener resetUnreadMessagesListener = this::clearUnreadIfFocused;
@@ -157,6 +156,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       JavaFxUtil.runLater(() -> messageTextField().requestFocus());
     }
   };
+  private final Consumer<ChatMessage> messageListener = this::onChatMessage;
 
   private int lastEntryId;
   private boolean isChatReady;
@@ -170,6 +170,29 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
   @VisibleForTesting
   Pattern mentionPattern;
+
+  public void initialize() {
+    mentionPattern = Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(userService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
+
+    initChatView();
+
+    addFocusListeners();
+
+    chatChannel.addListener(((observable, oldValue, newValue) -> {
+      if (oldValue != null) {
+        oldValue.removeMessageListener(messageListener);
+      }
+      if (newValue != null) {
+        newValue.addMessageListener(messageListener);
+      }
+    }));
+
+    unreadMessagesCount.addListener((observable, oldValue, newValue) -> incrementUnreadMessageCount(newValue.intValue() - oldValue.intValue()));
+    StageHolder.getStage().focusedProperty().addListener(new WeakInvalidationListener(resetUnreadMessagesListener));
+    getRoot().selectedProperty().addListener(new WeakInvalidationListener(resetUnreadMessagesListener));
+
+    getRoot().setOnClosed(this::onClosed);
+  }
 
   private void focusTextFieldIfStageFocused() {
     Tab root = getRoot();
@@ -240,30 +263,16 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
   }
 
-  public String getReceiver() {
-    return receiver.get();
+  public ChatChannel getChatChannel() {
+    return chatChannel.get();
   }
 
-  public void setReceiver(String receiver) {
-    this.receiver.set(receiver);
+  public void setChatChannel(ChatChannel chatChannel) {
+    this.chatChannel.set(chatChannel);
   }
 
-  public StringProperty receiverProperty() {
-    return receiver;
-  }
-
-  public void initialize() {
-    mentionPattern = Pattern.compile("(^|[^A-Za-z0-9-])" + Pattern.quote(userService.getUsername()) + "([^A-Za-z0-9-]|$)", CASE_INSENSITIVE);
-
-    initChatView();
-
-    addFocusListeners();
-
-    unreadMessagesCount.addListener((observable, oldValue, newValue) -> incrementUnreadMessageCount(newValue.intValue() - oldValue.intValue()));
-    StageHolder.getStage().focusedProperty().addListener(new WeakInvalidationListener(resetUnreadMessagesListener));
-    getRoot().selectedProperty().addListener(new WeakInvalidationListener(resetUnreadMessagesListener));
-
-    getRoot().setOnClosed(this::onClosed);
+  public ObjectProperty<ChatChannel> chatChannelProperty() {
+    return chatChannel;
   }
 
   private void incrementUnreadMessageCount(int delta) {
@@ -271,7 +280,11 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   }
 
   protected void onClosed(Event event) {
-    getRoot().setOnClosed(null);
+    ChatChannel channel = chatChannel.get();
+    if (channel != null) {
+      chatService.leaveChannel(channel);
+      channel.removeMessageListener(messageListener);
+    }
     messageTextField().setOnKeyReleased(null);
   }
 
@@ -396,7 +409,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     messageTextField.setDisable(true);
 
     final String text = messageTextField.getText();
-    chatService.sendMessageInBackground(receiver.get(), text).thenAccept(message -> JavaFxUtil.runLater(() -> {
+    chatService.sendMessageInBackground(chatChannel.get(), text).thenRun(() -> JavaFxUtil.runLater(() -> {
       messageTextField.clear();
       messageTextField.setDisable(false);
       messageTextField.requestFocus();
@@ -415,14 +428,13 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
   private void sendAction(final TextInputControl messageTextField, final String text) {
     messageTextField.setDisable(true);
 
-    chatService.sendActionInBackground(receiver.get(), text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
-        .thenAccept(message -> {
+    chatService.sendActionInBackground(chatChannel.get(), text.replaceFirst(Pattern.quote(ACTION_PREFIX), ""))
+        .thenRun(() -> {
           JavaFxUtil.runLater(() -> {
             messageTextField.clear();
             messageTextField.setDisable(false);
             messageTextField.requestFocus();
           });
-          onChatMessage(new ChatMessage(userService.getUsername(), Instant.now(), userService.getUsername(), message, true));
         })
         .exceptionally(throwable -> {
           throwable = ConcurrentUtil.unwrapIfCompletionException(throwable);
@@ -520,7 +532,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
       html = CharStreams.toString(reader);
     }
 
-    String login = chatMessage.username();
+    String username = chatMessage.username();
     String avatarUrl = "";
     String clanTag = "";
     String decoratedClanTag = "";
@@ -541,7 +553,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     String timeString = timeService.asShortTime(chatMessage.time());
     html = html.replace("{time}", timeString)
         .replace("{avatar}", avatarUrl)
-        .replace("{username}", login)
+        .replace("{username}", username)
         .replace("{clan-tag}", clanTag)
         .replace("{decorated-clan-tag}", decoratedClanTag)
         .replace("{country-flag}", StringUtils.defaultString(countryFlagUrl))
@@ -557,7 +569,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
 
     html = html.replace("{css-classes}", Joiner.on(' ').join(cssClasses));
 
-    Optional.ofNullable(getMessageCssClass(login)).ifPresent(cssClasses::add);
+    Optional.ofNullable(getMessageCssClass(username)).ifPresent(cssClasses::add);
 
     String text = htmlEscaper().escape(chatMessage.message()).replace("\\", "\\\\");
     text = convertUrlsToHyperlinks(text);
@@ -571,7 +583,7 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     }
 
     return html.replace("{css-classes}", Joiner.on(' ').join(cssClasses))
-        .replace("{inline-style}", getInlineStyle(login))
+        .replace("{inline-style}", getInlineStyle(username))
         // Always replace text last in case the message contains one of the placeholders.
         .replace("{text}", text);
   }
@@ -665,13 +677,6 @@ public abstract class AbstractChatTabController implements Controller<Tab> {
     } else {
       JavaFxUtil.runLater(() -> messageTextField().requestFocus());
     }
-  }
-
-  /**
-   * Subclasses may override in order to perform actions when the view is no longer being displayed.
-   */
-  protected void onHide() {
-
   }
 
   public void openEmoticonsPopupWindow() {

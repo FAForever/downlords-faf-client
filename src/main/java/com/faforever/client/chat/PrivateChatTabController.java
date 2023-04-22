@@ -22,9 +22,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.MapChangeListener;
-import javafx.collections.MapChangeListener.Change;
-import javafx.collections.WeakMapChangeListener;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.event.Event;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
@@ -39,6 +38,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static com.faforever.client.player.SocialStatus.FOE;
@@ -57,8 +57,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   public PrivatePlayerInfoController privatePlayerInfoController;
   public ScrollPane gameDetailScrollPane;
 
-  private final MapChangeListener<String, ChatChannelUser> chatUsersByNameListener = this::handlerPlayerChange;
-  private final WeakMapChangeListener<String, ChatChannelUser> weakUsersChangeListener = new WeakMapChangeListener<>(chatUsersByNameListener);
+  private final ListChangeListener<ChatChannelUser> usersChangeListener = this::handlerPlayerChange;
 
   private boolean userOffline;
 
@@ -86,24 +85,24 @@ public class PrivateChatTabController extends AbstractChatTabController {
     defaultIconImageView.visibleProperty().bind(avatarImageView.imageProperty().isNull());
     userOffline = false;
 
-    privateChatTabRoot.idProperty().bind(receiver);
-    privateChatTabRoot.textProperty().bind(receiver);
+    privateChatTabRoot.idProperty().bind(channelName);
+    privateChatTabRoot.textProperty().bind(channelName);
     privatePlayerInfoController.chatUserProperty()
-        .bind(receiver.map(username -> chatService.getOrCreateChatUser(username, username)));
+        .bind(chatChannel.map(channel -> chatService.getOrCreateChatUser(channel.getName(), channel.getName())));
 
     avatarImageView.imageProperty()
-        .bind(receiver.map(username -> playerService.getPlayerByNameIfOnline(username).orElse(null))
+        .bind(channelName.map(username -> playerService.getPlayerByNameIfOnline(username).orElse(null))
             .flatMap(PlayerBean::avatarProperty)
             .map(avatarService::loadAvatar)
             .when(showing));
 
-    receiver.addListener(((observable, oldValue, newValue) -> {
+    chatChannel.addListener(((observable, oldValue, newValue) -> {
       if (oldValue != null) {
-        chatService.removeUsersListener(oldValue, weakUsersChangeListener);
+        oldValue.removeUserListener(usersChangeListener);
       }
 
       if (newValue != null) {
-        chatService.addUsersListener(newValue, weakUsersChangeListener);
+        newValue.addUsersListeners(usersChangeListener);
       }
     }));
   }
@@ -120,6 +119,7 @@ public class PrivateChatTabController extends AbstractChatTabController {
   @Override
   protected void onClosed(Event event) {
     super.onClosed(event);
+    chatChannel.getValue().removeUserListener(usersChangeListener);
     privatePlayerInfoController.dispose();
   }
 
@@ -152,30 +152,32 @@ public class PrivateChatTabController extends AbstractChatTabController {
     }
   }
 
-  private void handlerPlayerChange(Change<? extends String, ? extends ChatChannelUser> change) {
-    if (change.wasRemoved()) {
-      onPlayerDisconnected(change.getKey());
-    }
-    if (change.wasAdded()) {
-      onPlayerConnected(change.getKey());
+  private void handlerPlayerChange(Change<? extends ChatChannelUser> change) {
+    while (change.next()) {
+      if (change.wasRemoved()) {
+        change.getRemoved().forEach(chatUser -> onPlayerDisconnected(chatUser.getUsername()));
+      }
+      if (change.wasAdded()) {
+        List.copyOf(change.getAddedSubList()).forEach(chatUser -> onPlayerConnected(chatUser.getUsername()));
+      }
     }
   }
 
   @VisibleForTesting
   void onPlayerDisconnected(String userName) {
-    if (!userName.equals(getReceiver())) {
+    if (!userName.equals(channelName.getValue())) {
       return;
     }
     userOffline = true;
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true)));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerLeft", userName), true)));
   }
 
   @VisibleForTesting
   void onPlayerConnected(String userName) {
-    if (!userOffline || !userName.equals(getReceiver())) {
+    if (!userOffline || !userName.equals(channelName.getValue())) {
       return;
     }
     userOffline = false;
-    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(userName, Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true)));
+    JavaFxUtil.runLater(() -> onChatMessage(new ChatMessage(Instant.now(), i18n.get("chat.operator") + ":", i18n.get("chat.privateMessage.playerReconnect", userName), true)));
   }
 }

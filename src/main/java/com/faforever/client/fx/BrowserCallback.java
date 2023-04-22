@@ -1,11 +1,11 @@
 package com.faforever.client.fx;
 
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.InitiatePrivateChatEvent;
 import com.faforever.client.chat.UrlPreviewResolver;
 import com.faforever.client.clan.ClanService;
 import com.faforever.client.clan.ClanTooltipController;
 import com.faforever.client.config.ClientProperties;
-import com.faforever.client.main.event.JoinChannelEvent;
 import com.faforever.client.main.event.ShowReplayEvent;
 import com.faforever.client.theme.UiService;
 import com.faforever.client.ui.StageHolder;
@@ -37,6 +37,7 @@ public class BrowserCallback implements InitializingBean {
   private final ClanService clanService;
   private final UiService uiService;
   private final ClientProperties clientProperties;
+  private final ChatService chatService;
   @VisibleForTesting
   Popup clanInfoPopup;
   private Tooltip linkPreviewTooltip;
@@ -71,7 +72,7 @@ public class BrowserCallback implements InitializingBean {
    */
   @SuppressWarnings("unused")
   public void openChannel(String channelName) {
-    eventBus.post(new JoinChannelEvent(channelName));
+    chatService.joinChannel(channelName);
   }
 
   /**

@@ -1,7 +1,6 @@
 package com.faforever.client.chat;
 
 import com.faforever.client.builders.PlayerBeanBuilder;
-import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.config.ClientProperties;
 import com.faforever.client.config.ClientProperties.Irc;
 import com.faforever.client.domain.PlayerBean;
@@ -17,7 +16,7 @@ import com.faforever.commons.lobby.IrcPasswordInfo;
 import com.faforever.commons.lobby.SocialInfo;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.eventbus.EventBus;
-import javafx.collections.MapChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 import org.junit.jupiter.api.AfterEach;
@@ -74,11 +73,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -464,18 +462,17 @@ public class KittehChatServiceTest extends UITest {
   @Test
   public void testChatMessageEventTriggeredByChannelMessage() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).message()))
-        .when(eventBus).post(any());
 
     String message = "chat message";
 
     connect();
 
+    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).addMessageListener(chatMessageFuture::complete);
+
     messageChannel(defaultChannel, user1, message);
 
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(chatMessage.source(), is(defaultChannel.getName()));
     assertThat(chatMessage.message(), is(message));
     assertThat(chatMessage.username(), is(user1.getNick()));
     assertThat(chatMessage.action(), is(false));
@@ -484,18 +481,17 @@ public class KittehChatServiceTest extends UITest {
   @Test
   public void testChatMessageEventTriggeredByChannelAction() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).message()))
-        .when(eventBus).post(any());
 
     String message = "chat action";
 
     connect();
 
+    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).addMessageListener(chatMessageFuture::complete);
+
     actionChannel(defaultChannel, user1, message);
 
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
-    assertThat(chatMessage.source(), is(defaultChannel.getName()));
     assertThat(chatMessage.message(), is(message));
     assertThat(chatMessage.username(), is(user1.getNick()));
     assertThat(chatMessage.action(), is(true));
@@ -504,8 +500,6 @@ public class KittehChatServiceTest extends UITest {
   @Test
   public void testChatMessageEventTriggeredByPrivateMessage() throws Exception {
     CompletableFuture<ChatMessage> chatMessageFuture = new CompletableFuture<>();
-    doAnswer(invocation -> chatMessageFuture.complete(((ChatMessageEvent) invocation.getArgument(0)).message()))
-        .when(eventBus).post(any(ChatMessageEvent.class));
 
     Channel privateChannel = mock(Channel.class);
     when(spyClient.getChannel(user1.getNick())).thenReturn(Optional.of(privateChannel));
@@ -514,12 +508,14 @@ public class KittehChatServiceTest extends UITest {
     String message = "private message";
 
     connect();
+
+    instance.getOrCreateChannel(user1.getNick()).addMessageListener(chatMessageFuture::complete);
+
     sendPrivateMessage(user1, message);
 
     ChatMessage chatMessage = chatMessageFuture.get(TIMEOUT, TIMEOUT_UNIT);
 
     assertThat(chatMessage.message(), is(message));
-    assertThat(chatMessage.source(), is(user1.getNick()));
     assertThat(chatMessage.username(), is(user1.getNick()));
     assertThat(chatMessage.action(), is(false));
   }
@@ -540,9 +536,10 @@ public class KittehChatServiceTest extends UITest {
     String message = "private message";
 
     connect();
-    sendPrivateMessage(user1, message);
 
-    verify(eventBus, never()).post(any(ChatMessageEvent.class));
+    instance.getOrCreateChannel(DEFAULT_CHANNEL_NAME).addMessageListener(ignored -> fail());
+
+    sendPrivateMessage(user1, message);
   }
 
   @Test
@@ -606,8 +603,11 @@ public class KittehChatServiceTest extends UITest {
 
     String message = "test message";
 
-    CompletableFuture<String> future = instance.sendMessageInBackground(DEFAULT_CHANNEL_NAME, message)
-        .toCompletableFuture();
+    CompletableFuture<String> future = new CompletableFuture<>();
+    ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
+    chatChannel.addMessageListener(msg -> future.complete(msg.message()));
+
+    instance.sendMessageInBackground(chatChannel, message);
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(message));
   }
@@ -650,7 +650,7 @@ public class KittehChatServiceTest extends UITest {
   public void testAddChannelUserListListener() {
     connect();
     @SuppressWarnings("unchecked")
-    MapChangeListener<String, ChatChannelUser> listener = mock(MapChangeListener.class);
+    ListChangeListener<ChatChannelUser> listener = mock(ListChangeListener.class);
 
     instance.addUsersListener(DEFAULT_CHANNEL_NAME, listener);
 
@@ -664,7 +664,7 @@ public class KittehChatServiceTest extends UITest {
   public void testLeaveChannel() {
     IrcPasswordInfo event = new IrcPasswordInfo("abc");
     instance.onIrcPassword(event);
-    instance.leaveChannel(DEFAULT_CHANNEL_NAME);
+    instance.leaveChannel(new ChatChannel(DEFAULT_CHANNEL_NAME));
   }
 
   @Test
@@ -673,8 +673,11 @@ public class KittehChatServiceTest extends UITest {
 
     String action = "test action";
 
-    CompletableFuture<String> future = instance.sendActionInBackground(DEFAULT_CHANNEL_NAME, action)
-        .toCompletableFuture();
+    CompletableFuture<String> future = new CompletableFuture<>();
+    ChatChannel chatChannel = new ChatChannel(DEFAULT_CHANNEL_NAME);
+    chatChannel.addMessageListener(msg -> future.complete(msg.message()));
+
+    instance.sendActionInBackground(chatChannel, action);
 
     assertThat(future.get(TIMEOUT, TIMEOUT_UNIT), is(action));
   }
@@ -690,7 +693,7 @@ public class KittehChatServiceTest extends UITest {
   @Test
   public void testIsDefaultChannel() {
     connect();
-    assertTrue(instance.isDefaultChannel(DEFAULT_CHANNEL_NAME));
+    assertTrue(instance.isDefaultChannel(new ChatChannel(DEFAULT_CHANNEL_NAME)));
   }
 
   @Test

@@ -19,14 +19,11 @@ import com.faforever.client.user.UserService;
 import com.faforever.client.util.TimeService;
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.BooleanExpression;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
@@ -86,13 +83,11 @@ public class ChannelTabController extends AbstractChatTabController {
   public Node chatUserList;
   public ChatUserListController chatUserListController;
 
-  private final ObjectProperty<ChatChannel> chatChannel = new SimpleObjectProperty<>();
-  private final ObservableValue<String> channelName = chatChannel.map(ChatChannel::getName).orElse("");
   private final ObservableValue<ChannelTopic> channelTopic = chatChannel.flatMap(ChatChannel::topicProperty);
   private final ObservableValue<ObservableList<ChatChannelUser>> users = chatChannel.map(ChatChannel::getUsers)
       .orElse(FXCollections.emptyObservableList());
   private final ListChangeListener<ChatChannelUser> channelUserListChangeListener = this::updateChangedUsersStyles;
-  private final WeakListChangeListener<ChatChannelUser> weakChatUserListChangeListener = new WeakListChangeListener<>(channelUserListChangeListener);
+
 
   public ChannelTabController(WebViewConfigurer webViewConfigurer, UserService userService, ChatService chatService,
                               PreferencesService preferencesService, PlayerService playerService,
@@ -132,7 +127,7 @@ public class ChannelTabController extends AbstractChatTabController {
 
     root.idProperty().bind(channelName);
     root.textProperty().bind(channelName.map(name -> name.replaceFirst("^#", "")));
-    root.onCloseRequestProperty().bind(channelName.map(name -> event -> chatService.leaveChannel(name)));
+    root.onCloseRequestProperty().bind(chatChannel.map(channel -> event -> chatService.leaveChannel(channel)));
 
     chatUserListController.chatChannelProperty().bind(chatChannel);
 
@@ -140,10 +135,7 @@ public class ChannelTabController extends AbstractChatTabController {
         .orElse(null)).flatMap(ChatChannelUser::moderatorProperty).orElse(false);
     changeTopicTextButton.visibleProperty()
         .bind(BooleanExpression.booleanExpression(isModerator)
-            .and(topicTextField.visibleProperty().not())
-            .when(showing));
-
-    receiver.bind(channelName);
+            .and(topicTextField.visibleProperty().not()));
 
     chatMessageSearchTextField.textProperty().addListener((SimpleChangeListener<String>) this::highlightText);
 
@@ -153,14 +145,14 @@ public class ChannelTabController extends AbstractChatTabController {
     chatPrefs.chatColorModeProperty()
         .when(showing)
         .addListener((SimpleInvalidationListener) () -> users.getValue().forEach(this::updateUserMessageColor));
-    channelTopic.when(showing)
+    channelTopic
         .addListener(((observable, oldValue, newValue) -> updateChannelTopic(oldValue, newValue)));
-    users.when(showing).addListener((observable, oldValue, newValue) -> {
+    users.addListener((observable, oldValue, newValue) -> {
       if (oldValue != null) {
-        oldValue.removeListener(weakChatUserListChangeListener);
+        oldValue.removeListener(channelUserListChangeListener);
       }
       if (newValue != null) {
-        newValue.addListener(weakChatUserListChangeListener);
+        newValue.addListener(channelUserListChangeListener);
       }
     });
 
@@ -168,10 +160,6 @@ public class ChannelTabController extends AbstractChatTabController {
 
     AutoCompletionHelper autoCompletionHelper = getAutoCompletionHelper();
     autoCompletionHelper.bindTo(messageTextField());
-  }
-
-  public void setChatChannel(ChatChannel chatChannel) {
-    this.chatChannel.set(chatChannel);
   }
 
   public AutoCompletionHelper getAutoCompletionHelper() {
@@ -238,19 +226,19 @@ public class ChannelTabController extends AbstractChatTabController {
   private void updateChannelTopic(ChannelTopic oldTopic, ChannelTopic newTopic) {
     String newTopicContent = newTopic.content();
 
-    setChannelTopic(newTopicContent);
+    JavaFxUtil.runLater(() -> {
+      setChannelTopic(newTopicContent);
 
-    if (topicPane.isDisable()) {
-      JavaFxUtil.runLater(() -> {
+      if (topicPane.isDisable()) {
         topicTextField.setVisible(false);
-        changeTopicTextButton.setVisible(true);
         topicPane.setDisable(false);
-      });
-    }
+      }
+    });
+
 
     if (oldTopic != null) {
       String oldTopicContent = oldTopic.content();
-      onChatMessage(new ChatMessage(channelName.getValue(), Instant.now(), newTopic.author(), i18n.get("chat.topicUpdated", oldTopicContent, newTopicContent)));
+      onChatMessage(new ChatMessage(Instant.now(), newTopic.author(), i18n.get("chat.topicUpdated", oldTopicContent, newTopicContent)));
     }
   }
 
@@ -335,7 +323,10 @@ public class ChannelTabController extends AbstractChatTabController {
 
   @Override
   protected String getInlineStyle(String username) {
-    ChatChannelUser user = chatService.getOrCreateChatUser(username, channelName.getValue());
+    ChatChannelUser user = chatChannel.map(channel -> channel.getUser(username).orElse(null)).getValue();
+    if (user == null) {
+      return "";
+    }
 
     if (chatPrefs.isHideFoeMessages() && user.getCategories()
         .stream()
@@ -358,7 +349,7 @@ public class ChannelTabController extends AbstractChatTabController {
     String normalizedText = StringUtils.normalizeSpace(topicTextField.getText());
     if (!normalizedText.equals(channelTopic.getValue().content())) {
       topicPane.setDisable(true);
-      chatService.setChannelTopic(channelName.getValue(), normalizedText);
+      chatService.setChannelTopic(chatChannel.getValue(), normalizedText);
     } else {
       onCancelChangesTopicTextButtonClicked();
     }

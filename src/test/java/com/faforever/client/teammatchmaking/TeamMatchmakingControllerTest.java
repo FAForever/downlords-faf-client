@@ -8,9 +8,8 @@ import com.faforever.client.builders.PartyBuilder;
 import com.faforever.client.builders.PartyBuilder.PartyMemberBuilder;
 import com.faforever.client.builders.PlayerBeanBuilder;
 import com.faforever.client.builders.SubdivisionBeanBuilder;
-import com.faforever.client.chat.ChatMessage;
+import com.faforever.client.chat.ChatService;
 import com.faforever.client.chat.MatchmakingChatController;
-import com.faforever.client.chat.event.ChatMessageEvent;
 import com.faforever.client.domain.MatchmakerQueueBean;
 import com.faforever.client.domain.PartyBean;
 import com.faforever.client.domain.PlayerBean;
@@ -38,7 +37,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.testfx.util.WaitForAsyncUtils;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -54,7 +52,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,6 +76,10 @@ public class TeamMatchmakingControllerTest extends UITest {
   private TeamMatchmakingService teamMatchmakingService;
   @Mock
   private EventBus eventBus;
+  @Mock
+  private ChatService chatService;
+  @Mock
+  private MatchmakingChatController matchmakingChatController;
   @Spy
   private MatchmakerPrefs matchmakerPrefs;
   @InjectMocks
@@ -109,11 +110,8 @@ public class TeamMatchmakingControllerTest extends UITest {
     when(i18n.getOrDefault(anyString(), anyString())).thenReturn("");
     when(i18n.get("teammatchmaking.inPlacement")).thenReturn("In Placement");
     when(i18n.get(eq("leaderboard.divisionName"), anyString(), anyString())).thenReturn("division V");
-    when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> {
-      MatchmakingChatController controller = mock(MatchmakingChatController.class);
-      when(controller.getRoot()).thenReturn(new Tab());
-      return controller;
-    });
+    when(matchmakingChatController.getRoot()).thenReturn(new Tab());
+    when(uiService.loadFxml("theme/play/teammatchmaking/matchmaking_chat.fxml")).thenAnswer(invocation -> matchmakingChatController);
 
     loadFxml("theme/play/team_matchmaking.fxml", clazz -> instance);
   }
@@ -196,28 +194,6 @@ public class TeamMatchmakingControllerTest extends UITest {
     assertThat(instance.aeonButton.isSelected(), is(true));
     assertThat(instance.cybranButton.isSelected(), is(true));
     assertThat(instance.seraphimButton.isSelected(), is(true));
-  }
-
-  @Test
-  public void testOnPartyChatMessage() {
-    ChatMessage message = new ChatMessage("#tester'sParty", Instant.now(), "user", "message");
-    when(instance.matchmakingChatController.getReceiver()).thenReturn("#tester'sParty");
-
-    instance.onChatMessage(new ChatMessageEvent(message));
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(instance.matchmakingChatController).onChatMessage(message);
-  }
-
-  @Test
-  public void testOnOtherChatMessage() {
-    ChatMessage message = new ChatMessage("#other'sParty", Instant.now(), "user", "message");
-    when(instance.matchmakingChatController.getReceiver()).thenReturn("#tester'sParty");
-
-    instance.onChatMessage(new ChatMessageEvent(message));
-    WaitForAsyncUtils.waitForFxEvents();
-
-    verify(instance.matchmakingChatController, never()).onChatMessage(message);
   }
 
   @Test

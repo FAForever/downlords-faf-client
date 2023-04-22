@@ -65,8 +65,6 @@ import static org.mockito.Mockito.when;
 
 public class AbstractChatTabControllerTest extends UITest {
 
-  private static final long TIMEOUT = 5000;
-
   @Mock
   private ChatService chatService;
   @Mock
@@ -156,66 +154,66 @@ public class AbstractChatTabControllerTest extends UITest {
 
   @Test
   public void testOnSendMessageSuccessful() {
-    String receiver = "receiver";
     String message = "Some message";
+    ChatChannel chatChannel = new ChatChannel("#Test");
     instance.messageTextField().setText(message);
-    instance.setReceiver(receiver);
-    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
+    instance.setChatChannel(chatChannel);
+    when(chatService.sendMessageInBackground(any(), any())).thenReturn(completedFuture(null));
 
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
-    verify(chatService).sendMessageInBackground(eq(receiver), eq(message));
+    verify(chatService).sendMessageInBackground(eq(chatChannel), eq(message));
     assertThat(instance.messageTextField().getText(), is(emptyString()));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageFailed() {
-    String receiver = "receiver";
+    ChatChannel chatChannel = new ChatChannel("#Test");
     String message = "Some message";
     instance.messageTextField().setText(message);
-    instance.setReceiver(receiver);
+    instance.setChatChannel(chatChannel);
 
-    CompletableFuture<String> future = new CompletableFuture<>();
+    CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
-    when(chatService.sendMessageInBackground(eq(receiver), any())).thenReturn(future);
+    when(chatService.sendMessageInBackground(any(), any())).thenReturn(future);
 
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
-    verify(chatService).sendMessageInBackground(receiver, message);
+    verify(chatService).sendMessageInBackground(chatChannel, message);
     assertThat(instance.messageTextField().getText(), is(message));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageSendActionSuccessful() {
-    String receiver = "receiver";
+    ChatChannel chatChannel = new ChatChannel("#Test");
     String message = "/me is happy";
     instance.messageTextField().setText(message);
-    instance.setReceiver(receiver);
-    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(completedFuture(message));
+    instance.setChatChannel(chatChannel);
+    when(chatService.sendActionInBackground(any(), any())).thenReturn(completedFuture(null));
 
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
-    verify(chatService).sendActionInBackground(eq(receiver), eq("is happy"));
+    verify(chatService).sendActionInBackground(eq(chatChannel), eq("is happy"));
     assertThat(instance.messageTextField().getText(), is(emptyString()));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
 
   @Test
   public void testOnSendMessageSendActionFailed() {
-    String receiver = "receiver";
+    ChatChannel chatChannel = new ChatChannel("#Test");
     String message = "/me is happy";
     instance.messageTextField().setText(message);
-    instance.setReceiver(receiver);
+    instance.setChatChannel(chatChannel);
 
-    CompletableFuture<String> future = new CompletableFuture<>();
+    CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new FakeTestException());
-    when(chatService.sendActionInBackground(eq(receiver), any())).thenReturn(future);
+    when(chatService.sendActionInBackground(any(), any())).thenReturn(future);
 
     runOnFxThreadAndWait(() -> instance.onSendMessage());
 
-    verify(chatService).sendActionInBackground(receiver, "is happy");
+    verify(chatService).sendActionInBackground(chatChannel, "is happy");
     assertThat(instance.messageTextField().getText(), is(message));
     assertThat(instance.messageTextField().isDisable(), is(false));
   }
@@ -232,13 +230,13 @@ public class AbstractChatTabControllerTest extends UITest {
   @Test
   public void testOnChatMessage() {
     // TODO assert something, maybe we can spy on engine
-    instance.onChatMessage(new ChatMessage("", Instant.now(), "junit", "Test message"));
+    instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test message"));
   }
 
   @Test
   public void testOnChatMessageAction() {
     // TODO assert something, maybe we can spy on engine
-    instance.onChatMessage(new ChatMessage("", Instant.now(), "junit", "Test action", true));
+    instance.onChatMessage(new ChatMessage(Instant.now(), "junit", "Test action", true));
   }
 
   @Test
